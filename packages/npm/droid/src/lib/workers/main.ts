@@ -48,56 +48,81 @@ async function initWsComlink(opts?: {
 }): Promise<Remote<WSInstance>> {
   let api: Remote<WSInstance> | null = null;
 
-  // 1. Try Vite-style import
-  try {
-    const worker = new SharedWorker(new URL('./ws-worker.ts', import.meta.url), {
-      type: 'module',
-    });
-    worker.port.start();
-    api = wrap<WSInstance>(worker.port);
-  } catch (err) {
-    console.warn('[DROID] ws-worker import.meta fallback failed:', err);
-  }
-
-  // 2. Try hardcoded path
-  if (!api) {
-    try {
-      const worker = new SharedWorker('/ws-worker.js', { type: 'module' });
-      worker.port.start();
-      api = wrap<WSInstance>(worker.port);
-    } catch (err) {
-      console.warn('[DROID] ws-worker hardcoded fallback failed:', err);
-    }
-  }
-
-  // 3. Try provided SharedWorker reference
-  if (!api && opts?.workerRef) {
+  // 1. Try provided SharedWorker reference
+  if (opts?.workerRef) {
     try {
       opts.workerRef.port.start();
       api = wrap<WSInstance>(opts.workerRef.port);
+      return api;
     } catch (err) {
       console.warn('[DROID] ws-worker workerRef failed:', err);
     }
   }
 
-  // 4. Try provided URL
-  if (!api && opts?.workerURL) {
+  // 2. Try provided URL
+  if (opts?.workerURL) {
     try {
       const worker = new SharedWorker(opts.workerURL, { type: 'module' });
       worker.port.start();
       api = wrap<WSInstance>(worker.port);
+      return api;
     } catch (err) {
       console.warn('[DROID] ws-worker workerURL failed:', err);
     }
   }
 
-  // 5. Final failure
-  if (!api) {
-    console.error('[DROID] No WS Worker Comlink Initialized');
-    throw new Error('[DROID] Failed to initialize ws-worker');
+  // 3. Vite-style TS import
+  try {
+    const worker = new SharedWorker(
+      new URL('./ws-worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+    worker.port.start();
+    api = wrap<WSInstance>(worker.port);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] ws-worker vite-style .ts import failed:', err);
   }
 
-  return api;
+  // 4. Same-dir .js fallback
+  try {
+    const worker = new SharedWorker(
+      new URL('./ws-worker.js', import.meta.url),
+      { type: 'module' },
+    );
+    worker.port.start();
+    api = wrap<WSInstance>(worker.port);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] ws-worker ./ws-worker.js fallback failed:', err);
+  }
+
+  // 5. Root-relative fallback with import.meta.url context
+  try {
+    const worker = new SharedWorker(
+      new URL('/ws-worker.js', import.meta.url),
+      { type: 'module' },
+    );
+    worker.port.start();
+    api = wrap<WSInstance>(worker.port);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] ws-worker /ws-worker.js meta-relative failed:', err);
+  }
+
+  // 6. Browser-root hardcoded path
+  try {
+    const worker = new SharedWorker('/ws-worker.js', { type: 'module' });
+    worker.port.start();
+    api = wrap<WSInstance>(worker.port);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] ws-worker absolute hardcoded fallback failed:', err);
+  }
+
+  // 7. Final failure
+  console.error('[DROID] No WS Worker Comlink Initialized');
+  throw new Error('[DROID] Failed to initialize ws-worker');
 }
 
 
@@ -131,53 +156,83 @@ const uiuxState = persistentMap<{
 		decode: JSON.parse,
 	},
 );
-
 async function initCanvasComlink(opts?: {
-	workerRef?: Worker;
-	workerURL?: string;
+  workerRef?: Worker;
+  workerURL?: string;
 }): Promise<Remote<CanvasWorkerAPI>> {
-	// 1. Try Vite-style import resolution
-	try {
-		const worker = new Worker(
-			new URL('./canvas-worker.ts', import.meta.url),
-			{ type: 'module' },
-		);
-		return wrap<CanvasWorkerAPI>(worker);
-	} catch (err) {
-		console.warn('[DROID] Vite-style canvas-worker import failed:', err);
-	}
+  let api: Remote<CanvasWorkerAPI> | null = null;
 
-	// 2. Try hardcoded path fallback
-	try {
-		const worker = new Worker('./canvas-worker.js', { type: 'module' });
-		return wrap<CanvasWorkerAPI>(worker);
-	} catch (err) {
-		console.warn('[DROID] Fallback /canvas-worker.js failed:', err);
-	}
+  // 1. Try direct Worker reference
+  if (opts?.workerRef) {
+    try {
+      api = wrap<CanvasWorkerAPI>(opts.workerRef);
+      return api;
+    } catch (err) {
+      console.warn('[DROID] Provided canvasWorkerRef failed:', err);
+    }
+  }
 
-	// 3. Try direct Worker instance
-	if (opts?.workerRef) {
-		try {
-			return wrap<CanvasWorkerAPI>(opts.workerRef);
-		} catch (err) {
-			console.warn('[DROID] Provided workerRef failed:', err);
-		}
-	}
+  // 2. Try provided worker URL
+  if (opts?.workerURL) {
+    try {
+      const worker = new Worker(opts.workerURL, { type: 'module' });
+      api = wrap<CanvasWorkerAPI>(worker);
+      return api;
+    } catch (err) {
+      console.warn('[DROID] Provided canvasWorkerURL failed:', err);
+    }
+  }
 
-	// 4. Try provided URL
-	if (opts?.workerURL) {
-		try {
-			const worker = new Worker(opts.workerURL, { type: 'module' });
-			return wrap<CanvasWorkerAPI>(worker);
-		} catch (err) {
-			console.warn('[DROID] Provided workerURL failed:', err);
-		}
-	}
+  // 3. Vite-style dev import (.ts)
+  try {
+    const worker = new Worker(
+      new URL('./canvas-worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+    api = wrap<CanvasWorkerAPI>(worker);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] Vite-style canvas-worker.ts import failed:', err);
+  }
 
-	// 5. Failure
-	console.error('[DROID] No Canvas Comlink Initialized');
-	throw new Error('[DROID] Failed to initialize canvas worker');
+  // 4. Same-dir .js fallback
+  try {
+    const worker = new Worker(
+      new URL('./canvas-worker.js', import.meta.url),
+      { type: 'module' },
+    );
+    api = wrap<CanvasWorkerAPI>(worker);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] canvas-worker.js (same dir) fallback failed:', err);
+  }
+
+  // 5. Root-relative (import.meta-aware) path
+  try {
+    const worker = new Worker(
+      new URL('/canvas-worker.js', import.meta.url),
+      { type: 'module' },
+    );
+    api = wrap<CanvasWorkerAPI>(worker);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] /canvas-worker.js (meta-relative) fallback failed:', err);
+  }
+
+  // 6. Absolute fallback
+  try {
+    const worker = new Worker('/canvas-worker.js', { type: 'module' });
+    api = wrap<CanvasWorkerAPI>(worker);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] canvas-worker.js (absolute root) fallback failed:', err);
+  }
+
+  // 7. Final failure
+  console.error('[DROID] No Canvas Comlink Initialized');
+  throw new Error('[DROID] Failed to initialize canvas worker');
 }
+
 
 export const uiux = {
 	state: uiuxState,
@@ -333,75 +388,100 @@ function initSWComlink() {
 }
 
 async function initStorageComlink(opts?: {
-	workerRef?: SharedWorker;
-	workerURL?: string;
+  workerRef?: SharedWorker;
+  workerURL?: string;
 }): Promise<Remote<LocalStorageAPI>> {
-	let api: Remote<LocalStorageAPI> | null = null;
-	// 1. Try Vite-style import
-	try {
-		const worker = new SharedWorker(
-			new URL('./db-worker.ts', import.meta.url),
-			{
-				type: 'module',
-			},
-		);
-		worker.port.start();
-		api = wrap<LocalStorageAPI>(worker.port);
-	} catch (err) {
-		console.warn('[DROID] db-worker import.meta fallback failed:', err);
-	}
+  let api: Remote<LocalStorageAPI> | null = null;
 
-	// 2. Try hardcoded path
-	if (!api) {
-		try {
-			const worker = new SharedWorker('/db-worker.js', {
-				type: 'module',
-			});
-			worker.port.start();
-			api = wrap<LocalStorageAPI>(worker.port);
-		} catch (err) {
-			console.warn('[DROID] db-worker hardcoded fallback failed:', err);
-		}
-	}
+  // 1. Try provided SharedWorker reference
+  if (opts?.workerRef) {
+    try {
+      opts.workerRef.port.start();
+      api = wrap<LocalStorageAPI>(opts.workerRef.port);
+      return await finalize(api);
+    } catch (err) {
+      console.warn('[DROID] db-worker workerRef failed:', err);
+    }
+  }
 
-	// 3. Try provided SharedWorker reference
-	if (!api && opts?.workerRef) {
-		try {
-			opts.workerRef.port.start();
-			api = wrap<LocalStorageAPI>(opts.workerRef.port);
-		} catch (err) {
-			console.warn('[DROID] db-worker workerRef failed:', err);
-		}
-	}
+  // 2. Try provided URL
+  if (opts?.workerURL) {
+    try {
+      const worker = new SharedWorker(opts.workerURL, { type: 'module' });
+      worker.port.start();
+      api = wrap<LocalStorageAPI>(worker.port);
+      return await finalize(api);
+    } catch (err) {
+      console.warn('[DROID] db-worker workerURL failed:', err);
+    }
+  }
 
-	// 4. Try provided URL
-	if (!api && opts?.workerURL) {
-		try {
-			const worker = new SharedWorker(opts.workerURL, { type: 'module' });
-			worker.port.start();
-			api = wrap<LocalStorageAPI>(worker.port);
-		} catch (err) {
-			console.warn('[DROID] db-worker workerURL failed:', err);
-		}
-	}
+  // 3. Vite-style TS dev import
+  try {
+    const worker = new SharedWorker(
+      new URL('./db-worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+    worker.port.start();
+    api = wrap<LocalStorageAPI>(worker.port);
+    return await finalize(api);
+  } catch (err) {
+    console.warn('[DROID] db-worker .ts vite-style import failed:', err);
+  }
 
-	// 5. Final failure
-	if (!api) {
-		console.error('[DROID] No DB Worker Comlink Initialized');
-		throw new Error('[DROID] Failed to initialize db-worker');
-	}
+  // 4. Same-dir .js fallback
+  try {
+    const worker = new SharedWorker(
+      new URL('./db-worker.js', import.meta.url),
+      { type: 'module' },
+    );
+    worker.port.start();
+    api = wrap<LocalStorageAPI>(worker.port);
+    return await finalize(api);
+  } catch (err) {
+    console.warn('[DROID] db-worker.js same-dir fallback failed:', err);
+  }
 
-	const version = await api.getVersion();
-	if (version !== EXPECTED_DB_VERSION) {
-		await initializeWorkerDatabase(api, {
-			version: EXPECTED_DB_VERSION,
-			i18nPath: 'https://discord.sh/i18n/db.json',
-			locale: 'en',
-			defaults: { welcome: 'Welcome!', theme: 'dark' },
-		});
-	}
+  // 5. Root-relative with import.meta.url context
+  try {
+    const worker = new SharedWorker(
+      new URL('/db-worker.js', import.meta.url),
+      { type: 'module' },
+    );
+    worker.port.start();
+    api = wrap<LocalStorageAPI>(worker.port);
+    return await finalize(api);
+  } catch (err) {
+    console.warn('[DROID] db-worker.js root-relative meta fallback failed:', err);
+  }
 
-	return api;
+  // 6. Absolute root fallback
+  try {
+    const worker = new SharedWorker('/db-worker.js', { type: 'module' });
+    worker.port.start();
+    api = wrap<LocalStorageAPI>(worker.port);
+    return await finalize(api);
+  } catch (err) {
+    console.warn('[DROID] db-worker.js absolute hardcoded fallback failed:', err);
+  }
+
+  // 7. Final failure
+  console.error('[DROID] No DB Worker Comlink Initialized');
+  throw new Error('[DROID] Failed to initialize db-worker');
+}
+
+// Internal helper to finalize storage worker setup
+async function finalize(api: Remote<LocalStorageAPI>): Promise<Remote<LocalStorageAPI>> {
+  const version = await api.getVersion();
+  if (version !== EXPECTED_DB_VERSION) {
+    await initializeWorkerDatabase(api, {
+      version: EXPECTED_DB_VERSION,
+      i18nPath: 'https://discord.sh/i18n/db.json',
+      locale: 'en',
+      defaults: { welcome: 'Welcome!', theme: 'dark' },
+    });
+  }
+  return api;
 }
 
 // * Bridge

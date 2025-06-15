@@ -20,6 +20,7 @@ Droid requires a few runtime dependencies to provide its full feature set:
 - [@nanostores/persistent](https://www.npmjs.com/package/@nanostores/persistent): Persistent state management
 - [dexie](https://www.npmjs.com/package/dexie): IndexedDB wrapper for browser storage
 - [zod](https://www.npmjs.com/package/zod): TypeScript-first schema validation
+- [flatbuffers](https://www.npmjs.com/flatbuffers) - Flatbuffers
 
 These dependencies are automatically installed when you add Droid to your project. If you plan to use Droid with specific frameworks or build tools, you may need to install related peer dependencies (such as React, Vue, or Angular) according to your project requirements.
 
@@ -41,3 +42,4 @@ For questions, help, or to connect with the community, support can be reached vi
 ### Chores
 
 Preparing to release next batch, trying to resolving the CDN issue, which might still be broken.
+Updating the order on the init functions.
