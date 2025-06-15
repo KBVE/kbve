@@ -48,56 +48,81 @@ async function initWsComlink(opts?: {
 }): Promise<Remote<WSInstance>> {
   let api: Remote<WSInstance> | null = null;
 
-  // 1. Try Vite-style import
-  try {
-    const worker = new SharedWorker(new URL('./ws-worker.ts', import.meta.url), {
-      type: 'module',
-    });
-    worker.port.start();
-    api = wrap<WSInstance>(worker.port);
-  } catch (err) {
-    console.warn('[DROID] ws-worker import.meta fallback failed:', err);
-  }
-
-  // 2. Try hardcoded path
-  if (!api) {
-    try {
-      const worker = new SharedWorker('/ws-worker.js', { type: 'module' });
-      worker.port.start();
-      api = wrap<WSInstance>(worker.port);
-    } catch (err) {
-      console.warn('[DROID] ws-worker hardcoded fallback failed:', err);
-    }
-  }
-
-  // 3. Try provided SharedWorker reference
-  if (!api && opts?.workerRef) {
+  // 1. Try provided SharedWorker reference
+  if (opts?.workerRef) {
     try {
       opts.workerRef.port.start();
       api = wrap<WSInstance>(opts.workerRef.port);
+      return api;
     } catch (err) {
       console.warn('[DROID] ws-worker workerRef failed:', err);
     }
   }
 
-  // 4. Try provided URL
-  if (!api && opts?.workerURL) {
+  // 2. Try provided URL
+  if (opts?.workerURL) {
     try {
       const worker = new SharedWorker(opts.workerURL, { type: 'module' });
       worker.port.start();
       api = wrap<WSInstance>(worker.port);
+      return api;
     } catch (err) {
       console.warn('[DROID] ws-worker workerURL failed:', err);
     }
   }
 
-  // 5. Final failure
-  if (!api) {
-    console.error('[DROID] No WS Worker Comlink Initialized');
-    throw new Error('[DROID] Failed to initialize ws-worker');
+  // 3. Vite-style TS import
+  try {
+    const worker = new SharedWorker(
+      new URL('./ws-worker.ts', import.meta.url),
+      { type: 'module' },
+    );
+    worker.port.start();
+    api = wrap<WSInstance>(worker.port);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] ws-worker vite-style .ts import failed:', err);
   }
 
-  return api;
+  // 4. Same-dir .js fallback
+  try {
+    const worker = new SharedWorker(
+      new URL('./ws-worker.js', import.meta.url),
+      { type: 'module' },
+    );
+    worker.port.start();
+    api = wrap<WSInstance>(worker.port);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] ws-worker ./ws-worker.js fallback failed:', err);
+  }
+
+  // 5. Root-relative fallback with import.meta.url context
+  try {
+    const worker = new SharedWorker(
+      new URL('/ws-worker.js', import.meta.url),
+      { type: 'module' },
+    );
+    worker.port.start();
+    api = wrap<WSInstance>(worker.port);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] ws-worker /ws-worker.js meta-relative failed:', err);
+  }
+
+  // 6. Browser-root hardcoded path
+  try {
+    const worker = new SharedWorker('/ws-worker.js', { type: 'module' });
+    worker.port.start();
+    api = wrap<WSInstance>(worker.port);
+    return api;
+  } catch (err) {
+    console.warn('[DROID] ws-worker absolute hardcoded fallback failed:', err);
+  }
+
+  // 7. Final failure
+  console.error('[DROID] No WS Worker Comlink Initialized');
+  throw new Error('[DROID] Failed to initialize ws-worker');
 }
 
 
