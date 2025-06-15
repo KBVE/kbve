@@ -13,33 +13,32 @@ const options = {
 const supabase = createClient('https://qmpdruitzlownnnnjmpk.supabase.co', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY', options); // Set your env vars
 
 export const OAuth = () => {
-  const [status, setStatus] = useState<'loading' | 'success' | 'error'>("loading");
-  const [errorMsg, setErrorMsg] = useState<string>("");
+  const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading');
+  const [errorMsg, setErrorMsg] = useState<string>('');
 
   useEffect(() => {
     (async () => {
-      const { data, error } = await supabase.auth.exchangeCodeForSession();
+      const { data, error } = await supabase.auth.getUser();
+
       if (error) {
         setStatus('error');
-        setErrorMsg(error.message || 'OAuth login failed.');
-        // Optionally redirect after a delay
-        // setTimeout(() => {
-        //   window.location.href = '/login';
-        // }, 5000);
-      } else if (data?.session) {
+        setErrorMsg(error.message || 'Failed to fetch user session.');
+        setTimeout(() => {
+          window.location.href = '/login';
+        }, 3000);
+      } else if (data?.user) {
         setStatus('success');
-        // Optional: store session info or update your state here
         setTimeout(() => {
           window.location.href = '/profile';
         }, 1000);
       } else {
         setStatus('error');
-        setErrorMsg('No session found.');
+        setErrorMsg('No user session found.');
         setTimeout(() => {
           window.location.href = '/login';
         }, 3000);
       }
-      // Clean up the URL
+
       window.location.hash = '';
     })();
   }, []);
