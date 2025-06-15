@@ -42,4 +42,4 @@ For questions, help, or to connect with the community, support can be reached vi
 ### Chores
 
 Preparing to release next batch, trying to resolving the CDN issue, which might still be broken.
-Updating the order on the init functions.
+Updating the order on the init functions, but we will still have a CDN error that needs to be resolved.
