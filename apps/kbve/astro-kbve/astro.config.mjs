@@ -328,8 +328,17 @@ export default defineConfig({
                 ignored: ['!**/node_modules/**'],
             },
         },
-            optimizeDeps: {
-        include: ['comlink'],
+         optimizeDeps: {
+            include: ['comlink'],
+            exclude: ['@kbve/droid']
+        },
+        worker: {
+            format: 'es',
+            rollupOptions: {
+                output: {
+                    entryFileNames: 'assets/[name].js',
+                },
+            },
         },
         build: {
             // commonjsOptions: {
