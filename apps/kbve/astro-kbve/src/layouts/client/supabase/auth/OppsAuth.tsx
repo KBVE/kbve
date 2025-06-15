@@ -26,9 +26,20 @@ const OppsAuth: React.FC = () => {
   const user = useStore(userAtom);
   const [open, setOpen] = useState(false);
 
+  // New: Always check supabase for user if not present in atom
   useEffect(() => {
-    if (user) setOpen(true);
-    else setOpen(false);
+    if (!user) {
+      supabase.auth.getUser().then(({ data, error }) => {
+        if (data?.user) {
+          userAtom.set(data.user);
+          setOpen(true);
+        } else {
+          setOpen(false);
+        }
+      });
+    } else {
+      setOpen(true);
+    }
   }, [user]);
 
   const display = user?.user_metadata?.display_name || user?.email || 'User';
