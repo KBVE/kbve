@@ -50,13 +50,26 @@ namespace KBVE.MMExtensions.Orchestrator.Core.Quests
 
             var list = handle.Result;
 
+            var questHandle = Addressables.LoadAssetAsync<QuestDB>("QuestDB"); // Me adding the QuestDB
+            await questHandle.ToUniTask(cancellationToken: cancellationToken);
+
+            if (questHandle.Status != AsyncOperationStatus.Succeeded)
+            {
+                Debug.LogError("[OrchestratorQuestService] Failed to load QuestDB from Addressables.");
+                return;
+            }
+
+            var questDB = questHandle.Result;
+
+
             LoadedQuests.Clear();
             foreach (var mm in list.Achievements)
             {
-                var quest = ScriptableObject.CreateInstance<MMQuest>();
-                quest.CopyFromMMAchievement(mm);
-                LoadedQuests.Add(quest);
+                MMQuest _thisQuest = questDB.AllQuests.FirstOrDefault(a => a.AchievementID == mm.AchievementID);                
+                LoadedQuests.Add(_thisQuest);
             }
+
+            Debug.Log($"Quests in list of achievements: {list.Achievements.Count} Quests in LoadedQuests {LoadedQuests.Count} ");
 
             MMAchievementManager.LoadAchievementList(list);
             MMAchievementManager.LoadSavedAchievements();
