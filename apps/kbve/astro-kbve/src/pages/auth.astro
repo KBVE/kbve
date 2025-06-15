@@ -16,6 +16,10 @@ const subTitle: string = `Please wait while we complete your login.`;
       <div id="oauth-handler">
         <OAuth client:only="react" />
       </div>
+      <script is:inline>
+console.log("Current URL:", window.location.href);
+console.log("Stored PKCE verifier:", window.localStorage.getItem('supabase.auth.verifier'));
+      </script>
     </div>
   </section>
 </Layout>
