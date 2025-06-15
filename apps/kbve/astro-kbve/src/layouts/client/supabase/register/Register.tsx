@@ -82,11 +82,11 @@ export const Register = () => {
 			)}
 			style={{ maxWidth: 400, margin: '0 auto' }}
 		>
-			<h2 className="text-2xl font-bold text-center mb-2">Register</h2>
-			{error && <div className="text-red-500 text-center">{error}</div>}
-			{success && <div className="text-green-500 text-center">{success}</div>}
+			<h2 className="text-2xl font-bold text-center mb-2 text-white [text-shadow:_0_1px_2px_black] shadow-black">Register</h2>
+			{error && <div className="text-red-500 text-center [text-shadow:_0_1px_2px_black] shadow-black shadow-md">{error}</div>}
+			{success && <div className="text-green-500 text-center [text-shadow:_0_1px_2px_black] shadow-black shadow-md">{success}</div>}
 			<div>
-				<label className="block mb-1 font-medium">Email</label>
+				<label className="block mb-1 font-medium"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Email</span></label>
 				<input
 					type="email"
 					{...register('email', { required: 'Email is required' })}
@@ -96,31 +96,48 @@ export const Register = () => {
 						setValue('email', e.target.value);
 					}}
 					className={clsx(
-						'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-zinc-900 dark:text-zinc-100',
+						'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-white [text-shadow:_0_1px_2px_black] shadow-black',
 						errors.email && 'border-red-500',
 					)}
 				/>
-				{errors.email && <span className="text-red-500 text-sm">{errors.email.message}</span>}
+				{errors.email && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.email.message}</span>}
 			</div>
 			<div>
-				<label className="block mb-1 font-medium">Password</label>
+				<label className="block mb-1 font-medium"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Password</span></label>
 				<input
 					type="password"
-					{...register('password', { required: 'Password is required' })}
+					{...register('password', {
+						required: 'Password is required',
+						minLength: {
+							value: 8,
+							message: 'Password must be at least 8 characters',
+						},
+						validate: value => {
+							const hasLower = /[a-z]/.test(value);
+							const hasUpper = /[A-Z]/.test(value);
+							const hasNumber = /[0-9]/.test(value);
+							const hasSpecial = /[!@#$%^&*()_+\-=[\]{};':"|<>?,./`~]/.test(value);
+							if (!hasLower) return 'Password must include a lowercase letter';
+							if (!hasUpper) return 'Password must include an uppercase letter';
+							if (!hasNumber) return 'Password must include a number';
+							if (!hasSpecial) return 'Password must include a special character';
+							return true;
+						},
+					})}
 					value={password}
 					onChange={e => {
 						setPassword(e.target.value);
 						setValue('password', e.target.value);
 					}}
 					className={clsx(
-						'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-zinc-900 dark:text-zinc-100',
+						'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-white [text-shadow:_0_1px_2px_black] shadow-black',
 						errors.password && 'border-red-500',
 					)}
 				/>
-				{errors.password && <span className="text-red-500 text-sm">{errors.password.message}</span>}
+				{errors.password && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.password.message}</span>}
 			</div>
 			<div>
-				<label className="block mb-1 font-medium">Confirm Password</label>
+				<label className="block mb-1 font-medium"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Confirm Password</span></label>
 				<input
 					type="password"
 					{...register('confirmPassword', {
@@ -133,11 +150,11 @@ export const Register = () => {
 						setValue('confirmPassword', e.target.value);
 					}}
 					className={clsx(
-						'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-zinc-900 dark:text-zinc-100',
+						'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-white [text-shadow:_0_1px_2px_black] shadow-black',
 						errors.confirmPassword && 'border-red-500',
 					)}
 				/>
-				{errors.confirmPassword && <span className="text-red-500 text-sm">{errors.confirmPassword.message}</span>}
+				{errors.confirmPassword && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.confirmPassword.message}</span>}
 			</div>
 			<div className="flex items-center gap-2 my-2">
 				<input
@@ -151,12 +168,11 @@ export const Register = () => {
 					}}
 					className={clsx('accent-cyan-600')}
 				/>
-				<label htmlFor="legal-agree" className="text-sm">
-					I agree to the{' '}
-					<a href="https://kbve.com/legal/" target="_blank" rel="noopener noreferrer" className="underline text-cyan-700 dark:text-cyan-400">legal terms</a>
+				<label htmlFor="legal-agree" className="text-sm"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">I agree to the{' '}
+					<a href="https://kbve.com/legal/" target="_blank" rel="noopener noreferrer" className="underline text-cyan-200">legal terms</a></span>
 				</label>
 			</div>
-			{errors.agreed && <span className="text-red-500 text-sm">{errors.agreed.message}</span>}
+			{errors.agreed && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.agreed.message}</span>}
 			<div className="my-2">
 				<HCaptcha
 					sitekey={HCAPTCHA_SITE_KEY}
@@ -168,7 +184,7 @@ export const Register = () => {
 				type="submit"
 				disabled={loading}
 				className={twMerge(
-					'block w-full py-2 rounded bg-gradient-to-br from-cyan-500 to-purple-500 text-white font-semibold shadow hover:from-cyan-400 hover:to-purple-400 transition',
+					'block w-full py-2 rounded bg-gradient-to-br from-cyan-500 to-purple-500 text-white font-semibold shadow hover:from-cyan-400 hover:to-purple-400 transition drop-shadow-[0_1px_2px_rgba(0,0,0,1)] shadow-black shadow-lg',
 					loading && 'opacity-60 cursor-not-allowed',
 				)}
 			>
