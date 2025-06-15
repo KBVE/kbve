@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { userAtom } from '../profile/userstate';
-import { supabase } from '../supabaseClient';
+import { supabase } from 'src/layouts/client/supabase/supabaseClient';
 
 const Modal = ({ open, onClose, children }: { open: boolean; onClose: () => void; children: React.ReactNode }) => {
   if (!open) return null;

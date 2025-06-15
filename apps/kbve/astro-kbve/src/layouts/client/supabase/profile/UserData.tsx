@@ -1,5 +1,5 @@
 import React, { useEffect } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase } from 'src/layouts/client/supabase/supabaseClient';
 import type { User } from '@supabase/supabase-js';
 import { clsx, twMerge } from 'src/utils/tw';
 import { useStore } from '@nanostores/react';

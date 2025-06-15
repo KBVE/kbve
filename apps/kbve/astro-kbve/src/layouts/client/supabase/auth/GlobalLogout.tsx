@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { supabase } from '../supabaseClient';
+import { supabase } from 'src/layouts/client/supabase/supabaseClient';
 
 const GlobalLogout: React.FC = () => {
   const [status, setStatus] = useState<'loading' | 'success' | 'error'>("loading");

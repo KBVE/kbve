@@ -1,5 +1,5 @@
 import { emailAtom, passwordAtom, errorAtom, successAtom, loadingAtom, captchaTokenAtom } from './loginstatestate';
-import { supabase } from '../supabaseClient';
+import { supabase } from 'src/layouts/client/supabase/supabaseClient';
 
 export async function loginUser() {
   const email = emailAtom.get();

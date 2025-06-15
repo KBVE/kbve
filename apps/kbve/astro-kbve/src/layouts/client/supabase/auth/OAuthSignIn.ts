@@ -1,4 +1,4 @@
-import { supabase } from '../../supabaseClient';
+import { supabase } from 'src/layouts/client/supabase/supabaseClient';
 
 const auth_url = import.meta.env.DEV ? 'http://localhost:4321/auth' : 'https://kbve.com/auth';
 
