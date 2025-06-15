@@ -9,10 +9,13 @@ create table private.user_profiles (
   username text unique check (username ~ '^[a-zA-Z0-9_-]{3,30}$'),
   bio text,
   role text,
-  level int default 1,
+  level smallint default 1,  -- Changed to smallint for space efficiency
   created_at timestamptz default now(),
   updated_at timestamptz default now()
 );
+
+-- Index for user_profiles
+create index idx_user_profiles_id on private.user_profiles(id);
 
 -- Table: user_balance
 create table private.user_balance (
@@ -22,6 +25,9 @@ create table private.user_balance (
   khash numeric(15, 2) default 0.00 check (khash >= 0),
   updated_at timestamptz default now()
 );
+
+-- Index for user_balance
+create index idx_user_balance_user_id on private.user_balance(user_id);
 
 -- Auto-initialize user_balance when new user is created
 create or replace function private.initialize_user_balance()
@@ -50,6 +56,10 @@ create table private.ledger (
   meta jsonb,
   created_at timestamptz default now()
 );
+
+-- Indexes for performance
+create index idx_ledger_user_id_created_at on private.ledger(user_id, created_at);
+create index idx_ledger_kind on private.ledger(kind);
 
 -- Trigger function to apply ledger delta with rollback protection and locking
 create or replace function private.apply_ledger_delta()
@@ -99,7 +109,7 @@ after insert on private.ledger
 for each row
 execute procedure private.apply_ledger_delta();
 
--- Secure user-initiated transfer via RPC
+-- Secure user-initiated transfer via RPC (with user-friendly errors and credit fee)
 create or replace function private.transfer_balance_rpc(
   to_user uuid,
   kind text,
@@ -113,25 +123,38 @@ security definer
 as $$
 declare
   from_user uuid := auth.uid();
+  fee numeric(15, 2);
+  total_deduction numeric(15, 2);
 begin
   if amount <= 0 then
-    raise exception 'Transfer amount must be positive';
+    raise exception 'Please enter a positive amount to transfer.';
   end if;
 
   if from_user = to_user then
-    raise exception 'Cannot transfer to yourself';
+    raise exception 'You cannot transfer to your own account.';
   end if;
 
   if kind not in ('credit', 'khash') then
-    raise exception 'Invalid kind. Must be credit or khash';
+    raise exception 'Invalid transfer type. Please select credit or khash.';
   end if;
+
+  -- Apply fee only for credit transfers: flat 10 + 1%
+  if kind = 'credit' then
+    fee := round(amount * 0.01 + 10.00, 2);
+  else
+    fee := 0.00;
+  end if;
+
+  total_deduction := amount + fee;
 
   begin
     savepoint transfer_savepoint;
 
+    -- Debit from sender (includes fee)
     insert into private.ledger (user_id, kind, delta, reason, meta)
-    values (from_user, kind, -amount, reason || ' (debit)', meta);
+    values (from_user, kind, -total_deduction, reason || ' (debit, includes fee)', meta);
 
+    -- Credit to recipient (full amount)
     insert into private.ledger (user_id, kind, delta, reason, meta)
     values (to_user, kind, amount, reason || ' (credit)', meta);
 
