@@ -3,9 +3,10 @@ create schema if not exists private;
 
 -- Table: user_profiles
 create table private.user_profiles (
-  id uuid primary key references auth.users(id) on delete cascade,
+  id uuid primary key references auth.users(id)
+    on delete cascade on update restrict,
   avatar_ulid bytea,
-  username text,
+  username text unique check (username ~ '^[a-zA-Z0-9_-]{3,30}$'),
   bio text,
   role text,
   level int default 1,
@@ -15,32 +16,49 @@ create table private.user_profiles (
 
 -- Table: user_balance
 create table private.user_balance (
-  user_id uuid primary key references auth.users(id) on delete cascade,
-  credits numeric(1000, 2) default 0.00 check (credits >= 0),
-  khash numeric(1000, 2) default 0.00 check (khash >= 0),
+  user_id uuid primary key references auth.users(id)
+    on delete cascade on update restrict,
+  credits numeric(15, 2) default 0.00 check (credits >= 0),
+  khash numeric(15, 2) default 0.00 check (khash >= 0),
   updated_at timestamptz default now()
 );
+
+-- Auto-initialize user_balance when new user is created
+create or replace function private.initialize_user_balance()
+returns trigger as $$
+begin
+  insert into private.user_balance (user_id, credits, khash, updated_at)
+  values (NEW.id, 0.00, 0.00, now())
+  on conflict do nothing;
+  return NEW;
+end;
+$$ language plpgsql;
+
+create trigger initialize_user_balance_trigger
+after insert on auth.users
+for each row
+execute procedure private.initialize_user_balance();
 
 -- Table: ledger
 create table private.ledger (
   id uuid primary key default gen_random_uuid(),
-  user_id uuid references private.user_balance(user_id) on delete cascade,
+  user_id uuid references private.user_balance(user_id)
+    on delete cascade on update restrict,
   kind text check (kind in ('credit', 'khash')),
-  delta numeric(1000, 2) not null,
+  delta numeric(15, 2) not null,
   reason text,
   meta jsonb,
   created_at timestamptz default now()
 );
 
--- Trigger function to apply ledger delta with rollback protection
+-- Trigger function to apply ledger delta with rollback protection and locking
 create or replace function private.apply_ledger_delta()
 returns trigger as $$
 declare
-  new_credits numeric(1000,2);
-  new_khash numeric(1000,2);
+  new_credits numeric(15,2);
+  new_khash numeric(15,2);
 begin
   if NEW.kind = 'credit' then
-    -- Lock the row to prevent race condition
     select credits + NEW.delta into new_credits 
     from private.user_balance 
     where user_id = NEW.user_id
@@ -56,7 +74,6 @@ begin
     where user_id = NEW.user_id;
 
   elsif NEW.kind = 'khash' then
-    -- Lock the row to prevent race condition
     select khash + NEW.delta into new_khash 
     from private.user_balance 
     where user_id = NEW.user_id
@@ -82,11 +99,11 @@ after insert on private.ledger
 for each row
 execute procedure private.apply_ledger_delta();
 
--- RPC Function: secure user-to-user transfer
+-- Secure user-initiated transfer via RPC
 create or replace function private.transfer_balance_rpc(
   to_user uuid,
   kind text,
-  amount numeric(1000, 2),
+  amount numeric(15, 2),
   reason text default 'user transfer',
   meta jsonb default '{}'
 )
@@ -109,11 +126,19 @@ begin
     raise exception 'Invalid kind. Must be credit or khash';
   end if;
 
-  insert into private.ledger (user_id, kind, delta, reason, meta)
-  values (from_user, kind, -amount, reason || ' (debit)', meta);
+  begin
+    savepoint transfer_savepoint;
 
-  insert into private.ledger (user_id, kind, delta, reason, meta)
-  values (to_user, kind, amount, reason || ' (credit)', meta);
+    insert into private.ledger (user_id, kind, delta, reason, meta)
+    values (from_user, kind, -amount, reason || ' (debit)', meta);
+
+    insert into private.ledger (user_id, kind, delta, reason, meta)
+    values (to_user, kind, amount, reason || ' (credit)', meta);
+
+  exception when others then
+    rollback to transfer_savepoint;
+    raise;
+  end;
 end;
 $$;
 
