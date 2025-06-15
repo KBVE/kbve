@@ -1,14 +1,12 @@
 ---
 import Layout from 'src/layouts/core/Layout.astro';
 
-const pageTitle: string = `About | KBVE`;
-const title: string = `About KBVE`;
-const subTitle: string = `What is KBVE About?`;
+const pageTitle: string = `Register | KBVE`;
+const title: string = `Register for KBVE`;
+const subTitle: string = `Create your KBVE account`;
 
-const AboutUsOption1: string =
-	'KBVE is at the forefront of the Technology and Gaming industry, dedicated to crafting cutting-edge software and immersive video games that redefine user experiences. Our passion for innovation drives us to deliver exceptional digital adventures and solutions.';
-const AboutUsOption2: string = `At KBVE, we merge technology with creativity, developing state-of-the-art software and captivating video games designed to engage and inspire. Our commitment to excellence shines through every product, pushing the boundaries of what's possible in tech and gaming.`;
-
+const RegisterDescription: string =
+  'Join KBVE to access exclusive features, participate in our community, and stay updated with the latest in technology and gaming. Register now to start your journey with us!';
 
 import { Register } from "src/layouts/client/supabase/register/Register";
 
@@ -19,11 +17,11 @@ import { Register } from "src/layouts/client/supabase/register/Register";
 	structuredData={{
 		'@context': 'https://schema.org',
 		'@type': 'WebPage',
-		'@id': 'https://kbve.com/about/',
-		url: 'https://kbve.com/about/',
+		'@id': 'https://kbve.com/register/',
+		url: 'https://kbve.com/register/',
 		name: `${pageTitle}`,
 		description:
-			'Explore our software and automation solutions! Contact us to discuss your project and let us help you create the perfect automated tools and provide expert software support.',
+			'Create your KBVE account to unlock exclusive features and join our growing community of tech and gaming enthusiasts.',
 		isPartOf: {
 			'@type': 'WebSite',
 			url: 'https://kbve.com',
@@ -40,11 +38,14 @@ import { Register } from "src/layouts/client/supabase/register/Register";
     shadow-[inset_0_0_0.5px_rgba(255,255,255,0.15),inset_0_1px_0_rgba(255,255,255,0.08),0_20px_40px_rgba(0,0,0,0.4)]
     hover:shadow-[inset_0_0_1px_rgba(255,255,255,0.2),inset_0_2px_1px_rgba(255,255,255,0.1),0_30px_60px_rgba(0,0,0,0.5)]
     transition-all duration-300 overflow-hidden ring-offset-1 ring-offset-white/5 hover:ring-4">
-			
+        <div class="flex-1 p-8">
+          <h1 class="text-3xl font-bold mb-2">{title}</h1>
+          <h2 class="text-xl mb-4">{subTitle}</h2>
+          <p class="mb-6">{RegisterDescription}</p>
+        </div>
     </div>
     </section>
 
-    
 <Register client:only="react"/>
 
 </Layout>
