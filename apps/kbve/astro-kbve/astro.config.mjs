@@ -174,9 +174,6 @@ export default defineConfig({
             },
         }),
 
-        // react({
-        // 	include: ['**/react/*'],
-        // }),
         //alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
         //partytown(),
         worker(),

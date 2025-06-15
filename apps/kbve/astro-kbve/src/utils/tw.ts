@@ -1,3 +1,3 @@
-// Utility export for tw-merge and clsx
-export { twMerge } from 'tw-merge';
+// Utility export for twin.macro and clsx
+export { twMerge } from 'tailwind-merge';
 export { clsx } from 'clsx';
