@@ -1,13 +1,17 @@
-import { droid, modUrls, workerStrings } from '@kbve/droid';
+import { droid, modUrls, workerStrings} from '@kbve/droid';
 import * as comlink from 'comlink';
+
+const astroStrings = {
+		canvasWorker: new Worker(new URL('/assets/canvas-worker.js', window.location.origin), { type: 'module' }),
+		dbWorker: new SharedWorker(new URL('/assets/db-worker.js', window.location.origin),  { type: 'module' }),
+		wsWorker: new SharedWorker(new URL('/assets/ws-worker.js', window.location.origin),  { type: 'module' }),
+};
 
 
 (async () => {
 	
 	console.log("[DROID] init Library");
-	// await droid({ workerURLs });
-	await droid({workerURLs: workerStrings});
-	
+	await droid({workerRefs: astroStrings, workerURLs: workerStrings});
 	const mod = window.kbve?.mod;
 	const emitFromWorker = window.kbve?.uiux?.emitFromWorker;
 
@@ -35,3 +39,20 @@ import * as comlink from 'comlink';
 
 	console.log('[KBVE] Bento mod loaded');
 })();
+
+
+// const workerRefs = {
+// 			canvasWorker: new Worker((new URL(RawWorkerURLs.canvasWorker), import.meta.url), { type: 'module' }),
+// 			dbWorker: new SharedWorker((new URL(RawWorkerURLs.dbWorker), import.meta.url),  { type: 'module' }),
+// 			wsWorker: new SharedWorker((new URL(RawWorkerURLs.wsWorker), import.meta.url),  { type: 'module' }),
+// 	};
+
+// console.log(workerRefs);
+
+	// await droid({
+	// 	workerRefs: {
+	// 		canvasWorker: new Worker((new URL(workerURLs.canvasWorker), import.meta.url), { type: 'module' }),
+	// 		dbWorker: new SharedWorker((new URL(workerURLs.dbWorker), import.meta.url),  { type: 'module' }),
+	// 		wsWorker: new SharedWorker((new URL(workerURLs.wsWorker), import.meta.url),  { type: 'module' }),
+	// 	},
+	// });

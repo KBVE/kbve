@@ -11,6 +11,7 @@ export const workerURLs = {
 	wsWorker: new URL('./lib/workers/ws-worker.js', import.meta.url),
 };
 
+
 export const workerStrings = {
 	canvasWorker: new URL(
 		'./lib/workers/canvas-worker.js',
