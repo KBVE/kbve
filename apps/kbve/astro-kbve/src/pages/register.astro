@@ -10,6 +10,8 @@ const RegisterDescription: string =
 
 
 import { Register as ReactRegister } from 'src/layouts/client/supabase/register/Register';
+import OppsAuth from 'src/layouts/client/supabase/auth/OppsAuth';
+
 ---
 
 <Layout
@@ -67,6 +69,8 @@ import { Register as ReactRegister } from 'src/layouts/client/supabase/register/
 		</span>
 	</span>
 
+
+  <OppsAuth client:only="react" />
 	<section class="px-6 py-8 sm:px-8 lg:px-12">
 		<div class="grid max-w-screen-xl grid-cols-1 gap-8 mx-auto rounded-2xl bg-neutral-100 dark:bg-neutral-900 ring-1 ring-neutral-300/30 shadow-lg md:grid-cols-2 md:px-12 lg:px-16 xl:px-32">
 			<div class="flex flex-col justify-between p-6 md:p-10">
