@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
+import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { useStore } from '@nanostores/react';
 import { useForm } from 'react-hook-form';
 import { clsx, twMerge } from 'src/utils/tw';
@@ -7,6 +8,7 @@ import {
   passwordAtom,
   errorAtom,
   successAtom,
+  captchaTokenAtom,
   loadingAtom,
 } from './loginstatestate';
 import { loginUser, signInWithDiscord, signInWithGithub } from './factory-login';
@@ -44,12 +46,14 @@ export const Login = () => {
   const error = useStore(errorAtom);
   const success = useStore(successAtom);
   const loading = useStore(loadingAtom);
+  const captchaToken = useStore(captchaTokenAtom);
 
   const setEmail = (v: string) => emailAtom.set(v);
   const setPassword = (v: string) => passwordAtom.set(v);
   const setError = (v: string) => errorAtom.set(v);
   const setSuccess = (v: string) => successAtom.set(v);
   const setLoading = (v: boolean) => loadingAtom.set(v);
+  const setCaptchaToken = (v: string | null) => captchaTokenAtom.set(v);
 
   type FormValues = {
     email: string;
@@ -69,11 +73,17 @@ export const Login = () => {
   });
 
   const [modalOpen, setModalOpen] = useState(false);
+  const hcaptchaRef = useRef<any>(null);
 
   const onSubmit = async (data: FormValues) => {
     setError('');
     setSuccess('');
     setModalOpen(true);
+    if (!captchaToken) {
+      setError('Please complete the hCaptcha challenge.');
+      setModalOpen(false);
+      return;
+    }
     setLoading(true);
     try {
       await loginUser();
@@ -81,6 +91,11 @@ export const Login = () => {
       setError(err.message || 'Login failed.');
     } finally {
       setLoading(false);
+      // Always reset hCaptcha after submission attempt, even if error is set in try
+      if (hcaptchaRef.current) {
+        hcaptchaRef.current.reset();
+        setCaptchaToken(null);
+      }
     }
   };
 
@@ -150,6 +165,14 @@ export const Login = () => {
             )}
           />
           {errors.password && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.password.message}</span>}
+        </div>
+        <div className="my-2">
+          <HCaptcha
+            ref={hcaptchaRef}
+            sitekey={HCAPTCHA_SITE_KEY}
+            onVerify={token => setCaptchaToken(token)}
+            onExpire={() => setCaptchaToken(null)}
+          />
         </div>
         <button
           type="submit"
