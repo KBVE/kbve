@@ -3,6 +3,7 @@ import Layout from 'src/layouts/core/Layout.astro';
 import UserData from 'src/layouts/client/supabase/profile/UserData';
 import UserAvatar from 'src/layouts/client/supabase/profile/UserAvatar';
 import UserLinks from 'src/layouts/client/supabase/profile/UserLinks';
+import MemberCard from 'src/layouts/client/supabase/profile/member/MemberCard';
 const pageTitle: string = `Profile | KBVE`;
 const title: string = `Your Profile`;
 const subTitle: string = `Manage your KBVE account details`;
@@ -10,10 +11,15 @@ const subTitle: string = `Manage your KBVE account details`;
 
 <Layout title={pageTitle}>
   <section class="px-6 pt-12 sm:px-8 lg:px-12">
-    <div class="mx-auto max-w-4xl flex flex-col items-center">
-      <h1 class="text-4xl sm:text-5xl font-bold text-neutral-900 dark:text-white mb-2 drop-shadow-lg">{title}</h1>
-      <h2 class="text-xl text-neutral-700 dark:text-zinc-200 mb-4 font-medium">{subTitle}</h2>
-      <UserData client:only="react" />
+    <div class="mx-auto max-w-4xl flex flex-col md:flex-row items-center md:items-start gap-6 w-full">
+      <div class="flex-1 w-full">
+        <h1 class="text-4xl sm:text-5xl font-bold text-neutral-900 dark:text-white mb-2 drop-shadow-lg">{title}</h1>
+        <h2 class="text-xl text-neutral-700 dark:text-zinc-200 mb-4 font-medium">{subTitle}</h2>
+        <UserData client:only="react" />
+      </div>
+      <div class="flex-1 w-full max-w-md">
+        <MemberCard client:only="react" />
+      </div>
     </div>
   </section>
   <div class="h-12 md:h-20 lg:h-24"></div> <!-- Spacer for quadrant separation -->
@@ -25,6 +31,8 @@ const subTitle: string = `Manage your KBVE account details`;
         </div>
         <div class="bento-card">
           <UserLinks client:only="react" />
+        </div>
+        <div class="bento-card md:col-span-2">
         </div>
         <!-- Add more bento-card sections here for future profile features -->
       </div>
