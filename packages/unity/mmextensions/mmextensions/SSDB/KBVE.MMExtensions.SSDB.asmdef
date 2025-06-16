@@ -20,7 +20,7 @@
     "Steamworks.NET",
     "com.rlabrecque.steamworks.net",
     "ObservableCollections",
-    "TMPro",
+    "Unity.TextMeshPro",
     "R3"
   ],
   "includePlatforms": [
