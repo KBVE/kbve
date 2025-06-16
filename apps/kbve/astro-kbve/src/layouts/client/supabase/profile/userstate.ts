@@ -18,6 +18,20 @@ export const userNamePersistentAtom = persistentAtom<string | undefined>('user:u
 export const userLoadingAtom = atom<boolean>(true);
 export const userErrorAtom = atom<string>("");
 
+// Type for user balance view
+export type UserBalanceView = {
+  user_id: string;        // UUID
+  username: string | null;
+  role: string | null;
+  credits: number | null;
+  khash: number | null;
+  level: number | null;
+  created_at: string;     // ISO 8601 timestamp
+};
+
+// Persistent atom for user balance view
+export const userBalanceAtom = persistentAtom<UserBalanceView | undefined>('user:balance', undefined);
+
 // Utility function to sync userAtom and persistent atoms with supabase session
 export async function syncSupabaseUser() {
   const { data } = await supabase.auth.getUser();
@@ -35,5 +49,23 @@ export async function syncSupabaseUser() {
     userEmailAtom.set(undefined);
     usernameAtom.set(null);
     userNamePersistentAtom.set(undefined);
+  }
+}
+
+// Function to fetch and sync user balance from Supabase
+export async function syncUserBalance(userId: string) {
+  if (!userId) {
+    userBalanceAtom.set(undefined);
+    return;
+  }
+  const { data, error } = await supabase
+    .from('user_balances_view')
+    .select('user_id, username, role, credits, khash, level, created_at')
+    .eq('user_id', userId)
+    .single();
+  if (data && !error) {
+    userBalanceAtom.set(data as UserBalanceView);
+  } else {
+    userBalanceAtom.set(undefined);
   }
 }
