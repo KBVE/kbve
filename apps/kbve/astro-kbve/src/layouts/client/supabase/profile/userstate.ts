@@ -98,3 +98,25 @@ export async function syncUserBalance(identifier: string, useCache = true) {
     userBalanceAtom.set(undefined);
   }
 }
+
+// TODO: Move into indexdb, so that we can cache the results.
+// Helper: Get username from user ID using Supabase RPC
+export async function getUsernameByUuid(uuid: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc('proxy_get_username', { p_user_id: uuid });
+  if (error) {
+    console.error('[getUsernameByUuid] Failed to fetch username:', error.message);
+    return null;
+  }
+  return data;
+}
+
+// TODO: Move to indexdb , so that we can cache the results.
+// Helper: Get user ID from username using Supabase RPC
+export async function getUuidByUsername(username: string): Promise<string | null> {
+  const { data, error } = await supabase.rpc('proxy_get_uuid', { p_username: username });
+  if (error) {
+    console.error('[getUuidByUsername] Failed to fetch UUID:', error.message);
+    return null;
+  }
+  return data;
+}
