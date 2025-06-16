@@ -1,6 +1,7 @@
 ---
 import Layout from 'src/layouts/core/Layout.astro';
 import { SendMessage } from 'src/layouts/client/supabase/messages/SendMessage';
+import { Mailbox } from 'src/layouts/client/supabase/messages/Mailbox';
 ---
 
 <Layout title="Inbox & Notifications">
@@ -24,13 +25,7 @@ import { SendMessage } from 'src/layouts/client/supabase/messages/SendMessage';
           <span class="inline-block rounded-full bg-cyan-400/20 px-2 py-0.5 text-xs text-cyan-700 dark:text-cyan-200">0 new</span>
         </div>
         <div class="flex flex-col gap-4 min-h-[200px]">
-          <!-- Future: React message list component -->
-          <div class="rounded-xl border border-dashed border-neutral-300 dark:border-neutral-700 bg-gradient-to-br from-zinc-100 to-stone-100 dark:from-neutral-900 dark:to-stone-950 p-6 flex flex-col items-center justify-center text-neutral-500 dark:text-neutral-400 transition hover:scale-[1.01] hover:drop-shadow-cyan-600/60">
-            <span class="text-2xl mb-2">📭</span>
-            <span>No new messages yet.</span>
-            <!-- Drop React message list here -->
-          </div>
-          <!-- Add SendMessage React component here -->
+          <Mailbox client:only="react" />
           <div class="mt-6">
             <SendMessage client:only="react" />
           </div>
