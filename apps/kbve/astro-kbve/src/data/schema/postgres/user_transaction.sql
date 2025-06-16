@@ -184,3 +184,9 @@ create policy "No access to balances" on private.user_balance for all using (fal
 
 alter table private.ledger enable row level security;
 create policy "No access to ledger" on private.ledger for all using (false);
+
+-- Drop Triggers
+drop trigger if exists initialize_user_balance_trigger on auth.users;
+
+-- Optionally also drop the function if not reused
+drop function if exists private.initialize_user_balance();
