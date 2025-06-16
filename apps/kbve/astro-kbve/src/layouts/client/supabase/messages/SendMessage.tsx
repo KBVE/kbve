@@ -140,19 +140,19 @@ export const SendMessage: React.FC = () => {
   };
 
   return (
-    <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 max-w-md mx-auto p-6 bg-white dark:bg-neutral-900 rounded-xl shadow">
-      <div className="text-center mb-2">
-        <span className="font-semibold text-cyan-700 dark:text-cyan-300">Sending a message costs <b>1 credit</b>.</span>
+    <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-lg mx-auto p-10 bg-white/70 dark:bg-neutral-900/80 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 backdrop-blur-md">
+      <div className="text-center mb-6">
+        <span className="font-bold text-xl text-cyan-800 dark:text-cyan-200 tracking-tight">Send a Message <span className='text-base font-medium'>(1 credit)</span></span>
       </div>
-      <div>
-        <label className="block font-medium mb-1">To (Username or UUID)</label>
+      <div className="space-y-2">
+        <label className="block font-semibold text-neutral-800 dark:text-neutral-100">To (Username or UUID)</label>
         <div className="flex gap-2 items-center">
-          <input {...register('receiver')} className="input input-bordered w-full" />
-          <button type="button" className="btn btn-sm btn-secondary" onClick={() => setShowUuidSearch(v => !v)}>
-            Find UUID by Username
+          <input {...register('receiver')} className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-4 py-2 text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition" />
+          <button type="button" className="rounded-lg px-3 py-2 text-sm font-medium bg-cyan-100 dark:bg-cyan-900 text-cyan-800 dark:text-cyan-200 border border-cyan-200 dark:border-cyan-700 hover:bg-cyan-200 dark:hover:bg-cyan-800 transition" onClick={() => setShowUuidSearch(v => !v)}>
+            Find UUID
           </button>
         </div>
-        {errors.receiver && <span className="text-red-500 text-sm">{errors.receiver.message}</span>}
+        {errors.receiver && <span className="text-red-500 text-xs mt-1 block">{errors.receiver.message}</span>}
         {showUuidSearch && (
           <div className="mt-2 flex gap-2 items-center">
             <input
@@ -160,46 +160,46 @@ export const SendMessage: React.FC = () => {
               value={usernameSearch}
               onChange={e => setUsernameSearch(e.target.value)}
               placeholder="Enter username"
-              className="input input-bordered input-sm w-40"
+              className="rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-3 py-1 text-sm text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition w-40"
               disabled={uuidLoading}
             />
-            <button type="button" className="btn btn-sm btn-accent" onClick={handleUuidSearch} disabled={uuidLoading || !usernameSearch}>
+            <button type="button" className="rounded-lg px-3 py-1 text-sm font-medium bg-cyan-200 dark:bg-cyan-800 text-cyan-900 dark:text-cyan-100 border border-cyan-300 dark:border-cyan-600 hover:bg-cyan-300 dark:hover:bg-cyan-700 transition" onClick={handleUuidSearch} disabled={uuidLoading || !usernameSearch}>
               {uuidLoading ? 'Searching...' : 'Lookup'}
             </button>
-            <button type="button" className="btn btn-sm" onClick={() => setShowUuidSearch(false)}>
+            <button type="button" className="rounded-lg px-3 py-1 text-sm font-medium bg-neutral-100 dark:bg-neutral-800 text-neutral-700 dark:text-neutral-200 border border-neutral-300 dark:border-neutral-700 hover:bg-neutral-200 dark:hover:bg-neutral-700 transition" onClick={() => setShowUuidSearch(false)}>
               Cancel
             </button>
             {uuidError && <span className="text-red-500 text-xs ml-2">{uuidError}</span>}
           </div>
         )}
         {isUuid && (
-          <div className="mt-1 text-xs text-neutral-600 dark:text-neutral-300">
+          <div className="mt-1 text-xs text-cyan-700 dark:text-cyan-200 font-medium">
             {usernameLoading ? 'Resolving username...' :
               resolvedUsername ? `Receiver: ${resolvedUsername}` :
               usernameError ? <span className="text-red-500">{usernameError}</span> : null}
           </div>
         )}
       </div>
-      <div>
-        <label className="block font-medium mb-1">Title</label>
-        <input {...register('title')} className="input input-bordered w-full" />
-        {errors.title && <span className="text-red-500 text-sm">{errors.title.message}</span>}
+      <div className="space-y-2">
+        <label className="block font-semibold text-neutral-800 dark:text-neutral-100">Title</label>
+        <input {...register('title')} className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-4 py-2 text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition" />
+        {errors.title && <span className="text-red-500 text-xs mt-1 block">{errors.title.message}</span>}
       </div>
-      <div>
-        <label className="block font-medium mb-1">Description (optional)</label>
-        <input {...register('description')} className="input input-bordered w-full" />
-        {errors.description && <span className="text-red-500 text-sm">{errors.description.message}</span>}
+      <div className="space-y-2">
+        <label className="block font-semibold text-neutral-800 dark:text-neutral-100">Description (optional)</label>
+        <input {...register('description')} className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-4 py-2 text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition" />
+        {errors.description && <span className="text-red-500 text-xs mt-1 block">{errors.description.message}</span>}
       </div>
-      <div>
-        <label className="block font-medium mb-1">Message</label>
-        <textarea {...register('message')} className="textarea textarea-bordered w-full min-h-[80px]" />
-        {errors.message && <span className="text-red-500 text-sm">{errors.message.message}</span>}
+      <div className="space-y-2">
+        <label className="block font-semibold text-neutral-800 dark:text-neutral-100">Message</label>
+        <textarea {...register('message')} className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-4 py-2 text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition min-h-[120px]" />
+        {errors.message && <span className="text-red-500 text-xs mt-1 block">{errors.message.message}</span>}
       </div>
-      <button type="submit" className="btn btn-primary w-full" disabled={isSubmitting}>
+      <button type="submit" className="w-full rounded-lg py-3 text-base font-semibold bg-cyan-600 dark:bg-cyan-700 hover:bg-cyan-700 dark:hover:bg-cyan-600 border border-cyan-700 dark:border-cyan-600 text-white dark:text-neutral-100 shadow-lg transition" disabled={isSubmitting}>
         {isSubmitting ? 'Sending...' : 'Send Message (1 credit)'}
       </button>
       {result && (
-        <div className={result.success ? 'text-green-600 mt-2' : 'text-red-600 mt-2'}>
+        <div className={result.success ? 'text-green-600 mt-4 text-center font-medium' : 'text-red-600 mt-4 text-center font-medium'}>
           {result.success ? 'Message sent successfully!' : `Error: ${result.error}`}
         </div>
       )}
