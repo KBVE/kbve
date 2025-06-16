@@ -80,19 +80,21 @@ export async function syncSupabaseUser() {
 }
 
 // Function to fetch and sync user balance from Supabase
-export async function syncUserBalance(userId: string) {
-  if (!userId) {
+export async function syncUserBalance(identifier: string, useCache = true) {
+  if (!identifier) {
     userBalanceAtom.set(undefined);
     return;
   }
-  const { data, error } = await supabase
-    .from('user_balances_view')
-    .select('user_id, username, role, credits, khash, level, created_at')
-    .eq('user_id', userId)
-    .single();
-  if (data && !error) {
-    userBalanceAtom.set(data as UserBalanceView);
+
+  const { data, error } = await supabase.rpc('get_user_balance_context', {
+    p_identifier: identifier,
+    use_cache: useCache,
+  });
+
+  if (data && data.length > 0 && !error) {
+    userBalanceAtom.set(data[0] as UserBalanceView);
   } else {
+    console.error('[syncUserBalance] Failed to fetch balance:', error?.message);
     userBalanceAtom.set(undefined);
   }
 }

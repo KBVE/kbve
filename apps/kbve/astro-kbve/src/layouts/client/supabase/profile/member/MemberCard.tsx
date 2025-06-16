@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { useStore } from '@nanostores/react';
 import { userBalanceAtom, syncUserBalance, userIdAtom } from 'src/layouts/client/supabase/profile/userstate';
 import { clsx, twMerge } from 'src/utils/tw';
+import { RefreshCcw } from 'lucide-react';
 
 const MemberCard: React.FC = () => {
   const userId = useStore(userIdAtom);
@@ -48,6 +49,23 @@ const MemberCard: React.FC = () => {
       )}
     >
       <h2 className={twMerge('text-2xl font-bold text-cyan-700 dark:text-cyan-300 mb-2')}>Member Card</h2>
+      <div className="self-end">
+      <button
+        onClick={() => syncUserBalance(userId, false)}
+        className={twMerge(
+          'relative group inline-flex items-center justify-center w-8 h-8 rounded-md border border-cyan-400 dark:border-cyan-700',
+          'bg-white/30 dark:bg-zinc-800/50 text-cyan-600 dark:text-cyan-300 hover:bg-cyan-100/50 dark:hover:bg-cyan-800/60 transition'
+        )}
+        aria-label="Refresh Balance"
+      >
+        <RefreshCcw className="w-4 h-4" />
+
+        {/* Tooltip */}
+        <span className="absolute bottom-full mb-1 w-max max-w-xs px-2 py-1 rounded bg-neutral-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity">
+          Pull balance from live view
+        </span>
+      </button>
+    </div>
       <div className="w-full flex flex-col gap-1 text-base text-neutral-800 dark:text-neutral-200">
         <div><span className="font-semibold">Username:</span> {balance.username}</div>
         <div><span className="font-semibold">Level:</span> {balance.level ?? 'N/A'}</div>

@@ -20,9 +20,16 @@ as $$
 begin
   if use_cache then
     return query
-      select *
-      from public.user_balances_view
-      where user_id::text = p_identifier or username = p_identifier;
+      select
+        v.user_id,
+        v.username,
+        v.role,
+        v.credits,
+        v.khash,
+        v.level,
+        v.created_at
+      from public.user_balances_view v
+      where v.user_id::text = p_identifier or v.username = p_identifier;
   else
     return query
       select
