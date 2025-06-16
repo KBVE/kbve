@@ -1,24 +1,8 @@
 import React, { useEffect, useState, useMemo } from 'react';
-import { useForm } from 'react-hook-form';
-import { zodResolver } from '@hookform/resolvers/zod';
-//import { transferSchema, transferBalance, type TransferInput } from './transferBalance';
 import { useStore } from '@nanostores/react';
-import { userBalanceAtom, userIdAtom, getUuidByUsername, getUsernameByUuid } from 'src/layouts/client/supabase/profile/userstate';
-import { supabase } from 'src/layouts/client/supabase/supabaseClient';
-import { clsx, twMerge } from 'src/utils/tw';
-import { z } from 'zod';
-import { RefreshCcw, AlertCircle, Info, CheckCircle, Inbox, Send, Mail } from 'lucide-react';
-
-
-// Fetch messages via Supabase RPC
-export async function fetchUserMessages() {
-  const { data, error } = await supabase.rpc('proxy_fetch_user_messages');
-  if (error) {
-    console.error('[fetchUserMessages] RPC Error:', error);
-    return [];
-  }
-  return data;
-}
+import { userIdAtom } from 'src/layouts/client/supabase/profile/userstate';
+import { Inbox, Send, Mail, RefreshCcw } from 'lucide-react';
+import { mailboxMessagesAtom, mailboxLoadingAtom, mailboxErrorAtom, fetchAndCacheMailbox } from './mailboxstate';
 
 const TABS = [
   { key: 'all', label: 'All', icon: <Mail size={18} /> },
@@ -28,16 +12,13 @@ const TABS = [
 
 export const Mailbox: React.FC = () => {
   const userId = useStore(userIdAtom);
-  const [messages, setMessages] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
+  const messages = useStore(mailboxMessagesAtom);
+  const loading = useStore(mailboxLoadingAtom);
+  const error = useStore(mailboxErrorAtom);
   const [tab, setTab] = useState<'all' | 'sent' | 'received'>('all');
 
   useEffect(() => {
-    setLoading(true);
-    fetchUserMessages().then((msgs) => {
-      setMessages(msgs || []);
-      setLoading(false);
-    });
+    fetchAndCacheMailbox();
   }, []);
 
   const filteredMessages = useMemo(() => {
@@ -48,7 +29,7 @@ export const Mailbox: React.FC = () => {
   }, [messages, tab, userId]);
 
   return (
-    <div className="w-full max-w-3xl mx-auto mt-8">
+    <div className="w-full h-full flex flex-col">
       <div className="flex gap-2 mb-6">
         {TABS.map(t => (
           <button
@@ -61,19 +42,17 @@ export const Mailbox: React.FC = () => {
         ))}
         <button
           className="ml-auto flex items-center gap-1 px-3 py-2 rounded-lg border border-cyan-400 text-cyan-700 dark:text-cyan-200 bg-cyan-50 dark:bg-cyan-900 hover:bg-cyan-100 dark:hover:bg-cyan-800 transition"
-          onClick={async () => {
-            setLoading(true);
-            setMessages(await fetchUserMessages());
-            setLoading(false);
-          }}
+          onClick={fetchAndCacheMailbox}
           title="Refresh"
         >
           <RefreshCcw size={16} />
         </button>
       </div>
-      <div className="bg-white dark:bg-neutral-900 rounded-xl shadow border border-neutral-200 dark:border-neutral-800 p-4 min-h-[300px]">
+      <div className="bg-white/80 dark:bg-neutral-900/80 rounded-xl shadow border border-neutral-200 dark:border-neutral-800 p-4 min-h-[300px] flex-1 overflow-y-auto">
         {loading ? (
           <div className="text-center text-neutral-500 dark:text-neutral-400 py-12">Loading messages...</div>
+        ) : error ? (
+          <div className="text-center text-red-500 py-12">{error}</div>
         ) : filteredMessages.length === 0 ? (
           <div className="text-center text-neutral-500 dark:text-neutral-400 py-12">No messages found.</div>
         ) : (
