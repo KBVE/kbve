@@ -1,0 +1,57 @@
+// deno-lint-ignore-file no-explicit-any
+import { createClient } from "jsr:@supabase/supabase-js@2";
+import { z } from "https://esm.sh/zod@3.22.4";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
+const supabase = createClient(
+  Deno.env.get("SB_URL")!,
+  Deno.env.get("SERVICE_ROLE_KEY")!
+);
+
+const inputSchema = z.object({
+  user_id: z.string().uuid(),
+  username: z.string().regex(/^[a-zA-Z0-9_-]{3,30}$/),
+  bio: z.string().max(255).optional().default(""),
+  avatar_ulid: z.instanceof(Uint8Array).optional(),
+  role: z.string().optional(),
+  level: z.number().int().min(1).max(100).optional().default(1),
+  credits: z.number().nonnegative().optional().default(0),
+  khash: z.number().nonnegative().optional().default(0),
+});
+
+Deno.serve(async (req: Request) => {
+  try {
+    const body = await req.json();
+    const parsed = inputSchema.parse(body);
+
+    const { error } = await supabase.rpc("create_full_user_context", {
+      user_id: parsed.user_id,
+      username: parsed.username,
+      bio: parsed.bio,
+      avatar_ulid: parsed.avatar_ulid ?? null,
+      role: parsed.role ?? null,
+      level: parsed.level,
+      credits: parsed.credits,
+      khash: parsed.khash,
+    });
+
+    if (error) {
+      console.error("[create_user_context] RPC Error", error);
+      return new Response(JSON.stringify({ error: error.message }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: { "Content-Type": "application/json" },
+    });
+  } catch (err: any) {
+    console.error("[create_user_context] Parse/Error", err);
+    return new Response(JSON.stringify({ error: err.message }), {
+      status: 400,
+      headers: { "Content-Type": "application/json" },
+    });
+  }
+});
