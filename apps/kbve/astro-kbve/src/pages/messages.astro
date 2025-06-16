@@ -1,0 +1,55 @@
+---
+import Layout from 'src/layouts/core/Layout.astro';
+import { SendMessage } from 'src/layouts/client/supabase/messages/SendMessage';
+import { Mailbox } from 'src/layouts/client/supabase/messages/Mailbox';
+---
+
+<Layout title="Inbox & Notifications">
+  <section class="mx-auto max-w-4xl py-10 px-4 md:px-0">
+    <header class="mb-8 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
+      <div>
+        <h1 class="text-4xl font-extrabold tracking-tight bg-gradient-to-br from-cyan-500 to-purple-600 bg-clip-text text-transparent drop-shadow-purple-600/40">Inbox</h1>
+        <p class="text-base text-neutral-500 dark:text-neutral-300 mt-1">All your messages, notifications, and important updates appear here.</p>
+      </div>
+      <!-- Placeholder for future user menu or filters -->
+      <div class="flex gap-2">
+        <!-- Future: <UserMenu /> or filter/sort controls -->
+      </div>
+    </header>
+
+    <div class="grid gap-8 md:grid-cols-3 bento-grid-3">
+      <!-- Messages Bento -->
+      <section class="col-span-2 flex flex-col gap-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="font-semibold text-lg">Messages</span>
+          <span class="inline-block rounded-full bg-cyan-400/20 px-2 py-0.5 text-xs text-cyan-700 dark:text-cyan-200">0 new</span>
+        </div>
+        <div class="flex flex-col gap-4 min-h-[200px]">
+          <Mailbox client:only="react" />
+          <div class="mt-6">
+            <SendMessage client:only="react" />
+          </div>
+        </div>
+      </section>
+
+      <!-- Notifications Bento -->
+      <aside class="col-span-1 flex flex-col gap-4">
+        <div class="flex items-center gap-2 mb-2">
+          <span class="font-semibold text-lg">Notifications</span>
+        </div>
+        <ul class="flex flex-col gap-2 min-h-[200px]">
+          <!-- Future: React notification list component -->
+          <li class="rounded-lg border border-yellow-200 dark:border-yellow-700 bg-yellow-50/60 dark:bg-yellow-900/30 px-4 py-3 text-yellow-800 dark:text-yellow-200 flex items-center gap-2">
+            <span class="text-xl">🔔</span>
+            <span>You have no new notifications.</span>
+          </li>
+        </ul>
+      </aside>
+    </div>
+
+    <!-- Future: Add React modals, sheets, or drawers here -->
+    <div class="mt-12">
+      <!-- Placeholder for React portals or overlays -->
+    </div>
+  </section>
+</Layout>
