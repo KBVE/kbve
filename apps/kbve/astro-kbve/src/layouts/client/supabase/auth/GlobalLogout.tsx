@@ -8,11 +8,14 @@ const GlobalLogout: React.FC = () => {
   useEffect(() => {
     (async () => {
       const { error } = await supabase.auth.signOut();
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('isMember', 'false');
+      }
       if (error) {
         setStatus('error');
         setErrorMsg(error.message || 'Logout failed.');
         setTimeout(() => {
-          window.location.href = '/profile';
+          window.location.href = '/';
         }, 3000);
       } else {
         setStatus('success');
