@@ -58,6 +58,8 @@
       "nanostores",
       "Adsense",
       "astropad",
-      "questdb"
+      "questdb",
+      "khash",
+      "plpgsql"
     ]
 }

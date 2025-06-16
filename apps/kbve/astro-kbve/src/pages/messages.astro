@@ -1,0 +1,41 @@
+---
+import Layout from 'src/layouts/core/Layout.astro';
+---
+
+<Layout title="Inbox & Notifications">
+  <section class="max-w-3xl mx-auto py-8 px-4">
+    <h1 class="text-3xl font-bold mb-2">Your Messages</h1>
+    <p class="text-neutral-600 dark:text-neutral-300 mb-6">All your messages, notifications, and important updates appear here.</p>
+
+    <div class="space-y-4">
+      <!-- Example Message Card -->
+      <div class="rounded-lg border bg-white dark:bg-neutral-900 shadow p-4 flex items-start gap-4">
+        <div class="flex-shrink-0">
+          <div class="h-10 w-10 rounded-full bg-cyan-400 flex items-center justify-center text-white font-bold">A</div>
+        </div>
+        <div class="flex-1">
+          <div class="flex justify-between items-center mb-1">
+            <span class="font-semibold">Admin</span>
+            <span class="text-xs text-neutral-400">Just now</span>
+          </div>
+          <div class="text-neutral-800 dark:text-neutral-200">Welcome to your inbox! This is where you’ll see messages and notifications.</div>
+        </div>
+      </div>
+      <!-- End Example Message Card -->
+
+      <!-- Placeholder for more messages -->
+      <div class="rounded-lg border border-dashed border-neutral-300 dark:border-neutral-700 bg-neutral-100 dark:bg-neutral-800 p-4 text-center text-neutral-500 dark:text-neutral-400">
+        No new messages yet.
+      </div>
+    </div>
+
+    <div class="mt-10">
+      <h2 class="text-xl font-semibold mb-2">Notifications</h2>
+      <ul class="space-y-2">
+        <li class="bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-700 rounded px-4 py-2 text-yellow-800 dark:text-yellow-200">
+          🔔 You have no new notifications.
+        </li>
+      </ul>
+    </div>
+  </section>
+</Layout>

@@ -1,11 +1,14 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { userBalanceAtom, syncUserBalance, userIdAtom } from 'src/layouts/client/supabase/profile/userstate';
 import { clsx, twMerge } from 'src/utils/tw';
+import { RefreshCcw } from 'lucide-react';
 
 const MemberCard: React.FC = () => {
   const userId = useStore(userIdAtom);
   const balance = useStore(userBalanceAtom);
+  const [refreshing, setRefreshing] = useState(false);
+  const [refreshDisabled, setRefreshDisabled] = useState(false);
 
   useEffect(() => {
     if (userId) {
@@ -44,9 +47,38 @@ const MemberCard: React.FC = () => {
       className={twMerge(
         'w-full max-w-md mx-auto rounded-2xl p-6 shadow-xl bg-white/80 dark:bg-zinc-900/70 border border-cyan-200 dark:border-zinc-800',
         'flex flex-col gap-2 items-center',
-        'transition-all duration-300'
+        'transition-all duration-300',
+        'relative' // for absolute positioning
       )}
     >
+      {/* Refresh button in top-right */}
+      <button
+        onClick={async () => {
+          setRefreshing(true);
+          setRefreshDisabled(true);
+          await syncUserBalance(userId, false);
+          setRefreshing(false);
+        }}
+        className={twMerge(
+          'absolute top-4 right-4 group inline-flex items-center justify-center w-8 h-8 rounded-md border border-cyan-400 dark:border-cyan-700',
+          'bg-white/30 dark:bg-zinc-800/50 text-cyan-600 dark:text-cyan-300 hover:bg-cyan-100/50 dark:hover:bg-cyan-800/60 transition',
+          refreshDisabled && 'opacity-50 cursor-not-allowed pointer-events-none'
+        )}
+        aria-label="Refresh Balance"
+        disabled={refreshDisabled}
+      >
+        <RefreshCcw className={twMerge(
+          'w-4 h-4',
+          refreshing && 'animate-spin'
+        )} />
+        {/* Tooltip */}
+        <span className={twMerge(
+          'absolute bottom-full mb-1 w-max max-w-xs px-2 py-1 rounded bg-neutral-700 text-white text-xs opacity-0 group-hover:opacity-100 transition-opacity',
+          refreshDisabled && 'cursor-not-allowed'
+        )}>
+          {refreshDisabled ? 'Already pulled live' : 'Pull balance from live view'}
+        </span>
+      </button>
       <h2 className={twMerge('text-2xl font-bold text-cyan-700 dark:text-cyan-300 mb-2')}>Member Card</h2>
       <div className="w-full flex flex-col gap-1 text-base text-neutral-800 dark:text-neutral-200">
         <div><span className="font-semibold">Username:</span> {balance.username}</div>

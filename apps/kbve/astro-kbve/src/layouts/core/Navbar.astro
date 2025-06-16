@@ -149,3 +149,102 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 		</div>
 	</nav>
 </header>
+
+<script>
+
+(function() {
+  function createModal() {
+    if (document.getElementById('member-modal')) return;
+    const modal = document.createElement('div');
+    modal.id = 'member-modal';
+    modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none';
+    modal.innerHTML = `
+      <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl p-8 max-w-xs w-full scale-95 opacity-0 translate-y-8 transition-all duration-300" id="member-modal-content">
+        <button id="close-member-modal" class="absolute top-2 right-2 text-neutral-400 hover:text-red-400 text-xl font-bold">&times;</button>
+        <h2 class="text-xl font-bold mb-4 text-cyan-700 dark:text-cyan-200">Member Menu</h2>
+        <ul class="flex flex-col gap-3 mb-4">
+          <li><a href="/profile" class="text-cyan-600 dark:text-cyan-300 hover:underline">Profile</a></li>
+          <li><a href="/logout" class="text-cyan-600 dark:text-cyan-300 hover:underline">Logout</a></li>
+          <li><a href="/messages" class="text-cyan-600 dark:text-cyan-300 hover:underline">Messages</a></li>
+          <li><a href="/igbc" class="text-cyan-600 dark:text-cyan-300 hover:underline">IGBC</a></li>
+        </ul>
+      </div>
+    `;
+    document.body.appendChild(modal);
+    setTimeout(() => {
+      modal.classList.remove('opacity-0', 'pointer-events-none');
+      const content = document.getElementById('member-modal-content');
+      if (content) {
+        content.classList.remove('scale-95', 'opacity-0', 'translate-y-8');
+        content.classList.add('scale-100', 'opacity-100', 'translate-y-0');
+      }
+      const closeBtn = document.getElementById('close-member-modal');
+      if (closeBtn) {
+        closeBtn.onclick = function() {
+          modal.classList.add('opacity-0', 'pointer-events-none');
+          setTimeout(() => modal.remove(), 300);
+        };
+      }
+    }, 10);
+    modal.onclick = function(e) {
+      if (e.target === modal) {
+        modal.classList.add('opacity-0', 'pointer-events-none');
+        setTimeout(() => modal.remove(), 300);
+      }
+    };
+  }
+  function injectMemberButton() {
+    console.log('[Navbar] injectMemberButton called');
+    if (document.getElementById('member-menu-btn')) {
+      console.log('[Navbar] member-menu-btn already exists globally');
+      return; // Prevent double-inject
+    }
+    const navMenu = document.getElementById('nav-menu');
+    if (!navMenu) {
+      console.log('[Navbar] nav-menu not found');
+      return;
+    }
+    if (navMenu.querySelector('#member-menu-btn')) {
+      console.log('[Navbar] member-menu-btn already exists in nav-menu');
+      return; // Extra check inside nav-menu
+    }
+    const btn = document.createElement('button');
+    btn.id = 'member-menu-btn';
+    btn.type = 'button';
+    btn.className = 'group relative flex flex-col items-center justify-center p-2 text-purple-600 dark:text-purple-300 hover:text-cyan-400 transition-colors duration-300';
+    btn.innerHTML = `
+      <span class="absolute -bottom-8 scale-0 rounded bg-purple-500/40 px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">Member</span>
+      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-cyan-400"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
+      <span class="relative text-xs font-medium group-hover:text-cyan-400 transition">Member</span>
+    `;
+    btn.onclick = createModal;
+    navMenu.appendChild(btn);
+    console.log('[Navbar] member-menu-btn injected');
+  }
+
+  function tryInjectMemberButton() {
+    console.log('[Navbar] tryInjectMemberButton called');
+    if (typeof window !== 'undefined') {
+      try {
+        const isMember = localStorage.getItem('isMember');
+        console.log('[Navbar] localStorage.isMember =', isMember);
+        if (isMember === 'true') {
+          injectMemberButton();
+        }
+      } catch (e) {
+        console.log('[Navbar] localStorage access error', e);
+      }
+    }
+  }
+
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', function() {
+      console.log('[Navbar] DOMContentLoaded event');
+      tryInjectMemberButton();
+    });
+  } else {
+    console.log('[Navbar] DOM already loaded');
+    tryInjectMemberButton();
+  }
+})();
+</script>

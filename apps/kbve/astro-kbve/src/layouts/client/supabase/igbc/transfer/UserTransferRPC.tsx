@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { transferSchema, transferBalance, type TransferInput } from './transferBalance';
@@ -16,10 +16,33 @@ const UserTransferRPC: React.FC = () => {
   const [confirmText, setConfirmText] = useState('');
   const [result, setResult] = useState<{ error?: any; data?: any } | null>(null);
 
-  const { register, handleSubmit, formState: { errors, isSubmitting }, reset } = useForm<TransferInput>({
+  const { register, handleSubmit, watch, formState: { errors, isSubmitting, isValid }, reset } = useForm<TransferInput>({
     resolver: zodResolver(transferSchema),
+    mode: 'onChange',
     defaultValues: { kind: 'credit' as const }
   });
+
+  // Watch all fields for validation and completeness
+  const watched = watch();
+
+  // Calculate fee and check balance
+  const { hasEnough, fee, total, balanceError } = useMemo(() => {
+    const kind = watched.kind || 'credit';
+    const amount = Number(watched.amount) || 0;
+    // Use correct property names: credits and khash
+    const userBal = kind === 'credit' ? (balance?.credits || 0) : (balance?.khash || 0);
+    const fee = amount * 0.01 + 20;
+    const total = amount + fee;
+    const hasEnough = amount > 0 && userBal >= total;
+    let balanceError = '';
+    if (amount > 0 && !hasEnough) {
+      balanceError = `Insufficient ${kind} balance. You need at least ${total.toFixed(2)} (amount + fee).`;
+    }
+    return { hasEnough, fee, total, balanceError };
+  }, [watched.amount, watched.kind, balance]);
+
+  // Button disabled if not valid or not enough balance
+  const isButtonDisabled = !isValid || !hasEnough || isSubmitting;
 
   const onSubmit = (data: TransferInput) => {
     setPendingData(data);
@@ -62,7 +85,16 @@ const UserTransferRPC: React.FC = () => {
           <input {...register('reason')} placeholder="Reason for transfer" className={twMerge('input input-bordered w-full bg-white/80 dark:bg-zinc-800/70 text-neutral-900 dark:text-neutral-100 border-cyan-300 dark:border-cyan-700 focus:ring-2 focus:ring-cyan-400 focus:border-cyan-400 placeholder:text-neutral-400 dark:placeholder:text-neutral-500 px-4 py-2', errors.reason && 'border-red-400 focus:border-red-500')} />
           {errors.reason && <span className="text-red-500 text-xs mt-1 block">{errors.reason.message}</span>}
         </div>
-        <button type="submit" className={twMerge('btn btn-primary bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold py-2 rounded-lg shadow hover:from-cyan-600 hover:to-purple-600 transition-colors duration-200', isSubmitting && 'opacity-50')}>Submit</button>
+        {balanceError && <div className="text-red-500 text-xs mt-1 block">{balanceError}</div>}
+        <div className="text-xs text-neutral-500 dark:text-neutral-400 mt-1">Fee: {fee.toFixed(2)} | Total: {total.toFixed(2)}</div>
+        <button
+          type="submit"
+          className={twMerge('btn btn-primary bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold py-2 rounded-lg shadow hover:from-cyan-600 hover:to-purple-600 transition-colors duration-200',
+            (isButtonDisabled ? 'opacity-50 cursor-not-allowed' : ''))}
+          disabled={isButtonDisabled}
+        >
+          Submit
+        </button>
       </form>
       {result && (
         <div className="mt-4">
