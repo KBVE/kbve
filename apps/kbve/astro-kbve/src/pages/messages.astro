@@ -1,5 +1,6 @@
 ---
 import Layout from 'src/layouts/core/Layout.astro';
+import Supabase from 'src/layouts/core/Supabase.astro';
 import { SendMessage } from 'src/layouts/client/supabase/messages/SendMessage';
 import { Mailbox } from 'src/layouts/client/supabase/messages/Mailbox';
 import MembersOnly from 'src/layouts/client/supabase/auth/MembersOnly'; // <MembersOnly client:only="react" />
@@ -7,6 +8,7 @@ import MembersOnly from 'src/layouts/client/supabase/auth/MembersOnly'; // <Memb
 ---
 
 <Layout title="Inbox & Notifications">
+  <Supabase />
   <section class="mx-auto max-w-4xl py-10 px-4 md:px-0">
 
     <MembersOnly client:only="react" />
