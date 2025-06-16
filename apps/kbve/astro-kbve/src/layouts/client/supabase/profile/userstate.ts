@@ -30,7 +30,22 @@ export type UserBalanceView = {
 };
 
 // Persistent atom for user balance view
-export const userBalanceAtom = persistentAtom<UserBalanceView | undefined>('user:balance', undefined);
+function serializeUserBalance(value: UserBalanceView | undefined): string {
+  return value ? JSON.stringify(value) : "";
+}
+
+function deserializeUserBalance(value: string | undefined): UserBalanceView | undefined {
+  return value ? JSON.parse(value) as UserBalanceView : undefined;
+}
+
+export const userBalanceAtom = persistentAtom<UserBalanceView | undefined>(
+  'user:balance',
+  undefined,
+  {
+    encode: serializeUserBalance,
+    decode: deserializeUserBalance,
+  }
+);
 
 // Utility function to sync userAtom and persistent atoms with supabase session
 export async function syncSupabaseUser() {
