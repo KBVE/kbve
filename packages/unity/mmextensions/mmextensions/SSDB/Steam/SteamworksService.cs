@@ -95,15 +95,21 @@ namespace KBVE.MMExtensions.SSDB.Steam
                 await Operator.Quest.QuestsReady.WaitUntilTrue(cancellationToken);
                 Achievements.Clear();
 
+                Debug.Log($"Quests found ready: {Operator.Quest.LoadedQuests.Count}");
+
                 foreach (var quest in Operator.Quest.LoadedQuests)
                 {
                     cancellationToken.ThrowIfCancellationRequested();
 
                     var steam = quest.SteamAchievement;
+                    Debug.Log($"quest.SteamAchievement? {steam} api name {steam.apiName}");
+                    
                     if (steam == null || string.IsNullOrWhiteSpace(steam.apiName))
                         continue;
 
-                    if (SteamworksAchievements.GetAchievement(steam.apiName, out var achieved, out var unlockTime))
+                    bool success = SteamworksAchievements.GetAchievement(steam.apiName, out var achieved, out var unlockTime);
+                    Debug.Log($"Successful steamworks call? {success} achieved? {achieved} unlockTime? {unlockTime}");
+                    if (success)
                     {
                         var info = new AchievementInfo
                         {
