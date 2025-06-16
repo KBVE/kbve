@@ -65,6 +65,21 @@ Deno.serve(async (req: Request) => {
       });
     }
 
+    const { error: metaError } = await supabaseAdmin.auth.admin.updateUserById(user_id, {
+      user_metadata: {
+        username: parsed.username,
+      },
+    });
+
+    if (metaError) {
+      console.error("[user_metadata] Failed to update:", metaError);
+      return new Response(JSON.stringify({ error: metaError.message }), {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      });
+    }
+
+
     return new Response(JSON.stringify({ success: true }), {
       status: 200,
       headers: { "Content-Type": "application/json" },
