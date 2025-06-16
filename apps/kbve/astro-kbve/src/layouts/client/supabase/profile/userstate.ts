@@ -50,6 +50,12 @@ export const userBalanceAtom = persistentAtom<UserBalanceView | undefined>(
 // Utility function to sync userAtom and persistent atoms with supabase session
 export async function syncSupabaseUser() {
   const { data } = await supabase.auth.getUser();
+  if (typeof window !== 'undefined') {
+    // Default isMember to false if not set
+    if (localStorage.getItem('isMember') === null) {
+      localStorage.setItem('isMember', 'false');
+    }
+  }
   if (data?.user) {
     userAtom.set(data.user);
     userIdAtom.set(data.user.id ?? undefined);
@@ -58,12 +64,18 @@ export async function syncSupabaseUser() {
     const username = data.user.user_metadata?.username ?? undefined;
     usernameAtom.set(username ?? null);
     userNamePersistentAtom.set(username);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('isMember', 'true');
+    }
   } else {
     userAtom.set(null);
     userIdAtom.set(undefined);
     userEmailAtom.set(undefined);
     usernameAtom.set(null);
     userNamePersistentAtom.set(undefined);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('isMember', 'false');
+    }
   }
 }
 
