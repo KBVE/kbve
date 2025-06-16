@@ -1,5 +1,6 @@
 ---
 import Layout from 'src/layouts/core/Layout.astro';
+import { SendMessage } from 'src/layouts/client/supabase/messages/SendMessage';
 ---
 
 <Layout title="Inbox & Notifications">
@@ -28,6 +29,10 @@ import Layout from 'src/layouts/core/Layout.astro';
             <span class="text-2xl mb-2">📭</span>
             <span>No new messages yet.</span>
             <!-- Drop React message list here -->
+          </div>
+          <!-- Add SendMessage React component here -->
+          <div class="mt-6">
+            <SendMessage client:only="react" />
           </div>
         </div>
       </section>

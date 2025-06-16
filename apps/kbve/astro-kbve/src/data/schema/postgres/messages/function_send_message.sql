@@ -33,15 +33,16 @@ begin
     raise exception 'Message too long (max 5000 characters).';
   end if;
 
-  -- Enforce that encryption must be blank
   if p_encryption is distinct from '' then
     raise exception 'Encryption is not supported yet. Must be blank.';
   end if;
 
-  -- Basic HTML sanitization
   if p_title ~ '<[^>]+>' or p_description ~ '<[^>]+>' or p_message ~ '<[^>]+>' then
     raise exception 'Message contains disallowed HTML content.';
   end if;
+
+  -- 💸 Deduct messaging fee (e.g. 1.00 credit)
+  perform private.credit_process_fee(p_sender, 1.00);
 
   insert into private.user_messages (
     ulid,
@@ -64,6 +65,6 @@ begin
 end;
 $$;
 
--- Lock down access
+-- Access control
 revoke all on function private.send_user_message(uuid, uuid, text, text, text, text) from public, authenticated, anon;
 grant execute on function private.send_user_message(uuid, uuid, text, text, text, text) to service_role;
