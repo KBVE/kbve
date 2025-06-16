@@ -52,8 +52,8 @@ const MemberCard: React.FC = () => {
         <div><span className="font-semibold">Username:</span> {balance.username}</div>
         <div><span className="font-semibold">Level:</span> {balance.level ?? 'N/A'}</div>
         <div><span className="font-semibold">Role:</span> {balance.role ?? 'N/A'}</div>
-        <div><span className="font-semibold">Credits:</span> {balance.credits ?? 0}</div>
-        <div><span className="font-semibold">KHash:</span> {balance.khash ?? 0}</div>
+        <div><span className="font-semibold">Credits:</span> {typeof balance.credits === 'number' ? balance.credits.toFixed(2) : '0.00'}</div>
+        <div><span className="font-semibold">KHash:</span> {typeof balance.khash === 'number' ? balance.khash.toFixed(2) : '0.00'}</div>
         <div><span className="font-semibold">Joined:</span> {new Date(balance.created_at).toLocaleDateString()}</div>
       </div>
     </div>
