@@ -1,8 +1,8 @@
 import React from 'react';
 import { useForm } from 'react-hook-form';
 import { useStore } from '@nanostores/react';
-import { userAtom, usernameAtom } from 'src/layouts/client/supabase/profile/userstate';
-import { supabase } from 'src/layouts/client/supabase/supabaseClient';
+import { userAtom, usernameAtom, syncSupabaseUser } from 'src/layouts/client/supabase/profile/userstate';
+import { supabase, SUPABASE_URL } from 'src/layouts/client/supabase/supabaseClient';
 import { clsx, twMerge } from 'src/utils/tw';
 const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,30}$/;
 
@@ -16,6 +16,10 @@ const UsernameBalance: React.FC = () => {
   const { register, handleSubmit, formState: { errors, isSubmitting }, setError, setValue } = useForm<FormData>();
   const [success, setSuccess] = React.useState<string | null>(null);
 
+  React.useEffect(() => {
+    syncSupabaseUser();
+  }, []);
+
   const onSubmit = async (data: FormData) => {
     setSuccess(null);
     if (!user) {
@@ -23,18 +27,11 @@ const UsernameBalance: React.FC = () => {
       return;
     }
     try {
-      const token = (await supabase.auth.getSession()).data.session?.access_token;
-      const res = await fetch('/functions/v1/register-user', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-        },
-        body: JSON.stringify({ username: data.username })
+      const { data: result, error } = await supabase.functions.invoke('register-user', {
+        body: { username: data.username }
       });
-      const result = await res.json();
-      if (!res.ok) {
-        setError('username', { type: 'manual', message: result.error || 'Registration failed.' });
+      if (error) {
+        setError('username', { type: 'manual', message: error.message || 'Registration failed.' });
       } else {
         setSuccess('Username registered successfully!');
         usernameAtom.set(data.username); // Set the atom on success
