@@ -78,7 +78,7 @@ const sendMessageSchema = z.object({
 type SendMessageForm = z.infer<typeof sendMessageSchema>;
 
 export const SendMessage: React.FC = () => {
-  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting }, reset, trigger } = useForm<SendMessageForm>({
+  const { register, handleSubmit, setValue, watch, formState: { errors, isSubmitting, touchedFields }, reset, trigger } = useForm<SendMessageForm>({
     resolver: zodResolver(sendMessageSchema),
   });
   const [result, setResult] = useState<SendMessageResult | null>(null);
@@ -170,6 +170,11 @@ export const SendMessage: React.FC = () => {
     }
   }, [receiverValue, isUuid, showUuidSearch, setValue]);
 
+  // Helper to determine if a field is valid (touched and no error)
+  const isFieldValid = (field: keyof SendMessageForm) => {
+    return !!(touchedFields[field] && !errors[field]);
+  };
+
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-8 max-w-lg mx-auto p-10 bg-white/70 dark:bg-neutral-900/80 rounded-2xl shadow-2xl border border-neutral-200 dark:border-neutral-800 backdrop-blur-md">
       <div className="text-center mb-6">
@@ -230,9 +235,9 @@ export const SendMessage: React.FC = () => {
           <span className="ml-1 cursor-pointer group relative">
             {errors.title ? (
               <AlertCircle size={16} className="text-yellow-500 inline-block" />
-            ) : (
+            ) : isFieldValid('title') ? (
               <CheckCircle size={16} className="text-green-500 inline-block" />
-            )}
+            ) : null}
             <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-neutral-800 text-neutral-100 text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10 shadow-lg">
               {fieldRules.title.tooltip}
             </span>
@@ -247,9 +252,9 @@ export const SendMessage: React.FC = () => {
           <span className="ml-1 cursor-pointer group relative">
             {errors.description ? (
               <AlertCircle size={16} className="text-yellow-500 inline-block" />
-            ) : (
+            ) : isFieldValid('description') ? (
               <CheckCircle size={16} className="text-green-500 inline-block" />
-            )}
+            ) : null}
             <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-neutral-800 text-neutral-100 text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10 shadow-lg">
               {fieldRules.description.tooltip}
             </span>
@@ -264,9 +269,9 @@ export const SendMessage: React.FC = () => {
           <span className="ml-1 cursor-pointer group relative">
             {errors.message ? (
               <AlertCircle size={16} className="text-yellow-500 inline-block" />
-            ) : (
+            ) : isFieldValid('message') ? (
               <CheckCircle size={16} className="text-green-500 inline-block" />
-            )}
+            ) : null}
             <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-neutral-800 text-neutral-100 text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10 shadow-lg">
               {fieldRules.message.tooltip}
             </span>
