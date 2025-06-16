@@ -4,7 +4,8 @@ import { useStore } from '@nanostores/react';
 import { userAtom, usernameAtom, syncSupabaseUser } from 'src/layouts/client/supabase/profile/userstate';
 import { supabase, SUPABASE_URL } from 'src/layouts/client/supabase/supabaseClient';
 import { clsx, twMerge } from 'src/utils/tw';
-const USERNAME_REGEX = /^[a-zA-Z0-9_-]{3,30}$/;
+// Update: Only allow lowercase, numbers, _ and - for username
+const USERNAME_REGEX = /^[a-z0-9_-]{3,30}$/;
 
 interface FormData {
   username: string;
@@ -72,7 +73,12 @@ const UsernameBalance: React.FC = () => {
             required: 'Username is required',
             pattern: {
               value: USERNAME_REGEX,
-              message: '3-30 chars, letters, numbers, _ or -',
+              message: '3-30 chars, lowercase letters, numbers, _ or -',
+            },
+            onChange: (e) => {
+              // Always lowercase the input
+              e.target.value = e.target.value.toLowerCase();
+              return e;
             },
           })}
           placeholder="Username"
@@ -89,6 +95,17 @@ const UsernameBalance: React.FC = () => {
         </button>
       </form>
       {success && <div className="text-green-500 text-sm font-semibold">{success}</div>}
+      {/* Modal for success */}
+      {success && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40">
+          <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4 border border-cyan-200 dark:border-cyan-700 max-w-xs">
+            <div className="text-2xl text-green-600 dark:text-green-400 font-bold mb-2">Success!</div>
+            <div className="text-base text-neutral-700 dark:text-neutral-200 text-center">Your username has been registered.</div>
+            <a href="/profile" className="mt-2 px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold shadow hover:from-cyan-400 hover:to-purple-400 transition-colors">Go to Profile</a>
+            <button onClick={() => setSuccess(null)} className="text-xs text-cyan-600 dark:text-cyan-300 mt-2 underline">Close</button>
+          </div>
+        </div>
+      )}
       {alreadyOnboarded && <div className="text-cyan-600 text-xs font-medium">You are already onboarded.</div>}
     </div>
   );
