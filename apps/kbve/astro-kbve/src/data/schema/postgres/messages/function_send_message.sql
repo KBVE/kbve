@@ -65,5 +65,5 @@ end;
 $$;
 
 -- Lock down access
-revoke all on function private.send_user_message(uuid, uuid, text, text, text, text) from public;
+revoke all on function private.send_user_message(uuid, uuid, text, text, text, text) from public, authenticated, anon;
 grant execute on function private.send_user_message(uuid, uuid, text, text, text, text) to service_role;
