@@ -18,7 +18,7 @@ using KBVE.MMExtensions.Orchestrator;
 using KBVE.MMExtensions.Orchestrator.Core;
 using Heathen.SteamworksIntegration;
 using Heathen.SteamworksIntegration.UI;
-using Heathen.SteamworksIntegration.API;
+using API = Heathen.SteamworksIntegration.API;
 using TMPro;
 
 namespace KBVE.MMExtensions.SSDB.Steam
@@ -41,6 +41,10 @@ namespace KBVE.MMExtensions.SSDB.Steam
             private CancellationTokenSource _cts;
 
             private SteamworksService _steamworksService;
+
+            public UserData UserData { get; set; }
+
+            private UserData currentUser;
 
             [Inject]
             public void Construct(SteamworksService steamworksService)
@@ -125,7 +129,7 @@ namespace KBVE.MMExtensions.SSDB.Steam
 
                 string gameName = "Not in game";
                 if(gameInfo.Game != null)
-                    gameName = "Playing " + gameInfo.Game.Name
+                    gameName = "Playing " + gameInfo.Game.Name;
 
                 StatusText.text = gameName;
 
