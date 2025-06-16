@@ -10,7 +10,7 @@ interface FormData {
   username: string;
 }
 
-const Onboarding: React.FC = () => {
+const UsernameBalance: React.FC = () => {
   const user = useStore(userAtom);
   const username = useStore(usernameAtom);
   const { register, handleSubmit, formState: { errors, isSubmitting }, setError, setValue } = useForm<FormData>();
@@ -88,4 +88,4 @@ const Onboarding: React.FC = () => {
   );
 };
 
-export default Onboarding;
+export default UsernameBalance;
