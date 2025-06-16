@@ -179,7 +179,11 @@ export const SendMessage: React.FC = () => {
         <label className="block font-semibold text-neutral-800 dark:text-neutral-100 flex items-center gap-2">
           To (UUID Only)
           <span className="ml-1 cursor-pointer group relative">
-            <AlertCircle size={16} className="text-yellow-500 inline-block" />
+            {isUuid && resolvedUsername ? (
+              <CheckCircle size={16} className="text-green-500 inline-block" />
+            ) : (
+              <AlertCircle size={16} className="text-yellow-500 inline-block" />
+            )}
             <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-neutral-800 text-neutral-100 text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10 shadow-lg">
               {fieldRules.receiver.tooltip}
             </span>
@@ -224,40 +228,52 @@ export const SendMessage: React.FC = () => {
         <label className="block font-semibold text-neutral-800 dark:text-neutral-100 flex items-center gap-2">
           Title
           <span className="ml-1 cursor-pointer group relative">
-            <svg width="16" height="16" fill="currentColor" className="text-cyan-400 inline-block"><circle cx="8" cy="8" r="8" /></svg>
+            {errors.title ? (
+              <AlertCircle size={16} className="text-yellow-500 inline-block" />
+            ) : (
+              <CheckCircle size={16} className="text-green-500 inline-block" />
+            )}
             <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-neutral-800 text-neutral-100 text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10 shadow-lg">
               {fieldRules.title.tooltip}
             </span>
           </span>
         </label>
         <input {...register('title', { onBlur: (e) => { trigger('title'); } })} className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-4 py-2 text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition" />
-        {errors.title && <span className="text-red-500 text-xs mt-1 block">{errors.title.message}</span>}
+        {errors.title && <span className="flex items-center gap-1 text-red-500 text-xs mt-1"><AlertCircle size={14} className="inline-block" />{errors.title.message}</span>}
       </div>
       <div className="space-y-2">
         <label className="block font-semibold text-neutral-800 dark:text-neutral-100 flex items-center gap-2">
           Description (optional)
           <span className="ml-1 cursor-pointer group relative">
-            <svg width="16" height="16" fill="currentColor" className="text-cyan-400 inline-block"><circle cx="8" cy="8" r="8" /></svg>
+            {errors.description ? (
+              <AlertCircle size={16} className="text-yellow-500 inline-block" />
+            ) : (
+              <CheckCircle size={16} className="text-green-500 inline-block" />
+            )}
             <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-neutral-800 text-neutral-100 text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10 shadow-lg">
               {fieldRules.description.tooltip}
             </span>
           </span>
         </label>
         <input {...register('description', { onBlur: (e) => { trigger('description'); } })} className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-4 py-2 text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition" />
-        {errors.description && <span className="text-red-500 text-xs mt-1 block">{errors.description.message}</span>}
+        {errors.description && <span className="flex items-center gap-1 text-red-500 text-xs mt-1"><AlertCircle size={14} className="inline-block" />{errors.description.message}</span>}
       </div>
       <div className="space-y-2">
         <label className="block font-semibold text-neutral-800 dark:text-neutral-100 flex items-center gap-2">
           Message
           <span className="ml-1 cursor-pointer group relative">
-            <svg width="16" height="16" fill="currentColor" className="text-cyan-400 inline-block"><circle cx="8" cy="8" r="8" /></svg>
+            {errors.message ? (
+              <AlertCircle size={16} className="text-yellow-500 inline-block" />
+            ) : (
+              <CheckCircle size={16} className="text-green-500 inline-block" />
+            )}
             <span className="absolute left-1/2 -translate-x-1/2 mt-2 w-56 bg-neutral-800 text-neutral-100 text-xs rounded-lg px-3 py-2 opacity-0 group-hover:opacity-100 transition pointer-events-none z-10 shadow-lg">
               {fieldRules.message.tooltip}
             </span>
           </span>
         </label>
         <textarea {...register('message', { onBlur: (e) => { trigger('message'); } })} className="w-full rounded-lg border border-neutral-300 dark:border-neutral-700 bg-neutral-50 dark:bg-neutral-800 px-4 py-2 text-base text-neutral-900 dark:text-neutral-100 placeholder:text-neutral-400 dark:placeholder:text-neutral-400 focus:outline-none focus:ring-2 focus:ring-cyan-400 transition min-h-[120px]" />
-        {errors.message && <span className="text-red-500 text-xs mt-1 block">{errors.message.message}</span>}
+        {errors.message && <span className="flex items-center gap-1 text-red-500 text-xs mt-1"><AlertCircle size={14} className="inline-block" />{errors.message.message}</span>}
       </div>
       <button type="submit" className="w-full rounded-lg py-3 text-base font-semibold bg-cyan-600 dark:bg-cyan-700 hover:bg-cyan-700 dark:hover:bg-cyan-600 border border-cyan-700 dark:border-cyan-600 text-white dark:text-neutral-100 shadow-lg transition" disabled={isSubmitting}>
         {isSubmitting ? 'Sending...' : 'Send Message (1 credit)'}
