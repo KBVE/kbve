@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { userBalanceAtom, syncUserBalance, userIdAtom } from 'src/layouts/client/supabase/profile/userstate';
+import { userBalanceAtom, syncUserBalance, userIdAtom, syncSupabaseUser } from 'src/layouts/client/supabase/profile/userstate';
 import { clsx, twMerge } from 'src/utils/tw';
 import { RefreshCcw } from 'lucide-react';
 
@@ -9,6 +9,11 @@ const MemberCard: React.FC = () => {
   const balance = useStore(userBalanceAtom);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshDisabled, setRefreshDisabled] = useState(false);
+
+  useEffect(() => {
+    // Always sync user on mount to ensure userId is set
+    syncSupabaseUser();
+  }, []);
 
   useEffect(() => {
     if (userId) {

@@ -1,11 +1,17 @@
 ---
 import Layout from 'src/layouts/core/Layout.astro';
+import Supabase from 'src/layouts/core/Supabase.astro';
 import { SendMessage } from 'src/layouts/client/supabase/messages/SendMessage';
 import { Mailbox } from 'src/layouts/client/supabase/messages/Mailbox';
+import MembersOnly from 'src/layouts/client/supabase/auth/MembersOnly'; // <MembersOnly client:only="react" />
+
 ---
 
 <Layout title="Inbox & Notifications">
+  <Supabase />
   <section class="mx-auto max-w-4xl py-10 px-4 md:px-0">
+
+    <MembersOnly client:only="react" />
     <header class="mb-8 flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
       <div>
         <h1 class="text-4xl font-extrabold tracking-tight bg-gradient-to-br from-cyan-500 to-purple-600 bg-clip-text text-transparent drop-shadow-purple-600/40">Inbox</h1>
