@@ -88,10 +88,12 @@ interface Props {
 			applyDarkModePreference();
 
 			// Run again after any Astro view transition
-			document.addEventListener(
-				'astro:page-load',
-				applyDarkModePreference
-			);
+			// document.addEventListener(
+			// 	'astro:page-load',
+			// 	applyDarkModePreference
+			// );
+
+			document.addEventListener('DOMContentLoaded', applyDarkModePreference);
 		</script>
 
 		<!-- Lenis Library -->
