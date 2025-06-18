@@ -98,6 +98,20 @@ export default defineConfig({
                     autogenerate: { directory: 'arcade' },
                 },
                 {
+					label: 'Assets',
+					collapsed: true,
+					items: [
+						{
+							label: 'Crypto',
+							autogenerate: { directory: 'crypto' },
+						},
+						{
+							label: 'Stocks',
+							autogenerate: { directory: 'stock' },
+						},
+					],
+				},
+                {
                     label: 'Theory',
                     collapsed: true,
                     autogenerate: { directory: 'theory' },
