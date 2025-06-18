@@ -25,7 +25,7 @@ namespace KBVE.MMExtensions.SSDB
 
         protected override void Configure(IContainerBuilder builder)
         {
-            #if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID && STEAMWORKSNET && !DISABLESTEAMWORKS
+            #if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
             if (autoStart)
             {
 

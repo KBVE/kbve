@@ -1,5 +1,4 @@
-#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID && STEAMWORKSNET && !DISABLESTEAMWORKS
-
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
 
 using System;
 using System.Threading;
