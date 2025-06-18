@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using UnityEditor;
 using UnityEngine;
 using UnityEngine.Networking;
@@ -255,3 +256,5 @@ namespace KBVE.MMExtensions.Database
 
     }
 }
+
+#endif

@@ -80,16 +80,16 @@ namespace KBVE.MMExtensions.SSDB.Steam
                     // NameText.text = localUser.Name; // or .Name if your custom wrapper exposes that
                     // StatusText.text = localUser.State.ToString();
 
-                     localUser.LoadAvatar(texture =>
-                    {
-                        AvatarImage.sprite = Sprite.Create(
-                            texture,
-                            new Rect(0, 0, texture.width, texture.height),
-                            new Vector2(0.5f, 0.5f)
-                        );
-                    });
+                    //  localUser.LoadAvatar(texture =>
+                    // {
+                    //     AvatarImage.sprite = Sprite.Create(
+                    //         texture,
+                    //         new Rect(0, 0, texture.width, texture.height),
+                    //         new Vector2(0.5f, 0.5f)
+                    //     );
+                    // });
 
-                    _lastStatus.Value = localUser.State.ToString();
+                    // _lastStatus.Value = localUser.State.ToString();
 
 
                     // Subscription for the Names
