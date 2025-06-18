@@ -1,3 +1,5 @@
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
+
 using System;
 using System.Threading;
 using System.Linq;
@@ -19,16 +21,16 @@ using KBVE.MMExtensions.Orchestrator.Core;
 using Heathen.SteamworksIntegration;
 using Heathen.SteamworksIntegration.UI;
 using API = Heathen.SteamworksIntegration.API;
-using TMPro;
+//using TMPro;
 
 namespace KBVE.MMExtensions.SSDB.Steam
 {
-        public class SteamUserProfiles : MonoBehaviour, IUserProfile, IAsyncStartable, IDisposable
+        public class SteamUserProfiles : MonoBehaviour, IAsyncStartable, IDisposable //IUserProfile
         {
 
-            public UnityEngine.UI.Image AvatarImage;
-            public TMPro.TMP_Text StatusText;
-            public TMPro.TMP_Text NameText;
+            // public UnityEngine.UI.Image AvatarImage;
+            // public TMPro.TMP_Text StatusText;
+            // public TMPro.TMP_Text NameText;
 
             // Holy Byte Memes
 
@@ -42,9 +44,9 @@ namespace KBVE.MMExtensions.SSDB.Steam
 
             private SteamworksService _steamworksService;
 
-            public UserData UserData { get; set; }
+            // public UserData UserData { get; set; }
 
-            private UserData currentUser;
+            // private UserData currentUser;
 
             [Inject]
             public void Construct(SteamworksService steamworksService)
@@ -75,8 +77,8 @@ namespace KBVE.MMExtensions.SSDB.Steam
                 {
                     Debug.Log($"Local User {localUser.AccountId}");
 
-                    NameText.text = localUser.Name; // or .Name if your custom wrapper exposes that
-                    StatusText.text = localUser.State.ToString();
+                    // NameText.text = localUser.Name; // or .Name if your custom wrapper exposes that
+                    // StatusText.text = localUser.State.ToString();
 
                      localUser.LoadAvatar(texture =>
                     {
@@ -107,7 +109,7 @@ namespace KBVE.MMExtensions.SSDB.Steam
 
 
 
-                    Apply(localUser);
+                    //Apply(localUser);
                 }
                 // var user = API.User.Client.Id;
                 // Apply(user);
@@ -121,35 +123,37 @@ namespace KBVE.MMExtensions.SSDB.Steam
                 _disposables.Dispose();
             }
             
-            public void Apply(UserData user)
-            {
-                currentUser = user;
-                if (!currentUser.RequestInformation())
-                    UpdateUserData();
-            }
+            // public void Apply(UserData user)
+            // {
+            //     currentUser = user;
+            //     if (!currentUser.RequestInformation())
+            //         UpdateUserData();
+            // }
 
-            private void UpdateUserData()
-            {
-                if (!currentUser.IsValid)
-                {
-                    Debug.LogWarning("Current user was not valid, returning before update");
-                    return;
-                }
+            // private void UpdateUserData()
+            // {
+            //     if (!currentUser.IsValid)
+            //     {
+            //         Debug.LogWarning("Current user was not valid, returning before update");
+            //         return;
+            //     }
 
-                NameText.text = currentUser.Name;
+            //     NameText.text = currentUser.Name;
 
-                var inGame = currentUser.GetGamePlayed(out FriendGameInfo gameInfo);
-                var inThisGame = inGame && gameInfo.Game.App == API.App.Client.Id;
-                var state = currentUser.State;
+            //     var inGame = currentUser.GetGamePlayed(out FriendGameInfo gameInfo);
+            //     var inThisGame = inGame && gameInfo.Game.App == API.App.Client.Id;
+            //     var state = currentUser.State;
 
-                string gameName = "Not in game";
-                if(gameInfo.Game != null)
-                    gameName = "Playing " + gameInfo.Game.Name;
+            //     string gameName = "Not in game";
+            //     if(gameInfo.Game != null)
+            //         gameName = "Playing " + gameInfo.Game.Name;
 
-                StatusText.text = gameName;
+            //     StatusText.text = gameName;
 
-            }
+            // }
 
         }
 
 }
+
+#endif
