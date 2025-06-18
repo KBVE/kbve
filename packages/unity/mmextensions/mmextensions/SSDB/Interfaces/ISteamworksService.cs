@@ -1,3 +1,5 @@
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
+
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
@@ -28,3 +30,5 @@ namespace KBVE.MMExtensions.SSDB
 
     }
 }
+
+#endif
