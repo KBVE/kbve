@@ -1,5 +1,3 @@
-
-
 using System;
 using System.Threading;
 using System.Linq;
@@ -16,7 +14,7 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using KBVE.MMExtensions.Orchestrator;
 using KBVE.MMExtensions.Orchestrator.Core;
-#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID && STEAMWORKSNET && !DISABLESTEAMWORKS
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
 using Achievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
 #endif
 
@@ -25,7 +23,7 @@ namespace KBVE.MMExtensions.SSDB.Steam
     public class SteamAchievements : MonoBehaviour, MMEventListener<MMAchievementUnlockedEvent>, IAsyncStartable, IDisposable
     {
 
-        #if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID && STEAMWORKSNET && !DISABLESTEAMWORKS
+        #if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
 
         private CancellationTokenSource _cts;
         private readonly CompositeDisposable _disposables = new();
