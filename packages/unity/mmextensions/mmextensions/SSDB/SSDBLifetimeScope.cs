@@ -1,4 +1,3 @@
-#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
 
 using UnityEngine;
 using VContainer;
@@ -26,6 +25,7 @@ namespace KBVE.MMExtensions.SSDB
 
         protected override void Configure(IContainerBuilder builder)
         {
+            #if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID && STEAMWORKSNET && !DISABLESTEAMWORKS
             if (autoStart)
             {
 
@@ -42,10 +42,11 @@ namespace KBVE.MMExtensions.SSDB
                 .As<IDisposable>();
 
             }
+            #else
+                Debug.LogWarning("[SSDBLifetimeScope] Steamworks integration is disabled or not supported on this platform.");
+            #endif
 
 
         }
     }
 }
-
-#endif

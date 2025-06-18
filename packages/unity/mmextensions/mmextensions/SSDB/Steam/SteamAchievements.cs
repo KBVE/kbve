@@ -1,11 +1,9 @@
-#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
 
 
 using System;
 using System.Threading;
 using System.Linq;
 using Cysharp.Threading.Tasks;
-//using Cysharp.Threading.Tasks.Addressables;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -14,17 +12,21 @@ using ObservableCollections;
 using MoreMountains.Tools;
 using MoreMountains.TopDownEngine;
 using KBVE.MMExtensions.Quests;
-using Achievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
 using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using KBVE.MMExtensions.Orchestrator;
 using KBVE.MMExtensions.Orchestrator.Core;
-
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID && STEAMWORKSNET && !DISABLESTEAMWORKS
+using Achievements = Heathen.SteamworksIntegration.API.StatsAndAchievements.Client;
+#endif
 
 namespace KBVE.MMExtensions.SSDB.Steam
 {
     public class SteamAchievements : MonoBehaviour, MMEventListener<MMAchievementUnlockedEvent>, IAsyncStartable, IDisposable
     {
+
+        #if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID && STEAMWORKSNET && !DISABLESTEAMWORKS
+
         private CancellationTokenSource _cts;
         private readonly CompositeDisposable _disposables = new();
         private SteamworksService _steamworksService;
@@ -106,7 +108,11 @@ namespace KBVE.MMExtensions.SSDB.Steam
             MMEventManager.RemoveListener<MMAchievementUnlockedEvent>(this);
             _disposables.Dispose();
         }
+
+        #else
+        public UniTask StartAsync(CancellationToken cancellationToken) => UniTask.CompletedTask;
+        public void OnMMEvent(MMAchievementUnlockedEvent _) {}
+        public void Dispose() {}
+        #endif
     }
 }
-
-#endif

@@ -41,7 +41,9 @@
     "UNITY_2021_3_OR_NEWER",
     "!UNITY_WEBGL",
     "!UNITY_IOS",
-    "!UNITY_ANDROID"
+    "!UNITY_ANDROID",
+    "STEAMWORKSNET",
+    "!DISABLESTEAMWORKS"
   ],
   "versionDefines": [],
   "noEngineReferences": false
