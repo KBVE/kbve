@@ -1,3 +1,6 @@
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
+
+
 using System;
 using System.Threading;
 using System.Linq;
@@ -105,3 +108,5 @@ namespace KBVE.MMExtensions.SSDB.Steam
         }
     }
 }
+
+#endif
