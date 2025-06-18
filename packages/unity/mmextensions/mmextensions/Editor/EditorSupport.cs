@@ -1,3 +1,4 @@
+#if UNITY_EDITOR
 using System;
 using System.IO;
 using System.Net;
@@ -155,3 +156,5 @@ namespace KBVE.MMExtensions.Editor
 
     }
 }
+
+#endif
