@@ -139,6 +139,11 @@ export default defineConfig({
                     autogenerate: { directory: 'journal' },
                 },
                 {
+                    label: 'Recipe',
+                    collapsed: true,
+                    autogenerate: { directory: 'recipe' },
+                },
+                {
                     label: 'Legal',
                     collapsed: true,
                     autogenerate: { directory: 'legal' },
