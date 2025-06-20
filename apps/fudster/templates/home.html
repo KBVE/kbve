@@ -8,6 +8,9 @@
 		<!-- Tailwind CSS v4 Browser -->
     	<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 		
+		<!-- hCaptcha Script -->
+		<script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+		
 		<!-- Supabase Initialization (First Priority) -->
 		<script type="module">
 			// Import Supabase first
@@ -88,9 +91,12 @@
 				const mod = window.kbve?.mod;
 				const emitFromWorker = window.kbve?.uiux?.emitFromWorker;
 				
-				if (!mod) {
-					console.error('[KBVE] Mod manager not available');
+				if (!window.kbve) {
+					console.error('[KBVE] window.kbve not available - droid initialization failed');
 					window.droidReady = false;
+				} else if (!mod) {
+					console.warn('[KBVE] Mod manager not available, but kbve system loaded');
+					window.droidReady = true; // Still mark as ready since kbve is available
 				} else {
 					// Load bento mod if available
 					if (modUrls.bento) {
@@ -120,6 +126,10 @@
 					workerRefs: astroStrings,
 					workerURLs: localWorkerURLs
 				});
+				console.log('KBVE system available:', !!window.kbve);
+				if (window.kbve) {
+					console.log('KBVE modules loaded:', Object.keys(window.kbve));
+				}
 			} catch (error) {
 				console.error('Failed to initialize Droid:', error);
 				window.droidReady = false;
@@ -215,7 +225,7 @@
 		<!-- Droid Integration Section -->
 		<section class="bg-dark-lighter border border-zinc-700 text-white p-6 rounded-lg mb-6 mx-4">
 			<h2 class="text-3xl font-bold mb-4 text-center text-primary">KBVE Droid Integration</h2>
-			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
 				<!-- Droid Status -->
 				<div class="bg-dark-light border border-zinc-600 p-4 rounded-lg">
 					<h3 class="text-xl font-semibold mb-2 text-secondary">Droid Status</h3>
@@ -235,6 +245,18 @@
 						class="mt-3 px-4 py-2 bg-accent text-white rounded-lg hover:bg-fuchsia-500 transition-all"
 						onclick="testSupabase()">
 						Test Supabase
+					</button>
+				</div>
+				
+				<!-- hCaptcha Verification -->
+				<div class="bg-dark-light border border-zinc-600 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-2 text-secondary">hCaptcha Verification</h3>
+					<div id="hcaptchaStatus" class="text-sm text-gray-300 mb-3">hCaptcha ready for verification</div>
+					<div class="h-captcha mb-3" data-sitekey="your-site-key" data-theme="dark"></div>
+					<button 
+						class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
+						onclick="testHCaptcha()">
+						Test hCaptcha
 					</button>
 				</div>
 			</div>
@@ -269,27 +291,31 @@
 			function testDroid() {
 				const statusDiv = document.getElementById('droidStatus');
 				try {
-					if (window.kbve && window.droidReady) {
+					if (window.kbve && window.droidReady === true) {
 						const availableModules = Object.keys(window.kbve);
 						statusDiv.innerHTML = `
 							<div class="text-green-600">✓ Droid initialized successfully</div>
 							<div class="text-xs mt-1">Workers loaded from local FastAPI server</div>
 							<div class="text-xs mt-1">KBVE modules: ${availableModules.join(', ')}</div>
 						`;
-					} else if (window.kbve && window.droidReady === false) {
+					} else if (window.droidReady === false) {
 						statusDiv.innerHTML = `
-							<div class="text-yellow-600">⚠ Droid loaded but initialization failed</div>
-							<div class="text-xs mt-1">Worker loading may have failed due to CORS</div>
-							<div class="text-xs mt-1">Check console for details</div>
+							<div class="text-red-600">✗ Droid initialization failed</div>
+							<div class="text-xs mt-1">Check console for error details</div>
+							<div class="text-xs mt-1">Worker loading may have failed</div>
 						`;
-					} else if (window.droidReady === undefined) {
+					} else if (window.kbve && window.droidReady === undefined) {
+						statusDiv.innerHTML = `
+							<div class="text-yellow-600">⚠ Droid loaded but status pending</div>
+							<div class="text-xs mt-1">KBVE system available but initialization not complete</div>
+							<div class="text-xs mt-1">Modules: ${Object.keys(window.kbve).join(', ')}</div>
+						`;
+					} else {
 						statusDiv.innerHTML = `
 							<div class="text-blue-600">⏳ Droid loading...</div>
 							<div class="text-xs mt-1">Loading workers from local FastAPI server</div>
 							<div class="text-xs mt-1">No CORS issues with local workers</div>
 						`;
-					} else {
-						statusDiv.innerHTML = '<div class="text-red-600">✗ Droid not available</div>';
 					}
 				} catch (error) {
 					statusDiv.innerHTML = `<div class="text-red-600">✗ Error: ${error.message}</div>`;
@@ -299,20 +325,53 @@
 			function testSupabase() {
 				const statusDiv = document.getElementById('supabaseStatus');
 				try {
-					if (window.supabase && window.supabaseReady) {
+					if (window.supabase && window.supabaseReady === true) {
 						statusDiv.innerHTML = `
 							<div class="text-green-600">✓ Supabase client initialized</div>
 							<div class="text-xs mt-1">Ready for database operations</div>
+							<div class="text-xs mt-1">Client: ${window.supabase.constructor.name}</div>
 						`;
 					} else if (window.supabaseReady === false) {
 						statusDiv.innerHTML = `
 							<div class="text-red-600">✗ Supabase failed to initialize</div>
 							<div class="text-xs mt-1">Check console for error details</div>
 						`;
+					} else if (window.supabase && window.supabaseReady === undefined) {
+						statusDiv.innerHTML = `
+							<div class="text-yellow-600">⚠ Supabase loaded but status pending</div>
+							<div class="text-xs mt-1">Client available but initialization not complete</div>
+						`;
 					} else {
 						statusDiv.innerHTML = `
-							<div class="text-yellow-600">⚠ Supabase not ready</div>
-							<div class="text-xs mt-1">Still initializing...</div>
+							<div class="text-blue-600">⏳ Supabase loading...</div>
+							<div class="text-xs mt-1">Initializing Supabase client</div>
+						`;
+					}
+				} catch (error) {
+					statusDiv.innerHTML = `<div class="text-red-600">✗ Error: ${error.message}</div>`;
+				}
+			}
+			
+			function testHCaptcha() {
+				const statusDiv = document.getElementById('hcaptchaStatus');
+				try {
+					if (typeof hcaptcha !== 'undefined') {
+						const response = hcaptcha.getResponse();
+						if (response) {
+							statusDiv.innerHTML = `
+								<div class="text-green-600">✓ hCaptcha verified</div>
+								<div class="text-xs mt-1">Token: ${response.substring(0, 20)}...</div>
+							`;
+						} else {
+							statusDiv.innerHTML = `
+								<div class="text-yellow-600">⚠ hCaptcha ready but not completed</div>
+								<div class="text-xs mt-1">Please complete the captcha challenge</div>
+							`;
+						}
+					} else {
+						statusDiv.innerHTML = `
+							<div class="text-blue-600">⏳ hCaptcha loading...</div>
+							<div class="text-xs mt-1">Loading hCaptcha API</div>
 						`;
 					}
 				} catch (error) {
@@ -373,22 +432,47 @@
 			
 			// Initialize Droid integration when page loads
 			document.addEventListener('DOMContentLoaded', function() {
-				// Test Droid availability with longer delay to account for worker initialization
-				setTimeout(testDroid, 1000);
-				setTimeout(testSupabase, 1000);
-				
-				// Keep checking Droid status until ready
-				const checkDroidStatus = setInterval(() => {
-					if (window.droidReady !== undefined) {
-						testDroid();
-						clearInterval(checkDroidStatus);
+				// Check for all systems availability
+				const checkSystemStatus = setInterval(() => {
+					// Check Supabase
+					if (window.supabase !== undefined) {
+						testSupabase();
 					}
-				}, 500);
+					
+					// Check KBVE
+					if (window.kbve !== undefined) {
+						console.log('KBVE system detected, checking droid status...');
+						testDroid();
+					}
+					
+					// Check hCaptcha
+					if (typeof hcaptcha !== 'undefined') {
+						testHCaptcha();
+					}
+					
+					// If all systems have definitive states, we can reduce checking frequency
+					const supabaseReady = window.supabaseReady === true || window.supabaseReady === false;
+					const droidReady = window.droidReady === true || window.droidReady === false;
+					const hcaptchaLoaded = typeof hcaptcha !== 'undefined';
+					
+					if (supabaseReady && droidReady && hcaptchaLoaded) {
+						clearInterval(checkSystemStatus);
+						console.log('All systems initialized, stopping status checks');
+					}
+				}, 250); // Check every 250ms for faster feedback
 				
-				// Stop checking after 10 seconds
+				// Stop checking after 15 seconds
 				setTimeout(() => {
-					clearInterval(checkDroidStatus);
-				}, 10000);
+					clearInterval(checkSystemStatus);
+					testSupabase(); // Final checks
+					testDroid();
+					testHCaptcha();
+				}, 15000);
+				
+				// Initial tests after short delays
+				setTimeout(testSupabase, 500);
+				setTimeout(testDroid, 1000);
+				setTimeout(testHCaptcha, 1500);
 			});
 
 			// Runelite Control Functions
