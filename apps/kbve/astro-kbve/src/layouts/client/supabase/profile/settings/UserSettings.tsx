@@ -3,6 +3,8 @@ import { useStore } from '@nanostores/react';
 import { userAtom, userLoadingAtom, userErrorAtom, syncSupabaseUser } from '../userstate';
 import { clsx, twMerge } from 'src/utils/tw';
 import { Settings, Mail, Shield, User, Save } from 'lucide-react';
+import UserLinkIdentity from './UserLinkIdentity';
+import UserSettingsUpdate from './UserSettingsUpdate';
 
 const UserSettings: React.FC = () => {
   const user = useStore(userAtom);
@@ -248,6 +250,12 @@ const UserSettings: React.FC = () => {
           )}
         </div>
       </div>
+
+      {/* Web3 Identity Linking Section - Only for Web3 users without email */}
+      <UserLinkIdentity />
+
+      {/* User Profile Update Section */}
+      <UserSettingsUpdate />
     </div>
   );
 };
