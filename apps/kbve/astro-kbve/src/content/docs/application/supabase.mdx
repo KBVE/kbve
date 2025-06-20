@@ -149,6 +149,96 @@ Deno.serve(async (req)=>{
 
 ```
 
+### User Schema - Inventory - Hybrid
+
+<Aside type="note">
+The hybrid inventory system combines two complementary approaches to handle different types of game items efficiently:
+
+1. **Stackable Items** (`inventory_stackable`): For items that can be grouped together (consumables, materials, currency)
+2. **Instance Items** (`inventory_instances`): For unique items with individual properties (weapons with different durability, enchanted gear)
+</Aside>
+
+#### Inventory Design Philosophy
+
+The dual-table approach optimizes both storage and query performance:
+
+- **Stackable items** reduce database bloat by storing quantities instead of individual rows
+- **Instance items** preserve unique characteristics and modification history
+- **Unified querying** through views and functions provides a seamless developer experience
+
+#### Inventory Key Features
+
+**Security & Performance:**
+- All tables use Row Level Security (RLS) with restrictive policies, i.e deny all but `service_role`
+- Only the `service_role` has direct access to prevent unauthorized modifications, which will be used by the RPC.
+- Indexed on `user_id` for fast lookups.
+- UUID primary keys with automatic generation.
+
+**Data Integrity:**
+- Foreign key constraints ensure referential integrity with `auth.users`
+- Check constraints prevent negative quantities.
+- Unique constraints prevent duplicate stackable entries per user/item.
+- JSONB metadata fields for flexible item properties, extendable to instance items later on.
+
+**Scalability Considerations:**
+- Stackable items table remains lean even with millions of users.
+- Instance items can store complex metadata without affecting stackable performance.
+- Partitioning strategies can be applied based on `user_id` for large datasets.
+
+We want to keep track of the user inventory but with a couple checks in place, this is for items that are at the spaceship level.
+This system will use a dual tracking system, one for the stackable and another for the instance.
+
+```sql
+create table private.inventory_stackable (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id)
+    on delete cascade on update restrict,
+  item_id text not null, -- ULID/SKU of item type
+  quantity integer not null check (quantity >= 0),
+  meta jsonb default '{}'::jsonb,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+-- Unique constraint: 1 row per (user_id, item_id)
+create unique index idx_unique_stackable_user_item on private.inventory_stackable(user_id, item_id);
+
+-- Fast lookup
+create index idx_stackable_user on private.inventory_stackable(user_id);
+
+-- Enable and lock down RLS
+alter table private.inventory_stackable enable row level security;
+
+create policy "No access to stackable inventory" on private.inventory_stackable
+  for all using (false);
+
+create table private.inventory_instances (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid references auth.users(id)
+    on delete cascade on update restrict,
+  item_id text not null, -- ULID/SKU of item type
+  meta jsonb default '{}'::jsonb, -- durability, modifiers, etc
+  created_at timestamptz default now()
+);
+
+-- Fast lookup
+create index idx_instances_user on private.inventory_instances(user_id);
+
+-- Enable and lock down RLS
+alter table private.inventory_instances enable row level security;
+
+create policy "No access to inventory instances" on private.inventory_instances
+  for all using (false);
+
+-- Service Role Perms.
+
+-- Grant all access to the service role
+grant select, insert, update, delete on private.inventory_stackable to service_role;
+grant select, insert, update, delete on private.inventory_instances to service_role;
+
+-- If using sequences (not needed for UUIDs, but safe practice)
+grant usage, select on all sequences in schema private to service_role;
+```
 
 ## Admin
 
