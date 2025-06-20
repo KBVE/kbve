@@ -26,9 +26,9 @@ import {
 
 import { Giscus, Adsense } from '@kbve/astropad';
 
-## Schema
+## Admin
 
-### Admin
+### Admin Schema
 
 This is the schema that we will be using to install the admin panel.
 
@@ -50,3 +50,28 @@ grant select, insert, update, delete on all tables in schema admin to service_ro
 grant execute on all functions in schema admin to service_role;
 
 ```
+
+### Refresh Flags Table
+
+The core table for refreshing the material views, allowing us to cache some of the future heavy reads.
+
+```sql
+
+-- Create the refresh_flags table in the admin schema
+create table if not exists admin.refresh_flags (
+  view_name text primary key,
+  needs_refresh boolean default true,
+  updated_at timestamptz default now()
+);
+
+-- Revoke all privileges on the table from public-facing roles
+revoke all on table admin.refresh_flags from public;
+revoke all on table admin.refresh_flags from anon;
+revoke all on table admin.refresh_flags from authenticated;
+
+-- Grant access only to the service role
+grant select, insert, update, delete on table admin.refresh_flags to service_role;
+
+```
+
+The next part of the 
