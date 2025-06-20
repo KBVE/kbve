@@ -25,8 +25,34 @@
 				window.supabase = createClient(supabaseUrl, supabaseKey);
 				window.supabaseReady = true;
 				console.log('✅ Supabase client initialized:', window.supabase);
+				
+				// Initialize auth state using AuthStateManager
+				window.AuthStateManager.initializeAuthState();
+				
+				// Set up auth state listener
+				window.supabase.auth.onAuthStateChange((event, session) => {
+					console.log('Auth state changed:', event, session);
+					
+					if (session?.user) {
+						window.AuthStateManager.setUserAuthState(session.user, true);
+						console.log('User signed in via Supabase:', session.user);
+					} else {
+						window.AuthStateManager.clearAuthState();
+						console.log('User signed out');
+					}
+				});
+				
+				// Check for initial session and sync with localStorage
+				window.supabase.auth.getSession().then(({ data: { session } }) => {
+					if (session?.user) {
+						window.AuthStateManager.setUserAuthState(session.user, true);
+					} else if (window.AuthStateManager.isUserAuthenticated()) {
+						// localStorage says we're authenticated but no session - clear it
+						window.AuthStateManager.clearAuthState();
+					}
+				});
 			} catch (error) {
-				console.error('❌ Failed to initialize Supabase:', error);
+				console.error('Failed to initialize Supabase:', error);
 				window.supabase = null;
 				window.supabaseReady = false;
 			}
@@ -154,6 +180,155 @@
 		</script>
 		
 		<script>
+			// Auth State Management System
+			window.AuthStateManager = {
+				// Storage keys
+				STORAGE_KEYS: {
+					USER: 'fudster_user',
+					AUTH_STATE: 'fudster_auth_state',
+					WALLET_ADDRESS: 'walletAddress',
+					WALLET_SIGNATURE: 'walletSignature'
+				},
+
+				// Get stored auth state
+				getStoredAuthState() {
+					try {
+						const storedUser = localStorage.getItem(this.STORAGE_KEYS.USER);
+						const storedAuthState = localStorage.getItem(this.STORAGE_KEYS.AUTH_STATE);
+						
+						return {
+							user: storedUser ? JSON.parse(storedUser) : null,
+							isAuthenticated: storedAuthState === 'true'
+						};
+					} catch (error) {
+						console.error('Error reading auth state from localStorage:', error);
+						return { user: null, isAuthenticated: false };
+					}
+				},
+
+				// Set user auth state
+				setUserAuthState(user, isAuthenticated = true) {
+					try {
+						if (user && isAuthenticated) {
+							localStorage.setItem(this.STORAGE_KEYS.USER, JSON.stringify(user));
+							localStorage.setItem(this.STORAGE_KEYS.AUTH_STATE, 'true');
+						} else {
+							this.clearAuthState();
+						}
+						
+						// Update global state
+						window.currentUser = user;
+						window.isAuthenticated = isAuthenticated;
+						
+						// Update UI
+						this.updateAuthButton(isAuthenticated);
+						
+						console.log('Auth state updated:', { user: user?.email || user?.id, isAuthenticated });
+					} catch (error) {
+						console.error('Error setting auth state:', error);
+					}
+				},
+
+				// Clear all auth state
+				clearAuthState() {
+					try {
+						localStorage.removeItem(this.STORAGE_KEYS.USER);
+						localStorage.removeItem(this.STORAGE_KEYS.AUTH_STATE);
+						localStorage.removeItem(this.STORAGE_KEYS.WALLET_ADDRESS);
+						localStorage.removeItem(this.STORAGE_KEYS.WALLET_SIGNATURE);
+						
+						// Update global state
+						window.currentUser = null;
+						window.isAuthenticated = false;
+						
+						// Update UI
+						this.updateAuthButton(false);
+						
+						console.log('Auth state cleared');
+					} catch (error) {
+						console.error('Error clearing auth state:', error);
+					}
+				},
+
+				// Set wallet auth state
+				setWalletAuthState(walletAddress, signature) {
+					try {
+						localStorage.setItem(this.STORAGE_KEYS.WALLET_ADDRESS, walletAddress);
+						localStorage.setItem(this.STORAGE_KEYS.WALLET_SIGNATURE, signature);
+						
+						// Create wallet user object
+						const walletUser = {
+							id: walletAddress,
+							email: `${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)}@wallet`,
+							wallet_address: walletAddress,
+							app_metadata: { provider: 'wallet' },
+							last_sign_in_at: new Date().toISOString()
+						};
+						
+						this.setUserAuthState(walletUser, true);
+						
+						console.log('Wallet auth state set:', walletAddress);
+					} catch (error) {
+						console.error('Error setting wallet auth state:', error);
+					}
+				},
+
+				// Get wallet info
+				getWalletInfo() {
+					try {
+						return {
+							address: localStorage.getItem(this.STORAGE_KEYS.WALLET_ADDRESS),
+							signature: localStorage.getItem(this.STORAGE_KEYS.WALLET_SIGNATURE)
+						};
+					} catch (error) {
+						console.error('Error getting wallet info:', error);
+						return { address: null, signature: null };
+					}
+				},
+
+				// Initialize auth state
+				initializeAuthState() {
+					const storedState = this.getStoredAuthState();
+					window.currentUser = storedState.user;
+					window.isAuthenticated = storedState.isAuthenticated;
+					this.updateAuthButton(storedState.isAuthenticated);
+					
+					console.log('Auth state initialized:', storedState);
+				},
+
+				// Update auth button UI
+				updateAuthButton(isLoggedIn) {
+					const authButton = document.getElementById('authButton');
+					const authButtonText = document.getElementById('authButtonText');
+					
+					if (authButton && authButtonText) {
+						if (isLoggedIn) {
+							authButtonText.textContent = 'Profile';
+							authButton.className = 'ml-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all';
+						} else {
+							authButtonText.textContent = 'Login';
+							authButton.className = 'ml-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition-all';
+						}
+					}
+				},
+
+				// Check if user is authenticated
+				isUserAuthenticated() {
+					return window.isAuthenticated === true && window.currentUser !== null;
+				},
+
+				// Get current user
+				getCurrentUser() {
+					return window.currentUser;
+				}
+			};
+
+			// Early UI state initialization - runs as soon as DOM is ready
+			document.addEventListener('DOMContentLoaded', function() {
+				// Initialize auth state immediately from localStorage
+				window.AuthStateManager.initializeAuthState();
+			});
+			
 			// Tailwind CSS v4 configuration with dark theme and purple colors
 			// Note: This is for development only, use CLI/PostCSS in production
 			if (typeof tailwind !== 'undefined') {
@@ -198,9 +373,191 @@
 						class="ml-4 text-lg text-gray-300 hover:text-primary transition-colors">
 						Discord
 					</a>
+					<button
+						id="authButton"
+						onclick="handleAuthButtonClick()"
+						class="ml-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition-all">
+						<span id="authButtonText">Login</span>
+					</button>
 				</div>
 			</div>
 		</nav>
+
+		<!-- Authentication Modal -->
+		<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+			<div class="bg-dark-lighter border border-zinc-700 rounded-xl p-8 max-w-md w-full mx-4 relative">
+				<!-- Close Button -->
+				<button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+
+				<!-- Modal Header -->
+				<div class="text-center mb-6">
+					<h2 class="text-2xl font-bold text-primary mb-2">Welcome to FUDSTER</h2>
+					<p class="text-gray-300">Sign in to access all features</p>
+				</div>
+
+				<!-- Auth Tabs -->
+				<div class="flex mb-6 border-b border-zinc-600">
+					<button onclick="setAuthTab('login')" id="loginTab" class="flex-1 py-2 px-4 text-center transition-colors border-b-2 border-primary text-primary">
+						Sign In
+					</button>
+					<button onclick="setAuthTab('register')" id="registerTab" class="flex-1 py-2 px-4 text-center transition-colors border-b-2 border-transparent text-gray-400 hover:text-white">
+						Sign Up
+					</button>
+				</div>
+
+				<!-- OAuth Providers -->
+				<div class="space-y-3 mb-6">
+					<button onclick="signInWithProvider('github')" class="w-full flex items-center justify-center px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-zinc-600 rounded-lg transition-all">
+						<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z" clip-rule="evenodd"></path>
+						</svg>
+						Continue with GitHub
+					</button>
+					<button onclick="signInWithProvider('discord')" class="w-full flex items-center justify-center px-4 py-3 bg-indigo-600 hover:bg-indigo-700 border border-indigo-500 rounded-lg transition-all">
+						<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.210.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.010c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.120.098.246.196.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+						</svg>
+						Continue with Discord
+					</button>
+					<button onclick="connectWallet()" class="w-full flex items-center justify-center px-4 py-3 bg-orange-600 hover:bg-orange-700 border border-orange-500 rounded-lg transition-all">
+						<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M20 7V5c0-1.103-.897-2-2-2H6C4.897 3 4 3.897 4 5v2c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V9c0-1.103-.897-2-2-2zM6 5h12v2H6V5zm14 14H4V9h16v10z"/>
+							<path d="M8 11h8v2H8z"/>
+						</svg>
+						Connect Wallet (Web3)
+					</button>
+				</div>
+
+				<!-- Divider -->
+				<div class="relative mb-6">
+					<div class="absolute inset-0 flex items-center">
+						<div class="w-full border-t border-zinc-600"></div>
+					</div>
+					<div class="relative flex justify-center text-sm">
+						<span class="px-2 bg-dark-lighter text-gray-400">Or continue with email</span>
+					</div>
+				</div>
+
+				<!-- Email/Password Form -->
+				<form id="authForm" onsubmit="handleAuthSubmit(event)">
+					<div class="space-y-4">
+						<div>
+							<label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+							<input 
+								type="email" 
+								id="email" 
+								required 
+								class="w-full px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+								placeholder="Enter your email"
+							/>
+						</div>
+						<div>
+							<label for="password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+							<input 
+								type="password" 
+								id="password" 
+								required 
+								class="w-full px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+								placeholder="Enter your password"
+							/>
+						</div>
+						<div id="confirmPasswordDiv" class="hidden">
+							<label for="confirmPassword" class="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
+							<input 
+								type="password" 
+								id="confirmPassword" 
+								class="w-full px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+								placeholder="Confirm your password"
+							/>
+						</div>
+					</div>
+
+					<!-- hCaptcha -->
+					<div class="mt-4 flex justify-center">
+						<div class="h-captcha" data-sitekey="your-site-key" data-theme="dark"></div>
+					</div>
+
+					<!-- Submit Button -->
+					<button 
+						type="submit" 
+						id="authSubmitBtn"
+						class="w-full mt-6 px-4 py-3 bg-primary hover:bg-purple-600 text-white font-semibold rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-dark-lighter">
+						Sign In
+					</button>
+				</form>
+
+				<!-- Auth Status -->
+				<div id="authStatus" class="mt-4 text-center text-sm"></div>
+			</div>
+		</div>
+
+		<!-- Profile Modal -->
+		<div id="profileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+			<div class="bg-dark-lighter border border-zinc-700 rounded-xl p-8 max-w-md w-full mx-4 relative">
+				<!-- Close Button -->
+				<button onclick="closeProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+
+				<!-- Profile Header -->
+				<div class="text-center mb-6">
+					<div class="w-16 h-16 bg-primary rounded-full mx-auto mb-3 flex items-center justify-center">
+						<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+						</svg>
+					</div>
+					<h2 class="text-2xl font-bold text-primary mb-2">Profile</h2>
+					<p class="text-gray-300">Account Information</p>
+				</div>
+
+				<!-- User Information -->
+				<div class="space-y-4">
+					<div class="bg-dark-light border border-zinc-600 rounded-lg p-4">
+						<h3 class="text-sm font-medium text-gray-400 mb-2">Email</h3>
+						<p id="userEmail" class="text-white">Loading...</p>
+					</div>
+					
+					<div class="bg-dark-light border border-zinc-600 rounded-lg p-4">
+						<h3 class="text-sm font-medium text-gray-400 mb-2">User ID</h3>
+						<p id="userId" class="text-white text-sm font-mono">Loading...</p>
+					</div>
+					
+					<div class="bg-dark-light border border-zinc-600 rounded-lg p-4">
+						<h3 class="text-sm font-medium text-gray-400 mb-2">Login Method</h3>
+						<p id="loginMethod" class="text-white">Loading...</p>
+					</div>
+					
+					<div class="bg-dark-light border border-zinc-600 rounded-lg p-4">
+						<h3 class="text-sm font-medium text-gray-400 mb-2">Last Sign In</h3>
+						<p id="lastSignIn" class="text-white">Loading...</p>
+					</div>
+
+					<div id="walletInfo" class="bg-dark-light border border-zinc-600 rounded-lg p-4 hidden">
+						<h3 class="text-sm font-medium text-gray-400 mb-2">Wallet Address</h3>
+						<p id="walletAddress" class="text-white text-sm font-mono">Not connected</p>
+					</div>
+				</div>
+
+				<!-- Profile Actions -->
+				<div class="mt-6 space-y-3">
+					<button onclick="refreshProfile()" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all">
+						Refresh Profile
+					</button>
+					<button onclick="signOut()" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all">
+						Sign Out
+					</button>
+				</div>
+
+				<!-- Profile Status -->
+				<div id="profileStatus" class="mt-4 text-center text-sm"></div>
+			</div>
+		</div>
 
 		<!-- Runelite Control -->
 		<section class="bg-dark-lighter border border-zinc-700 text-white p-6 rounded-lg mb-6 mx-4">
@@ -291,29 +648,17 @@
 			function testDroid() {
 				const statusDiv = document.getElementById('droidStatus');
 				try {
-					if (window.kbve && window.droidReady === true) {
+					if (window.kbve && window.kbve !== null) {
 						const availableModules = Object.keys(window.kbve);
 						statusDiv.innerHTML = `
-							<div class="text-green-600">✓ Droid initialized successfully</div>
+							<div class="text-green-600">✓ KBVE Droid system loaded</div>
 							<div class="text-xs mt-1">Workers loaded from local FastAPI server</div>
 							<div class="text-xs mt-1">KBVE modules: ${availableModules.join(', ')}</div>
 						`;
-					} else if (window.droidReady === false) {
-						statusDiv.innerHTML = `
-							<div class="text-red-600">✗ Droid initialization failed</div>
-							<div class="text-xs mt-1">Check console for error details</div>
-							<div class="text-xs mt-1">Worker loading may have failed</div>
-						`;
-					} else if (window.kbve && window.droidReady === undefined) {
-						statusDiv.innerHTML = `
-							<div class="text-yellow-600">⚠ Droid loaded but status pending</div>
-							<div class="text-xs mt-1">KBVE system available but initialization not complete</div>
-							<div class="text-xs mt-1">Modules: ${Object.keys(window.kbve).join(', ')}</div>
-						`;
 					} else {
 						statusDiv.innerHTML = `
-							<div class="text-blue-600">⏳ Droid loading...</div>
-							<div class="text-xs mt-1">Loading workers from local FastAPI server</div>
+							<div class="text-blue-600">⏳ Loading KBVE Droid...</div>
+							<div class="text-xs mt-1">Initializing workers and modules</div>
 							<div class="text-xs mt-1">No CORS issues with local workers</div>
 						`;
 					}
@@ -379,59 +724,380 @@
 				}
 			}
 			
-			function executeDroidCommand() {
-				const commandInput = document.getElementById('droidCommand');
-				const outputDiv = document.getElementById('droidOutput');
-				const command = commandInput.value.trim();
+			// Authentication Modal Functions
+			function openAuthModal() {
+				document.getElementById('authModal').classList.remove('hidden');
+				// Render hCaptcha in modal when opened
+				setTimeout(() => {
+					if (typeof hcaptcha !== 'undefined') {
+						hcaptcha.render();
+					}
+				}, 100);
+			}
+
+			function closeAuthModal() {
+				document.getElementById('authModal').classList.add('hidden');
+			}
+
+			function setAuthTab(tab) {
+				const loginTab = document.getElementById('loginTab');
+				const registerTab = document.getElementById('registerTab');
+				const confirmPasswordDiv = document.getElementById('confirmPasswordDiv');
+				const submitBtn = document.getElementById('authSubmitBtn');
+
+				if (tab === 'login') {
+					loginTab.classList.add('border-primary', 'text-primary');
+					loginTab.classList.remove('border-transparent', 'text-gray-400');
+					registerTab.classList.add('border-transparent', 'text-gray-400');
+					registerTab.classList.remove('border-primary', 'text-primary');
+					confirmPasswordDiv.classList.add('hidden');
+					submitBtn.textContent = 'Sign In';
+				} else {
+					registerTab.classList.add('border-primary', 'text-primary');
+					registerTab.classList.remove('border-transparent', 'text-gray-400');
+					loginTab.classList.add('border-transparent', 'text-gray-400');
+					loginTab.classList.remove('border-primary', 'text-primary');
+					confirmPasswordDiv.classList.remove('hidden');
+					submitBtn.textContent = 'Sign Up';
+				}
+			}
+
+			async function handleAuthSubmit(event) {
+				event.preventDefault();
 				
-				if (!command) {
-					outputDiv.textContent = 'Please enter a command';
+				if (!window.supabase) {
+					updateAuthStatus('Supabase not initialized', 'error');
+					return;
+				}
+
+				// Verify hCaptcha
+				const hcaptchaResponse = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : null;
+				if (!hcaptchaResponse) {
+					updateAuthStatus('Please complete the captcha', 'error');
+					return;
+				}
+
+				const email = document.getElementById('email').value;
+				const password = document.getElementById('password').value;
+				const isRegister = !document.getElementById('confirmPasswordDiv').classList.contains('hidden');
+
+				try {
+					updateAuthStatus('Processing...', 'info');
+
+					if (isRegister) {
+						const confirmPassword = document.getElementById('confirmPassword').value;
+						if (password !== confirmPassword) {
+							updateAuthStatus('Passwords do not match', 'error');
+							return;
+						}
+
+						const { data, error } = await window.supabase.auth.signUp({
+							email: email,
+							password: password,
+							options: {
+								data: {
+									hcaptcha_token: hcaptchaResponse
+								}
+							}
+						});
+
+						if (error) throw error;
+						updateAuthStatus('Registration successful! Check your email for verification.', 'success');
+						setTimeout(() => {
+							closeAuthModal();
+							document.getElementById('authForm').reset();
+						}, 2000);
+					} else {
+						const { data, error } = await window.supabase.auth.signInWithPassword({
+							email: email,
+							password: password
+						});
+
+						if (error) throw error;
+						updateAuthStatus('Sign in successful!', 'success');
+						setTimeout(() => {
+							closeAuthModal();
+							document.getElementById('authForm').reset();
+						}, 1500);
+					}
+
+					// Reset hCaptcha
+					if (typeof hcaptcha !== 'undefined') {
+						hcaptcha.reset();
+					}
+
+				} catch (error) {
+					console.error('Auth error:', error);
+					updateAuthStatus(error.message, 'error');
+					if (typeof hcaptcha !== 'undefined') {
+						hcaptcha.reset();
+					}
+				}
+			}
+
+			async function signInWithProvider(provider) {
+				if (!window.supabase) {
+					updateAuthStatus('Supabase not initialized', 'error');
+					return;
+				}
+
+				try {
+					updateAuthStatus('Redirecting to ' + provider + '...', 'info');
+					
+					const { data, error } = await window.supabase.auth.signInWithOAuth({
+						provider: provider,
+						options: {
+							redirectTo: window.location.origin + window.location.pathname
+						}
+					});
+
+					if (error) throw error;
+				} catch (error) {
+					console.error('OAuth error:', error);
+					updateAuthStatus('OAuth error: ' + error.message, 'error');
+				}
+			}
+
+			async function connectWallet() {
+				try {
+					updateAuthStatus('Connecting wallet...', 'info');
+
+					if (typeof window.ethereum !== 'undefined') {
+						// Request account access
+						const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
+						const account = accounts[0];
+
+						// Sign a message to verify ownership
+						const message = `Sign this message to authenticate with FUDSTER: ${Date.now()}`;
+						const signature = await window.ethereum.request({
+							method: 'personal_sign',
+							params: [message, account]
+						});
+
+						// Use AuthStateManager to set wallet auth state
+						window.AuthStateManager.setWalletAuthState(account, signature);
+						
+						updateAuthStatus(`Wallet connected: ${account.slice(0, 8)}...${account.slice(-6)}`, 'success');
+						
+						setTimeout(closeAuthModal, 2000);
+					} else {
+						updateAuthStatus('No Web3 wallet detected. Please install MetaMask or similar.', 'error');
+					}
+				} catch (error) {
+					console.error('Wallet connection error:', error);
+					updateAuthStatus('Wallet connection failed: ' + error.message, 'error');
+				}
+			}
+
+			function updateAuthStatus(message, type) {
+				const statusDiv = document.getElementById('authStatus');
+				const colors = {
+					success: 'text-green-600',
+					error: 'text-red-600',
+					info: 'text-blue-600'
+				};
+				statusDiv.className = `mt-4 text-center text-sm ${colors[type] || 'text-gray-300'}`;
+				statusDiv.textContent = message;
+			}
+
+			// Close modal when clicking outside
+			document.getElementById('authModal').addEventListener('click', function(e) {
+				if (e.target === this) {
+					closeAuthModal();
+				}
+			});
+
+			// Auth Management Functions - Using AuthStateManager
+			function handleAuthButtonClick() {
+				if (window.AuthStateManager.isUserAuthenticated()) {
+					openProfileModal();
+				} else {
+					openAuthModal();
+				}
+			}
+
+			// Auth Guard Function
+			function requireAuth(callback, message = 'Please sign in to continue') {
+				if (window.AuthStateManager.isUserAuthenticated()) {
+					callback();
+				} else {
+					updateAuthStatus(message, 'info');
+					openAuthModal();
+				}
+			}
+
+			// Profile Modal Functions
+			function openProfileModal() {
+				if (!window.AuthStateManager.isUserAuthenticated()) {
+					openAuthModal();
 					return;
 				}
 				
+				document.getElementById('profileModal').classList.remove('hidden');
+				loadUserProfile();
+			}
+
+			function closeProfileModal() {
+				document.getElementById('profileModal').classList.add('hidden');
+			}
+
+			async function loadUserProfile() {
+				const currentUser = window.AuthStateManager.getCurrentUser();
+				if (!currentUser) return;
+
 				try {
-					if (window.kbve && window.droidReady) {
-						// Use the properly initialized kbve system
-						outputDiv.innerHTML = `
-							<div class="text-blue-600">Command: ${command}</div>
-							<div class="text-gray-600">Executing via KBVE system...</div>
-							<div class="text-xs text-gray-500">Timestamp: ${new Date().toISOString()}</div>
-						`;
-						
-						// Clear the input
-						commandInput.value = '';
-						
-						// Try to execute command through available KBVE modules
-						const mod = window.kbve.mod;
-						const events = window.kbve.events;
-						
-						if (mod && events) {
-							// Emit command event through KBVE event system
-							events.emit('droid-command', {
-								command: command,
-								timestamp: Date.now()
-							});
-							
-							outputDiv.innerHTML += `<div class="text-green-600">Command sent to KBVE event system</div>`;
-							outputDiv.innerHTML += `<div class="text-yellow-600">Available modules: ${Object.keys(window.kbve).join(', ')}</div>`;
-						} else {
-							outputDiv.innerHTML += `<div class="text-yellow-600">KBVE modules: ${Object.keys(window.kbve).join(', ')}</div>`;
-						}
-						
-					} else {
-						outputDiv.innerHTML = `
-							<div class="text-red-600">KBVE system not ready</div>
-							<div class="text-xs">Please wait for workers to initialize</div>
-						`;
+					// Basic user info
+					document.getElementById('userEmail').textContent = currentUser.email || 'Not provided';
+					document.getElementById('userId').textContent = currentUser.id;
+					
+					// Determine login method
+					let loginMethod = 'Email/Password';
+					if (currentUser.app_metadata?.provider) {
+						loginMethod = currentUser.app_metadata.provider.charAt(0).toUpperCase() + currentUser.app_metadata.provider.slice(1);
+					}
+					document.getElementById('loginMethod').textContent = loginMethod;
+					
+					// Last sign in
+					const lastSignIn = currentUser.last_sign_in_at ? new Date(currentUser.last_sign_in_at).toLocaleString() : 'Unknown';
+					document.getElementById('lastSignIn').textContent = lastSignIn;
+					
+					// Check for wallet info
+					const walletInfo = window.AuthStateManager.getWalletInfo();
+					if (walletInfo.address) {
+						document.getElementById('walletInfo').classList.remove('hidden');
+						document.getElementById('walletAddress').textContent = `${walletInfo.address.slice(0, 8)}...${walletInfo.address.slice(-6)}`;
 					}
 					
+					updateProfileStatus('Profile loaded successfully', 'success');
 				} catch (error) {
-					outputDiv.innerHTML = `<div class="text-red-600">Error executing command: ${error.message}</div>`;
+					console.error('Error loading profile:', error);
+					updateProfileStatus('Error loading profile: ' + error.message, 'error');
 				}
 			}
+
+			async function refreshProfile() {
+				try {
+					updateProfileStatus('Refreshing...', 'info');
+					
+					// Get fresh session
+					const { data: { session }, error } = await window.supabase.auth.getSession();
+					if (error) throw error;
+					
+					if (session?.user) {
+						window.AuthStateManager.setUserAuthState(session.user, true);
+						loadUserProfile();
+					} else {
+						updateProfileStatus('No active session', 'error');
+					}
+				} catch (error) {
+					console.error('Error refreshing profile:', error);
+					updateProfileStatus('Error refreshing: ' + error.message, 'error');
+				}
+			}
+
+			async function signOut() {
+				try {
+					updateProfileStatus('Signing out...', 'info');
+					
+					const { error } = await window.supabase.auth.signOut();
+					if (error) throw error;
+					
+					// Use AuthStateManager to clear all auth state
+					window.AuthStateManager.clearAuthState();
+					
+					// Close profile modal
+					closeProfileModal();
+					
+					updateProfileStatus('Signed out successfully', 'success');
+				} catch (error) {
+					console.error('Error signing out:', error);
+					updateProfileStatus('Error signing out: ' + error.message, 'error');
+				}
+			}
+
+			function updateProfileStatus(message, type) {
+				const statusDiv = document.getElementById('profileStatus');
+				const colors = {
+					success: 'text-green-600',
+					error: 'text-red-600',
+					info: 'text-blue-600'
+				};
+				statusDiv.className = `mt-4 text-center text-sm ${colors[type] || 'text-gray-300'}`;
+				statusDiv.textContent = message;
+			}
+
+			// Close profile modal when clicking outside
+			document.getElementById('profileModal').addEventListener('click', function(e) {
+				if (e.target === this) {
+					closeProfileModal();
+				}
+			});
 			
-			// Initialize Droid integration when page loads
+			function executeDroidCommand() {
+				// Auth guard - require login to execute commands
+				requireAuth(() => {
+					const commandInput = document.getElementById('droidCommand');
+					const outputDiv = document.getElementById('droidOutput');
+					const command = commandInput.value.trim();
+					
+					if (!command) {
+						outputDiv.textContent = 'Please enter a command';
+						return;
+					}
+					
+					try {
+						if (window.kbve && window.kbve !== null) {
+							// Use the KBVE system
+							outputDiv.innerHTML = `
+								<div class="text-blue-600">Command: ${command}</div>
+								<div class="text-gray-600">Executing via KBVE system...</div>
+								<div class="text-xs text-gray-500">User: ${window.AuthStateManager.getCurrentUser()?.email}</div>
+								<div class="text-xs text-gray-500">Timestamp: ${new Date().toISOString()}</div>
+							`;
+							
+							// Clear the input
+							commandInput.value = '';
+							
+							// Try to execute command through available KBVE modules
+							const mod = window.kbve.mod;
+							const events = window.kbve.events;
+							
+							if (mod && events) {
+								// Emit command event through KBVE event system
+								events.emit('droid-command', {
+									command: command,
+									user: window.AuthStateManager.getCurrentUser(),
+									timestamp: Date.now()
+								});
+								
+								outputDiv.innerHTML += `<div class="text-green-600">Command sent to KBVE event system</div>`;
+								outputDiv.innerHTML += `<div class="text-yellow-600">Available modules: ${Object.keys(window.kbve).join(', ')}</div>`;
+							} else {
+								outputDiv.innerHTML += `<div class="text-yellow-600">KBVE modules: ${Object.keys(window.kbve).join(', ')}</div>`;
+							}
+							
+						} else {
+							outputDiv.innerHTML = `
+								<div class="text-red-600">KBVE system not loaded</div>
+								<div class="text-xs">Please wait for system to initialize</div>
+							`;
+						}
+						
+					} catch (error) {
+						outputDiv.innerHTML = `<div class="text-red-600">Error executing command: ${error.message}</div>`;
+					}
+				}, 'Please sign in to execute KBVE commands');
+			}
+			
+			// Initialize system integration when page loads
 			document.addEventListener('DOMContentLoaded', function() {
+				// Check for existing wallet connection if no Supabase auth
+				setTimeout(() => {
+					if (!window.AuthStateManager.isUserAuthenticated()) {
+						checkExistingWalletConnection();
+					}
+				}, 1000);
+				
 				// Check for all systems availability
 				const checkSystemStatus = setInterval(() => {
 					// Check Supabase
@@ -439,9 +1105,8 @@
 						testSupabase();
 					}
 					
-					// Check KBVE
+					// Check KBVE - simple check for existence
 					if (window.kbve !== undefined) {
-						console.log('KBVE system detected, checking droid status...');
 						testDroid();
 					}
 					
@@ -450,18 +1115,18 @@
 						testHCaptcha();
 					}
 					
-					// If all systems have definitive states, we can reduce checking frequency
-					const supabaseReady = window.supabaseReady === true || window.supabaseReady === false;
-					const droidReady = window.droidReady === true || window.droidReady === false;
+					// If all systems are loaded, reduce checking frequency
+					const supabaseLoaded = window.supabase !== undefined;
+					const kbveLoaded = window.kbve !== undefined;
 					const hcaptchaLoaded = typeof hcaptcha !== 'undefined';
 					
-					if (supabaseReady && droidReady && hcaptchaLoaded) {
+					if (supabaseLoaded && kbveLoaded && hcaptchaLoaded) {
 						clearInterval(checkSystemStatus);
-						console.log('All systems initialized, stopping status checks');
+						console.log('All systems loaded, stopping status checks');
 					}
 				}, 250); // Check every 250ms for faster feedback
 				
-				// Stop checking after 15 seconds
+				// Stop checking after 15 seconds regardless
 				setTimeout(() => {
 					clearInterval(checkSystemStatus);
 					testSupabase(); // Final checks
@@ -474,6 +1139,29 @@
 				setTimeout(testDroid, 1000);
 				setTimeout(testHCaptcha, 1500);
 			});
+
+			// Check for existing wallet connection
+			async function checkExistingWalletConnection() {
+				const walletInfo = window.AuthStateManager.getWalletInfo();
+				
+				if (walletInfo.address && walletInfo.signature && typeof window.ethereum !== 'undefined') {
+					try {
+						// Verify the wallet is still connected
+						const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+						
+						if (accounts.includes(walletInfo.address)) {
+							// Wallet is still connected, restore auth state
+							window.AuthStateManager.setWalletAuthState(walletInfo.address, walletInfo.signature);
+							console.log('Restored wallet connection:', walletInfo.address);
+						} else {
+							// Wallet disconnected, clear stored data
+							window.AuthStateManager.clearAuthState();
+						}
+					} catch (error) {
+						console.error('Error checking wallet connection:', error);
+					}
+				}
+			}
 
 			// Runelite Control Functions
 			function startRunelite() {
