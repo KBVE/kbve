@@ -1,8 +1,9 @@
 import { supabase } from 'src/layouts/client/supabase/supabaseClient';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { twMerge } from 'src/utils/tw';
 
 const auth_url = import.meta.env.DEV ? 'http://localhost:4321/auth' : 'https://kbve.com/auth';
+const profile_url = import.meta.env.DEV ? 'http://localhost:4321/profile' : 'https://kbve.com/profile';
 
 export async function signInWithDiscord() {
   const { data, error } = await supabase.auth.signInWithOAuth({
@@ -36,6 +37,10 @@ export async function signInWithSolana(captchaToken?: string) {
     }
   });
   if (error) throw error;
+  if (data && data.session?.user) {
+    // Redirect to profile page on successful authentication
+    window.location.href = profile_url;
+  }
   // Handle successful sign-in (data.session, data.user) as needed
 }
 
@@ -65,54 +70,181 @@ export const DiscordSignInButton: React.FC = () => {
   );
 };
 
-export const SolanaSignInButton: React.FC<{ captchaToken?: string | null }> = ({ captchaToken }) => {
+export const SolanaSignInButton: React.FC<{ captchaToken?: string | null; captchaRef?: React.RefObject<any> }> = ({ captchaToken, captchaRef }) => {
   const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipTimeoutId, setTooltipTimeoutId] = useState<NodeJS.Timeout | null>(null);
+
+  // Clear any existing timeout when captcha is solved
+  useEffect(() => {
+    if (captchaToken && showTooltip) {
+      // Delay hiding the tooltip when captcha is solved to give user feedback
+      const timeoutId = setTimeout(() => {
+        setShowTooltip(false);
+      }, 1500); // 1.5 second delay after captcha is solved
+      
+      setTooltipTimeoutId(timeoutId);
+      
+      return () => {
+        if (timeoutId) {
+          clearTimeout(timeoutId);
+        }
+      };
+    }
+  }, [captchaToken, showTooltip]);
 
   const handleSolanaSignIn = () => {
     if (!captchaToken) {
       setShowTooltip(true);
-      setTimeout(() => setShowTooltip(false), 3000);
+      
+      // Clear any existing timeout
+      if (tooltipTimeoutId) {
+        clearTimeout(tooltipTimeoutId);
+        setTooltipTimeoutId(null);
+      }
+      
+      // Scroll to captcha and highlight it
+      if (captchaRef?.current) {
+        try {
+          // Try to get the actual DOM element from the HCaptcha ref
+          let captchaElement = captchaRef.current;
+          
+          // If it's a React component ref, try to get the DOM element
+          if (captchaElement && typeof captchaElement.scrollIntoView !== 'function') {
+            // HCaptcha might wrap the actual DOM element, try to find it
+            const captchaContainer = document.querySelector('[data-hcaptcha-widget-id]') || 
+                                   document.querySelector('.h-captcha') ||
+                                   document.querySelector('[id*="hcaptcha"]');
+            
+            if (captchaContainer && typeof captchaContainer.scrollIntoView === 'function') {
+              captchaElement = captchaContainer;
+            }
+          }
+          
+          // Scroll to the element if it has scrollIntoView method
+          if (captchaElement && typeof captchaElement.scrollIntoView === 'function') {
+            captchaElement.scrollIntoView({ 
+              behavior: 'smooth', 
+              block: 'center' 
+            });
+            
+            // Add temporary outline to captcha
+            captchaElement.style.outline = '3px solid #fbbf24';
+            captchaElement.style.outlineOffset = '4px';
+            captchaElement.style.borderRadius = '8px';
+            
+            // Remove outline after 3 seconds
+            setTimeout(() => {
+              captchaElement.style.outline = '';
+              captchaElement.style.outlineOffset = '';
+              captchaElement.style.borderRadius = '';
+            }, 3000);
+          } else {
+            console.warn('🚨 Could not find captcha element to scroll to');
+          }
+        } catch (error) {
+          console.error('🚨 Error scrolling to captcha:', error);
+        }
+      }
+      
       return;
     }
     signInWithSolana(captchaToken);
   };
 
   const handleMouseEnter = () => {
+    console.log('🖱️ Mouse Enter - captchaToken:', captchaToken, 'isDisabled:', isDisabled);
     if (!captchaToken) {
+      console.log('✅ Setting tooltip to true');
       setShowTooltip(true);
+      
+      // Clear any existing timeout when user hovers
+      if (tooltipTimeoutId) {
+        clearTimeout(tooltipTimeoutId);
+        setTooltipTimeoutId(null);
+      }
+    } else {
+      console.log('❌ Captcha exists, not showing tooltip');
     }
   };
 
   const handleMouseLeave = () => {
-    if (!captchaToken) {
-      setShowTooltip(false);
+    console.log('🖱️ Mouse Leave');
+    if (!captchaToken && showTooltip) {
+      // Add a delay before hiding tooltip on mouse leave
+      const timeoutId = setTimeout(() => {
+        setShowTooltip(false);
+      }, 2000); // 2 second delay before hiding on mouse leave
+      
+      setTooltipTimeoutId(timeoutId);
     }
   };
 
+  const isDisabled = !captchaToken;
+
+  console.log('🔄 Solana Button Render - showTooltip:', showTooltip, 'isDisabled:', isDisabled, 'captchaToken:', captchaToken);
+
   return (
-    <div className="relative">
+    <div className="relative w-full">
       <button
         onClick={handleSolanaSignIn}
         onMouseEnter={handleMouseEnter}
         onMouseLeave={handleMouseLeave}
-        disabled={!captchaToken}
         className={twMerge(
           "flex items-center justify-center gap-2 w-full py-2 rounded bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold shadow transition",
-          !captchaToken 
-            ? "opacity-50 cursor-not-allowed hover:from-purple-500 hover:to-pink-500" 
+          isDisabled 
+            ? "opacity-50 cursor-not-allowed" 
             : "hover:from-purple-600 hover:to-pink-600"
         )}
         type="button"
       >
-        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
-          <path d="M4.52 4.52l15 15M19.5 4.5l-15 15M12 2l10 10-10 10L2 12l10-10z"/>
+        <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 397.7 311.7" aria-hidden="true">
+          <defs>
+            <linearGradient id="solana-gradient-1" gradientUnits="userSpaceOnUse" x1="360.8791" y1="351.4553" x2="141.213" y2="-69.2936" gradientTransform="matrix(1 0 0 -1 0 314)">
+              <stop offset="0" stopColor="#00FFA3"/>
+              <stop offset="1" stopColor="#DC1FFF"/>
+            </linearGradient>
+            <linearGradient id="solana-gradient-2" gradientUnits="userSpaceOnUse" x1="264.8291" y1="401.6014" x2="45.163" y2="-19.1475" gradientTransform="matrix(1 0 0 -1 0 314)">
+              <stop offset="0" stopColor="#00FFA3"/>
+              <stop offset="1" stopColor="#DC1FFF"/>
+            </linearGradient>
+            <linearGradient id="solana-gradient-3" gradientUnits="userSpaceOnUse" x1="312.5484" y1="376.688" x2="92.8822" y2="-44.061" gradientTransform="matrix(1 0 0 -1 0 314)">
+              <stop offset="0" stopColor="#00FFA3"/>
+              <stop offset="1" stopColor="#DC1FFF"/>
+            </linearGradient>
+          </defs>
+          <path fill="url(#solana-gradient-1)" d="M64.6,237.9c2.4-2.4,5.7-3.8,9.2-3.8h317.4c5.8,0,8.7,7,4.6,11.1l-62.7,62.7c-2.4,2.4-5.7,3.8-9.2,3.8H6.5
+            c-5.8,0-8.7-7-4.6-11.1L64.6,237.9z"/>
+          <path fill="url(#solana-gradient-2)" d="M64.6,3.8C67.1,1.4,70.4,0,73.8,0h317.4c5.8,0,8.7,7,4.6,11.1l-62.7,62.7c-2.4,2.4-5.7,3.8-9.2,3.8H6.5
+            c-5.8,0-8.7-7-4.6-11.1L64.6,3.8z"/>
+          <path fill="url(#solana-gradient-3)" d="M333.1,120.1c-2.4-2.4-5.7-3.8-9.2-3.8H6.5c-5.8,0-8.7,7-4.6,11.1l62.7,62.7c2.4,2.4,5.7,3.8,9.2,3.8h317.4
+            c5.8,0,8.7-7,4.6-11.1L333.1,120.1z"/>
         </svg>
         Continue with Solana
       </button>
-      {showTooltip && (
-        <div className="absolute left-0 right-0 top-full z-50 mt-2 rounded bg-neutral-900/95 text-white text-xs p-3 shadow-lg border border-neutral-700">
-          <div className="text-yellow-400 font-semibold mb-1">⚠️ Captcha Required</div>
-          <div>Please complete the hCaptcha challenge below before signing in with Solana.</div>
+      
+      {/* Tooltip that appears on hover when disabled */}
+      {showTooltip && isDisabled && (
+        <div 
+          className="fixed z-[9999] px-3 py-2 text-sm text-white bg-black rounded shadow-lg pointer-events-none"
+          style={{
+            left: '50%',
+            transform: 'translateX(-50%)',
+            bottom: 'calc(100% + 8px)',
+            minWidth: '200px',
+            textAlign: 'center'
+          }}
+        >
+          <div className="text-yellow-300 font-semibold mb-1">⚠️ Captcha Required</div>
+          <div>Complete the hCaptcha challenge {captchaRef ? 'below' : ''} to continue</div>
+          {/* Tooltip arrow */}
+          <div 
+            className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0"
+            style={{
+              borderLeft: '5px solid transparent',
+              borderRight: '5px solid transparent',
+              borderTop: '5px solid black'
+            }}
+          />
         </div>
       )}
     </div>
