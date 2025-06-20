@@ -33,6 +33,152 @@ import { Giscus, Adsense } from '@kbve/astropad';
 This is a quick section for setting up a quick proof of concept and for the demo, we will be doing a character ai inspired meme.
 Full disclosure, this is just for fun and is not meant to be taken serious.
 
+```sql
+
+create table private.user_secrets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  key text not null, -- user-facing label like "osrs_email" or "github_token"
+  vault_key text not null, -- actual vault path, like "user/{user_id}/osrs/email"
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+
+  constraint unique_user_key unique (user_id, key)
+);
+
+alter table private.user_secrets enable row level security;
+create policy "No access by default" on private.user_secrets
+  for all using (false); 
+revoke all on private.user_secrets from anon, authenticated, public;
+grant all on private.user_secrets to service_role;
+
+```
+
+After setting up the `user_secrets`, we can move forward with the next step and that would be the `osrs` table.
+
+```sql
+
+create table private.user_osrs_accounts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  account_name text not null, -- user-facing label (not email or login)
+  vault_email_key text not null,
+  vault_password_key text not null,
+  state text default 'offline' check (state in ('offline', 'active', 'banned', 'error')),
+  world integer,
+  p2p boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+
+  constraint unique_user_account_name unique (user_id, account_name)
+);
+
+alter table private.user_osrs_accounts enable row level security;
+
+create policy "No access by default" on private.user_osrs_accounts
+  for all using (false);
+
+revoke all on private.user_osrs_accounts from anon, authenticated, public;
+grant all on private.user_osrs_accounts to service_role;
+
+
+```
+
+Now we need to setup the function to handle our user secret and making sure that it gets saved into the vault.
+The internal RPC call is just for the service role and we will create a public facing proxy rpc function that will handle more of the core.
+Since we wont be touching the value, we can leave that the way it is, but the key should be sanitized to be just az09 and underscore.
+Furthermore, we should also do a quick check to make sure that the uuid for the `p_user_id` is valid since we will delete these based upon that.
+
+```sql
+
+create or replace function private.set_user_secret_internal(
+  p_user_id uuid,
+  p_key text,
+  p_value text
+)
+returns void
+language plpgsql
+security definer
+set search_path = private, vault, public
+as $function$
+declare
+  v_vault_key text;
+begin
+  -- Validate user ID exists
+  if not exists (select 1 from auth.users where id = p_user_id) then
+    raise exception 'Invalid user_id';
+  end if;
+
+  -- Validate key format
+  if p_key !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid key format. Must match /^[a-z0-9_]{3,64}$/';
+  end if;
+
+  -- Construct the vault key path
+  v_vault_key := format('user/%s/%s', p_user_id, p_key);
+
+  -- Insert or update the vault key mapping
+  insert into private.user_secrets (user_id, key, vault_key)
+  values (p_user_id, p_key, v_vault_key)
+  on conflict (user_id, key) do update
+    set vault_key = excluded.vault_key,
+        updated_at = now();
+
+  -- Store the secret in Vault
+  perform vault.set_secret(v_vault_key, p_value);
+end;
+$function$;
+
+-- Revoke all access to the function from everyone by default
+revoke all on function private.set_user_secret_internal(uuid, text, text)
+from public, anon, authenticated;
+
+-- Grant execute only to service_role
+grant execute on function private.set_user_secret_internal(uuid, text, text)
+to service_role;
+
+```
+
+Now we want to make sure that the public facing authenticated user is calling this internal function through our proxy function.
+Here is the public facing proxied function.
+
+```sql
+
+create or replace function public.set_user_secret(
+  p_key text,
+  p_value text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, private
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_key !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid key format. Only lowercase a-z, 0-9, and underscores (3–64 characters) are allowed.';
+  end if;
+
+
+  -- Call internal secure vault setter
+  perform private.set_user_secret_internal(v_user_id, p_key, p_value);
+end;
+$function$;
+
+-- Revoke all access to the function from default/public roles
+revoke all on function public.set_user_secret(text, text)
+from public, anon;
+
+-- Grant only to authenticated users
+grant execute on function public.set_user_secret(text, text)
+to authenticated;
+
+```
 
 
 ### User Function - Register

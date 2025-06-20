@@ -23,7 +23,6 @@
 				
 				// Create Supabase client
 				window.supabase = createClient(supabaseUrl, supabaseKey);
-				window.supabaseReady = true;
 				console.log('✅ Supabase client initialized:', window.supabase);
 				
 				// Initialize auth state using AuthStateManager
@@ -36,9 +35,15 @@
 					if (session?.user) {
 						window.AuthStateManager.setUserAuthState(session.user, true);
 						console.log('User signed in via Supabase:', session.user);
+						
+						// Refresh Supabase status to show user profile
+						setTimeout(() => testSupabase(), 500);
 					} else {
 						window.AuthStateManager.clearAuthState();
 						console.log('User signed out');
+						
+						// Refresh Supabase status
+						setTimeout(() => testSupabase(), 500);
 					}
 				});
 				
@@ -52,9 +57,8 @@
 					}
 				});
 			} catch (error) {
-				console.error('Failed to initialize Supabase:', error);
+				console.error('❌ Failed to initialize Supabase:', error);
 				window.supabase = null;
-				window.supabaseReady = false;
 			}
 		</script>
 		
@@ -320,6 +324,65 @@
 				// Get current user
 				getCurrentUser() {
 					return window.currentUser;
+				},
+
+				// User Balance and Profile Functions (from userstate.ts pattern)
+				async syncUserBalance(identifier, useCache = true) {
+					if (!identifier || !window.supabase) {
+						console.warn('Cannot sync user balance: missing identifier or Supabase client');
+						return null;
+					}
+
+					try {
+						const { data, error } = await window.supabase.rpc('get_user_balance_context', {
+							p_identifier: identifier,
+							use_cache: useCache,
+						});
+
+						if (data && data.length > 0 && !error) {
+							const userBalance = data[0];
+							console.log('User balance synced:', userBalance);
+							return userBalance;
+						} else {
+							console.error('[syncUserBalance] Failed to fetch balance:', error?.message);
+							return null;
+						}
+					} catch (error) {
+						console.error('[syncUserBalance] Error:', error);
+						return null;
+					}
+				},
+
+				async getUsernameByUuid(uuid) {
+					if (!uuid || !window.supabase) return null;
+					
+					try {
+						const { data, error } = await window.supabase.rpc('proxy_get_username', { p_user_id: uuid });
+						if (error) {
+							console.error('[getUsernameByUuid] Failed to fetch username:', error.message);
+							return null;
+						}
+						return data;
+					} catch (error) {
+						console.error('[getUsernameByUuid] Error:', error);
+						return null;
+					}
+				},
+
+				async getUuidByUsername(username) {
+					if (!username || !window.supabase) return null;
+					
+					try {
+						const { data, error } = await window.supabase.rpc('proxy_get_uuid', { p_username: username });
+						if (error) {
+							console.error('[getUuidByUsername] Failed to fetch UUID:', error.message);
+							return null;
+						}
+						return data;
+					} catch (error) {
+						console.error('[getUuidByUsername] Error:', error);
+						return null;
+					}
 				}
 			};
 
@@ -670,21 +733,20 @@
 			function testSupabase() {
 				const statusDiv = document.getElementById('supabaseStatus');
 				try {
-					if (window.supabase && window.supabaseReady === true) {
+					if (window.supabase && window.AuthStateManager.isUserAuthenticated()) {
+						const currentUser = window.AuthStateManager.getCurrentUser();
 						statusDiv.innerHTML = `
-							<div class="text-green-600">✓ Supabase client initialized</div>
-							<div class="text-xs mt-1">Ready for database operations</div>
-							<div class="text-xs mt-1">Client: ${window.supabase.constructor.name}</div>
+							<div class="text-green-600">✓ Supabase connected & authenticated</div>
+							<div class="text-xs mt-1">Loading user profile...</div>
 						`;
-					} else if (window.supabaseReady === false) {
+						
+						// Load user profile and balance
+						loadUserProfileTest(currentUser);
+						
+					} else if (window.supabase) {
 						statusDiv.innerHTML = `
-							<div class="text-red-600">✗ Supabase failed to initialize</div>
-							<div class="text-xs mt-1">Check console for error details</div>
-						`;
-					} else if (window.supabase && window.supabaseReady === undefined) {
-						statusDiv.innerHTML = `
-							<div class="text-yellow-600">⚠ Supabase loaded but status pending</div>
-							<div class="text-xs mt-1">Client available but initialization not complete</div>
+							<div class="text-yellow-600">⚠ Supabase ready, not authenticated</div>
+							<div class="text-xs mt-1">Sign in to test profile loading</div>
 						`;
 					} else {
 						statusDiv.innerHTML = `
@@ -694,6 +756,76 @@
 					}
 				} catch (error) {
 					statusDiv.innerHTML = `<div class="text-red-600">✗ Error: ${error.message}</div>`;
+				}
+			}
+
+			async function loadUserProfileTest(user) {
+				if (!user || !window.supabase) return;
+				
+				const statusDiv = document.getElementById('supabaseStatus');
+				
+				try {
+					// Determine identifier for balance lookup
+					let identifier = user.email;
+					let isWalletUser = false;
+					
+					// Check if this is a wallet user
+					if (user.app_metadata?.provider === 'wallet' || user.wallet_address) {
+						identifier = user.wallet_address || user.id;
+						isWalletUser = true;
+					}
+					
+					// Get username if available
+					let username = null;
+					if (user.user_metadata?.username) {
+						username = user.user_metadata.username;
+					} else if (isWalletUser) {
+						// For wallet users, try to get username by UUID
+						username = await window.AuthStateManager.getUsernameByUuid(user.id);
+					}
+					
+					if (username) {
+						// If we have a username, get balance using username
+						const userBalance = await window.AuthStateManager.syncUserBalance(username);
+						
+						if (userBalance) {
+							statusDiv.innerHTML = `
+								<div class="text-green-600">✓ Profile loaded successfully</div>
+								<div class="text-xs mt-1">Username: ${userBalance.username}</div>
+								<div class="text-xs mt-1">Credits: ${userBalance.credits || 0}</div>
+								<div class="text-xs mt-1">Level: ${userBalance.level || 1}</div>
+								<div class="text-xs mt-1">Role: ${userBalance.role || 'member'}</div>
+							`;
+						} else {
+							statusDiv.innerHTML = `
+								<div class="text-yellow-600">⚠ Profile found, no balance data</div>
+								<div class="text-xs mt-1">Username: ${username}</div>
+								<div class="text-xs mt-1">Balance data unavailable</div>
+							`;
+						}
+					} else {
+						// No username found
+						if (isWalletUser && !user.email) {
+							statusDiv.innerHTML = `
+								<div class="text-orange-600">⚠ Wallet user needs email</div>
+								<div class="text-xs mt-1">Wallet: ${identifier.slice(0, 8)}...${identifier.slice(-6)}</div>
+								<div class="text-xs mt-1"><a href="https://kbve.com/settings/" target="_blank" class="text-blue-400 hover:text-blue-300">Set email at kbve.com/settings</a></div>
+							`;
+						} else {
+							statusDiv.innerHTML = `
+								<div class="text-yellow-600">⚠ No username set</div>
+								<div class="text-xs mt-1">Email: ${user.email || 'Not set'}</div>
+								<div class="text-xs mt-1">No balance data available</div>
+							`;
+						}
+					}
+					
+				} catch (error) {
+					console.error('Error loading profile test:', error);
+					statusDiv.innerHTML = `
+						<div class="text-red-600">✗ Profile load error</div>
+						<div class="text-xs mt-1">${error.message}</div>
+					`;
 				}
 			}
 			
@@ -968,10 +1100,77 @@
 						document.getElementById('walletAddress').textContent = `${walletInfo.address.slice(0, 8)}...${walletInfo.address.slice(-6)}`;
 					}
 					
+					// Load user balance and username
+					await loadUserBalanceProfile(currentUser);
+					
 					updateProfileStatus('Profile loaded successfully', 'success');
 				} catch (error) {
 					console.error('Error loading profile:', error);
 					updateProfileStatus('Error loading profile: ' + error.message, 'error');
+				}
+			}
+
+			async function loadUserBalanceProfile(user) {
+				try {
+					// Determine identifier and check if wallet user
+					let identifier = user.email;
+					let isWalletUser = false;
+					
+					if (user.app_metadata?.provider === 'wallet' || user.wallet_address) {
+						identifier = user.wallet_address || user.id;
+						isWalletUser = true;
+					}
+					
+					// Get username
+					let username = user.user_metadata?.username;
+					if (!username && isWalletUser) {
+						username = await window.AuthStateManager.getUsernameByUuid(user.id);
+					}
+					
+					if (username) {
+						// Load balance data
+						const userBalance = await window.AuthStateManager.syncUserBalance(username);
+						
+						if (userBalance) {
+							// Add balance info to profile
+							const balanceInfo = document.createElement('div');
+							balanceInfo.className = 'bg-dark-light border border-zinc-600 rounded-lg p-4';
+							balanceInfo.innerHTML = `
+								<h3 class="text-sm font-medium text-gray-400 mb-2">Balance & Stats</h3>
+								<div class="space-y-1 text-white text-sm">
+									<div>Username: ${userBalance.username}</div>
+									<div>Credits: ${userBalance.credits || 0}</div>
+									<div>Khash: ${userBalance.khash || 0}</div>
+									<div>Level: ${userBalance.level || 1}</div>
+									<div>Role: ${userBalance.role || 'member'}</div>
+								</div>
+							`;
+							
+							// Insert balance info after wallet info
+							const walletInfoDiv = document.getElementById('walletInfo');
+							const userInfoContainer = walletInfoDiv.parentElement;
+							userInfoContainer.appendChild(balanceInfo);
+						}
+					} else if (isWalletUser && !user.email) {
+						// Add warning for wallet users without email
+						const warningInfo = document.createElement('div');
+						warningInfo.className = 'bg-orange-600 bg-opacity-20 border border-orange-500 rounded-lg p-4';
+						warningInfo.innerHTML = `
+							<h3 class="text-sm font-medium text-orange-400 mb-2">Action Required</h3>
+							<div class="text-sm text-orange-200">
+								<div class="mb-2">Wallet users need to set an email address to access full features.</div>
+								<a href="https://kbve.com/settings/" target="_blank" class="text-orange-300 hover:text-orange-100 underline">
+									Complete your profile at kbve.com/settings →
+								</a>
+							</div>
+						`;
+						
+						const userInfoContainer = document.getElementById('walletInfo').parentElement;
+						userInfoContainer.appendChild(warningInfo);
+					}
+					
+				} catch (error) {
+					console.error('Error loading user balance profile:', error);
 				}
 			}
 
@@ -1124,7 +1323,7 @@
 						clearInterval(checkSystemStatus);
 						console.log('All systems loaded, stopping status checks');
 					}
-				}, 250); // Check every 250ms for faster feedback
+				}, 1000); // Check every 1 second for more stable loading
 				
 				// Stop checking after 15 seconds regardless
 				setTimeout(() => {
