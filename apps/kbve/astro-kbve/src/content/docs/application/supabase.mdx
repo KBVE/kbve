@@ -287,3 +287,25 @@ revoke execute on function public.refresh_view(text) from authenticated;
 grant execute on function public.refresh_view(text) to service_role;
 
 ```
+
+## Utility
+
+
+### Generate ULID Functions
+
+```sql
+
+create or replace function gen_ulid()
+returns text
+language plpgsql
+set search_path = public, extensions
+as $$
+declare
+  time_part text := to_hex((extract(epoch from clock_timestamp()) * 1000)::bigint);
+  rand_part text := encode(extensions.gen_random_bytes(10), 'hex');
+begin
+  return lpad(time_part, 12, '0') || rand_part;
+end;
+$$;
+
+```

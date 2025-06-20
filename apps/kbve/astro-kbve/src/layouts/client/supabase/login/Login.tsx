@@ -89,6 +89,10 @@ export const Login = () => {
     try {
       await loginUser();
     } catch (err: any) {
+      if (hcaptchaRef.current) {
+        hcaptchaRef.current.reset();
+        setCaptchaToken(null);
+      }
       setError(err.message || 'Login failed.');
     } finally {
       setLoading(false);
