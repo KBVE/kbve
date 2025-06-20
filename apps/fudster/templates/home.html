@@ -8,7 +8,28 @@
 		<!-- Tailwind CSS v4 Browser -->
     	<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
 		
-		<!-- Module Imports -->
+		<!-- Supabase Initialization (First Priority) -->
+		<script type="module">
+			// Import Supabase first
+			import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+			
+			// Initialize Supabase client directly with real credentials
+			try {
+				const supabaseUrl = 'https://qmpdruitzlownnnnjmpk.supabase.co';
+				const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY';
+				
+				// Create Supabase client
+				window.supabase = createClient(supabaseUrl, supabaseKey);
+				window.supabaseReady = true;
+				console.log('✅ Supabase client initialized:', window.supabase);
+			} catch (error) {
+				console.error('❌ Failed to initialize Supabase:', error);
+				window.supabase = null;
+				window.supabaseReady = false;
+			}
+		</script>
+		
+		<!-- KBVE Droid Initialization (Second Priority) -->
 		<script type="module">
 			// Import KBVE Droid library with specific imports
 			import { droid, modUrls, workerStrings } from 'https://esm.sh/@kbve/droid';
@@ -16,45 +37,20 @@
 			// Import Comlink for worker communication
 			import * as comlink from 'https://esm.sh/comlink';
 			
-			// Import Supabase
-			import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
-			
-			// Function to fetch worker code and create blob URL to avoid CORS issues
-			async function createWorkerFromURL(url, isSharedWorker = false) {
-				try {
-					const response = await fetch(url);
-					if (!response.ok) {
-						throw new Error(`Failed to fetch worker: ${response.status}`);
-					}
-					const workerCode = await response.text();
-					const blob = new Blob([workerCode], { type: 'application/javascript' });
-					const blobURL = URL.createObjectURL(blob);
-					
-					if (isSharedWorker) {
-						return new SharedWorker(blobURL, { type: 'module' });
-					} else {
-						return new Worker(blobURL, { type: 'module' });
-					}
-				} catch (error) {
-					console.error(`Error creating worker from ${url}:`, error);
-					throw error;
-				}
-			}
-			
-			// Initialize workers with CORS-safe approach
+			// Initialize workers with local URLs (served by FastAPI)
 			let astroStrings;
 			try {
-				console.log('Loading workers from kbve.com...');
+				console.log('Loading workers from local FastAPI server...');
 				astroStrings = {
-					canvasWorker: await createWorkerFromURL('https://kbve.com/assets/canvas-worker.js', false),
-					dbWorker: await createWorkerFromURL('https://kbve.com/assets/db-worker.js', true),
-					wsWorker: await createWorkerFromURL('https://kbve.com/assets/ws-worker.js', true),
+					canvasWorker: new Worker('/assets/canvas-worker.js', { type: 'module' }),
+					dbWorker: new SharedWorker('/assets/db-worker.js', { type: 'module' }),
+					wsWorker: new SharedWorker('/assets/ws-worker.js', { type: 'module' }),
 				};
 				console.log('Workers loaded successfully:', astroStrings);
 			} catch (error) {
-				console.error('Failed to load workers from kbve.com:', error);
+				console.error('Failed to load workers from local server:', error);
 				
-				// Fallback: try to use local workers or create minimal workers
+				// Fallback: create minimal workers
 				console.log('Falling back to minimal worker setup...');
 				const minimalWorkerCode = `
 					// Minimal worker fallback
@@ -73,66 +69,79 @@
 				};
 			}
 			
-			// Initialize Droid with the workers
+			// Initialize Droid with ONLY workerRefs (no workerURLs to avoid MIME issues)
 			try {
-				// Check if droid has init method, otherwise assign workers directly
-				if (typeof droid.init === 'function') {
-					await droid.init(astroStrings);
+				console.log("[DROID] init Library");
+				// Only use workerRefs - do NOT pass workerURLs due to MIME type issues
+				await droid({ 
+					workerRefs: astroStrings
+				});
+				
+				// Access droid components from window.kbve (assigned internally by droid)
+				const mod = window.kbve?.mod;
+				const emitFromWorker = window.kbve?.uiux?.emitFromWorker;
+				
+				if (!mod) {
+					console.error('[KBVE] Mod manager not available');
+					window.droidReady = false;
 				} else {
-					// Assign workers to droid if no init method
-					droid.workers = astroStrings;
+					// Load bento mod if available
+					if (modUrls.bento) {
+						const bentoMod = await mod.load(modUrls.bento);
+						console.log('[DEBUG] Loaded mod ID:', bentoMod?.id);
+						console.log('[DEBUG] Registry keys:', Object.keys(mod.registry));
+						
+						if (bentoMod?.instance?.init && typeof emitFromWorker === 'function') {
+							await bentoMod.instance.init(comlink.proxy({ emitFromWorker }));
+						}
+						
+						if (bentoMod?.meta) {
+							console.log(`[Event] Bento Mod Firing`);
+							window.kbve?.events?.emit('droid-mod-ready', {
+								meta: bentoMod.meta,
+								timestamp: Date.now(),
+							});
+						}
+						
+						console.log('[KBVE] Bento mod loaded');
+					}
+					
+					window.droidReady = true;
 				}
-				console.log('Droid initialized successfully with workers:', astroStrings);
-				window.droidReady = true;
+				
+				console.log('Droid initialized successfully with local workers only:', astroStrings);
 			} catch (error) {
 				console.error('Failed to initialize Droid:', error);
-				console.log('Available droid methods:', Object.keys(droid));
 				window.droidReady = false;
 			}
 			
-			// Make libraries available globally
-			window.Droid = droid;
+			// Make other libraries available globally
 			window.comlink = comlink;
 			window.modUrls = modUrls;
 			window.workerStrings = workerStrings;
 			window.astroStrings = astroStrings;
 			
-			// Initialize Supabase client directly (only if valid URLs provided)
-			try {
-				const supabaseUrl = 'YOUR_SUPABASE_URL';
-				const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
-				
-				if (supabaseUrl !== 'YOUR_SUPABASE_URL' && supabaseKey !== 'YOUR_SUPABASE_ANON_KEY') {
-					window.supabase = createClient(supabaseUrl, supabaseKey);
-					console.log('Supabase client initialized:', window.supabase);
-				} else {
-					console.log('Supabase not configured - using placeholder URLs');
-					window.supabase = null;
-				}
-			} catch (error) {
-				console.error('Failed to initialize Supabase:', error);
-				window.supabase = null;
-			}
-			
 			// Log initialization status
 			console.log('KBVE Droid library loaded:', droid);
 			console.log('Comlink loaded:', comlink);
-			console.log('Supabase client initialized:', window.supabase);
+			console.log('workerStrings from droid package:', workerStrings);
 			console.log('Workers configured:', astroStrings);
 		</script>
 		
 		<script>
-			// Tailwind CSS v4 configuration with custom colors
+			// Tailwind CSS v4 configuration with dark theme and purple colors
 			// Note: This is for development only, use CLI/PostCSS in production
 			if (typeof tailwind !== 'undefined') {
 				tailwind.config = {
 					theme: {
 						extend: {
 							colors: {
-								primary: '#3490dc',
-								secondary: '#ffed4a',
-								clifford: '#da373d',
-								dark: '#2d3748',
+								primary: '#a855f7',     // purple-500
+								secondary: '#c084fc',   // purple-400
+								accent: '#e879f9',      // fuchsia-400
+								dark: '#18181b',        // zinc-900
+								'dark-lighter': '#27272a', // zinc-800
+								'dark-light': '#3f3f46',   // zinc-700
 							},
 						},
 					},
@@ -140,75 +149,75 @@
 			}
 		</script>
 	</head>
-	<body class="bg-gray-100">
+	<body class="bg-zinc-900 text-white min-h-screen">
 		<!-- Navbar -->
-		<nav class="bg-dark text-white p-4">
+		<nav class="bg-dark border-b border-zinc-700 p-4">
 			<div class="container mx-auto flex justify-between items-center">
-				<a href="#" class="text-2xl font-bold">FUDSTER</a>
+				<a href="#" class="text-2xl font-bold text-primary">FUDSTER</a>
 				<div>
 					<a
 						href="https://kbve.com/projects/"
 						target="_blank"
-						class="ml-4 text-lg hover:underline">
+						class="ml-4 text-lg text-gray-300 hover:text-primary transition-colors">
 						About
 					</a>
 					<a
 						href="https://kbve.com/services/"
 						target="_blank"
-						class="ml-4 text-lg hover:underline">
+						class="ml-4 text-lg text-gray-300 hover:text-primary transition-colors">
 						Services
 					</a>
 					<a
 						href="https://kbve.com/discord/"
 						target="_blank"
-						class="ml-4 text-lg hover:underline">
+						class="ml-4 text-lg text-gray-300 hover:text-primary transition-colors">
 						Discord
 					</a>
 				</div>
 			</div>
 		</nav>
 
-		<!-- Buttons -->
-		<section class="bg-gray-200 text-black p-6 rounded-lg mb-6">
-			<h2 class="text-3xl font-bold mb-4">Runelite Control</h2>
+		<!-- Runelite Control -->
+		<section class="bg-dark-lighter border border-zinc-700 text-white p-6 rounded-lg mb-6 mx-4">
+			<h2 class="text-3xl font-bold mb-4 text-primary">Runelite Control</h2>
 			<div class="flex justify-center space-x-4">
 				<button
-					class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+					class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-zinc-900 transition-all"
 					onclick="startRunelite()">
 					Start Runelite
 				</button>
 				<button
-					class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+					class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-zinc-900 transition-all"
 					onclick="stopRunelite()">
 					Stop Runelite
 				</button>
 			</div>
 			<div
 				id="statusMessage"
-				class="mt-4 text-center text-gray-700"></div>
+				class="mt-4 text-center text-gray-300"></div>
 		</section>
 
 		<!-- Droid Integration Section -->
-		<section class="bg-white text-black p-6 rounded-lg mb-6 mx-4">
-			<h2 class="text-3xl font-bold mb-4 text-center">KBVE Droid Integration</h2>
+		<section class="bg-dark-lighter border border-zinc-700 text-white p-6 rounded-lg mb-6 mx-4">
+			<h2 class="text-3xl font-bold mb-4 text-center text-primary">KBVE Droid Integration</h2>
 			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 				<!-- Droid Status -->
-				<div class="bg-gray-50 p-4 rounded-lg">
-					<h3 class="text-xl font-semibold mb-2">Droid Status</h3>
-					<div id="droidStatus" class="text-sm text-gray-600">Loading Droid...</div>
+				<div class="bg-dark-light border border-zinc-600 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-2 text-secondary">Droid Status</h3>
+					<div id="droidStatus" class="text-sm text-gray-300">Loading Droid...</div>
 					<button 
-						class="mt-2 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition"
+						class="mt-3 px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition-all"
 						onclick="testDroid()">
 						Test Droid Functions
 					</button>
 				</div>
 				
 				<!-- Supabase Connection -->
-				<div class="bg-gray-50 p-4 rounded-lg">
-					<h3 class="text-xl font-semibold mb-2">Supabase Connection</h3>
-					<div id="supabaseStatus" class="text-sm text-gray-600">Supabase ready for configuration</div>
+				<div class="bg-dark-light border border-zinc-600 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-2 text-secondary">Supabase Connection</h3>
+					<div id="supabaseStatus" class="text-sm text-gray-300">Supabase ready for configuration</div>
 					<button 
-						class="mt-2 px-4 py-2 bg-secondary text-black rounded hover:bg-yellow-400 transition"
+						class="mt-3 px-4 py-2 bg-accent text-white rounded-lg hover:bg-fuchsia-500 transition-all"
 						onclick="testSupabase()">
 						Test Supabase
 					</button>
@@ -216,27 +225,27 @@
 			</div>
 			
 			<!-- Droid Command Interface -->
-			<div class="mt-6 bg-gray-50 p-4 rounded-lg">
-				<h3 class="text-xl font-semibold mb-2">Droid Command Interface</h3>
+			<div class="mt-6 bg-dark-light border border-zinc-600 p-4 rounded-lg">
+				<h3 class="text-xl font-semibold mb-2 text-secondary">Droid Command Interface</h3>
 				<div class="flex gap-2 mb-2">
 					<input 
 						type="text" 
 						id="droidCommand" 
 						placeholder="Enter Droid command..." 
-						class="flex-1 px-3 py-2 border rounded-lg"
+						class="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
 					/>
 					<button 
-						class="px-4 py-2 bg-clifford text-white rounded hover:bg-red-600 transition"
+						class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
 						onclick="executeDroidCommand()">
 						Execute Local
 					</button>
 					<button 
-						class="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition"
+						class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition-all"
 						onclick="sendDroidCommandViaWS()">
 						Send via WS
 					</button>
 				</div>
-				<div id="droidOutput" class="bg-white p-3 rounded border text-sm font-mono max-h-32 overflow-y-auto"></div>
+				<div id="droidOutput" class="bg-zinc-800 border border-zinc-600 p-3 rounded-lg text-sm font-mono max-h-32 overflow-y-auto text-gray-300"></div>
 			</div>
 		</section>
 
@@ -245,23 +254,24 @@
 			function testDroid() {
 				const statusDiv = document.getElementById('droidStatus');
 				try {
-					if (window.Droid && window.droidReady) {
+					if (window.kbve && window.droidReady) {
+						const availableModules = Object.keys(window.kbve);
 						statusDiv.innerHTML = `
 							<div class="text-green-600">✓ Droid initialized successfully</div>
-							<div class="text-xs mt-1">Workers loaded via CORS-safe blob URLs</div>
-							<div class="text-xs mt-1">Available: ${Object.keys(window.Droid).join(', ')}</div>
+							<div class="text-xs mt-1">Workers loaded from local FastAPI server</div>
+							<div class="text-xs mt-1">KBVE modules: ${availableModules.join(', ')}</div>
 						`;
-					} else if (window.Droid && window.droidReady === false) {
+					} else if (window.kbve && window.droidReady === false) {
 						statusDiv.innerHTML = `
 							<div class="text-yellow-600">⚠ Droid loaded but initialization failed</div>
 							<div class="text-xs mt-1">Worker loading may have failed due to CORS</div>
 							<div class="text-xs mt-1">Check console for details</div>
 						`;
-					} else if (window.Droid) {
+					} else if (window.droidReady === undefined) {
 						statusDiv.innerHTML = `
 							<div class="text-blue-600">⏳ Droid loading...</div>
-							<div class="text-xs mt-1">Downloading workers from kbve.com</div>
-							<div class="text-xs mt-1">Creating CORS-safe blob URLs</div>
+							<div class="text-xs mt-1">Loading workers from local FastAPI server</div>
+							<div class="text-xs mt-1">No CORS issues with local workers</div>
 						`;
 					} else {
 						statusDiv.innerHTML = '<div class="text-red-600">✗ Droid not available</div>';
@@ -274,15 +284,20 @@
 			function testSupabase() {
 				const statusDiv = document.getElementById('supabaseStatus');
 				try {
-					if (window.supabase) {
+					if (window.supabase && window.supabaseReady) {
 						statusDiv.innerHTML = `
 							<div class="text-green-600">✓ Supabase client initialized</div>
 							<div class="text-xs mt-1">Ready for database operations</div>
 						`;
+					} else if (window.supabaseReady === false) {
+						statusDiv.innerHTML = `
+							<div class="text-red-600">✗ Supabase failed to initialize</div>
+							<div class="text-xs mt-1">Check console for error details</div>
+						`;
 					} else {
 						statusDiv.innerHTML = `
-							<div class="text-yellow-600">⚠ Supabase not configured</div>
-							<div class="text-xs mt-1">Update URL and key to enable</div>
+							<div class="text-yellow-600">⚠ Supabase not ready</div>
+							<div class="text-xs mt-1">Still initializing...</div>
 						`;
 					}
 				} catch (error) {
@@ -301,37 +316,37 @@
 				}
 				
 				try {
-					if (window.Droid && window.droidReady) {
-						// Use the properly initialized droid
+					if (window.kbve && window.droidReady) {
+						// Use the properly initialized kbve system
 						outputDiv.innerHTML = `
 							<div class="text-blue-600">Command: ${command}</div>
-							<div class="text-gray-600">Executing via Droid workers...</div>
+							<div class="text-gray-600">Executing via KBVE system...</div>
 							<div class="text-xs text-gray-500">Timestamp: ${new Date().toISOString()}</div>
 						`;
 						
 						// Clear the input
 						commandInput.value = '';
 						
-						// Execute command through droid if it has the execute method
-						if (typeof window.Droid.execute === 'function') {
-							window.Droid.execute(command).then(result => {
-								outputDiv.innerHTML += `<div class="text-green-600">Result: ${JSON.stringify(result)}</div>`;
-							}).catch(error => {
-								outputDiv.innerHTML += `<div class="text-red-600">Error: ${error.message}</div>`;
+						// Try to execute command through available KBVE modules
+						const mod = window.kbve.mod;
+						const events = window.kbve.events;
+						
+						if (mod && events) {
+							// Emit command event through KBVE event system
+							events.emit('droid-command', {
+								command: command,
+								timestamp: Date.now()
 							});
-						} else if (typeof window.Droid.command === 'function') {
-							window.Droid.command(command).then(result => {
-								outputDiv.innerHTML += `<div class="text-green-600">Result: ${JSON.stringify(result)}</div>`;
-							}).catch(error => {
-								outputDiv.innerHTML += `<div class="text-red-600">Error: ${error.message}</div>`;
-							});
+							
+							outputDiv.innerHTML += `<div class="text-green-600">Command sent to KBVE event system</div>`;
+							outputDiv.innerHTML += `<div class="text-yellow-600">Available modules: ${Object.keys(window.kbve).join(', ')}</div>`;
 						} else {
-							outputDiv.innerHTML += `<div class="text-yellow-600">Available methods: ${Object.keys(window.Droid).join(', ')}</div>`;
+							outputDiv.innerHTML += `<div class="text-yellow-600">KBVE modules: ${Object.keys(window.kbve).join(', ')}</div>`;
 						}
 						
 					} else {
 						outputDiv.innerHTML = `
-							<div class="text-red-600">Droid not ready</div>
+							<div class="text-red-600">KBVE system not ready</div>
 							<div class="text-xs">Please wait for workers to initialize</div>
 						`;
 					}
@@ -421,37 +436,36 @@
 			}
 		</script>
 		<!-- Hero Section with WebSocket Chat -->
-
-		<section class="bg-clifford text-white h-screen flex items-center">
+		<section class="bg-gradient-to-br from-purple-900 via-zinc-900 to-purple-800 text-white min-h-screen flex items-center">
 			<div class="container mx-auto text-center px-6">
-				<h1 class="text-6xl font-bold mb-6">WebSocket Chat</h1>
+				<h1 class="text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">WebSocket Chat</h1>
 				<form action="" onsubmit="sendMessage(event)" class="mb-6">
 					<input
 						type="text"
 						id="messageText"
 						placeholder="Type your message..."
 						autocomplete="off"
-						class="px-4 py-2 rounded-lg text-black w-2/3" />
+						class="px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-600 text-white placeholder-gray-400 w-2/3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
 					<button
 						type="submit"
-						class="bg-white text-clifford py-2 px-4 rounded-lg font-semibold hover:bg-gray-200 transition">
+						class="bg-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-600 transition-all ml-2">
 						Send
 					</button>
 				</form>
 				<ul
 					id="messages"
-					class="text-left text-black bg-white rounded-lg p-4 max-h-96 overflow-y-scroll w-2/3 mx-auto"></ul>
+					class="text-left text-gray-300 bg-zinc-800 border border-zinc-600 rounded-lg p-4 max-h-96 overflow-y-scroll w-2/3 mx-auto"></ul>
 
 				<!-- Form to send KBVECommand JSON -->
-				<h2 class="text-3xl font-bold mt-8 mb-4">Send a KBVECommand</h2>
+				<h2 class="text-3xl font-bold mt-8 mb-4 text-secondary">Send a KBVECommand</h2>
 				<form action="" onsubmit="sendCommand(event)" class="mb-6">
 					<textarea
 						id="commandText"
 						placeholder="Enter KBVECommand JSON..."
-						class="px-4 py-2 rounded-lg text-black w-2/3 h-32"></textarea>
+						class="px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-600 text-white placeholder-gray-400 w-2/3 h-32 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
 					<button
 						type="submit"
-						class="bg-white text-clifford py-2 px-4 rounded-lg font-semibold hover:bg-gray-200 transition">
+						class="bg-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-600 transition-all block mx-auto mt-3">
 						Send Command
 					</button>
 				</form>
@@ -459,9 +473,10 @@
 		</section>
 
 		<!-- Footer -->
-		<footer class="bg-dark text-white py-4">
+		<footer class="bg-dark border-t border-zinc-700 text-gray-300 py-6">
 			<div class="container mx-auto text-center">
-				<p>The Fudster</p>
+				<p class="text-lg">The <span class="text-primary font-semibold">Fudster</span></p>
+				<p class="text-sm text-gray-400 mt-2">Powered by KBVE Droid & Modern Web Technologies</p>
 			</div>
 		</footer>
 
@@ -572,12 +587,11 @@
 					var input = document.getElementById('commandText');
 					try {
 						var command = JSON.parse(input.value);
-						
-						// Add Droid integration flag if Droid is available
-						if (window.Droid && !command.type) {
-							command.type = 'droid_command';
-							command.timestamp = Date.now();
-						}
+									// Add Droid integration flag if KBVE is available
+				if (window.kbve && !command.type) {
+					command.type = 'kbve_command';
+					command.timestamp = Date.now();
+				}
 						
 						ws.send(JSON.stringify(command));
 						input.value = '';
