@@ -80,9 +80,10 @@ const UserSettings: React.FC = () => {
       {/* Account Information Section */}
       <div
         className={twMerge(
-          'rounded-2xl p-6 shadow-lg',
-          'bg-white/80 dark:bg-neutral-900/70',
-          'border border-neutral-200 dark:border-neutral-700'
+          'rounded-2xl p-6 shadow-xl',
+          'bg-white dark:bg-neutral-800',
+          'border border-neutral-300 dark:border-neutral-600',
+          'backdrop-blur-sm'
         )}
       >
         <div className="flex items-center gap-3 mb-6">
@@ -95,19 +96,19 @@ const UserSettings: React.FC = () => {
         <div className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
                 User ID
               </label>
-              <div className="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg font-mono text-sm">
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-700 rounded-lg font-mono text-sm text-neutral-900 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-600">
                 {user.id}
               </div>
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
                 Account Created
               </label>
-              <div className="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg text-sm">
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-700 rounded-lg text-sm text-neutral-900 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-600">
                 {user.created_at ? new Date(user.created_at).toLocaleDateString() : 'N/A'}
               </div>
             </div>
@@ -118,9 +119,10 @@ const UserSettings: React.FC = () => {
       {/* Email Settings Section */}
       <div
         className={twMerge(
-          'rounded-2xl p-6 shadow-lg',
-          'bg-white/80 dark:bg-neutral-900/70',
-          'border border-neutral-200 dark:border-neutral-700'
+          'rounded-2xl p-6 shadow-xl',
+          'bg-white dark:bg-neutral-800',
+          'border border-neutral-300 dark:border-neutral-600',
+          'backdrop-blur-sm'
         )}
       >
         <div className="flex items-center gap-3 mb-6">
@@ -132,19 +134,19 @@ const UserSettings: React.FC = () => {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
               Email Address
             </label>
             <div className="flex items-center gap-2">
-              <div className="flex-1 p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+              <div className="flex-1 p-3 bg-neutral-50 dark:bg-neutral-700 rounded-lg text-neutral-900 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-600">
                 {user.email || 'No email address set'}
               </div>
               {user.email_confirmed_at ? (
-                <span className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300 rounded-full text-xs font-medium">
+                <span className="px-3 py-1 bg-green-100 text-green-800 dark:bg-green-800 dark:text-green-200 rounded-full text-xs font-medium border border-green-200 dark:border-green-700">
                   Verified
                 </span>
               ) : (
-                <span className="px-3 py-1 bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300 rounded-full text-xs font-medium">
+                <span className="px-3 py-1 bg-amber-100 text-amber-800 dark:bg-amber-800 dark:text-amber-200 rounded-full text-xs font-medium border border-amber-200 dark:border-amber-700">
                   Unverified
                 </span>
               )}
@@ -192,9 +194,10 @@ const UserSettings: React.FC = () => {
       {/* Security Section */}
       <div
         className={twMerge(
-          'rounded-2xl p-6 shadow-lg',
-          'bg-white/80 dark:bg-neutral-900/70',
-          'border border-neutral-200 dark:border-neutral-700'
+          'rounded-2xl p-6 shadow-xl',
+          'bg-white dark:bg-neutral-800',
+          'border border-neutral-300 dark:border-neutral-600',
+          'backdrop-blur-sm'
         )}
       >
         <div className="flex items-center gap-3 mb-6">
@@ -206,25 +209,25 @@ const UserSettings: React.FC = () => {
 
         <div className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+            <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
               Authentication Method
             </label>
-            <div className="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg">
+            <div className="p-3 bg-neutral-50 dark:bg-neutral-700 rounded-lg border border-neutral-200 dark:border-neutral-600">
               {user.app_metadata?.provider === 'web3' ? (
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-1 bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300 rounded text-xs font-medium">
+                  <span className="px-2 py-1 bg-purple-100 text-purple-800 dark:bg-purple-800 dark:text-purple-200 rounded text-xs font-medium border border-purple-200 dark:border-purple-700">
                     Web3
                   </span>
-                  <span className="text-sm">
+                  <span className="text-sm text-neutral-900 dark:text-neutral-100">
                     {user.user_metadata?.custom_claims?.chain === 'solana' ? 'Solana Wallet' : 'Web3 Wallet'}
                   </span>
                 </div>
               ) : (
                 <div className="flex items-center gap-2">
-                  <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300 rounded text-xs font-medium">
+                  <span className="px-2 py-1 bg-blue-100 text-blue-800 dark:bg-blue-800 dark:text-blue-200 rounded text-xs font-medium border border-blue-200 dark:border-blue-700">
                     OAuth
                   </span>
-                  <span className="text-sm capitalize">
+                  <span className="text-sm capitalize text-neutral-900 dark:text-neutral-100">
                     {user.app_metadata?.provider || 'Standard'}
                   </span>
                 </div>
@@ -235,10 +238,10 @@ const UserSettings: React.FC = () => {
           {/* Show wallet address for Web3 users */}
           {user.user_metadata?.custom_claims?.address && (
             <div>
-              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-300 mb-1">
+              <label className="block text-sm font-medium text-neutral-700 dark:text-neutral-200 mb-1">
                 Connected Wallet
               </label>
-              <div className="p-3 bg-neutral-100 dark:bg-neutral-800 rounded-lg font-mono text-sm break-all">
+              <div className="p-3 bg-neutral-50 dark:bg-neutral-700 rounded-lg font-mono text-sm break-all text-neutral-900 dark:text-neutral-100 border border-neutral-200 dark:border-neutral-600">
                 {user.user_metadata.custom_claims.address}
               </div>
             </div>
