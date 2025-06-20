@@ -13,7 +13,19 @@ const UserSettings: React.FC = () => {
   const [message, setMessage] = useState<{ text: string; type: 'success' | 'error' } | null>(null);
 
   useEffect(() => {
-    syncSupabaseUser();
+    const loadUserData = async () => {
+      userLoadingAtom.set(true);
+      userErrorAtom.set("");
+      try {
+        await syncSupabaseUser();
+      } catch (err) {
+        userErrorAtom.set(err instanceof Error ? err.message : 'Failed to load user data');
+      } finally {
+        userLoadingAtom.set(false);
+      }
+    };
+    
+    loadUserData();
   }, []);
 
   const showMessage = (text: string, type: 'success' | 'error') => {
