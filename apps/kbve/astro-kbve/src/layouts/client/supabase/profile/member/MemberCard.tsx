@@ -1,14 +1,19 @@
 import React, { useEffect, useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { userBalanceAtom, syncUserBalance, userIdAtom, syncSupabaseUser } from 'src/layouts/client/supabase/profile/userstate';
+import { userBalanceAtom, syncUserBalance, userIdAtom, syncSupabaseUser, userAtom } from 'src/layouts/client/supabase/profile/userstate';
 import { clsx, twMerge } from 'src/utils/tw';
 import { RefreshCcw } from 'lucide-react';
+import UserEmailWarning from '../UserEmailWarning';
 
 const MemberCard: React.FC = () => {
   const userId = useStore(userIdAtom);
+  const user = useStore(userAtom);
   const balance = useStore(userBalanceAtom);
   const [refreshing, setRefreshing] = useState(false);
   const [refreshDisabled, setRefreshDisabled] = useState(false);
+
+  // Check if user has a verified email
+  const hasValidEmail = user?.email && user?.email_confirmed_at;
 
   useEffect(() => {
     // Always sync user on mount to ensure userId is set
@@ -26,7 +31,12 @@ const MemberCard: React.FC = () => {
   }
 
   if (userId && !balance) {
-    // If user is logged in but has no balance, show onboarding link
+    // Check if user has valid email first
+    if (!hasValidEmail) {
+      return <UserEmailWarning />;
+    }
+
+    // If user is logged in, has valid email, but has no balance, show onboarding link
     return (
       <div className={twMerge('flex flex-col items-center justify-center gap-4 p-6 rounded-xl bg-gradient-to-br from-cyan-100/60 to-purple-100/40 dark:from-cyan-900/30 dark:to-purple-900/20 shadow-lg')}> 
         <div className="text-lg font-semibold text-neutral-700 dark:text-neutral-200">No member profile found.</div>
