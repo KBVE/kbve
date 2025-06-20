@@ -72,6 +72,64 @@ revoke all on table admin.refresh_flags from authenticated;
 -- Grant access only to the service role
 grant select, insert, update, delete on table admin.refresh_flags to service_role;
 
+-- Enable RLS explicitly
+alter table admin.refresh_flags enable row level security;
+
+-- (Optional) Create a RLS policy for service_role
+create policy "Service can access all rows"
+on admin.refresh_flags
+for all
+to service_role
+using (true)
+with check (true);
 ```
 
-The next part of the 
+The next part will be to deploy the function to handle the flag shifts and refreshing the material views.
+
+```sql
+
+create or replace function admin.refresh_view(p_view_name text)
+returns void
+language plpgsql
+security definer
+set search_path = admin, public
+as $$
+begin
+  -- Ensure the view exists in the public schema
+  if not exists (
+    select 1 from pg_matviews
+    where schemaname = 'public' and matviewname = p_view_name
+  ) then
+    raise exception 'Invalid or unknown materialized view: %', p_view_name;
+  end if;
+
+  -- Only refresh if flagged
+  if exists (
+    select 1 from admin.refresh_flags
+    where view_name = p_view_name and needs_refresh
+  ) then
+
+    -- Dynamically refresh the view safely
+    execute format(
+      'refresh materialized view concurrently public.%I',
+      p_view_name
+    );
+
+    -- Reset the flag
+    update admin.refresh_flags
+    set needs_refresh = false,
+        updated_at = now()
+    where view_name = p_view_name;
+  end if;
+end;
+$$;
+
+-- Secure the function: prevent access from public/anon/authenticated
+revoke execute on function admin.refresh_view(text) from public;
+revoke execute on function admin.refresh_view(text) from anon;
+revoke execute on function admin.refresh_view(text) from authenticated;
+
+-- Allow only service role to call it
+grant execute on function admin.refresh_view(text) to service_role;
+
+```
