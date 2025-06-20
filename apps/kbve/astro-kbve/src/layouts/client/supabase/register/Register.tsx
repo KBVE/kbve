@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { useStore } from '@nanostores/react';
 import { useForm } from 'react-hook-form';
@@ -21,7 +21,31 @@ const HCAPTCHA_SITE_KEY = 'e19cf4a6-2168-49a2-88fe-716e97569e88';
 
 // Modal component for feedback
 const StatusModal = ({ open, loading, error, success, onClose }: { open: boolean, loading: boolean, error: string, success: string, onClose: () => void }) => {
+	const [countdown, setCountdown] = useState(10);
+
+	useEffect(() => {
+		if (!open || loading || error || !success) {
+			setCountdown(10);
+			return;
+		}
+
+		// Start countdown only for successful registration
+		const timer = setInterval(() => {
+			setCountdown(prev => {
+				if (prev <= 1) {
+					// Redirect to profile page when countdown reaches 0
+					window.location.href = '/profile';
+					return 0;
+				}
+				return prev - 1;
+			});
+		}, 1000);
+
+		return () => clearInterval(timer);
+	}, [open, loading, error, success]);
+
 	if (!open) return null;
+	
 	return (
 		<div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
 			<div className="bg-neutral-900 text-white rounded-xl shadow-lg p-8 max-w-sm w-full flex flex-col items-center relative">
@@ -31,12 +55,39 @@ const StatusModal = ({ open, loading, error, success, onClose }: { open: boolean
 						<div className="text-lg font-semibold mb-2">Processing registration…</div>
 					</>
 				)}
-				{!loading && (error || success) && (
+				{!loading && error && (
 					<>
-						<div className={error ? 'text-red-400 text-lg font-semibold mb-2' : 'text-green-400 text-lg font-semibold mb-2'}>
-							{error || success}
+						<div className="text-red-400 text-lg font-semibold mb-2">
+							{error}
 						</div>
 						<button onClick={onClose} className="mt-4 px-4 py-2 rounded bg-cyan-600 hover:bg-cyan-700 text-white font-bold shadow">Close</button>
+					</>
+				)}
+				{!loading && success && (
+					<>
+						<div className="text-green-400 text-lg font-semibold mb-4">
+							{success}
+						</div>
+						<div className="text-center mb-4">
+							<div className="text-sm text-neutral-300 mb-2">
+								Redirecting to your profile in {countdown} seconds...
+							</div>
+							<div className="w-full bg-neutral-700 rounded-full h-2 mb-3">
+								<div 
+									className="bg-gradient-to-r from-cyan-500 to-purple-500 h-2 rounded-full transition-all duration-1000"
+									style={{ width: `${((10 - countdown) / 10) * 100}%` }}
+								></div>
+							</div>
+						</div>
+						<div className="flex gap-2">
+							<a 
+								href="/profile" 
+								className="px-4 py-2 rounded bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white font-bold shadow transition"
+							>
+								Go to Profile
+							</a>
+							<button onClick={onClose} className="px-4 py-2 rounded bg-neutral-700 hover:bg-neutral-600 text-white font-bold shadow transition">Close</button>
+						</div>
 					</>
 				)}
 			</div>
