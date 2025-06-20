@@ -289,16 +289,16 @@ export const Register = () => {
 						onExpire={() => setCaptchaToken(null)}
 					/>
 				</div>
-				<button
-					type="submit"
-					disabled={loading}
-					className={twMerge(
-						'block w-full py-2 rounded bg-gradient-to-br from-cyan-500 to-purple-500 text-white font-semibold shadow hover:from-cyan-400 hover:to-purple-400 transition drop-shadow-[0_1px_2px_rgba(0,0,0,1)] shadow-black shadow-lg',
-						loading && 'opacity-60 cursor-not-allowed',
-					)}
-				>
-					{loading ? 'Registering...' : 'Register'}
-				</button>
+                                <button
+                                        type="submit"
+                                        disabled={loading}
+                                        className={twMerge(
+                                                'block w-full px-4 py-2 rounded bg-gradient-to-br from-cyan-500 to-purple-500 text-white font-semibold shadow hover:from-cyan-400 hover:to-purple-400 transition drop-shadow-[0_1px_2px_rgba(0,0,0,1)] shadow-black shadow-lg [text-shadow:_0_1px_2px_black]',
+                                                loading && 'opacity-60 cursor-not-allowed',
+                                        )}
+                                >
+                                        {loading ? 'Registering...' : 'Register'}
+                                </button>
 				<div className="mt-4 text-center">
 					<span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Already have an account?{' '}
 						<a href="/login" className="underline text-cyan-200 hover:text-cyan-400">Login here</a>
