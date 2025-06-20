@@ -72,9 +72,16 @@
 			// Initialize Droid with ONLY workerRefs (no workerURLs to avoid MIME issues)
 			try {
 				console.log("[DROID] init Library");
-				// Only use workerRefs - do NOT pass workerURLs due to MIME type issues
+				// Use both local workerRefs and local workerURLs
+				const localWorkerURLs = {
+					canvasWorker: '/assets/canvas-worker.js',
+					dbWorker: '/assets/db-worker.js',
+					wsWorker: '/assets/ws-worker.js'
+				};
+				
 				await droid({ 
-					workerRefs: astroStrings
+					workerRefs: astroStrings,
+					workerURLs: localWorkerURLs
 				});
 				
 				// Access droid components from window.kbve (assigned internally by droid)
@@ -109,7 +116,10 @@
 					window.droidReady = true;
 				}
 				
-				console.log('Droid initialized successfully with local workers only:', astroStrings);
+				console.log('Droid initialized successfully with local workers and URLs:', {
+					workerRefs: astroStrings,
+					workerURLs: localWorkerURLs
+				});
 			} catch (error) {
 				console.error('Failed to initialize Droid:', error);
 				window.droidReady = false;
@@ -124,7 +134,12 @@
 			// Log initialization status
 			console.log('KBVE Droid library loaded:', droid);
 			console.log('Comlink loaded:', comlink);
-			console.log('workerStrings from droid package:', workerStrings);
+			console.log('Local worker URLs used:', {
+				canvasWorker: '/assets/canvas-worker.js',
+				dbWorker: '/assets/db-worker.js',
+				wsWorker: '/assets/ws-worker.js'
+			});
+			console.log('Original workerStrings from droid package (not used):', workerStrings);
 			console.log('Workers configured:', astroStrings);
 		</script>
 		
