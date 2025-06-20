@@ -9,7 +9,7 @@ const getAvatarUrl = (user: any) => {
     const hash = window.btoa(user.email.trim().toLowerCase());
     return `https://www.gravatar.com/avatar/${hash}?d=identicon`;
   }
-  return '/default-avatar.png';
+  return '/assets/items/set/masks/anbu.png';
 };
 
 const UserAvatar: React.FC = () => {
