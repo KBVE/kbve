@@ -60,10 +60,31 @@ export async function syncSupabaseUser() {
     userAtom.set(data.user);
     userIdAtom.set(data.user.id ?? undefined);
     userEmailAtom.set(data.user.email ?? undefined);
-    // Username may be in user.user_metadata or a custom field
-    const username = data.user.user_metadata?.username ?? undefined;
+    
+    // Handle username extraction for different auth providers
+    let username: string | undefined;
+    
+    // First, try to get username from user_metadata (traditional OAuth)
+    username = data.user.user_metadata?.username;
+    
+    // If no username found, check for Web3/Solana authentication
+    if (!username && data.user.user_metadata?.custom_claims) {
+      const customClaims = data.user.user_metadata.custom_claims;
+      
+      // For Solana Web3 auth, use the wallet address as identifier
+      if (customClaims.chain === 'solana' && customClaims.address) {
+        username = customClaims.address;
+      }
+      // Can extend for other Web3 chains in the future
+      // else if (customClaims.chain === 'ethereum' && customClaims.address) {
+      //   username = customClaims.address;
+      // }
+    }
+    
+    // Set the username atoms
     usernameAtom.set(username ?? null);
     userNamePersistentAtom.set(username);
+    
     if (typeof window !== 'undefined') {
       localStorage.setItem('isMember', 'true');
     }

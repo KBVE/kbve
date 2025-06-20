@@ -49,7 +49,27 @@ const UserData: React.FC = () => {
         <svg xmlns="http://www.w3.org/2000/svg" className="w-4 h-4" fill="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle></svg>
         Profile
       </div>
-      <h2 className="text-3xl font-bold mb-6 text-white drop-shadow">Welcome, {user.user_metadata?.display_name || user.email || 'User'}!</h2>
+      <h2 className="text-3xl font-bold mb-6 text-white drop-shadow">
+        Welcome, {(() => {
+          // Handle different auth providers for display name
+          if (user.user_metadata?.display_name) {
+            return user.user_metadata.display_name;
+          }
+          if (user.user_metadata?.username) {
+            return user.user_metadata.username;
+          }
+          if (user.email) {
+            return user.email;
+          }
+          // Handle Solana Web3 authentication
+          if (user.user_metadata?.custom_claims?.chain === 'solana' && user.user_metadata?.custom_claims?.address) {
+            const address = user.user_metadata.custom_claims.address;
+            // Show shortened wallet address for better UX
+            return `${address.slice(0, 4)}...${address.slice(-4)}`;
+          }
+          return 'User';
+        })()}!
+      </h2>
       <div className="space-y-3">
         <div className="flex items-center gap-2 text-base text-zinc-200">
           <span className="font-semibold text-cyan-400">ID:</span> <span className="truncate">{user.id}</span>
@@ -63,6 +83,15 @@ const UserData: React.FC = () => {
         <div className="flex items-center gap-2 text-base text-zinc-200">
           <span className="font-semibold text-purple-400">Created:</span> <span>{user.created_at ? new Date(user.created_at).toLocaleString() : 'N/A'}</span>
         </div>
+        {/* Show wallet address for Web3/Solana users */}
+        {user.user_metadata?.custom_claims?.chain === 'solana' && user.user_metadata?.custom_claims?.address && (
+          <div className="flex items-center gap-2 text-base text-zinc-200">
+            <span className="font-semibold text-green-400">Wallet:</span> 
+            <span className="font-mono text-sm bg-black/30 px-2 py-1 rounded border">
+              {user.user_metadata.custom_claims.address}
+            </span>
+          </div>
+        )}
       </div>
       {/* Add more user fields as needed */}
       <div className="absolute -top-8 -right-8 w-32 h-32 bg-gradient-to-br from-cyan-400/30 to-purple-400/20 rounded-full blur-2xl z-0 pointer-events-none"></div>

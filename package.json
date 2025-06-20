@@ -189,7 +189,7 @@
 		"@react-three/fiber": "^9.1.2",
 		"@react-three/flex": "^1.0.1",
 		"@stylexjs/stylex": "^0.7.5",
-		"@supabase/supabase-js": "^2.49.4",
+		"@supabase/supabase-js": "^2.50.0",
 		"@swc/helpers": "0.5.13",
 		"@tabler/icons-react": "^2.47.0",
 		"@tamagui/animations-css": "^1.125.19",
