@@ -266,6 +266,7 @@ create or replace function public.refresh_view(p_view_name text)
 returns void
 language plpgsql
 security invoker
+set search_path = public, admin
 as $$
 begin
   -- Step 1: Set the refresh flag
@@ -278,10 +279,11 @@ begin
   perform admin.refresh_view(p_view_name);
 end;
 $$;
+
+-- Secure the function
 revoke execute on function public.refresh_view(text) from public;
 revoke execute on function public.refresh_view(text) from anon;
 revoke execute on function public.refresh_view(text) from authenticated;
-
 grant execute on function public.refresh_view(text) to service_role;
 
 ```
