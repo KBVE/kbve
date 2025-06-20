@@ -133,3 +133,31 @@ revoke execute on function admin.refresh_view(text) from authenticated;
 grant execute on function admin.refresh_view(text) to service_role;
 
 ```
+
+Next, we want a proxy function so that it be easier to call from the edge workers.
+
+```sql
+
+create or replace function public.refresh_view(p_view_name text)
+returns void
+language plpgsql
+security invoker
+as $$
+begin
+  -- Step 1: Set the refresh flag
+  insert into admin.refresh_flags (view_name, needs_refresh)
+  values (p_view_name, true)
+  on conflict (view_name)
+  do update set needs_refresh = true, updated_at = now();
+
+  -- Step 2: Call the internal secure function
+  perform admin.refresh_view(p_view_name);
+end;
+$$;
+revoke execute on function public.refresh_view(text) from public;
+revoke execute on function public.refresh_view(text) from anon;
+revoke execute on function public.refresh_view(text) from authenticated;
+
+grant execute on function public.refresh_view(text) to service_role;
+
+```
