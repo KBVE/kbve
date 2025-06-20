@@ -5,21 +5,139 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>WebSocket Chat with KBVECommand</title>
 
-		<!-- Tailwind CSS and Plugins -->
-		<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
+		<!-- Tailwind CSS v4 Browser -->
+    	<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+		
+		<!-- Module Imports -->
+		<script type="module">
+			// Import KBVE Droid library with specific imports
+			import { droid, modUrls, workerStrings } from 'https://esm.sh/@kbve/droid';
+			
+			// Import Comlink for worker communication
+			import * as comlink from 'https://esm.sh/comlink';
+			
+			// Import Supabase
+			import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+			
+			// Function to fetch worker code and create blob URL to avoid CORS issues
+			async function createWorkerFromURL(url, isSharedWorker = false) {
+				try {
+					const response = await fetch(url);
+					if (!response.ok) {
+						throw new Error(`Failed to fetch worker: ${response.status}`);
+					}
+					const workerCode = await response.text();
+					const blob = new Blob([workerCode], { type: 'application/javascript' });
+					const blobURL = URL.createObjectURL(blob);
+					
+					if (isSharedWorker) {
+						return new SharedWorker(blobURL, { type: 'module' });
+					} else {
+						return new Worker(blobURL, { type: 'module' });
+					}
+				} catch (error) {
+					console.error(`Error creating worker from ${url}:`, error);
+					throw error;
+				}
+			}
+			
+			// Initialize workers with CORS-safe approach
+			let astroStrings;
+			try {
+				console.log('Loading workers from kbve.com...');
+				astroStrings = {
+					canvasWorker: await createWorkerFromURL('https://kbve.com/assets/canvas-worker.js', false),
+					dbWorker: await createWorkerFromURL('https://kbve.com/assets/db-worker.js', true),
+					wsWorker: await createWorkerFromURL('https://kbve.com/assets/ws-worker.js', true),
+				};
+				console.log('Workers loaded successfully:', astroStrings);
+			} catch (error) {
+				console.error('Failed to load workers from kbve.com:', error);
+				
+				// Fallback: try to use local workers or create minimal workers
+				console.log('Falling back to minimal worker setup...');
+				const minimalWorkerCode = `
+					// Minimal worker fallback
+					self.addEventListener('message', function(e) {
+						console.log('Worker received:', e.data);
+						self.postMessage({ type: 'response', data: 'Worker unavailable' });
+					});
+				`;
+				const blob = new Blob([minimalWorkerCode], { type: 'application/javascript' });
+				const blobURL = URL.createObjectURL(blob);
+				
+				astroStrings = {
+					canvasWorker: new Worker(blobURL),
+					dbWorker: new SharedWorker(blobURL),
+					wsWorker: new SharedWorker(blobURL),
+				};
+			}
+			
+			// Initialize Droid with the workers
+			try {
+				// Check if droid has init method, otherwise assign workers directly
+				if (typeof droid.init === 'function') {
+					await droid.init(astroStrings);
+				} else {
+					// Assign workers to droid if no init method
+					droid.workers = astroStrings;
+				}
+				console.log('Droid initialized successfully with workers:', astroStrings);
+				window.droidReady = true;
+			} catch (error) {
+				console.error('Failed to initialize Droid:', error);
+				console.log('Available droid methods:', Object.keys(droid));
+				window.droidReady = false;
+			}
+			
+			// Make libraries available globally
+			window.Droid = droid;
+			window.comlink = comlink;
+			window.modUrls = modUrls;
+			window.workerStrings = workerStrings;
+			window.astroStrings = astroStrings;
+			
+			// Initialize Supabase client directly (only if valid URLs provided)
+			try {
+				const supabaseUrl = 'YOUR_SUPABASE_URL';
+				const supabaseKey = 'YOUR_SUPABASE_ANON_KEY';
+				
+				if (supabaseUrl !== 'YOUR_SUPABASE_URL' && supabaseKey !== 'YOUR_SUPABASE_ANON_KEY') {
+					window.supabase = createClient(supabaseUrl, supabaseKey);
+					console.log('Supabase client initialized:', window.supabase);
+				} else {
+					console.log('Supabase not configured - using placeholder URLs');
+					window.supabase = null;
+				}
+			} catch (error) {
+				console.error('Failed to initialize Supabase:', error);
+				window.supabase = null;
+			}
+			
+			// Log initialization status
+			console.log('KBVE Droid library loaded:', droid);
+			console.log('Comlink loaded:', comlink);
+			console.log('Supabase client initialized:', window.supabase);
+			console.log('Workers configured:', astroStrings);
+		</script>
+		
 		<script>
-			tailwind.config = {
-				theme: {
-					extend: {
-						colors: {
-							primary: '#3490dc',
-							secondary: '#ffed4a',
-							clifford: '#da373d',
-							dark: '#2d3748',
+			// Tailwind CSS v4 configuration with custom colors
+			// Note: This is for development only, use CLI/PostCSS in production
+			if (typeof tailwind !== 'undefined') {
+				tailwind.config = {
+					theme: {
+						extend: {
+							colors: {
+								primary: '#3490dc',
+								secondary: '#ffed4a',
+								clifford: '#da373d',
+								dark: '#2d3748',
+							},
 						},
 					},
-				},
-			};
+				};
+			}
 		</script>
 	</head>
 	<body class="bg-gray-100">
@@ -70,7 +188,180 @@
 				class="mt-4 text-center text-gray-700"></div>
 		</section>
 
+		<!-- Droid Integration Section -->
+		<section class="bg-white text-black p-6 rounded-lg mb-6 mx-4">
+			<h2 class="text-3xl font-bold mb-4 text-center">KBVE Droid Integration</h2>
+			<div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+				<!-- Droid Status -->
+				<div class="bg-gray-50 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-2">Droid Status</h3>
+					<div id="droidStatus" class="text-sm text-gray-600">Loading Droid...</div>
+					<button 
+						class="mt-2 px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition"
+						onclick="testDroid()">
+						Test Droid Functions
+					</button>
+				</div>
+				
+				<!-- Supabase Connection -->
+				<div class="bg-gray-50 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-2">Supabase Connection</h3>
+					<div id="supabaseStatus" class="text-sm text-gray-600">Supabase ready for configuration</div>
+					<button 
+						class="mt-2 px-4 py-2 bg-secondary text-black rounded hover:bg-yellow-400 transition"
+						onclick="testSupabase()">
+						Test Supabase
+					</button>
+				</div>
+			</div>
+			
+			<!-- Droid Command Interface -->
+			<div class="mt-6 bg-gray-50 p-4 rounded-lg">
+				<h3 class="text-xl font-semibold mb-2">Droid Command Interface</h3>
+				<div class="flex gap-2 mb-2">
+					<input 
+						type="text" 
+						id="droidCommand" 
+						placeholder="Enter Droid command..." 
+						class="flex-1 px-3 py-2 border rounded-lg"
+					/>
+					<button 
+						class="px-4 py-2 bg-clifford text-white rounded hover:bg-red-600 transition"
+						onclick="executeDroidCommand()">
+						Execute Local
+					</button>
+					<button 
+						class="px-4 py-2 bg-primary text-white rounded hover:bg-blue-600 transition"
+						onclick="sendDroidCommandViaWS()">
+						Send via WS
+					</button>
+				</div>
+				<div id="droidOutput" class="bg-white p-3 rounded border text-sm font-mono max-h-32 overflow-y-auto"></div>
+			</div>
+		</section>
+
 		<script>
+			// Droid Integration Functions
+			function testDroid() {
+				const statusDiv = document.getElementById('droidStatus');
+				try {
+					if (window.Droid && window.droidReady) {
+						statusDiv.innerHTML = `
+							<div class="text-green-600">✓ Droid initialized successfully</div>
+							<div class="text-xs mt-1">Workers loaded via CORS-safe blob URLs</div>
+							<div class="text-xs mt-1">Available: ${Object.keys(window.Droid).join(', ')}</div>
+						`;
+					} else if (window.Droid && window.droidReady === false) {
+						statusDiv.innerHTML = `
+							<div class="text-yellow-600">⚠ Droid loaded but initialization failed</div>
+							<div class="text-xs mt-1">Worker loading may have failed due to CORS</div>
+							<div class="text-xs mt-1">Check console for details</div>
+						`;
+					} else if (window.Droid) {
+						statusDiv.innerHTML = `
+							<div class="text-blue-600">⏳ Droid loading...</div>
+							<div class="text-xs mt-1">Downloading workers from kbve.com</div>
+							<div class="text-xs mt-1">Creating CORS-safe blob URLs</div>
+						`;
+					} else {
+						statusDiv.innerHTML = '<div class="text-red-600">✗ Droid not available</div>';
+					}
+				} catch (error) {
+					statusDiv.innerHTML = `<div class="text-red-600">✗ Error: ${error.message}</div>`;
+				}
+			}
+			
+			function testSupabase() {
+				const statusDiv = document.getElementById('supabaseStatus');
+				try {
+					if (window.supabase) {
+						statusDiv.innerHTML = `
+							<div class="text-green-600">✓ Supabase client initialized</div>
+							<div class="text-xs mt-1">Ready for database operations</div>
+						`;
+					} else {
+						statusDiv.innerHTML = `
+							<div class="text-yellow-600">⚠ Supabase not configured</div>
+							<div class="text-xs mt-1">Update URL and key to enable</div>
+						`;
+					}
+				} catch (error) {
+					statusDiv.innerHTML = `<div class="text-red-600">✗ Error: ${error.message}</div>`;
+				}
+			}
+			
+			function executeDroidCommand() {
+				const commandInput = document.getElementById('droidCommand');
+				const outputDiv = document.getElementById('droidOutput');
+				const command = commandInput.value.trim();
+				
+				if (!command) {
+					outputDiv.textContent = 'Please enter a command';
+					return;
+				}
+				
+				try {
+					if (window.Droid && window.droidReady) {
+						// Use the properly initialized droid
+						outputDiv.innerHTML = `
+							<div class="text-blue-600">Command: ${command}</div>
+							<div class="text-gray-600">Executing via Droid workers...</div>
+							<div class="text-xs text-gray-500">Timestamp: ${new Date().toISOString()}</div>
+						`;
+						
+						// Clear the input
+						commandInput.value = '';
+						
+						// Execute command through droid if it has the execute method
+						if (typeof window.Droid.execute === 'function') {
+							window.Droid.execute(command).then(result => {
+								outputDiv.innerHTML += `<div class="text-green-600">Result: ${JSON.stringify(result)}</div>`;
+							}).catch(error => {
+								outputDiv.innerHTML += `<div class="text-red-600">Error: ${error.message}</div>`;
+							});
+						} else if (typeof window.Droid.command === 'function') {
+							window.Droid.command(command).then(result => {
+								outputDiv.innerHTML += `<div class="text-green-600">Result: ${JSON.stringify(result)}</div>`;
+							}).catch(error => {
+								outputDiv.innerHTML += `<div class="text-red-600">Error: ${error.message}</div>`;
+							});
+						} else {
+							outputDiv.innerHTML += `<div class="text-yellow-600">Available methods: ${Object.keys(window.Droid).join(', ')}</div>`;
+						}
+						
+					} else {
+						outputDiv.innerHTML = `
+							<div class="text-red-600">Droid not ready</div>
+							<div class="text-xs">Please wait for workers to initialize</div>
+						`;
+					}
+					
+				} catch (error) {
+					outputDiv.innerHTML = `<div class="text-red-600">Error executing command: ${error.message}</div>`;
+				}
+			}
+			
+			// Initialize Droid integration when page loads
+			document.addEventListener('DOMContentLoaded', function() {
+				// Test Droid availability with longer delay to account for worker initialization
+				setTimeout(testDroid, 1000);
+				setTimeout(testSupabase, 1000);
+				
+				// Keep checking Droid status until ready
+				const checkDroidStatus = setInterval(() => {
+					if (window.droidReady !== undefined) {
+						testDroid();
+						clearInterval(checkDroidStatus);
+					}
+				}, 500);
+				
+				// Stop checking after 10 seconds
+				setTimeout(() => {
+					clearInterval(checkDroidStatus);
+				}, 10000);
+			});
+
+			// Runelite Control Functions
 			function startRunelite() {
 				fetch('/ws/start-runelite', {
 					method: 'GET',
@@ -176,10 +467,21 @@
 
 		<!-- WebSocket JavaScript -->
 		<script>
-			var ws = new WebSocket(`wss://${location.host}/ws`);
+			// Determine WebSocket protocol and URL
+			const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+			const wsUrl = `${wsProtocol}//${location.host}/ws`;
+			
+			console.log('Attempting WebSocket connection to:', wsUrl);
+			
+			let ws;
+			try {
+				ws = new WebSocket(wsUrl);
+			} catch (error) {
+				console.error('Failed to create WebSocket:', error);
+			}
 
 			ws.onopen = function () {
-				console.log('WebSocket connection established.');
+				console.log('WebSocket connection established to:', wsUrl);
 				var handshakeMessage = {
 					command: 'handshake',
 					channel: 'default',
@@ -190,29 +492,54 @@
 				ws.send(JSON.stringify(handshakeMessage));
 			};
 
-			ws.onclose = function () {
-				console.log('WebSocket connection closed.');
+			ws.onclose = function (event) {
+				console.log('WebSocket connection closed. Code:', event.code, 'Reason:', event.reason);
 			};
 
 			ws.onerror = function (error) {
-				console.log('WebSocket error:', error);
+				console.error('WebSocket error:', error);
+				console.log('WebSocket URL was:', wsUrl);
 			};
 
 			ws.onmessage = function (event) {
 				var messages = document.getElementById('messages');
 				var message = document.createElement('li');
+				message.className = 'mb-2 p-2 border-b border-gray-200';
 
 				try {
 					var data = JSON.parse(event.data);
-					var content = document.createTextNode(
-						formatJsonDisplay(data),
-					);
+					
+					// Check if this is a Droid command response
+					if (data.type === 'droid_response' || data.command) {
+						var content = document.createElement('div');
+						content.innerHTML = `
+							<div class="font-semibold text-blue-600">Droid Response:</div>
+							<div class="text-sm">${formatJsonDisplay(data)}</div>
+							<div class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</div>
+						`;
+						
+						// Also update the Droid output if available
+						const droidOutput = document.getElementById('droidOutput');
+						if (droidOutput) {
+							droidOutput.innerHTML += `<div class="text-green-600">WebSocket Droid Response: ${JSON.stringify(data)}</div>`;
+						}
+					} else {
+						var content = document.createElement('div');
+						content.innerHTML = `
+							<div class="text-sm">${formatJsonDisplay(data)}</div>
+							<div class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</div>
+						`;
+					}
 				} catch (e) {
-					var content = document.createTextNode(event.data);
+					var content = document.createElement('div');
+					content.textContent = event.data;
 				}
 
 				message.appendChild(content);
 				messages.appendChild(message);
+				
+				// Auto-scroll to bottom
+				messages.scrollTop = messages.scrollHeight;
 			};
 
 			function formatJsonDisplay(data) {
@@ -226,7 +553,7 @@
 			}
 
 			function sendMessage(event) {
-				if (ws.readyState === WebSocket.OPEN) {
+				if (ws && ws.readyState === WebSocket.OPEN) {
 					var input = document.getElementById('messageText');
 					var message = {
 						channel: 'default',
@@ -235,18 +562,23 @@
 					ws.send(JSON.stringify(message));
 					input.value = '';
 				} else {
-					console.error(
-						'WebSocket is not open. Cannot send message.',
-					);
+					console.error('WebSocket is not open. Current state:', ws ? ws.readyState : 'WebSocket not initialized');
 				}
 				event.preventDefault();
 			}
 
 			function sendCommand(event) {
-				if (ws.readyState === WebSocket.OPEN) {
+				if (ws && ws.readyState === WebSocket.OPEN) {
 					var input = document.getElementById('commandText');
 					try {
 						var command = JSON.parse(input.value);
+						
+						// Add Droid integration flag if Droid is available
+						if (window.Droid && !command.type) {
+							command.type = 'droid_command';
+							command.timestamp = Date.now();
+						}
+						
 						ws.send(JSON.stringify(command));
 						input.value = '';
 						console.log('Command sent:', command);
@@ -254,11 +586,35 @@
 						console.error('Invalid JSON format for KBVECommand.');
 					}
 				} else {
-					console.error(
-						'WebSocket is not open. Cannot send command.',
-					);
+					console.error('WebSocket is not open. Current state:', ws ? ws.readyState : 'WebSocket not initialized');
 				}
 				event.preventDefault();
+			}
+			
+			// New function to send Droid commands via WebSocket
+			function sendDroidCommandViaWS() {
+				const commandInput = document.getElementById('droidCommand');
+				const command = commandInput.value.trim();
+				
+				if (!command) return;
+				
+				if (ws && ws.readyState === WebSocket.OPEN) {
+					const droidMessage = {
+						type: 'droid_command',
+						command: command,
+						channel: 'droid',
+						timestamp: Date.now()
+					};
+					
+					ws.send(JSON.stringify(droidMessage));
+					commandInput.value = '';
+					
+					// Also show in local output
+					const outputDiv = document.getElementById('droidOutput');
+					outputDiv.innerHTML += `<div class="text-blue-600">Sent via WebSocket: ${command}</div>`;
+				} else {
+					console.error('WebSocket is not open. Current state:', ws ? ws.readyState : 'WebSocket not initialized');
+				}
 			}
 		</script>
 	</body>
