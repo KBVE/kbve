@@ -26,6 +26,130 @@ import {
 
 import { Giscus, Adsense } from '@kbve/astropad';
 
+## User
+
+### User Function - Register
+
+This is our register function as a proof of concept, includes some additional things like CORS and refreshing the material view.
+
+```ts
+
+// deno-lint-ignore-file no-explicit-any
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { z } from "npm:zod@3.22.4";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "apikey, X-Client-Info, Content-Type, Authorization, Accept, Accept-Language, X-Authorization",
+  "Access-Control-Expose-Headers": "Content-Length, X-JSON"
+};
+Deno.serve(async (req)=>{
+  if (req.method === "OPTIONS") {
+    return new Response(null, {
+      status: 204,
+      headers: corsHeaders
+    });
+  }
+  const supabaseAuth = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_ANON_KEY"), {
+    global: {
+      headers: {
+        Authorization: req.headers.get("Authorization") ?? ""
+      }
+    }
+  });
+  const supabaseAdmin = createClient(Deno.env.get("SUPABASE_URL"), Deno.env.get("SUPABASE_SERVICE_ROLE_KEY"));
+  const inputSchema = z.object({
+    username: z.string().regex(/^[a-zA-Z0-9_-]{3,30}$/)
+  });
+  try {
+    const body = await req.json();
+    const parsed = inputSchema.parse(body);
+    const { data: { user }, error: userError } = await supabaseAuth.auth.getUser();
+    if (userError || !user) {
+      return new Response(JSON.stringify({
+        error: "Unauthorized"
+      }), {
+        status: 401,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        }
+      });
+    }
+    const { id: user_id } = user;
+    const { error: rpcError } = await supabaseAdmin.rpc("create_user_context_proxy", {
+      user_id,
+      username: parsed.username,
+      bio: "",
+      avatar_ulid: null,
+      role: null,
+      level: 1,
+      credits: 0,
+      khash: 0
+    });
+    if (rpcError) {
+      console.error("[create_user_context] RPC Error", rpcError);
+      return new Response(JSON.stringify({
+        error: rpcError.message
+      }), {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        }
+      });
+    }
+    const { error: metaError } = await supabaseAdmin.auth.admin.updateUserById(user_id, {
+      user_metadata: {
+        username: parsed.username
+      }
+    });
+    if (metaError) {
+      console.error("[user_metadata] Failed to update:", metaError);
+      return new Response(JSON.stringify({
+        error: metaError.message
+      }), {
+        status: 500,
+        headers: {
+          ...corsHeaders,
+          "Content-Type": "application/json"
+        }
+      });
+    }
+    supabaseAdmin.rpc("refresh_view", {
+      p_view_name: "user_balances_view"
+    }).then(({ error })=>{
+      if (error) {
+        console.error("[refresh_view] Failed to refresh view:", error.message);
+      }
+    });
+    return new Response(JSON.stringify({
+      success: true
+    }), {
+      status: 200,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json"
+      }
+    });
+  } catch (err) {
+    console.error("[create_user_context] Parse/Error", err);
+    return new Response(JSON.stringify({
+      error: err?.message ?? "Unknown error"
+    }), {
+      status: 400,
+      headers: {
+        ...corsHeaders,
+        "Content-Type": "application/json"
+      }
+    });
+  }
+});
+
+```
+
+
 ## Admin
 
 ### Admin Schema
@@ -72,6 +196,94 @@ revoke all on table admin.refresh_flags from authenticated;
 -- Grant access only to the service role
 grant select, insert, update, delete on table admin.refresh_flags to service_role;
 
+-- Enable RLS explicitly
+alter table admin.refresh_flags enable row level security;
+
+-- (Optional) Create a RLS policy for service_role
+create policy "Service can access all rows"
+on admin.refresh_flags
+for all
+to service_role
+using (true)
+with check (true);
 ```
 
-The next part of the 
+The next part will be to deploy the function to handle the flag shifts and refreshing the material views.
+
+```sql
+
+create or replace function admin.refresh_view(p_view_name text)
+returns void
+language plpgsql
+security definer
+set search_path = admin, public
+as $$
+begin
+  -- Ensure the view exists in the public schema
+  if not exists (
+    select 1 from pg_matviews
+    where schemaname = 'public' and matviewname = p_view_name
+  ) then
+    raise exception 'Invalid or unknown materialized view: %', p_view_name;
+  end if;
+
+  -- Only refresh if flagged
+  if exists (
+    select 1 from admin.refresh_flags
+    where view_name = p_view_name and needs_refresh
+  ) then
+
+    -- Dynamically refresh the view safely
+    execute format(
+      'refresh materialized view concurrently public.%I',
+      p_view_name
+    );
+
+    -- Reset the flag
+    update admin.refresh_flags
+    set needs_refresh = false,
+        updated_at = now()
+    where view_name = p_view_name;
+  end if;
+end;
+$$;
+
+-- Secure the function: prevent access from public/anon/authenticated
+revoke execute on function admin.refresh_view(text) from public;
+revoke execute on function admin.refresh_view(text) from anon;
+revoke execute on function admin.refresh_view(text) from authenticated;
+
+-- Allow only service role to call it
+grant execute on function admin.refresh_view(text) to service_role;
+
+```
+
+Next, we want a proxy function so that it be easier to call from the edge workers.
+
+```sql
+
+create or replace function public.refresh_view(p_view_name text)
+returns void
+language plpgsql
+security invoker
+set search_path = public, admin
+as $$
+begin
+  -- Step 1: Set the refresh flag
+  insert into admin.refresh_flags (view_name, needs_refresh)
+  values (p_view_name, true)
+  on conflict (view_name)
+  do update set needs_refresh = true, updated_at = now();
+
+  -- Step 2: Call the internal secure function
+  perform admin.refresh_view(p_view_name);
+end;
+$$;
+
+-- Secure the function
+revoke execute on function public.refresh_view(text) from public;
+revoke execute on function public.refresh_view(text) from anon;
+revoke execute on function public.refresh_view(text) from authenticated;
+grant execute on function public.refresh_view(text) to service_role;
+
+```
