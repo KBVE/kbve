@@ -1,7 +1,7 @@
 ---
 title: 'June: 19'
 category: Daily
-date: 2024-06-19 12:00:00
+date: 2025-06-19 12:00:00
 client: Self
 unsplash: 1684029621162-1705b37b51b6
 img: https://images.unsplash.com/photo-1684029621162-1705b37b51b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -12,6 +12,42 @@ tags:
 ---
 
 import { Adsense } from '@kbve/astropad';
+
+## 2025
+
+### Starting Stocks
+
+-   05:50PM
+
+    Going through the S&P 500 list and going to add each of the company listed, with the goal of having about 500 companies, before adding more of the random ones.
+    After we get majority of the companies listed, then it will be the ETFs, REITS, CEFs, Bonds , ect...
+    Furthermore, we will have to build tools to grab data and render the charts as well.
+
+### Admin Schema + Table
+
+-   08:49PM
+
+    The next move would be fix the material view refresh and that means we would have to create basically an admin schema.
+    This is the sql schema that we would create for admin.
+
+```sql
+
+-- Create the admin schema
+create schema if not exists admin;
+
+-- Revoke default PUBLIC access
+revoke all on schema admin from public;
+
+-- Revoke access to objects in the schema from anon/authenticated
+revoke all on all tables in schema admin from anon, authenticated;
+revoke all on all functions in schema admin from anon, authenticated;
+
+-- Grant access to service_role
+grant usage on schema admin to service_role;
+grant select, insert, update, delete on all tables in schema admin to service_role;
+grant execute on all functions in schema admin to service_role;
+
+```
 
 ## 2024
 
