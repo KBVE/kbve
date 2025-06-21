@@ -23,7 +23,7 @@
 				
 				// Create Supabase client
 				window.supabase = createClient(supabaseUrl, supabaseKey);
-				console.log('✅ Supabase client initialized:', window.supabase);
+				console.log('Supabase client initialized:', window.supabase);
 				
 				// Initialize auth state using AuthStateManager
 				window.AuthStateManager.initializeAuthState();
@@ -57,7 +57,7 @@
 					}
 				});
 			} catch (error) {
-				console.error('❌ Failed to initialize Supabase:', error);
+				console.error('Failed to initialize Supabase:', error);
 				window.supabase = null;
 			}
 		</script>
@@ -486,12 +486,17 @@
 						</svg>
 						Continue with Discord
 					</button>
-					<button onclick="connectWallet()" class="w-full flex items-center justify-center px-4 py-3 bg-orange-600 hover:bg-orange-700 border border-orange-500 rounded-lg transition-all">
-						<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
-							<path d="M20 7V5c0-1.103-.897-2-2-2H6C4.897 3 4 3.897 4 5v2c-1.103 0-2 .897-2 2v8c0 1.103.897 2 2 2h16c1.103 0 2-.897 2-2V9c0-1.103-.897-2-2-2zM6 5h12v2H6V5zm14 14H4V9h16v10z"/>
-							<path d="M8 11h8v2H8z"/>
+					<button onclick="connectWallet()" class="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border border-purple-400 rounded-lg transition-all">
+						<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 397.7 311.7">
+							<linearGradient id="solana-gradient" x1="360.9" y1="351.5" x2="141.2" y2="131.8" gradientUnits="userSpaceOnUse">
+								<stop offset="0" stop-color="#00ffa3"/>
+								<stop offset="1" stop-color="#dc1fff"/>
+							</linearGradient>
+							<path d="M64.6 237.9c2.4-2.4 5.7-3.8 9.2-3.8h317.5c5.8 0 8.7 7 4.6 11.1l-62.7 62.7c-2.4 2.4-5.7 3.8-9.2 3.8H6.5c-5.8 0-8.7-7-4.6-11.1L64.6 237.9z" fill="url(#solana-gradient)"/>
+							<path d="M64.6 3.8C67.1 1.4 70.4 0 73.8 0h317.5c5.8 0 8.7 7 4.6 11.1l-62.7 62.7c-2.4 2.4-5.7 3.8-9.2 3.8H6.5c-5.8 0-8.7-7-4.6-11.1L64.6 3.8z" fill="url(#solana-gradient)"/>
+							<path d="M333.1 120.1c-2.4-2.4-5.7-3.8-9.2-3.8H6.5c-5.8 0-8.7 7-4.6 11.1l62.7 62.7c2.4 2.4 5.7 3.8 9.2 3.8h317.5c5.8 0 8.7-7 4.6-11.1l-62.8-62.7z" fill="url(#solana-gradient)"/>
 						</svg>
-						Connect Wallet (Web3)
+						Connect Solana Wallet
 					</button>
 				</div>
 
@@ -541,7 +546,7 @@
 
 					<!-- hCaptcha -->
 					<div class="mt-4 flex justify-center">
-						<div class="h-captcha" data-sitekey="your-site-key" data-theme="dark"></div>
+						<div class="h-captcha" data-sitekey="e19cf4a6-2168-49a2-88fe-716e97569e88" data-theme="dark" data-callback="onHCaptchaSuccess" data-expired-callback="onHCaptchaExpired" data-error-callback="onHCaptchaError"></div>
 					</div>
 
 					<!-- Submit Button -->
@@ -665,18 +670,6 @@
 						class="mt-3 px-4 py-2 bg-accent text-white rounded-lg hover:bg-fuchsia-500 transition-all"
 						onclick="testSupabase()">
 						Test Supabase
-					</button>
-				</div>
-				
-				<!-- hCaptcha Verification -->
-				<div class="bg-dark-light border border-zinc-600 p-4 rounded-lg">
-					<h3 class="text-xl font-semibold mb-2 text-secondary">hCaptcha Verification</h3>
-					<div id="hcaptchaStatus" class="text-sm text-gray-300 mb-3">hCaptcha ready for verification</div>
-					<div class="h-captcha mb-3" data-sitekey="your-site-key" data-theme="dark"></div>
-					<button 
-						class="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
-						onclick="testHCaptcha()">
-						Test hCaptcha
 					</button>
 				</div>
 			</div>
@@ -829,33 +822,6 @@
 				}
 			}
 			
-			function testHCaptcha() {
-				const statusDiv = document.getElementById('hcaptchaStatus');
-				try {
-					if (typeof hcaptcha !== 'undefined') {
-						const response = hcaptcha.getResponse();
-						if (response) {
-							statusDiv.innerHTML = `
-								<div class="text-green-600">✓ hCaptcha verified</div>
-								<div class="text-xs mt-1">Token: ${response.substring(0, 20)}...</div>
-							`;
-						} else {
-							statusDiv.innerHTML = `
-								<div class="text-yellow-600">⚠ hCaptcha ready but not completed</div>
-								<div class="text-xs mt-1">Please complete the captcha challenge</div>
-							`;
-						}
-					} else {
-						statusDiv.innerHTML = `
-							<div class="text-blue-600">⏳ hCaptcha loading...</div>
-							<div class="text-xs mt-1">Loading hCaptcha API</div>
-						`;
-					}
-				} catch (error) {
-					statusDiv.innerHTML = `<div class="text-red-600">✗ Error: ${error.message}</div>`;
-				}
-			}
-			
 			// Authentication Modal Functions
 			function openAuthModal() {
 				document.getElementById('authModal').classList.remove('hidden');
@@ -864,11 +830,22 @@
 					if (typeof hcaptcha !== 'undefined') {
 						hcaptcha.render();
 					}
+					// Initialize captcha monitoring for wallet button
+					setupCaptchaMonitoring();
+					updateWalletButtonState();
 				}, 100);
 			}
 
 			function closeAuthModal() {
 				document.getElementById('authModal').classList.add('hidden');
+				// Reset hCaptcha when modal is closed
+				if (typeof hcaptcha !== 'undefined') {
+					hcaptcha.reset();
+				}
+				// Stop monitoring captcha state
+				stopCaptchaMonitoring();
+				// Reset wallet button state
+				setTimeout(updateWalletButtonState, 100);
 			}
 
 			function setAuthTab(tab) {
@@ -992,32 +969,92 @@
 
 			async function connectWallet() {
 				try {
-					updateAuthStatus('Connecting wallet...', 'info');
-
-					if (typeof window.ethereum !== 'undefined') {
-						// Request account access
-						const accounts = await window.ethereum.request({ method: 'eth_requestAccounts' });
-						const account = accounts[0];
-
-						// Sign a message to verify ownership
-						const message = `Sign this message to authenticate with FUDSTER: ${Date.now()}`;
-						const signature = await window.ethereum.request({
-							method: 'personal_sign',
-							params: [message, account]
-						});
-
-						// Use AuthStateManager to set wallet auth state
-						window.AuthStateManager.setWalletAuthState(account, signature);
-						
-						updateAuthStatus(`Wallet connected: ${account.slice(0, 8)}...${account.slice(-6)}`, 'success');
-						
-						setTimeout(closeAuthModal, 2000);
-					} else {
-						updateAuthStatus('No Web3 wallet detected. Please install MetaMask or similar.', 'error');
+					// Check if Supabase is initialized
+					if (!window.supabase) {
+						updateAuthStatus('Supabase not initialized', 'error');
+						return;
 					}
+
+					// Verify hCaptcha completion before proceeding
+					const hcaptchaResponse = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : null;
+					if (!hcaptchaResponse) {
+						updateAuthStatus('Please complete the captcha verification first', 'error');
+						// Scroll to and highlight captcha
+						const captchaElement = document.querySelector('.h-captcha') || 
+											   document.querySelector('[data-hcaptcha-widget-id]');
+						if (captchaElement) {
+							captchaElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+							captchaElement.style.outline = '3px solid #fbbf24';
+							captchaElement.style.outlineOffset = '4px';
+							captchaElement.style.borderRadius = '8px';
+							setTimeout(() => {
+								captchaElement.style.outline = '';
+								captchaElement.style.outlineOffset = '';
+								captchaElement.style.borderRadius = '';
+							}, 3000);
+						}
+						return;
+					}
+
+					updateAuthStatus('Connecting Solana wallet...', 'info');
+
+					// Check if Solana wallet is available
+					if (!window.solana || !window.solana.isPhantom) {
+						updateAuthStatus('Solana wallet not detected. Please install Phantom wallet.', 'error');
+						return;
+					}
+
+					// Use Supabase's signInWithWeb3 for Solana authentication
+					const { data, error } = await window.supabase.auth.signInWithWeb3({
+						chain: 'solana',
+						statement: 'I accept the Terms of Service and sign in to FUDSTER.',
+						options: {
+							captchaToken: hcaptchaResponse
+						}
+					});
+
+					if (error) {
+						console.error('Solana sign-in error:', error);
+						updateAuthStatus('Wallet authentication failed: ' + error.message, 'error');
+						return;
+					}
+
+					if (data && data.session?.user) {
+						// Update AuthStateManager with the authenticated session
+						window.AuthStateManager.setUserAuthState(data.session.user, true);
+
+						// Also store wallet-specific info if available
+						const walletAddress = data.session.user.user_metadata?.wallet_address || 
+											  data.session.user.app_metadata?.wallet_address ||
+											  'Connected';
+						
+						window.AuthStateManager.setWalletAuthState(walletAddress, null);
+
+						updateAuthStatus(`Solana wallet connected successfully!`, 'success');
+						
+						// Close modal after success
+						setTimeout(() => {
+							closeAuthModal();
+							// Reset the captcha for next use
+							if (typeof hcaptcha !== 'undefined') {
+								hcaptcha.reset();
+							}
+						}, 2000);
+					} else {
+						updateAuthStatus('Authentication completed but no session data received', 'error');
+					}
+
 				} catch (error) {
 					console.error('Wallet connection error:', error);
-					updateAuthStatus('Wallet connection failed: ' + error.message, 'error');
+					
+					// Handle specific error cases
+					if (error.message?.includes('User rejected')) {
+						updateAuthStatus('Wallet connection was cancelled by user', 'error');
+					} else if (error.message?.includes('not connected')) {
+						updateAuthStatus('Please connect your Solana wallet first', 'error');
+					} else {
+						updateAuthStatus('Wallet connection failed: ' + (error.message || 'Unknown error'), 'error');
+					}
 				}
 			}
 
@@ -1419,6 +1456,60 @@
 				const statusDiv = document.getElementById('statusMessage');
 				statusDiv.textContent = message;
 				statusDiv.className = 'mt-4 text-center ' + colorClass;
+			}
+
+			// Update wallet button appearance based on hCaptcha state
+			let captchaMonitorInterval = null;
+
+			function updateWalletButtonState() {
+				const walletButton = document.querySelector('button[onclick="connectWallet()"]');
+				if (!walletButton) return;
+
+				const hcaptchaResponse = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : null;
+				const isDisabled = !hcaptchaResponse;
+
+				if (isDisabled) {
+					walletButton.classList.add('opacity-50', 'cursor-not-allowed');
+					walletButton.classList.remove('hover:from-purple-600', 'hover:to-pink-600');
+					walletButton.title = 'Please complete hCaptcha verification first';
+				} else {
+					walletButton.classList.remove('opacity-50', 'cursor-not-allowed');
+					walletButton.classList.add('hover:from-purple-600', 'hover:to-pink-600');
+					walletButton.title = 'Connect your Solana wallet';
+				}
+			}
+
+			// Monitor hCaptcha state changes
+			function setupCaptchaMonitoring() {
+				// Clear any existing interval
+				if (captchaMonitorInterval) {
+					clearInterval(captchaMonitorInterval);
+				}
+				// Check periodically for captcha state changes (fallback)
+				captchaMonitorInterval = setInterval(updateWalletButtonState, 2000);
+			}
+
+			function stopCaptchaMonitoring() {
+				if (captchaMonitorInterval) {
+					clearInterval(captchaMonitorInterval);
+					captchaMonitorInterval = null;
+				}
+			}
+
+			// hCaptcha Callback Functions
+			function onHCaptchaSuccess(token) {
+				console.log('hCaptcha completed successfully');
+				updateWalletButtonState();
+			}
+
+			function onHCaptchaExpired() {
+				console.log('hCaptcha expired');
+				updateWalletButtonState();
+			}
+
+			function onHCaptchaError(error) {
+				console.error('hCaptcha error:', error);
+				updateWalletButtonState();
 			}
 		</script>
 		<!-- Hero Section with WebSocket Chat -->

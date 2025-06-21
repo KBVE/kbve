@@ -152,9 +152,9 @@ export const SolanaSignInButton: React.FC<{ captchaToken?: string | null; captch
   };
 
   const handleMouseEnter = () => {
-    console.log('🖱️ Mouse Enter - captchaToken:', captchaToken, 'isDisabled:', isDisabled);
+    console.log('Mouse Enter - captchaToken:', captchaToken, 'isDisabled:', isDisabled);
     if (!captchaToken) {
-      console.log('✅ Setting tooltip to true');
+      console.log('Setting tooltip to true');
       setShowTooltip(true);
       
       // Clear any existing timeout when user hovers
@@ -163,12 +163,12 @@ export const SolanaSignInButton: React.FC<{ captchaToken?: string | null; captch
         setTooltipTimeoutId(null);
       }
     } else {
-      console.log('❌ Captcha exists, not showing tooltip');
+      console.log('Captcha exists, not showing tooltip');
     }
   };
 
   const handleMouseLeave = () => {
-    console.log('🖱️ Mouse Leave');
+    console.log('Mouse Leave');
     if (!captchaToken && showTooltip) {
       // Add a delay before hiding tooltip on mouse leave
       const timeoutId = setTimeout(() => {
@@ -181,7 +181,7 @@ export const SolanaSignInButton: React.FC<{ captchaToken?: string | null; captch
 
   const isDisabled = !captchaToken;
 
-  console.log('🔄 Solana Button Render - showTooltip:', showTooltip, 'isDisabled:', isDisabled, 'captchaToken:', captchaToken);
+  console.log(' Solana Button Render - showTooltip:', showTooltip, 'isDisabled:', isDisabled, 'captchaToken:', captchaToken);
 
   return (
     <div className="relative w-full">
