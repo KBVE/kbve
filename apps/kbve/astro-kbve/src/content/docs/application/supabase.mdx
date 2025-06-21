@@ -870,6 +870,10 @@ public.list_osrs_accounts() → table (
 
 public.delete_osrs_account(p_account_name text) → void
 
+public.update_osrs_account_state(
+  p_account_name text,
+  p_state text
+) → void
 
 public.update_osrs_account_info(
   p_account_name text,
@@ -973,6 +977,12 @@ await supabase.rpc('update_osrs_account_info', {
   p_wealth_gp: 50000000
 });
 
+// Example: Update account state (login/logout)
+await supabase.rpc('update_osrs_account_state', {
+  p_account_name: 'iron_chip',
+  p_state: 'active'  // 'offline', 'active', 'banned', 'error'
+});
+
 ```
 
 Lets go ahead and update the table for the user and track their wealth in gp too.
@@ -984,6 +994,94 @@ add column wealth_gp bigint check (wealth_gp >= 0) default 0;
 
 ```
 
+Next we want to keep track of the actual state of the account, so that we can keep track of it.
+
+```sql
+
+create or replace function private.update_osrs_account_state_internal(
+  p_user_id uuid,
+  p_account_name text,
+  p_state text
+)
+returns void
+language plpgsql
+security definer
+set search_path = private
+as $function$
+begin
+  -- Validate
+  if not exists (select 1 from auth.users where id = p_user_id) then
+    raise exception 'Invalid user ID';
+  end if;
+
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format.';
+  end if;
+
+  if p_state not in ('offline', 'active', 'banned', 'error') then
+    raise exception 'Invalid state value.';
+  end if;
+
+  -- Update the state
+  update private.user_osrs_accounts
+  set state = p_state,
+      updated_at = now()
+  where user_id = p_user_id and account_name = p_account_name;
+
+  if not found then
+    raise exception 'OSRS account not found for user.';
+  end if;
+end;
+$function$;
+
+revoke all on function private.update_osrs_account_state_internal(uuid, text, text)
+  from public, anon, authenticated;
+
+grant execute on function private.update_osrs_account_state_internal(uuid, text, text)
+  to service_role;
+
+```
+
+That will be the private internal schema and now we can prepare for the public schema for the user to call.
+This will be the public 
+
+```sql
+
+create or replace function public.update_osrs_account_state(
+  p_account_name text,
+  p_state text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, private
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format.';
+  end if;
+
+  if p_state not in ('offline', 'active', 'banned', 'error') then
+    raise exception 'Invalid state value.';
+  end if;
+
+  perform private.update_osrs_account_state_internal(v_user_id, p_account_name, p_state);
+end;
+$function$;
+
+revoke all on function public.update_osrs_account_state(text, text)
+  from public, anon;
+
+grant execute on function public.update_osrs_account_state(text, text)
+  to authenticated;
+
+```
 
 ### User Function - Register
 
