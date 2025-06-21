@@ -28,6 +28,963 @@ import { Giscus, Adsense } from '@kbve/astropad';
 
 ## User
 
+### User Vault - Secrets
+
+This is a quick section for setting up a quick proof of concept and for the demo, we will be doing a character ai inspired meme.
+Full disclosure, this is just for fun and is not meant to be taken serious.
+
+```sql
+
+create table private.user_secrets (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  key text not null, -- user-facing label like "osrs_email" or "github_token"
+  vault_key text not null, -- actual vault path, like "user/{user_id}/osrs/email"
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+
+  constraint unique_user_key unique (user_id, key)
+);
+
+alter table private.user_secrets enable row level security;
+create policy "No access by default" on private.user_secrets
+  for all using (false); 
+revoke all on private.user_secrets from anon, authenticated, public;
+grant all on private.user_secrets to service_role;
+
+```
+
+After setting up the `user_secrets`, we can move forward with the next step and that would be the `osrs` table.
+
+```sql
+
+create table private.user_osrs_accounts (
+  id uuid primary key default gen_random_uuid(),
+  user_id uuid not null references auth.users(id) on delete cascade,
+  account_name text not null, -- user-facing label (not email or login)
+  vault_email_key text not null,
+  vault_password_key text not null,
+  state text default 'offline' check (state in ('offline', 'active', 'banned', 'error')),
+  world integer,
+  p2p boolean default false,
+  created_at timestamptz default now(),
+  updated_at timestamptz default now(),
+
+  constraint unique_user_account_name unique (user_id, account_name)
+);
+
+alter table private.user_osrs_accounts enable row level security;
+
+create policy "No access by default" on private.user_osrs_accounts
+  for all using (false);
+
+revoke all on private.user_osrs_accounts from anon, authenticated, public;
+grant all on private.user_osrs_accounts to service_role;
+
+alter table private.user_osrs_accounts
+add constraint unique_email_key_per_account unique (vault_email_key);
+
+```
+
+Now we need to setup the function to handle our user secret and making sure that it gets saved into the vault.
+The internal RPC call is just for the service role and we will create a public facing proxy rpc function that will handle more of the core.
+Since we wont be touching the value, we can leave that the way it is, but the key should be sanitized to be just az09 and underscore.
+Furthermore, we should also do a quick check to make sure that the uuid for the `p_user_id` is valid since we will delete these based upon that.
+
+```sql
+
+create or replace function private.set_user_secret_internal(
+  p_user_id uuid,
+  p_key text,
+  p_value text
+)
+returns void
+language plpgsql
+security definer
+set search_path = private, vault, public
+as $$
+declare
+  v_vault_key text;
+  v_secret_id uuid;
+begin
+  -- Validate user
+  if not exists (select 1 from auth.users where id = p_user_id) then
+    raise exception 'Invalid user_id';
+  end if;
+
+  -- Validate key format
+  if p_key !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid key format';
+  end if;
+
+  -- Build vault key path
+  v_vault_key := format('user/%s/%s', p_user_id, p_key);
+
+  -- Attempt to create the secret (will fail if name not unique)
+  begin
+    select vault.create_secret(p_value, v_vault_key, format('Secret for %s', p_key))
+      into v_secret_id;
+  exception when unique_violation then
+    -- If the name already exists, update the secret
+    update vault.secrets set secret = p_value, updated_at = now()
+    where name = v_vault_key;
+  end;
+
+  -- Link it in user_secrets
+  insert into private.user_secrets (user_id, key, vault_key)
+  values (p_user_id, p_key, v_vault_key)
+  on conflict (user_id, key) do update
+    set vault_key = excluded.vault_key,
+        updated_at = now();
+end;
+$$;
+
+revoke all on function private.set_user_secret_internal(uuid, text, text)
+  from public, anon, authenticated;
+
+grant execute on function private.set_user_secret_internal(uuid, text, text)
+  to service_role;
+
+
+```
+
+Now we want to make sure that the public facing authenticated user is calling this internal function through our proxy function.
+Here is the public facing proxied function.
+
+```sql
+
+create or replace function public.set_user_secret(
+  p_key text,
+  p_value text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, private
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_key !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid key format. Only lowercase a-z, 0-9, and underscores (3–64 characters) are allowed.';
+  end if;
+
+
+  -- Call internal secure vault setter
+  perform private.set_user_secret_internal(v_user_id, p_key, p_value);
+end;
+$function$;
+
+-- Revoke all access to the function from default/public roles
+revoke all on function public.set_user_secret(text, text)
+from public, anon;
+
+-- Grant only to authenticated users
+grant execute on function public.set_user_secret(text, text)
+to authenticated;
+
+```
+
+Now that we got the secrets set with a public facing proxy rpc, we can focus on getting the said secrets from the vault.
+We will follow the same logic and create two new functions, one for internal usage and another for public schema.
+
+```sql
+
+create or replace function private.get_user_secret_internal(
+  p_user_id uuid,
+  p_key text
+)
+returns text
+language plpgsql
+security definer
+set search_path = private, vault, public
+as $$
+declare
+  v_vault_key text;
+  v_secret text;
+begin
+  -- Validate key format
+  if p_key !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid key format. Must match /^[a-z0-9_]{3,64}$/';
+  end if;
+
+  -- Get vault key path
+  select vault_key into v_vault_key
+  from private.user_secrets
+  where user_id = p_user_id and key = p_key;
+
+  if not found then
+    raise exception 'Secret key not found for user';
+  end if;
+
+  -- Get decrypted secret
+  select decrypted_secret into v_secret
+  from vault.decrypted_secrets
+  where name = v_vault_key;
+
+  if v_secret is null then
+    raise exception 'Secret not found in Vault';
+  end if;
+
+  return v_secret;
+end;
+$$;
+
+revoke all on function private.get_user_secret_internal(uuid, text)
+from public, anon, authenticated;
+
+grant execute on function private.get_user_secret_internal(uuid, text)
+to service_role;
+
+
+
+
+create or replace function public.get_user_secret(
+  p_key text
+)
+returns text
+language plpgsql
+security definer
+set search_path = public, private
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+  v_secret text;
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  -- Validate key format again at proxy level
+  if p_key !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid key format. Only lowercase a-z, 0-9, and underscores (3–64 characters) are allowed.';
+  end if;
+
+  -- Call the internal function
+  v_secret := private.get_user_secret_internal(v_user_id, p_key);
+  return v_secret;
+end;
+$function$;
+
+-- Revoke all by default
+revoke all on function public.get_user_secret(text)
+from public, anon;
+
+-- Allow only authenticated users
+grant execute on function public.get_user_secret(text)
+to authenticated;
+
+```
+
+Now we got those two functions out of the way, lets loop back around to getting them inserted into the database without any major issues.
+Internal function to create osrs account,
+
+```sql
+create or replace function private.create_osrs_account_internal(
+  p_user_id uuid,
+  p_account_name text,
+  p_email_key text,
+  p_password_key text,
+  p_world integer default null,
+  p_p2p boolean default false
+)
+returns void
+language plpgsql
+security definer
+set search_path = private, vault, public
+as $function$
+declare
+  v_email text;
+  v_password text;
+  v_email_key text := format('user/%s/%s', p_user_id, p_email_key);
+  v_password_key text := format('user/%s/%s', p_user_id, p_password_key);
+begin
+  -- Validate user exists
+  if not exists (select 1 from auth.users where id = p_user_id) then
+    raise exception 'Invalid user ID';
+  end if;
+
+  -- Validate account name
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format';
+  end if;
+
+  -- Validate key formats
+  if p_email_key !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid email key format';
+  end if;
+
+  if p_password_key !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid password key format';
+  end if;
+
+  -- Confirm the secrets exist in Vault
+  v_email := private.get_user_secret_internal(p_user_id, p_email_key);
+  v_password := private.get_user_secret_internal(p_user_id, p_password_key);
+
+  -- Insert or update OSRS account metadata
+  insert into private.user_osrs_accounts (
+    user_id,
+    account_name,
+    vault_email_key,
+    vault_password_key,
+    world,
+    p2p
+  )
+  values (
+    p_user_id,
+    p_account_name,
+    v_email_key,
+    v_password_key,
+    p_world,
+    p_p2p
+  )
+  on conflict (user_id, account_name) do update
+  set
+    vault_email_key = excluded.vault_email_key,
+    vault_password_key = excluded.vault_password_key,
+    world = excluded.world,
+    p2p = excluded.p2p,
+    updated_at = now();
+end;
+$function$;
+
+revoke all on function private.create_osrs_account_internal(
+  uuid, text, text, text, integer, boolean
+) from public, anon, authenticated;
+
+grant execute on function private.create_osrs_account_internal(
+  uuid, text, text, text, integer, boolean
+) to service_role;
+
+
+```
+
+The public function that we will be using this function
+
+```sql
+
+create or replace function public.create_osrs_account(
+  p_account_name text,
+  p_email text,
+  p_password text,
+  p_world integer default null,
+  p_p2p boolean default false
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, private
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  -- Ensure the user is logged in
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  -- Validate account_name to prevent abuse
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name. Only lowercase letters, numbers, and underscores (3–64 characters) are allowed.';
+  end if;
+
+  -- Call the internal secure creator
+  perform private.create_osrs_account_internal(
+    v_user_id,
+    p_account_name,
+    p_email,
+    p_password,
+    p_world,
+    p_p2p
+  );
+end;
+$function$;
+
+-- Revoke default access
+revoke all on function public.create_osrs_account(
+  text, text, text, integer, boolean
+) from public, anon;
+
+-- Grant access only to authenticated users
+grant execute on function public.create_osrs_account(
+  text, text, text, integer, boolean
+) to authenticated;
+
+```
+
+Okay, after getting the ability to create accounts and updating them, there will be two more functions that we will need, one for deleting and one for listing.
+
+```sql
+
+create or replace function public.list_osrs_accounts()
+returns table (
+  account_name text,
+  state text,
+  world integer,
+  p2p boolean,
+  created_at timestamptz,
+  updated_at timestamptz
+)
+language sql
+security definer
+set search_path = public, private
+as $function$
+  select
+    account_name,
+    state,
+    world,
+    p2p,
+    created_at,
+    updated_at
+  from private.user_osrs_accounts
+  where user_id = auth.uid();
+$function$;
+
+revoke all on function public.list_osrs_accounts() from public, anon;
+grant execute on function public.list_osrs_accounts() to authenticated;
+
+
+```
+
+For deleting the user account, we will have to invoke a the private public schema setup again with an internal function.
+
+```sql
+create or replace function private.delete_osrs_account_internal(
+  p_user_id uuid,
+  p_account_name text
+)
+returns void
+language plpgsql
+security definer
+set search_path = private, vault, public
+as $$
+declare
+  v_email_key text;
+  v_password_key text;
+begin
+  -- Validate user
+  if not exists (select 1 from auth.users where id = p_user_id) then
+    raise exception 'Invalid user ID';
+  end if;
+
+  -- Validate account name
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format';
+  end if;
+
+  -- Fetch vault keys
+  select vault_email_key, vault_password_key
+    into v_email_key, v_password_key
+  from private.user_osrs_accounts
+  where user_id = p_user_id and account_name = p_account_name;
+
+  if not found then
+    raise exception 'Account not found';
+  end if;
+
+  -- Delete secrets by name
+  delete from vault.secrets where name = v_email_key;
+  delete from vault.secrets where name = v_password_key;
+
+  -- Remove account row
+  delete from private.user_osrs_accounts
+  where user_id = p_user_id and account_name = p_account_name;
+end;
+$$;
+
+revoke all on function private.delete_osrs_account_internal(uuid, text)
+from public, anon, authenticated;
+
+grant execute on function private.delete_osrs_account_internal(uuid, text)
+to service_role;
+
+```
+
+The next part of the document will be focused on the public schema that we want to utilize.
+
+```sql
+
+create or replace function public.delete_osrs_account(
+  p_account_name text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, private
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format. Only lowercase letters, numbers, and underscores (3–64 characters) are allowed.';
+  end if;
+
+  perform private.delete_osrs_account_internal(v_user_id, p_account_name);
+end;
+$function$;
+
+revoke all on function public.delete_osrs_account(text)
+from public, anon;
+
+grant execute on function public.delete_osrs_account(text)
+to authenticated;
+
+```
+
+To help with the stats and making sure that we give the user some basic information to work with, lets go ahead and build a private facing schema.
+
+```sql
+
+create table private.osrs_account_information (
+  account_id uuid primary key references private.user_osrs_accounts(id) on delete cascade,
+
+  -- Optional public display name for UI
+  username text check (
+    username ~ '^[a-zA-Z0-9 _\\-]{3,32}$'
+  ),
+
+  -- RuneScape stat values
+  combat_level integer check (combat_level >= 3 and combat_level <= 126),
+  total_level integer check (total_level >= 0 and total_level <= 2277),
+  quest_points integer check (quest_points >= 0 and quest_points <= 300),
+
+  -- Optional user-facing notes
+  notes text check (char_length(notes) <= 500),
+
+  last_synced_at timestamptz default now(),
+  updated_at timestamptz default now()
+);
+
+
+alter table private.osrs_account_information enable row level security;
+
+create policy "No access by default" on private.osrs_account_information
+  for all using (false);
+
+revoke all on private.osrs_account_information from anon, authenticated, public;
+grant all on private.osrs_account_information to service_role;
+
+```
+
+Now we will use an internal function to create the core RPC call, then we can loop back around and create the public facing one.
+This should prepare us for the next stage, once we get these executed.
+
+```sql
+create or replace function private.upsert_osrs_account_info_internal(
+  p_user_id uuid,
+  p_account_name text,
+  p_username text default null,
+  p_notes text default null,
+  p_combat_level integer default null,
+  p_total_level integer default null,
+  p_quest_points integer default null,
+  p_wealth_gp bigint default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = private, vault, public
+as $function$
+declare
+  v_account_id uuid;
+  v_clean_username text;
+  v_clean_notes text;
+begin
+  -- Validate user
+  if not exists (select 1 from auth.users where id = p_user_id) then
+    raise exception 'Invalid user ID';
+  end if;
+
+  -- Validate account name
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format.';
+  end if;
+
+  -- Lookup account
+  select id into v_account_id
+  from private.user_osrs_accounts
+  where user_id = p_user_id and account_name = p_account_name;
+
+  if not found then
+    raise exception 'OSRS account not found or not owned by user.';
+  end if;
+
+  -- Clean username
+  if p_username is not null then
+    if p_username !~ '^[a-zA-Z0-9 _\\-]{3,32}$' then
+      raise exception 'Invalid username format.';
+    end if;
+    v_clean_username := trim(p_username);
+  end if;
+
+  -- Clean notes (light sanitization only)
+  if p_notes is not null then
+    v_clean_notes := trim(p_notes);
+    if char_length(v_clean_notes) > 500 then
+      v_clean_notes := left(v_clean_notes, 500);
+    end if;
+  end if;
+
+  -- Upsert
+  insert into private.osrs_account_information (
+    account_id,
+    username,
+    notes,
+    combat_level,
+    total_level,
+    quest_points,
+    wealth_gp
+  )
+  values (
+    v_account_id,
+    v_clean_username,
+    v_clean_notes,
+    p_combat_level,
+    p_total_level,
+    p_quest_points,
+    p_wealth_gp
+  )
+  on conflict (account_id) do update
+  set
+    username       = coalesce(excluded.username, private.osrs_account_information.username),
+    notes          = coalesce(excluded.notes, private.osrs_account_information.notes),
+    combat_level   = coalesce(excluded.combat_level, private.osrs_account_information.combat_level),
+    total_level    = coalesce(excluded.total_level, private.osrs_account_information.total_level),
+    quest_points   = coalesce(excluded.quest_points, private.osrs_account_information.quest_points),
+    wealth_gp      = coalesce(excluded.wealth_gp, private.osrs_account_information.wealth_gp),
+    updated_at     = now();
+end;
+$function$;
+
+revoke all on function private.upsert_osrs_account_info_internal(
+  uuid, text, text, text, integer, integer, integer, bigint
+)
+from public, anon, authenticated;
+
+grant execute on function private.upsert_osrs_account_info_internal(
+  uuid, text, text, text, integer, integer, integer, bigint
+)
+to service_role;
+
+
+```
+
+Then we need to link this function back around to the public facing schema function, which the authenticated user will call.
+
+```sql
+create or replace function public.update_osrs_account_info(
+  p_account_name text,
+  p_username text default null,
+  p_notes text default null,
+  p_combat_level integer default null,
+  p_total_level integer default null,
+  p_quest_points integer default null,
+  p_wealth_gp bigint default null
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, private
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format. Only a-z, 0-9, and underscores (3–64 characters) are allowed.';
+  end if;
+
+  -- Proxy to internal function
+  perform private.upsert_osrs_account_info_internal(
+    v_user_id,
+    p_account_name,
+    p_username,
+    p_notes,
+    p_combat_level,
+    p_total_level,
+    p_quest_points,
+    p_wealth_gp
+  );
+end;
+$function$;
+
+-- Secure permissions
+revoke all on function public.update_osrs_account_info(
+  text, text, text, integer, integer, integer, bigint
+) from public, anon;
+
+grant execute on function public.update_osrs_account_info(
+  text, text, text, integer, integer, integer, bigint
+) to authenticated;
+
+```
+
+To pull this information, we will create another function to help us.
+
+```sql
+
+create or replace function public.get_osrs_account_info(
+  p_account_name text
+)
+returns table (
+  username text,
+  combat_level integer,
+  total_level integer,
+  quest_points integer,
+  wealth_gp bigint,
+  notes text,
+  last_synced_at timestamptz,
+  updated_at timestamptz
+)
+language sql
+security definer
+set search_path = public, private
+as $function$
+  select
+    i.username,
+    i.combat_level,
+    i.total_level,
+    i.quest_points,
+    i.wealth_gp,
+    i.notes,
+    i.last_synced_at,
+    i.updated_at
+  from private.user_osrs_accounts a
+  join private.osrs_account_information i
+    on a.id = i.account_id
+  where a.user_id = auth.uid()
+    and a.account_name = p_account_name;
+$function$;
+
+-- Lock down access
+revoke all on function public.get_osrs_account_info(text) from public, anon;
+grant execute on function public.get_osrs_account_info(text) to authenticated;
+
+```
+
+Finally, we will run this query below to make sure that everything was included without any issues:
+
+```sql
+-- Check existence of tables and functions
+WITH expected_tables(schema, name) AS (
+  VALUES
+    ('private', 'user_secrets'),
+    ('private', 'user_osrs_accounts'),
+    ('private', 'osrs_account_information')
+),
+expected_functions(schema, name, arg_types) AS (
+  VALUES
+    ('private', 'set_user_secret_internal',    ARRAY['uuid', 'text', 'text']),
+    ('public',  'set_user_secret',             ARRAY['text', 'text']),
+    ('private', 'get_user_secret_internal',    ARRAY['uuid', 'text']),
+    ('public',  'get_user_secret',             ARRAY['text']),
+    ('private', 'create_osrs_account_internal',ARRAY['uuid', 'text', 'text', 'text', 'integer', 'boolean']),
+    ('public',  'create_osrs_account',         ARRAY['text', 'text', 'text', 'integer', 'boolean']),
+    ('public',  'list_osrs_accounts',          ARRAY[]::text[]),
+    ('private', 'delete_osrs_account_internal',ARRAY['uuid', 'text']),
+    ('public',  'delete_osrs_account',         ARRAY['text']),
+    ('private', 'upsert_osrs_account_info_internal', ARRAY['uuid', 'text', 'text', 'text']),
+    ('public',  'update_osrs_account_info',    ARRAY['text', 'text', 'text']),
+    ('public',  'get_osrs_account_info',       ARRAY['text'])
+),
+normalized_functions AS (
+  SELECT
+    n.nspname AS schema,
+    p.proname AS name,
+    p.oid,
+    (
+      SELECT array_agg(format_type(t.oid, NULL)::text ORDER BY a.ordinality)
+      FROM unnest(p.proargtypes) WITH ORDINALITY AS a(oid, ordinality)
+      JOIN pg_type t ON t.oid = a.oid
+    ) AS normalized_args
+  FROM pg_proc p
+  JOIN pg_namespace n ON n.oid = p.pronamespace
+)
+
+-- Final result: tables and functions
+SELECT
+  'table' AS type,
+  et.schema || '.' || et.name AS identifier,
+  CASE WHEN pt.tablename IS NOT NULL THEN '✅ exists' ELSE '❌ missing' END AS status
+FROM expected_tables et
+LEFT JOIN pg_tables pt
+  ON pt.schemaname = et.schema AND pt.tablename = et.name
+
+UNION ALL
+
+SELECT
+  'function' AS type,
+  ef.schema || '.' || ef.name || '(' || array_to_string(ef.arg_types, ', ') || ')' AS identifier,
+  CASE WHEN nf.oid IS NOT NULL THEN '✅ exists' ELSE '❌ missing' END AS status
+FROM expected_functions ef
+LEFT JOIN normalized_functions nf
+  ON ef.schema = nf.schema
+  AND ef.name = nf.name
+  AND coalesce(nf.normalized_args, ARRAY[]::text[]) = ef.arg_types
+
+ORDER BY type, identifier;
+
+```
+
+After verifying the tables and functions, we can loop back all the way to the top and look at the front end.
+We know that these two are the public facing RPCs
+
+```
+
+public.set_user_secret(p_key text, p_value text) → void
+public.get_user_secret(p_key text) → text
+
+```
+
+Then we have the core functions to help with create and listing.
+
+```
+public.create_osrs_account(
+  p_account_name text,
+  p_email text,
+  p_password text,
+  p_world integer default null,
+  p_p2p boolean default false
+) → void
+
+public.list_osrs_accounts() → table (
+  account_name text,
+  state text,
+  world integer,
+  p2p boolean,
+  created_at timestamptz,
+  updated_at timestamptz
+)
+
+public.delete_osrs_account(p_account_name text) → void
+
+
+public.update_osrs_account_info(
+  p_account_name text,
+  p_username text default null,
+  p_notes text default null,
+  p_combat_level integer default null,
+  p_total_level integer default null,
+  p_quest_points integer default null,
+  p_wealth_gp bigint default null
+) → void
+
+public.get_osrs_account_info(p_account_name text) → table (
+  username text,
+  combat_level integer,
+  total_level integer,
+  quest_points integer,
+  wealth_gp bigint,
+  notes text,
+  last_synced_at timestamptz,
+  updated_at timestamptz
+)
+
+```
+
+For the type safety, we can utilize zod and this would be the schema:
+
+```ts
+
+import { z } from 'zod';
+
+export const UserSecretSchema = z.object({
+  user_id: z.string().uuid(),
+  key: z.string().regex(/^[a-z0-9_]{3,64}$/),
+  vault_key: z.string(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+
+export const OsrsAccountSchema = z.object({
+  id: z.string().uuid(),
+  user_id: z.string().uuid(),
+  account_name: z.string().regex(/^[a-z0-9_]{3,64}$/),
+  vault_email_key: z.string(),
+  vault_password_key: z.string(),
+  state: z.enum(['offline', 'active', 'banned', 'error']),
+  world: z.number().int().nullable(),
+  p2p: z.boolean(),
+  created_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+
+export const OsrsAccountListEntrySchema = OsrsAccountSchema.pick({
+  account_name: true,
+  state: true,
+  world: true,
+  p2p: true,
+  created_at: true,
+  updated_at: true,
+});
+
+export const OsrsAccountInfoSchema = z.object({
+  username: z.string().min(3).max(32).optional(),
+  combat_level: z.number().int().min(3).max(126),
+  total_level: z.number().int().min(0).max(2277),
+  quest_points: z.number().int().min(0).max(300),
+  notes: z.string().max(500).optional(),
+  last_synced_at: z.string().datetime(),
+  updated_at: z.string().datetime(),
+});
+
+```
+
+And finally to call these functions, we can use this proof of concept:
+
+```ts
+
+const supabase = createClient(...);
+
+// Example: Create account
+await supabase.rpc('create_osrs_account', {
+  p_account_name: 'iron_chip',
+  p_email: 'osrs_email',
+  p_password: 'osrs_pw',
+  p_world: 301,
+  p_p2p: true,
+});
+
+// Example: Get account metadata
+const { data } = await supabase.rpc('get_osrs_account_info', {
+  p_account_name: 'iron_chip',
+});
+
+// Example: Update account info (parameters in correct order)
+await supabase.rpc('update_osrs_account_info', {
+  p_account_name: 'iron_chip',
+  p_username: 'Chip the Slayer',
+  p_notes: 'Main account. Slayer training.',
+  p_combat_level: 92,
+  p_total_level: 1780,
+  p_quest_points: 213,
+  p_wealth_gp: 50000000
+});
+
+```
+
+Lets go ahead and update the table for the user and track their wealth in gp too.
+
+```sql
+
+alter table private.osrs_account_information
+add column wealth_gp bigint check (wealth_gp >= 0) default 0;
+
+```
+
+
 ### User Function - Register
 
 This is our register function as a proof of concept, includes some additional things like CORS and refreshing the material view.

@@ -54,7 +54,7 @@ RUN apt-get update && \
     apt-get clean && \
     rm -rf /var/lib/apt/lists/*
 
-ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+#ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,lg_tcache_max:16,narenas:4,oversize_threshold:8388608"
 
 
