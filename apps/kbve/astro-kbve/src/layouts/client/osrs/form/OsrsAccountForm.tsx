@@ -14,6 +14,7 @@ import { supabase } from 'src/layouts/client/supabase/supabaseClient';
 import { task } from 'nanostores';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { useState } from 'react';
+import { Lock, Shield, KeyRound } from 'lucide-react';
 
 // =============================================================================
 // STORES & TASKS
@@ -145,25 +146,26 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
   };
 
   return (
-    <div className={twMerge('w-full max-w-md mx-auto', className)}>
-      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg p-6">
-        <div className="mb-6">
-          <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+    <div className={twMerge('w-full max-w-lg mx-auto', className)}>
+      <div className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900 shadow-2xl rounded-2xl p-8 border border-gray-200 dark:border-gray-700">
+        <div className="mb-8 text-center">
+          <div className="text-6xl mb-4">🎮</div>
+          <h2 className="text-3xl font-bold text-gray-900 dark:text-white mb-2">
             Create OSRS Account
           </h2>
-          <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+          <p className="text-gray-600 dark:text-gray-400">
             Add a new Old School RuneScape account to your dashboard
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Account Name Field */}
-          <div>
+          <div className="group">
             <label 
               htmlFor="account_name" 
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2"
             >
-              {FORM_FIELD_CONFIG.account_name.label} (Database Reference)
+              🏷️ {FORM_FIELD_CONFIG.account_name.label} (Database Reference)
             </label>
             <input
               {...register('account_name')}
@@ -172,31 +174,36 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
               placeholder={FORM_FIELD_CONFIG.account_name.placeholder}
               maxLength={FORM_FIELD_CONFIG.account_name.maxLength}
               className={clsx(
-                'w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+                'w-full px-4 py-3 border-2 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300',
                 'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400',
+                'group-hover:border-indigo-300 dark:group-hover:border-indigo-600',
                 errors.account_name 
-                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                  : 'border-gray-300'
+                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50 dark:bg-red-900/20' 
+                  : 'border-gray-300 bg-white dark:bg-gray-700'
               )}
             />
             {errors.account_name && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                {errors.account_name.message}
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                ⚠️ {errors.account_name.message}
               </p>
             )}
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
-              This is NOT your OSRS username,it's a reference ID for organizing your accounts. <br />
-              Examples: "main_account", "skiller_1", "fisher_5", "ironman_alt"
-            </p>
+            <div className="mt-2 text-xs text-gray-500 dark:text-gray-400 bg-blue-50 dark:bg-blue-900/20 p-3 rounded-lg border border-blue-200 dark:border-blue-800">
+              <p className="font-medium text-blue-800 dark:text-blue-200 mb-1">
+                💡 This is NOT your OSRS username - it's a reference ID for organizing your accounts.
+              </p>
+              <p className="text-blue-700 dark:text-blue-300">
+                Examples: "main_account", "skiller_1", "fisher_5", "ironman_alt"
+              </p>
+            </div>
           </div>
 
           {/* Email Field */}
-          <div>
+          <div className="group">
             <label 
               htmlFor="email" 
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2"
             >
-              Legacy {FORM_FIELD_CONFIG.email.label} / Username
+              📧 Legacy {FORM_FIELD_CONFIG.email.label} / Username
             </label>
             <input
               {...register('email')}
@@ -204,26 +211,28 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
               id="email"
               placeholder={FORM_FIELD_CONFIG.email.placeholder}
               className={clsx(
-                'w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+                'w-full px-4 py-3 border-2 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300',
                 'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400',
+                'group-hover:border-indigo-300 dark:group-hover:border-indigo-600',
                 errors.email 
-                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                  : 'border-gray-300'
+                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50 dark:bg-red-900/20' 
+                  : 'border-gray-300 bg-white dark:bg-gray-700'
               )}
             />
             {errors.email && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                {errors.email.message}
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                ⚠️ {errors.email.message}
               </p>
             )}
           </div>
 
           {/* Password Field */}
-          <div>
+          <div className="group">
             <label 
               htmlFor="password" 
-              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
+              className="block text-sm font-bold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2"
             >
+              <Lock className="w-4 h-4" />
               {FORM_FIELD_CONFIG.password.label}
             </label>
             <input
@@ -234,16 +243,17 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
               minLength={FORM_FIELD_CONFIG.password.minLength}
               maxLength={FORM_FIELD_CONFIG.password.maxLength}
               className={clsx(
-                'w-full px-3 py-2 border rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500',
+                'w-full px-4 py-3 border-2 rounded-xl shadow-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-all duration-300',
                 'dark:bg-gray-700 dark:border-gray-600 dark:text-white dark:placeholder-gray-400',
+                'group-hover:border-indigo-300 dark:group-hover:border-indigo-600',
                 errors.password 
-                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500' 
-                  : 'border-gray-300'
+                  ? 'border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50 dark:bg-red-900/20' 
+                  : 'border-gray-300 bg-white dark:bg-gray-700'
               )}
             />
             {errors.password && (
-              <p className="mt-1 text-sm text-red-600 dark:text-red-400">
-                {errors.password.message}
+              <p className="mt-2 text-sm text-red-600 dark:text-red-400 font-medium">
+                ⚠️ {errors.password.message}
               </p>
             )}
           </div>
@@ -304,8 +314,9 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
           {/* Secret Key Preview */}
           {keyPreview && (
             <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
-              <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
-                🔐 Secret Keys Preview
+              <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2 flex items-center gap-2">
+                <Shield className="w-4 h-4" />
+                Secret Keys Preview
               </h4>
               <div className="space-y-1 text-xs text-blue-800 dark:text-blue-200">
                 <div>
@@ -321,8 +332,9 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
                   </code>
                 </div>
                 {!keyPreview.isValid && (
-                  <div className="text-red-600 dark:text-red-400 font-medium mt-2">
-                    ⚠️ Keys are too long. Please use a shorter account name or email.
+                  <div className="text-red-600 dark:text-red-400 font-medium mt-2 flex items-center gap-2">
+                    <KeyRound className="w-4 h-4" />
+                    Keys are too long. Please use a shorter account name or email.
                   </div>
                 )}
               </div>
