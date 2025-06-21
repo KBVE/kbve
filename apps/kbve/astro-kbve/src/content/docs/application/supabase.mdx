@@ -102,44 +102,48 @@ returns void
 language plpgsql
 security definer
 set search_path = private, vault, public
-as $function$
+as $$
 declare
   v_vault_key text;
+  v_secret_id uuid;
 begin
-  -- Validate user ID exists
+  -- Validate user
   if not exists (select 1 from auth.users where id = p_user_id) then
     raise exception 'Invalid user_id';
   end if;
 
   -- Validate key format
   if p_key !~ '^[a-z0-9_]{3,64}$' then
-    raise exception 'Invalid key format. Must match /^[a-z0-9_]{3,64}$/';
+    raise exception 'Invalid key format';
   end if;
 
-  -- Construct the vault key path
+  -- Build vault key path
   v_vault_key := format('user/%s/%s', p_user_id, p_key);
 
-  -- Insert or update the vault key mapping
+  -- Attempt to create the secret (will fail if name not unique)
+  begin
+    select vault.create_secret(p_value, v_vault_key, format('Secret for %s', p_key))
+      into v_secret_id;
+  exception when unique_violation then
+    -- If the name already exists, update the secret
+    update vault.secrets set secret = p_value, updated_at = now()
+    where name = v_vault_key;
+  end;
+
+  -- Link it in user_secrets
   insert into private.user_secrets (user_id, key, vault_key)
   values (p_user_id, p_key, v_vault_key)
   on conflict (user_id, key) do update
     set vault_key = excluded.vault_key,
         updated_at = now();
-
-  -- Store secret using Supabase Vault
-  insert into vault.secrets (name, description, secret)
-  values (v_vault_key, format('user secret for %s', p_key), p_value)
-  on conflict (name) do update
-    set secret = excluded.secret,
-        updated_at = now();
 end;
-$function$;
+$$;
 
 revoke all on function private.set_user_secret_internal(uuid, text, text)
-from public, anon, authenticated;
+  from public, anon, authenticated;
 
 grant execute on function private.set_user_secret_internal(uuid, text, text)
-to service_role;
+  to service_role;
 
 
 ```
@@ -198,7 +202,7 @@ returns text
 language plpgsql
 security definer
 set search_path = private, vault, public
-as $function$
+as $$
 declare
   v_vault_key text;
   v_secret text;
@@ -208,9 +212,8 @@ begin
     raise exception 'Invalid key format. Must match /^[a-z0-9_]{3,64}$/';
   end if;
 
-  -- Lookup the vault key from user_secrets
-  select vault_key
-    into v_vault_key
+  -- Get vault key path
+  select vault_key into v_vault_key
   from private.user_secrets
   where user_id = p_user_id and key = p_key;
 
@@ -218,24 +221,25 @@ begin
     raise exception 'Secret key not found for user';
   end if;
 
-  -- Fetch secret using Supabase Vault view
+  -- Get decrypted secret
   select decrypted_secret into v_secret
   from vault.decrypted_secrets
   where name = v_vault_key;
 
   if v_secret is null then
-    raise exception 'Secret not found in vault';
+    raise exception 'Secret not found in Vault';
   end if;
 
   return v_secret;
 end;
-$function$;
+$$;
 
 revoke all on function private.get_user_secret_internal(uuid, text)
 from public, anon, authenticated;
 
 grant execute on function private.get_user_secret_internal(uuid, text)
 to service_role;
+
 
 
 
@@ -458,22 +462,22 @@ returns void
 language plpgsql
 security definer
 set search_path = private, vault, public
-as $function$
+as $$
 declare
   v_email_key text;
   v_password_key text;
 begin
-  -- Ensure user exists
+  -- Validate user
   if not exists (select 1 from auth.users where id = p_user_id) then
     raise exception 'Invalid user ID';
   end if;
 
-  -- Validate account name format
+  -- Validate account name
   if p_account_name !~ '^[a-z0-9_]{3,64}$' then
     raise exception 'Invalid account name format';
   end if;
 
-  -- Get vault keys
+  -- Fetch vault keys
   select vault_email_key, vault_password_key
     into v_email_key, v_password_key
   from private.user_osrs_accounts
@@ -483,15 +487,15 @@ begin
     raise exception 'Account not found';
   end if;
 
-  -- Delete secrets from Vault (via name)
+  -- Delete secrets by name
   delete from vault.secrets where name = v_email_key;
   delete from vault.secrets where name = v_password_key;
 
-  -- Delete the account record
+  -- Remove account row
   delete from private.user_osrs_accounts
   where user_id = p_user_id and account_name = p_account_name;
 end;
-$function$;
+$$;
 
 revoke all on function private.delete_osrs_account_internal(uuid, text)
 from public, anon, authenticated;

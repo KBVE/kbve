@@ -162,30 +162,12 @@ export const isP2PWorld = (world: number | null): boolean => {
 // =============================================================================
 
 /**
- * Generates a safe secret key from an email address
- * Converts email to alphanumeric with underscores
- * Example: "test@outlook.com" → "test_outlook_com"
+ * Generates a safe secret key for email storage
+ * Simple pattern: {account_name}_email
+ * Example: account "mage_skiller1" → "mage_skiller1_email"
  */
 export const generateEmailKey = (email: string, accountName: string): string => {
-  // Remove special characters and replace with underscores
-  const cleanEmail = email
-    .toLowerCase()
-    .replace(/[^a-z0-9]/g, '_')
-    .replace(/_+/g, '_') // Replace multiple underscores with single
-    .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
-  
-  // Prefix with account name to avoid conflicts
-  const key = `${accountName}_email_${cleanEmail}`;
-  
-  // Ensure it fits within the 64 character limit
-  if (key.length > 64) {
-    // Truncate the email part if too long
-    const maxEmailLength = 64 - accountName.length - 7; // 7 for "_email_"
-    const truncatedEmail = cleanEmail.substring(0, maxEmailLength);
-    return `${accountName}_email_${truncatedEmail}`;
-  }
-  
-  return key;
+  return `${accountName}_email`;
 };
 
 /**
