@@ -79,9 +79,10 @@ export function OsrsAccountDetailForm({
       // Populate form with existing data
       if (info) {
         setValue('username', info.username || '');
-        setValue('combat_level', info.combat_level || undefined);
-        setValue('total_level', info.total_level || undefined);
-        setValue('quest_points', info.quest_points || undefined);
+        setValue('combat_level', info.combat_level !== null && info.combat_level !== undefined ? info.combat_level : undefined);
+        setValue('total_level', info.total_level !== null && info.total_level !== undefined ? info.total_level : undefined);
+        setValue('quest_points', info.quest_points !== null && info.quest_points !== undefined ? info.quest_points : undefined);
+        setValue('wealth_gp', info.wealth_gp !== null && info.wealth_gp !== undefined ? info.wealth_gp : undefined);
         setValue('notes', info.notes || '');
       }
     } catch (err) {
@@ -111,10 +112,10 @@ export function OsrsAccountDetailForm({
         p_account_name: data.account_name,
         p_username: data.username || null,
         p_notes: data.notes || null,
-        p_combat_level: data.combat_level || null,
-        p_total_level: data.total_level || null,
-        p_quest_points: data.quest_points || null,
-        p_wealth_gp: data.wealth_gp || null,
+        p_combat_level: data.combat_level !== undefined ? data.combat_level : null,
+        p_total_level: data.total_level !== undefined ? data.total_level : null,
+        p_quest_points: data.quest_points !== undefined ? data.quest_points : null,
+        p_wealth_gp: data.wealth_gp !== undefined ? data.wealth_gp : null,
       });
 
       if (error) {
@@ -158,25 +159,25 @@ export function OsrsAccountDetailForm({
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           <div className="text-center">
             <div className="text-2xl font-bold text-red-600 dark:text-red-400">
-              {accountInfo.combat_level || 'N/A'}
+              {accountInfo.combat_level !== null && accountInfo.combat_level !== undefined ? accountInfo.combat_level : 'N/A'}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Combat Level</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-blue-600 dark:text-blue-400">
-              {accountInfo.total_level || 'N/A'}
+              {accountInfo.total_level !== null && accountInfo.total_level !== undefined ? accountInfo.total_level : 'N/A'}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Total Level</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-green-600 dark:text-green-400">
-              {accountInfo.quest_points || 'N/A'}
+              {accountInfo.quest_points !== null && accountInfo.quest_points !== undefined ? accountInfo.quest_points : 'N/A'}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Quest Points</div>
           </div>
           <div className="text-center">
             <div className="text-2xl font-bold text-yellow-600 dark:text-yellow-400">
-              {accountInfo.wealth_gp ? accountInfo.wealth_gp.toLocaleString() : 'N/A'}
+              {accountInfo.wealth_gp !== null && accountInfo.wealth_gp !== undefined ? accountInfo.wealth_gp.toLocaleString() : 'N/A'}
             </div>
             <div className="text-sm text-gray-600 dark:text-gray-400">Wealth (GP)</div>
           </div>
@@ -255,7 +256,7 @@ export function OsrsAccountDetailForm({
           </div>
 
           {/* Stats Section */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Combat Level */}
             <div>
               <label 
