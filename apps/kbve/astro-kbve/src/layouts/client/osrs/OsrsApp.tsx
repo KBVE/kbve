@@ -1,7 +1,6 @@
 import { 
   type CreateOsrsAccountInput,
   type OsrsAccountListEntry,
-  type OsrsAccountInfo,
   CreateOsrsAccountInputSchema,
   FORM_FIELD_CONFIG,
   OSRS_ACCOUNT_STATES 
@@ -10,6 +9,7 @@ import {
 import { useState, useEffect } from 'react';
 import { supabase } from 'src/layouts/client/supabase/supabaseClient';
 import { OsrsAccountForm } from './form/OsrsAccountForm';
+import { OsrsAccountDetailForm } from './form/OsrsAccountDetailForm';
 import { clsx, twMerge } from 'src/utils/tw';
 
 // =============================================================================
@@ -30,7 +30,6 @@ export function OsrsApp({ className }: OsrsAppProps) {
   const [currentView, setCurrentView] = useState<ViewMode>('dashboard');
   const [accounts, setAccounts] = useState<OsrsAccountListEntry[]>([]);
   const [selectedAccount, setSelectedAccount] = useState<string | null>(null);
-  const [accountInfo, setAccountInfo] = useState<OsrsAccountInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -57,23 +56,6 @@ export function OsrsApp({ className }: OsrsAppProps) {
     }
   };
 
-  const fetchAccountInfo = async (accountName: string) => {
-    try {
-      const { data, error } = await supabase.rpc('get_osrs_account_info', {
-        p_account_name: accountName,
-      });
-      
-      if (error) {
-        throw new Error(error.message);
-      }
-      
-      setAccountInfo(data?.[0] || null);
-    } catch (err) {
-      console.error('Error fetching account info:', err);
-      setAccountInfo(null);
-    }
-  };
-
   const deleteAccount = async (accountName: string) => {
     if (!confirm(`Are you sure you want to delete the account "${accountName}"? This action cannot be undone.`)) {
       return;
@@ -94,7 +76,6 @@ export function OsrsApp({ className }: OsrsAppProps) {
       // Reset selected account if it was deleted
       if (selectedAccount === accountName) {
         setSelectedAccount(null);
-        setAccountInfo(null);
         setCurrentView('dashboard');
       }
     } catch (err) {
@@ -110,12 +91,6 @@ export function OsrsApp({ className }: OsrsAppProps) {
   useEffect(() => {
     fetchAccounts();
   }, []);
-
-  useEffect(() => {
-    if (selectedAccount) {
-      fetchAccountInfo(selectedAccount);
-    }
-  }, [selectedAccount]);
 
   // =============================================================================
   // EVENT HANDLERS
@@ -288,10 +263,10 @@ export function OsrsApp({ className }: OsrsAppProps) {
   );
 
   const renderAccountDetails = () => {
-    if (!selectedAccount || !accountInfo) {
+    if (!selectedAccount) {
       return (
         <div className="text-center py-12">
-          <p className="text-gray-600 dark:text-gray-400">Loading account details...</p>
+          <p className="text-gray-600 dark:text-gray-400">No account selected</p>
         </div>
       );
     }
@@ -305,65 +280,16 @@ export function OsrsApp({ className }: OsrsAppProps) {
           >
             ← Back to Dashboard
           </button>
-          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">
-            {selectedAccount}
-          </h1>
         </div>
 
-        <div className="bg-white dark:bg-gray-800 rounded-lg shadow-md p-6 border border-gray-200 dark:border-gray-700">
-          <h2 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white">
-            Account Information
-          </h2>
-          
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            {accountInfo.username && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                  Display Name
-                </label>
-                <p className="text-gray-900 dark:text-white">{accountInfo.username}</p>
-              </div>
-            )}
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Combat Level
-              </label>
-              <p className="text-gray-900 dark:text-white">{accountInfo.combat_level}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Total Level
-              </label>
-              <p className="text-gray-900 dark:text-white">{accountInfo.total_level}</p>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                Quest Points
-              </label>
-              <p className="text-gray-900 dark:text-white">{accountInfo.quest_points}</p>
-            </div>
-          </div>
-          
-          {accountInfo.notes && (
-            <div className="mt-6">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
-                Notes
-              </label>
-              <p className="text-gray-900 dark:text-white bg-gray-50 dark:bg-gray-700 p-3 rounded-md">
-                {accountInfo.notes}
-              </p>
-            </div>
-          )}
-          
-          <div className="mt-6 pt-6 border-t border-gray-200 dark:border-gray-700">
-            <div className="text-sm text-gray-600 dark:text-gray-400">
-              Last synced: {new Date(accountInfo.last_synced_at).toLocaleString()}
-            </div>
-          </div>
-        </div>
+        <OsrsAccountDetailForm
+          accountName={selectedAccount}
+          onSuccess={() => {
+            // Optionally refresh account list or show success message
+            fetchAccounts();
+          }}
+          onCancel={() => setCurrentView('dashboard')}
+        />
       </div>
     );
   };

@@ -579,12 +579,15 @@ Now we will use an internal function to create the core RPC call, then we can lo
 This should prepare us for the next stage, once we get these executed.
 
 ```sql
-
 create or replace function private.upsert_osrs_account_info_internal(
   p_user_id uuid,
   p_account_name text,
   p_username text default null,
-  p_notes text default null
+  p_notes text default null,
+  p_combat_level integer default null,
+  p_total_level integer default null,
+  p_quest_points integer default null,
+  p_wealth_gp bigint default null
 )
 returns void
 language plpgsql
@@ -596,17 +599,17 @@ declare
   v_clean_username text;
   v_clean_notes text;
 begin
-  -- Validate user exists
+  -- Validate user
   if not exists (select 1 from auth.users where id = p_user_id) then
     raise exception 'Invalid user ID';
   end if;
 
-  -- Validate account_name format
+  -- Validate account name
   if p_account_name !~ '^[a-z0-9_]{3,64}$' then
     raise exception 'Invalid account name format.';
   end if;
 
-  -- Lookup account ownership
+  -- Lookup account
   select id into v_account_id
   from private.user_osrs_accounts
   where user_id = p_user_id and account_name = p_account_name;
@@ -615,7 +618,7 @@ begin
     raise exception 'OSRS account not found or not owned by user.';
   end if;
 
-  -- Sanitize username
+  -- Clean username
   if p_username is not null then
     if p_username !~ '^[a-zA-Z0-9 _\\-]{3,32}$' then
       raise exception 'Invalid username format.';
@@ -623,58 +626,69 @@ begin
     v_clean_username := trim(p_username);
   end if;
 
-  -- Sanitize notes
+  -- Clean notes (light sanitization only)
   if p_notes is not null then
-    -- First pass: strip dangerous characters (e.g., HTML/script-like syntax)
-    v_clean_notes := trim(
-      regexp_replace(p_notes, '[<>\$\[\]{}\=\*\`"''\\]', '', 'g')
-    );
-
-    -- Second pass: restrict to safe printable characters
-    v_clean_notes := regexp_replace(v_clean_notes, '[^\\w\\s.,!?()\\-]', '', 'g');
-
-    -- Truncate to max length
+    v_clean_notes := trim(p_notes);
     if char_length(v_clean_notes) > 500 then
       v_clean_notes := left(v_clean_notes, 500);
     end if;
   end if;
 
-  -- Upsert account info
+  -- Upsert
   insert into private.osrs_account_information (
     account_id,
     username,
-    notes
+    notes,
+    combat_level,
+    total_level,
+    quest_points,
+    wealth_gp
   )
   values (
     v_account_id,
     v_clean_username,
-    v_clean_notes
+    v_clean_notes,
+    p_combat_level,
+    p_total_level,
+    p_quest_points,
+    p_wealth_gp
   )
   on conflict (account_id) do update
   set
-    username = coalesce(excluded.username, private.osrs_account_information.username),
-    notes = coalesce(excluded.notes, private.osrs_account_information.notes),
-    updated_at = now();
+    username       = coalesce(excluded.username, private.osrs_account_information.username),
+    notes          = coalesce(excluded.notes, private.osrs_account_information.notes),
+    combat_level   = coalesce(excluded.combat_level, private.osrs_account_information.combat_level),
+    total_level    = coalesce(excluded.total_level, private.osrs_account_information.total_level),
+    quest_points   = coalesce(excluded.quest_points, private.osrs_account_information.quest_points),
+    wealth_gp      = coalesce(excluded.wealth_gp, private.osrs_account_information.wealth_gp),
+    updated_at     = now();
 end;
 $function$;
 
--- Permissions
-revoke all on function private.upsert_osrs_account_info_internal(uuid, text, text, text)
-  from public, anon, authenticated;
+revoke all on function private.upsert_osrs_account_info_internal(
+  uuid, text, text, text, integer, integer, integer, bigint
+)
+from public, anon, authenticated;
 
-grant execute on function private.upsert_osrs_account_info_internal(uuid, text, text, text)
-  to service_role;
+grant execute on function private.upsert_osrs_account_info_internal(
+  uuid, text, text, text, integer, integer, integer, bigint
+)
+to service_role;
+
 
 ```
 
 Then we need to link this function back around to the public facing schema function, which the authenticated user will call.
 
 ```sql
-
 create or replace function public.update_osrs_account_info(
   p_account_name text,
   p_username text default null,
-  p_notes text default null
+  p_notes text default null,
+  p_combat_level integer default null,
+  p_total_level integer default null,
+  p_quest_points integer default null,
+  p_wealth_gp bigint default null
 )
 returns void
 language plpgsql
@@ -684,32 +698,36 @@ as $function$
 declare
   v_user_id uuid := auth.uid();
 begin
-  -- Require authentication
   if v_user_id is null then
     raise exception 'Not authenticated';
   end if;
 
-  -- Validate account name format early
   if p_account_name !~ '^[a-z0-9_]{3,64}$' then
-    raise exception 'Invalid account name format. Only a-z, 0-9, and underscores (3–64 characters) allowed.';
+    raise exception 'Invalid account name format. Only a-z, 0-9, and underscores (3–64 characters) are allowed.';
   end if;
 
-  -- Call internal secure function
+  -- Proxy to internal function
   perform private.upsert_osrs_account_info_internal(
     v_user_id,
     p_account_name,
     p_username,
-    p_notes
+    p_notes,
+    p_combat_level,
+    p_total_level,
+    p_quest_points,
+    p_wealth_gp
   );
 end;
 $function$;
 
--- Permissions
-revoke all on function public.update_osrs_account_info(text, text, text)
-  from public, anon;
+-- Secure permissions
+revoke all on function public.update_osrs_account_info(
+  text, text, text, integer, integer, integer, bigint
+) from public, anon;
 
-grant execute on function public.update_osrs_account_info(text, text, text)
-  to authenticated;
+grant execute on function public.update_osrs_account_info(
+  text, text, text, integer, integer, integer, bigint
+) to authenticated;
 
 ```
 
@@ -725,6 +743,7 @@ returns table (
   combat_level integer,
   total_level integer,
   quest_points integer,
+  wealth_gp bigint,
   notes text,
   last_synced_at timestamptz,
   updated_at timestamptz
@@ -738,6 +757,7 @@ as $function$
     i.combat_level,
     i.total_level,
     i.quest_points,
+    i.wealth_gp,
     i.notes,
     i.last_synced_at,
     i.updated_at
@@ -854,7 +874,11 @@ public.delete_osrs_account(p_account_name text) → void
 public.update_osrs_account_info(
   p_account_name text,
   p_username text default null,
-  p_notes text default null
+  p_notes text default null,
+  p_combat_level integer default null,
+  p_total_level integer default null,
+  p_quest_points integer default null,
+  p_wealth_gp bigint default null
 ) → void
 
 public.get_osrs_account_info(p_account_name text) → table (
@@ -862,6 +886,7 @@ public.get_osrs_account_info(p_account_name text) → table (
   combat_level integer,
   total_level integer,
   quest_points integer,
+  wealth_gp bigint,
   notes text,
   last_synced_at timestamptz,
   updated_at timestamptz
@@ -937,8 +962,27 @@ const { data } = await supabase.rpc('get_osrs_account_info', {
   p_account_name: 'iron_chip',
 });
 
+// Example: Update account info (parameters in correct order)
+await supabase.rpc('update_osrs_account_info', {
+  p_account_name: 'iron_chip',
+  p_username: 'Chip the Slayer',
+  p_notes: 'Main account. Slayer training.',
+  p_combat_level: 92,
+  p_total_level: 1780,
+  p_quest_points: 213,
+  p_wealth_gp: 50000000
+});
+
 ```
 
+Lets go ahead and update the table for the user and track their wealth in gp too.
+
+```sql
+
+alter table private.osrs_account_information
+add column wealth_gp bigint check (wealth_gp >= 0) default 0;
+
+```
 
 
 ### User Function - Register

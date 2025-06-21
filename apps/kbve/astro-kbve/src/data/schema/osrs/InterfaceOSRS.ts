@@ -39,6 +39,7 @@ export const OsrsAccountInfoSchema = z.object({
   combat_level: z.number().int().min(3).max(126),
   total_level: z.number().int().min(0).max(2277),
   quest_points: z.number().int().min(0).max(300),
+  wealth_gp: z.number().int().min(0).optional(),
   notes: z.string().max(500).optional(),
   last_synced_at: z.string().datetime(),
   updated_at: z.string().datetime(),
@@ -71,6 +72,7 @@ export const UpdateOsrsAccountInfoInputSchema = z.object({
   combat_level: z.number().int().min(3).max(126).optional(),
   total_level: z.number().int().min(0).max(2277).optional(),
   quest_points: z.number().int().min(0).max(300).optional(),
+  wealth_gp: z.number().int().min(0).optional(),
   notes: z.string().max(500).optional(),
 });
 
@@ -310,6 +312,12 @@ export const FORM_FIELD_CONFIG = {
     type: 'number' as const,
     min: 0,
     max: 300,
+  },
+  wealth_gp: {
+    label: 'Wealth (GP)',
+    placeholder: 'Enter total wealth in GP',
+    type: 'number' as const,
+    min: 0,
   },
   notes: {
     label: 'Notes',
