@@ -163,7 +163,7 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
               htmlFor="account_name" 
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              {FORM_FIELD_CONFIG.account_name.label}
+              {FORM_FIELD_CONFIG.account_name.label} (Database Reference)
             </label>
             <input
               {...register('account_name')}
@@ -184,6 +184,10 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
                 {errors.account_name.message}
               </p>
             )}
+            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              This is NOT your OSRS username,it's a reference ID for organizing your accounts. <br />
+              Examples: "main_account", "skiller_1", "fisher_5", "ironman_alt"
+            </p>
           </div>
 
           {/* Email Field */}
@@ -192,7 +196,7 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
               htmlFor="email" 
               className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1"
             >
-              {FORM_FIELD_CONFIG.email.label}
+              Legacy {FORM_FIELD_CONFIG.email.label} / Username
             </label>
             <input
               {...register('email')}
