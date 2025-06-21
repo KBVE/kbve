@@ -126,18 +126,21 @@ begin
     set vault_key = excluded.vault_key,
         updated_at = now();
 
-  -- Store the secret in Vault
-  perform vault.set_secret(v_vault_key, p_value);
+  -- Store secret using Supabase Vault
+  insert into vault.secrets (name, description, secret)
+  values (v_vault_key, format('user secret for %s', p_key), p_value)
+  on conflict (name) do update
+    set secret = excluded.secret,
+        updated_at = now();
 end;
 $function$;
 
--- Revoke all access to the function from everyone by default
 revoke all on function private.set_user_secret_internal(uuid, text, text)
 from public, anon, authenticated;
 
--- Grant execute only to service_role
 grant execute on function private.set_user_secret_internal(uuid, text, text)
 to service_role;
+
 
 ```
 
@@ -200,12 +203,12 @@ declare
   v_vault_key text;
   v_secret text;
 begin
-  -- Validate the key
+  -- Validate key format
   if p_key !~ '^[a-z0-9_]{3,64}$' then
     raise exception 'Invalid key format. Must match /^[a-z0-9_]{3,64}$/';
   end if;
 
-  -- Lookup the vault key from the user_secrets table
+  -- Lookup the vault key from user_secrets
   select vault_key
     into v_vault_key
   from private.user_secrets
@@ -215,17 +218,22 @@ begin
     raise exception 'Secret key not found for user';
   end if;
 
-  -- Fetch the actual secret from Vault
-  v_secret := vault.get_secret(v_vault_key);
+  -- Fetch secret using Supabase Vault view
+  select decrypted_secret into v_secret
+  from vault.decrypted_secrets
+  where name = v_vault_key;
+
+  if v_secret is null then
+    raise exception 'Secret not found in vault';
+  end if;
+
   return v_secret;
 end;
 $function$;
 
--- Revoke all access by default
 revoke all on function private.get_user_secret_internal(uuid, text)
 from public, anon, authenticated;
 
--- Grant only to service_role
 grant execute on function private.get_user_secret_internal(uuid, text)
 to service_role;
 
@@ -442,7 +450,6 @@ grant execute on function public.list_osrs_accounts() to authenticated;
 For deleting the user account, we will have to invoke a the private public schema setup again with an internal function.
 
 ```sql
-
 create or replace function private.delete_osrs_account_internal(
   p_user_id uuid,
   p_account_name text
@@ -476,11 +483,11 @@ begin
     raise exception 'Account not found';
   end if;
 
-  -- Delete the Vault secrets
-  perform vault.delete_secret(v_email_key);
-  perform vault.delete_secret(v_password_key);
+  -- Delete secrets from Vault (via name)
+  delete from vault.secrets where name = v_email_key;
+  delete from vault.secrets where name = v_password_key;
 
-  -- Delete the account row
+  -- Delete the account record
   delete from private.user_osrs_accounts
   where user_id = p_user_id and account_name = p_account_name;
 end;

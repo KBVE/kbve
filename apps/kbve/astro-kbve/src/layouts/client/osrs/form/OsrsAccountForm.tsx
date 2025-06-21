@@ -2,7 +2,9 @@ import {
   type CreateOsrsAccountInput,
   CreateOsrsAccountInputSchema,
   FORM_FIELD_CONFIG,
-  OSRS_ACCOUNT_STATES 
+  OSRS_ACCOUNT_STATES,
+  generateSecretKeys,
+  validateSecretKey
 } from 'src/data/schema/osrs/InterfaceOSRS';
 
 import { useStore } from '@nanostores/react';
@@ -17,21 +19,55 @@ import { useState } from 'react';
 // STORES & TASKS
 // =============================================================================
 
-// Function for creating an OSRS account
+// Function for creating an OSRS account with proper secret management
 const createAccountTask = async ({ account_name, email, password, world, p2p }: CreateOsrsAccountInput) => {
-  const { data, error } = await supabase.rpc('create_osrs_account', {
-    p_account_name: account_name,
-    p_email: email,
-    p_password: password,
-    p_world: world || null,
-    p_p2p: p2p || false,
-  });
-
-  if (error) {
-    throw new Error(error.message || 'Failed to create OSRS account');
+  // Step 1: Generate safe secret keys
+  const { emailKey, passwordKey, isValid } = generateSecretKeys(account_name, email);
+  
+  if (!isValid) {
+    throw new Error('Failed to generate valid secret keys. Please try a shorter account name or email.');
   }
 
-  return data;
+  try {
+    // Step 2: Store email secret
+    const { error: emailError } = await supabase.rpc('set_user_secret', {
+      p_key: emailKey,
+      p_value: email,
+    });
+
+    if (emailError) {
+      throw new Error(`Failed to store email secret: ${emailError.message}`);
+    }
+
+    // Step 3: Store password secret
+    const { error: passwordError } = await supabase.rpc('set_user_secret', {
+      p_key: passwordKey,
+      p_value: password,
+    });
+
+    if (passwordError) {
+      throw new Error(`Failed to store password secret: ${passwordError.message}`);
+    }
+
+    // Step 4: Create OSRS account with secret key references
+    const { data, error } = await supabase.rpc('create_osrs_account', {
+      p_account_name: account_name,
+      p_email: emailKey,    // Pass the secret key, not the raw email
+      p_password: passwordKey, // Pass the secret key, not the raw password
+      p_world: world || null,
+      p_p2p: p2p || false,
+    });
+
+    if (error) {
+      throw new Error(error.message || 'Failed to create OSRS account');
+    }
+
+    return data;
+  } catch (error) {
+    // If account creation fails, we should ideally clean up the secrets
+    // but for now, we'll let them remain (they can be reused or cleaned up later)
+    throw error;
+  }
 };
 
 // =============================================================================
@@ -71,8 +107,13 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
     },
   });
 
-  // Watch p2p value to show/hide world selection
+  // Watch form values for key generation preview
+  const accountName = watch('account_name');
+  const email = watch('email');
   const isPremium = watch('p2p');
+
+  // Generate preview of secret keys
+  const keyPreview = accountName && email ? generateSecretKeys(accountName, email) : null;
 
   const onSubmit = async (data: CreateOsrsAccountInput) => {
     setIsSubmitting(true);
@@ -256,6 +297,37 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
             </div>
           )}
 
+          {/* Secret Key Preview */}
+          {keyPreview && (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-md p-3">
+              <h4 className="text-sm font-medium text-blue-900 dark:text-blue-100 mb-2">
+                🔐 Secret Keys Preview
+              </h4>
+              <div className="space-y-1 text-xs text-blue-800 dark:text-blue-200">
+                <div>
+                  <span className="font-medium">Email Key:</span> 
+                  <code className="ml-1 bg-blue-100 dark:bg-blue-800 px-1 rounded">
+                    {keyPreview.emailKey}
+                  </code>
+                </div>
+                <div>
+                  <span className="font-medium">Password Key:</span> 
+                  <code className="ml-1 bg-blue-100 dark:bg-blue-800 px-1 rounded">
+                    {keyPreview.passwordKey}
+                  </code>
+                </div>
+                {!keyPreview.isValid && (
+                  <div className="text-red-600 dark:text-red-400 font-medium mt-2">
+                    ⚠️ Keys are too long. Please use a shorter account name or email.
+                  </div>
+                )}
+              </div>
+              <p className="text-xs text-blue-700 dark:text-blue-300 mt-2">
+                These keys will be automatically generated to securely store your credentials.
+              </p>
+            </div>
+          )}
+
           {/* Success Message */}
           {submitSuccess && (
             <div className="p-3 bg-green-100 border border-green-300 rounded-md">
@@ -274,11 +346,11 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
           <div className="flex gap-3 pt-4">
             <button
               type="submit"
-              disabled={!isValid || isSubmitting}
+              disabled={!isValid || isSubmitting || (keyPreview ? !keyPreview.isValid : false)}
               className={clsx(
                 'flex-1 py-2 px-4 rounded-md font-medium focus:outline-none focus:ring-2 focus:ring-offset-2',
                 'transition-colors duration-200',
-                isValid && !isSubmitting
+                isValid && !isSubmitting && (!keyPreview || keyPreview.isValid)
                   ? 'bg-blue-600 hover:bg-blue-700 focus:ring-blue-500 text-white'
                   : 'bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed'
               )}
@@ -291,6 +363,8 @@ export function OsrsAccountForm({ onSuccess, onCancel, className }: OsrsAccountF
                   </svg>
                   Creating...
                 </span>
+              ) : keyPreview && !keyPreview.isValid ? (
+                'Invalid Key Length'
               ) : (
                 'Create Account'
               )}

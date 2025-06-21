@@ -158,6 +158,111 @@ export const isP2PWorld = (world: number | null): boolean => {
 };
 
 // =============================================================================
+// SECRET KEY GENERATION HELPERS
+// =============================================================================
+
+/**
+ * Generates a safe secret key from an email address
+ * Converts email to alphanumeric with underscores
+ * Example: "test@outlook.com" → "test_outlook_com"
+ */
+export const generateEmailKey = (email: string, accountName: string): string => {
+  // Remove special characters and replace with underscores
+  const cleanEmail = email
+    .toLowerCase()
+    .replace(/[^a-z0-9]/g, '_')
+    .replace(/_+/g, '_') // Replace multiple underscores with single
+    .replace(/^_|_$/g, ''); // Remove leading/trailing underscores
+  
+  // Prefix with account name to avoid conflicts
+  const key = `${accountName}_email_${cleanEmail}`;
+  
+  // Ensure it fits within the 64 character limit
+  if (key.length > 64) {
+    // Truncate the email part if too long
+    const maxEmailLength = 64 - accountName.length - 7; // 7 for "_email_"
+    const truncatedEmail = cleanEmail.substring(0, maxEmailLength);
+    return `${accountName}_email_${truncatedEmail}`;
+  }
+  
+  return key;
+};
+
+/**
+ * Generates a safe secret key for password storage
+ * Example: account "my_main" → "my_main_password"
+ */
+export const generatePasswordKey = (accountName: string): string => {
+  return `${accountName}_password`;
+};
+
+/**
+ * Validates that a generated key meets the requirements
+ */
+export const validateSecretKey = (key: string): boolean => {
+  return /^[a-z0-9_]{3,64}$/.test(key);
+};
+
+// =============================================================================
+// ACCOUNT CREATION FLOW HELPERS
+// =============================================================================
+
+/**
+ * Complete account creation flow with automatic secret management
+ * This handles the two-step process:
+ * 1. Store email/password as secrets with auto-generated keys
+ * 2. Create OSRS account referencing those secret keys
+ */
+export interface CreateAccountFlowInput {
+  account_name: string;
+  email: string;
+  password: string;
+  world?: number | null;
+  p2p?: boolean;
+}
+
+export interface CreateAccountFlowResult {
+  success: boolean;
+  error?: string;
+  emailKey?: string;
+  passwordKey?: string;
+}
+
+/**
+ * Generates the secret keys that will be used for an account
+ * Returns the keys that would be generated without actually creating anything
+ */
+export const generateSecretKeys = (accountName: string, email: string) => {
+  const emailKey = generateEmailKey(email, accountName);
+  const passwordKey = generatePasswordKey(accountName);
+  
+  return {
+    emailKey,
+    passwordKey,
+    isValid: validateSecretKey(emailKey) && validateSecretKey(passwordKey)
+  };
+};
+
+// =============================================================================
+// ERROR HANDLING TYPES
+// =============================================================================
+
+export type SecretKeyError = 
+  | 'EMAIL_KEY_TOO_LONG'
+  | 'PASSWORD_KEY_TOO_LONG'
+  | 'INVALID_EMAIL_FORMAT'
+  | 'INVALID_ACCOUNT_NAME'
+  | 'KEY_GENERATION_FAILED';
+
+export const SECRET_KEY_ERROR_MESSAGES: Record<SecretKeyError, string> = {
+  EMAIL_KEY_TOO_LONG: 'Email address is too long for this account name',
+  PASSWORD_KEY_TOO_LONG: 'Account name is too long for password key generation',
+  INVALID_EMAIL_FORMAT: 'Email address contains invalid characters',
+  INVALID_ACCOUNT_NAME: 'Account name contains invalid characters',
+  KEY_GENERATION_FAILED: 'Failed to generate valid secret keys',
+};
+
+// =============================================================================
 // PARTIAL SCHEMAS FOR UPDATES
 // =============================================================================
 
@@ -215,14 +320,14 @@ export const FORM_FIELD_CONFIG = {
     placeholder: 'Enter total level',
     type: 'number' as const,
     min: 0,
-    max: 2287,
+    max: 2277,
   },
   quest_points: {
     label: 'Quest Points',
     placeholder: 'Enter quest points',
     type: 'number' as const,
     min: 0,
-    max: 500,
+    max: 300,
   },
   notes: {
     label: 'Notes',
