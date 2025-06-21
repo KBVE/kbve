@@ -5,72 +5,1401 @@
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>WebSocket Chat with KBVECommand</title>
 
-		<!-- Tailwind CSS and Plugins -->
-		<script src="https://cdn.tailwindcss.com?plugins=forms,typography,aspect-ratio,line-clamp,container-queries"></script>
+		<!-- Tailwind CSS v4 Browser -->
+    	<script src="https://cdn.jsdelivr.net/npm/@tailwindcss/browser@4"></script>
+		
+		<!-- hCaptcha Script -->
+		<script src="https://js.hcaptcha.com/1/api.js" async defer></script>
+		
+		<!-- Supabase Initialization (First Priority) -->
+		<script type="module">
+			// Import Supabase first
+			import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
+			
+			// Initialize Supabase client directly with real credentials
+			try {
+				const supabaseUrl = 'https://qmpdruitzlownnnnjmpk.supabase.co';
+				const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY';
+				
+				// Create Supabase client
+				window.supabase = createClient(supabaseUrl, supabaseKey);
+				console.log('Supabase client initialized:', window.supabase);
+				
+				// Initialize auth state using AuthStateManager
+				window.AuthStateManager.initializeAuthState();
+				
+				// Set up auth state listener
+				window.supabase.auth.onAuthStateChange((event, session) => {
+					console.log('Auth state changed:', event, session);
+					
+					if (session?.user) {
+						window.AuthStateManager.setUserAuthState(session.user, true);
+						console.log('User signed in via Supabase:', session.user);
+						
+						// Refresh Supabase status to show user profile
+						setTimeout(() => testSupabase(), 500);
+					} else {
+						window.AuthStateManager.clearAuthState();
+						console.log('User signed out');
+						
+						// Refresh Supabase status
+						setTimeout(() => testSupabase(), 500);
+					}
+				});
+				
+				// Check for initial session and sync with localStorage
+				window.supabase.auth.getSession().then(({ data: { session } }) => {
+					if (session?.user) {
+						window.AuthStateManager.setUserAuthState(session.user, true);
+					} else if (window.AuthStateManager.isUserAuthenticated()) {
+						// localStorage says we're authenticated but no session - clear it
+						window.AuthStateManager.clearAuthState();
+					}
+				});
+			} catch (error) {
+				console.error('Failed to initialize Supabase:', error);
+				window.supabase = null;
+			}
+		</script>
+		
+		<!-- KBVE Droid Initialization (Second Priority) -->
+		<script type="module">
+			// Import KBVE Droid library with specific imports
+			import { droid, modUrls, workerStrings } from 'https://esm.sh/@kbve/droid';
+			
+			// Import Comlink for worker communication
+			import * as comlink from 'https://esm.sh/comlink';
+			
+			// Initialize workers with local URLs (served by FastAPI)
+			let astroStrings;
+			try {
+				console.log('Loading workers from local FastAPI server...');
+				astroStrings = {
+					canvasWorker: new Worker('/assets/canvas-worker.js', { type: 'module' }),
+					dbWorker: new SharedWorker('/assets/db-worker.js', { type: 'module' }),
+					wsWorker: new SharedWorker('/assets/ws-worker.js', { type: 'module' }),
+				};
+				console.log('Workers loaded successfully:', astroStrings);
+			} catch (error) {
+				console.error('Failed to load workers from local server:', error);
+				
+				// Fallback: create minimal workers
+				console.log('Falling back to minimal worker setup...');
+				const minimalWorkerCode = `
+					// Minimal worker fallback
+					self.addEventListener('message', function(e) {
+						console.log('Worker received:', e.data);
+						self.postMessage({ type: 'response', data: 'Worker unavailable' });
+					});
+				`;
+				const blob = new Blob([minimalWorkerCode], { type: 'application/javascript' });
+				const blobURL = URL.createObjectURL(blob);
+				
+				astroStrings = {
+					canvasWorker: new Worker(blobURL),
+					dbWorker: new SharedWorker(blobURL),
+					wsWorker: new SharedWorker(blobURL),
+				};
+			}
+			
+			// Initialize Droid with ONLY workerRefs (no workerURLs to avoid MIME issues)
+			try {
+				console.log("[DROID] init Library");
+				// Use both local workerRefs and local workerURLs
+				const localWorkerURLs = {
+					canvasWorker: '/assets/canvas-worker.js',
+					dbWorker: '/assets/db-worker.js',
+					wsWorker: '/assets/ws-worker.js'
+				};
+				
+				await droid({ 
+					workerRefs: astroStrings,
+					workerURLs: localWorkerURLs
+				});
+				
+				// Access droid components from window.kbve (assigned internally by droid)
+				const mod = window.kbve?.mod;
+				const emitFromWorker = window.kbve?.uiux?.emitFromWorker;
+				
+				if (!window.kbve) {
+					console.error('[KBVE] window.kbve not available - droid initialization failed');
+					window.droidReady = false;
+				} else if (!mod) {
+					console.warn('[KBVE] Mod manager not available, but kbve system loaded');
+					window.droidReady = true; // Still mark as ready since kbve is available
+				} else {
+					// Load bento mod if available
+					if (modUrls.bento) {
+						const bentoMod = await mod.load(modUrls.bento);
+						console.log('[DEBUG] Loaded mod ID:', bentoMod?.id);
+						console.log('[DEBUG] Registry keys:', Object.keys(mod.registry));
+						
+						if (bentoMod?.instance?.init && typeof emitFromWorker === 'function') {
+							await bentoMod.instance.init(comlink.proxy({ emitFromWorker }));
+						}
+						
+						if (bentoMod?.meta) {
+							console.log(`[Event] Bento Mod Firing`);
+							window.kbve?.events?.emit('droid-mod-ready', {
+								meta: bentoMod.meta,
+								timestamp: Date.now(),
+							});
+						}
+						
+						console.log('[KBVE] Bento mod loaded');
+					}
+					
+					window.droidReady = true;
+				}
+				
+				console.log('Droid initialized successfully with local workers and URLs:', {
+					workerRefs: astroStrings,
+					workerURLs: localWorkerURLs
+				});
+				console.log('KBVE system available:', !!window.kbve);
+				if (window.kbve) {
+					console.log('KBVE modules loaded:', Object.keys(window.kbve));
+				}
+			} catch (error) {
+				console.error('Failed to initialize Droid:', error);
+				window.droidReady = false;
+			}
+			
+			// Make other libraries available globally
+			window.comlink = comlink;
+			window.modUrls = modUrls;
+			window.workerStrings = workerStrings;
+			window.astroStrings = astroStrings;
+			
+			// Log initialization status
+			console.log('KBVE Droid library loaded:', droid);
+			console.log('Comlink loaded:', comlink);
+			console.log('Local worker URLs used:', {
+				canvasWorker: '/assets/canvas-worker.js',
+				dbWorker: '/assets/db-worker.js',
+				wsWorker: '/assets/ws-worker.js'
+			});
+			console.log('Original workerStrings from droid package (not used):', workerStrings);
+			console.log('Workers configured:', astroStrings);
+		</script>
+		
 		<script>
-			tailwind.config = {
-				theme: {
-					extend: {
-						colors: {
-							primary: '#3490dc',
-							secondary: '#ffed4a',
-							clifford: '#da373d',
-							dark: '#2d3748',
+			// Auth State Management System
+			window.AuthStateManager = {
+				// Storage keys
+				STORAGE_KEYS: {
+					USER: 'fudster_user',
+					AUTH_STATE: 'fudster_auth_state',
+					WALLET_ADDRESS: 'walletAddress',
+					WALLET_SIGNATURE: 'walletSignature'
+				},
+
+				// Get stored auth state
+				getStoredAuthState() {
+					try {
+						const storedUser = localStorage.getItem(this.STORAGE_KEYS.USER);
+						const storedAuthState = localStorage.getItem(this.STORAGE_KEYS.AUTH_STATE);
+						
+						return {
+							user: storedUser ? JSON.parse(storedUser) : null,
+							isAuthenticated: storedAuthState === 'true'
+						};
+					} catch (error) {
+						console.error('Error reading auth state from localStorage:', error);
+						return { user: null, isAuthenticated: false };
+					}
+				},
+
+				// Set user auth state
+				setUserAuthState(user, isAuthenticated = true) {
+					try {
+						if (user && isAuthenticated) {
+							localStorage.setItem(this.STORAGE_KEYS.USER, JSON.stringify(user));
+							localStorage.setItem(this.STORAGE_KEYS.AUTH_STATE, 'true');
+						} else {
+							this.clearAuthState();
+						}
+						
+						// Update global state
+						window.currentUser = user;
+						window.isAuthenticated = isAuthenticated;
+						
+						// Update UI
+						this.updateAuthButton(isAuthenticated);
+						
+						console.log('Auth state updated:', { user: user?.email || user?.id, isAuthenticated });
+					} catch (error) {
+						console.error('Error setting auth state:', error);
+					}
+				},
+
+				// Clear all auth state
+				clearAuthState() {
+					try {
+						localStorage.removeItem(this.STORAGE_KEYS.USER);
+						localStorage.removeItem(this.STORAGE_KEYS.AUTH_STATE);
+						localStorage.removeItem(this.STORAGE_KEYS.WALLET_ADDRESS);
+						localStorage.removeItem(this.STORAGE_KEYS.WALLET_SIGNATURE);
+						
+						// Update global state
+						window.currentUser = null;
+						window.isAuthenticated = false;
+						
+						// Update UI
+						this.updateAuthButton(false);
+						
+						console.log('Auth state cleared');
+					} catch (error) {
+						console.error('Error clearing auth state:', error);
+					}
+				},
+
+				// Set wallet auth state
+				setWalletAuthState(walletAddress, signature) {
+					try {
+						localStorage.setItem(this.STORAGE_KEYS.WALLET_ADDRESS, walletAddress);
+						localStorage.setItem(this.STORAGE_KEYS.WALLET_SIGNATURE, signature);
+						
+						// Create wallet user object
+						const walletUser = {
+							id: walletAddress,
+							email: `${walletAddress.slice(0, 8)}...${walletAddress.slice(-6)}@wallet`,
+							wallet_address: walletAddress,
+							app_metadata: { provider: 'wallet' },
+							last_sign_in_at: new Date().toISOString()
+						};
+						
+						this.setUserAuthState(walletUser, true);
+						
+						console.log('Wallet auth state set:', walletAddress);
+					} catch (error) {
+						console.error('Error setting wallet auth state:', error);
+					}
+				},
+
+				// Get wallet info
+				getWalletInfo() {
+					try {
+						return {
+							address: localStorage.getItem(this.STORAGE_KEYS.WALLET_ADDRESS),
+							signature: localStorage.getItem(this.STORAGE_KEYS.WALLET_SIGNATURE)
+						};
+					} catch (error) {
+						console.error('Error getting wallet info:', error);
+						return { address: null, signature: null };
+					}
+				},
+
+				// Initialize auth state
+				initializeAuthState() {
+					const storedState = this.getStoredAuthState();
+					window.currentUser = storedState.user;
+					window.isAuthenticated = storedState.isAuthenticated;
+					this.updateAuthButton(storedState.isAuthenticated);
+					
+					console.log('Auth state initialized:', storedState);
+				},
+
+				// Update auth button UI
+				updateAuthButton(isLoggedIn) {
+					const authButton = document.getElementById('authButton');
+					const authButtonText = document.getElementById('authButtonText');
+					
+					if (authButton && authButtonText) {
+						if (isLoggedIn) {
+							authButtonText.textContent = 'Profile';
+							authButton.className = 'ml-4 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all';
+						} else {
+							authButtonText.textContent = 'Login';
+							authButton.className = 'ml-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition-all';
+						}
+					}
+				},
+
+				// Check if user is authenticated
+				isUserAuthenticated() {
+					return window.isAuthenticated === true && window.currentUser !== null;
+				},
+
+				// Get current user
+				getCurrentUser() {
+					return window.currentUser;
+				},
+
+				// User Balance and Profile Functions (from userstate.ts pattern)
+				async syncUserBalance(identifier, useCache = true) {
+					if (!identifier || !window.supabase) {
+						console.warn('Cannot sync user balance: missing identifier or Supabase client');
+						return null;
+					}
+
+					try {
+						const { data, error } = await window.supabase.rpc('get_user_balance_context', {
+							p_identifier: identifier,
+							use_cache: useCache,
+						});
+
+						if (data && data.length > 0 && !error) {
+							const userBalance = data[0];
+							console.log('User balance synced:', userBalance);
+							return userBalance;
+						} else {
+							console.error('[syncUserBalance] Failed to fetch balance:', error?.message);
+							return null;
+						}
+					} catch (error) {
+						console.error('[syncUserBalance] Error:', error);
+						return null;
+					}
+				},
+
+				async getUsernameByUuid(uuid) {
+					if (!uuid || !window.supabase) return null;
+					
+					try {
+						const { data, error } = await window.supabase.rpc('proxy_get_username', { p_user_id: uuid });
+						if (error) {
+							console.error('[getUsernameByUuid] Failed to fetch username:', error.message);
+							return null;
+						}
+						return data;
+					} catch (error) {
+						console.error('[getUsernameByUuid] Error:', error);
+						return null;
+					}
+				},
+
+				async getUuidByUsername(username) {
+					if (!username || !window.supabase) return null;
+					
+					try {
+						const { data, error } = await window.supabase.rpc('proxy_get_uuid', { p_username: username });
+						if (error) {
+							console.error('[getUuidByUsername] Failed to fetch UUID:', error.message);
+							return null;
+						}
+						return data;
+					} catch (error) {
+						console.error('[getUuidByUsername] Error:', error);
+						return null;
+					}
+				}
+			};
+
+			// Early UI state initialization - runs as soon as DOM is ready
+			document.addEventListener('DOMContentLoaded', function() {
+				// Initialize auth state immediately from localStorage
+				window.AuthStateManager.initializeAuthState();
+			});
+			
+			// Tailwind CSS v4 configuration with dark theme and purple colors
+			// Note: This is for development only, use CLI/PostCSS in production
+			if (typeof tailwind !== 'undefined') {
+				tailwind.config = {
+					theme: {
+						extend: {
+							colors: {
+								primary: '#a855f7',     // purple-500
+								secondary: '#c084fc',   // purple-400
+								accent: '#e879f9',      // fuchsia-400
+								dark: '#18181b',        // zinc-900
+								'dark-lighter': '#27272a', // zinc-800
+								'dark-light': '#3f3f46',   // zinc-700
+							},
 						},
 					},
-				},
-			};
+				};
+			}
 		</script>
 	</head>
-	<body class="bg-gray-100">
+	<body class="bg-zinc-900 text-white min-h-screen">
 		<!-- Navbar -->
-		<nav class="bg-dark text-white p-4">
+		<nav class="bg-dark border-b border-zinc-700 p-4">
 			<div class="container mx-auto flex justify-between items-center">
-				<a href="#" class="text-2xl font-bold">FUDSTER</a>
+				<a href="#" class="text-2xl font-bold text-primary">FUDSTER</a>
 				<div>
 					<a
 						href="https://kbve.com/projects/"
 						target="_blank"
-						class="ml-4 text-lg hover:underline">
+						class="ml-4 text-lg text-gray-300 hover:text-primary transition-colors">
 						About
 					</a>
 					<a
 						href="https://kbve.com/services/"
 						target="_blank"
-						class="ml-4 text-lg hover:underline">
+						class="ml-4 text-lg text-gray-300 hover:text-primary transition-colors">
 						Services
 					</a>
 					<a
 						href="https://kbve.com/discord/"
 						target="_blank"
-						class="ml-4 text-lg hover:underline">
+						class="ml-4 text-lg text-gray-300 hover:text-primary transition-colors">
 						Discord
 					</a>
+					<button
+						id="authButton"
+						onclick="handleAuthButtonClick()"
+						class="ml-4 px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition-all">
+						<span id="authButtonText">Login</span>
+					</button>
 				</div>
 			</div>
 		</nav>
 
-		<!-- Buttons -->
-		<section class="bg-gray-200 text-black p-6 rounded-lg mb-6">
-			<h2 class="text-3xl font-bold mb-4">Runelite Control</h2>
+		<!-- Authentication Modal -->
+		<div id="authModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+			<div class="bg-dark-lighter border border-zinc-700 rounded-xl p-8 max-w-md w-full mx-4 relative">
+				<!-- Close Button -->
+				<button onclick="closeAuthModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+
+				<!-- Modal Header -->
+				<div class="text-center mb-6">
+					<h2 class="text-2xl font-bold text-primary mb-2">Welcome to FUDSTER</h2>
+					<p class="text-gray-300">Sign in to access all features</p>
+				</div>
+
+				<!-- Auth Tabs -->
+				<div class="flex mb-6 border-b border-zinc-600">
+					<button onclick="setAuthTab('login')" id="loginTab" class="flex-1 py-2 px-4 text-center transition-colors border-b-2 border-primary text-primary">
+						Sign In
+					</button>
+					<button onclick="setAuthTab('register')" id="registerTab" class="flex-1 py-2 px-4 text-center transition-colors border-b-2 border-transparent text-gray-400 hover:text-white">
+						Sign Up
+					</button>
+				</div>
+
+				<!-- OAuth Providers -->
+				<div class="space-y-3 mb-6">
+					<button onclick="signInWithProvider('github')" class="w-full flex items-center justify-center px-4 py-3 bg-gray-800 hover:bg-gray-700 border border-zinc-600 rounded-lg transition-all">
+						<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 20 20">
+							<path fill-rule="evenodd" d="M10 0C4.477 0 0 4.484 0 10.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0110 4.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.203 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.942.359.31.678.921.678 1.856 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0020 10.017C20 4.484 15.522 0 10 0z" clip-rule="evenodd"></path>
+						</svg>
+						Continue with GitHub
+					</button>
+					<button onclick="signInWithProvider('discord')" class="w-full flex items-center justify-center px-4 py-3 bg-indigo-600 hover:bg-indigo-700 border border-indigo-500 rounded-lg transition-all">
+						<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 24 24">
+							<path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515a.074.074 0 0 0-.079.037c-.210.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0a12.64 12.64 0 0 0-.617-1.25a.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057a19.9 19.9 0 0 0 5.993 3.03a.078.078 0 0 0 .084-.028a14.09 14.09 0 0 0 1.226-1.994a.076.076 0 0 0-.041-.106a13.107 13.107 0 0 1-1.872-.892a.077.077 0 0 1-.008-.128a10.2 10.2 0 0 0 .372-.292a.074.074 0 0 1 .077-.010c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.120.098.246.196.373.292a.077.077 0 0 1-.006.127a12.299 12.299 0 0 1-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028a19.839 19.839 0 0 0 6.002-3.03a.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/>
+						</svg>
+						Continue with Discord
+					</button>
+					<button onclick="connectWallet()" class="w-full flex items-center justify-center px-4 py-3 bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-600 hover:to-pink-600 border border-purple-400 rounded-lg transition-all">
+						<svg class="w-5 h-5 mr-2" fill="currentColor" viewBox="0 0 397.7 311.7">
+							<linearGradient id="solana-gradient" x1="360.9" y1="351.5" x2="141.2" y2="131.8" gradientUnits="userSpaceOnUse">
+								<stop offset="0" stop-color="#00ffa3"/>
+								<stop offset="1" stop-color="#dc1fff"/>
+							</linearGradient>
+							<path d="M64.6 237.9c2.4-2.4 5.7-3.8 9.2-3.8h317.5c5.8 0 8.7 7 4.6 11.1l-62.7 62.7c-2.4 2.4-5.7 3.8-9.2 3.8H6.5c-5.8 0-8.7-7-4.6-11.1L64.6 237.9z" fill="url(#solana-gradient)"/>
+							<path d="M64.6 3.8C67.1 1.4 70.4 0 73.8 0h317.5c5.8 0 8.7 7 4.6 11.1l-62.7 62.7c-2.4 2.4-5.7 3.8-9.2 3.8H6.5c-5.8 0-8.7-7-4.6-11.1L64.6 3.8z" fill="url(#solana-gradient)"/>
+							<path d="M333.1 120.1c-2.4-2.4-5.7-3.8-9.2-3.8H6.5c-5.8 0-8.7 7-4.6 11.1l62.7 62.7c2.4 2.4 5.7 3.8 9.2 3.8h317.5c5.8 0 8.7-7 4.6-11.1l-62.8-62.7z" fill="url(#solana-gradient)"/>
+						</svg>
+						Connect Solana Wallet
+					</button>
+				</div>
+
+				<!-- Divider -->
+				<div class="relative mb-6">
+					<div class="absolute inset-0 flex items-center">
+						<div class="w-full border-t border-zinc-600"></div>
+					</div>
+					<div class="relative flex justify-center text-sm">
+						<span class="px-2 bg-dark-lighter text-gray-400">Or continue with email</span>
+					</div>
+				</div>
+
+				<!-- Email/Password Form -->
+				<form id="authForm" onsubmit="handleAuthSubmit(event)">
+					<div class="space-y-4">
+						<div>
+							<label for="email" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+							<input 
+								type="email" 
+								id="email" 
+								required 
+								class="w-full px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+								placeholder="Enter your email"
+							/>
+						</div>
+						<div>
+							<label for="password" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+							<input 
+								type="password" 
+								id="password" 
+								required 
+								class="w-full px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+								placeholder="Enter your password"
+							/>
+						</div>
+						<div id="confirmPasswordDiv" class="hidden">
+							<label for="confirmPassword" class="block text-sm font-medium text-gray-300 mb-1">Confirm Password</label>
+							<input 
+								type="password" 
+								id="confirmPassword" 
+								class="w-full px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+								placeholder="Confirm your password"
+							/>
+						</div>
+					</div>
+
+					<!-- hCaptcha -->
+					<div class="mt-4 flex justify-center">
+						<div class="h-captcha" data-sitekey="e19cf4a6-2168-49a2-88fe-716e97569e88" data-theme="dark" data-callback="onHCaptchaSuccess" data-expired-callback="onHCaptchaExpired" data-error-callback="onHCaptchaError"></div>
+					</div>
+
+					<!-- Submit Button -->
+					<button 
+						type="submit" 
+						id="authSubmitBtn"
+						class="w-full mt-6 px-4 py-3 bg-primary hover:bg-purple-600 text-white font-semibold rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-dark-lighter">
+						Sign In
+					</button>
+				</form>
+
+				<!-- Auth Status -->
+				<div id="authStatus" class="mt-4 text-center text-sm"></div>
+			</div>
+		</div>
+
+		<!-- Profile Modal -->
+		<div id="profileModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+			<div class="bg-dark-lighter border border-zinc-700 rounded-xl p-8 max-w-md w-full mx-4 relative">
+				<!-- Close Button -->
+				<button onclick="closeProfileModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+
+				<!-- Profile Header -->
+				<div class="text-center mb-6">
+					<div class="w-16 h-16 bg-primary rounded-full mx-auto mb-3 flex items-center justify-center">
+						<svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+							<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+						</svg>
+					</div>
+					<h2 class="text-2xl font-bold text-primary mb-2">Profile</h2>
+					<p class="text-gray-300">Account Information</p>
+				</div>
+
+				<!-- User Information -->
+				<div class="space-y-4">
+					<div class="bg-dark-light border border-zinc-600 rounded-lg p-4">
+						<h3 class="text-sm font-medium text-gray-400 mb-2">Email</h3>
+						<p id="userEmail" class="text-white">Loading...</p>
+					</div>
+					
+					<div class="bg-dark-light border border-zinc-600 rounded-lg p-4">
+						<h3 class="text-sm font-medium text-gray-400 mb-2">User ID</h3>
+						<p id="userId" class="text-white text-sm font-mono">Loading...</p>
+					</div>
+					
+					<div class="bg-dark-light border border-zinc-600 rounded-lg p-4">
+						<h3 class="text-sm font-medium text-gray-400 mb-2">Login Method</h3>
+						<p id="loginMethod" class="text-white">Loading...</p>
+					</div>
+					
+					<div class="bg-dark-light border border-zinc-600 rounded-lg p-4">
+						<h3 class="text-sm font-medium text-gray-400 mb-2">Last Sign In</h3>
+						<p id="lastSignIn" class="text-white">Loading...</p>
+					</div>
+
+					<div id="walletInfo" class="bg-dark-light border border-zinc-600 rounded-lg p-4 hidden">
+						<h3 class="text-sm font-medium text-gray-400 mb-2">Wallet Address</h3>
+						<p id="walletAddress" class="text-white text-sm font-mono">Not connected</p>
+					</div>
+				</div>
+
+				<!-- Profile Actions -->
+				<div class="mt-6 space-y-3">
+					<button onclick="refreshProfile()" class="w-full px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition-all">
+						Refresh Profile
+					</button>
+					<button onclick="signOut()" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg transition-all">
+						Sign Out
+					</button>
+				</div>
+
+				<!-- Profile Status -->
+				<div id="profileStatus" class="mt-4 text-center text-sm"></div>
+			</div>
+		</div>
+
+		<!-- Runelite Control -->
+		<section class="bg-dark-lighter border border-zinc-700 text-white p-6 rounded-lg mb-6 mx-4">
+			<h2 class="text-3xl font-bold mb-4 text-primary">Runelite Control</h2>
 			<div class="flex justify-center space-x-4">
 				<button
-					class="px-4 py-2 bg-blue-500 text-white rounded hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-400"
+					class="px-6 py-3 bg-primary text-white rounded-lg hover:bg-purple-600 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-zinc-900 transition-all"
 					onclick="startRunelite()">
 					Start Runelite
 				</button>
 				<button
-					class="px-4 py-2 bg-red-500 text-white rounded hover:bg-red-600 focus:outline-none focus:ring-2 focus:ring-red-400"
+					class="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-zinc-900 transition-all"
 					onclick="stopRunelite()">
 					Stop Runelite
 				</button>
 			</div>
 			<div
 				id="statusMessage"
-				class="mt-4 text-center text-gray-700"></div>
+				class="mt-4 text-center text-gray-300"></div>
+		</section>
+
+		<!-- Droid Integration Section -->
+		<section class="bg-dark-lighter border border-zinc-700 text-white p-6 rounded-lg mb-6 mx-4">
+			<h2 class="text-3xl font-bold mb-4 text-center text-primary">KBVE Droid Integration</h2>
+			<div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+				<!-- Droid Status -->
+				<div class="bg-dark-light border border-zinc-600 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-2 text-secondary">Droid Status</h3>
+					<div id="droidStatus" class="text-sm text-gray-300">Loading Droid...</div>
+					<button 
+						class="mt-3 px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition-all"
+						onclick="testDroid()">
+						Test Droid Functions
+					</button>
+				</div>
+				
+				<!-- Supabase Connection -->
+				<div class="bg-dark-light border border-zinc-600 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-2 text-secondary">Supabase Connection</h3>
+					<div id="supabaseStatus" class="text-sm text-gray-300">Supabase ready for configuration</div>
+					<button 
+						class="mt-3 px-4 py-2 bg-accent text-white rounded-lg hover:bg-fuchsia-500 transition-all"
+						onclick="testSupabase()">
+						Test Supabase
+					</button>
+				</div>
+			</div>
+			
+			<!-- Droid Command Interface -->
+			<div class="mt-6 bg-dark-light border border-zinc-600 p-4 rounded-lg">
+				<h3 class="text-xl font-semibold mb-2 text-secondary">Droid Command Interface</h3>
+				<div class="flex gap-2 mb-2">
+					<input 
+						type="text" 
+						id="droidCommand" 
+						placeholder="Enter Droid command..." 
+						class="flex-1 px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+					/>
+					<button 
+						class="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+						onclick="executeDroidCommand()">
+						Execute Local
+					</button>
+					<button 
+						class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition-all"
+						onclick="sendDroidCommandViaWS()">
+						Send via WS
+					</button>
+				</div>
+				<div id="droidOutput" class="bg-zinc-800 border border-zinc-600 p-3 rounded-lg text-sm font-mono max-h-32 overflow-y-auto text-gray-300"></div>
+			</div>
 		</section>
 
 		<script>
+			// Droid Integration Functions
+			function testDroid() {
+				const statusDiv = document.getElementById('droidStatus');
+				try {
+					if (window.kbve && window.kbve !== null) {
+						const availableModules = Object.keys(window.kbve);
+						statusDiv.innerHTML = `
+							<div class="text-green-600">✓ KBVE Droid system loaded</div>
+							<div class="text-xs mt-1">Workers loaded from local FastAPI server</div>
+							<div class="text-xs mt-1">KBVE modules: ${availableModules.join(', ')}</div>
+						`;
+					} else {
+						statusDiv.innerHTML = `
+							<div class="text-blue-600">⏳ Loading KBVE Droid...</div>
+							<div class="text-xs mt-1">Initializing workers and modules</div>
+							<div class="text-xs mt-1">No CORS issues with local workers</div>
+						`;
+					}
+				} catch (error) {
+					statusDiv.innerHTML = `<div class="text-red-600">✗ Error: ${error.message}</div>`;
+				}
+			}
+			
+			function testSupabase() {
+				const statusDiv = document.getElementById('supabaseStatus');
+				try {
+					if (window.supabase && window.AuthStateManager.isUserAuthenticated()) {
+						const currentUser = window.AuthStateManager.getCurrentUser();
+						statusDiv.innerHTML = `
+							<div class="text-green-600">✓ Supabase connected & authenticated</div>
+							<div class="text-xs mt-1">Loading user profile...</div>
+						`;
+						
+						// Load user profile and balance
+						loadUserProfileTest(currentUser);
+						
+					} else if (window.supabase) {
+						statusDiv.innerHTML = `
+							<div class="text-yellow-600">⚠ Supabase ready, not authenticated</div>
+							<div class="text-xs mt-1">Sign in to test profile loading</div>
+						`;
+					} else {
+						statusDiv.innerHTML = `
+							<div class="text-blue-600">⏳ Supabase loading...</div>
+							<div class="text-xs mt-1">Initializing Supabase client</div>
+						`;
+					}
+				} catch (error) {
+					statusDiv.innerHTML = `<div class="text-red-600">✗ Error: ${error.message}</div>`;
+				}
+			}
+
+			async function loadUserProfileTest(user) {
+				if (!user || !window.supabase) return;
+				
+				const statusDiv = document.getElementById('supabaseStatus');
+				
+				try {
+					// Determine identifier for balance lookup
+					let identifier = user.email;
+					let isWalletUser = false;
+					
+					// Check if this is a wallet user
+					if (user.app_metadata?.provider === 'wallet' || user.wallet_address) {
+						identifier = user.wallet_address || user.id;
+						isWalletUser = true;
+					}
+					
+					// Get username if available
+					let username = null;
+					if (user.user_metadata?.username) {
+						username = user.user_metadata.username;
+					} else if (isWalletUser) {
+						// For wallet users, try to get username by UUID
+						username = await window.AuthStateManager.getUsernameByUuid(user.id);
+					}
+					
+					if (username) {
+						// If we have a username, get balance using username
+						const userBalance = await window.AuthStateManager.syncUserBalance(username);
+						
+						if (userBalance) {
+							statusDiv.innerHTML = `
+								<div class="text-green-600">✓ Profile loaded successfully</div>
+								<div class="text-xs mt-1">Username: ${userBalance.username}</div>
+								<div class="text-xs mt-1">Credits: ${userBalance.credits || 0}</div>
+								<div class="text-xs mt-1">Level: ${userBalance.level || 1}</div>
+								<div class="text-xs mt-1">Role: ${userBalance.role || 'member'}</div>
+							`;
+						} else {
+							statusDiv.innerHTML = `
+								<div class="text-yellow-600">⚠ Profile found, no balance data</div>
+								<div class="text-xs mt-1">Username: ${username}</div>
+								<div class="text-xs mt-1">Balance data unavailable</div>
+							`;
+						}
+					} else {
+						// No username found
+						if (isWalletUser && !user.email) {
+							statusDiv.innerHTML = `
+								<div class="text-orange-600">⚠ Wallet user needs email</div>
+								<div class="text-xs mt-1">Wallet: ${identifier.slice(0, 8)}...${identifier.slice(-6)}</div>
+								<div class="text-xs mt-1"><a href="https://kbve.com/settings/" target="_blank" class="text-blue-400 hover:text-blue-300">Set email at kbve.com/settings</a></div>
+							`;
+						} else {
+							statusDiv.innerHTML = `
+								<div class="text-yellow-600">⚠ No username set</div>
+								<div class="text-xs mt-1">Email: ${user.email || 'Not set'}</div>
+								<div class="text-xs mt-1">No balance data available</div>
+							`;
+						}
+					}
+					
+				} catch (error) {
+					console.error('Error loading profile test:', error);
+					statusDiv.innerHTML = `
+						<div class="text-red-600">✗ Profile load error</div>
+						<div class="text-xs mt-1">${error.message}</div>
+					`;
+				}
+			}
+			
+			// Authentication Modal Functions
+			function openAuthModal() {
+				document.getElementById('authModal').classList.remove('hidden');
+				// Render hCaptcha in modal when opened
+				setTimeout(() => {
+					if (typeof hcaptcha !== 'undefined') {
+						hcaptcha.render();
+					}
+					// Initialize captcha monitoring for wallet button
+					setupCaptchaMonitoring();
+					updateWalletButtonState();
+				}, 100);
+			}
+
+			function closeAuthModal() {
+				document.getElementById('authModal').classList.add('hidden');
+				// Reset hCaptcha when modal is closed
+				if (typeof hcaptcha !== 'undefined') {
+					hcaptcha.reset();
+				}
+				// Stop monitoring captcha state
+				stopCaptchaMonitoring();
+				// Reset wallet button state
+				setTimeout(updateWalletButtonState, 100);
+			}
+
+			function setAuthTab(tab) {
+				const loginTab = document.getElementById('loginTab');
+				const registerTab = document.getElementById('registerTab');
+				const confirmPasswordDiv = document.getElementById('confirmPasswordDiv');
+				const submitBtn = document.getElementById('authSubmitBtn');
+
+				if (tab === 'login') {
+					loginTab.classList.add('border-primary', 'text-primary');
+					loginTab.classList.remove('border-transparent', 'text-gray-400');
+					registerTab.classList.add('border-transparent', 'text-gray-400');
+					registerTab.classList.remove('border-primary', 'text-primary');
+					confirmPasswordDiv.classList.add('hidden');
+					submitBtn.textContent = 'Sign In';
+				} else {
+					registerTab.classList.add('border-primary', 'text-primary');
+					registerTab.classList.remove('border-transparent', 'text-gray-400');
+					loginTab.classList.add('border-transparent', 'text-gray-400');
+					loginTab.classList.remove('border-primary', 'text-primary');
+					confirmPasswordDiv.classList.remove('hidden');
+					submitBtn.textContent = 'Sign Up';
+				}
+			}
+
+			async function handleAuthSubmit(event) {
+				event.preventDefault();
+				
+				if (!window.supabase) {
+					updateAuthStatus('Supabase not initialized', 'error');
+					return;
+				}
+
+				// Verify hCaptcha
+				const hcaptchaResponse = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : null;
+				if (!hcaptchaResponse) {
+					updateAuthStatus('Please complete the captcha', 'error');
+					return;
+				}
+
+				const email = document.getElementById('email').value;
+				const password = document.getElementById('password').value;
+				const isRegister = !document.getElementById('confirmPasswordDiv').classList.contains('hidden');
+
+				try {
+					updateAuthStatus('Processing...', 'info');
+
+					if (isRegister) {
+						const confirmPassword = document.getElementById('confirmPassword').value;
+						if (password !== confirmPassword) {
+							updateAuthStatus('Passwords do not match', 'error');
+							return;
+						}
+
+						const { data, error } = await window.supabase.auth.signUp({
+							email: email,
+							password: password,
+							options: {
+								data: {
+									hcaptcha_token: hcaptchaResponse
+								}
+							}
+						});
+
+						if (error) throw error;
+						updateAuthStatus('Registration successful! Check your email for verification.', 'success');
+						setTimeout(() => {
+							closeAuthModal();
+							document.getElementById('authForm').reset();
+						}, 2000);
+					} else {
+						const { data, error } = await window.supabase.auth.signInWithPassword({
+							email: email,
+							password: password
+						});
+
+						if (error) throw error;
+						updateAuthStatus('Sign in successful!', 'success');
+						setTimeout(() => {
+							closeAuthModal();
+							document.getElementById('authForm').reset();
+						}, 1500);
+					}
+
+					// Reset hCaptcha
+					if (typeof hcaptcha !== 'undefined') {
+						hcaptcha.reset();
+					}
+
+				} catch (error) {
+					console.error('Auth error:', error);
+					updateAuthStatus(error.message, 'error');
+					if (typeof hcaptcha !== 'undefined') {
+						hcaptcha.reset();
+					}
+				}
+			}
+
+			async function signInWithProvider(provider) {
+				if (!window.supabase) {
+					updateAuthStatus('Supabase not initialized', 'error');
+					return;
+				}
+
+				try {
+					updateAuthStatus('Redirecting to ' + provider + '...', 'info');
+					
+					const { data, error } = await window.supabase.auth.signInWithOAuth({
+						provider: provider,
+						options: {
+							redirectTo: window.location.origin + window.location.pathname
+						}
+					});
+
+					if (error) throw error;
+				} catch (error) {
+					console.error('OAuth error:', error);
+					updateAuthStatus('OAuth error: ' + error.message, 'error');
+				}
+			}
+
+			async function connectWallet() {
+				try {
+					// Check if Supabase is initialized
+					if (!window.supabase) {
+						updateAuthStatus('Supabase not initialized', 'error');
+						return;
+					}
+
+					// Verify hCaptcha completion before proceeding
+					const hcaptchaResponse = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : null;
+					if (!hcaptchaResponse) {
+						updateAuthStatus('Please complete the captcha verification first', 'error');
+						// Scroll to and highlight captcha
+						const captchaElement = document.querySelector('.h-captcha') || 
+											   document.querySelector('[data-hcaptcha-widget-id]');
+						if (captchaElement) {
+							captchaElement.scrollIntoView({ behavior: 'smooth', block: 'center' });
+							captchaElement.style.outline = '3px solid #fbbf24';
+							captchaElement.style.outlineOffset = '4px';
+							captchaElement.style.borderRadius = '8px';
+							setTimeout(() => {
+								captchaElement.style.outline = '';
+								captchaElement.style.outlineOffset = '';
+								captchaElement.style.borderRadius = '';
+							}, 3000);
+						}
+						return;
+					}
+
+					updateAuthStatus('Connecting Solana wallet...', 'info');
+
+					// Check if Solana wallet is available
+					if (!window.solana || !window.solana.isPhantom) {
+						updateAuthStatus('Solana wallet not detected. Please install Phantom wallet.', 'error');
+						return;
+					}
+
+					// Use Supabase's signInWithWeb3 for Solana authentication
+					const { data, error } = await window.supabase.auth.signInWithWeb3({
+						chain: 'solana',
+						statement: 'I accept the Terms of Service and sign in to FUDSTER.',
+						options: {
+							captchaToken: hcaptchaResponse
+						}
+					});
+
+					if (error) {
+						console.error('Solana sign-in error:', error);
+						updateAuthStatus('Wallet authentication failed: ' + error.message, 'error');
+						return;
+					}
+
+					if (data && data.session?.user) {
+						// Update AuthStateManager with the authenticated session
+						window.AuthStateManager.setUserAuthState(data.session.user, true);
+
+						// Also store wallet-specific info if available
+						const walletAddress = data.session.user.user_metadata?.wallet_address || 
+											  data.session.user.app_metadata?.wallet_address ||
+											  'Connected';
+						
+						window.AuthStateManager.setWalletAuthState(walletAddress, null);
+
+						updateAuthStatus(`Solana wallet connected successfully!`, 'success');
+						
+						// Close modal after success
+						setTimeout(() => {
+							closeAuthModal();
+							// Reset the captcha for next use
+							if (typeof hcaptcha !== 'undefined') {
+								hcaptcha.reset();
+							}
+						}, 2000);
+					} else {
+						updateAuthStatus('Authentication completed but no session data received', 'error');
+					}
+
+				} catch (error) {
+					console.error('Wallet connection error:', error);
+					
+					// Handle specific error cases
+					if (error.message?.includes('User rejected')) {
+						updateAuthStatus('Wallet connection was cancelled by user', 'error');
+					} else if (error.message?.includes('not connected')) {
+						updateAuthStatus('Please connect your Solana wallet first', 'error');
+					} else {
+						updateAuthStatus('Wallet connection failed: ' + (error.message || 'Unknown error'), 'error');
+					}
+				}
+			}
+
+			function updateAuthStatus(message, type) {
+				const statusDiv = document.getElementById('authStatus');
+				const colors = {
+					success: 'text-green-600',
+					error: 'text-red-600',
+					info: 'text-blue-600'
+				};
+				statusDiv.className = `mt-4 text-center text-sm ${colors[type] || 'text-gray-300'}`;
+				statusDiv.textContent = message;
+			}
+
+			// Close modal when clicking outside
+			document.getElementById('authModal').addEventListener('click', function(e) {
+				if (e.target === this) {
+					closeAuthModal();
+				}
+			});
+
+			// Auth Management Functions - Using AuthStateManager
+			function handleAuthButtonClick() {
+				if (window.AuthStateManager.isUserAuthenticated()) {
+					openProfileModal();
+				} else {
+					openAuthModal();
+				}
+			}
+
+			// Auth Guard Function
+			function requireAuth(callback, message = 'Please sign in to continue') {
+				if (window.AuthStateManager.isUserAuthenticated()) {
+					callback();
+				} else {
+					updateAuthStatus(message, 'info');
+					openAuthModal();
+				}
+			}
+
+			// Profile Modal Functions
+			function openProfileModal() {
+				if (!window.AuthStateManager.isUserAuthenticated()) {
+					openAuthModal();
+					return;
+				}
+				
+				document.getElementById('profileModal').classList.remove('hidden');
+				loadUserProfile();
+			}
+
+			function closeProfileModal() {
+				document.getElementById('profileModal').classList.add('hidden');
+			}
+
+			async function loadUserProfile() {
+				const currentUser = window.AuthStateManager.getCurrentUser();
+				if (!currentUser) return;
+
+				try {
+					// Basic user info
+					document.getElementById('userEmail').textContent = currentUser.email || 'Not provided';
+					document.getElementById('userId').textContent = currentUser.id;
+					
+					// Determine login method
+					let loginMethod = 'Email/Password';
+					if (currentUser.app_metadata?.provider) {
+						loginMethod = currentUser.app_metadata.provider.charAt(0).toUpperCase() + currentUser.app_metadata.provider.slice(1);
+					}
+					document.getElementById('loginMethod').textContent = loginMethod;
+					
+					// Last sign in
+					const lastSignIn = currentUser.last_sign_in_at ? new Date(currentUser.last_sign_in_at).toLocaleString() : 'Unknown';
+					document.getElementById('lastSignIn').textContent = lastSignIn;
+					
+					// Check for wallet info
+					const walletInfo = window.AuthStateManager.getWalletInfo();
+					if (walletInfo.address) {
+						document.getElementById('walletInfo').classList.remove('hidden');
+						document.getElementById('walletAddress').textContent = `${walletInfo.address.slice(0, 8)}...${walletInfo.address.slice(-6)}`;
+					}
+					
+					// Load user balance and username
+					await loadUserBalanceProfile(currentUser);
+					
+					updateProfileStatus('Profile loaded successfully', 'success');
+				} catch (error) {
+					console.error('Error loading profile:', error);
+					updateProfileStatus('Error loading profile: ' + error.message, 'error');
+				}
+			}
+
+			async function loadUserBalanceProfile(user) {
+				try {
+					// Determine identifier and check if wallet user
+					let identifier = user.email;
+					let isWalletUser = false;
+					
+					if (user.app_metadata?.provider === 'wallet' || user.wallet_address) {
+						identifier = user.wallet_address || user.id;
+						isWalletUser = true;
+					}
+					
+					// Get username
+					let username = user.user_metadata?.username;
+					if (!username && isWalletUser) {
+						username = await window.AuthStateManager.getUsernameByUuid(user.id);
+					}
+					
+					if (username) {
+						// Load balance data
+						const userBalance = await window.AuthStateManager.syncUserBalance(username);
+						
+						if (userBalance) {
+							// Add balance info to profile
+							const balanceInfo = document.createElement('div');
+							balanceInfo.className = 'bg-dark-light border border-zinc-600 rounded-lg p-4';
+							balanceInfo.innerHTML = `
+								<h3 class="text-sm font-medium text-gray-400 mb-2">Balance & Stats</h3>
+								<div class="space-y-1 text-white text-sm">
+									<div>Username: ${userBalance.username}</div>
+									<div>Credits: ${userBalance.credits || 0}</div>
+									<div>Khash: ${userBalance.khash || 0}</div>
+									<div>Level: ${userBalance.level || 1}</div>
+									<div>Role: ${userBalance.role || 'member'}</div>
+								</div>
+							`;
+							
+							// Insert balance info after wallet info
+							const walletInfoDiv = document.getElementById('walletInfo');
+							const userInfoContainer = walletInfoDiv.parentElement;
+							userInfoContainer.appendChild(balanceInfo);
+						}
+					} else if (isWalletUser && !user.email) {
+						// Add warning for wallet users without email
+						const warningInfo = document.createElement('div');
+						warningInfo.className = 'bg-orange-600 bg-opacity-20 border border-orange-500 rounded-lg p-4';
+						warningInfo.innerHTML = `
+							<h3 class="text-sm font-medium text-orange-400 mb-2">Action Required</h3>
+							<div class="text-sm text-orange-200">
+								<div class="mb-2">Wallet users need to set an email address to access full features.</div>
+								<a href="https://kbve.com/settings/" target="_blank" class="text-orange-300 hover:text-orange-100 underline">
+									Complete your profile at kbve.com/settings →
+								</a>
+							</div>
+						`;
+						
+						const userInfoContainer = document.getElementById('walletInfo').parentElement;
+						userInfoContainer.appendChild(warningInfo);
+					}
+					
+				} catch (error) {
+					console.error('Error loading user balance profile:', error);
+				}
+			}
+
+			async function refreshProfile() {
+				try {
+					updateProfileStatus('Refreshing...', 'info');
+					
+					// Get fresh session
+					const { data: { session }, error } = await window.supabase.auth.getSession();
+					if (error) throw error;
+					
+					if (session?.user) {
+						window.AuthStateManager.setUserAuthState(session.user, true);
+						loadUserProfile();
+					} else {
+						updateProfileStatus('No active session', 'error');
+					}
+				} catch (error) {
+					console.error('Error refreshing profile:', error);
+					updateProfileStatus('Error refreshing: ' + error.message, 'error');
+				}
+			}
+
+			async function signOut() {
+				try {
+					updateProfileStatus('Signing out...', 'info');
+					
+					const { error } = await window.supabase.auth.signOut();
+					if (error) throw error;
+					
+					// Use AuthStateManager to clear all auth state
+					window.AuthStateManager.clearAuthState();
+					
+					// Close profile modal
+					closeProfileModal();
+					
+					updateProfileStatus('Signed out successfully', 'success');
+				} catch (error) {
+					console.error('Error signing out:', error);
+					updateProfileStatus('Error signing out: ' + error.message, 'error');
+				}
+			}
+
+			function updateProfileStatus(message, type) {
+				const statusDiv = document.getElementById('profileStatus');
+				const colors = {
+					success: 'text-green-600',
+					error: 'text-red-600',
+					info: 'text-blue-600'
+				};
+				statusDiv.className = `mt-4 text-center text-sm ${colors[type] || 'text-gray-300'}`;
+				statusDiv.textContent = message;
+			}
+
+			// Close profile modal when clicking outside
+			document.getElementById('profileModal').addEventListener('click', function(e) {
+				if (e.target === this) {
+					closeProfileModal();
+				}
+			});
+			
+			function executeDroidCommand() {
+				// Auth guard - require login to execute commands
+				requireAuth(() => {
+					const commandInput = document.getElementById('droidCommand');
+					const outputDiv = document.getElementById('droidOutput');
+					const command = commandInput.value.trim();
+					
+					if (!command) {
+						outputDiv.textContent = 'Please enter a command';
+						return;
+					}
+					
+					try {
+						if (window.kbve && window.kbve !== null) {
+							// Use the KBVE system
+							outputDiv.innerHTML = `
+								<div class="text-blue-600">Command: ${command}</div>
+								<div class="text-gray-600">Executing via KBVE system...</div>
+								<div class="text-xs text-gray-500">User: ${window.AuthStateManager.getCurrentUser()?.email}</div>
+								<div class="text-xs text-gray-500">Timestamp: ${new Date().toISOString()}</div>
+							`;
+							
+							// Clear the input
+							commandInput.value = '';
+							
+							// Try to execute command through available KBVE modules
+							const mod = window.kbve.mod;
+							const events = window.kbve.events;
+							
+							if (mod && events) {
+								// Emit command event through KBVE event system
+								events.emit('droid-command', {
+									command: command,
+									user: window.AuthStateManager.getCurrentUser(),
+									timestamp: Date.now()
+								});
+								
+								outputDiv.innerHTML += `<div class="text-green-600">Command sent to KBVE event system</div>`;
+								outputDiv.innerHTML += `<div class="text-yellow-600">Available modules: ${Object.keys(window.kbve).join(', ')}</div>`;
+							} else {
+								outputDiv.innerHTML += `<div class="text-yellow-600">KBVE modules: ${Object.keys(window.kbve).join(', ')}</div>`;
+							}
+							
+						} else {
+							outputDiv.innerHTML = `
+								<div class="text-red-600">KBVE system not loaded</div>
+								<div class="text-xs">Please wait for system to initialize</div>
+							`;
+						}
+						
+					} catch (error) {
+						outputDiv.innerHTML = `<div class="text-red-600">Error executing command: ${error.message}</div>`;
+					}
+				}, 'Please sign in to execute KBVE commands');
+			}
+			
+			// Initialize system integration when page loads
+			document.addEventListener('DOMContentLoaded', function() {
+				// Check for existing wallet connection if no Supabase auth
+				setTimeout(() => {
+					if (!window.AuthStateManager.isUserAuthenticated()) {
+						checkExistingWalletConnection();
+					}
+				}, 1000);
+				
+				// Check for all systems availability
+				const checkSystemStatus = setInterval(() => {
+					// Check Supabase
+					if (window.supabase !== undefined) {
+						testSupabase();
+					}
+					
+					// Check KBVE - simple check for existence
+					if (window.kbve !== undefined) {
+						testDroid();
+					}
+					
+					// Check hCaptcha
+					if (typeof hcaptcha !== 'undefined') {
+						testHCaptcha();
+					}
+					
+					// If all systems are loaded, reduce checking frequency
+					const supabaseLoaded = window.supabase !== undefined;
+					const kbveLoaded = window.kbve !== undefined;
+					const hcaptchaLoaded = typeof hcaptcha !== 'undefined';
+					
+					if (supabaseLoaded && kbveLoaded && hcaptchaLoaded) {
+						clearInterval(checkSystemStatus);
+						console.log('All systems loaded, stopping status checks');
+					}
+				}, 1000); // Check every 1 second for more stable loading
+				
+				// Stop checking after 15 seconds regardless
+				setTimeout(() => {
+					clearInterval(checkSystemStatus);
+					testSupabase(); // Final checks
+					testDroid();
+					testHCaptcha();
+				}, 15000);
+				
+				// Initial tests after short delays
+				setTimeout(testSupabase, 500);
+				setTimeout(testDroid, 1000);
+				setTimeout(testHCaptcha, 1500);
+			});
+
+			// Check for existing wallet connection
+			async function checkExistingWalletConnection() {
+				const walletInfo = window.AuthStateManager.getWalletInfo();
+				
+				if (walletInfo.address && walletInfo.signature && typeof window.ethereum !== 'undefined') {
+					try {
+						// Verify the wallet is still connected
+						const accounts = await window.ethereum.request({ method: 'eth_accounts' });
+						
+						if (accounts.includes(walletInfo.address)) {
+							// Wallet is still connected, restore auth state
+							window.AuthStateManager.setWalletAuthState(walletInfo.address, walletInfo.signature);
+							console.log('Restored wallet connection:', walletInfo.address);
+						} else {
+							// Wallet disconnected, clear stored data
+							window.AuthStateManager.clearAuthState();
+						}
+					} catch (error) {
+						console.error('Error checking wallet connection:', error);
+					}
+				}
+			}
+
+			// Runelite Control Functions
 			function startRunelite() {
 				fetch('/ws/start-runelite', {
 					method: 'GET',
@@ -128,39 +1457,92 @@
 				statusDiv.textContent = message;
 				statusDiv.className = 'mt-4 text-center ' + colorClass;
 			}
+
+			// Update wallet button appearance based on hCaptcha state
+			let captchaMonitorInterval = null;
+
+			function updateWalletButtonState() {
+				const walletButton = document.querySelector('button[onclick="connectWallet()"]');
+				if (!walletButton) return;
+
+				const hcaptchaResponse = typeof hcaptcha !== 'undefined' ? hcaptcha.getResponse() : null;
+				const isDisabled = !hcaptchaResponse;
+
+				if (isDisabled) {
+					walletButton.classList.add('opacity-50', 'cursor-not-allowed');
+					walletButton.classList.remove('hover:from-purple-600', 'hover:to-pink-600');
+					walletButton.title = 'Please complete hCaptcha verification first';
+				} else {
+					walletButton.classList.remove('opacity-50', 'cursor-not-allowed');
+					walletButton.classList.add('hover:from-purple-600', 'hover:to-pink-600');
+					walletButton.title = 'Connect your Solana wallet';
+				}
+			}
+
+			// Monitor hCaptcha state changes
+			function setupCaptchaMonitoring() {
+				// Clear any existing interval
+				if (captchaMonitorInterval) {
+					clearInterval(captchaMonitorInterval);
+				}
+				// Check periodically for captcha state changes (fallback)
+				captchaMonitorInterval = setInterval(updateWalletButtonState, 2000);
+			}
+
+			function stopCaptchaMonitoring() {
+				if (captchaMonitorInterval) {
+					clearInterval(captchaMonitorInterval);
+					captchaMonitorInterval = null;
+				}
+			}
+
+			// hCaptcha Callback Functions
+			function onHCaptchaSuccess(token) {
+				console.log('hCaptcha completed successfully');
+				updateWalletButtonState();
+			}
+
+			function onHCaptchaExpired() {
+				console.log('hCaptcha expired');
+				updateWalletButtonState();
+			}
+
+			function onHCaptchaError(error) {
+				console.error('hCaptcha error:', error);
+				updateWalletButtonState();
+			}
 		</script>
 		<!-- Hero Section with WebSocket Chat -->
-
-		<section class="bg-clifford text-white h-screen flex items-center">
+		<section class="bg-gradient-to-br from-purple-900 via-zinc-900 to-purple-800 text-white min-h-screen flex items-center">
 			<div class="container mx-auto text-center px-6">
-				<h1 class="text-6xl font-bold mb-6">WebSocket Chat</h1>
+				<h1 class="text-6xl font-bold mb-6 bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">WebSocket Chat</h1>
 				<form action="" onsubmit="sendMessage(event)" class="mb-6">
 					<input
 						type="text"
 						id="messageText"
 						placeholder="Type your message..."
 						autocomplete="off"
-						class="px-4 py-2 rounded-lg text-black w-2/3" />
+						class="px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-600 text-white placeholder-gray-400 w-2/3 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent" />
 					<button
 						type="submit"
-						class="bg-white text-clifford py-2 px-4 rounded-lg font-semibold hover:bg-gray-200 transition">
+						class="bg-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-600 transition-all ml-2">
 						Send
 					</button>
 				</form>
 				<ul
 					id="messages"
-					class="text-left text-black bg-white rounded-lg p-4 max-h-96 overflow-y-scroll w-2/3 mx-auto"></ul>
+					class="text-left text-gray-300 bg-zinc-800 border border-zinc-600 rounded-lg p-4 max-h-96 overflow-y-scroll w-2/3 mx-auto"></ul>
 
 				<!-- Form to send KBVECommand JSON -->
-				<h2 class="text-3xl font-bold mt-8 mb-4">Send a KBVECommand</h2>
+				<h2 class="text-3xl font-bold mt-8 mb-4 text-secondary">Send a KBVECommand</h2>
 				<form action="" onsubmit="sendCommand(event)" class="mb-6">
 					<textarea
 						id="commandText"
 						placeholder="Enter KBVECommand JSON..."
-						class="px-4 py-2 rounded-lg text-black w-2/3 h-32"></textarea>
+						class="px-4 py-3 rounded-lg bg-zinc-800 border border-zinc-600 text-white placeholder-gray-400 w-2/3 h-32 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"></textarea>
 					<button
 						type="submit"
-						class="bg-white text-clifford py-2 px-4 rounded-lg font-semibold hover:bg-gray-200 transition">
+						class="bg-primary text-white py-3 px-6 rounded-lg font-semibold hover:bg-purple-600 transition-all block mx-auto mt-3">
 						Send Command
 					</button>
 				</form>
@@ -168,18 +1550,30 @@
 		</section>
 
 		<!-- Footer -->
-		<footer class="bg-dark text-white py-4">
+		<footer class="bg-dark border-t border-zinc-700 text-gray-300 py-6">
 			<div class="container mx-auto text-center">
-				<p>The Fudster</p>
+				<p class="text-lg">The <span class="text-primary font-semibold">Fudster</span></p>
+				<p class="text-sm text-gray-400 mt-2">Powered by KBVE Droid & Modern Web Technologies</p>
 			</div>
 		</footer>
 
 		<!-- WebSocket JavaScript -->
 		<script>
-			var ws = new WebSocket(`wss://${location.host}/ws`);
+			// Determine WebSocket protocol and URL
+			const wsProtocol = location.protocol === 'https:' ? 'wss:' : 'ws:';
+			const wsUrl = `${wsProtocol}//${location.host}/ws`;
+			
+			console.log('Attempting WebSocket connection to:', wsUrl);
+			
+			let ws;
+			try {
+				ws = new WebSocket(wsUrl);
+			} catch (error) {
+				console.error('Failed to create WebSocket:', error);
+			}
 
 			ws.onopen = function () {
-				console.log('WebSocket connection established.');
+				console.log('WebSocket connection established to:', wsUrl);
 				var handshakeMessage = {
 					command: 'handshake',
 					channel: 'default',
@@ -190,29 +1584,54 @@
 				ws.send(JSON.stringify(handshakeMessage));
 			};
 
-			ws.onclose = function () {
-				console.log('WebSocket connection closed.');
+			ws.onclose = function (event) {
+				console.log('WebSocket connection closed. Code:', event.code, 'Reason:', event.reason);
 			};
 
 			ws.onerror = function (error) {
-				console.log('WebSocket error:', error);
+				console.error('WebSocket error:', error);
+				console.log('WebSocket URL was:', wsUrl);
 			};
 
 			ws.onmessage = function (event) {
 				var messages = document.getElementById('messages');
 				var message = document.createElement('li');
+				message.className = 'mb-2 p-2 border-b border-gray-200';
 
 				try {
 					var data = JSON.parse(event.data);
-					var content = document.createTextNode(
-						formatJsonDisplay(data),
-					);
+					
+					// Check if this is a Droid command response
+					if (data.type === 'droid_response' || data.command) {
+						var content = document.createElement('div');
+						content.innerHTML = `
+							<div class="font-semibold text-blue-600">Droid Response:</div>
+							<div class="text-sm">${formatJsonDisplay(data)}</div>
+							<div class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</div>
+						`;
+						
+						// Also update the Droid output if available
+						const droidOutput = document.getElementById('droidOutput');
+						if (droidOutput) {
+							droidOutput.innerHTML += `<div class="text-green-600">WebSocket Droid Response: ${JSON.stringify(data)}</div>`;
+						}
+					} else {
+						var content = document.createElement('div');
+						content.innerHTML = `
+							<div class="text-sm">${formatJsonDisplay(data)}</div>
+							<div class="text-xs text-gray-500">${new Date().toLocaleTimeString()}</div>
+						`;
+					}
 				} catch (e) {
-					var content = document.createTextNode(event.data);
+					var content = document.createElement('div');
+					content.textContent = event.data;
 				}
 
 				message.appendChild(content);
 				messages.appendChild(message);
+				
+				// Auto-scroll to bottom
+				messages.scrollTop = messages.scrollHeight;
 			};
 
 			function formatJsonDisplay(data) {
@@ -226,7 +1645,7 @@
 			}
 
 			function sendMessage(event) {
-				if (ws.readyState === WebSocket.OPEN) {
+				if (ws && ws.readyState === WebSocket.OPEN) {
 					var input = document.getElementById('messageText');
 					var message = {
 						channel: 'default',
@@ -235,18 +1654,22 @@
 					ws.send(JSON.stringify(message));
 					input.value = '';
 				} else {
-					console.error(
-						'WebSocket is not open. Cannot send message.',
-					);
+					console.error('WebSocket is not open. Current state:', ws ? ws.readyState : 'WebSocket not initialized');
 				}
 				event.preventDefault();
 			}
 
 			function sendCommand(event) {
-				if (ws.readyState === WebSocket.OPEN) {
+				if (ws && ws.readyState === WebSocket.OPEN) {
 					var input = document.getElementById('commandText');
 					try {
 						var command = JSON.parse(input.value);
+									// Add Droid integration flag if KBVE is available
+				if (window.kbve && !command.type) {
+					command.type = 'kbve_command';
+					command.timestamp = Date.now();
+				}
+						
 						ws.send(JSON.stringify(command));
 						input.value = '';
 						console.log('Command sent:', command);
@@ -254,11 +1677,35 @@
 						console.error('Invalid JSON format for KBVECommand.');
 					}
 				} else {
-					console.error(
-						'WebSocket is not open. Cannot send command.',
-					);
+					console.error('WebSocket is not open. Current state:', ws ? ws.readyState : 'WebSocket not initialized');
 				}
 				event.preventDefault();
+			}
+			
+			// New function to send Droid commands via WebSocket
+			function sendDroidCommandViaWS() {
+				const commandInput = document.getElementById('droidCommand');
+				const command = commandInput.value.trim();
+				
+				if (!command) return;
+				
+				if (ws && ws.readyState === WebSocket.OPEN) {
+					const droidMessage = {
+						type: 'droid_command',
+						command: command,
+						channel: 'droid',
+						timestamp: Date.now()
+					};
+					
+					ws.send(JSON.stringify(droidMessage));
+					commandInput.value = '';
+					
+					// Also show in local output
+					const outputDiv = document.getElementById('droidOutput');
+					outputDiv.innerHTML += `<div class="text-blue-600">Sent via WebSocket: ${command}</div>`;
+				} else {
+					console.error('WebSocket is not open. Current state:', ws ? ws.readyState : 'WebSocket not initialized');
+				}
 			}
 		</script>
 	</body>

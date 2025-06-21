@@ -109,7 +109,7 @@ public interface KBVEConfig extends Config {
         section = supabaseSection
     )
     default String supabaseUrl() {
-        return "https://your-supabase-url.supabase.co";
+        return "https://qmpdruitzlownnnnjmpk.supabase.co";
     }
 
     @ConfigItem(
@@ -120,7 +120,7 @@ public interface KBVEConfig extends Config {
         section = supabaseSection
     )
     default String supabaseKey() {
-        return "";
+        return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY";
     }
 
 

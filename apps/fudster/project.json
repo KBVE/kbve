@@ -72,15 +72,15 @@
 				"metadata": {
 					"images": ["kbve/fudster"],
 					"load": true,
-					"tags": ["1.05", "1.05.0"]
+					"tags": ["1.07", "1.07.0"]
 				},
 				"configurations": {
 					"local": {
-						"tags": ["1.05", "1.05.0"],
+						"tags": ["1.07", "1.07.0"],
 						"push": false
 					},
 					"production": {
-						"tags": ["1.05", "1.05.0"],
+						"tags": ["1.07", "1.07.0"],
 						"push": true,
 						"customBuildOptions": "--push",
 						"cache-from": [
@@ -103,15 +103,15 @@
 				"metadata": {
 					"images": ["kbve/fudster"],
 					"load": true,
-					"tags": ["1.03", "1.03.0"]
+					"tags": ["1.07", "1.07.0"]
 				},
 				"configurations": {
 					"local": {
-						"tags": ["1.03", "1.03.0"],
+						"tags": ["1.07", "1.07.0"],
 						"push": false
 					},
 					"production": {
-						"tags": ["1.03", "1.03.0"],
+						"tags": ["1.07", "1.07.0"],
 						"push": true,
 						"customBuildOptions": "--push",
 						"cache-from": [
@@ -133,7 +133,7 @@
 						"forwardAllArgs": false
 					},
 					{
-						"command": "docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/fudster:1.03",
+						"command": "docker run -p 3000:3000 -p 3001:3001 -p 8086:8086 kbve/fudster:1.07",
 						"forwardAllArgs": false
 					}
 				],
