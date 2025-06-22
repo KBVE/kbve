@@ -39,8 +39,9 @@
 						// Refresh Supabase status to show user profile
 						setTimeout(() => testSupabase(), 500);
 					} else {
-						window.AuthStateManager.clearAuthState();
-						console.log('User signed out');
+						// User signed out - clear all localStorage for fresh start
+						window.AuthStateManager.clearAllLocalStorage();
+						console.log('User signed out - localStorage cleared');
 						
 						// Refresh Supabase status
 						setTimeout(() => testSupabase(), 500);
@@ -52,8 +53,9 @@
 					if (session?.user) {
 						window.AuthStateManager.setUserAuthState(session.user, true);
 					} else if (window.AuthStateManager.isUserAuthenticated()) {
-						// localStorage says we're authenticated but no session - clear it
-						window.AuthStateManager.clearAuthState();
+						// localStorage says we're authenticated but no session - clear all localStorage for fresh start
+						console.log('Session mismatch detected - clearing localStorage');
+						window.AuthStateManager.clearAllLocalStorage();
 					}
 				});
 			} catch (error) {
@@ -257,6 +259,30 @@
 					}
 				},
 
+				// Clear all localStorage - used after logout and for unauthenticated users
+				clearAllLocalStorage() {
+					try {
+						// Get all localStorage keys before clearing
+						const keys = Object.keys(localStorage);
+						console.log('Clearing localStorage keys:', keys);
+						
+						// Clear all localStorage
+						localStorage.clear();
+						
+						// Update global state
+						window.currentUser = null;
+						window.isAuthenticated = false;
+						window.profileLoadedThisSession = false;
+						
+						// Update UI
+						this.updateAuthButton(false);
+						
+						console.log('All localStorage cleared successfully');
+					} catch (error) {
+						console.error('Error clearing localStorage:', error);
+					}
+				},
+
 				// Set wallet auth state
 				setWalletAuthState(walletAddress, signature) {
 					try {
@@ -393,6 +419,15 @@
 			document.addEventListener('DOMContentLoaded', function() {
 				// Initialize auth state immediately from localStorage
 				window.AuthStateManager.initializeAuthState();
+				
+				// Clear localStorage if user is not authenticated on page load
+				// This ensures a fresh start for unauthenticated users
+				setTimeout(() => {
+					if (!window.AuthStateManager.isUserAuthenticated()) {
+						console.log('User not authenticated on page load - clearing localStorage for fresh start');
+						window.AuthStateManager.clearAllLocalStorage();
+					}
+				}, 100); // Small delay to allow auth state initialization to complete
 			});
 			
 			// Tailwind CSS v4 configuration with dark theme and purple colors
@@ -1184,6 +1219,34 @@
 					this.renderAccounts();
 					this.updateStats();
 
+					// If transitioning to active state, fetch credentials and send login command
+					if (newState === 'active') {
+						try {
+							await this.loginAccountWithCredentials(account.account_name, account.world || 301);
+							console.log(`Successfully sent login command for ${account.account_name}`);
+						} catch (error) {
+							console.error(`Failed to send login command for ${account.account_name}:`, error);
+							
+							// Revert state on login failure
+							states[accountId] = {
+								state: 'offline',
+								lastStateChange: new Date().toISOString()
+							};
+							this.saveAccountStates(states);
+							this.renderAccounts();
+							this.updateStats();
+							
+							// Show error notification
+							const notification = document.createElement('div');
+							notification.className = 'fixed top-4 right-4 bg-red-600 text-white p-3 rounded shadow-lg z-50';
+							notification.textContent = `Failed to login ${account.account_name}: ${error.message}`;
+							document.body.appendChild(notification);
+							setTimeout(() => notification.remove(), 6000);
+							
+							throw error;
+						}
+					}
+
 					// Try to sync state with Supabase (non-blocking)
 					try {
 						await this.syncAccountStateWithSupabase(account.account_name, newState);
@@ -1201,6 +1264,77 @@
 					}
 
 					return newState;
+				},
+
+				// Login account using credentials from Supabase and send command via WebSocket
+				async loginAccountWithCredentials(accountName, world = 301) {
+					if (!window.supabase || !window.AuthStateManager.isUserAuthenticated()) {
+						throw new Error('Not authenticated with Supabase');
+					}
+
+					try {
+						console.log(`Fetching credentials for account: ${accountName}`);
+						
+						// Use Supabase RPC to get account credentials
+						const { data, error } = await window.supabase.rpc('get_osrs_login_credentials', {
+							p_account_name: accountName
+						});
+
+						if (error) {
+							console.error('RPC credentials fetch failed:', error);
+							throw new Error(`Failed to fetch credentials: ${error.message}`);
+						}
+
+						if (!data) {
+							throw new Error('No credentials found for account');
+						}
+
+						// Extract credentials from response
+						const { email, password } = data[0];
+						
+						if (!email || !password) {
+							throw new Error('Incomplete credentials received from server');
+						}
+
+						// Show success toast for credentials fetch
+						const successNotification = document.createElement('div');
+						successNotification.className = 'fixed top-4 right-4 bg-green-600 text-white p-3 rounded shadow-lg z-50';
+						successNotification.textContent = `Retrieved credentials for ${accountName}`;
+						document.body.appendChild(successNotification);
+						setTimeout(() => successNotification.remove(), 3000);
+
+						// Construct login command matching the expected JSON format
+						const loginCommand = {
+							channel: "default",
+							content: {
+								command: "login",
+								username: email,
+								password: password,
+								bankpin: "0000", // Default bank pin
+								world: world.toString()
+							}
+						};
+
+						console.log(`Sending login command for ${accountName} to world ${world}`);
+						
+						// Use the existing sendCommand logic by checking WebSocket state like sendCommand does
+						if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+							// Add Droid integration flag if KBVE is available (like sendCommand does)
+							if (window.kbve && !loginCommand.type) {
+								loginCommand.type = 'kbve_command';
+								loginCommand.timestamp = Date.now();
+							}
+							
+							window.ws.send(JSON.stringify(loginCommand));
+							console.log(`Login command sent successfully for ${accountName}`, loginCommand);
+						} else {
+							throw new Error('WebSocket is not open. Current state: ' + (window.ws ? window.ws.readyState : 'WebSocket not initialized'));
+						}
+						
+					} catch (error) {
+						console.error(`Failed to login account ${accountName}:`, error);
+						throw error;
+					}
 				},
 
 				// Sync account state with Supabase using proper RPC
@@ -2161,8 +2295,8 @@
 					const { error } = await window.supabase.auth.signOut();
 					if (error) throw error;
 					
-					// Use AuthStateManager to clear all auth state
-					window.AuthStateManager.clearAuthState();
+					// Use AuthStateManager to clear all localStorage after logout
+					window.AuthStateManager.clearAllLocalStorage();
 					
 					// Close profile modal
 					closeProfileModal();
@@ -2171,6 +2305,9 @@
 				} catch (error) {
 					console.error('Error signing out:', error);
 					updateProfileStatus('Error signing out: ' + error.message, 'error');
+					
+					// Even if Supabase signOut fails, clear localStorage to ensure clean state
+					window.AuthStateManager.clearAllLocalStorage();
 				}
 			}
 
@@ -2483,6 +2620,8 @@
 			let ws;
 			try {
 				ws = new WebSocket(wsUrl);
+				// Make WebSocket available globally for other functions
+				window.ws = ws;
 			} catch (error) {
 				console.error('Failed to create WebSocket:', error);
 			}
