@@ -1184,6 +1184,34 @@
 					this.renderAccounts();
 					this.updateStats();
 
+					// If transitioning to active state, fetch credentials and send login command
+					if (newState === 'active') {
+						try {
+							await this.loginAccountWithCredentials(account.account_name, account.world || 301);
+							console.log(`Successfully sent login command for ${account.account_name}`);
+						} catch (error) {
+							console.error(`Failed to send login command for ${account.account_name}:`, error);
+							
+							// Revert state on login failure
+							states[accountId] = {
+								state: 'offline',
+								lastStateChange: new Date().toISOString()
+							};
+							this.saveAccountStates(states);
+							this.renderAccounts();
+							this.updateStats();
+							
+							// Show error notification
+							const notification = document.createElement('div');
+							notification.className = 'fixed top-4 right-4 bg-red-600 text-white p-3 rounded shadow-lg z-50';
+							notification.textContent = `Failed to login ${account.account_name}: ${error.message}`;
+							document.body.appendChild(notification);
+							setTimeout(() => notification.remove(), 6000);
+							
+							throw error;
+						}
+					}
+
 					// Try to sync state with Supabase (non-blocking)
 					try {
 						await this.syncAccountStateWithSupabase(account.account_name, newState);
@@ -1201,6 +1229,77 @@
 					}
 
 					return newState;
+				},
+
+				// Login account using credentials from Supabase and send command via WebSocket
+				async loginAccountWithCredentials(accountName, world = 301) {
+					if (!window.supabase || !window.AuthStateManager.isUserAuthenticated()) {
+						throw new Error('Not authenticated with Supabase');
+					}
+
+					try {
+						console.log(`Fetching credentials for account: ${accountName}`);
+						
+						// Use Supabase RPC to get account credentials
+						const { data, error } = await window.supabase.rpc('get_osrs_login_credentials', {
+							p_account_name: accountName
+						});
+
+						if (error) {
+							console.error('RPC credentials fetch failed:', error);
+							throw new Error(`Failed to fetch credentials: ${error.message}`);
+						}
+
+						if (!data) {
+							throw new Error('No credentials found for account');
+						}
+
+						// Extract credentials from response
+						const { email_key, password } = data;
+						
+						if (!email_key || !password) {
+							throw new Error('Incomplete credentials received from server');
+						}
+
+						// Show success toast for credentials fetch
+						const successNotification = document.createElement('div');
+						successNotification.className = 'fixed top-4 right-4 bg-green-600 text-white p-3 rounded shadow-lg z-50';
+						successNotification.textContent = `Retrieved credentials for ${accountName}`;
+						document.body.appendChild(successNotification);
+						setTimeout(() => successNotification.remove(), 3000);
+
+						// Construct login command matching the expected JSON format
+						const loginCommand = {
+							channel: "default",
+							content: {
+								command: "login",
+								username: email_key,
+								password: password,
+								bankpin: "0000", // Default bank pin
+								world: world.toString()
+							}
+						};
+
+						console.log(`Sending login command for ${accountName} to world ${world}`);
+						
+						// Use the existing sendCommand logic by checking WebSocket state like sendCommand does
+						if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+							// Add Droid integration flag if KBVE is available (like sendCommand does)
+							if (window.kbve && !loginCommand.type) {
+								loginCommand.type = 'kbve_command';
+								loginCommand.timestamp = Date.now();
+							}
+							
+							window.ws.send(JSON.stringify(loginCommand));
+							console.log(`Login command sent successfully for ${accountName}`, loginCommand);
+						} else {
+							throw new Error('WebSocket is not open. Current state: ' + (window.ws ? window.ws.readyState : 'WebSocket not initialized'));
+						}
+						
+					} catch (error) {
+						console.error(`Failed to login account ${accountName}:`, error);
+						throw error;
+					}
 				},
 
 				// Sync account state with Supabase using proper RPC
