@@ -1083,6 +1083,101 @@ grant execute on function public.update_osrs_account_state(text, text)
 
 ```
 
+For the login, we want to make one call to grab all the information we need for the login.
+So we need our dual function go grab that information.
+
+```sql
+
+create or replace function private.get_osrs_login_credentials_internal(
+  p_user_id uuid,
+  p_account_name text
+)
+returns table (
+  email text,
+  password text
+)
+language plpgsql
+security definer
+set search_path = private, vault, public
+as $function$
+declare
+  v_email_key text;
+  v_password_key text;
+begin
+  -- Validate
+  if not exists (select 1 from auth.users where id = p_user_id) then
+    raise exception 'Invalid user';
+  end if;
+
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format';
+  end if;
+
+  -- Fetch key names
+  select vault_email_key, vault_password_key
+  into v_email_key, v_password_key
+  from private.user_osrs_accounts
+  where user_id = p_user_id and account_name = p_account_name;
+
+  if not found then
+    raise exception 'OSRS account not found';
+  end if;
+
+  -- Fetch decrypted secrets
+  return query
+  select
+    (select decrypted_secret from vault.decrypted_secrets where name = v_email_key),
+    (select decrypted_secret from vault.decrypted_secrets where name = v_password_key);
+end;
+$function$;
+
+revoke all on function private.get_osrs_login_credentials_internal(uuid, text)
+from public, anon, authenticated;
+grant execute on function private.get_osrs_login_credentials_internal(uuid, text)
+to service_role;
+
+
+```
+
+After executing the private function, we will add out public facing one next.
+
+```sql
+
+create or replace function public.get_osrs_login_credentials(
+  p_account_name text
+)
+returns table (
+  email text,
+  password text
+)
+language plpgsql
+security definer
+set search_path = public, private
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format';
+  end if;
+
+  return query
+    select * from private.get_osrs_login_credentials_internal(v_user_id, p_account_name);
+end;
+$function$;
+
+revoke all on function public.get_osrs_login_credentials(text)
+from public, anon;
+
+grant execute on function public.get_osrs_login_credentials(text)
+to authenticated;
+
+```
+
 ### User Function - Register
 
 This is our register function as a proof of concept, includes some additional things like CORS and refreshing the material view.
