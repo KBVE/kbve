@@ -31,8 +31,8 @@ import java.awt.*;
 
 
 @PluginDescriptor(
-    name = "KBVE Atlas",
-    description = "Atlas AiO Plugin",
+    name = "KBVE Fudster",
+    description = "Fudster AiO Plugin",
     tags = {"kbve", "python"},
     enabledByDefault = true
 )
