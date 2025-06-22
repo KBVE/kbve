@@ -1255,9 +1255,9 @@
 						}
 
 						// Extract credentials from response
-						const { email_key, password } = data;
+						const { email, password } = data[0];
 						
-						if (!email_key || !password) {
+						if (!email || !password) {
 							throw new Error('Incomplete credentials received from server');
 						}
 
@@ -1273,7 +1273,7 @@
 							channel: "default",
 							content: {
 								command: "login",
-								username: email_key,
+								username: email,
 								password: password,
 								bankpin: "0000", // Default bank pin
 								world: world.toString()
@@ -2582,6 +2582,8 @@
 			let ws;
 			try {
 				ws = new WebSocket(wsUrl);
+				// Make WebSocket available globally for other functions
+				window.ws = ws;
 			} catch (error) {
 				console.error('Failed to create WebSocket:', error);
 			}
