@@ -39,8 +39,9 @@
 						// Refresh Supabase status to show user profile
 						setTimeout(() => testSupabase(), 500);
 					} else {
-						window.AuthStateManager.clearAuthState();
-						console.log('User signed out');
+						// User signed out - clear all localStorage for fresh start
+						window.AuthStateManager.clearAllLocalStorage();
+						console.log('User signed out - localStorage cleared');
 						
 						// Refresh Supabase status
 						setTimeout(() => testSupabase(), 500);
@@ -52,8 +53,9 @@
 					if (session?.user) {
 						window.AuthStateManager.setUserAuthState(session.user, true);
 					} else if (window.AuthStateManager.isUserAuthenticated()) {
-						// localStorage says we're authenticated but no session - clear it
-						window.AuthStateManager.clearAuthState();
+						// localStorage says we're authenticated but no session - clear all localStorage for fresh start
+						console.log('Session mismatch detected - clearing localStorage');
+						window.AuthStateManager.clearAllLocalStorage();
 					}
 				});
 			} catch (error) {
@@ -257,6 +259,30 @@
 					}
 				},
 
+				// Clear all localStorage - used after logout and for unauthenticated users
+				clearAllLocalStorage() {
+					try {
+						// Get all localStorage keys before clearing
+						const keys = Object.keys(localStorage);
+						console.log('Clearing localStorage keys:', keys);
+						
+						// Clear all localStorage
+						localStorage.clear();
+						
+						// Update global state
+						window.currentUser = null;
+						window.isAuthenticated = false;
+						window.profileLoadedThisSession = false;
+						
+						// Update UI
+						this.updateAuthButton(false);
+						
+						console.log('All localStorage cleared successfully');
+					} catch (error) {
+						console.error('Error clearing localStorage:', error);
+					}
+				},
+
 				// Set wallet auth state
 				setWalletAuthState(walletAddress, signature) {
 					try {
@@ -393,6 +419,15 @@
 			document.addEventListener('DOMContentLoaded', function() {
 				// Initialize auth state immediately from localStorage
 				window.AuthStateManager.initializeAuthState();
+				
+				// Clear localStorage if user is not authenticated on page load
+				// This ensures a fresh start for unauthenticated users
+				setTimeout(() => {
+					if (!window.AuthStateManager.isUserAuthenticated()) {
+						console.log('User not authenticated on page load - clearing localStorage for fresh start');
+						window.AuthStateManager.clearAllLocalStorage();
+					}
+				}, 100); // Small delay to allow auth state initialization to complete
 			});
 			
 			// Tailwind CSS v4 configuration with dark theme and purple colors
@@ -2260,8 +2295,8 @@
 					const { error } = await window.supabase.auth.signOut();
 					if (error) throw error;
 					
-					// Use AuthStateManager to clear all auth state
-					window.AuthStateManager.clearAuthState();
+					// Use AuthStateManager to clear all localStorage after logout
+					window.AuthStateManager.clearAllLocalStorage();
 					
 					// Close profile modal
 					closeProfileModal();
@@ -2270,6 +2305,9 @@
 				} catch (error) {
 					console.error('Error signing out:', error);
 					updateProfileStatus('Error signing out: ' + error.message, 'error');
+					
+					// Even if Supabase signOut fails, clear localStorage to ensure clean state
+					window.AuthStateManager.clearAllLocalStorage();
 				}
 			}
 
