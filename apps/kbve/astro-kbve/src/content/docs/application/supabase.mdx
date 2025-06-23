@@ -1178,6 +1178,51 @@ to authenticated;
 
 ```
 
+Next we want to have a live view of the inventory, character health and location for the account that is logged in.
+I am thinking that the data would be stored as `osrs_account_viewport` and can be used later on for realtime data.
+Here is the base table that we can create to help us handle that:
+
+```sql
+
+create table private.osrs_account_viewport (
+  account_id uuid primary key references private.user_osrs_accounts(id) on delete cascade,
+
+  -- Core stats
+  current_health integer check (current_health >= 0),
+  max_health integer check (max_health > 0),
+
+  current_prayer integer check (current_prayer >= 0),
+  max_prayer integer check (max_prayer >= 0),
+
+  run_energy integer check (run_energy >= 0 and run_energy <= 100),
+
+  -- Location
+  region text,
+  x_coord integer,
+  y_coord integer,
+
+  -- Inventory (simplified to array of item names or structured JSON)
+  inventory jsonb default '[]',
+
+  -- Recent chat log (last few messages)
+  recent_chat jsonb default '[]',
+
+  last_updated_at timestamptz default now()
+);
+
+alter table private.osrs_account_viewport enable row level security;
+
+create policy "No access by default" on private.osrs_account_viewport
+  for all using (false);
+
+revoke all on private.osrs_account_viewport from anon, authenticated, public;
+grant all on private.osrs_account_viewport to service_role;
+
+```
+
+
+
+
 ### User Function - Register
 
 This is our register function as a proof of concept, includes some additional things like CORS and refreshing the material view.
