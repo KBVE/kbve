@@ -1,18 +1,18 @@
 package net.runelite.client.plugins.microbot.kbve.json;
 
-import net.runelite.client.plugins.microbot.kbve.KBVEScripts;
+import net.runelite.client.plugins.microbot.kbve.network.KBVEWebSocketHandler;
 import com.google.gson.JsonObject;
 
 public class KBVELogger {
 
-    private final KBVEScripts.KBVEWebSocketClient webSocketClient;
+    private final KBVEWebSocketHandler webSocketHandler;
 
-    public KBVELogger(KBVEScripts.KBVEWebSocketClient webSocketClient) {
-        this.webSocketClient = webSocketClient;
+    public KBVELogger(KBVEWebSocketHandler webSocketHandler) {
+        this.webSocketHandler = webSocketHandler;
     }
 
     public void log(String command, String message, int priority) {
-        if (webSocketClient != null && webSocketClient.isOpen()) {
+        if (webSocketHandler != null && webSocketHandler.isConnected()) {
             JsonObject logMessage = new JsonObject();
             logMessage.addProperty("channel", "default");
 
@@ -23,7 +23,7 @@ public class KBVELogger {
 
             logMessage.add("content", content);
 
-            webSocketClient.send(logMessage.toString());
+            webSocketHandler.send(logMessage.toString());
         } else {
             System.err.println("WebSocket is not connected. Cannot send log message.");
         }

@@ -109,6 +109,10 @@ public class KBVEWebSocketHandler {
         }, 5, 5, TimeUnit.SECONDS);
     }
 
+    public boolean isConnected() {
+        return client != null && client.isOpen();
+    }
+
     public void send(String msg) {
         if (client != null && client.isOpen()) {
             client.send(msg);

@@ -43,11 +43,15 @@ public class TaskHandler {
         Class<?>[] types = new Class<?>[args.length];
         for (int i = 0; i < args.length; i++) {
             if (args[i] instanceof Integer) types[i] = int.class;
-            else if (args[i] instanceof Double d && d % 1 == 0) {
-                args[i] = d.intValue();
-                types[i] = int.class;
-            } else if (args[i] instanceof Double) types[i] = double.class;
-            else if (args[i] instanceof Boolean) types[i] = boolean.class;
+            else if (args[i] instanceof Double) {
+                Double d = (Double) args[i];
+                if (d % 1 == 0) {
+                    args[i] = d.intValue();
+                    types[i] = int.class;
+                } else {
+                    types[i] = double.class;
+                }
+            } else if (args[i] instanceof Boolean) types[i] = boolean.class;
             else if (args[i] instanceof String) types[i] = String.class;
             else types[i] = Object.class;
         }
