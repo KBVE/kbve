@@ -250,7 +250,7 @@ public class KBVEScripts extends Script implements KBVEWebSocketHandler.WebSocke
     @Override
     public void onLogin(KBVELogin login) {
         state = KBVEStateMachine.LOGIN;
-        log("[LOGIN] Received login command for user: " + login.getUsername());
+        log("[LOGIN] Received login command for user: " + login.getUsername(), 1);
 
         boolean loginSuccess = safeLogin(
             login.getUsername(),
@@ -260,24 +260,29 @@ public class KBVEScripts extends Script implements KBVEWebSocketHandler.WebSocke
         );
 
         if (loginSuccess) {
-            log("Login successful for user: " + login.getUsername(), 42);
+            log("Login successful for user: " + login.getUsername(), 1);
         } else {
-            log("Failed login attempt for user: " + login.getUsername(), 69);
+            log("Failed login attempt for user: " + login.getUsername(), 1);
         }
     }
 
     @Override
     public void onCommand(KBVECommand command) {
+        // Skip processing log commands to prevent infinite loops
+        if (command != null && "log".equalsIgnoreCase(command.getCommand())) {
+            return;
+        }
+        
         state = KBVEStateMachine.API;
-        log("[EXECUTION] " + command.toString());
+        log("[EXECUTION] " + command.toString(), 1);
 
         boolean taskStarted = handleCommand(command);
         if (taskStarted) {
             state = KBVEStateMachine.TASK;
-            log("Executing task: " + command.getMethod(), 42);
+            log("Executing task: " + (command != null ? command.getMethod() : "unknown"), 1);
         } else {
             state = KBVEStateMachine.IDLE;
-            log("Failed to start task: " + command.getMethod(), 69);
+            log("Failed to start task: " + (command != null ? command.getMethod() : "unknown"), 1);
         }
     }
 

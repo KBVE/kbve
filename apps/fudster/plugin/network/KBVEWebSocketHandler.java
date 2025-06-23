@@ -80,7 +80,15 @@ public class KBVEWebSocketHandler {
         try {
             JsonObject json = gson.fromJson(message, JsonObject.class);
             if (json.has("command")) {
-                if ("login".equalsIgnoreCase(json.get("command").getAsString())) {
+                String commandType = json.get("command").getAsString();
+                
+                // Skip processing log messages to prevent infinite loops
+                if ("log".equalsIgnoreCase(commandType)) {
+                    log.debug("[KBVE] Ignoring log message to prevent loop");
+                    return;
+                }
+                
+                if ("login".equalsIgnoreCase(commandType)) {
                     KBVELogin login = gson.fromJson(message, KBVELogin.class);
                     listener.onLogin(login);
                 } else {
