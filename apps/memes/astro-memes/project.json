@@ -1,14 +1,14 @@
 {
-    "name": "astro-kbve",
+    "name": "astro-memes",
     "$schema": "../../../node_modules/nx/schemas/project-schema.json",
     "projectType": "application",
-    "sourceRoot": "apps/kbve/astro-kbve/src",
+    "sourceRoot": "apps/memes/astro-memes/src",
     "tags": [],
     "targets": {
       "dev": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "apps/kbve/astro-kbve",
+          "cwd": "apps/memes/astro-memes",
           "commands": [
             "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro dev --host"
           ],
@@ -18,7 +18,7 @@
       "build": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "apps/kbve/astro-kbve",
+          "cwd": "apps/memes/astro-memes",
           "commands": [
             "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
           ],
@@ -28,7 +28,7 @@
       "preview": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "apps/kbve/astro-kbve",
+          "cwd": "apps/memes/astro-memes",
           "commands": [
             "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build",
             "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro preview --host"
@@ -57,7 +57,7 @@
       "check": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "apps/kbve/astro-kbve",
+          "cwd": "apps/memes/astro-memes",
           "commands": [
             "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro check"
           ],
@@ -72,8 +72,8 @@
         "options": {
           "commands": [
             "nx build droid --emptyOutDir",
-            "rm -rf apps/kbve/astro-kbve/public/workers",
-            "cp -r dist/packages/npm/droid/workers apps/kbve/astro-kbve/public/workers"
+            "rm -rf apps/memes/astro-memes/public/workers",
+            "cp -r dist/packages/npm/droid/workers apps/memes/astro-memes/public/workers"
           ],
           "parallel": false
         }
@@ -81,7 +81,7 @@
       "sync": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "apps/kbve/astro-kbve",
+          "cwd": "apps/memes/astro-memes",
           "commands": [
             "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro sync"
           ],
