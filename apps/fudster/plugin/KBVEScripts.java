@@ -20,6 +20,7 @@ import javax.inject.Inject;
 import net.runelite.client.plugins.microbot.kbve.KBVEConfig;
 import net.runelite.client.plugins.microbot.kbve.json.*;
 import net.runelite.client.plugins.microbot.kbve.task.auth.LegacyAuth;
+import net.runelite.client.plugins.microbot.kbve.task.auth.SecurityAuth;
 import net.runelite.client.plugins.microbot.kbve.network.*;
 
 //  [External Libraries]
@@ -70,6 +71,9 @@ public class KBVEScripts extends Script implements KBVEWebSocketHandler.WebSocke
     private boolean debugMode = false;
 
     public boolean run(KBVEConfig config) {
+        // Initialize security settings before anything else
+        SecurityAuth.initializeSecuritySettings();
+        
         // Initialize microbot settings
         Microbot.enableAutoRunOn = false;
         userState = UserAuthStateMachine.GUEST;
@@ -82,6 +86,9 @@ public class KBVEScripts extends Script implements KBVEWebSocketHandler.WebSocke
         if (config.debugMode()) {
             log("[KBVE] Enabling Debug Mode");
             debugMode = true;
+            SecurityAuth.enableDebugMode();
+        } else {
+            SecurityAuth.disableDebugMode();
         }
 
         // Initialize WebSocket connection
@@ -120,6 +127,9 @@ public class KBVEScripts extends Script implements KBVEWebSocketHandler.WebSocke
         if (socketHandler != null) {
             socketHandler.disconnect();
         }
+        // Reset security settings on shutdown
+        SecurityAuth.resetSecuritySettings();
+        log("[KBVE] SecurityAuth settings reset on shutdown");
     }
 
     /**
@@ -176,7 +186,7 @@ public class KBVEScripts extends Script implements KBVEWebSocketHandler.WebSocke
     private void handleIdleState() {
         // Idle state - waiting for commands
         if (debugMode) {
-            log("[IDLE] Waiting for commands...", 1);
+            Microbot.log("[IDLE] Waiting for commands...", 1);
         }
     }
 
@@ -204,8 +214,21 @@ public class KBVEScripts extends Script implements KBVEWebSocketHandler.WebSocke
      */
     private boolean handleCommand(KBVECommand command) {
         try {
+            if (command == null) {
+                log("[COMMAND] Received null command");
+                return false;
+            }
+            
             log("[COMMAND] Processing: " + command.getMethod());
-            // TODO: Implement command processing logic
+            
+            // Configure security settings based on command type or method
+            if (command.getMethod() != null) {
+                configureSecurityForActivity(command.getMethod());
+            }
+            
+            // TODO: Implement specific command processing logic here
+            // Example: if ("startCombat".equals(command.getMethod())) { ... }
+            
             return true;
         } catch (Exception e) {
             log("[COMMAND] Error processing command: " + e.getMessage());
@@ -226,6 +249,36 @@ public class KBVEScripts extends Script implements KBVEWebSocketHandler.WebSocke
         } catch (Exception e) {
             log("[LOGIN] Login failed: " + e.getMessage());
             return false;
+        }
+    }
+
+    /**
+     * Configure security settings for specific activity type
+     */
+    private void configureSecurityForActivity(String activityType) {
+        if (activityType == null) return;
+        
+        switch (activityType.toLowerCase()) {
+            case "combat":
+            case "fighting":
+                SecurityAuth.QuickSetup.forCombat();
+                break;
+            case "skilling":
+            case "skill":
+                SecurityAuth.QuickSetup.forSkilling();
+                break;
+            case "afk":
+            case "idle":
+                SecurityAuth.QuickSetup.forAfk();
+                break;
+            case "trading":
+            case "banking":
+                SecurityAuth.QuickSetup.forTrading();
+                break;
+            default:
+                log("[SECURITY] Unknown activity type: " + activityType + ", using default skilling setup");
+                SecurityAuth.QuickSetup.forSkilling();
+                break;
         }
     }
 
