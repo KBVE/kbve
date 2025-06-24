@@ -201,7 +201,7 @@ jobs:
                   "destination_folder": "/docs",
                   "destination_branch": "dev"
                 },
-                 {
+                {
                   "name": "astro_memes",
                   "condition": "${{ needs.alter.outputs.astro_memes == 'true' }}",
                   "node_version": "22",
