@@ -1,7 +1,8 @@
 ---
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
 
-import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
+// Removed starlight-site-graph components as they're causing build issues
+// import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
 // import RareIconSVG from 'src/layouts/ads/rareicon/RareIconSVG.astro';
 // import RareIconWishList from 'src/layouts/ads/rareicon/RareIconWishList.astro';
 
@@ -9,17 +10,23 @@ import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
 <div class="mx-auto p-3">
 </div>
 
+<!-- Removed PageGraph component - causing build issues -->
+<!--
 <PageGraph class="right-sidebar-panel graph-panel">
 	<h2 slot="title">Das {Astro.locals.t('starlight-site-graph.graph')}</h2>
 </PageGraph>
+-->
 
 <Default>
 	<slot />
 </Default>
 
+<!-- Removed PageBacklinks component - causing build issues -->
+<!--
 <PageBacklinks class="right-sidebar-panel backlinks-panel">
 	<h2 slot="title">{Astro.locals.t('starlight-site-graph.backlinks')}</h2>
 </PageBacklinks>
+-->
 
 <!-- 
 <script is:inline type="module">

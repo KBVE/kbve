@@ -1,6 +1,6 @@
 import { z, defineCollection } from 'astro:content';
 import { docsSchema } from '@astrojs/starlight/schema';
-import { pageSiteGraphSchema } from 'starlight-site-graph/schema';
+// Removed starlight-site-graph schema import as it's causing build issues
 import { glob } from 'astro/loaders';
 
 

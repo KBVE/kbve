@@ -10,7 +10,7 @@ import alpine from '@astrojs/alpinejs';
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
 
-import starlightSiteGraph from 'starlight-site-graph';
+// Removed starlight-site-graph import as it's causing build issues and not needed for meme app
 
 import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
@@ -39,26 +39,7 @@ export default defineConfig({
     integrations: [
         starlight({
             plugins: [
-                starlightSiteGraph({
-                    graphConfig: {
-                        "actions": [
-                            "fullscreen",
-                            "depth",
-                            "reset-zoom",
-                            "render-arrows",
-                            "settings"
-                        ],
-                        "renderLabels": true,
-                        "renderArrows": true,
-                        "depth": 3,
-                        "depthDirection": "both",
-                        "minZoom": 0.05,
-                        "maxZoom": 4,
-                        "enableZoom": true,
-                        "enablePan": true,
-
-                    },
-                }),
+                // Removed starlight-site-graph plugin as it's causing build issues
             ],
             title: 'Memes Docs',
             editLink: {
