@@ -1,6 +1,6 @@
 import React from "react";
-import { supabase } from '../supabaseClient';
-import { clsx, twMerge } from '../tw';
+import { supabase } from 'src/layouts/core/supabaseClient';
+import { clsx, twMerge } from 'src/layouts/core/tw';
 import { useStore } from '@nanostores/react';
 import { 
   isMenuOpen, 
@@ -47,6 +47,23 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
         navigationActions.logout();
       }
     });
+
+    // Signal that the navigation has fully mounted
+    const skeleton = document.getElementById('nav-skeleton-loader');
+    const content = document.getElementById('nav-content');
+    
+    if (skeleton && content) {
+      // Small delay to ensure React has fully rendered
+      setTimeout(() => {
+        skeleton.style.opacity = '0';
+        content.style.opacity = '1';
+        
+        // Remove skeleton from DOM after fade completes
+        setTimeout(() => {
+          skeleton.remove();
+        }, 500);
+      }, 50);
+    }
 
     return () => subscription.unsubscribe();
   }, []);

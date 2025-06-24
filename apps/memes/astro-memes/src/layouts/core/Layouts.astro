@@ -3,6 +3,8 @@ import { pwaInfo } from 'virtual:pwa-info';
 import { SITE } from '../defaults';
 import Meta from 'src/layouts/core/Meta.astro';
 import Nav from 'src/layouts/core/navbar/Nav.astro';
+import Foot from 'src/layouts/core/footer/Footer.astro';
+import ProgressBar from 'src/layouts/core/progress/ProgressBar.astro';
 
 const {
 	title = SITE.title,
@@ -11,6 +13,7 @@ const {
 	lang = 'en',
 	Nav: showNav = true,
 	Footer = true,
+	ProgressBar: showProgressBar = true,
 } = Astro.props;
 
 interface Props {
@@ -20,6 +23,7 @@ interface Props {
 	lang?: string;
 	Nav?: boolean;
 	Footer?: boolean;
+	ProgressBar?: boolean;
 }
 
 import '../../styles/global.css';
@@ -38,10 +42,12 @@ import '../../styles/global.css';
 	</head>
 
     <body class="bg-zinc-950 text-neutral-300 selection:bg-emerald-400 selection:text-neutral-700">
+        {showProgressBar && <ProgressBar />}
         {showNav && <Nav />}
         <main id="main-slot">
             <slot />
         </main>
+        {Footer && <Foot />}
     </body>
-
+		
     </html>
