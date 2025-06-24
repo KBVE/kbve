@@ -1,3 +1,45 @@
 ---
+import { pwaInfo } from 'virtual:pwa-info';
+import { SITE } from '../defaults';
+import Meta from 'src/layouts/core/Meta.astro';
 
+const {
+	title = SITE.title,
+	meta,
+	structuredData,
+	lang = 'en',
+	Nav = true,
+	Footer = true,
+} = Astro.props;
+
+interface Props {
+	title?: string;
+	meta?: string;
+	structuredData?: object;
+	lang?: string;
+	Nav?: boolean;
+	Footer?: boolean;
+}
+
+import '../../styles/global.css';
 ---
+
+
+<!doctype html>
+<html
+	lang={lang}
+	class="mx-auto">
+    <head>
+        <title>{title}</title>
+		<script src="/src/pwa.ts"></script>
+		<Meta meta={meta} structuredData={structuredData} />
+        {pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
+	</head>
+
+    <body class="bg-zinc-950 text-neutral-300 selection:bg-emerald-400 selection:text-neutral-700">
+        <main id="main-slot">
+            <slot />
+        </main>
+    </body>
+
+    </html>
