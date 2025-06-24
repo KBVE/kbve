@@ -47,6 +47,9 @@ on:
       astro_kbve:
         description: "KBVE.com changed"
         value: ${{ jobs.alter.outputs.astro_kbve }}
+      astro_meme:
+        description: "Astro Meme.sh changed"
+        value: ${{ jobs.alter.outputs.astro_memes }}
       astro_herbmail:
         description: "Herbmail.com changed"
         value: ${{ jobs.alter.outputs.astro_herbmail }}
@@ -116,6 +119,7 @@ jobs:
       py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}
       py_fudster: ${{ steps.delta.outputs.py_fudster_any_changed }}
       astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
+      astro_memes: ${{ steps.delta.outputs.astro_memes_any_changed }}
       astro_herbmail: ${{ steps.delta.outputs.astro_herbmail_any_changed }}
       astro_rareicon: ${{ steps.delta.outputs.astro_rareicon_any_changed }}
       rareicon_unity: ${{ steps.delta.outputs.rareicon_unity_any_changed }}
@@ -168,6 +172,8 @@ jobs:
                 - 'apps/fudster/fudster/**'
             astro_kbve:
                 - 'apps/kbve/astro-kbve/**'
+            astro_memes:
+                - 'apps/memes/astro-memes/**'
             astro_herbmail:
                 - 'apps/herbmail/README.md'
             astro_rareicon:
