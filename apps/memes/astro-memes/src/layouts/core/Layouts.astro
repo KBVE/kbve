@@ -3,6 +3,7 @@ import { pwaInfo } from 'virtual:pwa-info';
 import { SITE } from '../defaults';
 import Meta from 'src/layouts/core/Meta.astro';
 import Nav from 'src/layouts/core/navbar/Nav.astro';
+import Foot from 'src/layouts/core/footer/Footer.astro';
 
 const {
 	title = SITE.title,
@@ -42,6 +43,7 @@ import '../../styles/global.css';
         <main id="main-slot">
             <slot />
         </main>
+<Foot />
     </body>
-
+		
     </html>

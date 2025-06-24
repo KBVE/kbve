@@ -1,6 +1,6 @@
 import React from "react";
-import { supabase } from '../supabaseClient';
-import { clsx, twMerge } from '../tw';
+import { supabase } from 'src/layouts/core/supabaseClient';
+import { clsx, twMerge } from 'src/layouts/core/tw';
 import { useStore } from '@nanostores/react';
 import { 
   isMenuOpen, 
