@@ -1,12 +1,12 @@
 import ogImageSrc from "./images/social.png";
 
 export const SITE = {
-  title: "KiloByte Virtual Engine",
-  tagline: "Top-quality Hardware, Guides, Tools, Tutorials!",
-  description: 'KBVE offers an extensive range of premium hardware components, expert tutorials, and innovative game development services, including our own Steam games and mobile applications. Explore our offerings and contact our team for unmatched quality and creativity.',
-  description_short: 'KBVE provides top-quality hardware components, comprehensive tutorials, and cutting-edge game development tailored to meet all your project needs.',
-  url: "https://kbve.com/",
-  author: "KBVE",
+  title: "Meme.sh",
+  tagline: "The best place for memes and viral content!",
+  description: 'Meme.sh is your ultimate destination for discovering, creating, and sharing the funniest memes on the internet. Join our community of meme enthusiasts and creators.',
+  description_short: 'Discover, create, and share the best memes on the internet with Meme.sh - your go-to meme community.',
+  url: "https://meme.sh/",
+  author: "Meme.sh Team",
 };
 
 export const SEO = {

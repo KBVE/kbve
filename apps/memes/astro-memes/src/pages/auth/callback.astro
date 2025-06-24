@@ -1,0 +1,53 @@
+---
+// Auth callback page for GitHub OAuth
+import { supabase } from '../../layouts/core/supabaseClient';
+
+// Handle the OAuth callback on the server side
+if (Astro.url.searchParams.has('code')) {
+  try {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(
+      Astro.url.searchParams.get('code')!
+    );
+    
+    if (error) {
+      console.error('Auth callback error:', error);
+      return Astro.redirect('/?error=auth_failed');
+    }
+    
+    // Redirect to home page on successful authentication
+    return Astro.redirect('/');
+  } catch (error) {
+    console.error('Auth callback error:', error);
+    return Astro.redirect('/?error=auth_failed');
+  }
+}
+
+// If no code parameter, redirect to home
+return Astro.redirect('/');
+---
+
+<script>
+  // Client-side handling for hash-based authentication
+  window.addEventListener('DOMContentLoaded', async () => {
+    const { supabase } = await import('../../layouts/core/supabaseClient');
+    
+    // Handle authentication on the client side
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('Auth error:', error);
+      window.location.href = '/?error=auth_failed';
+      return;
+    }
+    
+    // Redirect to home page
+    window.location.href = '/';
+  });
+</script>
+
+<div class="flex items-center justify-center min-h-screen bg-zinc-950">
+  <div class="text-center">
+    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-400 mx-auto mb-4"></div>
+    <p class="text-neutral-300">Completing authentication...</p>
+  </div>
+</div>
