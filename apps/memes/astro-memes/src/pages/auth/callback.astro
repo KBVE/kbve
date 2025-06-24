@@ -1,53 +1,41 @@
 ---
-// Auth callback page for GitHub OAuth
-import { supabase } from '../../layouts/core/supabaseClient';
+import { Callback as AuthCallback } from '../../layouts/core/auth/Callback.tsx';
 
-// Handle the OAuth callback on the server side
-if (Astro.url.searchParams.has('code')) {
-  try {
-    const { data, error } = await supabase.auth.exchangeCodeForSession(
-      Astro.url.searchParams.get('code')!
-    );
-    
-    if (error) {
-      console.error('Auth callback error:', error);
-      return Astro.redirect('/?error=auth_failed');
-    }
-    
-    // Redirect to home page on successful authentication
-    return Astro.redirect('/');
-  } catch (error) {
-    console.error('Auth callback error:', error);
-    return Astro.redirect('/?error=auth_failed');
-  }
-}
-
-// If no code parameter, redirect to home
-return Astro.redirect('/');
+// Get redirect destination from URL params if needed
+const redirectParam = Astro.url.searchParams.get('redirect');
+const redirectTo = redirectParam || '/';
 ---
 
-<script>
-  // Client-side handling for hash-based authentication
-  window.addEventListener('DOMContentLoaded', async () => {
-    const { supabase } = await import('../../layouts/core/supabaseClient');
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Authentication Callback - Meme.sh</title>
+    <meta name="description" content="Processing your authentication..." />
     
-    // Handle authentication on the client side
-    const { data, error } = await supabase.auth.getSession();
+    <!-- Prevent indexing of auth pages -->
+    <meta name="robots" content="noindex, nofollow" />
     
-    if (error) {
-      console.error('Auth error:', error);
-      window.location.href = '/?error=auth_failed';
-      return;
-    }
+    <!-- Import Tailwind for styling -->
+    <link rel="stylesheet" href="/src/styles/global.css" />
     
-    // Redirect to home page
-    window.location.href = '/';
-  });
-</script>
-
-<div class="flex items-center justify-center min-h-screen bg-zinc-950">
-  <div class="text-center">
-    <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-emerald-400 mx-auto mb-4"></div>
-    <p class="text-neutral-300">Completing authentication...</p>
-  </div>
-</div>
+    <style>
+      /* Inline critical CSS for instant loading */
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        background: linear-gradient(135deg, #18181b 0%, #27272a 50%, #064e3b 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <!-- React component with client-only rendering -->
+    <AuthCallback client:only="react" redirectTo={redirectTo} />
+  </body>
+</html>

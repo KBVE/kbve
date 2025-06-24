@@ -9,6 +9,8 @@ import {
   navigationActions 
 } from '../stores/navigationStore';
 
+import { Home, Laugh, Sparkles, Flame, Info, Theater } from 'lucide-react';
+
 interface NavigationBarProps {
   className?: string;
 }
@@ -75,11 +77,11 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
   };
 
   const navItems = [
-    { label: 'Home', href: '/', icon: '🏠' },
-    { label: 'Memes', href: '/memes', icon: '😂' },
-    { label: 'Create', href: '/create', icon: '✨' },
-    { label: 'Trending', href: '/trending', icon: '🔥' },
-    { label: 'About', href: '/about', icon: 'ℹ️' },
+    { label: 'Home', href: '/', icon: Home },
+    { label: 'Memes', href: '/memes', icon: Laugh },
+    { label: 'Create', href: '/create', icon: Sparkles },
+    { label: 'Trending', href: '/trending', icon: Flame },
+    { label: 'About', href: '/about', icon: Info },
   ];
 
   return (
@@ -91,9 +93,9 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex-shrink-0">
-            <a href="/" className="flex items-center space-x-2">
-              <span className="text-2xl">🎭</span>
-              <span className="text-xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent">
+            <a href="/" className="flex items-center space-x-2 group">
+              <Theater size={24} className="text-emerald-400 transition-all duration-500 group-hover:scale-125 group-hover:rotate-[360deg] group-hover:text-green-300 drop-shadow-lg group-hover:drop-shadow-xl" />
+              <span className="text-xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent group-hover:from-green-300 group-hover:to-emerald-300 transition-all duration-300">
                 Meme.sh
               </span>
             </a>
@@ -106,13 +108,16 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
                 key={item.href}
                 href={item.href}
                 className={clsx(
-                  'flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium',
+                  'flex items-center space-x-1 px-3 py-2 rounded-md text-sm font-medium group relative overflow-hidden',
                   'text-neutral-300 hover:text-emerald-400 hover:bg-emerald-500/10',
-                  'transition-colors duration-200'
+                  'transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20',
+                  'before:absolute before:inset-0 before:bg-gradient-to-r before:from-emerald-500/0 before:via-emerald-500/10 before:to-emerald-500/0',
+                  'before:translate-x-[-100%] before:transition-transform before:duration-500 hover:before:translate-x-[100%]'
                 )}
+                aria-label={item.label}
               >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
+                <item.icon size={18} className="transition-all duration-300 group-hover:scale-125 group-hover:text-emerald-300 group-hover:rotate-12 group-hover:drop-shadow-lg" />
+                <span className="hidden lg:inline transition-all duration-300 group-hover:translate-x-1">{item.label}</span>
               </a>
             ))}
           </div>
@@ -194,14 +199,17 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
                 key={item.href}
                 href={item.href}
                 className={clsx(
-                  'flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium',
+                  'flex items-center space-x-2 px-3 py-2 rounded-md text-base font-medium group relative overflow-hidden',
                   'text-neutral-300 hover:text-emerald-400 hover:bg-emerald-500/10',
-                  'transition-colors duration-200'
+                  'transition-all duration-300 hover:shadow-lg hover:shadow-emerald-500/20',
+                  'before:absolute before:inset-0 before:bg-gradient-to-r before:from-emerald-500/0 before:via-emerald-500/10 before:to-emerald-500/0',
+                  'before:translate-x-[-100%] before:transition-transform before:duration-500 hover:before:translate-x-[100%]'
                 )}
                 onClick={navigationActions.closeMenu}
+                aria-label={item.label}
               >
-                <span>{item.icon}</span>
-                <span>{item.label}</span>
+                <item.icon size={20} className="transition-all duration-300 group-hover:scale-125 group-hover:text-emerald-300 group-hover:rotate-12 group-hover:drop-shadow-lg" />
+                <span className="transition-all duration-300 group-hover:translate-x-1">{item.label}</span>
               </a>
             ))}
             
