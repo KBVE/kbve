@@ -1,52 +1,82 @@
-import React from "react";
-import { supabase } from 'src/layouts/core/supabaseClient';
+import React, { useState, useEffect } from "react";
 import { clsx, twMerge } from 'src/layouts/core/tw';
+import { atom } from 'nanostores';
 import { useStore } from '@nanostores/react';
-import { 
-  isMenuOpen, 
-  isAuthenticated, 
-  userProfile, 
-  navigationActions 
-} from '../stores/navigationStore';
 
 import { Home, Laugh, Sparkles, Flame, Info, Theater } from 'lucide-react';
+
+// Internal nano stores for this component only
+const navMenuOpen = atom<boolean>(false);
+const navAuthenticated = atom<boolean>(false);
+const navUserProfile = atom<{ id: string; email: string; username?: string } | null>(null);
+
+// Internal navigation actions
+const navActions = {
+  toggleMenu: () => navMenuOpen.set(!navMenuOpen.get()),
+  closeMenu: () => navMenuOpen.set(false),
+  openMenu: () => navMenuOpen.set(true),
+  setAuth: (authenticated: boolean, profile?: { id: string; email: string; username?: string }) => {
+    navAuthenticated.set(authenticated);
+    navUserProfile.set(profile || null);
+  },
+  logout: () => {
+    navAuthenticated.set(false);
+    navUserProfile.set(null);
+  }
+};
 
 interface NavigationBarProps {
   className?: string;
 }
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
-  const menuOpen = useStore(isMenuOpen);
-  const authenticated = useStore(isAuthenticated);
-  const profile = useStore(userProfile);
+  const menuOpen = useStore(navMenuOpen);
+  const authenticated = useStore(navAuthenticated);
+  const profile = useStore(navUserProfile);
 
   // Check authentication status on mount
-  React.useEffect(() => {
+  useEffect(() => {
     const checkAuth = async () => {
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.user) {
-        navigationActions.setAuth(true, {
-          id: session.user.id,
-          email: session.user.email!,
-          username: session.user.user_metadata?.username
-        });
+      try {
+        // Check if we have a Supabase client available
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+        
+        if (supabaseUrl && supabaseAnonKey) {
+          const supabase = createClient(supabaseUrl, supabaseAnonKey);
+          const { data: { session } } = await supabase.auth.getSession();
+          
+          if (session?.user) {
+            navActions.setAuth(true, {
+              id: session.user.id,
+              email: session.user.email!,
+              username: session.user.user_metadata?.username
+            });
+          }
+
+          // Listen for auth changes
+          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+            if (session?.user) {
+              navActions.setAuth(true, {
+                id: session.user.id,
+                email: session.user.email!,
+                username: session.user.user_metadata?.username
+              });
+            } else {
+              navActions.logout();
+            }
+          });
+
+          // Cleanup subscription on unmount
+          return () => subscription.unsubscribe();
+        }
+      } catch (error) {
+        console.log('Navigation: Auth check failed, continuing without auth state');
       }
     };
 
     checkAuth();
-
-    // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (session?.user) {
-        navigationActions.setAuth(true, {
-          id: session.user.id,
-          email: session.user.email!,
-          username: session.user.user_metadata?.username
-        });
-      } else {
-        navigationActions.logout();
-      }
-    });
 
     // Signal that the navigation has fully mounted
     const skeleton = document.getElementById('nav-skeleton-loader');
@@ -64,19 +94,24 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
         }, 500);
       }, 50);
     }
-
-    return () => subscription.unsubscribe();
   }, []);
 
   const handleSignIn = async () => {
     try {
-      const { error } = await supabase.auth.signInWithOAuth({
-        provider: 'github',
-        options: {
-          redirectTo: `${window.location.origin}/auth/callback`
-        }
-      });
-      if (error) throw error;
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (supabaseUrl && supabaseAnonKey) {
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const { error } = await supabase.auth.signInWithOAuth({
+          provider: 'github',
+          options: {
+            redirectTo: `${window.location.origin}/auth/callback`
+          }
+        });
+        if (error) throw error;
+      }
     } catch (error) {
       console.error('Error signing in:', error);
     }
@@ -84,10 +119,17 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
 
   const handleSignOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigationActions.logout();
-      navigationActions.closeMenu();
+      const { createClient } = await import('@supabase/supabase-js');
+      const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+      
+      if (supabaseUrl && supabaseAnonKey) {
+        const supabase = createClient(supabaseUrl, supabaseAnonKey);
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+        navActions.logout();
+        navActions.closeMenu();
+      }
     } catch (error) {
       console.error('Error signing out:', error);
     }
@@ -180,7 +222,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
           {/* Mobile menu button */}
           <div className="md:hidden">
             <button
-              onClick={navigationActions.toggleMenu}
+              onClick={navActions.toggleMenu}
               className={clsx(
                 'p-2 rounded-md text-neutral-300 hover:text-emerald-400 hover:bg-emerald-500/10',
                 'transition-colors duration-200'
@@ -222,7 +264,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
                   'before:absolute before:inset-0 before:bg-gradient-to-r before:from-emerald-500/0 before:via-emerald-500/10 before:to-emerald-500/0',
                   'before:translate-x-[-100%] before:transition-transform before:duration-500 hover:before:translate-x-[100%]'
                 )}
-                onClick={navigationActions.closeMenu}
+                onClick={navActions.closeMenu}
                 aria-label={item.label}
               >
                 <item.icon size={20} className="transition-all duration-300 group-hover:scale-125 group-hover:text-emerald-300 group-hover:rotate-12 group-hover:drop-shadow-lg" />
