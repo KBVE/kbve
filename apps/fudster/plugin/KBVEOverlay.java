@@ -26,7 +26,7 @@ public class KBVEOverlay extends OverlayPanel {
         try {
             panelComponent.setPreferredSize(new Dimension(300,300));
             panelComponent.getChildren().add(TitleComponent.builder()
-                .text("KBVE Atlas" + KBVEPlugin.version)
+                .text("KBVE Fudster" + KBVEPlugin.version)
                 .color(Color.RED)
                 .build()
             );

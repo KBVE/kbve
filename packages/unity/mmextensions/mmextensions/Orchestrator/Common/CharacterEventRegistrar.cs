@@ -47,15 +47,14 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
                 case TopDownEngineEventTypes.CharacterSwap:
                     {
-                        var playerId = evt.OriginCharacter?.PlayerID;
-                        Character activeCharacter = null;
-                        if (!string.IsNullOrEmpty(playerId))
-                        {
-                            _registry.TryGetPrimaryCharacter(playerId, out activeCharacter);
-                        }
+                        var playerId = UnityEngine.GameObject.FindFirstObjectByType<CharacterSwapManager>().PlayerID;
+                        _registry.TryGetPrimaryCharacter(playerId, out Character activeCharacter);
+                        _registry.TryGetCharacters(playerId, out List<Character> characters);
+                        characters.ForEach(x => x.GetComponent<AiAllyBrain>().ToggleAI(!x.GetComponent<CharacterSwap>().Current()));
                         SetHUDStatsForActiveCharacter(activeCharacter).Forget();
                         break;
                     }
+
                 default:
                     break;
             }
@@ -158,7 +157,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                 LevelManager.Instance.Players.Count > 0 &&
                 LevelManager.Instance.Players[0] != null &&
                 LevelManager.Instance.Players[0].GetComponent<ExtendedHealth>() != null
-        
+
             );
 
             var character = LevelManager.Instance.Players[0];

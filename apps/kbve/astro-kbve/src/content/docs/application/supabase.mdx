@@ -870,6 +870,10 @@ public.list_osrs_accounts() → table (
 
 public.delete_osrs_account(p_account_name text) → void
 
+public.update_osrs_account_state(
+  p_account_name text,
+  p_state text
+) → void
 
 public.update_osrs_account_info(
   p_account_name text,
@@ -973,6 +977,12 @@ await supabase.rpc('update_osrs_account_info', {
   p_wealth_gp: 50000000
 });
 
+// Example: Update account state (login/logout)
+await supabase.rpc('update_osrs_account_state', {
+  p_account_name: 'iron_chip',
+  p_state: 'active'  // 'offline', 'active', 'banned', 'error'
+});
+
 ```
 
 Lets go ahead and update the table for the user and track their wealth in gp too.
@@ -983,6 +993,234 @@ alter table private.osrs_account_information
 add column wealth_gp bigint check (wealth_gp >= 0) default 0;
 
 ```
+
+Next we want to keep track of the actual state of the account, so that we can keep track of it.
+
+```sql
+
+create or replace function private.update_osrs_account_state_internal(
+  p_user_id uuid,
+  p_account_name text,
+  p_state text
+)
+returns void
+language plpgsql
+security definer
+set search_path = private
+as $function$
+begin
+  -- Validate
+  if not exists (select 1 from auth.users where id = p_user_id) then
+    raise exception 'Invalid user ID';
+  end if;
+
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format.';
+  end if;
+
+  if p_state not in ('offline', 'active', 'banned', 'error') then
+    raise exception 'Invalid state value.';
+  end if;
+
+  -- Update the state
+  update private.user_osrs_accounts
+  set state = p_state,
+      updated_at = now()
+  where user_id = p_user_id and account_name = p_account_name;
+
+  if not found then
+    raise exception 'OSRS account not found for user.';
+  end if;
+end;
+$function$;
+
+revoke all on function private.update_osrs_account_state_internal(uuid, text, text)
+  from public, anon, authenticated;
+
+grant execute on function private.update_osrs_account_state_internal(uuid, text, text)
+  to service_role;
+
+```
+
+That will be the private internal schema and now we can prepare for the public schema for the user to call.
+This will be the public 
+
+```sql
+
+create or replace function public.update_osrs_account_state(
+  p_account_name text,
+  p_state text
+)
+returns void
+language plpgsql
+security definer
+set search_path = public, private
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format.';
+  end if;
+
+  if p_state not in ('offline', 'active', 'banned', 'error') then
+    raise exception 'Invalid state value.';
+  end if;
+
+  perform private.update_osrs_account_state_internal(v_user_id, p_account_name, p_state);
+end;
+$function$;
+
+revoke all on function public.update_osrs_account_state(text, text)
+  from public, anon;
+
+grant execute on function public.update_osrs_account_state(text, text)
+  to authenticated;
+
+```
+
+For the login, we want to make one call to grab all the information we need for the login.
+So we need our dual function go grab that information.
+
+```sql
+
+create or replace function private.get_osrs_login_credentials_internal(
+  p_user_id uuid,
+  p_account_name text
+)
+returns table (
+  email text,
+  password text
+)
+language plpgsql
+security definer
+set search_path = private, vault, public
+as $function$
+declare
+  v_email_key text;
+  v_password_key text;
+begin
+  -- Validate
+  if not exists (select 1 from auth.users where id = p_user_id) then
+    raise exception 'Invalid user';
+  end if;
+
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format';
+  end if;
+
+  -- Fetch key names
+  select vault_email_key, vault_password_key
+  into v_email_key, v_password_key
+  from private.user_osrs_accounts
+  where user_id = p_user_id and account_name = p_account_name;
+
+  if not found then
+    raise exception 'OSRS account not found';
+  end if;
+
+  -- Fetch decrypted secrets
+  return query
+  select
+    (select decrypted_secret from vault.decrypted_secrets where name = v_email_key),
+    (select decrypted_secret from vault.decrypted_secrets where name = v_password_key);
+end;
+$function$;
+
+revoke all on function private.get_osrs_login_credentials_internal(uuid, text)
+from public, anon, authenticated;
+grant execute on function private.get_osrs_login_credentials_internal(uuid, text)
+to service_role;
+
+
+```
+
+After executing the private function, we will add out public facing one next.
+
+```sql
+
+create or replace function public.get_osrs_login_credentials(
+  p_account_name text
+)
+returns table (
+  email text,
+  password text
+)
+language plpgsql
+security definer
+set search_path = public, private
+as $function$
+declare
+  v_user_id uuid := auth.uid();
+begin
+  if v_user_id is null then
+    raise exception 'Not authenticated';
+  end if;
+
+  if p_account_name !~ '^[a-z0-9_]{3,64}$' then
+    raise exception 'Invalid account name format';
+  end if;
+
+  return query
+    select * from private.get_osrs_login_credentials_internal(v_user_id, p_account_name);
+end;
+$function$;
+
+revoke all on function public.get_osrs_login_credentials(text)
+from public, anon;
+
+grant execute on function public.get_osrs_login_credentials(text)
+to authenticated;
+
+```
+
+Next we want to have a live view of the inventory, character health and location for the account that is logged in.
+I am thinking that the data would be stored as `osrs_account_viewport` and can be used later on for realtime data.
+Here is the base table that we can create to help us handle that:
+
+```sql
+
+create table private.osrs_account_viewport (
+  account_id uuid primary key references private.user_osrs_accounts(id) on delete cascade,
+
+  -- Core stats
+  current_health integer check (current_health >= 0),
+  max_health integer check (max_health > 0),
+
+  current_prayer integer check (current_prayer >= 0),
+  max_prayer integer check (max_prayer >= 0),
+
+  run_energy integer check (run_energy >= 0 and run_energy <= 100),
+
+  -- Location
+  region text,
+  x_coord integer,
+  y_coord integer,
+
+  -- Inventory (simplified to array of item names or structured JSON)
+  inventory jsonb default '[]',
+
+  -- Recent chat log (last few messages)
+  recent_chat jsonb default '[]',
+
+  last_updated_at timestamptz default now()
+);
+
+alter table private.osrs_account_viewport enable row level security;
+
+create policy "No access by default" on private.osrs_account_viewport
+  for all using (false);
+
+revoke all on private.osrs_account_viewport from anon, authenticated, public;
+grant all on private.osrs_account_viewport to service_role;
+
+```
+
+
 
 
 ### User Function - Register

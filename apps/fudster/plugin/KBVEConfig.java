@@ -98,7 +98,7 @@ public interface KBVEConfig extends Config {
         section = supabaseSection
     )
     default boolean enableSupabase() {
-        return false;
+        return true;
     }
 
     @ConfigItem(

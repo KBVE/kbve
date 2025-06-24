@@ -39,8 +39,9 @@
 						// Refresh Supabase status to show user profile
 						setTimeout(() => testSupabase(), 500);
 					} else {
-						window.AuthStateManager.clearAuthState();
-						console.log('User signed out');
+						// User signed out - clear all localStorage for fresh start
+						window.AuthStateManager.clearAllLocalStorage();
+						console.log('User signed out - localStorage cleared');
 						
 						// Refresh Supabase status
 						setTimeout(() => testSupabase(), 500);
@@ -52,8 +53,9 @@
 					if (session?.user) {
 						window.AuthStateManager.setUserAuthState(session.user, true);
 					} else if (window.AuthStateManager.isUserAuthenticated()) {
-						// localStorage says we're authenticated but no session - clear it
-						window.AuthStateManager.clearAuthState();
+						// localStorage says we're authenticated but no session - clear all localStorage for fresh start
+						console.log('Session mismatch detected - clearing localStorage');
+						window.AuthStateManager.clearAllLocalStorage();
 					}
 				});
 			} catch (error) {
@@ -245,12 +247,39 @@
 						window.currentUser = null;
 						window.isAuthenticated = false;
 						
+						// Reset profile loading flag
+						window.profileLoadedThisSession = false;
+						
 						// Update UI
 						this.updateAuthButton(false);
 						
 						console.log('Auth state cleared');
 					} catch (error) {
 						console.error('Error clearing auth state:', error);
+					}
+				},
+
+				// Clear all localStorage - used after logout and for unauthenticated users
+				clearAllLocalStorage() {
+					try {
+						// Get all localStorage keys before clearing
+						const keys = Object.keys(localStorage);
+						console.log('Clearing localStorage keys:', keys);
+						
+						// Clear all localStorage
+						localStorage.clear();
+						
+						// Update global state
+						window.currentUser = null;
+						window.isAuthenticated = false;
+						window.profileLoadedThisSession = false;
+						
+						// Update UI
+						this.updateAuthButton(false);
+						
+						console.log('All localStorage cleared successfully');
+					} catch (error) {
+						console.error('Error clearing localStorage:', error);
 					}
 				},
 
@@ -390,6 +419,15 @@
 			document.addEventListener('DOMContentLoaded', function() {
 				// Initialize auth state immediately from localStorage
 				window.AuthStateManager.initializeAuthState();
+				
+				// Clear localStorage if user is not authenticated on page load
+				// This ensures a fresh start for unauthenticated users
+				setTimeout(() => {
+					if (!window.AuthStateManager.isUserAuthenticated()) {
+						console.log('User not authenticated on page load - clearing localStorage for fresh start');
+						window.AuthStateManager.clearAllLocalStorage();
+					}
+				}, 100); // Small delay to allow auth state initialization to complete
 			});
 			
 			// Tailwind CSS v4 configuration with dark theme and purple colors
@@ -699,8 +737,1024 @@
 			</div>
 		</section>
 
+		<!-- OSRS Account Management Section -->
+		<section class="bg-dark-lighter border border-zinc-700 text-white p-6 rounded-lg mb-6 mx-4" id="osrsAccountSection" style="display: none;">
+			<h2 class="text-3xl font-bold mb-4 text-center text-primary">OSRS Account Management</h2>
+			
+			<!-- Account Overview -->
+			<div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+				<!-- Total Accounts Stats -->
+				<div class="bg-dark-light border border-zinc-600 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-3 text-secondary">Account Overview</h3>
+					<div class="grid grid-cols-2 gap-4">
+						<div class="text-center">
+							<div id="totalAccounts" class="text-2xl font-bold text-primary">0</div>
+							<div class="text-sm text-gray-400">Total Accounts</div>
+						</div>
+						<div class="text-center">
+							<div id="onlineAccounts" class="text-2xl font-bold text-green-500">0</div>
+							<div class="text-sm text-gray-400">Online</div>
+						</div>
+					</div>
+					<button 
+						class="mt-4 w-full px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition-all"
+						onclick="refreshAccountsFromSupabase()">
+						Refresh Accounts
+					</button>
+				</div>
+				
+				<!-- Quick Actions -->
+				<div class="bg-dark-light border border-zinc-600 p-4 rounded-lg">
+					<h3 class="text-xl font-semibold mb-3 text-secondary">Quick Actions</h3>
+					<div class="space-y-2">
+						<button 
+							class="w-full px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all"
+							onclick="loginAllOfflineAccounts()">
+							Login All Offline
+						</button>
+						<button 
+							class="w-full px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-all"
+							onclick="logoutAllOnlineAccounts()">
+							Logout All Online
+						</button>
+						<button 
+							class="w-full px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all"
+							onclick="openAddAccountModal()">
+							Add New Account
+						</button>
+					</div>
+				</div>
+			</div>
+
+			<!-- Accounts List -->
+			<div class="bg-dark-light border border-zinc-600 p-4 rounded-lg">
+				<h3 class="text-xl font-semibold mb-4 text-secondary">Your OSRS Accounts</h3>
+				
+				<!-- Loading State -->
+				<div id="accountsLoading" class="text-center py-8">
+					<div class="text-primary">Loading accounts...</div>
+				</div>
+				
+				<!-- Empty State -->
+				<div id="accountsEmpty" class="text-center py-8 hidden">
+					<div class="text-gray-400 mb-4">No OSRS accounts found</div>
+					<button 
+						class="px-4 py-2 bg-primary text-white rounded-lg hover:bg-purple-600 transition-all"
+						onclick="openAddAccountModal()">
+						Add Your First Account
+					</button>
+				</div>
+				
+				<!-- Accounts Grid -->
+				<div id="accountsGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 hidden">
+					<!-- Account cards will be populated here -->
+				</div>
+			</div>
+		</section>
+
+		<!-- Add Account Modal -->
+		<div id="addAccountModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+			<div class="bg-dark-lighter border border-zinc-700 rounded-xl p-8 max-w-md w-full mx-4 relative">
+				<!-- Close Button -->
+				<button onclick="closeAddAccountModal()" class="absolute top-4 right-4 text-gray-400 hover:text-white transition-colors">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</button>
+
+				<!-- Modal Header -->
+				<div class="text-center mb-6">
+					<h2 class="text-2xl font-bold text-primary mb-2">Add OSRS Account</h2>
+					<p class="text-gray-300">Add a new account to manage</p>
+				</div>
+
+				<!-- Add Account Form -->
+				<form id="addAccountForm" onsubmit="handleAddAccount(event)">
+					<div class="space-y-4">
+						<div>
+							<label for="accountName" class="block text-sm font-medium text-gray-300 mb-1">Account Name</label>
+							<input 
+								type="text" 
+								id="accountName" 
+								required 
+								pattern="^[a-z0-9_]{3,64}$"
+								maxlength="64"
+								class="w-full px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+								placeholder="Enter account name (a-z, 0-9, _)"
+							/>
+							<p class="text-xs text-gray-400 mt-1">3-64 characters, lowercase letters, numbers, and underscores only</p>
+						</div>
+						<div>
+							<label for="accountEmail" class="block text-sm font-medium text-gray-300 mb-1">Email</label>
+							<input 
+								type="email" 
+								id="accountEmail" 
+								required 
+								class="w-full px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+								placeholder="Enter OSRS account email"
+							/>
+						</div>
+						<div>
+							<label for="accountPassword" class="block text-sm font-medium text-gray-300 mb-1">Password</label>
+							<input 
+								type="password" 
+								id="accountPassword" 
+								required 
+								minlength="8"
+								maxlength="128"
+								class="w-full px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+								placeholder="Enter OSRS account password"
+							/>
+						</div>
+						<div>
+							<label for="accountWorld" class="block text-sm font-medium text-gray-300 mb-1">World (Optional)</label>
+							<input 
+								type="number" 
+								id="accountWorld" 
+								min="1"
+								max="999"
+								class="w-full px-3 py-2 bg-zinc-800 border border-zinc-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+								placeholder="Enter world number"
+							/>
+						</div>
+						<div class="flex items-center">
+							<input 
+								type="checkbox" 
+								id="accountP2P" 
+								class="w-4 h-4 text-primary bg-zinc-800 border-zinc-600 rounded focus:ring-primary focus:ring-2"
+							/>
+							<label for="accountP2P" class="ml-2 text-sm text-gray-300">Members (P2P) Account</label>
+						</div>
+					</div>
+
+					<!-- Submit Button -->
+					<button 
+						type="submit" 
+						class="w-full mt-6 px-4 py-3 bg-primary hover:bg-purple-600 text-white font-semibold rounded-lg transition-all focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-dark-lighter">
+						Add Account
+					</button>
+				</form>
+
+				<!-- Status -->
+				<div id="addAccountStatus" class="mt-4 text-center text-sm"></div>
+			</div>
+		</div>
+
 		<script>
-			// Droid Integration Functions
+			// OSRS Account Management System
+			window.OSRSAccountManager = {
+				// Storage keys
+				STORAGE_KEYS: {
+					ACCOUNTS: 'osrs_accounts',
+					STATES: 'osrs_account_states'
+				},
+
+				// Sync configuration
+				SYNC_CONFIG: {
+					INTERVAL_MS: 30000, // Sync every 30 seconds
+					RETRY_DELAY_MS: 5000, // Retry failed syncs after 5 seconds
+					MAX_RETRIES: 3
+				},
+
+				// Internal state
+				_syncInterval: null,
+				_lastSyncTime: null,
+				_failedSyncs: 0,
+
+				// Initialize the account manager
+				async init() {
+					console.log('Initializing OSRS Account Manager...');
+					
+					// Set up initial UI
+					this.showOSRSSection();
+					
+					// Load accounts (try Supabase first, fallback to localStorage)
+					await this.refreshAccountsFromSupabase();
+					
+					// Start periodic sync if authenticated
+					this.startPeriodicSync();
+					
+					// Set up online/offline detection
+					this.setupConnectivityHandlers();
+					
+					console.log('OSRS Account Manager initialized');
+				},
+
+				// Show OSRS section if user is authenticated
+				showOSRSSection() {
+					const osrsSection = document.getElementById('osrsAccountSection');
+					if (window.AuthStateManager.isUserAuthenticated()) {
+						osrsSection.style.display = 'block';
+					} else {
+						osrsSection.style.display = 'none';
+					}
+				},
+
+				// Start periodic synchronization
+				startPeriodicSync() {
+					// Clear existing interval
+					this.stopPeriodicSync();
+					
+					if (!window.AuthStateManager.isUserAuthenticated()) {
+						console.log('Not authenticated, skipping periodic sync');
+						return;
+					}
+
+					console.log(`Starting periodic sync every ${this.SYNC_CONFIG.INTERVAL_MS}ms`);
+					
+					this._syncInterval = setInterval(async () => {
+						try {
+							await this.syncWithSupabase();
+							this._failedSyncs = 0; // Reset failure count on success
+						} catch (error) {
+							this._failedSyncs++;
+							console.warn(`Periodic sync failed (attempt ${this._failedSyncs}):`, error);
+							
+							// If too many failures, increase interval
+							if (this._failedSyncs >= this.SYNC_CONFIG.MAX_RETRIES) {
+								console.warn('Too many sync failures, stopping periodic sync');
+								this.stopPeriodicSync();
+								
+								// Retry after a longer delay
+								setTimeout(() => {
+									if (window.AuthStateManager.isUserAuthenticated()) {
+										this.startPeriodicSync();
+									}
+								}, this.SYNC_CONFIG.RETRY_DELAY_MS * 3);
+							}
+						}
+					}, this.SYNC_CONFIG.INTERVAL_MS);
+				},
+
+				// Stop periodic synchronization
+				stopPeriodicSync() {
+					if (this._syncInterval) {
+						clearInterval(this._syncInterval);
+						this._syncInterval = null;
+						console.log('Stopped periodic sync');
+					}
+				},
+
+				// Full sync with Supabase (both directions)
+				async syncWithSupabase() {
+					if (!window.supabase || !window.AuthStateManager.isUserAuthenticated()) {
+						return;
+					}
+
+					try {
+						// Refresh accounts from Supabase (this handles state merging)
+						await this.refreshAccountsFromSupabase();
+						
+						// Sync any pending local state changes
+						await this.syncPendingStateChanges();
+						
+						this._lastSyncTime = new Date().toISOString();
+						console.log('Full sync with Supabase completed');
+					} catch (error) {
+						console.error('Failed to sync with Supabase:', error);
+						throw error;
+					}
+				},
+
+				// Sync any local state changes that might not have been synced
+				async syncPendingStateChanges() {
+					const states = this.getAccountStates();
+					const accounts = this.getStoredAccounts();
+					
+					for (const account of accounts) {
+						const state = states[account.id];
+						if (state && state.needsSync) {
+							try {
+								await this.syncAccountStateWithSupabase(account.account_name, state.state);
+								
+								// Mark as synced
+								state.needsSync = false;
+								states[account.id] = state;
+							} catch (error) {
+								console.warn(`Failed to sync pending state for ${account.account_name}:`, error);
+							}
+						}
+					}
+					
+					this.saveAccountStates(states);
+				},
+
+				// Set up connectivity handlers
+				setupConnectivityHandlers() {
+					// Handle going online
+					window.addEventListener('online', () => {
+						console.log('Connection restored, syncing with Supabase...');
+						setTimeout(() => this.syncWithSupabase(), 1000);
+						this.startPeriodicSync();
+					});
+
+					// Handle going offline
+					window.addEventListener('offline', () => {
+						console.log('Connection lost, stopping periodic sync');
+						this.stopPeriodicSync();
+					});
+
+					// Handle visibility change (tab becomes active)
+					document.addEventListener('visibilitychange', () => {
+						if (!document.hidden && window.AuthStateManager.isUserAuthenticated()) {
+							// Tab became active, sync if it's been a while
+							const lastSync = this._lastSyncTime ? new Date(this._lastSyncTime) : new Date(0);
+							const timeSinceSync = Date.now() - lastSync.getTime();
+							
+							if (timeSinceSync > this.SYNC_CONFIG.INTERVAL_MS) {
+								console.log('Tab became active, syncing...');
+								setTimeout(() => this.syncWithSupabase(), 500);
+							}
+						}
+					});
+				},
+
+				// Get stored accounts from localStorage
+				getStoredAccounts() {
+					try {
+						const stored = localStorage.getItem(this.STORAGE_KEYS.ACCOUNTS);
+						return stored ? JSON.parse(stored) : [];
+					} catch (error) {
+						console.error('Error reading accounts from localStorage:', error);
+						return [];
+					}
+				},
+
+				// Get account states (online/offline) from localStorage
+				getAccountStates() {
+					try {
+						const stored = localStorage.getItem(this.STORAGE_KEYS.ACCOUNT_STATES);
+						return stored ? JSON.parse(stored) : {};
+					} catch (error) {
+						console.error('Error reading account states from localStorage:', error);
+						return {};
+					}
+				},
+
+				// Save accounts to localStorage
+				saveAccounts(accounts) {
+					try {
+						localStorage.setItem(this.STORAGE_KEYS.ACCOUNTS, JSON.stringify(accounts));
+					} catch (error) {
+						console.error('Error saving accounts to localStorage:', error);
+					}
+				},
+
+				// Save account states to localStorage
+				saveAccountStates(states) {
+					try {
+						localStorage.setItem(this.STORAGE_KEYS.ACCOUNT_STATES, JSON.stringify(states));
+					} catch (error) {
+						console.error('Error saving account states to localStorage:', error);
+					}
+				},
+
+				// Add a new account using the proper schema
+				async addAccount(accountName, email, password, world = null, p2p = false) {
+					const accounts = this.getStoredAccounts();
+					
+					// Check if account already exists
+					if (accounts.some(acc => acc.account_name.toLowerCase() === accountName.toLowerCase())) {
+						throw new Error('Account with this name already exists');
+					}
+
+					// Validate account name format according to schema
+					if (!/^[a-z0-9_]{3,64}$/.test(accountName)) {
+						throw new Error('Account name must be 3-64 characters, lowercase letters, numbers, and underscores only');
+					}
+
+					// Create account via Supabase RPC
+					const newAccount = await this.createAccountWithSupabase(accountName, email, password, world, p2p);
+
+					// Add to local storage with proper schema format
+					accounts.push(newAccount);
+					this.saveAccounts(accounts);
+
+					// Set initial state as offline
+					const states = this.getAccountStates();
+					states[newAccount.id] = {
+						state: 'offline',
+						lastStateChange: new Date().toISOString()
+					};
+					this.saveAccountStates(states);
+
+					return newAccount;
+				},
+
+				// Create account with Supabase RPC using proper schema
+				async createAccountWithSupabase(accountName, email, password, world, p2p) {
+					if (!window.supabase || !window.AuthStateManager.isUserAuthenticated()) {
+						throw new Error('Must be authenticated to create accounts');
+					}
+
+					try {
+						// Create OSRS account using the create_osrs_account RPC
+						const { data, error } = await window.supabase.rpc('create_osrs_account', {
+							p_account_name: accountName,
+							p_email: email,
+							p_password: password,
+							p_world: world,
+							p_p2p: p2p || false
+						});
+
+						if (error) {
+							console.error('Failed to create account with Supabase:', error);
+							// Provide more specific error messages
+							if (error.code === 'PGRST202') {
+								throw new Error('Account creation function not found. Please check your database setup.');
+							} else if (error.code === 'PGRST203') {
+								throw new Error('Database function parameters mismatch. Please contact support.');
+							} else {
+								throw new Error(error.message || 'Failed to create account');
+							}
+						}
+
+						// Return account object in proper schema format
+						// Use the returned data if available, otherwise construct from inputs
+						return {
+							id: data?.id || accountName, // Use returned ID or fallback to account_name
+							account_name: accountName,
+							state: 'offline',
+							world: world,
+							p2p: p2p || false,
+							created_at: new Date().toISOString(),
+							updated_at: new Date().toISOString()
+						};
+
+					} catch (error) {
+						console.error('Error creating account with Supabase:', error);
+						// Re-throw with more context if it's our own error
+						if (error.message.includes('Account creation function') || 
+							error.message.includes('Database function parameters')) {
+							throw error;
+						}
+						// For other errors, provide a generic message
+						throw new Error(`Failed to create account: ${error.message}`);
+					}
+				},
+
+				// Toggle account state between offline/active using proper schema states
+				async toggleAccountState(accountId) {
+					const accounts = this.getStoredAccounts();
+					const account = accounts.find(acc => acc.id === accountId);
+					
+					if (!account) {
+						throw new Error('Account not found');
+					}
+
+					const states = this.getAccountStates();
+					const currentState = states[accountId]?.state || 'offline';
+					const newState = currentState === 'offline' ? 'active' : 'offline';
+
+					console.log(`Toggling account ${account.account_name} from ${currentState} to ${newState}`);
+
+					// Update local state first
+					states[accountId] = {
+						state: newState,
+						lastStateChange: new Date().toISOString()
+					};
+					this.saveAccountStates(states);
+
+					// Update UI immediately
+					this.renderAccounts();
+					this.updateStats();
+
+					// If transitioning to active state, fetch credentials and send login command
+					if (newState === 'active') {
+						try {
+							await this.loginAccountWithCredentials(account.account_name, account.world || 301);
+							console.log(`Successfully sent login command for ${account.account_name}`);
+						} catch (error) {
+							console.error(`Failed to send login command for ${account.account_name}:`, error);
+							
+							// Revert state on login failure
+							states[accountId] = {
+								state: 'offline',
+								lastStateChange: new Date().toISOString()
+							};
+							this.saveAccountStates(states);
+							this.renderAccounts();
+							this.updateStats();
+							
+							// Show error notification
+							const notification = document.createElement('div');
+							notification.className = 'fixed top-4 right-4 bg-red-600 text-white p-3 rounded shadow-lg z-50';
+							notification.textContent = `Failed to login ${account.account_name}: ${error.message}`;
+							document.body.appendChild(notification);
+							setTimeout(() => notification.remove(), 6000);
+							
+							throw error;
+						}
+					}
+
+					// Try to sync state with Supabase (non-blocking)
+					try {
+						await this.syncAccountStateWithSupabase(account.account_name, newState);
+						console.log(`Successfully synced ${account.account_name} state to Supabase: ${newState}`);
+					} catch (error) {
+						console.warn(`Failed to sync state with Supabase for ${account.account_name}, but local state updated:`, error);
+						// State is still updated locally, so this is not a fatal error
+						
+						// Optionally show a user notification
+						const notification = document.createElement('div');
+						notification.className = 'fixed top-4 right-4 bg-yellow-600 text-white p-3 rounded shadow-lg z-50';
+						notification.textContent = `${account.account_name} state updated locally. Sync with server will retry automatically.`;
+						document.body.appendChild(notification);
+						setTimeout(() => notification.remove(), 4000);
+					}
+
+					return newState;
+				},
+
+				// Login account using credentials from Supabase and send command via WebSocket
+				async loginAccountWithCredentials(accountName, world = 301) {
+					if (!window.supabase || !window.AuthStateManager.isUserAuthenticated()) {
+						throw new Error('Not authenticated with Supabase');
+					}
+
+					try {
+						console.log(`Fetching credentials for account: ${accountName}`);
+						
+						// Use Supabase RPC to get account credentials
+						const { data, error } = await window.supabase.rpc('get_osrs_login_credentials', {
+							p_account_name: accountName
+						});
+
+						if (error) {
+							console.error('RPC credentials fetch failed:', error);
+							throw new Error(`Failed to fetch credentials: ${error.message}`);
+						}
+
+						if (!data) {
+							throw new Error('No credentials found for account');
+						}
+
+						// Extract credentials from response
+						const { email, password } = data[0];
+						
+						if (!email || !password) {
+							throw new Error('Incomplete credentials received from server');
+						}
+
+						// Show success toast for credentials fetch
+						const successNotification = document.createElement('div');
+						successNotification.className = 'fixed top-4 right-4 bg-green-600 text-white p-3 rounded shadow-lg z-50';
+						successNotification.textContent = `Retrieved credentials for ${accountName}`;
+						document.body.appendChild(successNotification);
+						setTimeout(() => successNotification.remove(), 3000);
+
+						// Construct login command matching the expected JSON format
+						const loginCommand = {
+							channel: "default",
+							content: {
+								command: "login",
+								username: email,
+								password: password,
+								bankpin: "0000", // Default bank pin
+								world: world.toString()
+							}
+						};
+
+						console.log(`Sending login command for ${accountName} to world ${world}`);
+						
+						// Use the existing sendCommand logic by checking WebSocket state like sendCommand does
+						if (window.ws && window.ws.readyState === WebSocket.OPEN) {
+							// Add Droid integration flag if KBVE is available (like sendCommand does)
+							if (window.kbve && !loginCommand.type) {
+								loginCommand.type = 'kbve_command';
+								loginCommand.timestamp = Date.now();
+							}
+							
+							window.ws.send(JSON.stringify(loginCommand));
+							console.log(`Login command sent successfully for ${accountName}`, loginCommand);
+						} else {
+							throw new Error('WebSocket is not open. Current state: ' + (window.ws ? window.ws.readyState : 'WebSocket not initialized'));
+						}
+						
+					} catch (error) {
+						console.error(`Failed to login account ${accountName}:`, error);
+						throw error;
+					}
+				},
+
+				// Sync account state with Supabase using proper RPC
+				async syncAccountStateWithSupabase(accountName, state) {
+					if (!window.supabase || !window.AuthStateManager.isUserAuthenticated()) {
+						console.warn('Cannot sync state with Supabase: not authenticated');
+						
+						// Mark state as needing sync when connection is restored
+						const states = this.getAccountStates();
+						const accounts = this.getStoredAccounts();
+						const account = accounts.find(acc => acc.account_name === accountName);
+						
+						if (account && states[account.id]) {
+							states[account.id].needsSync = true;
+							this.saveAccountStates(states);
+						}
+						
+						return;
+					}
+
+					try {
+						console.log(`Syncing ${accountName} state to ${state} via RPC...`);
+						
+						// Use the proper RPC function to update account state
+						const { error } = await window.supabase.rpc('update_osrs_account_state', {
+							p_account_name: accountName,
+							p_state: state
+						});
+
+						if (error) {
+							console.error('RPC state update failed:', error);
+							
+							// Mark for retry
+							const states = this.getAccountStates();
+							const accounts = this.getStoredAccounts();
+							const account = accounts.find(acc => acc.account_name === accountName);
+							
+							if (account && states[account.id]) {
+								states[account.id].needsSync = true;
+								this.saveAccountStates(states);
+							}
+							
+							throw error;
+						} else {
+							console.log(`State synced successfully via RPC: ${accountName} -> ${state}`);
+							
+							// Mark as synced
+							const states = this.getAccountStates();
+							const accounts = this.getStoredAccounts();
+							const account = accounts.find(acc => acc.account_name === accountName);
+							
+							if (account && states[account.id]) {
+								states[account.id].needsSync = false;
+								this.saveAccountStates(states);
+							}
+						}
+					} catch (error) {
+						console.error('Failed to sync state with Supabase:', error);
+						
+						// Mark for retry
+						const states = this.getAccountStates();
+						const accounts = this.getStoredAccounts();
+						const account = accounts.find(acc => acc.account_name === accountName);
+						
+						if (account && states[account.id]) {
+							states[account.id].needsSync = true;
+							this.saveAccountStates(states);
+						}
+						
+						// Re-throw to allow calling function to handle the error
+						throw error;
+					}
+				},
+
+				// Load accounts from Supabase using list_osrs_accounts RPC
+				async refreshAccountsFromSupabase() {
+					if (!window.supabase || !window.AuthStateManager.isUserAuthenticated()) {
+						console.warn('Cannot load from Supabase: not authenticated');
+						this.loadAccounts(); // Load from localStorage only
+						return;
+					}
+
+					try {
+						console.log('Refreshing accounts from Supabase...');
+						
+						// Use the list_osrs_accounts RPC
+						const { data, error } = await window.supabase.rpc('list_osrs_accounts');
+
+						if (error) {
+							console.error('Failed to load accounts from Supabase:', error);
+							this.loadAccounts(); // Fallback to localStorage
+							return;
+						}
+
+						if (data && data.length > 0) {
+							console.log(`Retrieved ${data.length} accounts from Supabase`);
+							
+							// Convert Supabase data to local format using proper schema
+							const supabaseAccounts = data.map(acc => ({
+								id: acc.id || acc.account_name, // Use proper ID from schema
+								account_name: acc.account_name,
+								state: acc.state || 'offline',
+								world: acc.world,
+								p2p: acc.p2p || false,
+								created_at: acc.created_at,
+								updated_at: acc.updated_at || acc.created_at
+							}));
+
+							// Save to local storage
+							this.saveAccounts(supabaseAccounts);
+
+							// Merge states: prioritize Supabase data but preserve recent local changes
+							const localStates = this.getAccountStates();
+							const mergedStates = {};
+							
+							data.forEach(acc => {
+								const accountId = acc.id || acc.account_name;
+								const localState = localStates[accountId];
+								const supabaseUpdated = new Date(acc.updated_at || acc.created_at);
+								const localUpdated = localState?.lastStateChange ? new Date(localState.lastStateChange) : new Date(0);
+								
+								// Use Supabase state if it's newer, otherwise keep local state
+								if (supabaseUpdated >= localUpdated) {
+									mergedStates[accountId] = {
+										state: acc.state || 'offline',
+										lastStateChange: acc.updated_at || new Date().toISOString()
+									};
+								} else {
+									// Keep local state but log the conflict
+									mergedStates[accountId] = localState;
+									console.log(`State conflict for ${acc.account_name}: keeping local state '${localState.state}' (local: ${localState.lastStateChange}, server: ${acc.updated_at})`);
+								}
+							});
+							
+							this.saveAccountStates(mergedStates);
+							console.log('Successfully synchronized account states with Supabase');
+						} else {
+							console.log('No accounts found in Supabase, using local data only');
+						}
+
+						this.loadAccounts(); // Render the updated accounts
+					} catch (error) {
+						console.error('Error loading accounts from Supabase:', error);
+						this.loadAccounts(); // Fallback to localStorage
+					}
+				},
+
+				// Load and render accounts
+				loadAccounts() {
+					const accounts = this.getStoredAccounts();
+					this.renderAccounts();
+					this.updateStats();
+				},
+
+				// Render accounts in the grid using proper schema
+				renderAccounts() {
+					const accounts = this.getStoredAccounts();
+					const states = this.getAccountStates();
+					
+					const loadingDiv = document.getElementById('accountsLoading');
+					const emptyDiv = document.getElementById('accountsEmpty');
+					const gridDiv = document.getElementById('accountsGrid');
+
+					loadingDiv.classList.add('hidden');
+
+					if (accounts.length === 0) {
+						emptyDiv.classList.remove('hidden');
+						gridDiv.classList.add('hidden');
+						return;
+					}
+
+					emptyDiv.classList.add('hidden');
+					gridDiv.classList.remove('hidden');
+
+					gridDiv.innerHTML = accounts.map(account => {
+						const state = states[account.id] || { state: 'offline' };
+						const currentState = state.state || 'offline';
+						const needsSync = state.needsSync || false;
+						
+						// State display configuration matching schema
+						const stateConfig = {
+							'offline': { label: 'Offline', color: 'text-gray-400', buttonColor: 'bg-green-600 hover:bg-green-700', buttonText: 'Login' },
+							'active': { label: 'Active', color: 'text-green-500', buttonColor: 'bg-red-600 hover:bg-red-700', buttonText: 'Logout' },
+							'banned': { label: 'Banned', color: 'text-red-500', buttonColor: 'bg-gray-600', buttonText: 'Banned' },
+							'error': { label: 'Error', color: 'text-yellow-500', buttonColor: 'bg-orange-600 hover:bg-orange-700', buttonText: 'Reset' }
+						};
+
+						const config = stateConfig[currentState] || stateConfig['offline'];
+						const worldText = account.world ? `World ${account.world}` : 'No world';
+						const membershipText = account.p2p ? 'P2P' : 'F2P';
+						
+						// Sync status indicator
+						const syncIndicator = needsSync 
+							? '<span class="text-orange-400 text-xs" title="Pending sync">⚡</span>' 
+							: '<span class="text-green-400 text-xs" title="Synced">✓</span>';
+
+						return `
+							<div class="bg-dark border border-zinc-600 p-4 rounded-lg">
+								<div class="flex justify-between items-start mb-3">
+									<div>
+										<h4 class="font-semibold text-white flex items-center gap-2">
+											${account.account_name} ${syncIndicator}
+										</h4>
+										<p class="text-sm text-gray-400">${worldText} • ${membershipText}</p>
+									</div>
+									<div class="text-right">
+										<div class="text-sm ${config.color} font-medium">${config.label}</div>
+										<div class="text-xs text-gray-500">${state.lastStateChange ? new Date(state.lastStateChange).toLocaleDateString() : 'Never'}</div>
+									</div>
+								</div>
+								
+								<div class="flex gap-2">
+									<button 
+										class="flex-1 px-3 py-2 ${config.buttonColor} text-white rounded-lg transition-all text-sm ${currentState === 'banned' ? 'cursor-not-allowed opacity-75' : ''}"
+										onclick="window.OSRSAccountManager.toggleAccountState('${account.id}')"
+										${currentState === 'banned' ? 'disabled' : ''}>
+										${config.buttonText}
+									</button>
+									<button 
+										class="px-3 py-2 bg-zinc-700 hover:bg-zinc-600 text-white rounded-lg transition-all text-sm"
+										onclick="window.OSRSAccountManager.editAccount('${account.id}')">
+										Edit
+									</button>
+								</div>
+							</div>
+						`;
+					}).join('');
+				},
+
+				// Update stats display using proper schema states
+				updateStats() {
+					const accounts = this.getStoredAccounts();
+					const states = this.getAccountStates();
+					
+					const totalAccounts = accounts.length;
+					const activeAccounts = accounts.filter(acc => {
+						const state = states[acc.id]?.state || 'offline';
+						return state === 'active';
+					}).length;
+
+					document.getElementById('totalAccounts').textContent = totalAccounts;
+					document.getElementById('onlineAccounts').textContent = activeAccounts;
+				},
+
+				// Login all offline accounts using proper schema states
+				async loginAllOfflineAccounts() {
+					const accounts = this.getStoredAccounts();
+					const states = this.getAccountStates();
+					
+					const offlineAccounts = accounts.filter(acc => {
+						const state = states[acc.id]?.state || 'offline';
+						return state === 'offline';
+					});
+					
+					if (offlineAccounts.length === 0) {
+						alert('All accounts are already active or cannot be logged in!');
+						return;
+					}
+
+					if (!confirm(`Login ${offlineAccounts.length} offline accounts?`)) {
+						return;
+					}
+
+					for (const account of offlineAccounts) {
+						try {
+							await this.toggleAccountState(account.id);
+							// Small delay between logins
+							await new Promise(resolve => setTimeout(resolve, 500));
+						} catch (error) {
+							console.error(`Failed to login account ${account.account_name}:`, error);
+						}
+					}
+				},
+
+				// Logout all active accounts using proper schema states
+				async logoutAllOnlineAccounts() {
+					const accounts = this.getStoredAccounts();
+					const states = this.getAccountStates();
+					
+					const activeAccounts = accounts.filter(acc => {
+						const state = states[acc.id]?.state || 'offline';
+						return state === 'active';
+					});
+					
+					if (activeAccounts.length === 0) {
+						alert('All accounts are already offline!');
+						return;
+					}
+
+					if (!confirm(`Logout ${activeAccounts.length} active accounts?`)) {
+						return;
+					}
+
+					for (const account of activeAccounts) {
+						try {
+							await this.toggleAccountState(account.id);
+							// Small delay between logouts
+							await new Promise(resolve => setTimeout(resolve, 500));
+						} catch (error) {
+							console.error(`Failed to logout account ${account.account_name}:`, error);
+						}
+					}
+				},
+
+				// Edit account (placeholder - could open a modal)
+				editAccount(accountId) {
+					const accounts = this.getStoredAccounts();
+					const account = accounts.find(acc => acc.id === accountId);
+					
+					if (!account) return;
+
+					// For now, just show account info
+					alert(`Edit ${account.displayName} (${account.username})\n\nEdit functionality coming soon!`);
+				}
+			};
+
+			// Modal functions for adding accounts
+			function openAddAccountModal() {
+				document.getElementById('addAccountModal').classList.remove('hidden');
+			}
+
+			function closeAddAccountModal() {
+				document.getElementById('addAccountModal').classList.add('hidden');
+				document.getElementById('addAccountForm').reset();
+				document.getElementById('addAccountStatus').textContent = '';
+			}
+
+			async function handleAddAccount(event) {
+				event.preventDefault();
+				
+				const accountName = document.getElementById('accountName').value.trim();
+				const email = document.getElementById('accountEmail').value.trim();
+				const password = document.getElementById('accountPassword').value;
+				const world = document.getElementById('accountWorld').value ? parseInt(document.getElementById('accountWorld').value) : null;
+				const p2p = document.getElementById('accountP2P').checked;
+				const statusDiv = document.getElementById('addAccountStatus');
+
+				// Validate required fields
+				if (!accountName || !email || !password) {
+					statusDiv.className = 'mt-4 text-center text-sm text-red-600';
+					statusDiv.textContent = 'Account name, email, and password are required';
+					return;
+				}
+
+				// Validate account name format
+				if (!/^[a-z0-9_]{3,64}$/.test(accountName)) {
+					statusDiv.className = 'mt-4 text-center text-sm text-red-600';
+					statusDiv.textContent = 'Account name must be 3-64 characters, lowercase letters, numbers, and underscores only';
+					return;
+				}
+
+				// Validate password length
+				if (password.length < 8 || password.length > 128) {
+					statusDiv.className = 'mt-4 text-center text-sm text-red-600';
+					statusDiv.textContent = 'Password must be 8-128 characters long';
+					return;
+				}
+
+				try {
+					statusDiv.className = 'mt-4 text-center text-sm text-blue-600';
+					statusDiv.textContent = 'Creating account...';
+
+					await window.OSRSAccountManager.addAccount(accountName, email, password, world, p2p);
+					
+					statusDiv.className = 'mt-4 text-center text-sm text-green-600';
+					statusDiv.textContent = 'Account created successfully!';
+					
+					// Close modal after success
+					setTimeout(() => {
+						closeAddAccountModal();
+						window.OSRSAccountManager.loadAccounts();
+					}, 1500);
+
+				} catch (error) {
+					console.error('Error creating account:', error);
+					statusDiv.className = 'mt-4 text-center text-sm text-red-600';
+					statusDiv.textContent = error.message || 'Failed to create account';
+				}
+			}
+
+			// Quick action functions
+			function refreshAccountsFromSupabase() {
+				window.OSRSAccountManager.refreshAccountsFromSupabase();
+			}
+
+			function loginAllOfflineAccounts() {
+				window.OSRSAccountManager.loginAllOfflineAccounts();
+			}
+
+			function logoutAllOnlineAccounts() {
+				window.OSRSAccountManager.logoutAllOnlineAccounts();
+			}
+
+			// Initialize OSRS Account Management when auth state changes
+			document.addEventListener('DOMContentLoaded', function() {
+				// Initialize after auth state is loaded
+				setTimeout(() => {
+					window.OSRSAccountManager.init();
+				}, 1000);
+			});
+
+			// Also initialize when user logs in/out
+			if (window.supabase) {
+				window.supabase.auth.onAuthStateChange((event, session) => {
+					if (event === 'SIGNED_IN' && session?.user) {
+						// User signed in, initialize OSRS management
+						setTimeout(() => {
+							window.OSRSAccountManager.init();
+						}, 500);
+					} else if (event === 'SIGNED_OUT') {
+						// User signed out, stop sync and hide OSRS section
+						window.OSRSAccountManager.stopPeriodicSync();
+						document.getElementById('osrsAccountSection').style.display = 'none';
+					}
+				});
+			}
+		</script>
+
+		<script>
+						// Droid Integration Functions
 			function testDroid() {
 				const statusDiv = document.getElementById('droidStatus');
 				try {
@@ -730,11 +1784,14 @@
 						const currentUser = window.AuthStateManager.getCurrentUser();
 						statusDiv.innerHTML = `
 							<div class="text-green-600">✓ Supabase connected & authenticated</div>
-							<div class="text-xs mt-1">Loading user profile...</div>
+							<div class="text-xs mt-1">User: ${currentUser.email || 'Unknown'}</div>
 						`;
 						
-						// Load user profile and balance
-						loadUserProfileTest(currentUser);
+						// Load user profile only if not already loaded in this session
+						if (!window.profileLoadedThisSession) {
+							loadUserProfileTest(currentUser);
+							window.profileLoadedThisSession = true;
+						}
 						
 					} else if (window.supabase) {
 						statusDiv.innerHTML = `
@@ -1238,8 +2295,8 @@
 					const { error } = await window.supabase.auth.signOut();
 					if (error) throw error;
 					
-					// Use AuthStateManager to clear all auth state
-					window.AuthStateManager.clearAuthState();
+					// Use AuthStateManager to clear all localStorage after logout
+					window.AuthStateManager.clearAllLocalStorage();
 					
 					// Close profile modal
 					closeProfileModal();
@@ -1248,6 +2305,9 @@
 				} catch (error) {
 					console.error('Error signing out:', error);
 					updateProfileStatus('Error signing out: ' + error.message, 'error');
+					
+					// Even if Supabase signOut fails, clear localStorage to ensure clean state
+					window.AuthStateManager.clearAllLocalStorage();
 				}
 			}
 
@@ -1346,34 +2406,26 @@
 						testDroid();
 					}
 					
-					// Check hCaptcha
-					if (typeof hcaptcha !== 'undefined') {
-						testHCaptcha();
-					}
-					
 					// If all systems are loaded, reduce checking frequency
 					const supabaseLoaded = window.supabase !== undefined;
 					const kbveLoaded = window.kbve !== undefined;
-					const hcaptchaLoaded = typeof hcaptcha !== 'undefined';
 					
-					if (supabaseLoaded && kbveLoaded && hcaptchaLoaded) {
+					if (supabaseLoaded && kbveLoaded) {
 						clearInterval(checkSystemStatus);
 						console.log('All systems loaded, stopping status checks');
 					}
-				}, 1000); // Check every 1 second for more stable loading
+				}, 2000); // Check every 2 seconds for less frequent polling
 				
 				// Stop checking after 15 seconds regardless
 				setTimeout(() => {
 					clearInterval(checkSystemStatus);
 					testSupabase(); // Final checks
 					testDroid();
-					testHCaptcha();
 				}, 15000);
 				
-				// Initial tests after short delays
+				// Initial tests after short delays (only once)
 				setTimeout(testSupabase, 500);
 				setTimeout(testDroid, 1000);
-				setTimeout(testHCaptcha, 1500);
 			});
 
 			// Check for existing wallet connection
@@ -1568,6 +2620,8 @@
 			let ws;
 			try {
 				ws = new WebSocket(wsUrl);
+				// Make WebSocket available globally for other functions
+				window.ws = ws;
 			} catch (error) {
 				console.error('Failed to create WebSocket:', error);
 			}
