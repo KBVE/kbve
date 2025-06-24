@@ -1,7 +1,14 @@
 ---
 import Layouts from "src/layouts/core/Layouts.astro";
-
+import Hero from "src/components/sections/Hero.astro";
+import MemeDiscovery from "src/components/memes/MemeDiscovery.astro";
+import TrendingSection from "src/components/sections/TrendingSection.astro";
+import CommunityStats from "src/components/sections/CommunityStats.astro";
 ---
-<Layouts title="Meme.sh - Meme Website">
-Meme Sh
+
+<Layouts title="Meme.sh - Discover the Best Memes">
+  <Hero />
+  <MemeDiscovery />
+  <TrendingSection />
+  <CommunityStats />
 </Layouts>

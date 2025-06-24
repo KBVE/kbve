@@ -1,0 +1,346 @@
+---
+// Trending Section with skeleton loader
+---
+
+<section class="py-20 bg-zinc-900/50 relative">
+    <!-- Trending Skeleton Loader -->
+    <div id="trending-skeleton-loader" class="transition-opacity duration-500 ease-out">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <!-- Header Skeleton -->
+            <div class="text-center mb-16">
+                <div class="w-80 h-10 bg-zinc-700/60 rounded animate-pulse mx-auto mb-4"></div>
+                <div class="w-64 h-6 bg-zinc-700/60 rounded animate-pulse mx-auto"></div>
+            </div>
+            
+            <!-- Grid Skeleton -->
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <div class="bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4]">
+                    <div class="w-full h-3/4 bg-zinc-700/60 animate-pulse"></div>
+                    <div class="p-4">
+                        <div class="w-3/4 h-4 bg-zinc-700/60 rounded animate-pulse mb-2"></div>
+                        <div class="w-1/2 h-3 bg-zinc-700/60 rounded animate-pulse"></div>
+                    </div>
+                </div>
+                <div class="bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4]">
+                    <div class="w-full h-3/4 bg-zinc-700/60 animate-pulse"></div>
+                    <div class="p-4">
+                        <div class="w-3/4 h-4 bg-zinc-700/60 rounded animate-pulse mb-2"></div>
+                        <div class="w-1/2 h-3 bg-zinc-700/60 rounded animate-pulse"></div>
+                    </div>
+                </div>
+                <div class="bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4]">
+                    <div class="w-full h-3/4 bg-zinc-700/60 animate-pulse"></div>
+                    <div class="p-4">
+                        <div class="w-3/4 h-4 bg-zinc-700/60 rounded animate-pulse mb-2"></div>
+                        <div class="w-1/2 h-3 bg-zinc-700/60 rounded animate-pulse"></div>
+                    </div>
+                </div>
+                <div class="bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4]">
+                    <div class="w-full h-3/4 bg-zinc-700/60 animate-pulse"></div>
+                    <div class="p-4">
+                        <div class="w-3/4 h-4 bg-zinc-700/60 rounded animate-pulse mb-2"></div>
+                        <div class="w-1/2 h-3 bg-zinc-700/60 rounded animate-pulse"></div>
+                    </div>
+                </div>
+                <div class="bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4]">
+                    <div class="w-full h-3/4 bg-zinc-700/60 animate-pulse"></div>
+                    <div class="p-4">
+                        <div class="w-3/4 h-4 bg-zinc-700/60 rounded animate-pulse mb-2"></div>
+                        <div class="w-1/2 h-3 bg-zinc-700/60 rounded animate-pulse"></div>
+                    </div>
+                </div>
+                <div class="bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4]">
+                    <div class="w-full h-3/4 bg-zinc-700/60 animate-pulse"></div>
+                    <div class="p-4">
+                        <div class="w-3/4 h-4 bg-zinc-700/60 rounded animate-pulse mb-2"></div>
+                        <div class="w-1/2 h-3 bg-zinc-700/60 rounded animate-pulse"></div>
+                    </div>
+                </div>
+                <div class="bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4]">
+                    <div class="w-full h-3/4 bg-zinc-700/60 animate-pulse"></div>
+                    <div class="p-4">
+                        <div class="w-3/4 h-4 bg-zinc-700/60 rounded animate-pulse mb-2"></div>
+                        <div class="w-1/2 h-3 bg-zinc-700/60 rounded animate-pulse"></div>
+                    </div>
+                </div>
+                <div class="bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4]">
+                    <div class="w-full h-3/4 bg-zinc-700/60 animate-pulse"></div>
+                    <div class="p-4">
+                        <div class="w-3/4 h-4 bg-zinc-700/60 rounded animate-pulse mb-2"></div>
+                        <div class="w-1/2 h-3 bg-zinc-700/60 rounded animate-pulse"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Actual Trending Content -->
+    <div id="trending-content" class="opacity-0 transition-opacity duration-500 ease-in">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="text-center mb-16">
+                <h2 class="text-3xl md:text-4xl font-bold text-white mb-4">
+                    Trending This Week
+                </h2>
+                <p class="text-neutral-400 text-lg">
+                    The memes everyone's talking about
+                </p>
+            </div>
+            
+            <!-- Trending Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Card 1 -->
+                <div class="group bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4] hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/10">
+                    <div class="relative h-3/4">
+                        <img src="https://picsum.photos/300/400?random=20" alt="Trending meme" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            #1
+                        </div>
+                        <div class="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="flex space-x-2">
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-emerald-500/50 transition-colors duration-300">
+                                    ❤️
+                                </button>
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-blue-500/50 transition-colors duration-300">
+                                    💬
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-white mb-2 line-clamp-2">When the coffee hits just right</h3>
+                        <div class="flex items-center justify-between text-sm text-neutral-400">
+                            <span>🔥 25.6K likes</span>
+                            <span>@coffee_memes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 2 -->
+                <div class="group bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4] hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/10">
+                    <div class="relative h-3/4">
+                        <img src="https://picsum.photos/300/400?random=21" alt="Trending meme" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            #2
+                        </div>
+                        <div class="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="flex space-x-2">
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-emerald-500/50 transition-colors duration-300">
+                                    ❤️
+                                </button>
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-blue-500/50 transition-colors duration-300">
+                                    💬
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-white mb-2 line-clamp-2">Debugging at 3 AM be like</h3>
+                        <div class="flex items-center justify-between text-sm text-neutral-400">
+                            <span>🔥 18.9K likes</span>
+                            <span>@dev_humor</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 3 -->
+                <div class="group bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4] hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/10">
+                    <div class="relative h-3/4">
+                        <img src="https://picsum.photos/300/400?random=22" alt="Trending meme" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            #3
+                        </div>
+                        <div class="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="flex space-x-2">
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-emerald-500/50 transition-colors duration-300">
+                                    ❤️
+                                </button>
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-blue-500/50 transition-colors duration-300">
+                                    💬
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-white mb-2 line-clamp-2">AI trying to understand humans</h3>
+                        <div class="flex items-center justify-between text-sm text-neutral-400">
+                            <span>🔥 15.2K likes</span>
+                            <span>@ai_comedy</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Card 4 -->
+                <div class="group bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4] hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/10">
+                    <div class="relative h-3/4">
+                        <img src="https://picsum.photos/300/400?random=23" alt="Trending meme" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            #4
+                        </div>
+                        <div class="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="flex space-x-2">
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-emerald-500/50 transition-colors duration-300">
+                                    ❤️
+                                </button>
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-blue-500/50 transition-colors duration-300">
+                                    💬
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-white mb-2 line-clamp-2">Me explaining why I need 47 tabs open</h3>
+                        <div class="flex items-center justify-between text-sm text-neutral-400">
+                            <span>🔥 12.7K likes</span>
+                            <span>@productivity_fail</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Additional cards -->
+                <div class="group bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4] hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/10">
+                    <div class="relative h-3/4">
+                        <img src="https://picsum.photos/300/400?random=24" alt="Trending meme" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            #5
+                        </div>
+                        <div class="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="flex space-x-2">
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-emerald-500/50 transition-colors duration-300">
+                                    ❤️
+                                </button>
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-blue-500/50 transition-colors duration-300">
+                                    💬
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-white mb-2 line-clamp-2">Weekend plans vs Reality</h3>
+                        <div class="flex items-center justify-between text-sm text-neutral-400">
+                            <span>🔥 10.4K likes</span>
+                            <span>@weekend_vibes</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4] hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/10">
+                    <div class="relative h-3/4">
+                        <img src="https://picsum.photos/300/400?random=25" alt="Trending meme" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            #6
+                        </div>
+                        <div class="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="flex space-x-2">
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-emerald-500/50 transition-colors duration-300">
+                                    ❤️
+                                </button>
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-blue-500/50 transition-colors duration-300">
+                                    💬
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-white mb-2 line-clamp-2">Dogs discovering snow for first time</h3>
+                        <div class="flex items-center justify-between text-sm text-neutral-400">
+                            <span>🔥 9.1K likes</span>
+                            <span>@puppy_love</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4] hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/10">
+                    <div class="relative h-3/4">
+                        <img src="https://picsum.photos/300/400?random=26" alt="Trending meme" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            #7
+                        </div>
+                        <div class="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="flex space-x-2">
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-emerald-500/50 transition-colors duration-300">
+                                    ❤️
+                                </button>
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-blue-500/50 transition-colors duration-300">
+                                    💬
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-white mb-2 line-clamp-2">Trying to adult responsibly</h3>
+                        <div class="flex items-center justify-between text-sm text-neutral-400">
+                            <span>🔥 8.3K likes</span>
+                            <span>@adulting_hard</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="group bg-zinc-900 border border-zinc-700 rounded-2xl overflow-hidden aspect-[3/4] hover:border-emerald-500/50 transition-all duration-300 hover:scale-105 hover:shadow-xl hover:shadow-emerald-500/10">
+                    <div class="relative h-3/4">
+                        <img src="https://picsum.photos/300/400?random=27" alt="Trending meme" class="w-full h-full object-cover">
+                        <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                        <div class="absolute top-2 right-2 bg-emerald-500 text-white text-xs px-2 py-1 rounded-full font-medium">
+                            #8
+                        </div>
+                        <div class="absolute bottom-2 left-2 right-2 opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                            <div class="flex space-x-2">
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-emerald-500/50 transition-colors duration-300">
+                                    ❤️
+                                </button>
+                                <button class="p-2 bg-black/50 backdrop-blur-sm text-white rounded-full hover:bg-blue-500/50 transition-colors duration-300">
+                                    💬
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="p-4">
+                        <h3 class="font-semibold text-white mb-2 line-clamp-2">When the WiFi goes down for 2 seconds</h3>
+                        <div class="flex items-center justify-between text-sm text-neutral-400">
+                            <span>🔥 7.6K likes</span>
+                            <span>@tech_struggles</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<script>
+    // Trending section fade-in logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const skeleton = document.getElementById('trending-skeleton-loader');
+        const content = document.getElementById('trending-content');
+        
+        // Use intersection observer for better performance
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => {
+                if (entry.isIntersecting) {
+                    setTimeout(() => {
+                        if (skeleton && content) {
+                            skeleton.style.opacity = '0';
+                            content.style.opacity = '1';
+                            
+                            setTimeout(() => {
+                                skeleton.remove();
+                            }, 500);
+                        }
+                    }, 400);
+                    
+                    observer.unobserve(entry.target);
+                }
+            });
+        }, { threshold: 0.1 });
+
+        if (skeleton) {
+            observer.observe(skeleton);
+        }
+    });
+</script>
