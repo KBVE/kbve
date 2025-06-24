@@ -48,6 +48,23 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
       }
     });
 
+    // Signal that the navigation has fully mounted
+    const skeleton = document.getElementById('nav-skeleton-loader');
+    const content = document.getElementById('nav-content');
+    
+    if (skeleton && content) {
+      // Small delay to ensure React has fully rendered
+      setTimeout(() => {
+        skeleton.style.opacity = '0';
+        content.style.opacity = '1';
+        
+        // Remove skeleton from DOM after fade completes
+        setTimeout(() => {
+          skeleton.remove();
+        }, 500);
+      }, 50);
+    }
+
     return () => subscription.unsubscribe();
   }, []);
 
