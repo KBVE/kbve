@@ -47,7 +47,7 @@ on:
       astro_kbve:
         description: "KBVE.com changed"
         value: ${{ jobs.alter.outputs.astro_kbve }}
-      astro_meme:
+      astro_memes:
         description: "Astro Meme.sh changed"
         value: ${{ jobs.alter.outputs.astro_memes }}
       astro_herbmail:
