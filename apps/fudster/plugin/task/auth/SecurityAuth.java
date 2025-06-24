@@ -89,8 +89,12 @@ public class SecurityAuth {
             initializeSecuritySettings();
         }
 
-        Rs2Antiban.setActivity(activity);
-        log.debug("[SecurityAuth] Activity set to: {}", activity);
+        try {
+            Rs2Antiban.setActivity(activity);
+            log.debug("[SecurityAuth] Activity set to: {}", activity);
+        } catch (Exception e) {
+            log.warn("[SecurityAuth] Failed to set activity {}: {}", activity, e.getMessage());
+        }
     }
 
     /**
@@ -100,11 +104,13 @@ public class SecurityAuth {
                                               int minPlayTime, int maxPlayTime) {
         Rs2AntibanSettings.microBreakDurationLow = minBreakTime;
         Rs2AntibanSettings.microBreakDurationHigh = maxBreakTime;
-        Rs2AntibanSettings.playTimeThresholdLow = minPlayTime;
-        Rs2AntibanSettings.playTimeThresholdHigh = maxPlayTime;
+        // Note: playTimeThresholdLow and playTimeThresholdHigh are not available in Rs2AntibanSettings
+        // These would need to be handled differently if play time thresholds are required
 
-        log.info("[SecurityAuth] Break settings configured - Break: {}-{}min, Play: {}-{}min",
-                minBreakTime, maxBreakTime, minPlayTime, maxPlayTime);
+        log.info("[SecurityAuth] Break settings configured - Break: {}-{}min (Play time thresholds not supported)",
+                minBreakTime, maxBreakTime);
+        log.debug("[SecurityAuth] Requested play time thresholds: {}-{}min (not implemented)", 
+                minPlayTime, maxPlayTime);
     }
 
     /**
@@ -150,7 +156,7 @@ public class SecurityAuth {
          */
         public static void forCombat() {
             initializeSecuritySettings();
-            setActivity(Activity.FIGHTING);
+            // setActivity(Activity.FIGHTING); // FIGHTING enum value not available
             configureBreakSettings(2, 5, 15, 45);
             log.info("[SecurityAuth] Quick setup: Combat configuration applied");
         }
@@ -160,7 +166,7 @@ public class SecurityAuth {
          */
         public static void forSkilling() {
             initializeSecuritySettings();
-            setActivity(Activity.GENERAL_AFKING);
+            // setActivity(Activity.GENERAL_AFKING); // GENERAL_AFKING enum value not available
             configureBreakSettings(3, 8, 20, 60);
             log.info("[SecurityAuth] Quick setup: Skilling configuration applied");
         }
@@ -170,7 +176,7 @@ public class SecurityAuth {
          */
         public static void forAfk() {
             initializeSecuritySettings();
-            setActivity(Activity.GENERAL_AFKING);
+            // setActivity(Activity.GENERAL_AFKING); // GENERAL_AFKING enum value not available
             configureBreakSettings(5, 15, 30, 90);
             log.info("[SecurityAuth] Quick setup: AFK configuration applied");
         }
@@ -180,7 +186,7 @@ public class SecurityAuth {
          */
         public static void forTrading() {
             initializeSecuritySettings();
-            setActivity(Activity.GENERAL_BANKING);
+            // setActivity(Activity.GENERAL_BANKING); // GENERAL_BANKING enum value not available
             configureBreakSettings(1, 3, 10, 30);
             log.info("[SecurityAuth] Quick setup: Trading configuration applied");
         }

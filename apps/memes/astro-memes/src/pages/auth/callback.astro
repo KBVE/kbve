@@ -1,0 +1,41 @@
+---
+import { Callback as AuthCallback } from '../../layouts/core/auth/Callback.tsx';
+
+// Get redirect destination from URL params if needed
+const redirectParam = Astro.url.searchParams.get('redirect');
+const redirectTo = redirectParam || '/';
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Authentication Callback - Meme.sh</title>
+    <meta name="description" content="Processing your authentication..." />
+    
+    <!-- Prevent indexing of auth pages -->
+    <meta name="robots" content="noindex, nofollow" />
+    
+    <!-- Import Tailwind for styling -->
+    <link rel="stylesheet" href="/src/styles/global.css" />
+    
+    <style>
+      /* Inline critical CSS for instant loading */
+      body {
+        margin: 0;
+        font-family: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif;
+        background: linear-gradient(135deg, #18181b 0%, #27272a 50%, #064e3b 100%);
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+    </style>
+  </head>
+  
+  <body>
+    <!-- React component with client-only rendering -->
+    <AuthCallback client:only="react" redirectTo={redirectTo} />
+  </body>
+</html>
