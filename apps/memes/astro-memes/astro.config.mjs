@@ -113,10 +113,7 @@ export default defineConfig({
         //alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
         //partytown(),
         worker(),
-        react({
-            experimentalReactChildren: true,
-            experimentalDisableStreaming: true,
-        }),
+        react(),
         svelte(),
 
         AstroPWA({
