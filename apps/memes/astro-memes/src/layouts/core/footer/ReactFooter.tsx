@@ -163,7 +163,15 @@ export const ReactFooter: React.FC<ReactFooterProps> = ({ className }) => {
             <div className="flex items-center space-x-2 text-neutral-400 text-sm mb-4 md:mb-0">
               <span>© 2025 Meme.sh. Made with</span>
               <Heart size={16} className="text-red-400 animate-pulse" />
-              <span>by the KBVE team</span>
+              <span>by the</span>
+              <a 
+                href="https://kbve.com/" 
+                target="_blank" 
+                rel="noopener"
+                className="text-emerald-400 hover:text-emerald-300 transition-colors duration-300 hover:underline font-medium"
+              >
+                KBVE team
+              </a>
             </div>
             
             <div className="flex flex-wrap justify-center md:justify-end space-x-6">
