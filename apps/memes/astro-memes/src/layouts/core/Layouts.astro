@@ -5,6 +5,7 @@ import Meta from 'src/layouts/core/Meta.astro';
 import Nav from 'src/layouts/core/navbar/Nav.astro';
 import Foot from 'src/layouts/core/footer/Footer.astro';
 import ProgressBar from 'src/layouts/core/progress/ProgressBar.astro';
+import OnboardingModalReact from 'src/components/ui/OnboardingModalReact.astro';
 
 const {
 	title = SITE.title,
@@ -14,6 +15,7 @@ const {
 	Nav: showNav = true,
 	Footer = true,
 	ProgressBar: showProgressBar = true,
+	Onboarding: showOnboarding = true,
 } = Astro.props;
 
 interface Props {
@@ -24,6 +26,7 @@ interface Props {
 	Nav?: boolean;
 	Footer?: boolean;
 	ProgressBar?: boolean;
+	Onboarding?: boolean;
 }
 
 import '../../styles/global.css';
@@ -48,6 +51,7 @@ import '../../styles/global.css';
             <slot />
         </main>
         {Footer && <Foot />}
+        {showOnboarding && <OnboardingModalReact />}
     </body>
 		
     </html>
