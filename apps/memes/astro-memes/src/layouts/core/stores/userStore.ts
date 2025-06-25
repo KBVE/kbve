@@ -70,16 +70,37 @@ export interface UserProfile {
   last_sign_in_at?: string;
 }
 
-// Authentication state
-export const isAuthenticated = atom<boolean>(false);
+// Authentication state (persistent)
+export const isAuthenticated = persistentAtom<boolean>(
+  'user-authenticated', 
+  false,
+  {
+    encode: (value) => String(value),
+    decode: (value) => value === 'true',
+  }
+);
 export const isLoading = atom<boolean>(false);
 export const authError = atom<string | null>(null);
 
-// User session
-export const userSession = atom<Session | null>(null);
+// User session (persistent)
+export const userSession = persistentAtom<Session | null>(
+  'user-session', 
+  null,
+  {
+    encode: JSON.stringify,
+    decode: (value) => value ? JSON.parse(value) : null,
+  }
+);
 
-// Enhanced user profile with all data
-export const userProfile = atom<UserProfile | null>(null);
+// Enhanced user profile with all data (persistent)
+export const userProfile = persistentAtom<UserProfile | null>(
+  'user-profile',
+  null,
+  {
+    encode: JSON.stringify,
+    decode: (value) => value ? JSON.parse(value) : null,
+  }
+);
 
 // User preferences (persistent)
 export const userPreferences = persistentAtom<UserProfile['preferences']>(
@@ -473,15 +494,102 @@ export const userActions = {
   },
 };
 
+// Authentication initialization
+export const initAuth = async () => {
+  try {
+    const { createClient } = await import('@supabase/supabase-js');
+    const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.warn('Supabase configuration missing');
+      return;
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    
+    // Check if we already have a persisted session
+    const persistedSession = userSession.get();
+    const persistedAuth = isAuthenticated.get();
+    
+    // If we have persisted auth state, validate it with Supabase
+    if (persistedAuth && persistedSession) {
+      try {
+        // Set the session in Supabase to validate it
+        const { data, error } = await supabase.auth.setSession(persistedSession);
+        
+        if (error || !data.session) {
+          // Session is invalid, clear persisted state
+          console.log('Persisted session invalid, clearing state');
+          userActions.logout();
+        } else {
+          // Session is still valid, update with fresh data
+          console.log('Persisted session valid, updating profile');
+          userActions.setAuth(data.session, {
+            id: data.session.user.id,
+            email: data.session.user.email!,
+            username: data.session.user.user_metadata?.username || data.session.user.user_metadata?.user_name || data.session.user.user_metadata?.name,
+            avatar_url: data.session.user.user_metadata?.avatar_url,
+            full_name: data.session.user.user_metadata?.full_name,
+          });
+        }
+      } catch (sessionError) {
+        console.log('Error validating persisted session:', sessionError);
+        userActions.logout();
+      }
+    } else {
+      // No persisted session, check for fresh session
+      const { data: { session }, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.error('Error getting session:', error);
+        return;
+      }
+      
+      if (session?.user) {
+        // Fresh session found, update state
+        userActions.setAuth(session, {
+          id: session.user.id,
+          email: session.user.email!,
+          username: session.user.user_metadata?.username || session.user.user_metadata?.user_name || session.user.user_metadata?.name,
+          avatar_url: session.user.user_metadata?.avatar_url,
+          full_name: session.user.user_metadata?.full_name,
+        });
+      }
+    }
+    
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state change:', event, session?.user?.email);
+      
+      if (event === 'SIGNED_IN' && session?.user) {
+        userActions.setAuth(session, {
+          id: session.user.id,
+          email: session.user.email!,
+          username: session.user.user_metadata?.username || session.user.user_metadata?.user_name || session.user.user_metadata?.name,
+          avatar_url: session.user.user_metadata?.avatar_url,
+          full_name: session.user.user_metadata?.full_name,
+        });
+      } else if (event === 'SIGNED_OUT') {
+        userActions.logout();
+      }
+    });
+    
+    // Store subscription for cleanup if needed
+    return subscription;
+  } catch (error) {
+    console.error('Auth initialization failed:', error);
+  }
+};
+
+// Auto-initialize auth when the module loads (in browser environment)
+if (typeof window !== 'undefined') {
+  initAuth();
+}
+
 // Computed values (derived stores)
 export const userDisplayName = atom<string>('');
 export const userAvatarUrl = atom<string>('');
-
-// Update computed values when profile changes
-userProfile.subscribe((profile) => {
-  userDisplayName.set(userActions.getDisplayName());
-  userAvatarUrl.set(userActions.getAvatarUrl());
-});
 
 // Update computed values when profile changes
 userProfile.subscribe((profile) => {

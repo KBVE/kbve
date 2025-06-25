@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { clsx, twMerge } from 'src/layouts/core/tw';
-import { atom } from 'nanostores';
 import { useStore } from '@nanostores/react';
+import { isAuthenticated, userProfile } from '../stores/userStore';
 
 import { 
   Theater, 
@@ -13,47 +13,15 @@ import {
   ExternalLink
 } from 'lucide-react';
 
-// Internal nano stores for this component only
-const footerAuthenticated = atom<boolean>(false);
-const footerUserProfile = atom<{ id: string; email: string; username?: string } | null>(null);
-
 interface ReactFooterProps {
   className?: string;
 }
 
 export const ReactFooter: React.FC<ReactFooterProps> = ({ className }) => {
-  const authenticated = useStore(footerAuthenticated);
-  const profile = useStore(footerUserProfile);
+  const authenticated = useStore(isAuthenticated);
+  const profile = useStore(userProfile);
 
   useEffect(() => {
-    // Check authentication state independently
-    const checkAuth = async () => {
-      try {
-        // Check if we have a Supabase client available
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-        
-        if (supabaseUrl && supabaseAnonKey) {
-          const supabase = createClient(supabaseUrl, supabaseAnonKey);
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          if (session?.user) {
-            footerAuthenticated.set(true);
-            footerUserProfile.set({
-              id: session.user.id,
-              email: session.user.email!,
-              username: session.user.user_metadata?.username
-            });
-          }
-        }
-      } catch (error) {
-        console.log('Footer: Auth check failed, continuing without auth state');
-      }
-    };
-
-    checkAuth();
-
     // Signal that the footer has fully mounted
     const skeleton = document.getElementById('footer-skeleton-loader');
     const content = document.getElementById('footer-content');

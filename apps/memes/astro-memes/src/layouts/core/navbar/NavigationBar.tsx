@@ -4,13 +4,12 @@ import { atom } from 'nanostores';
 import { useStore } from '@nanostores/react';
 import { OAuthLogin } from '../auth/OAuthLogin';
 import { LogoutButton } from '../auth/LogoutButton';
+import { isAuthenticated, userProfile } from '../stores/userStore';
 
 import { Home, Laugh, Sparkles, Flame, Info, Theater, Github, Loader2, LogOut, X } from 'lucide-react';
 
-// Internal nano stores for this component only
+// Internal nano stores for this component only (UI state only, not auth state)
 const navMenuOpen = atom<boolean>(false);
-const navAuthenticated = atom<boolean>(false);
-const navUserProfile = atom<{ id: string; email: string; username?: string } | null>(null);
 const authModalOpen = atom<boolean>(false);
 
 // Internal navigation actions
@@ -20,15 +19,6 @@ const navActions = {
   openMenu: () => navMenuOpen.set(true),
   openAuthModal: () => authModalOpen.set(true),
   closeAuthModal: () => authModalOpen.set(false),
-  setAuth: (authenticated: boolean, profile?: { id: string; email: string; username?: string }) => {
-    navAuthenticated.set(authenticated);
-    navUserProfile.set(profile || null);
-    authModalOpen.set(false); // Close modal when authenticated
-  },
-  logout: () => {
-    navAuthenticated.set(false);
-    navUserProfile.set(null);
-  }
 };
 
 interface NavigationBarProps {
@@ -37,9 +27,16 @@ interface NavigationBarProps {
 
 export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
   const menuOpen = useStore(navMenuOpen);
-  const authenticated = useStore(navAuthenticated);
-  const profile = useStore(navUserProfile);
+  const authenticated = useStore(isAuthenticated);
+  const profile = useStore(userProfile);
   const modalOpen = useStore(authModalOpen);
+
+  // Close modal when user becomes authenticated
+  useEffect(() => {
+    if (authenticated && modalOpen) {
+      navActions.closeAuthModal();
+    }
+  }, [authenticated, modalOpen]);
 
   // Auth Modal Component
   const AuthModal: React.FC = () => {
@@ -92,50 +89,8 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
     );
   };
 
-  // Check authentication status on mount
+  // Handle navigation mounting and skeleton removal
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        // Check if we have a Supabase client available
-        const { createClient } = await import('@supabase/supabase-js');
-        const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-        
-        if (supabaseUrl && supabaseAnonKey) {
-          const supabase = createClient(supabaseUrl, supabaseAnonKey);
-          const { data: { session } } = await supabase.auth.getSession();
-          
-          if (session?.user) {
-            navActions.setAuth(true, {
-              id: session.user.id,
-              email: session.user.email!,
-              username: session.user.user_metadata?.username
-            });
-          }
-
-          // Listen for auth changes
-          const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-            if (session?.user) {
-              navActions.setAuth(true, {
-                id: session.user.id,
-                email: session.user.email!,
-                username: session.user.user_metadata?.username
-              });
-            } else {
-              navActions.logout();
-            }
-          });
-
-          // Cleanup subscription on unmount
-          return () => subscription.unsubscribe();
-        }
-      } catch (error) {
-        console.log('Navigation: Auth check failed, continuing without auth state');
-      }
-    };
-
-    checkAuth();
-
     // Signal that the navigation has fully mounted
     const skeleton = document.getElementById('nav-skeleton-loader');
     const content = document.getElementById('nav-content');
@@ -222,7 +177,6 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
                     variant="button"
                     showIcon={false}
                     onLogout={() => {
-                      navActions.logout();
                       navActions.closeMenu();
                     }}
                   >
@@ -321,7 +275,6 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
                       variant="dropdown-item"
                       showIcon={false}
                       onLogout={() => {
-                        navActions.logout();
                         navActions.closeMenu();
                       }}
                     >
