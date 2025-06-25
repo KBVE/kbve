@@ -1,7 +1,7 @@
 ---
 import Layouts from "../../layouts/core/Layouts.astro";
 import UserProfileDisplay from '../../components/ui/UserProfileDisplay.astro';
-import MemberOnly from '../../components/ui/MemberOnly.astro';
+import MemberOnlyComponent from '../../components/ui/MemberOnly.astro';
 ---
 
 <Layouts title="Implementation Summary - Meme.sh" Onboarding={false}>
@@ -151,58 +151,21 @@ import MemberOnly from '../../components/ui/MemberOnly.astro';
                 </div>
 
                 <!-- Demo Member-Only Content -->
-                <MemberOnly message="Sign in to see additional implementation details and testing tools!">
-                    <div class="bg-gradient-to-br from-emerald-800/50 to-green-800/50 border border-emerald-500/30 rounded-xl p-6">
-                        <h2 class="text-2xl font-bold text-white mb-6 flex items-center gap-3">
-                            🛠️ Developer Resources
-                        </h2>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold text-emerald-400">Testing URLs</h3>
-                                <div class="space-y-2">
-                                    <a href="/test/member-only" class="block text-sm text-neutral-300 hover:text-emerald-400 transition-colors">
-                                        • /test/member-only - Access control demo
-                                    </a>
-                                    <a href="/test/profile" class="block text-sm text-neutral-300 hover:text-emerald-400 transition-colors">
-                                        • /test/profile - Profile data testing
-                                    </a>
-                                    <a href="/demo/member-content" class="block text-sm text-neutral-300 hover:text-emerald-400 transition-colors">
-                                        • /demo/member-content - MDX example
-                                    </a>
-                                    <a href="/onboarding" class="block text-sm text-neutral-300 hover:text-emerald-400 transition-colors">
-                                        • /onboarding - Username creation
-                                    </a>
-                                </div>
-                            </div>
-                            
-                            <div class="space-y-4">
-                                <h3 class="text-lg font-semibold text-emerald-400">Documentation</h3>
-                                <div class="space-y-2">
-                                    <div class="text-sm text-neutral-300">
-                                        • MEMBER_ONLY_USAGE.md - Usage guide
-                                    </div>
-                                    <div class="text-sm text-neutral-300">
-                                        • SUPABASE_INTEGRATION.md - Technical docs
-                                    </div>
-                                    <div class="text-sm text-neutral-300">
-                                        • Component documentation in source
-                                    </div>
-                                    <div class="text-sm text-neutral-300">
-                                        • TypeScript interfaces and types
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                        
-                        <div class="mt-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
-                            <p class="text-emerald-400 text-sm">
-                                🎉 Congratulations! You can see this content because you're authenticated. 
-                                The member-only access control is working perfectly!
-                            </p>
-                        </div>
-                    </div>
-                </MemberOnly>
+                <MemberOnlyComponent 
+                    message="Sign in to see additional implementation details and testing tools!"
+                    memberContent={{
+                        title: "🛠️ Developer Resources",
+                        description: "Access exclusive developer tools and documentation for the implementation.",
+                        features: [
+                            "Testing URLs - /test/member-only, /test/profile",
+                            "Demo Pages - /demo/member-content (MDX example)",
+                            "Documentation - MEMBER_ONLY_USAGE.md guide",
+                            "Technical Docs - SUPABASE_INTEGRATION.md",
+                            "Source Examples - Component documentation",
+                            "TypeScript Interfaces - Full type safety"
+                        ]
+                    }}
+                />
 
                 <!-- File Structure Overview -->
                 <div class="bg-zinc-800/50 border border-zinc-700/50 rounded-xl p-6">

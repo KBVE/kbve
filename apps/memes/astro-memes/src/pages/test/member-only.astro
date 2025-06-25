@@ -1,6 +1,8 @@
 ---
 import Layouts from "../../layouts/core/Layouts.astro";
 import MemberOnlyComponent from '../../components/ui/MemberOnly.astro';
+import MemberOnlyDashboardComponent from '../../components/ui/MemberOnlyDashboard.astro';
+import MemberOnlyPremiumComponent from '../../components/ui/MemberOnlyPremium.astro';
 ---
 
 <Layouts title="Member Only Test - Meme.sh" Onboarding={false}>
@@ -31,70 +33,70 @@ import MemberOnlyComponent from '../../components/ui/MemberOnly.astro';
                     </div>
                 </div>
 
-                <!-- Member-Only Content with OAuth -->
-                <MemberOnlyComponent message="Please sign in to access exclusive member features.">
-                    <div class="bg-gradient-to-br from-emerald-800/50 to-green-800/50 border border-emerald-500/30 rounded-lg p-6">
-                        <h2 class="text-2xl font-semibold text-white mb-4">🔒 Exclusive Member Content</h2>
-                        <p class="text-neutral-300 mb-4">
-                            Congratulations! You can see this content because you're authenticated.
-                        </p>
-                        
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
-                            <div class="bg-zinc-700/30 rounded-lg p-4">
-                                <h3 class="text-lg font-semibold text-emerald-400 mb-2">🎯 Premium Features</h3>
-                                <ul class="text-neutral-300 text-sm space-y-1">
-                                    <li>• Advanced meme creation tools</li>
-                                    <li>• Priority upload queue</li>
-                                    <li>• Custom meme templates</li>
-                                    <li>• Analytics dashboard</li>
-                                </ul>
-                            </div>
-                            
-                            <div class="bg-zinc-700/30 rounded-lg p-4">
-                                <h3 class="text-lg font-semibold text-emerald-400 mb-2">👥 Community Access</h3>
-                                <ul class="text-neutral-300 text-sm space-y-1">
-                                    <li>• Member-only discussions</li>
-                                    <li>• Early access to features</li>
-                                    <li>• Exclusive meme contests</li>
-                                    <li>• Direct creator feedback</li>
-                                </ul>
-                            </div>
-                        </div>
-                        
-                        <div class="bg-emerald-500/10 border border-emerald-500/20 rounded-lg p-4">
-                            <p class="text-emerald-400 text-sm">
-                                🎉 You successfully accessed member-only content! Your authentication is working properly.
-                            </p>
-                        </div>
-                    </div>
-                </MemberOnlyComponent>
+                <!-- Basic Member-Only Content with Custom Features -->
+                <MemberOnlyComponent 
+                    message="Please sign in to access exclusive member features."
+                    memberContent={{
+                        title: "🔒 Exclusive Member Content",
+                        description: "Congratulations! You can see this content because you're authenticated.",
+                        features: [
+                            "Advanced meme creation tools",
+                            "Priority upload queue", 
+                            "Custom meme templates",
+                            "Analytics dashboard",
+                            "Member-only discussions",
+                            "Early access to features"
+                        ]
+                    }}
+                />
 
-                <!-- Member-Only Content without OAuth (Simple Buttons) -->
-                <MemberOnlyComponent message="Simple login required for basic features." showOAuth={false}>
-                    <div class="bg-gradient-to-br from-blue-800/50 to-purple-800/50 border border-blue-500/30 rounded-lg p-6">
-                        <h2 class="text-2xl font-semibold text-white mb-4">⚡ Quick Access Content</h2>
-                        <p class="text-neutral-300 mb-4">
-                            This content uses simple login/register buttons instead of OAuth.
-                        </p>
-                        
-                        <div class="bg-blue-500/10 border border-blue-500/20 rounded-lg p-4">
-                            <p class="text-blue-400 text-sm">
-                                💡 This demonstrates the showOAuth={false} option for simpler access control.
-                            </p>
-                        </div>
-                    </div>
-                </MemberOnlyComponent>
+                <!-- Member Dashboard Demo -->
+                <MemberOnlyDashboardComponent message="Sign in to access your personal dashboard." />
+
+                <!-- Premium Features Demo -->
+                <MemberOnlyPremiumComponent message="Join our premium community for exclusive features!" />
+
+                <!-- Simple Member-Only Content without OAuth -->
+                <MemberOnlyComponent 
+                    message="Simple login required for basic features." 
+                    showOAuth={false}
+                    memberContent={{
+                        title: "⚡ Quick Access Content",
+                        description: "This content uses simple login/register buttons instead of OAuth.",
+                        features: [
+                            "Basic meme creation",
+                            "Public galleries access",
+                            "Standard templates",
+                            "Community participation"
+                        ]
+                    }}
+                />
 
                 <!-- Test Instructions -->
                 <div class="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-6">
                     <h3 class="text-xl font-semibold text-white mb-4">🧪 Testing Instructions</h3>
                     <ol class="space-y-2 text-neutral-300 text-sm">
-                        <li><strong>1. Without Authentication:</strong> You should see login/register prompts for the protected sections</li>
-                        <li><strong>2. After Login/Register:</strong> Protected content should become visible</li>
-                        <li><strong>3. OAuth vs Simple:</strong> Notice the difference between the two member-only sections</li>
-                        <li><strong>4. Session Persistence:</strong> Refresh the page - your authentication should persist</li>
-                        <li><strong>5. Logout Test:</strong> Log out and verify content becomes protected again</li>
+                        <li><strong>1. Without Authentication:</strong> You should see login/register prompts for all protected sections</li>
+                        <li><strong>2. After Login/Register:</strong> Protected content should become visible with different themes</li>
+                        <li><strong>3. Component Types:</strong> Notice the different member-only component styles:
+                            <ul class="ml-4 mt-1 space-y-1">
+                                <li>• Basic member content (emerald theme)</li>
+                                <li>• Dashboard content (blue/purple theme)</li>
+                                <li>• Premium features (yellow/orange theme)</li>
+                                <li>• Simple OAuth-free content</li>
+                            </ul>
+                        </li>
+                        <li><strong>4. Self-Contained:</strong> All components are fully self-contained with no slot dependencies</li>
+                        <li><strong>5. Session Persistence:</strong> Refresh the page - your authentication should persist</li>
+                        <li><strong>6. Logout Test:</strong> Log out and verify content becomes protected again</li>
                     </ol>
+                    
+                    <div class="mt-4 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-lg">
+                        <p class="text-emerald-400 text-sm">
+                            ✅ <strong>SSG Compatible:</strong> These components are fully compatible with Astro's static site generation 
+                            and will work correctly in production builds.
+                        </p>
+                    </div>
                 </div>
 
                 <!-- Navigation -->
