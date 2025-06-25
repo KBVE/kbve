@@ -38,7 +38,25 @@ export default function UserProfileDisplay({ className = '', showDetails = true 
 
       {/* Stats Grid */}
       {showDetails && (
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
+          <div className="bg-zinc-700/30 rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold text-green-400">
+              {profile.credits || 0}
+            </div>
+            <div className="text-xs text-zinc-400 uppercase tracking-wide">
+              Credits
+            </div>
+          </div>
+
+          <div className="bg-zinc-700/30 rounded-lg p-3 text-center">
+            <div className="text-2xl font-bold text-purple-400">
+              {profile.khash || 0}
+            </div>
+            <div className="text-xs text-zinc-400 uppercase tracking-wide">
+              Khash
+            </div>
+          </div>
+
           <div className="bg-zinc-700/30 rounded-lg p-3 text-center">
             <div className="text-2xl font-bold text-emerald-400">
               {profile.meme_points || 0}

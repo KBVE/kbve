@@ -1,6 +1,7 @@
 import { atom } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
 import type { User } from '@supabase/supabase-js';
+import { supabase } from 'src/layouts/core/supabaseClient';
 
 // Holds the current user (null if not logged in)
 export const userAtom = atom<User | null>(null);
@@ -22,7 +23,9 @@ export type UserMemeProfile = {
   user_id: string;        // UUID
   username: string | null;
   role: string | null;
-  meme_points: number | null;    // Instead of credits, we have meme points
+  credits: number | null;        // User credits from RPC
+  khash: number | null;          // User khash from RPC
+  meme_points: number | null;    // Meme-specific points
   level: number | null;
   total_memes: number | null;    // Number of memes created
   total_likes: number | null;    // Number of likes received
@@ -49,129 +52,193 @@ export const userMemeProfileAtom = persistentAtom<UserMemeProfile | undefined>(
 
 // Utility function to sync userAtom and persistent atoms with supabase session
 export async function syncSupabaseUser() {
-  // For now, this will be a placeholder until we set up Supabase integration
-  // In the real implementation, this would call:
-  // const { data } = await supabase.auth.getUser();
-  
-  // Placeholder for development - check localStorage for demo purposes
-  if (typeof window !== 'undefined') {
-    const storedUsername = localStorage.getItem('memeUsername');
-    const storedUserId = localStorage.getItem('memeUserId');
-    const storedEmail = localStorage.getItem('memeUserEmail');
+  try {
+    // Get the current user from Supabase
+    const { data: { user }, error } = await supabase.auth.getUser();
     
-    if (storedUsername) {
-      // Simulate a user session for development
-      const mockUser: Partial<User> & { id: string; email: string } = {
-        id: storedUserId || 'demo-user-id',
-        email: storedEmail || 'demo@meme.sh',
-        user_metadata: {
-          username: storedUsername
-        },
-        aud: 'authenticated',
-        created_at: new Date().toISOString(),
-        app_metadata: {},
-        email_confirmed_at: new Date().toISOString(),
-        phone_confirmed_at: undefined,
-        confirmation_sent_at: undefined,
-        recovery_sent_at: undefined,
-        email_change_sent_at: undefined,
-        new_email: undefined,
-        invited_at: undefined,
-        action_link: undefined,
-        phone: undefined,
-        role: 'authenticated',
-        updated_at: new Date().toISOString(),
-        last_sign_in_at: new Date().toISOString(),
-        identities: []
-      };
+    if (error) {
+      console.error('[syncSupabaseUser] Error getting user:', error);
+      clearUserState();
+      return;
+    }
+
+    if (user) {
+      // Set user atoms
+      userAtom.set(user);
+      userIdAtom.set(user.id);
+      userEmailAtom.set(user.email || undefined);
       
-      userAtom.set(mockUser as User);
-      userIdAtom.set(mockUser.id);
-      userEmailAtom.set(mockUser.email);
-      usernameAtom.set(storedUsername);
-      userNamePersistentAtom.set(storedUsername);
+      // Get username from user metadata or persistent storage
+      const metadataUsername = user.user_metadata?.username;
+      const persistentUsername = userNamePersistentAtom.get();
+      const username = metadataUsername || persistentUsername;
       
-      // Check if we already have a profile, if not create one
-      const existingProfile = userMemeProfileAtom.get();
-      if (!existingProfile || existingProfile.user_id !== mockUser.id) {
-        // Set up a mock meme profile with persistent data
-        const mockProfile: UserMemeProfile = {
-          user_id: mockUser.id,
-          username: storedUsername,
-          role: 'member',
-          meme_points: existingProfile?.meme_points ?? 100,
-          level: existingProfile?.level ?? 1,
-          total_memes: existingProfile?.total_memes ?? 0,
-          total_likes: existingProfile?.total_likes ?? 0,
-          created_at: existingProfile?.created_at || new Date().toISOString()
-        };
+      if (username) {
+        usernameAtom.set(username);
+        userNamePersistentAtom.set(username);
         
-        userMemeProfileAtom.set(mockProfile);
-      }
-      
-      if (typeof window !== 'undefined') {
+        // Update localStorage for backward compatibility
+        localStorage.setItem('memeUsername', username);
+        localStorage.setItem('memeUserId', user.id);
+        localStorage.setItem('memeUserEmail', user.email || '');
         localStorage.setItem('isMember', 'true');
+        
+        // Sync the user profile from RPC
+        await syncUserMemeProfile(user.id);
+      } else {
+        // User exists but no username set - needs onboarding
+        usernameAtom.set(null);
+        userNamePersistentAtom.set(undefined);
       }
     } else {
-      // Clear user state
-      userAtom.set(null);
-      userIdAtom.set(undefined);
-      userEmailAtom.set(undefined);
-      usernameAtom.set(null);
-      userNamePersistentAtom.set(undefined);
-      userMemeProfileAtom.set(undefined);
-      
-      if (typeof window !== 'undefined') {
-        localStorage.setItem('isMember', 'false');
-      }
+      // No user logged in
+      clearUserState();
     }
+  } catch (error) {
+    console.error('[syncSupabaseUser] Unexpected error:', error);
+    clearUserState();
   }
 }
 
-// Function to fetch and sync user meme profile (equivalent to syncUserBalance in astro-kbve)
+// Helper function to clear all user state
+function clearUserState() {
+  userAtom.set(null);
+  userIdAtom.set(undefined);
+  userEmailAtom.set(undefined);
+  usernameAtom.set(null);
+  userNamePersistentAtom.set(undefined);
+  userMemeProfileAtom.set(undefined);
+  
+  // Clear localStorage
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem('memeUsername');
+    localStorage.removeItem('memeUserId');
+    localStorage.removeItem('memeUserEmail');
+    localStorage.removeItem('onboardingComplete');
+    localStorage.setItem('isMember', 'false');
+  }
+}
+
+// Function to fetch and sync user meme profile from Supabase RPC
 export async function syncUserMemeProfile(identifier: string, useCache = true) {
   if (!identifier) {
     userMemeProfileAtom.set(undefined);
     return;
   }
 
-  // For now, this is a placeholder until we set up backend integration
-  // In the real implementation, this would call:
-  // const { data, error } = await supabase.rpc('get_user_meme_profile', {
-  //   p_identifier: identifier,
-  //   use_cache: useCache,
-  // });
-
-  // Simulate a successful profile fetch for development
   try {
-    // First check if we have existing data to preserve some values
-    const existingProfile = userMemeProfileAtom.get();
-    const currentUsername = userNamePersistentAtom.get();
-    
-    const mockProfile: UserMemeProfile = {
-      user_id: identifier,
-      username: currentUsername || null,
-      role: existingProfile?.role || 'member',
-      meme_points: existingProfile?.meme_points ?? Math.floor(Math.random() * 1000) + 100,
-      level: existingProfile?.level ?? Math.floor(Math.random() * 10) + 1,
-      total_memes: existingProfile?.total_memes ?? Math.floor(Math.random() * 50),
-      total_likes: existingProfile?.total_likes ?? Math.floor(Math.random() * 500),
-      created_at: existingProfile?.created_at || new Date().toISOString()
-    };
-    
-    // Store in persistent atom so it survives page reloads and sessions
-    userMemeProfileAtom.set(mockProfile);
-    
-    // Also ensure username is synced if we got it from the profile
-    if (mockProfile.username && !currentUsername) {
-      userNamePersistentAtom.set(mockProfile.username);
-      usernameAtom.set(mockProfile.username);
+    // Make the actual RPC call to get user profile data
+    const { data, error } = await supabase.rpc('get_user_meme_profile', {
+      p_identifier: identifier,
+      use_cache: useCache,
+    });
+
+    if (error) {
+      console.error('[syncUserMemeProfile] RPC error:', error);
+      userMemeProfileAtom.set(undefined);
+      return;
     }
-    
-    console.log('[syncUserMemeProfile] Profile synced:', mockProfile);
+
+    if (data) {
+      // Map the RPC response to our UserMemeProfile type
+      const profile: UserMemeProfile = {
+        user_id: data.user_id || identifier,
+        username: data.username || null,
+        role: data.role || null,
+        credits: data.credits ?? null,           // From RPC response
+        khash: data.khash ?? null,               // From RPC response
+        meme_points: data.meme_points ?? null,   // Meme-specific points
+        level: data.level ?? null,
+        total_memes: data.total_memes ?? null,
+        total_likes: data.total_likes ?? null,
+        created_at: data.created_at || new Date().toISOString()
+      };
+      
+      // Store in persistent atom so it survives page reloads and sessions
+      userMemeProfileAtom.set(profile);
+      
+      // Also ensure username is synced if we got it from the profile
+      if (profile.username && !userNamePersistentAtom.get()) {
+        userNamePersistentAtom.set(profile.username);
+        usernameAtom.set(profile.username);
+        
+        // Update localStorage for backward compatibility
+        if (typeof window !== 'undefined') {
+          localStorage.setItem('memeUsername', profile.username);
+        }
+      }
+      
+      console.log('[syncUserMemeProfile] Profile synced from RPC:', profile);
+    } else {
+      // No profile data returned
+      userMemeProfileAtom.set(undefined);
+      console.log('[syncUserMemeProfile] No profile data returned for identifier:', identifier);
+    }
   } catch (error) {
     console.error('[syncUserMemeProfile] Failed to fetch profile:', error);
     userMemeProfileAtom.set(undefined);
+  }
+}
+
+// Function to handle user logout and cleanup
+export async function logoutUser() {
+  try {
+    // Sign out from Supabase
+    const { error } = await supabase.auth.signOut();
+    
+    if (error) {
+      console.error('[logoutUser] Error signing out:', error);
+    }
+    
+    // Clear all user state regardless of signOut result
+    clearUserState();
+    
+    console.log('[logoutUser] User logged out and state cleared');
+  } catch (error) {
+    console.error('[logoutUser] Unexpected error during logout:', error);
+    // Still clear state even if there's an error
+    clearUserState();
+  }
+}
+
+// Function to create/update username via RPC during onboarding
+export async function createUserProfile(username: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const user = userAtom.get();
+    if (!user) {
+      return { success: false, error: 'User not authenticated' };
+    }
+
+    // Call RPC to create/update user profile with username
+    const { data, error } = await supabase.rpc('create_user_profile', {
+      p_user_id: user.id,
+      p_username: username,
+      p_email: user.email
+    });
+
+    if (error) {
+      console.error('[createUserProfile] RPC error:', error);
+      return { success: false, error: error.message };
+    }
+
+    // Update local state with new username
+    usernameAtom.set(username);
+    userNamePersistentAtom.set(username);
+    
+    // Update localStorage for backward compatibility
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('memeUsername', username);
+      localStorage.setItem('onboardingComplete', 'true');
+    }
+
+    // Re-sync the profile to get the latest data
+    await syncUserMemeProfile(user.id);
+
+    console.log('[createUserProfile] Profile created successfully:', data);
+    return { success: true };
+  } catch (error) {
+    console.error('[createUserProfile] Failed to create profile:', error);
+    return { success: false, error: 'Network error. Please try again.' };
   }
 }
 
@@ -208,22 +275,42 @@ export function isUserOnboarded(): boolean {
   return hasValidUsername && hasCompleteProfile;
 }
 
-// Helper: Get username from user ID (placeholder for future backend integration)
+// Helper: Get username from user ID using RPC
 export async function getUsernameByUuid(uuid: string): Promise<string | null> {
-  // TODO: Replace with actual backend call
-  // const { data, error } = await supabase.rpc('proxy_get_username', { p_user_id: uuid });
-  
-  // For development, return a mock username
-  return `user_${uuid.slice(0, 8)}`;
+  try {
+    const { data, error } = await supabase.rpc('proxy_get_username', { 
+      p_user_id: uuid 
+    });
+    
+    if (error) {
+      console.error('[getUsernameByUuid] RPC error:', error);
+      return null;
+    }
+    
+    return data || null;
+  } catch (error) {
+    console.error('[getUsernameByUuid] Failed to fetch username:', error);
+    return null;
+  }
 }
 
-// Helper: Get user ID from username (placeholder for future backend integration)
+// Helper: Get user ID from username using RPC
 export async function getUuidByUsername(username: string): Promise<string | null> {
-  // TODO: Replace with actual backend call
-  // const { data, error } = await supabase.rpc('proxy_get_uuid', { p_username: username });
-  
-  // For development, return a mock UUID
-  return `uuid-for-${username}`;
+  try {
+    const { data, error } = await supabase.rpc('proxy_get_uuid', { 
+      p_username: username 
+    });
+    
+    if (error) {
+      console.error('[getUuidByUsername] RPC error:', error);
+      return null;
+    }
+    
+    return data || null;
+  } catch (error) {
+    console.error('[getUuidByUsername] Failed to fetch user ID:', error);
+    return null;
+  }
 }
 
 // Helper: Get current user profile data (for easy access in React components)
@@ -251,6 +338,26 @@ export function addMemePoints(points: number) {
   }
 }
 
+// Helper: Add credits to user (from RPC functions)
+export function addCredits(credits: number) {
+  const currentProfile = userMemeProfileAtom.get();
+  if (currentProfile && currentProfile.credits !== null) {
+    updateUserProfile({ 
+      credits: currentProfile.credits + credits 
+    });
+  }
+}
+
+// Helper: Add khash to user (from RPC functions)
+export function addKhash(khash: number) {
+  const currentProfile = userMemeProfileAtom.get();
+  if (currentProfile && currentProfile.khash !== null) {
+    updateUserProfile({ 
+      khash: currentProfile.khash + khash 
+    });
+  }
+}
+
 // Helper: Increment meme count when user creates a meme
 export function incrementMemeCount() {
   const currentProfile = userMemeProfileAtom.get();
@@ -269,4 +376,30 @@ export function incrementLikesCount() {
       total_likes: currentProfile.total_likes + 1 
     });
   }
+}
+
+// Auth state listener - call this once when your app initializes
+export function initializeAuthListener() {
+  if (typeof window === 'undefined') return;
+
+  supabase.auth.onAuthStateChange(async (event, session) => {
+    console.log('[authStateChange]', event, session?.user?.id);
+    
+    switch (event) {
+      case 'SIGNED_IN':
+      case 'TOKEN_REFRESHED':
+        await syncSupabaseUser();
+        break;
+      case 'SIGNED_OUT':
+        clearUserState();
+        break;
+      default:
+        // For INITIAL_SESSION, check if we have a user
+        if (session?.user) {
+          await syncSupabaseUser();
+        } else {
+          clearUserState();
+        }
+    }
+  });
 }
