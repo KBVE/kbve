@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useStore } from '@nanostores/react';
 import { userMemeProfileAtom, usernameAtom, getCurrentUserProfile } from '../../../layouts/client/supabase/profile/userstate';
 
@@ -12,6 +12,52 @@ import { userMemeProfileAtom, usernameAtom, getCurrentUserProfile } from '../../
  * 
  * Data is sourced from the shared Supabase instance between astro-kbve and astro-memes.
  */
+
+// Custom Tooltip Component
+interface TooltipProps {
+  children: React.ReactNode;
+  text: string;
+  className?: string;
+}
+
+function Tooltip({ children, text, className = '' }: TooltipProps) {
+  const [isVisible, setIsVisible] = useState(false);
+
+  return (
+    <div 
+      className={`relative ${className}`}
+      onMouseEnter={() => setIsVisible(true)}
+      onMouseLeave={() => setIsVisible(false)}
+    >
+      {children}
+      {isVisible && (
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg shadow-lg whitespace-nowrap z-[9999] pointer-events-none">
+          {text}
+          <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+// Utility function to format large numbers with K/M suffixes (uses floor to prevent rounding up)
+function formatNumber(num: number | null | undefined): string {
+  const value = num || 0;
+  
+  if (value >= 1000000) {
+    return (Math.floor(value / 100000) / 10) + 'M';
+  } else if (value >= 1000) {
+    return (Math.floor(value / 100) / 10) + 'K';
+  } else {
+    return value.toString();
+  }
+}
+
+// Utility function to format exact number with commas for tooltips
+function formatExactNumber(num: number | null | undefined): string {
+  const value = num || 0;
+  return value.toLocaleString();
+}
 
 interface UserProfileDisplayProps {
   className?: string;
@@ -50,23 +96,27 @@ export default function UserProfileDisplay({ className = '', showDetails = true 
       {/* Stats Grid */}
       {showDetails && (
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <div className="bg-zinc-700/30 rounded-lg p-3 text-center">
-            <div className="text-2xl font-bold text-green-400">
-              {profile.credits || 0}
+          <Tooltip text={`${formatExactNumber(profile.credits)} Credits`} className="w-full">
+            <div className="bg-zinc-700/30 rounded-lg p-3 text-center cursor-help w-full" title={`${formatExactNumber(profile.credits)} Credits`}>
+              <div className="text-2xl font-bold text-green-400">
+                {formatNumber(profile.credits)}
+              </div>
+              <div className="text-xs text-zinc-400 uppercase tracking-wide">
+                Credits
+              </div>
             </div>
-            <div className="text-xs text-zinc-400 uppercase tracking-wide">
-              Credits
-            </div>
-          </div>
+          </Tooltip>
 
-          <div className="bg-zinc-700/30 rounded-lg p-3 text-center">
-            <div className="text-2xl font-bold text-purple-400">
-              {profile.khash || 0}
+          <Tooltip text={`${formatExactNumber(profile.khash)} Khash`} className="w-full">
+            <div className="bg-zinc-700/30 rounded-lg p-3 text-center cursor-help w-full" title={`${formatExactNumber(profile.khash)} Khash`}>
+              <div className="text-2xl font-bold text-purple-400">
+                {formatNumber(profile.khash)}
+              </div>
+              <div className="text-xs text-zinc-400 uppercase tracking-wide">
+                Khash
+              </div>
             </div>
-            <div className="text-xs text-zinc-400 uppercase tracking-wide">
-              Khash
-            </div>
-          </div>
+          </Tooltip>
 
           {/* Meme-specific stats - currently placeholders until database schema is extended */}
           <div className="bg-zinc-700/30 rounded-lg p-3 text-center">

@@ -253,8 +253,8 @@ export function needsOnboarding(): boolean {
   // User needs onboarding if:
   // 1. No username is set
   // 2. No meme profile exists
-  // 3. Profile has no meme_points (indicating incomplete setup)
-  return !username || !profile || profile.meme_points === null;
+  // 3. Profile has no credits/khash balance (indicating incomplete registration)
+  return !username || !profile || (profile.credits === null && profile.khash === null);
 }
 
 // Helper: Check if username is valid (following the same pattern as astro-kbve)
@@ -271,11 +271,11 @@ export function isUserOnboarded(): boolean {
   const userPersistent = userNamePersistentAtom.get();
   const profile = userMemeProfileAtom.get();
   
-  // Check if we have a valid username and a complete profile
+  // Check if we have a valid username and a complete profile with balance
   const hasValidUsername = !!(validUsername(username) || validUsername(userPersistent));
-  const hasCompleteProfile = !!(profile && profile.meme_points !== null);
+  const hasBalance = !!(profile && (profile.credits !== null || profile.khash !== null));
   
-  return hasValidUsername && hasCompleteProfile;
+  return hasValidUsername && hasBalance;
 }
 
 // Helper: Get username from user ID using RPC
