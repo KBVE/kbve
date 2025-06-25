@@ -1,0 +1,59 @@
+---
+import Layouts from "../../layouts/core/Layouts.astro";
+import UserProfileDisplay from '../../components/ui/UserProfileDisplay.astro';
+---
+
+<Layouts title="Profile Test - Meme.sh" Onboarding={false}>
+    <div class="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-emerald-950/20 py-8">
+        <div class="container mx-auto px-4">
+            <div class="max-w-4xl mx-auto space-y-8">
+                <!-- Header -->
+                <div class="text-center">
+                    <h1 class="text-4xl font-bold bg-gradient-to-r from-emerald-400 to-green-400 bg-clip-text text-transparent mb-4">
+                        Profile Data Test
+                    </h1>
+                    <p class="text-neutral-400 max-w-2xl mx-auto">
+                        This page demonstrates how user profile data persists across sessions using nanostores and localStorage.
+                        Complete onboarding first to see your persistent profile data.
+                    </p>
+                </div>
+
+                <!-- Profile Display -->
+                <UserProfileDisplay />
+
+                <!-- Instructions -->
+                <div class="bg-zinc-800/50 border border-zinc-700/50 rounded-lg p-6">
+                    <h3 class="text-xl font-semibold text-white mb-4">Test Instructions</h3>
+                    <ol class="space-y-2 text-neutral-300">
+                        <li>1. Complete onboarding to create your profile</li>
+                        <li>2. Reload this page - your data should persist</li>
+                        <li>3. Check localStorage in DevTools to see stored data</li>
+                        <li>4. Clear localStorage to reset and test again</li>
+                    </ol>
+                </div>
+
+                <!-- Actions -->
+                <div class="flex flex-wrap gap-4 justify-center">
+                    <a 
+                        href="/onboarding" 
+                        class="px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105"
+                    >
+                        Go to Onboarding
+                    </a>
+                    <a 
+                        href="/profile" 
+                        class="px-6 py-3 border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10 font-semibold rounded-xl transition-all duration-300 hover:scale-105"
+                    >
+                        View Full Profile
+                    </a>
+                    <button 
+                        onclick="localStorage.clear(); location.reload();" 
+                        class="px-6 py-3 border border-red-500/50 text-red-400 hover:bg-red-500/10 font-semibold rounded-xl transition-all duration-300 hover:scale-105"
+                    >
+                        Clear Data & Reload
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</Layouts>
