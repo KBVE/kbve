@@ -31,7 +31,7 @@ function Tooltip({ children, text, className = '' }: TooltipProps) {
     >
       {children}
       {isVisible && (
-        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg shadow-lg whitespace-nowrap z-50 pointer-events-none">
+        <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg shadow-lg whitespace-nowrap z-[9999] pointer-events-none">
           {text}
           <div className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-4 border-r-4 border-t-4 border-transparent border-t-gray-900"></div>
         </div>
@@ -96,8 +96,8 @@ export default function UserProfileDisplay({ className = '', showDetails = true 
       {/* Stats Grid */}
       {showDetails && (
         <div className="grid grid-cols-2 md:grid-cols-6 gap-4">
-          <Tooltip text={`${formatExactNumber(profile.credits)} Credits`}>
-            <div className="bg-zinc-700/30 rounded-lg p-3 text-center cursor-help" title={`${formatExactNumber(profile.credits)} Credits`}>
+          <Tooltip text={`${formatExactNumber(profile.credits)} Credits`} className="w-full">
+            <div className="bg-zinc-700/30 rounded-lg p-3 text-center cursor-help w-full" title={`${formatExactNumber(profile.credits)} Credits`}>
               <div className="text-2xl font-bold text-green-400">
                 {formatNumber(profile.credits)}
               </div>
@@ -107,8 +107,8 @@ export default function UserProfileDisplay({ className = '', showDetails = true 
             </div>
           </Tooltip>
 
-          <Tooltip text={`${formatExactNumber(profile.khash)} Khash`}>
-            <div className="bg-zinc-700/30 rounded-lg p-3 text-center cursor-help" title={`${formatExactNumber(profile.khash)} Khash`}>
+          <Tooltip text={`${formatExactNumber(profile.khash)} Khash`} className="w-full">
+            <div className="bg-zinc-700/30 rounded-lg p-3 text-center cursor-help w-full" title={`${formatExactNumber(profile.khash)} Khash`}>
               <div className="text-2xl font-bold text-purple-400">
                 {formatNumber(profile.khash)}
               </div>
