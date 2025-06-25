@@ -49,22 +49,22 @@ export const ReactFooter: React.FC<ReactFooterProps> = ({ className }) => {
   ];
 
   const communityLinks = [
-    { label: 'Discord', href: '#', icon: Discord },
+    { label: 'Discord', href: 'https://kbve.com/discord/', icon: Discord },
     { label: 'GitHub', href: 'https://github.com/kbve/kbve', icon: Github, external: true },
     { label: 'Support', href: '/support' }
   ];
 
   const legalLinks = [
-    { label: 'Privacy Policy', href: '/privacy' },
-    { label: 'Terms of Service', href: '/terms' },
-    { label: 'Cookie Policy', href: '/cookies' }
+    { label: 'Privacy Policy', href: 'https://kbve.com/legal/privacy' },
+    { label: 'Terms of Service', href: 'https://kbve.com/legal/tos/' },
+    { label: 'Legal', href: 'https://kbve.com/legal/' }
   ];
 
   const socialLinks = [
     { icon: Github, href: 'https://github.com/kbve/kbve', label: 'GitHub' },
-    { icon: Twitter, href: '#', label: 'Twitter' },
-    { icon: Discord, href: '#', label: 'Discord' },
-    { icon: Mail, href: 'mailto:contact@meme.sh', label: 'Email' }
+    { icon: Twitter, href: 'https://kbve.com/x/', label: 'Twitter' },
+    { icon: Discord, href: 'https://kbve.com/discord/', label: 'Discord' },
+    { icon: Mail, href: 'https://kbve.com/contact/', label: 'Email' }
   ];
 
   return (
