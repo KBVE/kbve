@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { useStore } from '@nanostores/react';
+import { supabase } from '../../../layouts/core/supabaseClient';
 import { 
   userAtom, 
   usernameAtom, 
@@ -50,16 +51,33 @@ const UsernameBalance: React.FC = () => {
     }
 
     try {
-      // Use the real RPC call to create user profile
-      const result = await createUserProfile(data.username);
+      // Use Supabase Edge Function for user registration
+      const { data: result, error } = await supabase.functions.invoke('register-user', {
+        body: { username: data.username }
+      });
       
-      if (!result.success) {
-        setError('username', { type: 'manual', message: result.error || 'Failed to create profile' });
+      if (error) {
+        setError('username', { type: 'manual', message: error.message || 'Registration failed.' });
         return;
       }
 
+      // Update local state on successful registration
+      usernameAtom.set(data.username);
+      userNamePersistentAtom.set(data.username);
+      
+      // Update localStorage for backward compatibility
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('memeUsername', data.username);
+        localStorage.setItem('memeUserId', user.id);
+        localStorage.setItem('memeUserEmail', user.email || '');
+        localStorage.setItem('onboardingComplete', 'true');
+      }
+
+      // Re-sync the profile to get the latest data from RPC
+      await syncUserMemeProfile(user.id);
+
       setSuccess('Username registered successfully!');
-      console.log('[UsernameBalance] Profile created via RPC');
+      console.log('[UsernameBalance] Profile created via Edge Function:', result);
       
     } catch (err) {
       console.error('Registration error:', err);

@@ -2,6 +2,17 @@ import React from 'react';
 import { useStore } from '@nanostores/react';
 import { userMemeProfileAtom, usernameAtom, getCurrentUserProfile } from '../../../layouts/client/supabase/profile/userstate';
 
+/**
+ * UserProfileDisplay Component
+ * 
+ * Displays user profile information including:
+ * - Basic user data (username, role, level) from astro-kbve's get_user_balance_context RPC
+ * - Financial data (credits, khash) from the same RPC
+ * - Meme-specific placeholders (meme_points, total_memes, total_likes) - currently 0 until schema is extended
+ * 
+ * Data is sourced from the shared Supabase instance between astro-kbve and astro-memes.
+ */
+
 interface UserProfileDisplayProps {
   className?: string;
   showDetails?: boolean;
@@ -57,6 +68,7 @@ export default function UserProfileDisplay({ className = '', showDetails = true 
             </div>
           </div>
 
+          {/* Meme-specific stats - currently placeholders until database schema is extended */}
           <div className="bg-zinc-700/30 rounded-lg p-3 text-center">
             <div className="text-2xl font-bold text-emerald-400">
               {profile.meme_points || 0}
