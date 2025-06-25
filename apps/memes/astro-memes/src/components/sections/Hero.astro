@@ -5,7 +5,9 @@
 <section class="relative min-h-screen">
     <!-- Hero Skeleton Loader -->
     <div id="hero-skeleton-loader" class="bg-gradient-to-br from-zinc-950 via-zinc-900 to-emerald-950/20 transition-opacity duration-500 ease-out">
-        <div class="absolute inset-0 bg-[url('/assets/images/bg/hexgrid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+        <div class="absolute inset-0 bg-[url('/assets/images/bg/hexgrid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]">
+            <div class="absolute inset-0 shimmer-bg opacity-30"></div>
+        </div>
         
         <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16">
             <div class="text-center">
@@ -49,7 +51,9 @@
     <!-- Actual Hero Content -->
     <div id="hero-content" class="opacity-0 transition-opacity duration-500 ease-in absolute inset-0">
         <div class="bg-gradient-to-br from-zinc-950 via-zinc-900 to-emerald-950/20 h-full">
-            <div class="absolute inset-0 bg-[url('/assets/images/bg/hexgrid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+            <div class="absolute inset-0 bg-[url('/assets/images/bg/hexgrid.svg')] bg-center [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]">
+                <div class="absolute inset-0 shimmer-bg opacity-30"></div>
+            </div>
             
             <div class="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-20 pb-16 h-full flex items-center">
                 <div class="text-center w-full">
@@ -91,6 +95,41 @@
         </div>
     </div>
 </section>
+
+<style>
+    .shimmer-bg {
+        background: linear-gradient(
+            90deg,
+            transparent 0%,
+            transparent 40%,
+            rgba(16, 185, 129, 0.15) 50%,
+            rgba(34, 197, 94, 0.1) 55%,
+            transparent 60%,
+            transparent 100%
+        );
+        animation: shimmer 8s ease-in-out infinite;
+        will-change: transform;
+    }
+
+    @keyframes shimmer {
+        0% {
+            transform: translateX(-100%);
+        }
+        50% {
+            transform: translateX(100vw);
+        }
+        100% {
+            transform: translateX(-100%);
+        }
+    }
+
+    /* Reduce motion for users who prefer it */
+    @media (prefers-reduced-motion: reduce) {
+        .shimmer-bg {
+            animation: none;
+        }
+    }
+</style>
 
 <script>
     // Hero fade-in logic
