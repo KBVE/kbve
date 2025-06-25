@@ -91,19 +91,23 @@ export async function syncSupabaseUser() {
       usernameAtom.set(storedUsername);
       userNamePersistentAtom.set(storedUsername);
       
-      // Set up a mock meme profile
-      const mockProfile: UserMemeProfile = {
-        user_id: mockUser.id,
-        username: storedUsername,
-        role: 'member',
-        meme_points: 100,
-        level: 1,
-        total_memes: 0,
-        total_likes: 0,
-        created_at: new Date().toISOString()
-      };
-      
-      userMemeProfileAtom.set(mockProfile);
+      // Check if we already have a profile, if not create one
+      const existingProfile = userMemeProfileAtom.get();
+      if (!existingProfile || existingProfile.user_id !== mockUser.id) {
+        // Set up a mock meme profile with persistent data
+        const mockProfile: UserMemeProfile = {
+          user_id: mockUser.id,
+          username: storedUsername,
+          role: 'member',
+          meme_points: existingProfile?.meme_points ?? 100,
+          level: existingProfile?.level ?? 1,
+          total_memes: existingProfile?.total_memes ?? 0,
+          total_likes: existingProfile?.total_likes ?? 0,
+          created_at: existingProfile?.created_at || new Date().toISOString()
+        };
+        
+        userMemeProfileAtom.set(mockProfile);
+      }
       
       if (typeof window !== 'undefined') {
         localStorage.setItem('isMember', 'true');
@@ -140,18 +144,31 @@ export async function syncUserMemeProfile(identifier: string, useCache = true) {
 
   // Simulate a successful profile fetch for development
   try {
+    // First check if we have existing data to preserve some values
+    const existingProfile = userMemeProfileAtom.get();
+    const currentUsername = userNamePersistentAtom.get();
+    
     const mockProfile: UserMemeProfile = {
       user_id: identifier,
-      username: userNamePersistentAtom.get() || null,
-      role: 'member',
-      meme_points: Math.floor(Math.random() * 1000) + 100,
-      level: Math.floor(Math.random() * 10) + 1,
-      total_memes: Math.floor(Math.random() * 50),
-      total_likes: Math.floor(Math.random() * 500),
-      created_at: new Date().toISOString()
+      username: currentUsername || null,
+      role: existingProfile?.role || 'member',
+      meme_points: existingProfile?.meme_points ?? Math.floor(Math.random() * 1000) + 100,
+      level: existingProfile?.level ?? Math.floor(Math.random() * 10) + 1,
+      total_memes: existingProfile?.total_memes ?? Math.floor(Math.random() * 50),
+      total_likes: existingProfile?.total_likes ?? Math.floor(Math.random() * 500),
+      created_at: existingProfile?.created_at || new Date().toISOString()
     };
     
+    // Store in persistent atom so it survives page reloads and sessions
     userMemeProfileAtom.set(mockProfile);
+    
+    // Also ensure username is synced if we got it from the profile
+    if (mockProfile.username && !currentUsername) {
+      userNamePersistentAtom.set(mockProfile.username);
+      usernameAtom.set(mockProfile.username);
+    }
+    
+    console.log('[syncUserMemeProfile] Profile synced:', mockProfile);
   } catch (error) {
     console.error('[syncUserMemeProfile] Failed to fetch profile:', error);
     userMemeProfileAtom.set(undefined);
@@ -207,4 +224,49 @@ export async function getUuidByUsername(username: string): Promise<string | null
   
   // For development, return a mock UUID
   return `uuid-for-${username}`;
+}
+
+// Helper: Get current user profile data (for easy access in React components)
+export function getCurrentUserProfile(): UserMemeProfile | undefined {
+  return userMemeProfileAtom.get();
+}
+
+// Helper: Update user profile data (for when profile changes)
+export function updateUserProfile(updates: Partial<UserMemeProfile>) {
+  const currentProfile = userMemeProfileAtom.get();
+  if (currentProfile) {
+    const updatedProfile = { ...currentProfile, ...updates };
+    userMemeProfileAtom.set(updatedProfile);
+    console.log('[updateUserProfile] Profile updated:', updatedProfile);
+  }
+}
+
+// Helper: Add meme points to user (for future gamification)
+export function addMemePoints(points: number) {
+  const currentProfile = userMemeProfileAtom.get();
+  if (currentProfile && currentProfile.meme_points !== null) {
+    updateUserProfile({ 
+      meme_points: currentProfile.meme_points + points 
+    });
+  }
+}
+
+// Helper: Increment meme count when user creates a meme
+export function incrementMemeCount() {
+  const currentProfile = userMemeProfileAtom.get();
+  if (currentProfile && currentProfile.total_memes !== null) {
+    updateUserProfile({ 
+      total_memes: currentProfile.total_memes + 1 
+    });
+  }
+}
+
+// Helper: Increment likes when user receives a like
+export function incrementLikesCount() {
+  const currentProfile = userMemeProfileAtom.get();
+  if (currentProfile && currentProfile.total_likes !== null) {
+    updateUserProfile({ 
+      total_likes: currentProfile.total_likes + 1 
+    });
+  }
 }

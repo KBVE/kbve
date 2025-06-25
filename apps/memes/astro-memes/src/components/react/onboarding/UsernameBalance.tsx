@@ -65,15 +65,17 @@ const UsernameBalance: React.FC = () => {
         return;
       }
 
-      // Update atoms with new username
+      // Update atoms with new username - this will persist across sessions
       usernameAtom.set(data.username);
       userNamePersistentAtom.set(data.username);
       
-      // Update localStorage for demo
+      // Update localStorage for demo compatibility
       localStorage.setItem('memeUsername', data.username);
+      localStorage.setItem('memeUserId', user.id);
+      localStorage.setItem('memeUserEmail', user.email || '');
       localStorage.setItem('onboardingComplete', 'true');
       
-      // Create/update meme profile
+      // Create/update meme profile with all the important data
       const updatedProfile = {
         user_id: user.id,
         username: data.username,
@@ -82,12 +84,17 @@ const UsernameBalance: React.FC = () => {
         level: 1,
         total_memes: 0,
         total_likes: 0,
-        created_at: new Date().toISOString()
+        created_at: profile?.created_at || new Date().toISOString() // Preserve existing created_at if available
       };
       
+      // This will persist in localStorage via the persistent atom
       userMemeProfileAtom.set(updatedProfile);
       
+      // Re-sync the user data to ensure everything is up to date
+      await syncSupabaseUser();
+      
       setSuccess('Username registered successfully!');
+      console.log('[UsernameBalance] Profile created and persisted:', updatedProfile);
       
     } catch (err) {
       console.error('Registration error:', err);

@@ -1,8 +1,15 @@
 ---
 import Layouts from "../../layouts/core/Layouts.astro";
 import { Profile } from '../../components/profile/Profile';
+import UserProfileDisplay from '../../components/ui/UserProfileDisplay.astro';
 ---
 
 <Layouts title="Profile - Meme.sh">
-    <Profile client:only="react" />
+    <!-- New Profile Display showing persistent data -->
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto space-y-8">
+            <UserProfileDisplay />
+            <Profile client:only="react" />
+        </div>
+    </div>
 </Layouts>
