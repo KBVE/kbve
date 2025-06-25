@@ -1,0 +1,41 @@
+name: "Reusable: Fly Deploy Image"
+
+
+on:
+  workflow_call:
+    inputs:
+      fly_app_name:
+        description: "The Fly.io app name"
+        required: true
+        type: string
+      docker_image:
+        description: "Docker image to deploy"
+        required: true
+        type: string
+      flyctl_version:
+        description: "Flyctl version"
+        required: false
+        default: "0.1.92"
+        type: string
+    secrets:
+      FLY_API_TOKEN:
+        required: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Setup Flyctl
+        uses: superfly/flyctl-actions/setup-flyctl@master
+        with:
+          version: ${{ inputs.flyctl_version }}
+
+      - name: Deploy prebuilt image to Fly
+        run: |
+          flyctl deploy --app ${{ inputs.fly_app_name }} --image ${{ inputs.docker_image }}
+        env:
+          FLY_API_TOKEN: ${{ secrets.FLY_API_TOKEN }}
