@@ -1,0 +1,198 @@
+---
+import Layouts from "src/layouts/core/Layouts.astro";
+---
+
+<Layouts title="Meme.sh - 404 - Page Not Found">
+    <div class="min-h-screen bg-gradient-to-br from-zinc-950 via-zinc-900 to-emerald-950/20 flex items-center justify-center relative overflow-hidden">
+        <!-- Background pattern -->
+        <div class="absolute inset-0 bg-[url('/assets/images/bg/hexgrid.svg')] bg-center opacity-20 [mask-image:linear-gradient(180deg,white,rgba(255,255,255,0))]"></div>
+        
+        <!-- Floating meme icons -->
+        <div class="pointer-events-none">
+            <div class="floating-icon absolute top-[15vh] left-[8vw] text-6xl opacity-30">😭</div>
+            <div class="floating-icon absolute top-[25vh] right-[12vw] text-5xl opacity-25" style="animation-delay: -2s;">🤔</div>
+            <div class="floating-icon absolute top-[65vh] left-[15vw] text-4xl opacity-20" style="animation-delay: -4s;">😅</div>
+            <div class="floating-icon absolute top-[75vh] right-[20vw] text-7xl opacity-15" style="animation-delay: -6s;">🔍</div>
+            <div class="floating-icon absolute top-[45vh] left-[5vw] text-5xl opacity-25" style="animation-delay: -3s;">🚫</div>
+            <div class="floating-icon absolute top-[55vh] right-[8vw] text-6xl opacity-20" style="animation-delay: -5s;">❓</div>
+        </div>
+
+        <div class="relative max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
+            <!-- 404 Number -->
+            <div class="mb-8">
+                <h1 class="text-8xl md:text-9xl lg:text-[12rem] font-black bg-gradient-to-r from-emerald-400 via-green-400 to-emerald-500 bg-clip-text text-transparent leading-none glitch-text">
+                    404
+                </h1>
+            </div>
+
+            <!-- Main message -->
+            <div class="mb-8">
+                <h2 class="text-3xl md:text-4xl lg:text-5xl font-bold text-white mb-4">
+                    Oops! This meme got lost
+                </h2>
+                <p class="text-xl md:text-2xl text-neutral-400 max-w-2xl mx-auto leading-relaxed">
+                    Looks like this page went on vacation without telling us. 
+                    Maybe it's out there creating the next viral meme! 🚀
+                </p>
+            </div>
+
+            <!-- Fun stats about the "lost" page -->
+            <div class="flex flex-wrap justify-center gap-6 mb-12">
+                <div class="text-center px-4">
+                    <div class="text-2xl font-bold text-emerald-400">404</div>
+                    <div class="text-neutral-500 text-sm">Error Code</div>
+                </div>
+                <div class="text-center px-4">
+                    <div class="text-2xl font-bold text-emerald-400">∞</div>
+                    <div class="text-neutral-500 text-sm">Better Pages</div>
+                </div>
+                <div class="text-center px-4">
+                    <div class="text-2xl font-bold text-emerald-400">0%</div>
+                    <div class="text-neutral-500 text-sm">Chance Found</div>
+                </div>
+            </div>
+
+            <!-- Action buttons -->
+            <div class="flex flex-col sm:flex-row gap-4 justify-center mb-8">
+                <a href="/" class="px-8 py-4 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 hover:shadow-lg hover:shadow-emerald-500/25 text-center">
+                    🏠 Go Home
+                </a>
+                <a href="/discover/" class="px-8 py-4 border border-emerald-500/50 text-emerald-400 hover:text-emerald-200 hover:bg-emerald-500/10 font-semibold rounded-xl transition-all duration-300 hover:scale-105 text-center">
+                    🔍 Discover Memes
+                </a>
+                <a href="/create/" class="px-8 py-4 border border-emerald-500/50 text-emerald-400 hover:text-emerald-200 hover:bg-emerald-500/10 font-semibold rounded-xl transition-all duration-300 hover:scale-105 text-center">
+                    ✨ Create Meme
+                </a>
+            </div>
+
+            <!-- Fun suggestion -->
+            <div class="text-neutral-500 text-sm">
+                <p>While you're here, why not check out some trending memes? 📈</p>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .floating-icon {
+            animation: float 6s ease-in-out infinite;
+        }
+
+        @keyframes float {
+            0%, 100% {
+                transform: translateY(0px) rotate(0deg);
+            }
+            25% {
+                transform: translateY(-20px) rotate(5deg);
+            }
+            50% {
+                transform: translateY(-10px) rotate(-5deg);
+            }
+            75% {
+                transform: translateY(-15px) rotate(3deg);
+            }
+        }
+
+        .glitch-text {
+            position: relative;
+            animation: glitch 3s infinite;
+        }
+
+        .glitch-text::before,
+        .glitch-text::after {
+            content: '404';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, #10b981, #22c55e, #10b981);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .glitch-text::before {
+            animation: glitch-1 3s infinite;
+            z-index: -1;
+        }
+
+        .glitch-text::after {
+            animation: glitch-2 3s infinite;
+            z-index: -2;
+        }
+
+        @keyframes glitch {
+            0%, 100% {
+                transform: translate(0);
+            }
+            20% {
+                transform: translate(-2px, 2px);
+            }
+            40% {
+                transform: translate(-2px, -2px);
+            }
+            60% {
+                transform: translate(2px, 2px);
+            }
+            80% {
+                transform: translate(2px, -2px);
+            }
+        }
+
+        @keyframes glitch-1 {
+            0%, 100% {
+                transform: translate(0);
+                opacity: 0;
+            }
+            20% {
+                transform: translate(-1px, 1px);
+                opacity: 0.1;
+            }
+            40% {
+                transform: translate(-1px, -1px);
+                opacity: 0;
+            }
+            60% {
+                transform: translate(1px, 1px);
+                opacity: 0.1;
+            }
+            80% {
+                transform: translate(1px, -1px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes glitch-2 {
+            0%, 100% {
+                transform: translate(0);
+                opacity: 0;
+            }
+            20% {
+                transform: translate(1px, -1px);
+                opacity: 0.05;
+            }
+            40% {
+                transform: translate(1px, 1px);
+                opacity: 0;
+            }
+            60% {
+                transform: translate(-1px, -1px);
+                opacity: 0.05;
+            }
+            80% {
+                transform: translate(-1px, 1px);
+                opacity: 0;
+            }
+        }
+
+        /* Reduce motion for users who prefer it */
+        @media (prefers-reduced-motion: reduce) {
+            .floating-icon,
+            .glitch-text,
+            .glitch-text::before,
+            .glitch-text::after {
+                animation: none;
+            }
+        }
+    </style>
+</Layouts>
