@@ -114,8 +114,7 @@ export default defineConfig({
         //partytown(),
         worker(),
         react({
-            experimentalReactChildren: true,
-            experimentalDisableStreaming: true,
+            experimentalReactChildren: true
         }),
         svelte(),
 

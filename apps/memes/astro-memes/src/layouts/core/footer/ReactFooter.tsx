@@ -1,11 +1,7 @@
-import React from "react";
-import { supabase } from 'src/layouts/core/supabaseClient';
+import React, { useState, useEffect } from "react";
 import { clsx, twMerge } from 'src/layouts/core/tw';
 import { useStore } from '@nanostores/react';
-import { 
-  isAuthenticated, 
-  userProfile 
-} from '../stores/navigationStore';
+import { isAuthenticated, userProfile } from '../stores/userStore';
 
 import { 
   Theater, 
@@ -25,7 +21,7 @@ export const ReactFooter: React.FC<ReactFooterProps> = ({ className }) => {
   const authenticated = useStore(isAuthenticated);
   const profile = useStore(userProfile);
 
-  React.useEffect(() => {
+  useEffect(() => {
     // Signal that the footer has fully mounted
     const skeleton = document.getElementById('footer-skeleton-loader');
     const content = document.getElementById('footer-content');
