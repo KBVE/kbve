@@ -120,6 +120,7 @@ function clearUserState() {
 }
 
 // Function to fetch and sync user meme profile from Supabase RPC
+// Uses the available get_user_balance_context RPC from astro-kbve (since both projects share the same Supabase instance)
 export async function syncUserMemeProfile(identifier: string, useCache = true) {
   if (!identifier) {
     userMemeProfileAtom.set(undefined);
@@ -127,8 +128,9 @@ export async function syncUserMemeProfile(identifier: string, useCache = true) {
   }
 
   try {
-    // Make the actual RPC call to get user profile data
-    const { data, error } = await supabase.rpc('get_user_meme_profile', {
+    // Use the available get_user_balance_context RPC from astro-kbve
+    // This returns user_id, username, role, credits, khash, level, created_at
+    const { data, error } = await supabase.rpc('get_user_balance_context', {
       p_identifier: identifier,
       use_cache: useCache,
     });
@@ -139,19 +141,22 @@ export async function syncUserMemeProfile(identifier: string, useCache = true) {
       return;
     }
 
-    if (data) {
+    if (data && data.length > 0) {
+      const balanceData = data[0]; // get_user_balance_context returns an array
+      
       // Map the RPC response to our UserMemeProfile type
       const profile: UserMemeProfile = {
-        user_id: data.user_id || identifier,
-        username: data.username || null,
-        role: data.role || null,
-        credits: data.credits ?? null,           // From RPC response
-        khash: data.khash ?? null,               // From RPC response
-        meme_points: data.meme_points ?? null,   // Meme-specific points
-        level: data.level ?? null,
-        total_memes: data.total_memes ?? null,
-        total_likes: data.total_likes ?? null,
-        created_at: data.created_at || new Date().toISOString()
+        user_id: balanceData.user_id || identifier,
+        username: balanceData.username || null,
+        role: balanceData.role || null,
+        credits: balanceData.credits ?? null,           // From RPC response
+        khash: balanceData.khash ?? null,               // From RPC response
+        level: balanceData.level ?? null,
+        created_at: balanceData.created_at || new Date().toISOString(),
+        // Meme-specific fields - defaults since not available in current RPC
+        meme_points: null,   // TODO: Add to database schema when meme-specific tables are created
+        total_memes: null,   // TODO: Add to database schema when meme-specific tables are created  
+        total_likes: null,   // TODO: Add to database schema when meme-specific tables are created
       };
       
       // Store in persistent atom so it survives page reloads and sessions
@@ -201,24 +206,22 @@ export async function logoutUser() {
   }
 }
 
-// Function to create/update username via RPC during onboarding
+// Function to create/update username via Supabase Edge Function during onboarding
 export async function createUserProfile(username: string): Promise<{ success: boolean; error?: string }> {
   try {
     const user = userAtom.get();
     if (!user) {
-      return { success: false, error: 'User not authenticated' };
+      return { success: false, error: 'User not logged in.' };
     }
 
-    // Call RPC to create/update user profile with username
-    const { data, error } = await supabase.rpc('create_user_profile', {
-      p_user_id: user.id,
-      p_username: username,
-      p_email: user.email
+    // Call Supabase Edge Function to register user
+    const { data: result, error } = await supabase.functions.invoke('register-user', {
+      body: { username: username }
     });
 
     if (error) {
-      console.error('[createUserProfile] RPC error:', error);
-      return { success: false, error: error.message };
+      console.error('[createUserProfile] Edge function error:', error);
+      return { success: false, error: error.message || 'Registration failed.' };
     }
 
     // Update local state with new username
@@ -231,10 +234,10 @@ export async function createUserProfile(username: string): Promise<{ success: bo
       localStorage.setItem('onboardingComplete', 'true');
     }
 
-    // Re-sync the profile to get the latest data
+    // Re-sync the profile to get the latest data from RPC
     await syncUserMemeProfile(user.id);
 
-    console.log('[createUserProfile] Profile created successfully:', data);
+    console.log('[createUserProfile] Profile created successfully via Edge Function:', result);
     return { success: true };
   } catch (error) {
     console.error('[createUserProfile] Failed to create profile:', error);
@@ -403,3 +406,24 @@ export function initializeAuthListener() {
     }
   });
 }
+
+/**
+ * SUPABASE INTEGRATION SUMMARY:
+ * 
+ * USER REGISTRATION (Onboarding):
+ * - Uses Supabase Edge Function: supabase.functions.invoke('register-user', { body: { username } })
+ * - Handles username creation and initial profile setup
+ * - Shared between astro-kbve and astro-memes (same Supabase instance)
+ * 
+ * PROFILE DATA FETCHING:
+ * - Uses available RPC from astro-kbve: supabase.rpc('get_user_balance_context', { p_identifier, use_cache })
+ * - Returns: user_id, username, role, credits, khash, level, created_at
+ * - Meme-specific fields (meme_points, total_memes, total_likes) are set to null until database schema is extended
+ * 
+ * USERNAME LOOKUP:
+ * - Uses RPC calls: supabase.rpc('proxy_get_username') / supabase.rpc('proxy_get_uuid')
+ * - For username/UUID conversions (shared between astro-kbve and astro-memes)
+ * 
+ * IMPORTANT: Both astro-kbve and astro-memes share the same Supabase instance,
+ * so astro-memes can only use RPC functions that already exist in astro-kbve.
+ */
