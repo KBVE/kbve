@@ -1,0 +1,10 @@
+---
+import Layouts from "../../layouts/core/Layouts.astro";
+import { AuthLogin } from '../../layouts/core/auth/AuthLogin';
+---
+
+<Layouts title="Sign In - Meme.sh">
+  <div class="min-h-screen flex items-center justify-center bg-gradient-to-br from-zinc-950 via-zinc-900 to-emerald-950/20">
+    <AuthLogin client:only="react" />
+  </div>
+</Layouts>

@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import { supabase } from '../supabaseClient';
-import { navigationActions } from '../stores/navigationStore';
+import { userActions } from '../stores/userStore';
 import { Loader2, CheckCircle, XCircle, ArrowRight } from 'lucide-react';
 
 interface CallbackProps {
@@ -36,11 +36,13 @@ export const Callback: React.FC<CallbackProps> = ({ redirectTo = '/' }) => {
         }
 
         if (data.user) {
-          // Update the navigation store
-          navigationActions.setAuth(true, {
+          // Update the user store
+          userActions.setAuth(data.session, {
             id: data.user.id,
             email: data.user.email!,
-            username: data.user.user_metadata?.username || data.user.user_metadata?.user_name || data.user.user_metadata?.name
+            username: data.user.user_metadata?.username || data.user.user_metadata?.user_name || data.user.user_metadata?.name,
+            avatar_url: data.user.user_metadata?.avatar_url,
+            full_name: data.user.user_metadata?.full_name,
           });
 
           setUserInfo({

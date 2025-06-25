@@ -1,5 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { clsx, twMerge } from '../../layouts/core/tw';
+import { atom } from 'nanostores';
+import { useStore } from '@nanostores/react';
+
+// Internal nano stores for this component only
+const memeCurrentMode = atom<ViewMode>('stack');
+const memeCurrentIndex = atom<number>(0);
+const memeLikedMemes = atom<Set<string>>(new Set());
+
+// Internal actions
+const memeActions = {
+  setMode: (mode: ViewMode) => memeCurrentMode.set(mode),
+  setIndex: (index: number) => memeCurrentIndex.set(index),
+  toggleLike: (memeId: string) => {
+    const current = memeLikedMemes.get();
+    const newSet = new Set(current);
+    if (newSet.has(memeId)) {
+      newSet.delete(memeId);
+    } else {
+      newSet.add(memeId);
+    }
+    memeLikedMemes.set(newSet);
+  }
+};
 
 // Hardcoded JSON data for memes
 const MOCK_MEMES = [
@@ -96,9 +119,9 @@ type MemeType = typeof MOCK_MEMES[0];
 type ViewMode = 'stack' | 'vertical' | 'stories';
 
 export const MemeDiscoveryComponent: React.FC = () => {
-  const [currentMode, setCurrentMode] = useState<ViewMode>('stack');
-  const [currentIndex, setCurrentIndex] = useState(0);
-  const [likedMemes, setLikedMemes] = useState<Set<string>>(new Set());
+  const currentMode = useStore(memeCurrentMode);
+  const currentIndex = useStore(memeCurrentIndex);
+  const likedMemes = useStore(memeLikedMemes);
 
   useEffect(() => {
     // Signal that the component has mounted
@@ -124,26 +147,18 @@ export const MemeDiscoveryComponent: React.FC = () => {
   };
 
   const handleLike = (memeId: string) => {
-    setLikedMemes(prev => {
-      const newSet = new Set(prev);
-      if (newSet.has(memeId)) {
-        newSet.delete(memeId);
-      } else {
-        newSet.add(memeId);
-      }
-      return newSet;
-    });
+    memeActions.toggleLike(memeId);
   };
 
   const nextStory = () => {
     if (currentIndex < MOCK_MEMES.length - 1) {
-      setCurrentIndex(currentIndex + 1);
+      memeActions.setIndex(currentIndex + 1);
     }
   };
 
   const previousStory = () => {
     if (currentIndex > 0) {
-      setCurrentIndex(currentIndex - 1);
+      memeActions.setIndex(currentIndex - 1);
     }
   };
 
@@ -343,7 +358,7 @@ export const MemeDiscoveryComponent: React.FC = () => {
       <div className="fixed bottom-6 left-1/2 transform -translate-x-1/2 z-50">
         <div className="flex items-center space-x-2 bg-zinc-900/90 backdrop-blur-md border border-zinc-700 rounded-full px-4 py-2 shadow-xl">
           <button
-            onClick={() => setCurrentMode('stack')}
+            onClick={() => memeActions.setMode('stack')}
             className={clsx(
               "p-3 rounded-full transition-all duration-300",
               currentMode === 'stack'
@@ -356,7 +371,7 @@ export const MemeDiscoveryComponent: React.FC = () => {
             </svg>
           </button>
           <button
-            onClick={() => setCurrentMode('vertical')}
+            onClick={() => memeActions.setMode('vertical')}
             className={clsx(
               "p-3 rounded-full transition-all duration-300",
               currentMode === 'vertical'
@@ -369,7 +384,7 @@ export const MemeDiscoveryComponent: React.FC = () => {
             </svg>
           </button>
           <button
-            onClick={() => setCurrentMode('stories')}
+            onClick={() => memeActions.setMode('stories')}
             className={clsx(
               "p-3 rounded-full transition-all duration-300",
               currentMode === 'stories'
