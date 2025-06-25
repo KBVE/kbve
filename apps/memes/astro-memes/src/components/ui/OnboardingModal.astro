@@ -1,0 +1,94 @@
+---
+// Onboarding Modal Component for checking if user needs username setup
+---
+
+<div id="onboarding-check-modal" class="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-sm opacity-0 pointer-events-none transition-all duration-300">
+    <div class="bg-white dark:bg-zinc-900 rounded-3xl shadow-2xl p-8 max-w-md w-full mx-4 transform scale-95 transition-all duration-300">
+        <div class="text-center">
+            <div class="w-16 h-16 bg-gradient-to-br from-emerald-500 to-green-500 rounded-full flex items-center justify-center text-3xl text-white mx-auto mb-4 shadow-lg">
+                👋
+            </div>
+            <h3 class="text-2xl font-bold text-neutral-900 dark:text-white mb-2">Welcome to Meme.sh!</h3>
+            <p class="text-neutral-600 dark:text-neutral-400 mb-6">
+                It looks like you're new here! Let's set up your profile so you can start discovering and sharing amazing memes.
+            </p>
+            <div class="flex flex-col sm:flex-row gap-3">
+                <a href="/onboarding/" class="flex-1 px-6 py-3 bg-gradient-to-r from-emerald-500 to-green-500 hover:from-emerald-400 hover:to-green-400 text-white font-semibold rounded-xl transition-all duration-300 hover:scale-105 text-center">
+                    Set Up Profile
+                </a>
+                <button id="skip-onboarding" class="flex-1 px-6 py-3 border border-neutral-300 dark:border-neutral-600 text-neutral-600 dark:text-neutral-400 hover:bg-neutral-100 dark:hover:bg-neutral-800 font-semibold rounded-xl transition-all duration-300 hover:scale-105">
+                    Skip for Now
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Onboarding check logic
+    document.addEventListener('DOMContentLoaded', () => {
+        const modal = document.getElementById('onboarding-check-modal') as HTMLElement;
+        const skipButton = document.getElementById('skip-onboarding') as HTMLButtonElement;
+        
+        if (!modal || !skipButton) return;
+
+        // Check if user needs onboarding
+        function checkOnboardingStatus() {
+            const hasUsername = localStorage.getItem('memeUsername');
+            const onboardingComplete = localStorage.getItem('onboardingComplete');
+            const onboardingSkipped = localStorage.getItem('onboardingSkipped');
+            
+            // If user has no username and hasn't completed or skipped onboarding
+            if (!hasUsername && !onboardingComplete && !onboardingSkipped) {
+                // Show modal after a short delay for better UX
+                setTimeout(() => {
+                    showModal();
+                }, 1000);
+            }
+        }
+
+        function showModal() {
+            modal.classList.remove('opacity-0', 'pointer-events-none');
+            const content = modal.querySelector('div') as HTMLElement;
+            if (content) {
+                content.classList.remove('scale-95');
+                content.classList.add('scale-100');
+            }
+        }
+
+        function hideModal() {
+            modal.classList.add('opacity-0', 'pointer-events-none');
+            const content = modal.querySelector('div') as HTMLElement;
+            if (content) {
+                content.classList.remove('scale-100');
+                content.classList.add('scale-95');
+            }
+        }
+
+        // Skip onboarding handler
+        skipButton.addEventListener('click', () => {
+            localStorage.setItem('onboardingSkipped', 'true');
+            hideModal();
+        });
+
+        // Close modal when clicking outside
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                localStorage.setItem('onboardingSkipped', 'true');
+                hideModal();
+            }
+        });
+
+        // Only run check if we're not already on the onboarding page
+        if (!window.location.pathname.includes('/onboarding')) {
+            checkOnboardingStatus();
+        }
+    });
+</script>
+
+<style>
+    /* Ensure modal appears above everything else */
+    #onboarding-check-modal {
+        z-index: 9999;
+    }
+</style>
