@@ -3,7 +3,7 @@ import { clsx, twMerge } from 'src/layouts/core/tw';
 import { atom } from 'nanostores';
 import { useStore } from '@nanostores/react';
 
-import { Home, Laugh, Sparkles, Flame, Info, Theater } from 'lucide-react';
+import { Home, Laugh, Sparkles, Flame, Info, Theater, Github, Loader2, LogOut } from 'lucide-react';
 
 // Internal nano stores for this component only
 const navMenuOpen = atom<boolean>(false);
@@ -33,6 +33,99 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
   const menuOpen = useStore(navMenuOpen);
   const authenticated = useStore(navAuthenticated);
   const profile = useStore(navUserProfile);
+  const [authLoading, setAuthLoading] = useState(false);
+
+  // Simple OAuth Login Component
+  const SimpleOAuthLogin: React.FC<{ className?: string }> = ({ className: buttonClassName }) => {
+    const handleGitHubLogin = async () => {
+      try {
+        setAuthLoading(true);
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+        
+        if (supabaseUrl && supabaseAnonKey) {
+          const supabase = createClient(supabaseUrl, supabaseAnonKey);
+          const { error } = await supabase.auth.signInWithOAuth({
+            provider: 'github',
+            options: {
+              redirectTo: `${window.location.origin}/auth/callback`
+            }
+          });
+          if (error) throw error;
+        }
+      } catch (error) {
+        console.error('Error signing in:', error);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    return (
+      <button
+        onClick={handleGitHubLogin}
+        disabled={authLoading}
+        className={clsx(
+          'flex items-center justify-center space-x-2',
+          'disabled:opacity-50 disabled:cursor-not-allowed',
+          buttonClassName
+        )}
+      >
+        {authLoading ? (
+          <Loader2 size={16} className="animate-spin" />
+        ) : (
+          <Github size={16} />
+        )}
+        <span>Sign In with GitHub</span>
+      </button>
+    );
+  };
+
+  // Simple Logout Component
+  const SimpleLogout: React.FC<{ className?: string; children?: React.ReactNode }> = ({ 
+    className: buttonClassName, 
+    children 
+  }) => {
+    const handleLogout = async () => {
+      try {
+        setAuthLoading(true);
+        const { createClient } = await import('@supabase/supabase-js');
+        const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
+        
+        if (supabaseUrl && supabaseAnonKey) {
+          const supabase = createClient(supabaseUrl, supabaseAnonKey);
+          const { error } = await supabase.auth.signOut();
+          if (error) throw error;
+          navActions.logout();
+          navActions.closeMenu();
+        }
+      } catch (error) {
+        console.error('Error signing out:', error);
+      } finally {
+        setAuthLoading(false);
+      }
+    };
+
+    return (
+      <button
+        onClick={handleLogout}
+        disabled={authLoading}
+        className={clsx(
+          'flex items-center space-x-2',
+          'disabled:opacity-50 disabled:cursor-not-allowed',
+          buttonClassName
+        )}
+      >
+        {authLoading ? (
+          <Loader2 size={16} className="animate-spin" />
+        ) : (
+          <LogOut size={16} />
+        )}
+        <span>{children || 'Sign Out'}</span>
+      </button>
+    );
+  };
 
   // Check authentication status on mount
   useEffect(() => {
@@ -96,45 +189,6 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
     }
   }, []);
 
-  const handleSignIn = async () => {
-    try {
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-      
-      if (supabaseUrl && supabaseAnonKey) {
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
-        const { error } = await supabase.auth.signInWithOAuth({
-          provider: 'github',
-          options: {
-            redirectTo: `${window.location.origin}/auth/callback`
-          }
-        });
-        if (error) throw error;
-      }
-    } catch (error) {
-      console.error('Error signing in:', error);
-    }
-  };
-
-  const handleSignOut = async () => {
-    try {
-      const { createClient } = await import('@supabase/supabase-js');
-      const supabaseUrl = import.meta.env.PUBLIC_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.PUBLIC_SUPABASE_ANON_KEY;
-      
-      if (supabaseUrl && supabaseAnonKey) {
-        const supabase = createClient(supabaseUrl, supabaseAnonKey);
-        const { error } = await supabase.auth.signOut();
-        if (error) throw error;
-        navActions.logout();
-        navActions.closeMenu();
-      }
-    } catch (error) {
-      console.error('Error signing out:', error);
-    }
-  };
-
   const navItems = [
     { label: 'Home', href: '/', icon: Home },
     { label: 'Memes', href: '/memes', icon: Laugh },
@@ -193,8 +247,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
                     {profile?.username || profile?.email?.split('@')[0]}
                   </span>
                 </div>
-                <button
-                  onClick={handleSignOut}
+                <SimpleLogout 
                   className={clsx(
                     'px-4 py-2 text-sm font-medium text-neutral-300 hover:text-red-400',
                     'border border-zinc-600 rounded-md hover:border-red-400',
@@ -202,20 +255,17 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
                   )}
                 >
                   Sign Out
-                </button>
+                </SimpleLogout>
               </div>
             ) : (
-              <button
-                onClick={handleSignIn}
+              <SimpleOAuthLogin 
                 className={clsx(
                   'px-4 py-2 text-sm font-medium text-black',
                   'bg-gradient-to-r from-emerald-400 to-green-400 rounded-md',
                   'hover:from-emerald-500 hover:to-green-500',
                   'transition-all duration-200 transform hover:scale-105'
                 )}
-              >
-                Sign In with GitHub
-              </button>
+              />
             )}
           </div>
 
@@ -287,8 +337,7 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
                       <p className="text-xs text-neutral-500">{profile?.email}</p>
                     </div>
                   </div>
-                  <button
-                    onClick={handleSignOut}
+                  <SimpleLogout 
                     className={clsx(
                       'w-full text-left px-3 py-2 text-base font-medium',
                       'text-red-400 hover:bg-red-500/10 rounded-md',
@@ -296,20 +345,19 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
                     )}
                   >
                     Sign Out
-                  </button>
+                  </SimpleLogout>
                 </div>
               ) : (
-                <button
-                  onClick={handleSignIn}
-                  className={clsx(
-                    'w-full px-3 py-2 text-base font-medium text-black',
-                    'bg-gradient-to-r from-emerald-400 to-green-400 rounded-md',
-                    'hover:from-emerald-500 hover:to-green-500',
-                    'transition-all duration-200'
-                  )}
-                >
-                  Sign In with GitHub
-                </button>
+                <div className="px-3">
+                  <SimpleOAuthLogin 
+                    className={clsx(
+                      'w-full px-3 py-2 text-base font-medium text-black',
+                      'bg-gradient-to-r from-emerald-400 to-green-400 rounded-md',
+                      'hover:from-emerald-500 hover:to-green-500',
+                      'transition-all duration-200'
+                    )}
+                  />
+                </div>
               )}
             </div>
           </div>
