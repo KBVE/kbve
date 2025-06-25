@@ -160,14 +160,17 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
             <div className="hidden md:flex items-center space-x-4">
               {authenticated ? (
                 <div className="flex items-center space-x-3">
-                  <div className="flex items-center space-x-2">
+                  <a
+                    href="/profile"
+                    className="flex items-center space-x-2 px-3 py-2 rounded-md text-sm font-medium text-neutral-300 hover:text-emerald-400 hover:bg-emerald-500/10 transition-all duration-300"
+                  >
                     <div className="w-8 h-8 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center text-black text-sm font-medium">
                       {profile?.username?.[0]?.toUpperCase() || profile?.email[0]?.toUpperCase() || 'U'}
                     </div>
-                    <span className="text-sm text-neutral-300">
+                    <span className="hidden lg:inline">
                       {profile?.username || profile?.email?.split('@')[0]}
                     </span>
-                  </div>
+                  </a>
                   <LogoutButton 
                     className={clsx(
                       'px-4 py-2 text-sm font-medium text-neutral-300 hover:text-red-400',
@@ -255,17 +258,28 @@ export const NavigationBar: React.FC<NavigationBarProps> = ({ className }) => {
               <div className="pt-4 border-t border-zinc-700">
                 {authenticated ? (
                   <div className="space-y-3">
-                    <div className="flex items-center space-x-3 px-3 py-2">
+                    <a
+                      href="/profile"
+                      className="flex items-center space-x-3 px-3 py-2 text-neutral-300 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-all duration-300"
+                      onClick={navActions.closeMenu}
+                    >
                       <div className="w-10 h-10 bg-gradient-to-r from-emerald-500 to-green-500 rounded-full flex items-center justify-center text-black font-medium">
                         {profile?.username?.[0]?.toUpperCase() || profile?.email[0]?.toUpperCase() || 'U'}
                       </div>
                       <div>
-                        <p className="text-sm font-medium text-neutral-300">
+                        <p className="text-sm font-medium">
                           {profile?.username || 'User'}
                         </p>
                         <p className="text-xs text-neutral-500">{profile?.email}</p>
                       </div>
-                    </div>
+                    </a>
+                    <a
+                      href="/profile/settings"
+                      className="w-full text-left px-3 py-2 text-base font-medium text-neutral-300 hover:text-emerald-400 hover:bg-emerald-500/10 rounded-md transition-colors duration-200 block"
+                      onClick={navActions.closeMenu}
+                    >
+                      Profile Settings
+                    </a>
                     <LogoutButton 
                       className={clsx(
                         'w-full text-left px-3 py-2 text-base font-medium',

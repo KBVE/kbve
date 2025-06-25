@@ -292,6 +292,66 @@ export const userActions = {
     }
   },
 
+  // Enhanced profile management actions
+  updateBasicProfile: (updates: { 
+    username?: string; 
+    display_name?: string; 
+    bio?: string; 
+    website?: string; 
+    location?: string; 
+  }) => {
+    const current = userProfile.get();
+    if (current) {
+      userProfile.set({
+        ...current,
+        ...updates,
+        updated_at: new Date().toISOString(),
+      });
+    }
+  },
+
+  updateAvatar: (avatar_url: string) => {
+    const current = userProfile.get();
+    if (current) {
+      userProfile.set({
+        ...current,
+        avatar_url,
+        updated_at: new Date().toISOString(),
+      });
+    }
+  },
+
+  updateAccountSettings: (settings: {
+    email_notifications?: boolean;
+    push_notifications?: boolean;
+    is_premium?: boolean;
+    is_creator?: boolean;
+  }) => {
+    const current = userProfile.get();
+    if (current) {
+      userProfile.set({
+        ...current,
+        ...settings,
+        updated_at: new Date().toISOString(),
+      });
+    }
+  },
+
+  // Profile validation helpers
+  validateProfile: () => {
+    const profile = userProfile.get();
+    if (!profile) return { valid: false, errors: ['No profile found'] };
+    
+    const errors: string[] = [];
+    
+    if (!profile.email) errors.push('Email is required');
+    if (profile.username && profile.username.length < 3) errors.push('Username must be at least 3 characters');
+    if (profile.bio && profile.bio.length > 500) errors.push('Bio must be less than 500 characters');
+    if (profile.website && !profile.website.match(/^https?:\/\/.+/)) errors.push('Website must be a valid URL');
+    
+    return { valid: errors.length === 0, errors };
+  },
+
   // Activity tracking actions
   likeMeme: (memeId: string) => {
     const current = userActivity.get();
