@@ -114,7 +114,8 @@ export default defineConfig({
         //partytown(),
         worker(),
         react({
-            experimentalReactChildren: true
+            experimentalReactChildren: true,
+            experimentalDisableStreaming: true,
         }),
         svelte(),
 
@@ -202,6 +203,17 @@ export default defineConfig({
                                 maxEntries: 100,
                                 maxAgeSeconds: 60 * 60 * 24 * 30,
                             },
+                        },
+                    },
+                    {
+                        urlPattern: /^\/_astro\/.*\.js$/,
+                        handler: 'NetworkFirst', // or 'StaleWhileRevalidate' for better perf
+                        options: {
+                                cacheName: 'astro-islands',
+                                expiration: {
+                                maxEntries: 50,
+                                maxAgeSeconds: 60 * 60 * 24,
+                                },
                         },
                     },
 
