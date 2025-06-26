@@ -3,20 +3,12 @@ import { useStore } from '@nanostores/react';
 import { userAtom, syncSupabaseUser } from '../../../layouts/client/supabase/profile/userstate';
 import OAuthLogin from '../../../layouts/core/auth/OAuthLogin';
 
-interface MemberOnlyPremiumProps {
-  /** Custom message for non-authenticated users */
-  message?: string;
-  /** Whether to show the OAuth login component */
-  showOAuth?: boolean;
-  /** Custom CSS classes */
-  className?: string;
-}
-
-const MemberOnlyPremium: React.FC<MemberOnlyPremiumProps> = ({ 
-  message = "Unlock premium features with a member account.",
-  showOAuth = true,
-  className = ""
-}) => {
+const MemberOnlyPremium: React.FC = () => {
+  // All configuration is hardcoded inside the component
+  const message = "Unlock premium features with a member account.";
+  const showOAuth = true;
+  const className = "";
+  
   const user = useStore(userAtom);
   const [isLoading, setIsLoading] = useState(true);
 

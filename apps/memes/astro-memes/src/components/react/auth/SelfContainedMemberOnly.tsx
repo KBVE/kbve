@@ -3,25 +3,11 @@ import { useStore } from '@nanostores/react';
 import { userAtom, syncSupabaseUser } from '../../../layouts/client/supabase/profile/userstate';
 import OAuthLogin from '../../../layouts/core/auth/OAuthLogin';
 
-interface SelfContainedMemberOnlyProps {
-  /** Custom message for non-authenticated users */
-  message?: string;
-  /** Whether to show the OAuth login component */
-  showOAuth?: boolean;
-  /** Content to show when user is authenticated */
-  memberContent?: {
-    title?: string;
-    description?: string;
-    features?: string[];
-  };
-  /** Custom CSS classes */
-  className?: string;
-}
-
-const SelfContainedMemberOnly: React.FC<SelfContainedMemberOnlyProps> = ({ 
-  message = "You need to be logged in to access this content.",
-  showOAuth = true,
-  memberContent = {
+const SelfContainedMemberOnly: React.FC = () => {
+  // All configuration is hardcoded inside the component
+  const message = "You need to be logged in to access this content.";
+  const showOAuth = true;
+  const memberContent = {
     title: "🔒 Member-Only Content",
     description: "You have access to exclusive member features!",
     features: [
@@ -30,9 +16,9 @@ const SelfContainedMemberOnly: React.FC<SelfContainedMemberOnlyProps> = ({
       "Custom meme templates",
       "Analytics dashboard"
     ]
-  },
-  className = ""
-}) => {
+  };
+  const className = "";
+  
   const user = useStore(userAtom);
   const [isLoading, setIsLoading] = useState(true);
 
