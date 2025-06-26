@@ -1,22 +1,8 @@
 ---
 // Astro wrapper for Member-Only Dashboard
 import MemberOnlyDashboardComponent from '../react/auth/MemberOnlyDashboard';
-
-interface Props {
-  /** Custom message for non-authenticated users */
-  message?: string;
-  /** Whether to show the OAuth login component */
-  showOAuth?: boolean;
-  /** Custom CSS classes */
-  className?: string;
-}
-
-const { message, showOAuth = true, className } = Astro.props;
 ---
 
 <MemberOnlyDashboardComponent 
   client:only="react" 
-  message={message}
-  showOAuth={showOAuth}
-  className={className}
 />

@@ -1,8 +1,8 @@
 ---
 import Layouts from "../../layouts/core/Layouts.astro";
-import { Dashboard } from '../../components/dashboard/Dashboard';
+import SafeDashboard from '../../components/dashboard/SafeDashboard';
 ---
 
 <Layouts title="Dashboard - Meme.sh">
-    <Dashboard client:only="react" />
+    <SafeDashboard client:only="react" />
 </Layouts>
