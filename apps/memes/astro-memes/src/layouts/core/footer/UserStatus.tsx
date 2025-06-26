@@ -1,68 +1,70 @@
 import React, { useState, useEffect, useCallback } from 'react';
-import { useStore } from '@nanostores/react';
 import { isAuthenticated, userProfile } from '../stores/userStore';
 
 export const UserStatus: React.FC = () => {
   const [mounted, setMounted] = useState(false);
+  const [authenticated, setAuthenticated] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
   const [error, setError] = useState<string | null>(null);
-  
-  const authenticated = useStore(isAuthenticated);
-  const profile = useStore(userProfile);
 
-  // React 19 optimization: Use useCallback for stable function references
   const handleAuthAction = useCallback((action: 'login' | 'register') => {
     try {
-      // Navigate to auth page - adjust path as needed
       window.location.href = action === 'login' ? '/auth/login' : '/auth/register';
     } catch (err) {
       setError(`Failed to navigate to ${action} page`);
-      console.error(`Navigation error:`, err);
+      console.error('Navigation error:', err);
     }
   }, []);
 
-  // Mount guard to prevent hydration mismatches
   useEffect(() => {
-    setMounted(true);
-    
-    // Error boundary for store access
     try {
-      // Validate stores are available
-      if (typeof isAuthenticated === 'undefined' || typeof userProfile === 'undefined') {
+      if (!isAuthenticated || !userProfile) {
         setError('Authentication store not available');
+        return;
       }
+
+      // Initialize store values
+      setAuthenticated(isAuthenticated.get());
+      setProfile(userProfile.get());
+
+      // Subscribe to changes
+      const unsubAuth = isAuthenticated.subscribe(setAuthenticated);
+      const unsubProfile = userProfile.subscribe(setProfile);
+
+      setMounted(true);
+
+      return () => {
+        unsubAuth();
+        unsubProfile();
+      };
     } catch (err) {
       setError('Failed to access authentication state');
       console.error('UserStatus store access error:', err);
     }
   }, []);
 
-  // Prevent hydration mismatch by not rendering until mounted
   if (!mounted) {
     return (
       <div className="mt-6 pt-6 border-t border-zinc-700">
         <div className="text-center">
           <div className="animate-pulse">
-            <div className="h-4 bg-zinc-700/60 rounded w-48 mx-auto"></div>
+            <div className="h-4 bg-zinc-700/60 rounded w-48 mx-auto" />
           </div>
         </div>
       </div>
     );
   }
 
-  // Error state
   if (error) {
     return (
       <div className="mt-6 pt-6 border-t border-zinc-700">
         <div className="text-center">
-          <p className="text-red-400 text-sm">
-            {error}
-          </p>
+          <p className="text-red-400 text-sm">{error}</p>
         </div>
       </div>
     );
   }
 
-  // Guest state - not authenticated
   if (!authenticated) {
     return (
       <div className="mt-6 pt-6 border-t border-zinc-700">
@@ -91,9 +93,8 @@ export const UserStatus: React.FC = () => {
     );
   }
 
-  // Authenticated state with additional guards
   const displayName = profile?.username || profile?.email?.split('@')[0] || 'User';
-  
+
   return (
     <div className="mt-6 pt-6 border-t border-zinc-700">
       <div className="text-center">

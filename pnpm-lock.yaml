@@ -511,8 +511,8 @@ importers:
         specifier: ^0.9.1
         version: 0.9.1(nanostores@0.9.5)
       '@nanostores/react':
-        specifier: ^0.7.3
-        version: 0.7.3(nanostores@0.9.5)(react@19.1.0)
+        specifier: ^1.0.0
+        version: 1.0.0(nanostores@0.9.5)(react@19.1.0)
       '@nx-extend/shadcn-ui':
         specifier: ^4.1.2
         version: 4.2.1(@babel/traverse@7.27.0)(@nx/devkit@21.0.3(nx@21.0.3(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.21)(typescript@5.8.3))(@swc/core@1.5.7(@swc/helpers@0.5.13))))(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.21)(typescript@5.8.3))(@swc/core@1.5.7(@swc/helpers@0.5.13))(@types/node@18.19.17)(@zkochan/js-yaml@0.0.7)(eslint@8.57.0)(nx@21.0.3(@swc-node/register@1.9.2(@swc/core@1.5.7(@swc/helpers@0.5.13))(@swc/types@0.1.21)(typescript@5.8.3))(@swc/core@1.5.7(@swc/helpers@0.5.13)))(react@19.1.0)(tailwindcss@4.1.3)(verdaccio@6.0.5(encoding@0.1.13)(typanion@3.14.0))
@@ -3092,11 +3092,11 @@ packages:
     peerDependencies:
       nanostores: ^0.9.0
 
-  '@nanostores/react@0.7.3':
-    resolution: {integrity: sha512-/XuLAMENRu/Q71biW4AZ4qmU070vkZgiQ28gaTSNRPm2SZF5zGAR81zPE1MaMB4SeOp6ZTst92NBaG75XSspNg==}
-    engines: {node: ^18.0.0 || >=20.0.0}
+  '@nanostores/react@1.0.0':
+    resolution: {integrity: sha512-eDduyNy+lbQJMg6XxZ/YssQqF6b4OXMFEZMYKPJCCmBevp1lg0g+4ZRi94qGHirMtsNfAWKNwsjOhC+q1gvC+A==}
+    engines: {node: ^20.0.0 || >=22.0.0}
     peerDependencies:
-      nanostores: ^0.9.0 || ^0.10.0 || ^0.11.0
+      nanostores: ^0.9.0 || ^0.10.0 || ^0.11.0 || ^1.0.0
       react: '>=18.0.0'
 
   '@napi-rs/nice-android-arm-eabi@1.0.1':
@@ -20968,7 +20968,7 @@ snapshots:
     dependencies:
       nanostores: 0.9.5
 
-  '@nanostores/react@0.7.3(nanostores@0.9.5)(react@19.1.0)':
+  '@nanostores/react@1.0.0(nanostores@0.9.5)(react@19.1.0)':
     dependencies:
       nanostores: 0.9.5
       react: 19.1.0

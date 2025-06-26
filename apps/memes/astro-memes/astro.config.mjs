@@ -316,6 +316,7 @@ export default defineConfig({
             alias: {
 
             },
+            dedupe: ['react', 'react-dom'],
         },
         vite: {
             plugins: [
