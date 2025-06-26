@@ -29,7 +29,7 @@ function Tooltip({ children, text, className = '' }: TooltipProps) {
       onMouseEnter={() => setIsVisible(true)}
       onMouseLeave={() => setIsVisible(false)}
     >
-      {children}
+      <div>{children}</div>
       {isVisible && (
         <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-1 bg-gray-900 text-white text-sm rounded-lg shadow-lg whitespace-nowrap z-[9999] pointer-events-none">
           {text}

@@ -3,20 +3,12 @@ import { useStore } from '@nanostores/react';
 import { userAtom, syncSupabaseUser } from '../../../layouts/client/supabase/profile/userstate';
 import OAuthLogin from '../../../layouts/core/auth/OAuthLogin';
 
-interface MemberOnlyDashboardProps {
-  /** Custom message for non-authenticated users */
-  message?: string;
-  /** Whether to show the OAuth login component */
-  showOAuth?: boolean;
-  /** Custom CSS classes */
-  className?: string;
-}
-
-const MemberOnlyDashboard: React.FC<MemberOnlyDashboardProps> = ({ 
-  message = "Please sign in to access your dashboard.",
-  showOAuth = true,
-  className = ""
-}) => {
+const MemberOnlyDashboard: React.FC = () => {
+  // All configuration is hardcoded inside the component
+  const message = "Please sign in to access your dashboard.";
+  const showOAuth = true;
+  const className = "";
+  
   const user = useStore(userAtom);
   const [isLoading, setIsLoading] = useState(true);
 
