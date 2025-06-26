@@ -296,6 +296,9 @@ importers:
       lottie-react-native:
         specifier: ^7.1.0
         version: 7.2.2(@lottiefiles/dotlottie-react@0.13.3(react@19.1.0))(react-native@0.76.7(@babel/core@7.26.10)(@babel/preset-env@7.25.9(@babel/core@7.26.10))(@react-native-community/cli-server-api@18.0.0)(@types/react@19.1.5)(encoding@0.1.13)(react@19.1.0))(react@19.1.0)
+      lucide:
+        specifier: ^0.523.0
+        version: 0.523.0
       lucide-react:
         specifier: ^0.395.0
         version: 0.395.0(react@19.1.0)
@@ -12417,6 +12420,9 @@ packages:
     resolution: {integrity: sha512-BVtq/DykVeIvRTJvRAgCsOwaGL8Un3Bxh8MbDxMhEWlZay3T4IpEKDEpwt5KZ0KJMHzgm6jrltxlT5eXOWXDHg==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0-rc
+
+  lucide@0.523.0:
+    resolution: {integrity: sha512-tiIp5xEP4kpeulfT1J+a/NEaIZGT1k6RyMS3evQWfHRhJvR8uTat/+lN4wnX5qIexOwN02BhmcyMHBNwt+jkLA==}
 
   luxon@3.5.0:
     resolution: {integrity: sha512-rh+Zjr6DNfUYR3bPwJEnuwDdqMbxZW7LOQfUN4B54+Cl+0o5zaU9RJ6bcidfDtC1cWCZXQ+nvX8bf6bAji37QQ==}
@@ -33347,6 +33353,8 @@ snapshots:
   lucide-react@0.460.0(react@19.1.0):
     dependencies:
       react: 19.1.0
+
+  lucide@0.523.0: {}
 
   luxon@3.5.0: {}
 
