@@ -6,11 +6,85 @@ const title: string = `Reset Your Password`;
 const subTitle: string = `Securely reset your account password`;
 ---
 
+<style>
+  @keyframes float {
+    0%, 100% { transform: translateY(0px) rotate(0deg); }
+    33% { transform: translateY(-20px) rotate(1deg); }
+    66% { transform: translateY(-10px) rotate(-1deg); }
+  }
+  
+  @keyframes slowFloat {
+    0%, 100% { transform: translateY(0px) translateX(0px); }
+    25% { transform: translateY(-30px) translateX(10px); }
+    50% { transform: translateY(-20px) translateX(-10px); }
+    75% { transform: translateY(-40px) translateX(5px); }
+  }
+  
+  @keyframes parallaxMove {
+    0% { transform: translateX(-100px) translateY(-50px); }
+    50% { transform: translateX(100px) translateY(50px); }
+    100% { transform: translateX(-100px) translateY(-50px); }
+  }
+  
+  .parallax-bg {
+    animation: slowFloat 15s ease-in-out infinite;
+  }
+  
+  .parallax-shape {
+    animation: parallaxMove 20s ease-in-out infinite;
+  }
+</style>
+
 <Layouts 
   title={pageTitle}
   Onboarding={false}
 >
-  <section class="min-h-screen flex items-center justify-center px-6 py-12 sm:px-8 lg:px-12">
+  {/* Parallax Background */}
+  <div class="fixed inset-0 overflow-hidden pointer-events-none">
+    {/* Gradient Background */}
+    <div class="absolute inset-0 bg-gradient-to-br from-zinc-900 via-zinc-800 to-zinc-900"></div>
+    
+    {/* Animated Geometric Shapes */}
+    <div class="absolute inset-0">
+      {/* Large floating circles */}
+      <div class="absolute top-1/4 left-1/4 w-96 h-96 bg-gradient-to-r from-emerald-500/10 to-blue-500/10 rounded-full blur-3xl animate-pulse" style="animation-duration: 4s;"></div>
+      <div class="absolute top-3/4 right-1/4 w-80 h-80 bg-gradient-to-r from-purple-500/10 to-pink-500/10 rounded-full blur-3xl animate-pulse" style="animation-duration: 6s; animation-delay: 2s;"></div>
+      
+      {/* Medium floating shapes */}
+      <div class="absolute top-1/3 right-1/3 w-64 h-64 bg-gradient-to-r from-cyan-500/8 to-emerald-500/8 rounded-full blur-2xl animate-bounce" style="animation-duration: 8s;"></div>
+      <div class="absolute bottom-1/4 left-1/3 w-48 h-48 bg-gradient-to-r from-orange-500/8 to-red-500/8 rounded-full blur-2xl animate-bounce" style="animation-duration: 10s; animation-delay: 3s;"></div>
+      
+      {/* Small floating dots */}
+      <div class="absolute top-1/5 left-1/5 w-32 h-32 bg-emerald-400/5 rounded-full blur-xl animate-ping" style="animation-duration: 3s;"></div>
+      <div class="absolute top-2/3 right-1/5 w-24 h-24 bg-blue-400/5 rounded-full blur-xl animate-ping" style="animation-duration: 5s; animation-delay: 1s;"></div>
+      <div class="absolute bottom-1/3 left-2/3 w-20 h-20 bg-purple-400/5 rounded-full blur-lg animate-ping" style="animation-duration: 4s; animation-delay: 2s;"></div>
+    </div>
+    
+    {/* Parallax Grid Pattern */}
+    <div class="absolute inset-0 opacity-5">
+      <div class="absolute inset-0" style="background-image: radial-gradient(circle at 1px 1px, rgba(255,255,255,0.3) 1px, transparent 0); background-size: 50px 50px; animation: float 20s ease-in-out infinite;"></div>
+    </div>
+    
+    {/* Flowing Lines */}
+    <div class="absolute inset-0 opacity-10">
+      <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="lineGradient1" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%" style="stop-color:#10b981;stop-opacity:0.3" />
+            <stop offset="100%" style="stop-color:#3b82f6;stop-opacity:0.1" />
+          </linearGradient>
+          <linearGradient id="lineGradient2" x1="0%" y1="100%" x2="100%" y2="0%">
+            <stop offset="0%" style="stop-color:#8b5cf6;stop-opacity:0.2" />
+            <stop offset="100%" style="stop-color:#ec4899;stop-opacity:0.1" />
+          </linearGradient>
+        </defs>
+        <path d="M0,100 Q250,50 500,100 T1000,100 L1000,0 L0,0 Z" fill="url(#lineGradient1)" class="animate-pulse" style="animation-duration: 8s;" />
+        <path d="M0,200 Q300,150 600,200 T1200,200 L1200,300 L0,300 Z" fill="url(#lineGradient2)" class="animate-pulse" style="animation-duration: 12s; animation-delay: 2s;" />
+      </svg>
+    </div>
+  </div>
+
+  <section class="relative min-h-screen flex items-center justify-center px-6 py-12 sm:px-8 lg:px-12 z-10">
     <div class="mx-auto max-w-2xl w-full">
       {/* Header */}
       <div class="text-center mb-8">
@@ -27,10 +101,11 @@ const subTitle: string = `Securely reset your account password`;
 
       {/* Reset Form */}
       <div class="relative bg-gradient-to-br from-zinc-800/90 to-zinc-900/90 border border-emerald-500/30 rounded-2xl p-10 backdrop-blur-md overflow-hidden shadow-2xl">
-        {/* Animated background elements */}
-        <div class="absolute inset-0 opacity-10">
-          <div class="absolute top-0 left-0 w-32 h-32 bg-emerald-400 rounded-full blur-3xl animate-pulse"></div>
-          <div class="absolute bottom-0 right-0 w-40 h-40 bg-blue-400 rounded-full blur-3xl animate-pulse" style="animation-delay: 1s;"></div>
+        {/* Enhanced animated background elements */}
+        <div class="absolute inset-0 opacity-15">
+          <div class="absolute top-0 left-0 w-32 h-32 bg-emerald-400 rounded-full blur-3xl animate-pulse parallax-bg"></div>
+          <div class="absolute bottom-0 right-0 w-40 h-40 bg-blue-400 rounded-full blur-3xl animate-pulse parallax-shape" style="animation-delay: 1s;"></div>
+          <div class="absolute top-1/2 left-1/2 w-24 h-24 bg-purple-400 rounded-full blur-2xl parallax-bg" style="animation-delay: 3s;"></div>
         </div>
         
         <div class="relative text-center">
