@@ -2,11 +2,14 @@
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-using KBVE.MMExtensions.SSDB;
-using KBVE.MMExtensions.SSDB.Steam;
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
+using KBVE.SSDB;
+using KBVE.SSDB.Steam;
+#endif
+
 using System;
 
-namespace KBVE.MMExtensions.SSDB
+namespace KBVE.SSDB
 {
     /// <summary>
     /// VContainer LifetimeScope for Steam-specific services.
