@@ -30,9 +30,7 @@ namespace KBVE.MMExtensions.Ai
         private AiActionPathfinderToTarget2D actionPathfinder;
         private AIActionMoveTowardsTarget2D actionMoveTowardTarget;
         private AIActionShoot2D aIActionShoot;
-        private bool playerWeaponForceAimControl = false;
-        private WeaponAim.AimControls playerForcedWeaponAimControl = WeaponAim.AimControls.Off;
-        private bool aiWeaponForceAimControl = true;
+        private WeaponAim.AimControls playerForcedWeaponAimControl = WeaponAim.AimControls.Mouse;
         private WeaponAim.AimControls aiForcedWeaponAimControl = WeaponAim.AimControls.Script;
 
         protected override void Awake()
@@ -45,27 +43,28 @@ namespace KBVE.MMExtensions.Ai
                 CreateFrictionlessPhysicsMaterial();
             handleWeapon = gameObject.MMGetOrAddComponent<CharacterHandleWeapon>();
             handleWeapon.InitialWeapon = initialWeapon;
-            handleWeapon.ForceWeaponAimControl = true;
-            handleWeapon.ForcedWeaponAimControl = WeaponAim.AimControls.Script;
-            handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
             SetupDecisionsHealer();
             SetupDecisionsAttacker();
             SetupActions();
             base.Awake();
         }
 
+        protected override void Start()
+        {
+            base.Start();
+            ToggleAI(!GetComponent<CharacterSwap>().Current());
+        }
+
         public void ToggleAI(bool aiControl)
         {
-            handleWeapon.ForceWeaponAimControl = aiControl ? aiWeaponForceAimControl : playerWeaponForceAimControl;
+            handleWeapon.ForceWeaponAimControl = true;
             handleWeapon.ForcedWeaponAimControl = aiControl ? aiForcedWeaponAimControl : playerForcedWeaponAimControl;
             if(aiControl) handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
             else handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
-            var currentWeapon = handleWeapon.CurrentWeapon;
-            // TODO: Not working, need to find way to reset weapon so it uses new weapon aim settings
-            handleWeapon.ChangeWeapon(null, "");
-            handleWeapon.ChangeWeapon(currentWeapon, currentWeapon.WeaponID);
+            var weaponAimComp = handleWeapon.WeaponAimComponent;
+            handleWeapon.ChangeWeapon(handleWeapon.CurrentWeapon, handleWeapon.CurrentWeapon.WeaponID, handleWeapon.CurrentWeapon.IsComboWeapon);
             BrainActive = aiControl;
-            if(aiControl) ResetBrain();
+            ResetBrain();
         }
 
         protected override void OnEnable()
