@@ -1,24 +1,12 @@
 import { defineConfig } from 'astro/config';
-import svelte, { vitePreprocess } from '@astrojs/svelte';
+import svelte from '@astrojs/svelte';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from "@tailwindcss/vite";
-import mdx from '@astrojs/mdx';
 import rehypeMermaid from 'rehype-mermaid';
 import starlight from '@astrojs/starlight';
-import alpine from '@astrojs/alpinejs';
-import { fileURLToPath } from 'node:url';
-import markdownConfig from './markdown.config';
-
-// Removed starlight-site-graph import as it's causing build issues and not needed for meme app
-
 import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
-// import topLevelAwait from 'vite-plugin-top-level-await';
-import { resolve } from 'path';
-
-import compressor from "astro-compressor";
-import { shield } from '@kindspells/astro-shield'
 import AstroPWA from '@vite-pwa/astro'
 
 export default defineConfig({
@@ -54,12 +42,12 @@ export default defineConfig({
                     label: 'Guides',
                     autogenerate: { directory: 'guides' },
                 },
-                
+
                 {
                     label: 'Blog',
                     autogenerate: { directory: 'blog' },
                 },
-              
+
                 {
                     label: 'Legal',
                     collapsed: true,
@@ -109,9 +97,6 @@ export default defineConfig({
                 },
             },
         }),
-
-        //alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
-        //partytown(),
         worker(),
         react({
             experimentalReactChildren: true,
@@ -159,15 +144,15 @@ export default defineConfig({
                     /^\/workbox-[a-z0-9\-]+\.js$/,
                     /^\/ws$/,
                     /^\/api\/.*/,
-                     /^\/auth(?:\/.*)?$/,
-                     /^\/register(?:\/.*)?$/,
-                     /^\/login(?:\/.*)?$/,
+                    /^\/auth(?:\/.*)?$/,
+                    /^\/register(?:\/.*)?$/,
+                    /^\/login(?:\/.*)?$/,
                 ],
 
                 runtimeCaching: [
                     {
-                            urlPattern: /^\/auth(?:\/.*)?$/,
-                            handler: 'NetworkOnly',
+                        urlPattern: /^\/auth(?:\/.*)?$/,
+                        handler: 'NetworkOnly',
                     },
                     {
                         urlPattern: ({ request }) => request.mode === 'navigate',
@@ -209,11 +194,11 @@ export default defineConfig({
                         urlPattern: /^\/_astro\/.*\.js$/,
                         handler: 'StaleWhileRevalidate', // or 'StaleWhileRevalidate' for better perf
                         options: {
-                                cacheName: 'astro-islands',
-                                expiration: {
+                            cacheName: 'astro-islands',
+                            expiration: {
                                 maxEntries: 50,
                                 maxAgeSeconds: 60 * 60 * 24,
-                                },
+                            },
                         },
                     },
 
@@ -224,50 +209,11 @@ export default defineConfig({
             },
             devOptions: {
                 enabled: false
-                /* other options */
             }
 
         }),
 
-        // (await import("@playform/compress")).default({
-        //     CSS: true,
-        //     HTML: {
-        //         "html-minifier-terser": {
-        //             removeAttributeQuotes: false,
-        //         },
-        //     },
-        //     Image: false,
-        //     JavaScript: true,
-        //     SVG: true,
-        // }),
-
-        // shield({
-        //     sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
-        // }),
-
-        // compressor({
-        //     gzip: true,
-        //     brotli: false,
-        //     fileExtensions: [
-        //         ".html",
-        //         ".js",
-        //         ".css",
-        //         ".mjs",
-        //         ".cjs",
-        //         ".svg",
-        //         ".xml",
-        //         ".txt",
-        //         ".json"
-        //     ]
-        // }),
-
-        // mdx({
-        // 	...markdownConfig,
-        // 	//extendPlugins: "astroDefaults"
-        // }),
     ],
-
-    // markdown: markdownConfig,
 
     markdown: {
         rehypePlugins: [[rehypeMermaid, { strategy: 'img-svg', dark: true }]],
@@ -282,8 +228,8 @@ export default defineConfig({
                 ignored: ['!**/node_modules/**'],
             },
         },
-         optimizeDeps: {
-            include: ['comlink'],
+        optimizeDeps: {
+            include: ['comlink', 'react', 'react-dom', '@nanostores/react'],
             exclude: ['@kbve/droid']
         },
         worker: {
@@ -295,24 +241,24 @@ export default defineConfig({
             },
         },
         build: {
-            // commonjsOptions: {
-            //     include: [/node_modules/, /@kbve\/droid/],
-            // },
             rollupOptions: {
-                // maxConcurrency: 2,
                 output: {
-                    manualChunks: (id) => {
-                        if (id.includes('node_modules')) {
-                            return id
-                                .toString()
-                                .split('node_modules/')[1]
-                                .split('/')[0];
-                        }
+                    manualChunks: {
+                        react: ['react', 'react-dom'],
+                        vendor: [
+                            '@nanostores/react',
+                            '@react-three/fiber',
+                            '@react-three/drei',
+                            'three',
+                            'its-fine',
+                            'comlink',
+                        ],
                     },
                 },
             },
         },
         resolve: {
+            dedupe: ['react', 'react-dom'],
             alias: {
 
             },
@@ -321,28 +267,9 @@ export default defineConfig({
         vite: {
             plugins: [
                 tailwindcss(),
-
-                // {
-                // 	name: 'emit-sw',
-                // 	apply: 'build',
-                // 	enforce: 'post',
-                // 	async generateBundle(_, bundle) {
-                // 		this.emitFile({
-                // 			type: 'chunk',
-                // 			id: resolve('./src/layout/scripts/sw.ts'),
-                // 			fileName: 'sw.js',
-                // 		});
-                // 	}
-                // },
             ]
             ,
         },
-        // Apply the top-level await plugin to our vite.config.js
-        // plugins: [
-        // 	topLevelAwait({
-        // 		promiseExportName: '__tla',
-        // 		promiseImportName: (i) => `__tla_${i}`,
-        // 	}),
-        // ],
+
     }),
 });
