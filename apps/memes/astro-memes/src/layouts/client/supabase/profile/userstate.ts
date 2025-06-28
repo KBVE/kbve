@@ -3,6 +3,20 @@ import { persistentAtom } from '@nanostores/persistent';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from 'src/layouts/core/supabaseClient';
 
+// Utility function to safely execute auth operations that might throw AuthSessionMissingError
+async function safeAuthOperation<T>(operation: () => Promise<T>): Promise<T | null> {
+  try {
+    return await operation();
+  } catch (error: any) {
+    // Silently handle AuthSessionMissingError since it's expected when not logged in
+    if (error?.message === 'Auth session missing!' || error?.name === 'AuthSessionMissingError') {
+      return null;
+    }
+    // Re-throw other errors
+    throw error;
+  }
+}
+
 // Holds the current user (null if not logged in)
 export const userAtom = atom<User | null>(null);
 
@@ -52,50 +66,65 @@ export const userMemeProfileAtom = persistentAtom<UserMemeProfile | undefined>(
 
 // Utility function to sync userAtom and persistent atoms with supabase session
 export async function syncSupabaseUser() {
-  try {
-    // Get the current user from Supabase
-    const { data: { user }, error } = await supabase.auth.getUser();
-    
-    if (error) {
-      console.error('[syncSupabaseUser] Error getting user:', error);
-      clearUserState();
-      return;
-    }
+  const sessionResult = await safeAuthOperation(async () => {
+    return await supabase.auth.getSession();
+  });
 
-    if (user) {
-      // Set user atoms
-      userAtom.set(user);
-      userIdAtom.set(user.id);
-      userEmailAtom.set(user.email || undefined);
-      
-      // Get username from user metadata or persistent storage
-      const metadataUsername = user.user_metadata?.username;
-      const persistentUsername = userNamePersistentAtom.get();
-      const username = metadataUsername || persistentUsername;
-      
-      if (username) {
-        usernameAtom.set(username);
-        userNamePersistentAtom.set(username);
-        
-        // Update localStorage for backward compatibility
-        localStorage.setItem('memeUsername', username);
-        localStorage.setItem('memeUserId', user.id);
-        localStorage.setItem('memeUserEmail', user.email || '');
-        localStorage.setItem('isMember', 'true');
-        
-        // Sync the user profile from RPC
-        await syncUserMemeProfile(user.id);
-      } else {
-        // User exists but no username set - needs onboarding
-        usernameAtom.set(null);
-        userNamePersistentAtom.set(undefined);
-      }
-    } else {
-      // No user logged in
-      clearUserState();
+  if (!sessionResult) {
+    clearUserState();
+    return;
+  }
+
+  const { data: { session }, error: sessionError } = sessionResult;
+  
+  if (sessionError) {
+    // Only log non-AuthSessionMissingError errors
+    if (sessionError.message !== 'Auth session missing!') {
+      console.error('[syncSupabaseUser] Error getting session:', sessionError);
     }
-  } catch (error) {
-    console.error('[syncSupabaseUser] Unexpected error:', error);
+    clearUserState();
+    return;
+  }
+
+  // If no session, clear state and return without error
+  if (!session?.user) {
+    clearUserState();
+    return;
+  }
+
+  // Get the current user from the session
+  const user = session.user;
+
+  if (user) {
+    // Set user atoms
+    userAtom.set(user);
+    userIdAtom.set(user.id);
+    userEmailAtom.set(user.email || undefined);
+    
+    // Get username from user metadata or persistent storage
+    const metadataUsername = user.user_metadata?.username;
+    const persistentUsername = userNamePersistentAtom.get();
+    const username = metadataUsername || persistentUsername;
+    
+    if (username) {
+      usernameAtom.set(username);
+      userNamePersistentAtom.set(username);
+      
+      // Update localStorage for backward compatibility
+      localStorage.setItem('memeUsername', username);
+      localStorage.setItem('memeUserId', user.id);
+      localStorage.setItem('memeUserEmail', user.email || '');
+      localStorage.setItem('isMember', 'true');
+      
+      // Sync the user profile from RPC
+      await syncUserMemeProfile(user.id);
+    } else {
+      // User exists but no username set - needs onboarding
+      usernameAtom.set(null);
+      userNamePersistentAtom.set(undefined);
+    }
+  } else {
+    // No user logged in
     clearUserState();
   }
 }
@@ -187,24 +216,20 @@ export async function syncUserMemeProfile(identifier: string, useCache = true) {
 
 // Function to handle user logout and cleanup
 export async function logoutUser() {
-  try {
-    // Sign out from Supabase
-    const { error } = await supabase.auth.signOut();
-    
-    if (error) {
-      console.error('[logoutUser] Error signing out:', error);
-    }
-    
-    // Clear all user state regardless of signOut result
-    clearUserState();
-    
-    console.log('[logoutUser] User logged out and state cleared');
-  } catch (error) {
-    console.error('[logoutUser] Unexpected error during logout:', error);
-    // Still clear state even if there's an error
-    clearUserState();
+  const result = await safeAuthOperation(async () => {
+    return await supabase.auth.signOut();
+  });
+  
+  if (result && result.error) {
+    console.error('[logoutUser] Error signing out:', result.error);
   }
+  
+  // Clear all user state regardless of signOut result
+  clearUserState();
+  
+  console.log('[logoutUser] User logged out and state cleared');
 }
+
 
 // Function to create/update username via Supabase Edge Function during onboarding
 export async function createUserProfile(username: string): Promise<{ success: boolean; error?: string }> {
