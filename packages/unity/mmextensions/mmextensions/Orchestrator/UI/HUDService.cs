@@ -44,11 +44,10 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             if (_globalCanvas is GlobalCanvasService canvasService)
                 await UniTask.WaitUntil(() => canvasService.IsReady.Value, cancellationToken: cancellation);
 
-            _panelGO = CreateHUDPanel();
-            _panelGO = _globalCanvas.SpawnPanel(_panelGO, UICanvasLayer.HUD);
+            var tempHUDPanel = CreateHUDPanel();
+            _panelGO = _globalCanvas.SpawnPanel(tempHUDPanel, UICanvasLayer.HUD);
             _panelRect = _panelGO.GetComponent<RectTransform>();
-
-            //DontDestroyOnLoad(_panelGO);
+            _ = DestroyLaterSafe(tempHUDPanel);
             Debug.Log("[HUDService] Initialized.");
         }
 
@@ -251,6 +250,19 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             display.Bind(stat);
 
             return display;
+        }
+
+
+        private static async UniTaskVoid DestroyLaterSafe(GameObject go, float delaySeconds = 0.1f)
+        {
+            if (go == null) return;
+
+            await UniTask.Delay(TimeSpan.FromSeconds(delaySeconds));
+
+            if (go != null)
+            {
+                Destroy(go);
+            }
         }
 
 
