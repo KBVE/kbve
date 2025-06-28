@@ -192,7 +192,7 @@ export default defineConfig({
                     },
                     {
                         urlPattern: /^\/_astro\/.*\.js$/,
-                        handler: 'NetworkFirst', // or 'StaleWhileRevalidate' for better perf
+                        handler: 'StaleWhileRevalidate', // or 'StaleWhileRevalidate' for better perf
                         options: {
                             cacheName: 'astro-islands',
                             expiration: {
@@ -262,6 +262,7 @@ export default defineConfig({
             alias: {
 
             },
+            dedupe: ['react', 'react-dom'],
         },
         vite: {
             plugins: [
