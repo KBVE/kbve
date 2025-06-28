@@ -1,0 +1,287 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <RootNamespace>KBVE.SSDB</RootNamespace>
+    <AssemblyName>Kbve.SSDB</AssemblyName>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <OutputType>Library</OutputType>
+    <DefineConstants>VCONTAINER_UNITASK_INTEGRATION</DefineConstants>
+
+  </PropertyGroup>
+
+  <Import Project="UserSettings.props" Condition="Exists('UserSettings.props')" />
+
+
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="UnityEngine">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.CoreModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.CoreModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEditor">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEditor\UnityEditor.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="UnityEngine">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.CoreModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.CoreModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEditor">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEditor/UnityEditor.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+
+  <!-- PackageCache Runtime source globbing (excluding this project) -->
+  <ItemGroup>
+    <Compile Include="$(PackageRuntimeGlob)" Exclude="$(KbvePackageExclude)" />
+  </ItemGroup>
+
+  <!-- Tile / Grid / Physics2D -->
+
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="UnityEngine.TilemapModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.TilemapModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.GridModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.GridModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+
+  <Reference Include="UnityEngine.Physics2DModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.Physics2DModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+
+  <Reference Include="UnityEngine.PhysicsModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.PhysicsModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+
+  <Reference Include="UnityEngine.InputLegacyModule">
+  <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.InputLegacyModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+
+<Reference Include="UnityEngine.UIModule">
+  <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.UIModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+
+<Reference Include="UnityEngine.AnimationModule">
+  <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.AnimationModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="UnityEngine.TilemapModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.TilemapModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.GridModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.GridModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.Physics2DModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.Physics2DModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="UnityEngine.PhysicsModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.PhysicsModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+
+  <Reference Include="UnityEngine.InputLegacyModule">
+  <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.InputLegacyModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+
+<Reference Include="UnityEngine.UIModule">
+  <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.UIModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+
+<Reference Include="UnityEngine.AnimationModule">
+  <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.AnimationModule.dll</HintPath>
+  <Private>false</Private>
+</Reference>
+
+</ItemGroup>
+
+<ItemGroup>
+  <Compile Include="$(MMTopDownPath)\**\*.cs" Condition="'$(OS)' == 'Windows_NT'" />
+  <Compile Include="$(MMTopDownPath)/**/*.cs" Condition="'$(OS)' != 'Windows_NT'" />
+</ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.6.0" />
+    <PackageReference Include="NUnit" Version="3.13.3" />
+    <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
+    <PackageReference Include="NUnit.Analyzers" Version="3.6.1" />
+    <PackageReference Include="coverlet.collector" Version="6.0.0" />
+  </ItemGroup>
+
+  <!-- Heathen - Windows -->
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <Reference Include="Heathen.Steamworks">
+      <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Heathen.Steamworks.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Heathen - macOS/Linux -->
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+    <Reference Include="Heathen.Steamworks">
+      <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Heathen.Steamworks.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <!-- Steamworks -->
+  <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+    <Reference Include="com.rlabrecque.steamworks.net">
+      <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\com.rlabrecque.steamworks.net.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="com.rlabrecque.steamworks.net">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/com.rlabrecque.steamworks.net.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+
+  <!-- R3 -->
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="R3">
+    <HintPath>$(UnityProjectRoot)\Assets\Packages\R3.1.3.0\lib\netstandard2.1\R3.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="R3">
+    <HintPath>$(UnityProjectRoot)/Assets/Packages/R3.1.3.0/lib/netstandard2.1/R3.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<!-- OC-->
+
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="ObservableCollections">
+    <HintPath>$(UnityProjectRoot)\Assets\Packages\ObservableCollections.3.3.3\lib\netstandard2.1\ObservableCollections.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="ObservableCollections">
+    <HintPath>$(UnityProjectRoot)/Assets/Packages/ObservableCollections.3.3.3/lib/netstandard2.1/ObservableCollections.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<!-- Bridge OC~R3 -->
+
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="ObservableCollections.R3">
+    <HintPath>$(UnityProjectRoot)\Assets\Packages\ObservableCollections.R3.3.3.3\lib\netstandard2.1\ObservableCollections.R3.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="ObservableCollections.R3">
+    <HintPath>$(UnityProjectRoot)/Assets/Packages/ObservableCollections.R3.3.3.3/lib/netstandard2.1/ObservableCollections.R3.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<!-- Unity GUI -->
+
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="UnityEngine.UI">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\UnityExtensions\Unity\GUISystem\UnityEngine.UI.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="UnityEngine.UI">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/UnityExtensions/Unity/GUISystem/UnityEngine.UI.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+  <!-- Unity Audio -->
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="UnityEngine.AudioModule">
+    <HintPath>$(UnityRootWindows)\$(UnityVersion)\Editor\Data\Managed\UnityEngine\UnityEngine.AudioModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="UnityEngine.AudioModule">
+    <HintPath>$(UnityRootMac)/$(UnityVersion)/Unity.app/Contents/Managed/UnityEngine/UnityEngine.AudioModule.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+
+<!-- Unity.Mathematics + Burst (Windows) -->
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="Unity.Mathematics">
+    <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Unity.Mathematics.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Unity.Burst">
+    <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Unity.Burst.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<!-- Unity.Mathematics + Burst (macOS/Linux) -->
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="Unity.Mathematics">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Unity.Burst">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Unity.Burst.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+
+  <!-- Kilonet -->
+  <ItemGroup>
+    <ProjectReference Include="..\kilonet\Kbve.Kilonet.csproj" />
+  </ItemGroup>
+
+<!-- MMExtension -->
+  <ItemGroup>
+    <ProjectReference Include="..\mmextensions\Kbve.MMExtensions.csproj" />
+  </ItemGroup>
+
+</Project>
