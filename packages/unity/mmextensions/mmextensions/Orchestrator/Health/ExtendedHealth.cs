@@ -179,20 +179,20 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             }
         }
 
-        public void ApplyPresetStat(StatType stat, float baseBonus, float maxBonus, float regenBonus)
+        public void ApplyPresetStat(StatType stat, float baseValue, float maxValue, float regenValue)
         {
             if (!Stats.TryGetValue(stat, out var data))
             {
-                Debug.LogWarning($"[ExtendedHealth] Attempted to extend stat '{stat}' which doesn't exist.");
+                Debug.LogWarning($"[ExtendedHealth] Attempted to apply preset for stat '{stat}' which doesn't exist.");
                 return;
             }
 
-            data.Base += baseBonus;
-            data.Max += maxBonus;
-            data.RegenRate += regenBonus;
+            // Set absolute values instead of adding as bonuses
+            data.Base = baseValue;
+            data.Max = maxValue;
+            data.RegenRate = regenValue;
 
             data.Clamp(); // Clamp current to new max
-
 
             Stats[stat] = data;
 
