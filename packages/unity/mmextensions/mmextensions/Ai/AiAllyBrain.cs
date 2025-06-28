@@ -61,8 +61,8 @@ namespace KBVE.MMExtensions.Ai
             handleWeapon.ForcedWeaponAimControl = aiControl ? aiForcedWeaponAimControl : playerForcedWeaponAimControl;
             if(aiControl) handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
             else handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
-            var weaponAimComp = handleWeapon.WeaponAimComponent;
-            handleWeapon.ChangeWeapon(handleWeapon.CurrentWeapon, handleWeapon.CurrentWeapon.WeaponID, handleWeapon.CurrentWeapon.IsComboWeapon);
+            handleWeapon.WeaponAimComponent.AimControl = handleWeapon.ForcedWeaponAimControl;
+            handleWeapon.WeaponAimComponent.ApplyAim();
             BrainActive = aiControl;
             ResetBrain();
         }
