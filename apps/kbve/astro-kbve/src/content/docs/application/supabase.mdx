@@ -1594,3 +1594,100 @@ end;
 $$;
 
 ```
+
+<Adsense />
+
+### Function Discord Hook Notification
+
+
+```ts
+
+// deno-lint-ignore-file no-explicit-any
+import { createClient } from "npm:@supabase/supabase-js@2";
+import { z } from "npm:zod@3.22.4";
+import "jsr:@supabase/functions-js/edge-runtime.d.ts";
+
+const DISCORD_WEBHOOK = Deno.env.get("DISCORD_WEBHOOK_URL");
+const DISCORD_THREAD_ID = Deno.env.get("DISCORD_THREAD_ID"); // <-- Set this in your env
+
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "POST, OPTIONS",
+  "Access-Control-Allow-Headers": "apikey, X-Client-Info, Content-Type, Authorization",
+  "Access-Control-Expose-Headers": "Content-Length"
+};
+
+Deno.serve(async (req) => {
+  if (req.method === "OPTIONS") {
+    return new Response(null, { status: 204, headers: corsHeaders });
+  }
+
+  const supabase = createClient(
+    Deno.env.get("SUPABASE_URL"),
+    Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")
+  );
+
+  const inputSchema = z.object({
+    uuid: z.string().uuid(),
+    message: z.string().min(1).max(2000)
+  });
+
+  try {
+    const body = await req.json();
+    const { uuid, message } = inputSchema.parse(body);
+
+    const { data: user, error } = await supabase
+      .from("auth.users")
+      .select("raw_user_meta_data")
+      .eq("id", uuid)
+      .single();
+
+    if (error || !user) {
+      return new Response(JSON.stringify({ error: "User not found" }), {
+        status: 404,
+        headers: corsHeaders
+      });
+    }
+
+    const discordId = user.raw_user_meta_data?.provider_id;
+
+    if (!discordId) {
+      return new Response(JSON.stringify({ error: "Discord not linked" }), {
+        status: 400,
+        headers: corsHeaders
+      });
+    }
+
+    const webhookUrl = `${DISCORD_WEBHOOK}?thread_id=${DISCORD_THREAD_ID}`;
+
+    const discordPayload = {
+      content: `<@${discordId}> ${message}`
+    };
+
+    const discordRes = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(discordPayload)
+    });
+
+    if (!discordRes.ok) {
+      const errText = await discordRes.text();
+      return new Response(JSON.stringify({ error: `Discord error: ${errText}` }), {
+        status: 502,
+        headers: corsHeaders
+      });
+    }
+
+    return new Response(JSON.stringify({ success: true }), {
+      status: 200,
+      headers: corsHeaders
+    });
+  } catch (err: any) {
+    return new Response(JSON.stringify({ error: err?.message ?? "Unknown error" }), {
+      status: 400,
+      headers: corsHeaders
+    });
+  }
+});
+
+```

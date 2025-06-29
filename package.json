@@ -153,6 +153,7 @@
 		"@lottiefiles/dotlottie-react": "^0.13.0",
 		"@lottiefiles/react-lottie-player": "^3.5.4",
 		"@mapbox/node-pre-gyp": "^1.0.11",
+		"@million/lint": "^1.0.14",
 		"@planetscale/database": "^1.19.0",
 		"@radix-ui/react-accordion": "^1.2.1",
 		"@radix-ui/react-alert-dialog": "^1.1.2",
