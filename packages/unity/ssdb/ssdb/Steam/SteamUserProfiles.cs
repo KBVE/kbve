@@ -18,9 +18,11 @@ using UnityEngine.AddressableAssets;
 using UnityEngine.ResourceManagement.AsyncOperations;
 using KBVE.MMExtensions.Orchestrator;
 using KBVE.MMExtensions.Orchestrator.Core;
+using KBVE.MMExtensions.Orchestrator.Core.UI;
 using Heathen.SteamworksIntegration;
 using Heathen.SteamworksIntegration.UI;
 using API = Heathen.SteamworksIntegration.API;
+using KBVE.SSDB.Steam.UI;
 //using TMPro;
 
 namespace KBVE.SSDB.Steam
@@ -43,15 +45,19 @@ namespace KBVE.SSDB.Steam
             private CancellationTokenSource _cts;
 
             private SteamworksService _steamworksService;
+            private IGlobalCanvas _globalCanvas;
+
 
             // public UserData UserData { get; set; }
 
             // private UserData currentUser;
 
             [Inject]
-            public void Construct(SteamworksService steamworksService)
+            public void Construct(SteamworksService steamworksServic, IGlobalCanvas globalCanvas)
             {
                 _steamworksService = steamworksService;
+                _globalCanvas = globalCanvas;
+
             }
 
             public async UniTask StartAsync(CancellationToken cancellationToken)
