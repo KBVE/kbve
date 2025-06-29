@@ -37,7 +37,7 @@ namespace KBVE.SSDB.Steam
             private IGlobalCanvas _globalCanvas;
 
             [Inject]
-            public void Construct(SteamworksService steamworksServic, IGlobalCanvas globalCanvas)
+            public void Construct(SteamworksService steamworksService, IGlobalCanvas globalCanvas)
             {
                 _steamworksService = steamworksService;
                 _globalCanvas = globalCanvas;
