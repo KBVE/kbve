@@ -11,6 +11,7 @@ const WelcomeInfo = () => {
   const [membershipTier, setMembershipTier] = useState<'Guest' | 'Basic' | 'Premium' | 'VIP'>('Guest');
   const [visible, setVisible] = useState(false);
 
+
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
   const username = useMemo(() => 
     isGuest ? 'Guest' : (user?.email?.split('@')[0] || 'User'), 
@@ -66,8 +67,11 @@ const WelcomeInfo = () => {
   }, [isGuest, creditBalance]);
 
   if (loading) {
+    console.log('WelcomeInfo: Still loading, returning null'); // Debug log
     return null;
   }
+
+  console.log('WelcomeInfo: Rendering component, visible:', visible); // Debug log
 
   return (
     <div className={twMerge(clsx(
