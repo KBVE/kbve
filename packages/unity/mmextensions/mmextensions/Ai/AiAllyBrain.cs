@@ -61,10 +61,13 @@ namespace KBVE.MMExtensions.Ai
             handleWeapon.ForcedWeaponAimControl = aiControl ? aiForcedWeaponAimControl : playerForcedWeaponAimControl;
             if(aiControl) handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
             else handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
-            handleWeapon.WeaponAimComponent.AimControl = handleWeapon.ForcedWeaponAimControl;
-            handleWeapon.WeaponAimComponent.ApplyAim();
+            if(handleWeapon.WeaponAimComponent != null)
+            {
+                handleWeapon.WeaponAimComponent.AimControl = handleWeapon.ForcedWeaponAimControl;
+                handleWeapon.WeaponAimComponent.ApplyAim();
+            }
+            ApplyBrainStateBasedOffWeapon();
             BrainActive = aiControl;
-            ResetBrain();
         }
 
         protected override void OnEnable()
@@ -89,9 +92,14 @@ namespace KBVE.MMExtensions.Ai
 
         protected virtual void handleWeapon_OnWeaponChange()
         {
+            ApplyBrainStateBasedOffWeapon();
+        }
+
+        private void ApplyBrainStateBasedOffWeapon()
+        {
             var weapon = handleWeapon.CurrentWeapon;
 
-            if(weapon == null)
+            if (weapon == null)
             {
                 States = new List<AIState>();
                 ResetBrain();
