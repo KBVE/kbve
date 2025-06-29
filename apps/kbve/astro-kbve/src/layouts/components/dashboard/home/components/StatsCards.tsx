@@ -33,19 +33,18 @@ const StatsCards = () => {
   }, [userId]);
 
   useEffect(() => {
-    const fadeOutSkeletons = () => {
-      const skeletons = document.querySelectorAll('[data-skeleton="stats"]');
-      skeletons.forEach((skeleton, index) => {
-        setTimeout(() => {
-          if (skeleton instanceof HTMLElement) {
-            skeleton.style.transition = 'opacity 0.3s ease-out';
-            skeleton.style.opacity = '0';
-            setTimeout(() => {
-              skeleton.style.display = 'none';
-            }, 300);
-          }
-        }, index * 100);
-      });
+    const handleCrossFade = () => {
+      // Fade out skeleton and fade in component simultaneously
+      const skeleton = document.querySelector('[data-skeleton="stats"]');
+      if (skeleton instanceof HTMLElement) {
+        skeleton.style.transition = 'opacity 0.5s ease-out';
+        skeleton.style.opacity = '0';
+      }
+      
+      // Fade in this component
+      setTimeout(() => {
+        setVisible(true);
+      }, 100); // Small delay to ensure smooth transition
     };
 
     const fetchUserStats = async () => {
@@ -95,16 +94,13 @@ const StatsCards = () => {
         console.log('Setting stats:', newStats); // Debug log
         setStats(newStats);
 
-        fadeOutSkeletons();
-        setTimeout(() => {
-          setVisible(true);
-          console.log('Setting visible to true'); // Debug log
-        }, 400);
+        // Start cross-fade
+        handleCrossFade();
         
         setLoading(false);
       } catch (error) {
         console.error('Error fetching user stats:', error);
-        fadeOutSkeletons();
+        handleCrossFade();
         setLoading(false);
       }
     };

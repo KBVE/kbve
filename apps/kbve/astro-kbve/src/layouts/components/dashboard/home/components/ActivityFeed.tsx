@@ -26,15 +26,16 @@ const ActivityFeed = () => {
   );
 
   useEffect(() => {
-    const fadeOutSkeleton = () => {
+    const handleCrossFade = () => {
       const skeleton = document.getElementById('activity-skeleton');
       if (skeleton) {
-        skeleton.style.transition = 'opacity 0.3s ease-out';
+        skeleton.style.transition = 'opacity 0.5s ease-out';
         skeleton.style.opacity = '0';
-        setTimeout(() => {
-          skeleton.style.display = 'none';
-        }, 300);
       }
+      
+      setTimeout(() => {
+        setVisible(true);
+      }, 100);
     };
 
     const fetchUserActivities = async () => {
@@ -81,17 +82,11 @@ const ActivityFeed = () => {
         ];
 
         setActivities(userActivities);
-        fadeOutSkeleton();
-        setTimeout(() => {
-          setVisible(true);
-        }, 400);
+        handleCrossFade();
         setLoading(false);
       } catch (error) {
         console.error('Error fetching user activities:', error);
-        fadeOutSkeleton();
-        setTimeout(() => {
-          setVisible(true);
-        }, 400);
+        handleCrossFade();
         setLoading(false);
       }
     };
@@ -125,7 +120,7 @@ const ActivityFeed = () => {
 
   return (
     <div className={twMerge(clsx(
-      "transition-opacity duration-500",
+      "bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500",
       visible ? "opacity-100" : "opacity-0"
     ))}>
       <div className="flex items-center justify-between mb-6">

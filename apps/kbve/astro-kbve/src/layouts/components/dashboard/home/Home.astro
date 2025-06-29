@@ -37,35 +37,41 @@ import TableCard from './components/TableCard';
   <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
     <!-- Stats Grid -->
     <div class="mb-8">
-      <!-- Stat Card Skeletons -->
-      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700" data-skeleton="stats">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="h-4 bg-zinc-700 rounded w-20 animate-pulse"></div>
-                <div class="h-8 bg-zinc-700 rounded w-16 mt-2 animate-pulse"></div>
+      <!-- Stats Container with relative positioning -->
+      <div class="relative">
+        <!-- Stat Card Skeletons - Higher z-index, visible by default -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-20" data-skeleton="stats">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
+              <div class="flex items-center justify-between">
+                <div>
+                  <div class="h-4 bg-zinc-700 rounded w-20 animate-pulse"></div>
+                  <div class="h-8 bg-zinc-700 rounded w-16 mt-2 animate-pulse"></div>
+                </div>
+                <div class="w-12 h-12 bg-zinc-700 rounded-lg animate-pulse"></div>
               </div>
-              <div class="w-12 h-12 bg-zinc-700 rounded-lg animate-pulse"></div>
+              <div class="mt-4">
+                <div class="h-3 bg-zinc-700 rounded w-full animate-pulse"></div>
+              </div>
             </div>
-            <div class="mt-4">
-              <div class="h-3 bg-zinc-700 rounded w-full animate-pulse"></div>
-            </div>
-          </div>
-        ))}
+          ))}
+        </div>
+        
+        <!-- Dynamic Stats Cards - Lower z-index, absolute positioned to overlap -->
+        <div class="absolute inset-0 z-10">
+          <StatsCards client:only="react" />
+        </div>
       </div>
-      
-      <!-- Dynamic Stats Cards -->
-      <StatsCards client:only="react" />
     </div>
 
     <!-- Main Dashboard Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
       <!-- Left Column - Charts/Analytics -->
       <div class="lg:col-span-2 space-y-6">
-        <!-- Chart Card Skeleton -->
-        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
-          <div id="chart-skeleton">
+        <!-- Chart Card Container -->
+        <div class="relative">
+          <!-- Chart Card Skeleton - Higher z-index -->
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="chart-skeleton">
             <div class="flex items-center justify-between mb-6">
               <div>
                 <div class="h-6 bg-zinc-700 rounded w-32 animate-pulse"></div>
@@ -79,13 +85,16 @@ import TableCard from './components/TableCard';
             <div class="h-64 bg-zinc-700 rounded animate-pulse"></div>
           </div>
           
-          <!-- Dynamic Chart Card -->
-          <ChartCard client:only="react" />
+          <!-- Dynamic Chart Card - Lower z-index, absolute positioned -->
+          <div class="absolute inset-0 z-10">
+            <ChartCard client:only="react" />
+          </div>
         </div>
 
-        <!-- Table Card Skeleton -->
-        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
-          <div id="table-skeleton">
+        <!-- Table Card Container -->
+        <div class="relative">
+          <!-- Table Card Skeleton - Higher z-index -->
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="table-skeleton">
             <div class="flex items-center justify-between mb-6">
               <div class="h-6 bg-zinc-700 rounded w-40 animate-pulse"></div>
               <div class="h-9 bg-zinc-700 rounded w-24 animate-pulse"></div>
@@ -104,16 +113,19 @@ import TableCard from './components/TableCard';
             </div>
           </div>
           
-          <!-- Dynamic Table Card -->
-          <TableCard client:only="react" />
+          <!-- Dynamic Table Card - Lower z-index, absolute positioned -->
+          <div class="absolute inset-0 z-10">
+            <TableCard client:only="react" />
+          </div>
         </div>
-      </div>
+      
 
       <!-- Right Column - Sidebar -->
       <div class="space-y-6">
-        <!-- Quick Actions Card -->
-        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
-          <div id="quick-actions-skeleton">
+        <!-- Quick Actions Card Container -->
+        <div class="relative">
+          <!-- Quick Actions Skeleton - Higher z-index -->
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="quick-actions-skeleton">
             <div class="h-6 bg-zinc-700 rounded w-28 mb-4 animate-pulse"></div>
             <div class="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -125,13 +137,16 @@ import TableCard from './components/TableCard';
             </div>
           </div>
           
-          <!-- Dynamic Quick Actions -->
-          <QuickActions client:only="react" />
+          <!-- Dynamic Quick Actions - Lower z-index, absolute positioned -->
+          <div class="absolute inset-0 z-10">
+            <QuickActions client:only="react" />
+          </div>
         </div>
 
-        <!-- Activity Feed Skeleton -->
-        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
-          <div id="activity-skeleton">
+        <!-- Activity Feed Container -->
+        <div class="relative">
+          <!-- Activity Feed Skeleton - Higher z-index -->
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="activity-skeleton">
             <div class="h-6 bg-zinc-700 rounded w-32 mb-4 animate-pulse"></div>
             <div class="space-y-4">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -147,13 +162,16 @@ import TableCard from './components/TableCard';
             </div>
           </div>
           
-          <!-- Dynamic Activity Feed -->
-          <ActivityFeed client:only="react" />
+          <!-- Dynamic Activity Feed - Lower z-index, absolute positioned -->
+          <div class="absolute inset-0 z-10">
+            <ActivityFeed client:only="react" />
+          </div>
         </div>
 
-        <!-- System Status Card -->
-        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
-          <div id="status-card">
+        <!-- System Status Card Container -->
+        <div class="relative">
+          <!-- Status Card Skeleton - Higher z-index -->
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="status-card">
             <div class="h-6 bg-zinc-700 rounded w-28 mb-4 animate-pulse"></div>
             <div class="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -167,6 +185,31 @@ import TableCard from './components/TableCard';
               ))}
             </div>
           </div>
+          
+          <!-- Dynamic Status Card - Lower z-index, absolute positioned -->
+          <div class="absolute inset-0 z-10">
+            <StatusCard client:only="react" />
+          </div>
+        </div>
+
+        <!-- Welcome Info Container -->
+        <div class="relative">
+          <!-- Welcome Skeleton - Higher z-index -->
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="welcome-skeleton">
+            <div class="h-6 bg-zinc-700 rounded w-24 mb-4 animate-pulse"></div>
+            <div class="space-y-3">
+              <div class="h-4 bg-zinc-700 rounded animate-pulse"></div>
+              <div class="h-4 bg-zinc-700 rounded w-3/4 animate-pulse"></div>
+              <div class="h-10 bg-zinc-700 rounded animate-pulse"></div>
+            </div>
+          </div>
+          
+          <!-- Dynamic Welcome Info - Lower z-index, absolute positioned -->
+          <div class="absolute inset-0 z-10">
+            <WelcomeInfo client:only="react" />
+          </div>
+        </div>
+      </div>
           
           <!-- Dynamic Status Card -->
           <StatusCard client:only="react" />
