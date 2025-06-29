@@ -1,5 +1,5 @@
 using System;
-using System.Threading.Tasks;
+using UnityEngine;
 using Cysharp.Threading.Tasks;
 using Heathen.SteamworksIntegration;
 
@@ -7,9 +7,9 @@ namespace KBVE.SSDB.Steam.UI
 {
     public class SteamFriendViewModel
     {
-        public string Name { get; init; }
-        public string Status { get; init; }
-        public UniTask<Texture2D?> AvatarTask { get; init; }
-        public UserData RawSteamUser { get; init; }
+        public string Name { get; set; }
+        public string Status { get; set; }
+        public UniTask<Texture2D?> AvatarTask { get; set; }
+        public UserData RawSteamUser { get; set; }
     }
 }
