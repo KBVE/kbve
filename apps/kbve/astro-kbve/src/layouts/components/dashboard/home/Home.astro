@@ -17,9 +17,17 @@ import TableCard from './components/TableCard';
   <header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       <div class="flex items-center justify-between">
-        <div>
-          <h1 class="text-3xl font-bold text-cyan-400">Dashboard</h1>
-          <p class="text-zinc-400 mt-1">Welcome back to your control center</p>
+        <div class="flex items-center space-x-4">
+          <!-- Mobile Menu Button -->
+          <button id="mobile-menu-btn" class="lg:hidden p-2 text-zinc-400 hover:text-white">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+            </svg>
+          </button>
+          <div>
+            <h1 class="text-3xl font-bold text-cyan-400">Dashboard</h1>
+            <p class="text-zinc-400 mt-1">Welcome back to your control center</p>
+          </div>
         </div>
         <div class="flex items-center space-x-4">
           <!-- User Avatar Skeleton -->
@@ -33,36 +41,124 @@ import TableCard from './components/TableCard';
     </div>
   </header>
 
-  <!-- Main Content Area -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-    <!-- Stats Grid -->
-    <div class="mb-8">
-      <!-- Stats Container with relative positioning -->
-      <div class="relative">
-        <!-- Stat Card Skeletons - Higher z-index, visible by default -->
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-20" data-skeleton="stats">
-          {Array.from({ length: 4 }).map((_, i) => (
-            <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
-              <div class="flex items-center justify-between">
-                <div>
-                  <div class="h-4 bg-zinc-700 rounded w-20 animate-pulse"></div>
-                  <div class="h-8 bg-zinc-700 rounded w-16 mt-2 animate-pulse"></div>
-                </div>
-                <div class="w-12 h-12 bg-zinc-700 rounded-lg animate-pulse"></div>
+  <!-- Main Dashboard Container -->
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <div class="flex gap-8">
+      <!-- Sidebar Overlay for Mobile -->
+      <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out"></div>
+      
+      <!-- Left Sidebar -->
+      <aside id="sidebar" class="fixed lg:static top-0 left-0 h-full lg:h-auto w-64 bg-zinc-800 lg:bg-transparent border-r border-zinc-700 lg:border-zinc-700 z-50 lg:z-auto -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:transition-none">
+        <div class="p-6">
+          <!-- Sidebar Header -->
+          <div class="flex items-center justify-between mb-8">
+            <div class="flex items-center space-x-3">
+              <div class="w-8 h-8 bg-cyan-400 rounded-lg flex items-center justify-center">
+                <svg class="w-5 h-5 text-zinc-900" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3z"/>
+                </svg>
               </div>
-              <div class="mt-4">
-                <div class="h-3 bg-zinc-700 rounded w-full animate-pulse"></div>
+              <span class="text-lg font-semibold text-white">KBVE</span>
+            </div>
+            <!-- Close button for mobile -->
+            <button id="close-sidebar" class="lg:hidden p-2 text-zinc-400 hover:text-white">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+              </svg>
+            </button>
+          </div>
+          
+          <!-- Navigation Menu -->
+          <nav class="space-y-2">
+            <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-cyan-400/10 text-cyan-400 border border-cyan-400/20">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
+              </svg>
+              <span>Dashboard</span>
+            </a>
+            
+            <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
+              </svg>
+              <span>Profile</span>
+            </a>
+            
+            <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
+              </svg>
+              <span>Analytics</span>
+            </a>
+            
+            <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+              </svg>
+              <span>Projects</span>
+            </a>
+            
+            <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors">
+              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              </svg>
+              <span>Settings</span>
+            </a>
+          </nav>
+          
+          <!-- Quick Stats in Sidebar -->
+          <div class="mt-8 pt-8 border-t border-zinc-700">
+            <h3 class="text-sm font-medium text-zinc-400 mb-4">Quick Stats</h3>
+            <div class="space-y-3">
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-zinc-300">Active Users</span>
+                <span class="text-sm font-medium text-cyan-400">1,234</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-zinc-300">Revenue</span>
+                <span class="text-sm font-medium text-green-400">$12.5K</span>
+              </div>
+              <div class="flex items-center justify-between">
+                <span class="text-sm text-zinc-300">Projects</span>
+                <span class="text-sm font-medium text-blue-400">42</span>
               </div>
             </div>
-          ))}
+          </div>
         </div>
-        
-        <!-- Dynamic Stats Cards - Lower z-index, absolute positioned to overlap -->
-        <div class="absolute inset-0 z-10">
-          <StatsCards client:only="react" />
+      </aside>
+
+      <!-- Main Content Area -->
+      <main class="flex-1 min-w-0">
+        <!-- Stats Grid -->
+        <div class="mb-8">
+          <!-- Stats Container with relative positioning -->
+          <div class="relative">
+            <!-- Stat Card Skeletons - Higher z-index, visible by default -->
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-20" data-skeleton="stats">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
+                  <div class="flex items-center justify-between">
+                    <div>
+                      <div class="h-4 bg-zinc-700 rounded w-20 animate-pulse"></div>
+                      <div class="h-8 bg-zinc-700 rounded w-16 mt-2 animate-pulse"></div>
+                    </div>
+                    <div class="w-12 h-12 bg-zinc-700 rounded-lg animate-pulse"></div>
+                  </div>
+                  <div class="mt-4">
+                    <div class="h-3 bg-zinc-700 rounded w-full animate-pulse"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            <!-- Dynamic Stats Cards - Lower z-index, absolute positioned to overlap -->
+            <div class="absolute inset-0 z-10">
+              <StatsCards client:only="react" />
+            </div>
+          </div>
         </div>
-      </div>
-    </div>
 
     <!-- Main Dashboard Grid -->
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -209,7 +305,77 @@ import TableCard from './components/TableCard';
             <WelcomeInfo client:only="react" />
           </div>
         </div>
-      </div>
+      </main>
     </div>
-  </main>
+  </div>
 </div>
+
+<script>
+  // Sidebar functionality
+  document.addEventListener('DOMContentLoaded', function() {
+    const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+    const closeSidebarBtn = document.getElementById('close-sidebar');
+    const sidebar = document.getElementById('sidebar');
+    const overlay = document.getElementById('sidebar-overlay');
+
+    function openSidebar() {
+      if (sidebar && overlay) {
+        // Show sidebar
+        sidebar.classList.remove('-translate-x-full');
+        sidebar.classList.add('translate-x-0');
+        
+        // Show overlay
+        overlay.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+        overlay.classList.add('opacity-100');
+        
+        // Prevent body scroll on mobile
+        document.body.classList.add('overflow-hidden');
+      }
+    }
+
+    function closeSidebar() {
+      if (sidebar && overlay) {
+        // Hide sidebar on mobile, keep visible on desktop
+        sidebar.classList.remove('translate-x-0');
+        sidebar.classList.add('-translate-x-full');
+        
+        // Hide overlay
+        overlay.classList.remove('opacity-100');
+        overlay.classList.add('opacity-0', 'pointer-events-none');
+        
+        // Re-enable body scroll
+        document.body.classList.remove('overflow-hidden');
+        
+        // Add delay before hiding to allow transition
+        setTimeout(() => {
+          if (overlay.classList.contains('opacity-0')) {
+            overlay.classList.add('hidden');
+          }
+        }, 300);
+      }
+    }
+
+    // Mobile menu button click
+    mobileMenuBtn?.addEventListener('click', openSidebar);
+
+    // Close sidebar button click
+    closeSidebarBtn?.addEventListener('click', closeSidebar);
+
+    // Overlay click to close sidebar
+    overlay?.addEventListener('click', closeSidebar);
+
+    // Handle escape key
+    document.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape' && sidebar && sidebar.classList.contains('translate-x-0')) {
+        closeSidebar();
+      }
+    });
+
+    // Handle window resize
+    window.addEventListener('resize', function() {
+      if (window.innerWidth >= 1024) { // lg breakpoint
+        closeSidebar();
+      }
+    });
+  });
+</script>
