@@ -210,31 +210,6 @@ import TableCard from './components/TableCard';
           </div>
         </div>
       </div>
-          
-          <!-- Dynamic Status Card -->
-          <StatusCard client:only="react" />
-        </div>
-
-        <!-- Welcome Info Card -->
-        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
-          <div id="welcome-skeleton">
-            <div class="h-6 bg-zinc-700 rounded w-24 mb-4 animate-pulse"></div>
-            <div class="space-y-3">
-              {Array.from({ length: 3 }).map((_, i) => (
-                <div class="flex items-center justify-between">
-                  <div class="h-4 bg-zinc-700 rounded w-20 animate-pulse"></div>
-                  <div class="h-4 bg-zinc-700 rounded w-16 animate-pulse"></div>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <!-- Dynamic Welcome Info -->
-          <WelcomeInfo client:only="react" />
-        </div>
-
-
-      </div>
     </div>
   </main>
 </div>
