@@ -49,11 +49,12 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
                 case TopDownEngineEventTypes.CharacterSwap:
                     {
+
+                        SetHUDStatsForActiveCharacter().Forget();
                         var playerId = UnityEngine.GameObject.FindFirstObjectByType<CharacterSwapManager>().PlayerID;
                         _registry.TryGetPrimaryCharacter(playerId, out Character activeCharacter);
                         _registry.TryGetCharacters(playerId, out List<Character> characters);
                         characters.ForEach(x => x.GetComponent<AiAllyBrain>().ToggleAI(!x.GetComponent<CharacterSwap>().Current()));
-                        SetHUDStatsForActiveCharacter().Forget();
                         break;
                     }
 
