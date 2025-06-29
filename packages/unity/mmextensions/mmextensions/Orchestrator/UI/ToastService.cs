@@ -81,14 +81,17 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                 await UniTask.WaitUntil(() => canvasService.IsReady.Value, cancellationToken: cancellation);
             }
 
-            var panel = CreateToastPanel();
-            panel = _globalCanvas.SpawnPanel(panel, UICanvasLayer.Toast);
+            var temporaryPanel = CreateToastPanel();
+            var panel = _globalCanvas.SpawnPanel(temporaryPanel, UICanvasLayer.Toast);
             _panelRect = panel.GetComponent<RectTransform>();
 
             _toastText = panel.transform.Find("ToastText")?.GetComponent<TextMeshProUGUI>();
             _toastBackground = panel.GetComponent<Image>();
             _toastGroup = panel.GetComponent<CanvasGroup>();
             _toastGroup.alpha = 0f;
+
+            await UniTask.Yield();
+            _ = DestroyLaterSafe(temporaryPanel, 0.1f);
 
             if (!IsInitialized)
             {
@@ -309,6 +312,19 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             group.alpha = 0f;
 
             return panel;
+        }
+
+
+        private static async UniTaskVoid DestroyLaterSafe(GameObject go, float delaySeconds = 0.1f)
+        {
+            if (go == null) return;
+
+            await UniTask.Delay(TimeSpan.FromSeconds(delaySeconds));
+
+            if (go != null)
+            {
+                Destroy(go);
+            }
         }
 
 
