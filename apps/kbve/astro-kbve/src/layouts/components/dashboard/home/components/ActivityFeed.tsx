@@ -17,6 +17,7 @@ const ActivityFeed = () => {
   const userId = useStore(userIdAtom);
   const [loading, setLoading] = useState(true);
   const [activities, setActivities] = useState<UserActivityItem[]>([]);
+  const [visible, setVisible] = useState(false);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
   const username = useMemo(() => 
@@ -81,10 +82,16 @@ const ActivityFeed = () => {
 
         setActivities(userActivities);
         fadeOutSkeleton();
+        setTimeout(() => {
+          setVisible(true);
+        }, 400);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching user activities:', error);
         fadeOutSkeleton();
+        setTimeout(() => {
+          setVisible(true);
+        }, 400);
         setLoading(false);
       }
     };
@@ -117,8 +124,10 @@ const ActivityFeed = () => {
   }
 
   return (
-    <div className={twMerge(clsx("opacity-0 animate-fade-in"))} 
-         style={{ animationDelay: '0.4s', animationFillMode: 'forwards' }}>
+    <div className={twMerge(clsx(
+      "transition-opacity duration-500",
+      visible ? "opacity-100" : "opacity-0"
+    ))}>
       <div className="flex items-center justify-between mb-6">
         <h3 className={twMerge(clsx("text-xl font-semibold text-white"))}>Recent Activity</h3>
         {!isGuest && (

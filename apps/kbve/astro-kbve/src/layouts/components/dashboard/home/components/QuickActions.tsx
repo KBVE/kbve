@@ -8,6 +8,7 @@ const QuickActions = () => {
   const user = useStore(userAtom);
   const userId = useStore(userIdAtom);
   const [loading, setLoading] = useState(true);
+  const [visible, setVisible] = useState(false);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
 
@@ -49,6 +50,9 @@ const QuickActions = () => {
     const loadComponent = async () => {
       await new Promise(resolve => setTimeout(resolve, 400));
       fadeOutSkeleton();
+      setTimeout(() => {
+        setVisible(true);
+      }, 400);
       setLoading(false);
     };
 
@@ -60,8 +64,10 @@ const QuickActions = () => {
   }
 
   return (
-    <div className={twMerge(clsx("opacity-0 animate-fade-in"))} 
-         style={{ animationDelay: '0.3s', animationFillMode: 'forwards' }}>
+    <div className={twMerge(clsx(
+      "transition-opacity duration-500",
+      visible ? "opacity-100" : "opacity-0"
+    ))}>
       <h3 className={twMerge(clsx("text-lg font-semibold text-white mb-4"))}>Quick Actions</h3>
       <div className="space-y-3">
         {quickActions.map((action, index) => (

@@ -18,6 +18,7 @@ const TableCard = () => {
   const userId = useStore(userIdAtom);
   const [loading, setLoading] = useState(true);
   const [tableData, setTableData] = useState<TableItem[]>([]);
+  const [visible, setVisible] = useState(false);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
 
@@ -92,10 +93,16 @@ const TableCard = () => {
 
         setTableData(data);
         fadeOutSkeleton();
+        setTimeout(() => {
+          setVisible(true);
+        }, 400);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching table data:', error);
         fadeOutSkeleton();
+        setTimeout(() => {
+          setVisible(true);
+        }, 400);
         setLoading(false);
       }
     };
@@ -127,8 +134,10 @@ const TableCard = () => {
   }
 
   return (
-    <div className={twMerge(clsx("opacity-0 animate-fade-in"))} 
-         style={{ animationDelay: '0.6s', animationFillMode: 'forwards' }}>
+    <div className={twMerge(clsx(
+      "transition-opacity duration-500",
+      visible ? "opacity-100" : "opacity-0"
+    ))}>
       <div className="flex items-center justify-between mb-6">
         <h3 className={twMerge(clsx("text-xl font-semibold text-white"))}>
           {isGuest ? 'Latest Updates' : 'Recent Transactions'}

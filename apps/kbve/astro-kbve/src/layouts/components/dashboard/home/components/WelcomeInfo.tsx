@@ -9,6 +9,7 @@ const WelcomeInfo = () => {
   const userBalance = useStore(userBalanceAtom);
   const [loading, setLoading] = useState(true);
   const [membershipTier, setMembershipTier] = useState<'Guest' | 'Basic' | 'Premium' | 'VIP'>('Guest');
+  const [visible, setVisible] = useState(false);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
   const username = useMemo(() => 
@@ -57,6 +58,9 @@ const WelcomeInfo = () => {
       }
 
       fadeOutSkeleton();
+      setTimeout(() => {
+        setVisible(true);
+      }, 400);
       setLoading(false);
     };
 
@@ -68,8 +72,10 @@ const WelcomeInfo = () => {
   }
 
   return (
-    <div className={twMerge(clsx("opacity-0 animate-fade-in"))} 
-         style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+    <div className={twMerge(clsx(
+      "transition-opacity duration-500",
+      visible ? "opacity-100" : "opacity-0"
+    ))}>
       <h3 className={twMerge(clsx("text-lg font-semibold text-white mb-4"))}>
         Welcome{!isGuest && `, ${username}`}!
       </h3>

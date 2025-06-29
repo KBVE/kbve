@@ -17,6 +17,7 @@ const StatsCards = () => {
   const userBalance = useStore(userBalanceAtom);
   const [loading, setLoading] = useState(true);
   const [stats, setStats] = useState<UserStats | null>(null);
+  const [visible, setVisible] = useState(false);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
   const username = useMemo(() => 
@@ -49,6 +50,7 @@ const StatsCards = () => {
 
     const fetchUserStats = async () => {
       try {
+        console.log('Fetching user stats...'); // Debug log
         await new Promise(resolve => setTimeout(resolve, 800));
         
         // Handle user balance
@@ -83,14 +85,22 @@ const StatsCards = () => {
 
         const activityLevel: UserStats['activityLevel'] = isGuest ? 'Low' : 'Medium';
 
-        setStats({
+        const newStats = {
           creditBalance,
           accountAge,
           activityLevel,
           membershipTier
-        });
+        };
+
+        console.log('Setting stats:', newStats); // Debug log
+        setStats(newStats);
 
         fadeOutSkeletons();
+        setTimeout(() => {
+          setVisible(true);
+          console.log('Setting visible to true'); // Debug log
+        }, 400);
+        
         setLoading(false);
       } catch (error) {
         console.error('Error fetching user stats:', error);
@@ -120,15 +130,19 @@ const StatsCards = () => {
     }
   }, []);
 
-  if (loading) {
+  if (loading || !stats) {
     return null; // Skeletons handled by Astro
   }
 
+  console.log('Rendering StatsCards with visible:', visible, 'stats:', stats); // Debug log
+
   return (
-    <div className={twMerge(clsx(
-      "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 opacity-0 animate-fade-in"
-    ))}
-         style={{ animationDelay: '0.2s', animationFillMode: 'forwards' }}>
+    <div 
+      className={twMerge(clsx(
+        "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-opacity duration-500",
+        visible ? "opacity-100" : "opacity-0"
+      ))}
+    >
       
       {/* Credit Balance Card */}
       <div className={twMerge(clsx(
