@@ -1,0 +1,197 @@
+---
+import StatsCards from './components/StatsCards';
+import ActivityFeed from './components/ActivityFeed';
+import QuickActions from './components/QuickActions';
+import StatusCard from './components/StatusCard';
+import WelcomeInfo from './components/WelcomeInfo';
+import ChartCard from './components/ChartCard';
+import TableCard from './components/TableCard';
+---
+
+<style>
+  @import './components/animations.css';
+</style>
+
+<div class="min-h-screen bg-zinc-900 text-white">
+  <!-- Header Section -->
+  <header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div class="flex items-center justify-between">
+        <div>
+          <h1 class="text-3xl font-bold text-cyan-400">Dashboard</h1>
+          <p class="text-zinc-400 mt-1">Welcome back to your control center</p>
+        </div>
+        <div class="flex items-center space-x-4">
+          <!-- User Avatar Skeleton -->
+          <div class="w-10 h-10 bg-zinc-800 rounded-full animate-pulse"></div>
+          <div class="hidden sm:block">
+            <div class="h-4 bg-zinc-800 rounded w-24 animate-pulse"></div>
+            <div class="h-3 bg-zinc-800 rounded w-16 mt-1 animate-pulse"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Main Content Area -->
+  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
+    <!-- Stats Grid -->
+    <div class="mb-8">
+      <!-- Stat Card Skeletons -->
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700" data-skeleton="stats">
+            <div class="flex items-center justify-between">
+              <div>
+                <div class="h-4 bg-zinc-700 rounded w-20 animate-pulse"></div>
+                <div class="h-8 bg-zinc-700 rounded w-16 mt-2 animate-pulse"></div>
+              </div>
+              <div class="w-12 h-12 bg-zinc-700 rounded-lg animate-pulse"></div>
+            </div>
+            <div class="mt-4">
+              <div class="h-3 bg-zinc-700 rounded w-full animate-pulse"></div>
+            </div>
+          </div>
+        ))}
+      </div>
+      
+      <!-- Dynamic Stats Cards -->
+      <StatsCards client:only="react" />
+    </div>
+
+    <!-- Main Dashboard Grid -->
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <!-- Left Column - Charts/Analytics -->
+      <div class="lg:col-span-2 space-y-6">
+        <!-- Chart Card Skeleton -->
+        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
+          <div id="chart-skeleton">
+            <div class="flex items-center justify-between mb-6">
+              <div>
+                <div class="h-6 bg-zinc-700 rounded w-32 animate-pulse"></div>
+                <div class="h-3 bg-zinc-700 rounded w-48 mt-2 animate-pulse"></div>
+              </div>
+              <div class="flex space-x-2">
+                <div class="w-8 h-8 bg-zinc-700 rounded animate-pulse"></div>
+                <div class="w-8 h-8 bg-zinc-700 rounded animate-pulse"></div>
+              </div>
+            </div>
+            <div class="h-64 bg-zinc-700 rounded animate-pulse"></div>
+          </div>
+          
+          <!-- Dynamic Chart Card -->
+          <ChartCard client:only="react" />
+        </div>
+
+        <!-- Table Card Skeleton -->
+        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
+          <div id="table-skeleton">
+            <div class="flex items-center justify-between mb-6">
+              <div class="h-6 bg-zinc-700 rounded w-40 animate-pulse"></div>
+              <div class="h-9 bg-zinc-700 rounded w-24 animate-pulse"></div>
+            </div>
+            <div class="space-y-4">
+              {Array.from({ length: 5 }).map((_, i) => (
+                <div class="flex items-center space-x-4">
+                  <div class="w-10 h-10 bg-zinc-700 rounded-full animate-pulse"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="h-4 bg-zinc-700 rounded animate-pulse"></div>
+                    <div class="h-3 bg-zinc-700 rounded w-2/3 animate-pulse"></div>
+                  </div>
+                  <div class="h-6 bg-zinc-700 rounded w-16 animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <!-- Dynamic Table Card -->
+          <TableCard client:only="react" />
+        </div>
+      </div>
+
+      <!-- Right Column - Sidebar -->
+      <div class="space-y-6">
+        <!-- Quick Actions Card -->
+        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
+          <div id="quick-actions-skeleton">
+            <div class="h-6 bg-zinc-700 rounded w-28 mb-4 animate-pulse"></div>
+            <div class="space-y-3">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div class="flex items-center space-x-3">
+                  <div class="w-8 h-8 bg-zinc-700 rounded animate-pulse"></div>
+                  <div class="h-4 bg-zinc-700 rounded flex-1 animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <!-- Dynamic Quick Actions -->
+          <QuickActions client:only="react" />
+        </div>
+
+        <!-- Activity Feed Skeleton -->
+        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
+          <div id="activity-skeleton">
+            <div class="h-6 bg-zinc-700 rounded w-32 mb-4 animate-pulse"></div>
+            <div class="space-y-4">
+              {Array.from({ length: 6 }).map((_, i) => (
+                <div class="flex items-start space-x-3">
+                  <div class="w-8 h-8 bg-zinc-700 rounded-full animate-pulse mt-1"></div>
+                  <div class="flex-1 space-y-2">
+                    <div class="h-3 bg-zinc-700 rounded animate-pulse"></div>
+                    <div class="h-3 bg-zinc-700 rounded w-4/5 animate-pulse"></div>
+                    <div class="h-2 bg-zinc-700 rounded w-16 animate-pulse"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <!-- Dynamic Activity Feed -->
+          <ActivityFeed client:only="react" />
+        </div>
+
+        <!-- System Status Card -->
+        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
+          <div id="status-card">
+            <div class="h-6 bg-zinc-700 rounded w-28 mb-4 animate-pulse"></div>
+            <div class="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div class="flex items-center justify-between">
+                  <div class="h-4 bg-zinc-700 rounded w-20 animate-pulse"></div>
+                  <div class="flex items-center space-x-2">
+                    <div class="w-3 h-3 bg-zinc-700 rounded-full animate-pulse"></div>
+                    <div class="h-3 bg-zinc-700 rounded w-12 animate-pulse"></div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <!-- Dynamic Status Card -->
+          <StatusCard client:only="react" />
+        </div>
+
+        <!-- Welcome Info Card -->
+        <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
+          <div id="welcome-skeleton">
+            <div class="h-6 bg-zinc-700 rounded w-24 mb-4 animate-pulse"></div>
+            <div class="space-y-3">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <div class="flex items-center justify-between">
+                  <div class="h-4 bg-zinc-700 rounded w-20 animate-pulse"></div>
+                  <div class="h-4 bg-zinc-700 rounded w-16 animate-pulse"></div>
+                </div>
+              ))}
+            </div>
+          </div>
+          
+          <!-- Dynamic Welcome Info -->
+          <WelcomeInfo client:only="react" />
+        </div>
+
+
+      </div>
+    </div>
+  </main>
+</div>
