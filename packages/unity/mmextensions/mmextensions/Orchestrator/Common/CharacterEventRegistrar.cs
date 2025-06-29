@@ -53,7 +53,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                         _registry.TryGetPrimaryCharacter(playerId, out Character activeCharacter);
                         _registry.TryGetCharacters(playerId, out List<Character> characters);
                         characters.ForEach(x => x.GetComponent<AiAllyBrain>().ToggleAI(!x.GetComponent<CharacterSwap>().Current()));
-                        SetHUDStatsForActiveCharacter(activeCharacter).Forget();
+                        SetHUDStatsForActiveCharacter().Forget();
                         break;
                     }
 
@@ -84,7 +84,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             }
             _registry.Register(playerID, character);            // Register the character (even if multiple for same PlayerID)
 
-            SetHUDStatsForActiveCharacter(character).Forget();
+            SetHUDStatsForActiveCharacter().Forget();
 
             if (!_registry.TryGetInventory(playerID, out _))
             {
@@ -175,33 +175,26 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             Debug.Log($"[CharacterEventRegistrar] Delayed HUD update applied for character: {character.name}");
         }
 
-        private async UniTask SetHUDStatsForActiveCharacter(Character overrideCharacter = null, CancellationToken cancellation = default)
+       private async UniTask SetHUDStatsForActiveCharacter(CancellationToken cancellation = default)
         {
             await UniTask.Yield();
 
-            var character = overrideCharacter;
-
-            if (character == null && LevelManager.HasInstance && LevelManager.Instance.Players.Count > 0)
+            if (!LevelManager.HasInstance || LevelManager.Instance.Players.Count == 0)
             {
-                character = LevelManager.Instance.Players[0];
-                //Debug.LogWarning("[CharacterEventRegistrar] Falling back to LevelManager.Instance.Players[0] as active character.");
-            }
-
-            if (character == null)
-            {
-                Debug.LogWarning("[CharacterEventRegistrar] No character found for HUD update.");
+                Debug.LogWarning("[CharacterEventRegistrar] No players in LevelManager.");
                 return;
             }
 
+            var character = LevelManager.Instance.Players[0];
             var health = character.GetComponent<ExtendedHealth>();
             if (health != null)
             {
                 await _hudService.SetActiveStatsAsync(health.Stats).AttachExternalCancellation(cancellation);
-                Debug.Log($"[CharacterEventRegistrar] HUD updated for character: {character.name}");
+                Debug.Log($"[CharacterEventRegistrar] HUD bound to active character: {character.name}");
             }
             else
             {
-                Debug.LogWarning($"[CharacterEventRegistrar] Character '{character.name}' has no ExtendedHealth.");
+                Debug.LogWarning($"[CharacterEventRegistrar] No ExtendedHealth on {character.name}.");
             }
         }
 
