@@ -6,6 +6,7 @@ using VContainer;
 using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
+using KBVE.MMExtensions.Orchestrator.Core.UI;
 using MMHealth = MoreMountains.TopDownEngine.Health;
 using MoreMountains.TopDownEngine;
 
@@ -45,6 +46,15 @@ namespace KBVE.MMExtensions.Orchestrator.Health
         private List<StatPreset> _presetStats = new();
         public List<StatPreset> PresetStats => _presetStats;
 
+        private IHUDService _hudService;
+
+        [VContainer.Inject]
+        public void InjectHUDService(IHUDService hudService)
+        {
+            _hudService = hudService;
+        }
+
+
         protected override void Start()
         {
             base.Start();
@@ -74,6 +84,8 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             AddStat(StatType.Armor, new StatData(5, 5, 0f));
             AddStat(StatType.Strength, new StatData(10, 10, 0f));
 
+            Debug.Log("[ExtendedHealth] : Applying Stats!");
+
             foreach (var preset in _presetStats)
             {
                 float baseVal = preset.baseValue > 0 ? preset.baseValue : StatHelper.GetDefaultBase(preset.type);
@@ -81,6 +93,15 @@ namespace KBVE.MMExtensions.Orchestrator.Health
                 float regenVal = preset.regenRate >= 0 ? preset.regenRate : StatHelper.GetDefaultRegen(preset.type);
 
                 ApplyPresetStat(preset.type, baseVal, maxVal, regenVal);
+
+                 if (Stats.TryGetValue(preset.type, out var result))
+                    {
+                        Debug.Log($"[ExtendedHealth] → {preset.type} updated: base={result.Base}, max={result.Max}, regen={result.RegenRate}, current={result.Current}");
+                    }
+                    else
+                    {
+                        Debug.LogWarning($"[ExtendedHealth] → {preset.type} was not found in Stats after ApplyPresetStat.");
+                    }
             }
         }
 
@@ -160,6 +181,8 @@ namespace KBVE.MMExtensions.Orchestrator.Health
 
             if (!_cachedKeys.Contains(stat))
                 RefreshCachedKeys();
+
+           _hudService?.UpdateStat(stat, data);
         }
 
         public void OverwriteStat(StatType stat, StatData newData)
@@ -188,9 +211,9 @@ namespace KBVE.MMExtensions.Orchestrator.Health
             }
 
             // Set absolute values instead of adding as bonuses
-            data.Base = baseValue;
-            data.Max = maxValue;
-            data.RegenRate = regenValue;
+            data.Base += baseValue;
+            data.Max += maxValue;
+            data.RegenRate += regenValue;
 
             data.Clamp(); // Clamp current to new max
 
