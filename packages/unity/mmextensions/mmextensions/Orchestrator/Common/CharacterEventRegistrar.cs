@@ -6,6 +6,7 @@ using VContainer;
 using VContainer.Unity;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
+using System;
 using System.Threading;
 using System.Collections.Generic;
 using KBVE.MMExtensions.Ai;
@@ -15,10 +16,14 @@ using KBVE.MMExtensions.Orchestrator.Health;
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
     public class CharacterEventRegistrar : IAsyncStartable,
+                                           IDisposable,
                                            MMEventListener<TopDownEngineEvent>
     {
         private readonly ICharacterRegistry _registry;
         private readonly IHUDService _hudService;
+
+        private bool _eventSubscribed = false;
+
 
         [Inject]
         public CharacterEventRegistrar(ICharacterRegistry registry, IHUDService hudService)
@@ -29,7 +34,14 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
         public async UniTask StartAsync(CancellationToken cancellation)
         {
-            MMEventManager.AddListener<TopDownEngineEvent>(this);
+            // MMEventManager.AddListener<TopDownEngineEvent>(this);
+
+            if (!_eventSubscribed)
+            {
+                MMEventManager.AddListener<TopDownEngineEvent>(this);
+                _eventSubscribed = true;
+            }
+
             await UniTask.NextFrame(cancellation); // Delay one frame to allow scene objects to initialize
             await ScanAndRegisterAllCharacters(cancellation);  // Optional: scan characters already active
         }
@@ -48,15 +60,13 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                     break;
 
                 case TopDownEngineEventTypes.CharacterSwap:
-                    {
-
-                        SetHUDStatsForActiveCharacter().Forget();
-                        var playerId = UnityEngine.GameObject.FindFirstObjectByType<CharacterSwapManager>().PlayerID;
-                        _registry.TryGetPrimaryCharacter(playerId, out Character activeCharacter);
-                        _registry.TryGetCharacters(playerId, out List<Character> characters);
-                        characters.ForEach(x => x.GetComponent<AiAllyBrain>().ToggleAI(!x.GetComponent<CharacterSwap>().Current()));
-                        break;
-                    }
+                    SetHUDStatsForActiveCharacter().Forget();
+                    var playerId = UnityEngine.GameObject.FindFirstObjectByType<CharacterSwapManager>().PlayerID;
+                    _registry.TryGetPrimaryCharacter(playerId, out Character activeCharacter);
+                    _registry.TryGetCharacters(playerId, out List<Character> characters);
+                    characters.ForEach(x => x.GetComponent<AiAllyBrain>().ToggleAI(!x.GetComponent<CharacterSwap>().Current()));
+                    break;
+                    
 
                 default:
                     break;
@@ -176,26 +186,35 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             Debug.Log($"[CharacterEventRegistrar] Delayed HUD update applied for character: {character.name}");
         }
 
-       private async UniTask SetHUDStatsForActiveCharacter(CancellationToken cancellation = default)
+        private async UniTask SetHUDStatsForActiveCharacter(CancellationToken cancellation = default)
         {
-            await UniTask.Yield();
-
-            if (!LevelManager.HasInstance || LevelManager.Instance.Players.Count == 0)
-            {
-                Debug.LogWarning("[CharacterEventRegistrar] No players in LevelManager.");
-                return;
-            }
+            await UniTask.WaitUntil(() =>
+                LevelManager.HasInstance &&
+                LevelManager.Instance.Players.Count > 0 &&
+                LevelManager.Instance.Players[0] != null &&
+                LevelManager.Instance.Players[0].GetComponent<ExtendedHealth>() != null,
+                cancellationToken: cancellation);
 
             var character = LevelManager.Instance.Players[0];
             var health = character.GetComponent<ExtendedHealth>();
-            if (health != null)
+
+            if (_hudService == null)
             {
-                await _hudService.SetActiveStatsAsync(health.Stats).AttachExternalCancellation(cancellation);
-                Debug.Log($"[CharacterEventRegistrar] HUD bound to active character: {character.name}");
+                Debug.LogWarning("[CharacterEventRegistrar] HUDService not available.");
+                return;
             }
-            else
+
+            await _hudService.SetActiveStatsAsync(health.Stats).AttachExternalCancellation(cancellation);
+            Debug.Log($"[CharacterEventRegistrar] HUD bound to active character: {character.name}");
+        }
+
+
+        public void Dispose()
+        {
+            if (_eventSubscribed)
             {
-                Debug.LogWarning($"[CharacterEventRegistrar] No ExtendedHealth on {character.name}.");
+                    MMEventManager.RemoveListener<TopDownEngineEvent>(this);
+                    _eventSubscribed = false;
             }
         }
 
