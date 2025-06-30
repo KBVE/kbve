@@ -11,6 +11,25 @@ interface UserStats {
   membershipTier: 'Guest' | 'Basic' | 'Premium' | 'VIP';
 }
 
+// Utility function to format large numbers with K/M suffixes (uses floor to prevent rounding up)
+function formatNumber(num: number | null | undefined): string {
+  const value = num || 0;
+  
+  if (value >= 1000000) {
+    return (Math.floor(value / 100000) / 10) + 'M';
+  } else if (value >= 1000) {
+    return (Math.floor(value / 100) / 10) + 'K';
+  } else {
+    return value.toString();
+  }
+}
+
+// Utility function to format exact number with commas for tooltips
+function formatExactNumber(num: number | null | undefined): string {
+  const value = num || 0;
+  return value.toLocaleString();
+}
+
 const StatsCards = () => {
   const user = useStore(userAtom);
   const userId = useStore(userIdAtom);
@@ -134,13 +153,23 @@ const StatsCards = () => {
     >
       
       {/* Credit Balance Card */}
-      <div className="bg-zinc-800 rounded-lg p-6 border border-zinc-700 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 group cursor-pointer">
+      <div className="bg-zinc-800 rounded-lg p-6 border border-zinc-700 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 group cursor-pointer relative">
         <div className="flex items-center justify-between">
           <div className="flex-1">
             <p className="text-zinc-400 text-sm font-medium group-hover:text-zinc-300 transition-colors duration-300">Credit Balance</p>
-            <p className="text-2xl font-bold text-white mt-1 group-hover:text-cyan-50 transition-colors duration-300">
-              {stats?.creditBalance.toLocaleString() || 0}
-            </p>
+            <div className="relative">
+              <p 
+                className="text-2xl font-bold text-white mt-1 group-hover:text-cyan-50 transition-colors duration-300"
+                title={`Exact balance: ${formatExactNumber(stats?.creditBalance)} credits`}
+              >
+                {formatNumber(stats?.creditBalance)}
+              </p>
+              {/* Enhanced tooltip */}
+              <div className="absolute bottom-full left-0 mb-2 px-3 py-2 bg-zinc-900 text-white text-sm rounded-lg shadow-lg border border-zinc-700 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none whitespace-nowrap z-50">
+                Exact: {formatExactNumber(stats?.creditBalance)} credits
+                <div className="absolute top-full left-4 w-2 h-2 bg-zinc-900 border-r border-b border-zinc-700 transform rotate-45 -mt-1"></div>
+              </div>
+            </div>
           </div>
           <div className="w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center group-hover:bg-cyan-500/20 group-hover:scale-110 transition-all duration-300">
             <Wallet className="w-6 h-6 text-cyan-400 group-hover:text-cyan-300 transition-all duration-300" />
