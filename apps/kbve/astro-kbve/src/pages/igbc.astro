@@ -3,6 +3,7 @@ import Layout from 'src/layouts/core/Layout.astro';
 import MemberCard from 'src/layouts/client/supabase/profile/member/MemberCard';
 import UserTransferRPC from 'src/layouts/client/supabase/igbc/transfer/UserTransferRPC';
 import MembersOnly from 'src/layouts/client/supabase/auth/MembersOnly'; // <MembersOnly client:only="react" />
+import DashLayout from 'src/layouts/components/dashboard/layout/DashLayout.astro';
 
 const pageTitle: string = `IGBC | Iron Guild Binary Clan`;
 const title: string = `Iron Guild Binary Clan (IGBC)`;
@@ -10,6 +11,7 @@ const subTitle: string = `The Banking Clan of KBVE`;
 ---
 
 <Layout title={pageTitle}>
+  <DashLayout>
   <section class="px-6 pt-12 sm:px-8 lg:px-12">
 
      <MembersOnly client:only="react" />
@@ -29,4 +31,5 @@ const subTitle: string = `The Banking Clan of KBVE`;
       </div>
     </div>
   </section>
+  </DashLayout>
 </Layout>
