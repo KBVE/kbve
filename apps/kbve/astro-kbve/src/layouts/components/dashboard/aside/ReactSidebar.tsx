@@ -19,7 +19,7 @@ const navItems = [
   { route: '/', name: 'Home', Icon: LayoutDashboard },
   { route: '/docs', name: 'Docs', Icon: User },
   { route: '/arcade', name: 'Arcade', Icon: BarChart2 },
-  { route: '/projects', name: 'Projects', Icon: Folder },
+  { route: '/project', name: 'Projects', Icon: Folder },
 ] as const;
 
 const GuestNavItems = [
