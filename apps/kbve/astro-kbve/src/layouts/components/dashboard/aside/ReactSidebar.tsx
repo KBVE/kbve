@@ -39,7 +39,12 @@ const ReactSidebarNav = React.memo(() => {
   // Memoize active state calculations to prevent unnecessary re-renders
   const activeStates = useMemo(() => {
     return navItems.reduce((acc, { route }) => {
-      acc[route] = currentPath.startsWith(route);
+      // Special handling for home route to prevent it being active on all pages
+      if (route === '/') {
+        acc[route] = currentPath === '/' || currentPath === '/home';
+      } else {
+        acc[route] = currentPath.startsWith(route);
+      }
       return acc;
     }, {} as Record<string, boolean>);
   }, [currentPath]);
