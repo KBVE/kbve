@@ -7,6 +7,7 @@ import WelcomeInfo from './components/WelcomeInfo';
 import ChartCard from './components/ChartCard';
 import TableCard from './components/TableCard';
 import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
+import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
 
 ---
 
@@ -61,86 +62,7 @@ import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
       <div id="sidebar-overlay" class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out"></div>
       
       <!-- Left Sidebar -->
-      <aside id="sidebar" class="fixed lg:static top-0 left-0 h-full lg:h-auto w-64 bg-zinc-800 lg:bg-transparent border-r border-zinc-700 lg:border-zinc-700 z-50 lg:z-auto -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:transition-none">
-        <div class="p-6">
-          <!-- Sidebar Header -->
-          <div class="flex items-center justify-between mb-8">
-            <div class="flex items-center space-x-3">
-              <div class="w-8 h-8 bg-cyan-400 rounded-lg flex items-center justify-center">
-                <svg class="w-5 h-5 text-zinc-900" fill="currentColor" viewBox="0 0 20 20">
-                  <path d="M3 3a1 1 0 000 2v8a2 2 0 002 2h2.586l-1.293 1.293a1 1 0 101.414 1.414L10 15.414l2.293 2.293a1 1 0 001.414-1.414L12.414 15H15a2 2 0 002-2V5a1 1 0 100-2H3z"/>
-                </svg>
-              </div>
-              <span class="text-lg font-semibold text-white">KBVE</span>
-            </div>
-            <!-- Close button for mobile -->
-            <button id="close-sidebar" class="lg:hidden p-2 text-zinc-400 hover:text-white">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-              </svg>
-            </button>
-          </div>
-          
-          <!-- Navigation Menu -->
-          <nav class="space-y-2">
-            <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg bg-cyan-400/10 text-cyan-400 border border-cyan-400/20">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7v10a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2H5a2 2 0 00-2-2z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5a2 2 0 012-2h4a2 2 0 012 2v6H8V5z"></path>
-              </svg>
-              <span>Dashboard</span>
-            </a>
-            
-            <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path>
-              </svg>
-              <span>Profile</span>
-            </a>
-            
-            <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"></path>
-              </svg>
-              <span>Analytics</span>
-            </a>
-            
-            <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
-              </svg>
-              <span>Projects</span>
-            </a>
-            
-            <a href="#" class="flex items-center space-x-3 px-3 py-2 rounded-lg text-zinc-300 hover:bg-zinc-700 hover:text-white transition-colors">
-              <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-              </svg>
-              <span>Settings</span>
-            </a>
-          </nav>
-          
-          <!-- Quick Stats in Sidebar -->
-          <div class="mt-8 pt-8 border-t border-zinc-700">
-            <h3 class="text-sm font-medium text-zinc-400 mb-4">Quick Stats</h3>
-            <div class="space-y-3">
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-zinc-300">Active Users</span>
-                <span class="text-sm font-medium text-cyan-400">1,234</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-zinc-300">Revenue</span>
-                <span class="text-sm font-medium text-green-400">$12.5K</span>
-              </div>
-              <div class="flex items-center justify-between">
-                <span class="text-sm text-zinc-300">Projects</span>
-                <span class="text-sm font-medium text-blue-400">42</span>
-              </div>
-            </div>
-          </div>
-        </div>
-      </aside>
+      <AsideBar />
 
 
 
@@ -152,7 +74,7 @@ import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
         <!-- Stats Grid -->
         <div class="mb-8">
           <!-- Stats Container with relative positioning -->
-          <div class="relative">
+          <div class="relative min-h-[140px]">
             <!-- Stat Card Skeletons - Higher z-index, visible by default -->
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-20" data-skeleton="stats">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -183,9 +105,9 @@ import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
       <!-- Left Column - Charts/Analytics -->
       <div class="lg:col-span-2 space-y-6">
         <!-- Chart Card Container -->
-        <div class="relative">
+        <div class="relative min-h-[400px]">
           <!-- Chart Card Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="chart-skeleton" data-skeleton="charts">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="chart-skeleton" data-skeleton="charts">
             <div class="flex items-center justify-between mb-6">
               <div>
                 <div class="h-6 bg-zinc-700 rounded w-32 animate-pulse"></div>
@@ -197,6 +119,16 @@ import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
               </div>
             </div>
             <div class="h-64 bg-zinc-700 rounded animate-pulse"></div>
+            <div class="mt-4 flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <div class="w-4 h-4 bg-zinc-700 rounded animate-pulse"></div>
+                <div class="h-4 bg-zinc-700 rounded w-24 animate-pulse"></div>
+              </div>
+              <div class="flex items-center space-x-1">
+                <div class="w-4 h-4 bg-zinc-700 rounded animate-pulse"></div>
+                <div class="h-4 bg-zinc-700 rounded w-12 animate-pulse"></div>
+              </div>
+            </div>
           </div>
           
           <!-- Dynamic Chart Card - Lower z-index, absolute positioned -->
@@ -206,22 +138,28 @@ import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
         </div>
 
         <!-- Table Card Container -->
-        <div class="relative">
+        <div class="relative min-h-[350px]">
           <!-- Table Card Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="table-skeleton">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="table-skeleton" data-skeleton="tables">
             <div class="flex items-center justify-between mb-6">
               <div class="h-6 bg-zinc-700 rounded w-40 animate-pulse"></div>
               <div class="h-9 bg-zinc-700 rounded w-24 animate-pulse"></div>
             </div>
-            <div class="space-y-4">
+            <div class="space-y-3">
               {Array.from({ length: 5 }).map((_, i) => (
-                <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-4 p-3 rounded-lg">
                   <div class="w-10 h-10 bg-zinc-700 rounded-full animate-pulse"></div>
                   <div class="flex-1 space-y-2">
-                    <div class="h-4 bg-zinc-700 rounded animate-pulse"></div>
-                    <div class="h-3 bg-zinc-700 rounded w-2/3 animate-pulse"></div>
+                    <div class="flex items-center space-x-2">
+                      <div class="h-4 bg-zinc-700 rounded w-32 animate-pulse"></div>
+                      <div class="h-5 bg-zinc-700 rounded w-16 animate-pulse"></div>
+                    </div>
+                    <div class="flex items-center space-x-2">
+                      <div class="h-3 bg-zinc-700 rounded w-20 animate-pulse"></div>
+                      <div class="h-3 bg-zinc-700 rounded w-16 animate-pulse"></div>
+                    </div>
                   </div>
-                  <div class="h-6 bg-zinc-700 rounded w-16 animate-pulse"></div>
+                  <div class="w-8 h-8 bg-zinc-700 rounded animate-pulse"></div>
                 </div>
               ))}
             </div>
@@ -237,9 +175,9 @@ import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
       <!-- Right Column - Sidebar -->
       <div class="space-y-6">
         <!-- Quick Actions Card Container -->
-        <div class="relative">
+        <div class="relative min-h-[200px]">
           <!-- Quick Actions Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="quick-actions-skeleton">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="quick-actions-skeleton">
             <div class="h-6 bg-zinc-700 rounded w-28 mb-4 animate-pulse"></div>
             <div class="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -258,9 +196,9 @@ import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
         </div>
 
         <!-- Activity Feed Container -->
-        <div class="relative">
+        <div class="relative min-h-[400px]">
           <!-- Activity Feed Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="activity-skeleton">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="activity-skeleton">
             <div class="h-6 bg-zinc-700 rounded w-32 mb-4 animate-pulse"></div>
             <div class="space-y-4">
               {Array.from({ length: 6 }).map((_, i) => (
