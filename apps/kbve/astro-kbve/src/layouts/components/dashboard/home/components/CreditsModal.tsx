@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useCallback, useRef, memo } from 'react';
 import { clsx } from 'src/utils/tw';
 import Portal from 'src/layouts/components/ui/Portal';
 import { 
@@ -33,38 +33,95 @@ function formatNumber(num: number): string {
   }
 }
 
-const CreditsModal: React.FC<CreditsModalProps> = ({ 
+const CreditsModal: React.FC<CreditsModalProps> = memo(({ 
   isOpen, 
   onClose, 
   currentBalance, 
   membershipTier 
 }) => {
-  // Effect to manage body scroll and cleanup when modal state changes
+  const modalRef = useRef<HTMLDivElement>(null);
+  const previousFocusRef = useRef<HTMLElement | null>(null);
+
+  // Memoized event handlers to prevent unnecessary re-renders
+  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
+    if (e.target === e.currentTarget) {
+      onClose();
+    }
+  }, [onClose]);
+
+  const handleKeyDown = useCallback((e: KeyboardEvent) => {
+    if (e.key === 'Escape') {
+      onClose();
+    }
+  }, [onClose]);
+
+  const handleModalClick = useCallback((e: React.MouseEvent) => {
+    e.stopPropagation();
+  }, []);
+
+  // Memoized utility functions
+  const getTierColor = useCallback((tier: string) => {
+    switch (tier) {
+      case 'VIP': return 'text-purple-400';
+      case 'Premium': return 'text-yellow-400';
+      case 'Basic': return 'text-green-400';
+      default: return 'text-zinc-400';
+    }
+  }, []);
+
+  const getTierBadge = useCallback((tier: string) => {
+    switch (tier) {
+      case 'VIP': return 'bg-purple-500/10 border-purple-500/20';
+      case 'Premium': return 'bg-yellow-500/10 border-yellow-500/20';
+      case 'Basic': return 'bg-green-500/10 border-green-500/20';
+      default: return 'bg-zinc-500/10 border-zinc-500/20';
+    }
+  }, []);
+  // Effect to manage body scroll, keyboard events, and focus when modal state changes
   useEffect(() => {
     if (isOpen) {
+      // Store current focus to restore later
+      previousFocusRef.current = document.activeElement as HTMLElement;
+      
       // Add modal classes and prevent body scroll when modal is open
       document.body.style.overflow = 'hidden';
-      document.body.classList.add('modal-open');
+      
+      // Add keyboard event listener for ESC key
+      document.addEventListener('keydown', handleKeyDown);
       
       // Ensure any existing modal containers are properly configured
       const modalRoot = document.getElementById('modal-root');
       if (modalRoot) {
-        modalRoot.style.pointerEvents = 'auto';
-        modalRoot.classList.add('modal-active');
+        modalRoot.classList.remove('pointer-events-none');
+        modalRoot.classList.add('pointer-events-auto');
       }
+
+      // Focus the modal container after a brief delay to ensure it's rendered
+      setTimeout(() => {
+        if (modalRef.current) {
+          modalRef.current.focus();
+        }
+      }, 100);
     } else {
-      // Restore body scroll and remove classes when modal is closed
-      document.body.style.overflow = 'unset';
-      document.body.classList.remove('modal-open');
+      // Restore body scroll when modal is closed
+      document.body.style.overflow = '';
+      
+      // Remove keyboard event listener
+      document.removeEventListener('keydown', handleKeyDown);
+      
+      // Restore focus to previous element
+      if (previousFocusRef.current) {
+        previousFocusRef.current.focus();
+      }
       
       // Disable pointer events on modal container when modal is closed
       const modalRoot = document.getElementById('modal-root');
       if (modalRoot) {
-        modalRoot.classList.remove('modal-active');
         // Add a delay to allow for exit animations
         setTimeout(() => {
           if (modalRoot.children.length === 0) {
-            modalRoot.style.pointerEvents = 'none';
+            modalRoot.classList.remove('pointer-events-auto');
+            modalRoot.classList.add('pointer-events-none');
           }
         }, 300);
       }
@@ -72,64 +129,45 @@ const CreditsModal: React.FC<CreditsModalProps> = ({
 
     // Cleanup function
     return () => {
-      document.body.style.overflow = 'unset';
-      document.body.classList.remove('modal-open');
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
+      
       const modalRoot = document.getElementById('modal-root');
       if (modalRoot) {
-        modalRoot.classList.remove('modal-active');
         if (modalRoot.children.length === 0) {
-          modalRoot.style.pointerEvents = 'none';
+          modalRoot.classList.remove('pointer-events-auto');
+          modalRoot.classList.add('pointer-events-none');
         }
       }
     };
-  }, [isOpen]);
+  }, [isOpen, handleKeyDown]);
 
   if (!isOpen) return null;
-
-  const handleBackdropClick = (e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  };
-
-  const getTierColor = (tier: string) => {
-    switch (tier) {
-      case 'VIP': return 'text-purple-400';
-      case 'Premium': return 'text-yellow-400';
-      case 'Basic': return 'text-green-400';
-      default: return 'text-zinc-400';
-    }
-  };
-
-  const getTierBadge = (tier: string) => {
-    switch (tier) {
-      case 'VIP': return 'bg-purple-500/10 border-purple-500/20';
-      case 'Premium': return 'bg-yellow-500/10 border-yellow-500/20';
-      case 'Basic': return 'bg-green-500/10 border-green-500/20';
-      default: return 'bg-zinc-500/10 border-zinc-500/20';
-    }
-  };
 
   return (
     <Portal>
       <div 
         className={clsx(
           "fixed inset-0 bg-black/50 flex items-center justify-center p-4",
-          "z-[99999] modal-backdrop",
-          "backdrop-blur-sm"
+          "z-[99999] backdrop-blur-sm"
         )}
         onClick={handleBackdropClick}
-        style={{ zIndex: 999999 }}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="modal-title"
+        aria-describedby="modal-description"
       >
         <div 
+          ref={modalRef}
           className={clsx(
             "bg-zinc-900 rounded-xl border border-zinc-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl",
-            "relative z-[99999] modal-content",
-            "transform transition-all duration-300 ease-out",
-            "animate-in fade-in-0 zoom-in-95"
+            "relative z-[99999] transform transition-all duration-300 ease-out",
+            "animate-in fade-in-0 zoom-in-95 focus:outline-none",
+            "mx-4 md:mx-0" // Better mobile spacing
           )}
-          onClick={(e) => e.stopPropagation()}
-          style={{ zIndex: 999999 }}
+          onClick={handleModalClick}
+          tabIndex={-1}
+          role="document"
         >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-zinc-700">
@@ -138,13 +176,15 @@ const CreditsModal: React.FC<CreditsModalProps> = ({
               <Wallet className="w-6 h-6 text-cyan-400" />
             </div>
             <div>
-              <h2 className="text-xl font-bold text-white">Credits Overview</h2>
-              <p className="text-sm text-zinc-400">Your digital currency on KBVE</p>
+              <h2 id="modal-title" className="text-xl font-bold text-white">Credits Overview</h2>
+              <p id="modal-description" className="text-sm text-zinc-400">Your digital currency on KBVE</p>
             </div>
           </div>
           <button
             onClick={onClose}
             className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors duration-200"
+            aria-label="Close modal"
+            type="button"
           >
             <X className="w-5 h-5" />
           </button>
@@ -319,6 +359,9 @@ const CreditsModal: React.FC<CreditsModalProps> = ({
       </div>
     </Portal>
   );
-};
+});
+
+// Add display name for better debugging
+CreditsModal.displayName = 'CreditsModal';
 
 export default CreditsModal;
