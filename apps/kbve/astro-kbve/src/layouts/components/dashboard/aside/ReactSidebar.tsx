@@ -1,17 +1,37 @@
 import React, { useEffect, useState, useMemo, useCallback } from 'react';
 import { clsx } from 'src/utils/tw';
+import { useStore } from '@nanostores/react';
+import { userAtom } from 'src/layouts/client/supabase/profile/userstate';
 import {
   LayoutDashboard,
   User,
   BarChart2,
   Folder,
   Settings,
+  MessageCircle,
+  Award,
+  HelpCircle,
+  UserPlus,
+  LogIn,
 } from 'lucide-react';
 
 const navItems = [
   { route: '/', name: 'Home', Icon: LayoutDashboard },
+  { route: '/docs', name: 'Docs', Icon: User },
+  { route: '/arcade', name: 'Arcade', Icon: BarChart2 },
+  { route: '/projects', name: 'Projects', Icon: Folder },
+] as const;
+
+const GuestNavItems = [
+  { route: '/register', name: 'Register', Icon: UserPlus },
+  { route: '/login', name: 'Login', Icon: LogIn },
+  { route: '/support', name: 'Support', Icon: HelpCircle },
+] as const;
+
+const MemberNavItems = [
+  { route: '/igbc', name: 'IGBC', Icon: Award },
   { route: '/profile', name: 'Profile', Icon: User },
-  { route: '/analytics', name: 'Analytics', Icon: BarChart2 },
+  { route: '/messages', name: 'Messages', Icon: MessageCircle },
   { route: '/projects', name: 'Projects', Icon: Folder },
   { route: '/settings', name: 'Settings', Icon: Settings },
 ] as const;
@@ -20,6 +40,10 @@ const ReactSidebarNav = React.memo(() => {
   const [currentPath, setCurrentPath] = useState('/');
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
+  const [isMember, setIsMember] = useState(false);
+  
+  // Subscribe to user state changes
+  const user = useStore(userAtom);
 
   // Memoize the crossfade handler to prevent recreating on every render
   const handleCrossFade = useCallback(() => {
@@ -38,7 +62,8 @@ const ReactSidebarNav = React.memo(() => {
 
   // Memoize active state calculations to prevent unnecessary re-renders
   const activeStates = useMemo(() => {
-    return navItems.reduce((acc, { route }) => {
+    const allNavItems = [...navItems, ...(isMember ? MemberNavItems : GuestNavItems)];
+    return allNavItems.reduce((acc, { route }) => {
       // Special handling for home route to prevent it being active on all pages
       if (route === '/') {
         acc[route] = currentPath === '/' || currentPath === '/home';
@@ -47,12 +72,16 @@ const ReactSidebarNav = React.memo(() => {
       }
       return acc;
     }, {} as Record<string, boolean>);
-  }, [currentPath]);
+  }, [currentPath, isMember]);
 
   useEffect(() => {
     const initializeSidebar = async () => {
       try {
         setCurrentPath(window.location.pathname);
+        
+        // Check member status from localStorage
+        const memberStatus = localStorage.getItem('isMember');
+        setIsMember(memberStatus === 'true');
         
         // Simulate loading time for smooth UX - shorter delay for sidebar
         await new Promise(resolve => setTimeout(resolve, 600));
@@ -81,6 +110,14 @@ const ReactSidebarNav = React.memo(() => {
     };
   }, [handleCrossFade]);
 
+  // Effect to watch for user state changes and update member status
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const memberStatus = localStorage.getItem('isMember');
+      setIsMember(memberStatus === 'true');
+    }
+  }, [user]);
+
   if (loading) {
     return null; // Skeleton is handled by Astro
   }
@@ -94,6 +131,7 @@ const ReactSidebarNav = React.memo(() => {
       role="navigation"
       aria-label="Main navigation"
     >
+      {/* Main Navigation Items */}
       {navItems.map(({ route, name, Icon }, index) => {
         const isActive = activeStates[route];
         return (
@@ -110,6 +148,48 @@ const ReactSidebarNav = React.memo(() => {
             aria-current={isActive ? 'page' : undefined}
             style={{ 
               animationDelay: `${0.3 + (index * 0.1)}s`,
+              ...(visible && { animation: 'fadeInUp 0.6s ease-out forwards' })
+            }}
+          >
+            <Icon 
+              className={clsx(
+                "w-5 h-5 transition-colors duration-300 motion-reduce:transition-none",
+                isActive 
+                  ? "text-cyan-400 group-hover:text-cyan-300" 
+                  : "text-zinc-400 group-hover:text-white"
+              )}
+              aria-hidden="true"
+            />
+            <span className="transition-colors duration-300 motion-reduce:transition-none">
+              {name}
+            </span>
+          </a>
+        );
+      })}
+
+      {/* Divider */}
+      <div className="py-2">
+        <div className="h-px bg-gradient-to-r from-transparent via-zinc-600 to-transparent" />
+      </div>
+
+      {/* Conditional Navigation Items */}
+      {(isMember ? MemberNavItems : GuestNavItems).map(({ route, name, Icon }, index) => {
+        const isActive = activeStates[route];
+        const totalMainItems = navItems.length;
+        return (
+          <a
+            key={route}
+            href={route}
+            className={clsx(
+              "flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-300 group will-change-transform motion-reduce:transition-none",
+              "focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-zinc-800",
+              isActive
+                ? "bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 hover:bg-cyan-400/20 hover:border-cyan-400/30"
+                : "text-zinc-300 hover:bg-zinc-700 hover:text-white hover:scale-[1.02]"
+            )}
+            aria-current={isActive ? 'page' : undefined}
+            style={{ 
+              animationDelay: `${0.3 + ((totalMainItems + index + 1) * 0.1)}s`,
               ...(visible && { animation: 'fadeInUp 0.6s ease-out forwards' })
             }}
           >
