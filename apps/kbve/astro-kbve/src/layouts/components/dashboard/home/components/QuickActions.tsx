@@ -43,7 +43,7 @@ const QuickActions = () => {
         skeleton.style.opacity = '0';
         // Move skeleton to lower z-index after fade to avoid hover conflicts
         setTimeout(() => {
-          skeleton.style.zIndex = '-1';
+          skeleton.style.zIndex = '10';
         }, 500);
       }
       

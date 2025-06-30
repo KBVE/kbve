@@ -17,7 +17,7 @@ import DashLayout from '../layout/DashLayout.astro';
           <!-- Stats Container with relative positioning -->
           <div class="relative min-h-[140px]">
             <!-- Stat Card Skeletons - Higher z-index, visible by default -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-20" data-skeleton="stats">
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 relative z-30" data-skeleton="stats">
               {Array.from({ length: 4 }).map((_, i) => (
                 <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700">
                   <div class="flex items-center justify-between">
@@ -35,7 +35,7 @@ import DashLayout from '../layout/DashLayout.astro';
             </div>
             
             <!-- Dynamic Stats Cards - Lower z-index, absolute positioned to overlap -->
-            <div class="absolute inset-0 z-10">
+            <div class="absolute inset-0 z-20">
               <StatsCards client:only="react" />
             </div>
           </div>
@@ -48,7 +48,7 @@ import DashLayout from '../layout/DashLayout.astro';
         <!-- Chart Card Container -->
         <div class="relative min-h-[400px]">
           <!-- Chart Card Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="chart-skeleton" data-skeleton="charts">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-30 h-full" id="chart-skeleton" data-skeleton="charts">
             <div class="flex items-center justify-between mb-6">
               <div>
                 <div class="h-6 bg-zinc-700 rounded w-32 animate-pulse"></div>
@@ -73,7 +73,7 @@ import DashLayout from '../layout/DashLayout.astro';
           </div>
           
           <!-- Dynamic Chart Card - Lower z-index, absolute positioned -->
-          <div class="absolute inset-0 z-10">
+          <div class="absolute inset-0 z-20">
             <ChartCard client:only="react" />
           </div>
         </div>
@@ -81,7 +81,7 @@ import DashLayout from '../layout/DashLayout.astro';
         <!-- Table Card Container -->
         <div class="relative min-h-[350px]">
           <!-- Table Card Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="table-skeleton" data-skeleton="tables">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-30 h-full" id="table-skeleton" data-skeleton="tables">
             <div class="flex items-center justify-between mb-6">
               <div class="h-6 bg-zinc-700 rounded w-40 animate-pulse"></div>
               <div class="h-9 bg-zinc-700 rounded w-24 animate-pulse"></div>
@@ -107,7 +107,7 @@ import DashLayout from '../layout/DashLayout.astro';
           </div>
           
           <!-- Dynamic Table Card - Lower z-index, absolute positioned -->
-          <div class="absolute inset-0 z-10">
+          <div class="absolute inset-0 z-20">
             <TableCard client:only="react" />
           </div>
         </div>
@@ -116,9 +116,9 @@ import DashLayout from '../layout/DashLayout.astro';
       <!-- Right Column - Sidebar -->
       <div class="space-y-6">
         <!-- Quick Actions Card Container -->
-        <div class="relative min-h-[200px]">
+        <div class="relative min-h-[200px] overflow-hidden">
           <!-- Quick Actions Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="quick-actions-skeleton" data-skeleton="quick-actions">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-30 h-full" id="quick-actions-skeleton" data-skeleton="quick-actions">
             <div class="h-6 bg-zinc-700 rounded w-28 mb-4 animate-pulse"></div>
             <div class="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -131,15 +131,15 @@ import DashLayout from '../layout/DashLayout.astro';
           </div>
           
           <!-- Dynamic Quick Actions - Lower z-index, absolute positioned -->
-          <div class="absolute inset-0 z-10">
+          <div class="absolute inset-0 z-20">
             <QuickActions client:only="react" />
           </div>
         </div>
 
         <!-- Activity Feed Container -->
-        <div class="relative min-h-[400px]">
+        <div class="relative min-h-[400px] overflow-hidden">
           <!-- Activity Feed Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="activity-skeleton" data-skeleton="activity-feed">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-30 h-full" id="activity-skeleton" data-skeleton="activity-feed">
             <div class="h-6 bg-zinc-700 rounded w-32 mb-4 animate-pulse"></div>
             <div class="space-y-4">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -156,7 +156,7 @@ import DashLayout from '../layout/DashLayout.astro';
           </div>
           
           <!-- Dynamic Activity Feed - Lower z-index, absolute positioned -->
-          <div class="absolute inset-0 z-10">
+          <div class="absolute inset-0 z-20">
             <ActivityFeed client:only="react" />
           </div>
         </div>
@@ -164,7 +164,7 @@ import DashLayout from '../layout/DashLayout.astro';
         <!-- System Status Card Container -->
         <div class="relative">
           <!-- Status Card Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="status-card">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-30" id="status-card">
             <div class="h-6 bg-zinc-700 rounded w-28 mb-4 animate-pulse"></div>
             <div class="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -180,7 +180,7 @@ import DashLayout from '../layout/DashLayout.astro';
           </div>
           
           <!-- Dynamic Status Card - Lower z-index, absolute positioned -->
-          <div class="absolute inset-0 z-10">
+          <div class="absolute inset-0 z-20">
             <StatusCard client:only="react" />
           </div>
         </div>
@@ -188,7 +188,7 @@ import DashLayout from '../layout/DashLayout.astro';
         <!-- Welcome Info Container -->
         <div class="relative">
           <!-- Welcome Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="welcome-skeleton">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-30" id="welcome-skeleton">
             <div class="h-6 bg-zinc-700 rounded w-24 mb-4 animate-pulse"></div>
             <div class="space-y-3">
               <div class="h-4 bg-zinc-700 rounded animate-pulse"></div>
@@ -198,7 +198,7 @@ import DashLayout from '../layout/DashLayout.astro';
           </div>
           
           <!-- Dynamic Welcome Info - Lower z-index, absolute positioned -->
-          <div class="absolute inset-0 z-10">
+          <div class="absolute inset-0 z-20">
             <WelcomeInfo client:only="react" />
           </div>
         </div>
