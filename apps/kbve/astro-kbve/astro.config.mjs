@@ -9,6 +9,8 @@ import starlight from '@astrojs/starlight';
 import alpine from '@astrojs/alpinejs';
 import { fileURLToPath } from 'node:url';
 import markdownConfig from './markdown.config';
+import MillionLint from "@million/lint";
+
 
 import starlightSiteGraph from 'starlight-site-graph';
 
@@ -37,6 +39,7 @@ export default defineConfig({
         },
     },
     integrations: [
+        MillionLint.astro(),
         starlight({
             plugins: [
                 starlightSiteGraph({

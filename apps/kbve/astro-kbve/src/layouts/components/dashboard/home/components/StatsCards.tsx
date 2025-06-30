@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useStore } from '@nanostores/react';
-import { clsx, twMerge } from 'src/utils/tw';
+import { clsx } from 'src/utils/tw';
 import { userAtom, userIdAtom, userBalanceAtom, syncUserBalance, syncSupabaseUser } from 'src/layouts/client/supabase/profile/userstate';
 import { Wallet, Star, Calendar, TrendingUp, CreditCard, Clock } from 'lucide-react';
 
@@ -20,10 +20,6 @@ const StatsCards = () => {
   const [visible, setVisible] = useState(false);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
-  const username = useMemo(() => 
-    isGuest ? 'Guest' : (user?.email?.split('@')[0] || 'User'), 
-    [isGuest, user]
-  );
 
   useEffect(() => {
     syncSupabaseUser();
@@ -34,29 +30,29 @@ const StatsCards = () => {
 
   useEffect(() => {
     const handleCrossFade = () => {
-      // Fade out skeleton and fade in component simultaneously
-      const skeleton = document.querySelector('[data-skeleton="stats"]');
-      if (skeleton instanceof HTMLElement) {
+      const skeleton = document.querySelector('[data-skeleton="stats"]') as HTMLElement;
+      if (skeleton) {
         skeleton.style.transition = 'opacity 0.5s ease-out';
         skeleton.style.opacity = '0';
+        skeleton.style.pointerEvents = 'none';
+        skeleton.style.zIndex = '-1'; 
+        skeleton.style.visibility = 'hidden';
       }
       
-      // Fade in this component
-      setTimeout(() => {
-        setVisible(true);
-      }, 100); // Small delay to ensure smooth transition
+      // Fade in this component with a small delay for smooth transition
+      setTimeout(() => setVisible(true), 100);
     };
 
     const fetchUserStats = async () => {
       try {
-        console.log('Fetching user stats...'); // Debug log
+        // Simulate loading time for better UX
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        // Handle user balance
+        // Handle user balance with proper type safety
         let creditBalance = 0;
         if (!isGuest && userBalance) {
           creditBalance = typeof userBalance === 'object' && 'credits' in userBalance 
-            ? (userBalance as any).credits 
+            ? (userBalance as { credits: number }).credits 
             : typeof userBalance === 'number' 
             ? userBalance 
             : 0;
@@ -74,7 +70,7 @@ const StatsCards = () => {
           else accountAge = `${Math.floor(daysSince / 365)} years`;
         }
 
-        // Determine membership tier
+        // Determine membership tier based on credit balance
         let membershipTier: UserStats['membershipTier'] = 'Guest';
         if (!isGuest) {
           if (creditBalance >= 1000) membershipTier = 'VIP';
@@ -84,19 +80,14 @@ const StatsCards = () => {
 
         const activityLevel: UserStats['activityLevel'] = isGuest ? 'Low' : 'Medium';
 
-        const newStats = {
+        setStats({
           creditBalance,
           accountAge,
           activityLevel,
           membershipTier
-        };
+        });
 
-        console.log('Setting stats:', newStats); // Debug log
-        setStats(newStats);
-
-        // Start cross-fade
         handleCrossFade();
-        
         setLoading(false);
       } catch (error) {
         console.error('Error fetching user stats:', error);
@@ -108,65 +99,61 @@ const StatsCards = () => {
     fetchUserStats();
   }, [user, userId, userBalance, isGuest]);
 
-  const getTierColor = useMemo(() => (tier: string) => {
-    switch (tier) {
-      case 'VIP': return 'text-purple-400';
-      case 'Premium': return 'text-yellow-400';
-      case 'Basic': return 'text-green-400';
-      default: return 'text-zinc-400';
-    }
+  const getTierColor = useMemo(() => {
+    return (tier: string) => {
+      switch (tier) {
+        case 'VIP': return 'text-purple-400';
+        case 'Premium': return 'text-yellow-400';
+        case 'Basic': return 'text-green-400';
+        default: return 'text-zinc-400';
+      }
+    };
   }, []);
 
-  const getTierBadge = useMemo(() => (tier: string) => {
-    switch (tier) {
-      case 'VIP': return 'bg-purple-500/10 border-purple-500/20';
-      case 'Premium': return 'bg-yellow-500/10 border-yellow-500/20';
-      case 'Basic': return 'bg-green-500/10 border-green-500/20';
-      default: return 'bg-zinc-500/10 border-zinc-500/20';
-    }
+  const getTierBadge = useMemo(() => {
+    return (tier: string) => {
+      switch (tier) {
+        case 'VIP': return 'bg-purple-500/10 border-purple-500/20';
+        case 'Premium': return 'bg-yellow-500/10 border-yellow-500/20';
+        case 'Basic': return 'bg-green-500/10 border-green-500/20';
+        default: return 'bg-zinc-500/10 border-zinc-500/20';
+      }
+    };
   }, []);
 
   if (loading || !stats) {
     return null; // Skeletons handled by Astro
   }
 
-  console.log('Rendering StatsCards with visible:', visible, 'stats:', stats); // Debug log
-
   return (
     <div 
-      className={twMerge(clsx(
+      className={clsx(
         "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 transition-opacity duration-500",
         visible ? "opacity-100" : "opacity-0"
-      ))}
+      )}
     >
       
       {/* Credit Balance Card */}
-      <div className={twMerge(clsx(
-        "bg-zinc-800 rounded-lg p-6 border border-zinc-700",
-        "hover:border-cyan-500/50 transition-colors group"
-      ))}>
+      <div className="bg-zinc-800 rounded-lg p-6 border border-zinc-700 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 group cursor-pointer">
         <div className="flex items-center justify-between">
-          <div>
-            <p className={twMerge(clsx("text-zinc-400 text-sm font-medium"))}>Credit Balance</p>
-            <p className={twMerge(clsx("text-2xl font-bold text-white mt-1"))}>
+          <div className="flex-1">
+            <p className="text-zinc-400 text-sm font-medium group-hover:text-zinc-300 transition-colors duration-300">Credit Balance</p>
+            <p className="text-2xl font-bold text-white mt-1 group-hover:text-cyan-50 transition-colors duration-300">
               {stats?.creditBalance.toLocaleString() || 0}
             </p>
           </div>
-          <div className={twMerge(clsx(
-            "w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center",
-            "group-hover:bg-cyan-500/20 transition-colors"
-          ))}>
-            <Wallet className={twMerge(clsx("w-6 h-6 text-cyan-400"))} />
+          <div className="w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center group-hover:bg-cyan-500/20 group-hover:scale-110 transition-all duration-300">
+            <Wallet className="w-6 h-6 text-cyan-400 group-hover:text-cyan-300 transition-all duration-300" />
           </div>
         </div>
         <div className="mt-4">
           <div className="flex items-center text-sm">
             {isGuest ? (
-              <span className={twMerge(clsx("text-zinc-400"))}>Sign up to earn credits</span>
+              <span className="text-zinc-400 group-hover:text-zinc-300 transition-colors duration-300">Sign up to earn credits</span>
             ) : (
               <>
-                <CreditCard className={twMerge(clsx("w-4 h-4 text-green-400 mr-1"))} />
-                <span className={twMerge(clsx("text-green-400"))}>Active account</span>
+                <CreditCard className="w-4 h-4 text-green-400 mr-1 group-hover:text-green-300 transition-colors duration-300" />
+                <span className="text-green-400 group-hover:text-green-300 transition-colors duration-300">Active account</span>
               </>
             )}
           </div>
@@ -174,30 +161,28 @@ const StatsCards = () => {
       </div>
 
       {/* Membership Tier Card */}
-      <div className={twMerge(clsx(
-        "bg-zinc-800 rounded-lg p-6 border border-zinc-700",
-        "hover:border-cyan-500/50 transition-colors group"
-      ))}>
+      <div className="bg-zinc-800 rounded-lg p-6 border border-zinc-700 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 group cursor-pointer">
         <div className="flex items-center justify-between">
-          <div>
-            <p className={twMerge(clsx("text-zinc-400 text-sm font-medium"))}>Membership</p>
-            <p className={twMerge(clsx("text-2xl font-bold text-white mt-1"))}>
+          <div className="flex-1">
+            <p className="text-zinc-400 text-sm font-medium group-hover:text-zinc-300 transition-colors duration-300">Membership</p>
+            <p className="text-2xl font-bold text-white mt-1 group-hover:text-cyan-50 transition-colors duration-300">
               {stats?.membershipTier}
             </p>
           </div>
-          <div className={twMerge(clsx(
-            "w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center",
-            "group-hover:bg-cyan-500/20 transition-colors"
-          ))}>
-            <Star className={twMerge(clsx("w-6 h-6 text-cyan-400"))} />
+          <div className="w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center group-hover:bg-cyan-500/20 group-hover:scale-110 transition-all duration-300">
+            <Star className="w-6 h-6 text-cyan-400 group-hover:text-cyan-300 transition-all duration-300" />
           </div>
         </div>
         <div className="mt-4">
-          <div className={twMerge(clsx(
-            "inline-flex items-center px-2 py-1 rounded-full text-xs border",
-            getTierBadge(stats?.membershipTier || 'Guest')
-          ))}>
-            <span className={twMerge(clsx(getTierColor(stats?.membershipTier || 'Guest')))}>
+          <div className={clsx(
+            "inline-flex items-center px-2 py-1 rounded-full text-xs border transition-all duration-300",
+            getTierBadge(stats?.membershipTier || 'Guest'),
+            "group-hover:scale-105"
+          )}>
+            <span className={clsx(
+              getTierColor(stats?.membershipTier || 'Guest'),
+              "group-hover:brightness-110 transition-all duration-300"
+            )}>
               {stats?.membershipTier || 'Guest'} Tier
             </span>
           </div>
@@ -205,32 +190,26 @@ const StatsCards = () => {
       </div>
 
       {/* Account Age Card */}
-      <div className={twMerge(clsx(
-        "bg-zinc-800 rounded-lg p-6 border border-zinc-700",
-        "hover:border-cyan-500/50 transition-colors group"
-      ))}>
+      <div className="bg-zinc-800 rounded-lg p-6 border border-zinc-700 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 group cursor-pointer">
         <div className="flex items-center justify-between">
-          <div>
-            <p className={twMerge(clsx("text-zinc-400 text-sm font-medium"))}>Member Since</p>
-            <p className={twMerge(clsx("text-2xl font-bold text-white mt-1"))}>
+          <div className="flex-1">
+            <p className="text-zinc-400 text-sm font-medium group-hover:text-zinc-300 transition-colors duration-300">Member Since</p>
+            <p className="text-2xl font-bold text-white mt-1 group-hover:text-cyan-50 transition-colors duration-300">
               {stats?.accountAge}
             </p>
           </div>
-          <div className={twMerge(clsx(
-            "w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center",
-            "group-hover:bg-cyan-500/20 transition-colors"
-          ))}>
-            <Calendar className={twMerge(clsx("w-6 h-6 text-cyan-400"))} />
+          <div className="w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center group-hover:bg-cyan-500/20 group-hover:scale-110 transition-all duration-300">
+            <Calendar className="w-6 h-6 text-cyan-400 group-hover:text-cyan-300 transition-all duration-300" />
           </div>
         </div>
         <div className="mt-4">
           <div className="flex items-center text-sm">
             {isGuest ? (
-              <span className={twMerge(clsx("text-zinc-400"))}>Join our community</span>
+              <span className="text-zinc-400 group-hover:text-zinc-300 transition-colors duration-300">Join our community</span>
             ) : (
               <>
-                <Clock className={twMerge(clsx("w-4 h-4 text-blue-400 mr-1"))} />
-                <span className={twMerge(clsx("text-blue-400"))}>Trusted member</span>
+                <Clock className="w-4 h-4 text-blue-400 mr-1 group-hover:text-blue-300 transition-colors duration-300" />
+                <span className="text-blue-400 group-hover:text-blue-300 transition-colors duration-300">Trusted member</span>
               </>
             )}
           </div>
@@ -238,33 +217,27 @@ const StatsCards = () => {
       </div>
 
       {/* Activity Level Card */}
-      <div className={twMerge(clsx(
-        "bg-zinc-800 rounded-lg p-6 border border-zinc-700",
-        "hover:border-cyan-500/50 transition-colors group"
-      ))}>
+      <div className="bg-zinc-800 rounded-lg p-6 border border-zinc-700 hover:border-cyan-500/50 hover:shadow-lg hover:shadow-cyan-500/10 transition-all duration-300 group cursor-pointer">
         <div className="flex items-center justify-between">
-          <div>
-            <p className={twMerge(clsx("text-zinc-400 text-sm font-medium"))}>Activity Level</p>
-            <p className={twMerge(clsx("text-2xl font-bold text-white mt-1"))}>
+          <div className="flex-1">
+            <p className="text-zinc-400 text-sm font-medium group-hover:text-zinc-300 transition-colors duration-300">Activity Level</p>
+            <p className="text-2xl font-bold text-white mt-1 group-hover:text-cyan-50 transition-colors duration-300">
               {stats?.activityLevel}
             </p>
           </div>
-          <div className={twMerge(clsx(
-            "w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center",
-            "group-hover:bg-cyan-500/20 transition-colors"
-          ))}>
-            <TrendingUp className={twMerge(clsx("w-6 h-6 text-cyan-400"))} />
+          <div className="w-12 h-12 bg-cyan-500/10 rounded-lg flex items-center justify-center group-hover:bg-cyan-500/20 group-hover:scale-110 transition-all duration-300">
+            <TrendingUp className="w-6 h-6 text-cyan-400 group-hover:text-cyan-300 transition-all duration-300" />
           </div>
         </div>
         <div className="mt-4">
-          <div className={twMerge(clsx("w-full bg-zinc-700 rounded-full h-2"))}>
+          <div className="w-full bg-zinc-700 rounded-full h-2 group-hover:bg-zinc-600 transition-colors duration-300">
             <div 
-              className={twMerge(clsx(
-                "h-2 rounded-full transition-all duration-1000",
+              className={clsx(
+                "h-2 rounded-full transition-all duration-1000 group-hover:brightness-110",
                 stats?.activityLevel === 'High' ? 'bg-green-400' :
                 stats?.activityLevel === 'Medium' ? 'bg-yellow-400' :
                 'bg-red-400'
-              ))}
+              )}
               style={{ 
                 width: stats?.activityLevel === 'High' ? '90%' : 
                        stats?.activityLevel === 'Medium' ? '60%' : '30%' 
