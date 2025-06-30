@@ -167,6 +167,7 @@ export default defineConfig({
                 TableOfContents:
                     './src/layouts/starlight/TableOfContents.astro',
                 PageSidebar: './src/layouts/starlight/PageSidebar.astro',
+                PageFrame: './src/layouts/starlight/DroidPageFrame.astro',
             },
             head: [
                 {

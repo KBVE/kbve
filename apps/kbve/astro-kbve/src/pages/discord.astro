@@ -1,5 +1,6 @@
 ---
 import Layout from 'src/layouts/core/Layout.astro';
+import DashLayout from 'src/layouts/components/dashboard/layout/DashLayout.astro';
 
 const pageTitle: string = `Discord | KBVE`;
 const pageDescription: string = `Join our Discord | KBVE.com Community`;
@@ -75,6 +76,7 @@ import DiscordSVG from 'src/layouts/components/panel/DiscordSVG.astro';
 		},
 		inLanguage: 'en-US',
 	}}>
+	<DashLayout>
 	<section class="px-6 py-12 sm:px-8 lg:px-12">
 		<div
 			class="mx-auto max-w-7xl relative flex flex-col md:flex-row rounded-3xl bg-white/5 backdrop-blur-md ring-1 ring-white/10
@@ -298,4 +300,5 @@ import DiscordSVG from 'src/layouts/components/panel/DiscordSVG.astro';
 			});
 		</script>
 	</section>
+	</DashLayout>
 </Layout>
