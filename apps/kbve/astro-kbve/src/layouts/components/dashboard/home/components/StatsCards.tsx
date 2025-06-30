@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useStore } from '@nanostores/react';
-import { clsx, twMerge } from 'src/utils/tw';
+import { clsx } from 'src/utils/tw';
 import { userAtom, userIdAtom, userBalanceAtom, syncUserBalance, syncSupabaseUser } from 'src/layouts/client/supabase/profile/userstate';
 import { Wallet, Star, Calendar, TrendingUp, CreditCard, Clock } from 'lucide-react';
 
@@ -20,10 +20,6 @@ const StatsCards = () => {
   const [visible, setVisible] = useState(false);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
-  const username = useMemo(() => 
-    isGuest ? 'Guest' : (user?.email?.split('@')[0] || 'User'), 
-    [isGuest, user]
-  );
 
   useEffect(() => {
     syncSupabaseUser();
@@ -34,8 +30,8 @@ const StatsCards = () => {
 
   useEffect(() => {
     const handleCrossFade = () => {
-      const skeleton = document.querySelector('[data-skeleton="stats"]');
-      if (skeleton instanceof HTMLElement) {
+      const skeleton = document.querySelector('[data-skeleton="stats"]') as HTMLElement;
+      if (skeleton) {
         skeleton.style.transition = 'opacity 0.5s ease-out';
         skeleton.style.opacity = '0';
         skeleton.style.pointerEvents = 'none';
@@ -43,22 +39,20 @@ const StatsCards = () => {
         skeleton.style.visibility = 'hidden';
       }
       
-      // Fade in this component
-      setTimeout(() => {
-        setVisible(true);
-      }, 100);
+      // Fade in this component with a small delay for smooth transition
+      setTimeout(() => setVisible(true), 100);
     };
 
     const fetchUserStats = async () => {
       try {
-        console.log('Fetching user stats...'); // Debug log
+        // Simulate loading time for better UX
         await new Promise(resolve => setTimeout(resolve, 800));
         
-        // Handle user balance
+        // Handle user balance with proper type safety
         let creditBalance = 0;
         if (!isGuest && userBalance) {
           creditBalance = typeof userBalance === 'object' && 'credits' in userBalance 
-            ? (userBalance as any).credits 
+            ? (userBalance as { credits: number }).credits 
             : typeof userBalance === 'number' 
             ? userBalance 
             : 0;
@@ -76,7 +70,7 @@ const StatsCards = () => {
           else accountAge = `${Math.floor(daysSince / 365)} years`;
         }
 
-        // Determine membership tier
+        // Determine membership tier based on credit balance
         let membershipTier: UserStats['membershipTier'] = 'Guest';
         if (!isGuest) {
           if (creditBalance >= 1000) membershipTier = 'VIP';
@@ -86,19 +80,14 @@ const StatsCards = () => {
 
         const activityLevel: UserStats['activityLevel'] = isGuest ? 'Low' : 'Medium';
 
-        const newStats = {
+        setStats({
           creditBalance,
           accountAge,
           activityLevel,
           membershipTier
-        };
+        });
 
-        console.log('Setting stats:', newStats); // Debug log
-        setStats(newStats);
-
-        // Start cross-fade
         handleCrossFade();
-        
         setLoading(false);
       } catch (error) {
         console.error('Error fetching user stats:', error);
@@ -110,29 +99,31 @@ const StatsCards = () => {
     fetchUserStats();
   }, [user, userId, userBalance, isGuest]);
 
-  const getTierColor = useMemo(() => (tier: string) => {
-    switch (tier) {
-      case 'VIP': return 'text-purple-400';
-      case 'Premium': return 'text-yellow-400';
-      case 'Basic': return 'text-green-400';
-      default: return 'text-zinc-400';
-    }
+  const getTierColor = useMemo(() => {
+    return (tier: string) => {
+      switch (tier) {
+        case 'VIP': return 'text-purple-400';
+        case 'Premium': return 'text-yellow-400';
+        case 'Basic': return 'text-green-400';
+        default: return 'text-zinc-400';
+      }
+    };
   }, []);
 
-  const getTierBadge = useMemo(() => (tier: string) => {
-    switch (tier) {
-      case 'VIP': return 'bg-purple-500/10 border-purple-500/20';
-      case 'Premium': return 'bg-yellow-500/10 border-yellow-500/20';
-      case 'Basic': return 'bg-green-500/10 border-green-500/20';
-      default: return 'bg-zinc-500/10 border-zinc-500/20';
-    }
+  const getTierBadge = useMemo(() => {
+    return (tier: string) => {
+      switch (tier) {
+        case 'VIP': return 'bg-purple-500/10 border-purple-500/20';
+        case 'Premium': return 'bg-yellow-500/10 border-yellow-500/20';
+        case 'Basic': return 'bg-green-500/10 border-green-500/20';
+        default: return 'bg-zinc-500/10 border-zinc-500/20';
+      }
+    };
   }, []);
 
   if (loading || !stats) {
     return null; // Skeletons handled by Astro
   }
-
-  console.log('Rendering StatsCards with visible:', visible, 'stats:', stats); // Debug log
 
   return (
     <div 
