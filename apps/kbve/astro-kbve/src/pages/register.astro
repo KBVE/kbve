@@ -43,9 +43,6 @@ import OppsAuth from 'src/layouts/client/supabase/auth/OppsAuth';
 		}
 	</style>
 	<DashLayout>
-
-
-
 		<OppsAuth client:only="react" />
 		<section class="px-6 py-8 sm:px-8 lg:px-12">
 			<div
@@ -61,63 +58,116 @@ import OppsAuth from 'src/layouts/client/supabase/auth/OppsAuth';
 						{RegisterDescription}
 					</p>
 				</div>
-				
+
 				<!-- Registration Form Container -->
 				<div class="relative">
 					<!-- Registration Skeleton - Higher z-index -->
-					<div class="relative z-20 max-w-md mx-auto" data-skeleton="register">
+					<div
+						class="relative z-20 max-w-md mx-auto"
+						data-skeleton="register">
 						<!-- OAuth Buttons Skeleton -->
 						<div class="flex flex-col gap-3 mb-8">
-							<div class="h-12 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]"></div>
-							<div class="h-12 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]" style="animation-delay: 0.3s;"></div>
-							<div class="h-12 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]" style="animation-delay: 0.6s;"></div>
+							<div
+								class="h-12 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]">
+							</div>
+							<div
+								class="h-12 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]"
+								style="animation-delay: 0.3s;">
+							</div>
+							<div
+								class="h-12 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]"
+								style="animation-delay: 0.6s;">
+							</div>
 						</div>
-						
+
 						<!-- Divider Skeleton -->
 						<div class="flex items-center my-6">
-							<div class="flex-1 h-px bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] animate-[shimmer_2s_infinite]"></div>
-							<div class="px-4 w-8 h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded animate-[shimmer_2s_infinite]" style="animation-delay: 0.2s;"></div>
-							<div class="flex-1 h-px bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] animate-[shimmer_2s_infinite]" style="animation-delay: 0.4s;"></div>
+							<div
+								class="flex-1 h-px bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] animate-[shimmer_2s_infinite]">
+							</div>
+							<div
+								class="px-4 w-8 h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded animate-[shimmer_2s_infinite]"
+								style="animation-delay: 0.2s;">
+							</div>
+							<div
+								class="flex-1 h-px bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] animate-[shimmer_2s_infinite]"
+								style="animation-delay: 0.4s;">
+							</div>
 						</div>
-						
+
 						<!-- Form Title Skeleton -->
 						<div class="text-center mb-6">
-							<div class="h-8 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-48 mx-auto mb-2 animate-[shimmer_2s_infinite]"></div>
-							<div class="h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-56 mx-auto animate-[shimmer_2s_infinite]" style="animation-delay: 0.3s;"></div>
+							<div
+								class="h-8 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-48 mx-auto mb-2 animate-[shimmer_2s_infinite]">
+							</div>
+							<div
+								class="h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-56 mx-auto animate-[shimmer_2s_infinite]"
+								style="animation-delay: 0.3s;">
+							</div>
 						</div>
-						
+
 						<!-- Form Fields Skeleton -->
 						<div class="space-y-5">
-							{Array.from({ length: 4 }).map((_, i) => (
-								<div class="space-y-2">
-									<div class="h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-24 animate-[shimmer_2s_infinite]" style={`animation-delay: ${i * 0.1}s;`}></div>
-									<div class="h-12 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]" style={`animation-delay: ${i * 0.15}s;`}></div>
-									{i === 0 && <div class="h-3 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-48 animate-[shimmer_2s_infinite]" style="animation-delay: 0.4s;"></div>}
-									{i === 2 && (
-										<div class="space-y-2">
-											<div class="h-16 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]" style="animation-delay: 0.8s;"></div>
-										</div>
-									)}
-								</div>
-							))}
+							{
+								Array.from({ length: 4 }).map((_, i) => (
+									<div class="space-y-2">
+										<div
+											class="h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-24 animate-[shimmer_2s_infinite]"
+											style={`animation-delay: ${i * 0.1}s;`}
+										/>
+										<div
+											class="h-12 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]"
+											style={`animation-delay: ${i * 0.15}s;`}
+										/>
+										{i === 0 && (
+											<div
+												class="h-3 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-48 animate-[shimmer_2s_infinite]"
+												style="animation-delay: 0.4s;"
+											/>
+										)}
+										{i === 2 && (
+											<div class="space-y-2">
+												<div
+													class="h-16 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]"
+													style="animation-delay: 0.8s;"
+												/>
+											</div>
+										)}
+									</div>
+								))
+							}
 						</div>
-						
+
 						<!-- Checkbox Skeleton -->
 						<div class="flex items-center gap-2 my-4">
-							<div class="w-4 h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded animate-[shimmer_2s_infinite]"></div>
-							<div class="h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-40 animate-[shimmer_2s_infinite]" style="animation-delay: 0.2s;"></div>
+							<div
+								class="w-4 h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded animate-[shimmer_2s_infinite]">
+							</div>
+							<div
+								class="h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-40 animate-[shimmer_2s_infinite]"
+								style="animation-delay: 0.2s;">
+							</div>
 						</div>
-						
+
 						<!-- Captcha Skeleton -->
-						<div class="h-20 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl mb-4 animate-[shimmer_2s_infinite]" style="animation-delay: 0.5s;"></div>
-						
+						<div
+							class="h-20 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl mb-4 animate-[shimmer_2s_infinite]"
+							style="animation-delay: 0.5s;">
+						</div>
+
 						<!-- Submit Button Skeleton -->
-						<div class="h-12 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]" style="animation-delay: 0.7s;"></div>
-						
+						<div
+							class="h-12 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded-xl animate-[shimmer_2s_infinite]"
+							style="animation-delay: 0.7s;">
+						</div>
+
 						<!-- Footer Link Skeleton -->
-						<div class="h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-48 mx-auto mt-4 animate-[shimmer_2s_infinite]" style="animation-delay: 0.9s;"></div>
+						<div
+							class="h-4 bg-gradient-to-r from-zinc-700/40 via-zinc-600/60 to-zinc-700/40 bg-[length:200%_100%] rounded w-48 mx-auto mt-4 animate-[shimmer_2s_infinite]"
+							style="animation-delay: 0.9s;">
+						</div>
 					</div>
-					
+
 					<!-- Dynamic Registration Form - Will overlay skeleton -->
 					<div class="max-w-md mx-auto">
 						<ReactRegister client:only="react" />
@@ -126,7 +176,7 @@ import OppsAuth from 'src/layouts/client/supabase/auth/OppsAuth';
 			</div>
 		</section>
 
-				<span class="flex items-center">
+		<span class="flex items-center">
 			<span
 				class="h-px flex-1 bg-gradient-to-r from-transparent to-purple-300 dark:to-purple-600">
 			</span>
@@ -140,7 +190,7 @@ import OppsAuth from 'src/layouts/client/supabase/auth/OppsAuth';
 			</span>
 		</span>
 
-				<section class="px-6 py-12 sm:px-8 lg:px-12">
+		<section class="px-6 py-12 sm:px-8 lg:px-12" data-section="register-1">
 			<div
 				class="mx-auto max-w-7xl relative flex flex-col md:flex-row rounded-3xl bg-zinc-900/90 backdrop-blur-md border border-zinc-700/50
 				shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_0_20px_rgba(0,0,0,0.1),0_20px_40px_rgba(0,0,0,0.3)]
@@ -150,8 +200,7 @@ import OppsAuth from 'src/layouts/client/supabase/auth/OppsAuth';
 						class="text-4xl sm:text-5xl font-bold text-white mb-2 bg-gradient-to-r from-cyan-300 to-purple-300 bg-clip-text text-transparent">
 						{title}
 					</h1>
-					<h2
-						class="text-xl text-zinc-300 mb-4 font-medium">
+					<h2 class="text-xl text-zinc-300 mb-4 font-medium">
 						{subTitle}
 					</h2>
 					<p class="mb-6 text-lg text-zinc-400">
@@ -161,7 +210,7 @@ import OppsAuth from 'src/layouts/client/supabase/auth/OppsAuth';
 			</div>
 		</section>
 
-		<section class="px-6 py-8 sm:px-8 lg:px-12">
+		<section class="px-6 py-8 sm:px-8 lg:px-12" data-section="register-2">
 			<div
 				class="mx-auto max-w-4xl rounded-2xl bg-zinc-800/90 backdrop-blur-md border border-zinc-700/50
 				shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_0_15px_rgba(0,0,0,0.2),0_8px_25px_rgba(0,0,0,0.3)]
@@ -170,42 +219,54 @@ import OppsAuth from 'src/layouts/client/supabase/auth/OppsAuth';
 					class="text-xl font-semibold mb-4 text-white bg-gradient-to-r from-cyan-300 to-purple-300 bg-clip-text text-transparent">
 					Why join KBVE?
 				</h3>
-				<ul
-					class="list-disc pl-6 space-y-3 text-lg text-zinc-300">
-					<li class="hover:text-cyan-300 transition-colors duration-300">Access exclusive community features and events</li>
-					<li class="hover:text-cyan-300 transition-colors duration-300">Participate in game jams, beta tests, and giveaways</li>
-					<li class="hover:text-cyan-300 transition-colors duration-300">Get early access to new products and updates</li>
-					<li class="hover:text-cyan-300 transition-colors duration-300">Connect with tech and gaming enthusiasts</li>
+				<ul class="list-disc pl-6 space-y-3 text-lg text-zinc-300">
+					<li
+						class="hover:text-cyan-300 transition-colors duration-300">
+						Access exclusive community features and events
+					</li>
+					<li
+						class="hover:text-cyan-300 transition-colors duration-300">
+						Participate in game jams, beta tests, and giveaways
+					</li>
+					<li
+						class="hover:text-cyan-300 transition-colors duration-300">
+						Get early access to new products and updates
+					</li>
+					<li
+						class="hover:text-cyan-300 transition-colors duration-300">
+						Connect with tech and gaming enthusiasts
+					</li>
 				</ul>
 			</div>
 		</section>
 
-		<section class="px-6 py-8 sm:px-8 lg:px-12">
+		<section class="px-6 py-8 sm:px-8 lg:px-12" data-section="register-3">
 			<div
 				class="mx-auto max-w-4xl rounded-2xl bg-zinc-800/80 backdrop-blur border border-zinc-600/40
 				shadow-[inset_0_1px_0_rgba(255,255,255,0.1),inset_0_0_15px_rgba(0,0,0,0.15),0_8px_25px_rgba(0,0,0,0.2)]
 				p-8">
-				<h3
-					class="text-xl font-semibold mb-4 text-cyan-300">
+				<h3 class="text-xl font-semibold mb-4 text-cyan-300">
 					Need Help?
 				</h3>
-				<ul
-					class="list-disc pl-6 space-y-3 text-lg text-zinc-300">
-					<li class="hover:text-cyan-300 transition-colors duration-300">
+				<ul class="list-disc pl-6 space-y-3 text-lg text-zinc-300">
+					<li
+						class="hover:text-cyan-300 transition-colors duration-300">
 						Forgot your password? <a
 							href="https://kbve.com/reset/"
 							class="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors duration-300">
 							Reset it here
 						</a>.
 					</li>
-					<li class="hover:text-cyan-300 transition-colors duration-300">
+					<li
+						class="hover:text-cyan-300 transition-colors duration-300">
 						Questions? Visit our <a
 							href="https://kbve.com/support/"
 							class="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors duration-300">
 							Support Center
 						</a>.
 					</li>
-					<li class="hover:text-cyan-300 transition-colors duration-300">
+					<li
+						class="hover:text-cyan-300 transition-colors duration-300">
 						Read our <a
 							href="https://kbve.com/legal/"
 							class="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors duration-300">
