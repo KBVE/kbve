@@ -4,9 +4,12 @@ import Supabase from 'src/layouts/core/Supabase.astro';
 import { SendMessage } from 'src/layouts/client/supabase/messages/SendMessage';
 import { Mailbox } from 'src/layouts/client/supabase/messages/Mailbox';
 import MembersOnly from 'src/layouts/client/supabase/auth/MembersOnly';
+import DashLayout from 'src/layouts/components/dashboard/layout/DashLayout.astro';
+
 ---
 
 <Layout title="Inbox & Notifications">
+  <DashLayout>
   <Supabase />
   <MembersOnly client:only="react" />
   <section class="w-full min-h-[80vh] flex flex-row gap-0 bg-gradient-to-br from-cyan-50/60 to-purple-50/40 dark:from-cyan-950/40 dark:to-purple-950/20 rounded-3xl shadow-2xl overflow-hidden">
@@ -33,4 +36,5 @@ import MembersOnly from 'src/layouts/client/supabase/auth/MembersOnly';
       </section>
     </main>
   </section>
+  </DashLayout>
 </Layout>
