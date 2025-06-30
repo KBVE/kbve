@@ -116,9 +116,9 @@ import DashLayout from '../layout/DashLayout.astro';
       <!-- Right Column - Sidebar -->
       <div class="space-y-6">
         <!-- Quick Actions Card Container -->
-        <div class="relative min-h-[200px] overflow-hidden">
-          <!-- Quick Actions Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-30 h-full" id="quick-actions-skeleton" data-skeleton="quick-actions">
+        <div class="relative">
+          <!-- Quick Actions Skeleton - Will be hidden -->
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500" id="quick-actions-skeleton" data-skeleton="quick-actions">
             <div class="h-6 bg-zinc-700 rounded w-28 mb-4 animate-pulse"></div>
             <div class="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -130,16 +130,16 @@ import DashLayout from '../layout/DashLayout.astro';
             </div>
           </div>
           
-          <!-- Dynamic Quick Actions - Lower z-index, absolute positioned -->
-          <div class="absolute inset-0 z-20">
+          <!-- Dynamic Quick Actions - Hidden initially, will replace skeleton -->
+          <div class="opacity-0 transition-opacity duration-500" id="quick-actions-content">
             <QuickActions client:only="react" />
           </div>
         </div>
 
         <!-- Activity Feed Container -->
-        <div class="relative min-h-[400px] overflow-hidden">
-          <!-- Activity Feed Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-30 h-full" id="activity-skeleton" data-skeleton="activity-feed">
+        <div class="relative">
+          <!-- Activity Feed Skeleton - Will be hidden -->
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500" id="activity-skeleton" data-skeleton="activity-feed">
             <div class="h-6 bg-zinc-700 rounded w-32 mb-4 animate-pulse"></div>
             <div class="space-y-4">
               {Array.from({ length: 6 }).map((_, i) => (
@@ -155,16 +155,16 @@ import DashLayout from '../layout/DashLayout.astro';
             </div>
           </div>
           
-          <!-- Dynamic Activity Feed - Lower z-index, absolute positioned -->
-          <div class="absolute inset-0 z-20">
+          <!-- Dynamic Activity Feed - Hidden initially, will replace skeleton -->
+          <div class="opacity-0 transition-opacity duration-500" id="activity-feed-content">
             <ActivityFeed client:only="react" />
           </div>
         </div>
 
         <!-- System Status Card Container -->
         <div class="relative">
-          <!-- Status Card Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-30" id="status-card">
+          <!-- Status Card Skeleton - Will be hidden -->
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500" id="status-card-skeleton">
             <div class="h-6 bg-zinc-700 rounded w-28 mb-4 animate-pulse"></div>
             <div class="space-y-3">
               {Array.from({ length: 3 }).map((_, i) => (
@@ -179,16 +179,16 @@ import DashLayout from '../layout/DashLayout.astro';
             </div>
           </div>
           
-          <!-- Dynamic Status Card - Lower z-index, absolute positioned -->
-          <div class="absolute inset-0 z-20">
+          <!-- Dynamic Status Card - Hidden initially, will replace skeleton -->
+          <div class="opacity-0 transition-opacity duration-500" id="status-card-content">
             <StatusCard client:only="react" />
           </div>
         </div>
 
         <!-- Welcome Info Container -->
         <div class="relative">
-          <!-- Welcome Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-30" id="welcome-skeleton">
+          <!-- Welcome Skeleton - Will be hidden -->
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500" id="welcome-skeleton">
             <div class="h-6 bg-zinc-700 rounded w-24 mb-4 animate-pulse"></div>
             <div class="space-y-3">
               <div class="h-4 bg-zinc-700 rounded animate-pulse"></div>
@@ -197,8 +197,8 @@ import DashLayout from '../layout/DashLayout.astro';
             </div>
           </div>
           
-          <!-- Dynamic Welcome Info - Lower z-index, absolute positioned -->
-          <div class="absolute inset-0 z-20">
+          <!-- Dynamic Welcome Info - Hidden initially, will replace skeleton -->
+          <div class="opacity-0 transition-opacity duration-500" id="welcome-info-content">
             <WelcomeInfo client:only="react" />
           </div>
         </div>

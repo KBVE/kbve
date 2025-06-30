@@ -17,29 +17,29 @@ const ActivityFeed = () => {
   const userId = useStore(userIdAtom);
   const [loading, setLoading] = useState(true);
   const [activities, setActivities] = useState<UserActivityItem[]>([]);
-  const [visible, setVisible] = useState(false);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
-  const username = useMemo(() => 
-    isGuest ? 'Guest' : (user?.email?.split('@')[0] || 'User'), 
-    [isGuest, user]
-  );
+  const username = useMemo(() => {
+    if (isGuest || !user?.email) return 'Guest';
+    const emailParts = user.email.split('@');
+    return emailParts.length > 0 && emailParts[0] ? emailParts[0] : 'User';
+  }, [isGuest, user]);
 
   useEffect(() => {
     const handleCrossFade = () => {
       const skeleton = document.getElementById('activity-skeleton');
-      if (skeleton) {
-        skeleton.style.transition = 'opacity 0.5s ease-out, z-index 0s 0.5s';
+      const content = document.getElementById('activity-feed-content');
+      
+      if (skeleton && content) {
+        // Hide skeleton and show content
         skeleton.style.opacity = '0';
-        // Move skeleton to lower z-index after fade to avoid hover conflicts
+        content.style.opacity = '1';
+        
+        // After transition, hide skeleton completely to free up space
         setTimeout(() => {
-          skeleton.style.zIndex = '10';
+          skeleton.style.display = 'none';
         }, 500);
       }
-      
-      setTimeout(() => {
-        setVisible(true);
-      }, 100);
     };
 
     const fetchUserActivities = async () => {
@@ -124,8 +124,7 @@ const ActivityFeed = () => {
 
   return (
     <div className={twMerge(clsx(
-      "bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500 h-full flex flex-col",
-      visible ? "opacity-100" : "opacity-0"
+      "bg-zinc-800 rounded-lg p-6 border border-zinc-700"
     ))}>
       <div className="flex items-center justify-between mb-6">
         <h3 className={twMerge(clsx("text-xl font-semibold text-white"))}>Recent Activity</h3>
@@ -138,7 +137,7 @@ const ActivityFeed = () => {
           </button>
         )}
       </div>
-      <div className="space-y-4 flex-1 overflow-y-auto">{activities.length > 0 ? activities.map((activity) => (
+      <div className="space-y-4">{activities.length > 0 ? activities.map((activity) => (
           <div key={activity.id} className={twMerge(clsx(
             "flex items-start space-x-3 p-3 rounded-lg",
             "hover:bg-zinc-700/50 transition-colors"

@@ -8,7 +8,6 @@ const QuickActions = () => {
   const user = useStore(userAtom);
   const userId = useStore(userIdAtom);
   const [loading, setLoading] = useState(true);
-  const [visible, setVisible] = useState(false);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
 
@@ -38,18 +37,18 @@ const QuickActions = () => {
   useEffect(() => {
     const handleCrossFade = () => {
       const skeleton = document.getElementById('quick-actions-skeleton');
-      if (skeleton) {
-        skeleton.style.transition = 'opacity 0.5s ease-out, z-index 0s 0.5s';
+      const content = document.getElementById('quick-actions-content');
+      
+      if (skeleton && content) {
+        // Hide skeleton and show content
         skeleton.style.opacity = '0';
-        // Move skeleton to lower z-index after fade to avoid hover conflicts
+        content.style.opacity = '1';
+        
+        // After transition, hide skeleton completely to free up space
         setTimeout(() => {
-          skeleton.style.zIndex = '10';
+          skeleton.style.display = 'none';
         }, 500);
       }
-      
-      setTimeout(() => {
-        setVisible(true);
-      }, 100);
     };
 
     const loadComponent = async () => {
@@ -67,8 +66,7 @@ const QuickActions = () => {
 
   return (
     <div className={twMerge(clsx(
-      "bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500",
-      visible ? "opacity-100" : "opacity-0"
+      "bg-zinc-800 rounded-lg p-6 border border-zinc-700"
     ))}>
       <h3 className={twMerge(clsx("text-lg font-semibold text-white mb-4"))}>Quick Actions</h3>
       <div className="space-y-3">
