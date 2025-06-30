@@ -118,7 +118,7 @@ import DashLayout from '../layout/DashLayout.astro';
         <!-- Quick Actions Card Container -->
         <div class="relative min-h-[200px]">
           <!-- Quick Actions Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="quick-actions-skeleton">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="quick-actions-skeleton" data-skeleton="quick-actions">
             <div class="h-6 bg-zinc-700 rounded w-28 mb-4 animate-pulse"></div>
             <div class="space-y-3">
               {Array.from({ length: 4 }).map((_, i) => (
@@ -139,7 +139,7 @@ import DashLayout from '../layout/DashLayout.astro';
         <!-- Activity Feed Container -->
         <div class="relative min-h-[400px]">
           <!-- Activity Feed Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="activity-skeleton">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20 h-full" id="activity-skeleton" data-skeleton="activity-feed">
             <div class="h-6 bg-zinc-700 rounded w-32 mb-4 animate-pulse"></div>
             <div class="space-y-4">
               {Array.from({ length: 6 }).map((_, i) => (

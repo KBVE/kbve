@@ -29,8 +29,12 @@ const ActivityFeed = () => {
     const handleCrossFade = () => {
       const skeleton = document.getElementById('activity-skeleton');
       if (skeleton) {
-        skeleton.style.transition = 'opacity 0.5s ease-out';
+        skeleton.style.transition = 'opacity 0.5s ease-out, z-index 0s 0.5s';
         skeleton.style.opacity = '0';
+        // Move skeleton to lower z-index after fade to avoid hover conflicts
+        setTimeout(() => {
+          skeleton.style.zIndex = '-1';
+        }, 500);
       }
       
       setTimeout(() => {
@@ -120,7 +124,7 @@ const ActivityFeed = () => {
 
   return (
     <div className={twMerge(clsx(
-      "bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500",
+      "bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500 h-full flex flex-col",
       visible ? "opacity-100" : "opacity-0"
     ))}>
       <div className="flex items-center justify-between mb-6">
@@ -134,8 +138,7 @@ const ActivityFeed = () => {
           </button>
         )}
       </div>
-      <div className="space-y-4">
-        {activities.length > 0 ? activities.map((activity) => (
+      <div className="space-y-4 flex-1 overflow-y-auto">{activities.length > 0 ? activities.map((activity) => (
           <div key={activity.id} className={twMerge(clsx(
             "flex items-start space-x-3 p-3 rounded-lg",
             "hover:bg-zinc-700/50 transition-colors"

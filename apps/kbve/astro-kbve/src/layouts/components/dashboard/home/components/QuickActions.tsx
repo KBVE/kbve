@@ -39,8 +39,12 @@ const QuickActions = () => {
     const handleCrossFade = () => {
       const skeleton = document.getElementById('quick-actions-skeleton');
       if (skeleton) {
-        skeleton.style.transition = 'opacity 0.5s ease-out';
+        skeleton.style.transition = 'opacity 0.5s ease-out, z-index 0s 0.5s';
         skeleton.style.opacity = '0';
+        // Move skeleton to lower z-index after fade to avoid hover conflicts
+        setTimeout(() => {
+          skeleton.style.zIndex = '-1';
+        }, 500);
       }
       
       setTimeout(() => {
