@@ -75,8 +75,8 @@ namespace KBVE.SSDB.Steam
 
             private async UniTask RenderLocalUserAsync(CancellationToken token)
             {
-                var localUser = _steamworksService.LocalUser.Value;
-                if (localUser == null)
+                var localUserNullable = _steamworksService.LocalUser.Value;
+                if (localUserNullable is not UserData localUser)
                 {
                     Debug.LogWarning("[SteamUserProfiles] No local user found.");
                     return;
