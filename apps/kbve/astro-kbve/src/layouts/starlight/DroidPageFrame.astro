@@ -1,6 +1,7 @@
 ---
 import MobileMenuToggle from '@astrojs/starlight/components/MobileMenuToggle.astro';
 import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
+import DashboardFooter from 'src/layouts/components/dashboard/footer/DashboardFooter.astro';
 
 const { hasSidebar } = Astro.locals.starlightRoute;
 ---
@@ -28,7 +29,11 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 		)
 	}
 	<div class="main-frame"><slot /></div>
+		
+	<DashboardFooter />
 </div>
+
+
 
 <style>
 	@layer starlight.core {
