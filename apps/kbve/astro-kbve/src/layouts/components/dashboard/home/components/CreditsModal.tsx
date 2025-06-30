@@ -1,4 +1,4 @@
-import React, { useEffect, useCallback, useRef, memo } from 'react';
+import React, { useEffect, useCallback, useRef, memo, useState } from 'react';
 import { clsx } from 'src/utils/tw';
 import Portal from 'src/layouts/components/ui/Portal';
 import { 
@@ -41,23 +41,83 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
 }) => {
   const modalRef = useRef<HTMLDivElement>(null);
   const previousFocusRef = useRef<HTMLElement | null>(null);
+  const closeTimeoutRef = useRef<number | null>(null);
+  
+  // Animation states
+  const [isVisible, setIsVisible] = useState(false);
+  const [isClosing, setIsClosing] = useState(false);
 
   // Memoized event handlers to prevent unnecessary re-renders
-  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
-    if (e.target === e.currentTarget) {
-      onClose();
-    }
-  }, [onClose]);
-
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
-    if (e.key === 'Escape') {
-      onClose();
+    if (e.key === 'Escape' && !isClosing && isVisible) {
+      e.preventDefault();
+      // We'll call handleClose directly here to avoid circular dependency
+      if (isClosing || !isOpen || !isVisible) return;
+      
+      setIsClosing(true);
+      setIsVisible(false);
+      
+      // Clear any existing timeout
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
+      }
+      
+      // Wait for animation to complete before calling onClose
+      closeTimeoutRef.current = setTimeout(() => {
+        setIsClosing(false);
+        // Restore body scroll immediately when closing
+        document.body.style.overflow = '';
+        document.removeEventListener('keydown', handleKeyDown);
+        onClose();
+        closeTimeoutRef.current = null;
+      }, 350);
     }
-  }, [onClose]);
+  }, [isClosing, isVisible, isOpen, onClose]);
+
+  // Enhanced close handler with animation - now prevents double calls
+  const handleClose = useCallback(() => {
+    // Prevent multiple calls or calls when already closing
+    if (isClosing || !isOpen || !isVisible) return;
+    
+    setIsClosing(true);
+    setIsVisible(false);
+    
+    // Clear any existing timeout
+    if (closeTimeoutRef.current) {
+      clearTimeout(closeTimeoutRef.current);
+    }
+    
+    // Wait for animation to complete before calling onClose
+    closeTimeoutRef.current = setTimeout(() => {
+      setIsClosing(false);
+      // Restore body scroll immediately when closing
+      document.body.style.overflow = '';
+      document.removeEventListener('keydown', handleKeyDown);
+      onClose();
+      closeTimeoutRef.current = null;
+    }, 350);
+  }, [onClose, isClosing, isOpen, isVisible, handleKeyDown]);
+
+  const handleBackdropClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (e.target === e.currentTarget && !isClosing && isVisible) {
+      handleClose();
+    }
+  }, [isClosing, handleClose, isVisible]);
 
   const handleModalClick = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
   }, []);
+
+  // Close button handler with additional protection
+  const handleCloseButtonClick = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!isClosing) {
+      handleClose();
+    }
+  }, [handleClose, isClosing]);
 
   // Memoized utility functions
   const getTierColor = useCallback((tier: string) => {
@@ -77,9 +137,12 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
       default: return 'bg-zinc-500/10 border-zinc-500/20';
     }
   }, []);
-  // Effect to manage body scroll, keyboard events, and focus when modal state changes
+  // Effect to handle animation states and modal lifecycle
   useEffect(() => {
-    if (isOpen) {
+    if (isOpen && !isClosing) {
+      // Opening the modal
+      setIsVisible(true);
+      
       // Store current focus to restore later
       previousFocusRef.current = document.activeElement as HTMLElement;
       
@@ -96,17 +159,20 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
         modalRoot.classList.add('pointer-events-auto');
       }
 
-      // Focus the modal container after a brief delay to ensure it's rendered
-      setTimeout(() => {
+      // Focus the modal container after a short delay
+      const focusTimeout = setTimeout(() => {
         if (modalRef.current) {
           modalRef.current.focus();
         }
       }, 100);
-    } else {
-      // Restore body scroll when modal is closed
+
+      return () => {
+        clearTimeout(focusTimeout);
+      };
+    } else if (!isOpen && !isClosing) {
+      // Modal is fully closed, cleanup
+      setIsVisible(false);
       document.body.style.overflow = '';
-      
-      // Remove keyboard event listener
       document.removeEventListener('keydown', handleKeyDown);
       
       // Restore focus to previous element
@@ -117,39 +183,36 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
       // Disable pointer events on modal container when modal is closed
       const modalRoot = document.getElementById('modal-root');
       if (modalRoot) {
-        // Add a delay to allow for exit animations
         setTimeout(() => {
           if (modalRoot.children.length === 0) {
             modalRoot.classList.remove('pointer-events-auto');
             modalRoot.classList.add('pointer-events-none');
           }
-        }, 300);
+        }, 50);
       }
     }
+  }, [isOpen, isClosing, handleKeyDown]);
 
-    // Cleanup function
+  // Cleanup effect for component unmounting - only handle timeout cleanup
+  useEffect(() => {
     return () => {
-      document.body.style.overflow = '';
-      document.removeEventListener('keydown', handleKeyDown);
-      
-      const modalRoot = document.getElementById('modal-root');
-      if (modalRoot) {
-        if (modalRoot.children.length === 0) {
-          modalRoot.classList.remove('pointer-events-auto');
-          modalRoot.classList.add('pointer-events-none');
-        }
+      // Clean up any pending timeouts when component unmounts
+      if (closeTimeoutRef.current) {
+        clearTimeout(closeTimeoutRef.current);
       }
     };
-  }, [isOpen, handleKeyDown]);
+  }, []);
 
-  if (!isOpen) return null;
+  // Don't render anything if modal should not be visible
+  if (!isOpen && !isVisible) return null;
 
   return (
     <Portal>
       <div 
         className={clsx(
-          "fixed inset-0 bg-black/50 flex items-center justify-center p-4",
-          "z-[99999] backdrop-blur-sm"
+          "fixed inset-0 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm",
+          "z-[99999] transition-all duration-[350ms] ease-out",
+          isVisible ? "opacity-100" : "opacity-0"
         )}
         onClick={handleBackdropClick}
         role="dialog"
@@ -161,9 +224,11 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
           ref={modalRef}
           className={clsx(
             "bg-zinc-900 rounded-xl border border-zinc-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl",
-            "relative z-[99999] transform transition-all duration-300 ease-out",
-            "animate-in fade-in-0 zoom-in-95 focus:outline-none",
-            "mx-4 md:mx-0" // Better mobile spacing
+            "relative z-[99999] focus:outline-none mx-4 md:mx-0",
+            "transition-all duration-[350ms] ease-out transform",
+            isVisible 
+              ? "opacity-100 scale-100 translate-y-0" 
+              : "opacity-0 scale-90 translate-y-8"
           )}
           onClick={handleModalClick}
           tabIndex={-1}
@@ -181,10 +246,11 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
             </div>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleCloseButtonClick}
             className="p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors duration-200"
             aria-label="Close modal"
             type="button"
+            disabled={isClosing}
           >
             <X className="w-5 h-5" />
           </button>
