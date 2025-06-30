@@ -1,4 +1,4 @@
-import { ReactNode, useLayoutEffect, useState } from 'react';
+import { ReactNode, useLayoutEffect, useState, useEffect } from 'react';
 import { createPortal } from 'react-dom';
 
 interface PortalProps {
@@ -27,20 +27,39 @@ const Portal: React.FC<PortalProps> = ({ children, containerId = 'modal-root' })
       document.body.appendChild(modalContainer);
     }
     
-    // Make sure container has high z-index and proper positioning
-    modalContainer.style.zIndex = '999999';
-    modalContainer.style.position = 'fixed';
-    modalContainer.style.pointerEvents = 'auto';
-    
     setContainer(modalContainer);
     
-    // Cleanup function
+    // Cleanup function - this runs when component unmounts
     return () => {
-      if (modalContainer && modalContainer.children.length === 0) {
-        modalContainer.style.pointerEvents = 'none';
-      }
+      // Small delay to ensure any animations finish
+      setTimeout(() => {
+        if (modalContainer && modalContainer.children.length === 0) {
+          modalContainer.style.pointerEvents = 'none';
+        }
+      }, 100);
     };
   }, [containerId]);
+
+  // Enable pointer events when children are present
+  useEffect(() => {
+    if (container) {
+      container.style.pointerEvents = children ? 'auto' : 'none';
+    }
+  }, [container, children]);
+
+  // Additional cleanup when children change
+  useEffect(() => {
+    return () => {
+      if (container) {
+        // Check if container is empty and disable pointer events
+        setTimeout(() => {
+          if (container.children.length === 0) {
+            container.style.pointerEvents = 'none';
+          }
+        }, 300); // Wait for any exit animations
+      }
+    };
+  }, [container]);
 
   return container ? createPortal(children, container) : null;
 };

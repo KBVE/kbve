@@ -7,6 +7,12 @@
   width: 100% !important;
   height: 100% !important;
   pointer-events: none !important;
+  transition: pointer-events 0s 0.3s; /* Delay pointer-events change to allow animations */
+}
+
+#modal-root.modal-active {
+  pointer-events: auto !important;
+  transition: none; /* Remove delay when activating */
 }
 
 #modal-root > * {
@@ -34,8 +40,13 @@
   position: relative;
 }
 
+/* Body scroll management */
+body.modal-open {
+  overflow: hidden !important;
+}
+
 /* Additional safety for any transforms that might create stacking contexts */
-.dashboard-container * {
+.modal-open .dashboard-container * {
   /* Remove any transforms that create stacking contexts when modal is open */
   transform: none !important;
 }

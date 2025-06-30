@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect } from 'react';
 import { clsx } from 'src/utils/tw';
 import Portal from 'src/layouts/components/ui/Portal';
 import { 
@@ -39,6 +39,51 @@ const CreditsModal: React.FC<CreditsModalProps> = ({
   currentBalance, 
   membershipTier 
 }) => {
+  // Effect to manage body scroll and cleanup when modal state changes
+  useEffect(() => {
+    if (isOpen) {
+      // Add modal classes and prevent body scroll when modal is open
+      document.body.style.overflow = 'hidden';
+      document.body.classList.add('modal-open');
+      
+      // Ensure any existing modal containers are properly configured
+      const modalRoot = document.getElementById('modal-root');
+      if (modalRoot) {
+        modalRoot.style.pointerEvents = 'auto';
+        modalRoot.classList.add('modal-active');
+      }
+    } else {
+      // Restore body scroll and remove classes when modal is closed
+      document.body.style.overflow = 'unset';
+      document.body.classList.remove('modal-open');
+      
+      // Disable pointer events on modal container when modal is closed
+      const modalRoot = document.getElementById('modal-root');
+      if (modalRoot) {
+        modalRoot.classList.remove('modal-active');
+        // Add a delay to allow for exit animations
+        setTimeout(() => {
+          if (modalRoot.children.length === 0) {
+            modalRoot.style.pointerEvents = 'none';
+          }
+        }, 300);
+      }
+    }
+
+    // Cleanup function
+    return () => {
+      document.body.style.overflow = 'unset';
+      document.body.classList.remove('modal-open');
+      const modalRoot = document.getElementById('modal-root');
+      if (modalRoot) {
+        modalRoot.classList.remove('modal-active');
+        if (modalRoot.children.length === 0) {
+          modalRoot.style.pointerEvents = 'none';
+        }
+      }
+    };
+  }, [isOpen]);
+
   if (!isOpen) return null;
 
   const handleBackdropClick = (e: React.MouseEvent) => {
