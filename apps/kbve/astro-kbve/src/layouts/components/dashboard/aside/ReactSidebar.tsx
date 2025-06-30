@@ -48,7 +48,17 @@ const ReactSidebarNav = React.memo(() => {
   // Memoize the crossfade handler to prevent recreating on every render
   const handleCrossFade = useCallback(() => {
     const skeleton = document.querySelector('[data-skeleton="aside"]') as HTMLElement;
-    if (skeleton) {
+    const dynamicNav = document.getElementById('dynamic-nav') as HTMLElement;
+    const navContainer = document.getElementById('nav-container') as HTMLElement;
+    
+    if (skeleton && dynamicNav && navContainer) {
+      // Get the actual height of the skeleton content
+      const skeletonHeight = skeleton.offsetHeight;
+      
+      // Set the dynamic navigation container to match skeleton height
+      dynamicNav.style.minHeight = `${skeletonHeight}px`;
+      
+      // Animate skeleton fade out
       skeleton.style.transition = 'opacity 0.5s ease-out';
       skeleton.style.opacity = '0';
       skeleton.style.pointerEvents = 'none';

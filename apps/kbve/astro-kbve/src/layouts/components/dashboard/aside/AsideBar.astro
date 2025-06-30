@@ -23,33 +23,33 @@ import ReactSidebarNav from './ReactSidebar';
     </div>
 
     <!-- Navigation Menu Container -->
-    <div class="relative min-h-[400px]">
-      <!-- Navigation Skeleton - Higher z-index -->
-      <nav class="space-y-2 relative z-20" data-skeleton="aside">
+    <div class="relative" id="nav-container">
+      <!-- Navigation Skeleton - Higher z-index, dynamically sized -->
+      <nav class="space-y-2 relative z-20" data-skeleton="aside" id="nav-skeleton">
         {/* Main navigation items */}
         {Array.from({ length: 4 }).map((_, i) => (
-          <div class="flex items-center space-x-3 px-3 py-2 rounded-lg">
+          <div class="flex items-center space-x-3 px-3 py-2 rounded-lg h-10">
             <div class="w-5 h-5 bg-zinc-700 rounded animate-pulse"></div>
             <div class="h-4 bg-zinc-700 rounded w-20 animate-pulse"></div>
           </div>
         ))}
         
         {/* Divider skeleton */}
-        <div class="py-2">
+        <div class="py-2 h-6">
           <div class="h-px bg-zinc-600 animate-pulse"></div>
         </div>
         
-        {/* Additional navigation items (max 5 for member nav) */}
-        {Array.from({ length: 5 }).map((_, i) => (
-          <div class="flex items-center space-x-3 px-3 py-2 rounded-lg">
+        {/* Additional navigation items - flexible count for future expansion */}
+        {Array.from({ length: 6 }).map((_, i) => (
+          <div class="flex items-center space-x-3 px-3 py-2 rounded-lg h-10">
             <div class="w-5 h-5 bg-zinc-700 rounded animate-pulse"></div>
             <div class="h-4 bg-zinc-700 rounded w-24 animate-pulse"></div>
           </div>
         ))}
       </nav>
       
-      <!-- Dynamic Navigation - Lower z-index, absolute positioned -->
-      <div class="absolute inset-0 z-10">
+      <!-- Dynamic Navigation - positioned to match skeleton exactly -->
+      <div class="absolute top-0 left-0 right-0 z-10" id="dynamic-nav">
         <ReactSidebarNav client:only="react" />
       </div>
     </div>
@@ -85,3 +85,32 @@ import ReactSidebarNav from './ReactSidebar';
     </div>
   </div>
 </aside>
+
+<script>
+  // Dynamic navigation height adjustment utility
+  function adjustNavigationHeight() {
+    const skeleton = document.querySelector('[data-skeleton="aside"]') as HTMLElement;
+    const dynamicNav = document.getElementById('dynamic-nav') as HTMLElement;
+    
+    if (skeleton && dynamicNav) {
+      // Use ResizeObserver to watch for changes in skeleton content
+      const resizeObserver = new ResizeObserver((entries) => {
+        for (const entry of entries) {
+          const height = entry.contentRect.height;
+          dynamicNav.style.minHeight = `${height}px`;
+        }
+      });
+      
+      resizeObserver.observe(skeleton);
+      
+      // Cleanup function for when component unmounts
+      return () => resizeObserver.disconnect();
+    }
+  }
+
+  // Initialize on DOM load
+  document.addEventListener('DOMContentLoaded', adjustNavigationHeight);
+  
+  // Also run on navigation changes (for SPA-like behavior)
+  document.addEventListener('astro:page-load', adjustNavigationHeight);
+</script>
