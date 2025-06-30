@@ -43,7 +43,7 @@ namespace KBVE.SSDB.Steam.UI
             );
         }
 
-        public async UniTaskVoid BindAsync(SteamFriendViewModel viewModel)
+        public async UniTask BindAsync(SteamFriendViewModel viewModel)
         {
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
