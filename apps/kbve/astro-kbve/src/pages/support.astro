@@ -1,6 +1,7 @@
 ---
 import Layout from 'src/layouts/core/Layout.astro';
 import { SITE } from 'src/layouts/site';
+import DashLayout from 'src/layouts/components/dashboard/layout/DashLayout.astro';
 
 const pageTitle: string = `Support | KBVE`;
 const tagline: string = SITE.tagline;
@@ -34,6 +35,7 @@ const supportOptions = [
 ---
 
 <Layout title={pageTitle}>
+  <DashLayout>
   <section class="relative px-6 py-16 sm:px-8 lg:px-12">
     <div class="mx-auto max-w-7xl grid md:grid-cols-2 gap-8 items-center">
       <div class="space-y-6 text-center md:text-left">
@@ -89,4 +91,5 @@ const supportOptions = [
       </ul>
     </div>
   </section>
+  </DashLayout>
 </Layout>

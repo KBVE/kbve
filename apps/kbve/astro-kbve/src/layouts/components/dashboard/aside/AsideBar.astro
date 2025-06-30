@@ -23,13 +23,27 @@ import ReactSidebarNav from './ReactSidebar';
     </div>
 
     <!-- Navigation Menu Container -->
-    <div class="relative min-h-[240px]">
+    <div class="relative min-h-[400px]">
       <!-- Navigation Skeleton - Higher z-index -->
       <nav class="space-y-2 relative z-20" data-skeleton="aside">
-        {Array.from({ length: 5 }).map((_, i) => (
+        {/* Main navigation items */}
+        {Array.from({ length: 4 }).map((_, i) => (
           <div class="flex items-center space-x-3 px-3 py-2 rounded-lg">
             <div class="w-5 h-5 bg-zinc-700 rounded animate-pulse"></div>
             <div class="h-4 bg-zinc-700 rounded w-20 animate-pulse"></div>
+          </div>
+        ))}
+        
+        {/* Divider skeleton */}
+        <div class="py-2">
+          <div class="h-px bg-zinc-600 animate-pulse"></div>
+        </div>
+        
+        {/* Additional navigation items (max 5 for member nav) */}
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div class="flex items-center space-x-3 px-3 py-2 rounded-lg">
+            <div class="w-5 h-5 bg-zinc-700 rounded animate-pulse"></div>
+            <div class="h-4 bg-zinc-700 rounded w-24 animate-pulse"></div>
           </div>
         ))}
       </nav>
@@ -40,21 +54,32 @@ import ReactSidebarNav from './ReactSidebar';
       </div>
     </div>
 
+
+    <!-- Legal -->
+    <div class="mt-6 pt-6 border-t border-zinc-700" data-section="aside-legal">
+      <div class="flex items-center justify-center space-x-2 text-xs text-zinc-500">
+        <a href="/legal" class="hover:text-zinc-300 transition-colors duration-200">Legal</a>
+        <span class="text-zinc-600">•</span>
+        <a href="/legal/tos" class="hover:text-zinc-300 transition-colors duration-200">ToS</a>
+        <span class="text-zinc-600">•</span>
+        <a href="/legal/privacy" class="hover:text-zinc-300 transition-colors duration-200">Privacy</a>
+      </div>
+    </div>
     <!-- Quick Stats -->
-    <div class="mt-8 pt-8 border-t border-zinc-700">
-      <h3 class="text-sm font-medium text-zinc-400 mb-4">Quick Stats</h3>
-      <div class="space-y-3">
+    <div class="mt-6 pt-6 border-t border-zinc-700" data-section="aside-quick-stats">
+      <h3 class="text-xs font-medium text-zinc-400 mb-3 uppercase tracking-wider">Quick Stats</h3>
+      <div class="space-y-2">
         <div class="flex items-center justify-between">
-          <span class="text-sm text-zinc-300">Active Users</span>
-          <span class="text-sm font-medium text-cyan-400">1,234</span>
+          <span class="text-xs text-zinc-300">Active Users</span>
+          <span class="text-xs font-medium text-cyan-400">1,234</span>
         </div>
         <div class="flex items-center justify-between">
-          <span class="text-sm text-zinc-300">Revenue</span>
-          <span class="text-sm font-medium text-green-400">$12.5K</span>
+          <span class="text-xs text-zinc-300">Revenue</span>
+          <span class="text-xs font-medium text-green-400">$12.5K</span>
         </div>
         <div class="flex items-center justify-between">
-          <span class="text-sm text-zinc-300">Projects</span>
-          <span class="text-sm font-medium text-blue-400">42</span>
+          <span class="text-xs text-zinc-300">Projects</span>
+          <span class="text-xs font-medium text-blue-400">42</span>
         </div>
       </div>
     </div>

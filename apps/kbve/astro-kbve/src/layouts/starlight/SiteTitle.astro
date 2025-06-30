@@ -2,6 +2,7 @@
 import docsLogo from "src/layouts/starlight/images/docs_logo.svg?raw";
 import type { Props } from "@astrojs/starlight/props";
 
+import ReactSidebarNav from "./ReactStarlightNav";
 
 const main = "/";
 const locale = Astro.props.locale ? Astro.props.locale + "/" : "";
@@ -14,6 +15,8 @@ const docs = "/docs";
     <img src="/assets/images/brand/letter_logo.png" />
   </a>
   <a class="docs-logo" href={docs} set:html={docsLogo} aria-label="KBVE Docs" />
+
+  <ReactSidebarNav client:only="react" />
 </span>
 
 <style>
