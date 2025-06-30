@@ -6,6 +6,8 @@ import StatusCard from './components/StatusCard';
 import WelcomeInfo from './components/WelcomeInfo';
 import ChartCard from './components/ChartCard';
 import TableCard from './components/TableCard';
+import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
+
 ---
 
 <style>
@@ -25,8 +27,19 @@ import TableCard from './components/TableCard';
             </svg>
           </button>
           <div>
-            <h1 class="text-3xl font-bold text-cyan-400">Dashboard</h1>
-            <p class="text-zinc-400 mt-1">Welcome back to your control center</p>
+            <!-- <h1 class="text-3xl font-bold text-cyan-400">K B V E</h1> -->
+           
+            <span
+					id="kbve-tagline"
+					class="block text-lg sm:text-xl font-semibold text-cyan-300">
+					KiloByte Virtual
+					<span
+						id="kbve-word"
+						class="inline-block transition-opacity duration-500 ease-in-out opacity-100">
+						Enterprise
+					</span>
+				</span>
+         <p class="text-zinc-400 mt-1">Welcome back to your control center</p>
           </div>
         </div>
         <div class="flex items-center space-x-4">
@@ -129,8 +142,13 @@ import TableCard from './components/TableCard';
         </div>
       </aside>
 
+
+
       <!-- Main Content Area -->
       <main class="flex-1 min-w-0">
+
+        <NeoGlassPanel />
+
         <!-- Stats Grid -->
         <div class="mb-8">
           <!-- Stats Container with relative positioning -->
@@ -167,7 +185,7 @@ import TableCard from './components/TableCard';
         <!-- Chart Card Container -->
         <div class="relative">
           <!-- Chart Card Skeleton - Higher z-index -->
-          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="chart-skeleton">
+          <div class="bg-zinc-800 rounded-lg p-6 border border-zinc-700 relative z-20" id="chart-skeleton" data-skeleton="charts">
             <div class="flex items-center justify-between mb-6">
               <div>
                 <div class="h-6 bg-zinc-700 rounded w-32 animate-pulse"></div>
