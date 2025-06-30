@@ -1,0 +1,46 @@
+/* Modal container styles to ensure proper layering */
+#modal-root {
+  z-index: 999999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  width: 100% !important;
+  height: 100% !important;
+  pointer-events: none !important;
+}
+
+#modal-root > * {
+  pointer-events: auto !important;
+}
+
+/* Ensure modal backdrop and content have highest priority */
+.modal-backdrop {
+  z-index: 999999 !important;
+  position: fixed !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+
+.modal-content {
+  z-index: 999999 !important;
+  position: relative !important;
+}
+
+/* Prevent other elements from interfering with modal layering */
+.dashboard-container {
+  /* Ensure dashboard doesn't create new stacking context that interferes */
+  position: relative;
+}
+
+/* Additional safety for any transforms that might create stacking contexts */
+.dashboard-container * {
+  /* Remove any transforms that create stacking contexts when modal is open */
+  transform: none !important;
+}
+
+/* Override any z-index conflicts */
+.modal-open .dashboard-container > * {
+  z-index: auto !important;
+}

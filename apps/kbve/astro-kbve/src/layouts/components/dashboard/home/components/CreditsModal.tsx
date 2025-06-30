@@ -1,5 +1,6 @@
 import React from 'react';
 import { clsx } from 'src/utils/tw';
+import Portal from 'src/layouts/components/ui/Portal';
 import { 
   X, 
   Wallet, 
@@ -65,23 +66,26 @@ const CreditsModal: React.FC<CreditsModalProps> = ({
   };
 
   return (
-    <div 
-      className={clsx(
-        "fixed inset-0 bg-black/50 flex items-center justify-center p-4",
-        "z-[9999]",
-        "backdrop-blur-sm"
-      )}
-      onClick={handleBackdropClick}
-    >
+    <Portal>
       <div 
         className={clsx(
-          "bg-zinc-900 rounded-xl border border-zinc-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl",
-          "relative z-[10000]",
-          "transform transition-all duration-300 ease-out",
-          "animate-in fade-in-0 zoom-in-95"
+          "fixed inset-0 bg-black/50 flex items-center justify-center p-4",
+          "z-[99999] modal-backdrop",
+          "backdrop-blur-sm"
         )}
-        onClick={(e) => e.stopPropagation()}
+        onClick={handleBackdropClick}
+        style={{ zIndex: 999999 }}
       >
+        <div 
+          className={clsx(
+            "bg-zinc-900 rounded-xl border border-zinc-700 w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-2xl",
+            "relative z-[99999] modal-content",
+            "transform transition-all duration-300 ease-out",
+            "animate-in fade-in-0 zoom-in-95"
+          )}
+          onClick={(e) => e.stopPropagation()}
+          style={{ zIndex: 999999 }}
+        >
         {/* Header */}
         <div className="flex items-center justify-between p-6 border-b border-zinc-700">
           <div className="flex items-center space-x-3">
@@ -266,8 +270,9 @@ const CreditsModal: React.FC<CreditsModalProps> = ({
             </div>
           </div>
         </div>
+        </div>
       </div>
-    </div>
+    </Portal>
   );
 };
 
