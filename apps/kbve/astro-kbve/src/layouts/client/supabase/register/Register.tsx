@@ -96,6 +96,7 @@ const StatusModal = ({ open, loading, error, success, onClose }: { open: boolean
 };
 
 export const Register = () => {
+	// All hooks must be called at the top level, before any conditional logic
 	const email = useStore(emailAtom);
 	const password = useStore(passwordAtom);
 	const confirmPassword = useStore(confirmPasswordAtom);
@@ -105,6 +106,12 @@ export const Register = () => {
 	const success = useStore(successAtom);
 	const loading = useStore(loadingAtom);
 	const displayName = useStore(displayNameAtom);
+
+	const [visible, setVisible] = useState(false);
+	const [componentLoading, setComponentLoading] = useState(true);
+	const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
+	const [modalOpen, setModalOpen] = useState(false);
+	const hcaptchaRef = useRef<any>(null);
 
 	const setEmail = (v: string) => emailAtom.set(v);
 	const setPassword = (v: string) => passwordAtom.set(v);
@@ -139,11 +146,54 @@ export const Register = () => {
 		},
 	});
 
-	const [showPasswordTooltip, setShowPasswordTooltip] = useState(false);
-	const [modalOpen, setModalOpen] = useState(false);
-	const hcaptchaRef = useRef<any>(null);
-
 	const passwordValidation = validatePassword(password);
+
+	// Handle skeleton crossfade on component mount
+	useEffect(() => {
+		const initializeForm = async () => {
+			try {
+				console.log('Register component: Initializing form...');
+				
+				// Simulate brief loading for smooth transition
+				await new Promise(resolve => setTimeout(resolve, 800));
+				
+				// Fade out skeleton
+				const skeleton = document.querySelector('[data-skeleton="register"]') as HTMLElement;
+				if (skeleton) {
+					console.log('Register component: Found skeleton, fading out...');
+					skeleton.style.transition = 'opacity 0.5s ease-out';
+					skeleton.style.opacity = '0';
+					skeleton.style.pointerEvents = 'none';
+					
+					// Remove skeleton completely after fade animation completes
+					setTimeout(() => {
+						console.log('Register component: Removing skeleton from DOM...');
+						skeleton.remove();
+					}, 500); // Wait for fade transition to complete
+				} else {
+					console.warn('Register component: Skeleton not found!');
+				}
+				
+				setComponentLoading(false);
+				// Fade in form with small delay
+				setTimeout(() => {
+					console.log('Register component: Making form visible...');
+					setVisible(true);
+				}, 100);
+			} catch (error) {
+				console.error('Error initializing form:', error);
+				setComponentLoading(false);
+				setTimeout(() => setVisible(true), 100);
+			}
+		};
+
+		initializeForm();
+	}, []);
+
+	// Early return after all hooks have been called
+	if (componentLoading) {
+		return null; // Skeleton is handled by Astro
+	}
 
 	const onSubmit = async (data: FormValues) => {
 		setError('');
@@ -177,37 +227,81 @@ export const Register = () => {
 	};
 
 	return (
-		<>
+		<div className={clsx(
+			"transition-opacity duration-500 ease-out w-full relative",
+			visible ? "opacity-100 z-30" : "opacity-0 z-10"
+		)}>
 			<StatusModal open={modalOpen} loading={loading} error={error} success={success} onClose={handleCloseModal} />
-			<div className="flex flex-col gap-2 mb-6">
+			
+			{/* OAuth Buttons Section */}
+			<div className="flex flex-col gap-3 mb-8">
 				<button
 					onClick={signInWithGithub}
-					className="flex items-center justify-center gap-2 w-full py-2 rounded bg-black text-white font-semibold shadow hover:bg-gray-800 transition"
+					className="flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl bg-zinc-900/80 backdrop-blur border border-zinc-600/30 text-white font-medium shadow-lg hover:bg-zinc-800/80 hover:border-zinc-500/50 transition-all duration-300 group"
 				>
-					<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .5C5.73.5.5 5.74.5 12.02c0 5.1 3.29 9.43 7.86 10.96.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.45 24 17.12 24 12.02 24 5.74 18.27.5 12 .5z"/></svg>
-					Continue with GitHub
+					<svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24"><path d="M12 .5C5.73.5.5 5.74.5 12.02c0 5.1 3.29 9.43 7.86 10.96.58.11.79-.25.79-.56 0-.28-.01-1.02-.02-2-3.2.7-3.88-1.54-3.88-1.54-.53-1.34-1.3-1.7-1.3-1.7-1.06-.72.08-.71.08-.71 1.17.08 1.78 1.2 1.78 1.2 1.04 1.78 2.73 1.27 3.4.97.11-.75.41-1.27.74-1.56-2.55-.29-5.23-1.28-5.23-5.7 0-1.26.45-2.29 1.19-3.1-.12-.29-.52-1.46.11-3.05 0 0 .97-.31 3.18 1.18a11.1 11.1 0 0 1 2.9-.39c.98 0 1.97.13 2.9.39 2.2-1.49 3.17-1.18 3.17-1.18.63 1.59.23 2.76.11 3.05.74.81 1.19 1.84 1.19 3.1 0 4.43-2.69 5.41-5.25 5.7.42.36.79 1.09.79 2.2 0 1.59-.01 2.87-.01 3.26 0 .31.21.68.8.56C20.71 21.45 24 17.12 24 12.02 24 5.74 18.27.5 12 .5z"/></svg>
+					<span>Continue with GitHub</span>
 				</button>
 				<button
 					onClick={signInWithDiscord}
-					className="flex items-center justify-center gap-2 w-full py-2 rounded bg-[#5865F2] text-white font-semibold shadow hover:bg-[#4752c4] transition"
+					className="flex items-center justify-center gap-3 w-full py-3 px-4 rounded-xl bg-[#5865F2]/90 backdrop-blur border border-[#4752c4]/50 text-white font-medium shadow-lg hover:bg-[#4752c4]/90 hover:border-[#3c4ab8]/50 transition-all duration-300 group"
 				>
-					<svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 0 0-4.8851-1.5152.0741.0741 0 0 0-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 0 0-.0785-.037 19.7363 19.7363 0 0 0-4.8852 1.515.0699.0699 0 0 0-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 0 0 .0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 0 0 .0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 0 0-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 0 1-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 0 1 .0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 0 1 .0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 0 1-.0066.1276c-.598.3428-1.2205.6447-1.8733.8923a.0766.0766 0 0 0-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 0 0 .0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 0 0 .0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 0 0-.0312-.0286zM8.02 15.3312c-1.1835 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1835 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
-					Continue with Discord
+					<svg className="w-5 h-5 group-hover:scale-110 transition-transform duration-300" fill="currentColor" viewBox="0 0 24 24"><path d="M20.317 4.3698a19.7913 19.7913 0 0 0-4.8851-1.5152.0741.0741 0 0 0-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 0 0-.0785-.037 19.7363 19.7363 0 0 0-4.8852 1.515.0699.0699 0 0 0-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 0 0 .0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 0 0 .0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 0 0-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 0 1-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 0 1 .0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 0 1 .0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 0 1-.0066.1276c-.598.3428-1.2205.6447-1.8733.8923a.0766.0766 0 0 0-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 0 0 .0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 0 0 .0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 0 0-.0312-.0286zM8.02 15.3312c-1.1835 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1835 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z"/></svg>
+					<span>Continue with Discord</span>
 				</button>
 				<SolanaSignInButton captchaToken={captchaToken} captchaRef={hcaptchaRef} />
 			</div>
+
+			{/* Divider */}
+			<div className="flex items-center my-6">
+				<div className="flex-1 h-px bg-gradient-to-r from-transparent to-zinc-600"></div>
+				<span className="px-4 text-zinc-400 text-sm font-medium">or</span>
+				<div className="flex-1 h-px bg-gradient-to-l from-transparent to-zinc-600"></div>
+			</div>
+
+			{/* Registration Form */}
 			<form
 				onSubmit={handleSubmit(onSubmit)}
-				className={twMerge(
-					'register-form flex flex-col gap-4',
-				)}
-				style={{ maxWidth: 400, margin: '0 auto' }}
+				className="space-y-5"
 			>
-				<h2 className="text-2xl font-bold text-center mb-2 text-white [text-shadow:_0_1px_2px_black] shadow-black shadow-lg">Register</h2>
-				{error && <div className="text-red-500 text-center [text-shadow:_0_1px_2px_black] shadow-black shadow-md">{error}</div>}
-				{success && <div className="text-green-500 text-center [text-shadow:_0_1px_2px_black] shadow-black shadow-md">{success}</div>}
-				<div>
-					<label className="block mb-1 font-medium"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Display Name</span></label>
+				{/* Form Title */}
+				<div className="text-center mb-6">
+					<h2 className="text-2xl font-bold text-white bg-gradient-to-r from-cyan-300 to-purple-300 bg-clip-text text-transparent mb-2">
+						Create Account
+					</h2>
+					<p className="text-zinc-400 text-sm">Fill in your details to get started</p>
+				</div>
+
+				{/* Error/Success Messages */}
+				{(error || success) && (
+					<div className="mb-6">
+						{error && (
+							<div className="bg-red-500/10 border border-red-500/20 rounded-xl p-4 text-red-400 text-center backdrop-blur-sm">
+								<div className="flex items-center justify-center gap-2">
+									<svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+										<path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+									</svg>
+									<span>{error}</span>
+								</div>
+							</div>
+						)}
+						{success && (
+							<div className="bg-green-500/10 border border-green-500/20 rounded-xl p-4 text-green-400 text-center backdrop-blur-sm">
+								<div className="flex items-center justify-center gap-2">
+									<svg className="w-5 h-5 flex-shrink-0" fill="currentColor" viewBox="0 0 20 20">
+										<path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+									</svg>
+									<span>{success}</span>
+								</div>
+							</div>
+						)}
+					</div>
+				)}
+				{/* Display Name Field */}
+				<div className="space-y-2">
+					<label className="block text-sm font-medium text-zinc-200">
+						Display Name
+					</label>
 					<input
 						type="text"
 						{...register('displayName', {
@@ -228,16 +322,25 @@ export const Register = () => {
 						}}
 						placeholder="Your display name"
 						className={clsx(
-							'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-white [text-shadow:_0_1px_2px_black] shadow-black',
-							errors.displayName && 'border-red-500',
+							'block w-full rounded-xl border px-4 py-3 bg-zinc-900/60 backdrop-blur text-white placeholder-zinc-500 transition-all duration-300',
+							'focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50',
+							errors.displayName 
+								? 'border-red-500/50 bg-red-500/5' 
+								: 'border-zinc-600/50 hover:border-zinc-500/50'
 						)}
 						maxLength={32}
 					/>
-					<span className="text-xs text-neutral-300">Letters, numbers, spaces, _ and - only.</span>
-					{errors.displayName && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.displayName.message}</span>}
+					<p className="text-xs text-zinc-400">Letters, numbers, spaces, _ and - only</p>
+					{errors.displayName && (
+						<p className="text-red-400 text-sm">{errors.displayName.message}</p>
+					)}
 				</div>
-				<div>
-					<label className="block mb-1 font-medium"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Email</span></label>
+
+				{/* Email Field */}
+				<div className="space-y-2">
+					<label className="block text-sm font-medium text-zinc-200">
+						Email Address
+					</label>
 					<input
 						type="email"
 						{...register('email', { required: 'Email is required' })}
@@ -246,15 +349,25 @@ export const Register = () => {
 							setEmail(e.target.value);
 							setValue('email', e.target.value);
 						}}
+						placeholder="your@email.com"
 						className={clsx(
-							'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-white [text-shadow:_0_1px_2px_black] shadow-black',
-							errors.email && 'border-red-500',
+							'block w-full rounded-xl border px-4 py-3 bg-zinc-900/60 backdrop-blur text-white placeholder-zinc-500 transition-all duration-300',
+							'focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50',
+							errors.email 
+								? 'border-red-500/50 bg-red-500/5' 
+								: 'border-zinc-600/50 hover:border-zinc-500/50'
 						)}
 					/>
-					{errors.email && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.email.message}</span>}
+					{errors.email && (
+						<p className="text-red-400 text-sm">{errors.email.message}</p>
+					)}
 				</div>
-				<div>
-					<label className="block mb-1 font-medium"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Password</span></label>
+
+				{/* Password Field */}
+				<div className="space-y-2">
+					<label className="block text-sm font-medium text-zinc-200">
+						Password
+					</label>
 					<div className="relative">
 						<input
 							type="password"
@@ -269,13 +382,18 @@ export const Register = () => {
 							}}
 							onFocus={() => setShowPasswordTooltip(true)}
 							onBlur={() => setShowPasswordTooltip(false)}
+							placeholder="Create a strong password"
 							className={clsx(
-								'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-white [text-shadow:_0_1px_2px_black] shadow-black',
-								errors.password && 'border-red-500',
+								'block w-full rounded-xl border px-4 py-3 bg-zinc-900/60 backdrop-blur text-white placeholder-zinc-500 transition-all duration-300',
+								'focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50',
+								errors.password 
+									? 'border-red-500/50 bg-red-500/5' 
+									: 'border-zinc-600/50 hover:border-zinc-500/50'
 							)}
 						/>
 						{showPasswordTooltip && (
-							<div className="absolute left-0 z-10 mt-2 w-full rounded bg-neutral-900/95 text-white text-xs p-3 shadow-lg border border-neutral-700 space-y-1">
+							<div className="absolute left-0 z-10 mt-2 w-full rounded-xl bg-zinc-900/95 backdrop-blur border border-zinc-700/50 text-white text-xs p-4 shadow-xl space-y-2">
+								<p className="text-zinc-300 font-medium mb-2">Password requirements:</p>
 								<div className={passwordValidation.length ? 'text-green-400' : 'text-red-400'}>
 									{passwordValidation.length ? '✓' : '✗'} At least 8 characters
 								</div>
@@ -294,10 +412,16 @@ export const Register = () => {
 							</div>
 						)}
 					</div>
-					{errors.password && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.password.message}</span>}
+					{errors.password && (
+						<p className="text-red-400 text-sm">{errors.password.message}</p>
+					)}
 				</div>
-				<div>
-					<label className="block mb-1 font-medium"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Confirm Password</span></label>
+
+				{/* Confirm Password Field */}
+				<div className="space-y-2">
+					<label className="block text-sm font-medium text-zinc-200">
+						Confirm Password
+					</label>
 					<input
 						type="password"
 						{...register('confirmPassword', {
@@ -309,14 +433,20 @@ export const Register = () => {
 							setConfirmPassword(e.target.value);
 							setValue('confirmPassword', e.target.value);
 						}}
+						placeholder="Confirm your password"
 						className={clsx(
-							'block w-full rounded border px-3 py-2 bg-white/80 dark:bg-stone-900/80 text-white [text-shadow:_0_1px_2px_black] shadow-black',
-							errors.confirmPassword && 'border-red-500',
+							'block w-full rounded-xl border px-4 py-3 bg-zinc-900/60 backdrop-blur text-white placeholder-zinc-500 transition-all duration-300',
+							'focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:border-cyan-400/50',
+							errors.confirmPassword 
+								? 'border-red-500/50 bg-red-500/5' 
+								: 'border-zinc-600/50 hover:border-zinc-500/50'
 						)}
 					/>
-					{errors.confirmPassword && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.confirmPassword.message}</span>}
+					{errors.confirmPassword && (
+						<p className="text-red-400 text-sm">{errors.confirmPassword.message}</p>
+					)}
 				</div>
-				<div className="flex items-center gap-2 my-2">
+				<div className="flex items-start gap-3 my-6">
 					<input
 						type="checkbox"
 						id="legal-agree"
@@ -326,37 +456,74 @@ export const Register = () => {
 							setAgreed(e.target.checked);
 							setValue('agreed', e.target.checked);
 						}}
-						className={clsx('accent-cyan-600')}
+						className="mt-1 w-4 h-4 rounded border-zinc-600 bg-zinc-900/60 text-cyan-500 focus:ring-cyan-400/50 focus:ring-offset-zinc-900"
 					/>
-					<label htmlFor="legal-agree" className="text-sm"><span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">I agree to the{' '}
-						<a href="https://kbve.com/legal/" target="_blank" rel="noopener noreferrer" className="underline text-cyan-200">legal terms</a></span>
+					<label htmlFor="legal-agree" className="text-sm text-zinc-300 leading-relaxed">
+						I agree to the{' '}
+						<a 
+							href="https://kbve.com/legal/" 
+							target="_blank" 
+							rel="noopener noreferrer" 
+							className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors duration-300"
+						>
+							Terms of Service
+						</a>
+						{' '}and{' '}
+						<a 
+							href="https://kbve.com/privacy/" 
+							target="_blank" 
+							rel="noopener noreferrer" 
+							className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors duration-300"
+						>
+							Privacy Policy
+						</a>
 					</label>
 				</div>
-				{errors.agreed && <span className="text-red-500 text-sm [text-shadow:_0_1px_2px_black] shadow-black">{errors.agreed.message}</span>}
-				<div className="my-2">
-					<HCaptcha
-						ref={hcaptchaRef}
-						sitekey={HCAPTCHA_SITE_KEY}
-						onVerify={token => setCaptchaToken(token)}
-						onExpire={() => setCaptchaToken(null)}
-					/>
+				{errors.agreed && (
+					<p className="text-red-400 text-sm mb-4">{errors.agreed.message}</p>
+				)}
+				<div className="my-6 flex justify-center">
+					<div className="rounded-xl overflow-hidden bg-zinc-900/40 backdrop-blur border border-zinc-700/50 p-1">
+						<HCaptcha
+							ref={hcaptchaRef}
+							sitekey={HCAPTCHA_SITE_KEY}
+							onVerify={token => setCaptchaToken(token)}
+							onExpire={() => setCaptchaToken(null)}
+						/>
+					</div>
 				</div>
-                                <button
-                                        type="submit"
-                                        disabled={loading}
-                                        className={twMerge(
-                                                'block w-full px-4 py-2 rounded bg-gradient-to-br from-cyan-500 to-purple-500 text-white font-semibold shadow hover:from-cyan-400 hover:to-purple-400 transition drop-shadow-[0_1px_2px_rgba(0,0,0,1)] shadow-black shadow-lg [text-shadow:_0_1px_2px_black]',
-                                                loading && 'opacity-60 cursor-not-allowed',
-                                        )}
-                                >
-                                        {loading ? 'Registering...' : 'Register'}
-                                </button>
-				<div className="mt-4 text-center">
-					<span className="text-white [text-shadow:_0_1px_2px_black] shadow-black">Already have an account?{' '}
-						<a href="/login" className="underline text-cyan-200 hover:text-cyan-400">Login here</a>
+				<button
+					type="submit"
+					disabled={loading}
+					className={clsx(
+						'w-full py-3 px-4 rounded-xl font-semibold text-white shadow-lg transition-all duration-300',
+						'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400',
+						'focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-zinc-900',
+						'disabled:opacity-60 disabled:cursor-not-allowed disabled:hover:from-cyan-500 disabled:hover:to-purple-500',
+						'transform hover:scale-[1.02] active:scale-[0.98]'
+					)}
+				>
+					{loading ? (
+						<div className="flex items-center justify-center gap-2">
+							<div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+							<span>Creating Account...</span>
+						</div>
+					) : (
+						'Create Account'
+					)}
+				</button>
+				<div className="mt-6 text-center">
+					<span className="text-zinc-400">
+						Already have an account?{' '}
+						<a 
+							href="/login" 
+							className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors duration-300 font-medium"
+						>
+							Sign in here
+						</a>
 					</span>
 				</div>
 			</form>
-		</>
+		</div>
 	);
 };

@@ -19,6 +19,7 @@ using UnityEngine.ResourceManagement.AsyncOperations;
 using KBVE.MMExtensions.Orchestrator;
 using KBVE.MMExtensions.Orchestrator.Core;
 using KBVE.MMExtensions.Orchestrator.Core.UI;
+using KBVE.MMExtensions.Orchestrator.Interfaces;
 using Heathen.SteamworksIntegration;
 using Heathen.SteamworksIntegration.UI;
 using API = Heathen.SteamworksIntegration.API;
@@ -30,133 +31,88 @@ namespace KBVE.SSDB.Steam
         public class SteamUserProfiles : MonoBehaviour, IAsyncStartable, IDisposable //IUserProfile
         {
 
-            // public UnityEngine.UI.Image AvatarImage;
-            // public TMPro.TMP_Text StatusText;
-            // public TMPro.TMP_Text NameText;
-
-            // Holy Byte Memes
-
-            private ReactiveProperty<string> _lastStatus = new(string.Empty);
-            private ReactiveProperty<string> _lastName = new(string.Empty);
-            private ReactiveProperty<Texture2D?> _lastAvatar = new(null);
-
             private readonly CompositeDisposable _disposables = new();
-
             private CancellationTokenSource _cts;
-
             private SteamworksService _steamworksService;
             private IGlobalCanvas _globalCanvas;
 
-
-            // public UserData UserData { get; set; }
-
-            // private UserData currentUser;
-
             [Inject]
-            public void Construct(SteamworksService steamworksServic, IGlobalCanvas globalCanvas)
+            public void Construct(SteamworksService steamworksService, IGlobalCanvas globalCanvas)
             {
                 _steamworksService = steamworksService;
                 _globalCanvas = globalCanvas;
-
             }
 
             public async UniTask StartAsync(CancellationToken cancellationToken)
             {
-                 _cts = new CancellationTokenSource();
+                _cts = new CancellationTokenSource();
                 var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken).Token;
 
-                try {
+                try
+                {
+                    // Wait for SteamworksService and GlobalCanvasService readiness
                     await UniTask.WhenAll(
-                    UniTask.WaitUntil(() => _steamworksService.IsReady, cancellationToken: linkedToken),
-                    Operator.R()
+                        UniTask.WaitUntil(() => _steamworksService.IsReady, cancellationToken: linkedToken),
+                        UniTask.WaitUntil(() => _globalCanvas.Canvas != null, cancellationToken: linkedToken),
+                        Operator.R()
                     );
-                }
-                catch (OperationCanceledException)
+
+                    // Optional: wait for internal "IsReady" flag on GlobalCanvasService
+                    if (_globalCanvas is GlobalCanvasService gcs)
                     {
-                        Debug.LogWarning("[SteamUserProfiles] Initialization canceled.");
+                        await UniTask.WaitUntil(() => gcs.IsReady.Value, cancellationToken: linkedToken);
                     }
 
-                //Heathen.SteamworksIntegration.UserData? localUser = _steamworksService.LocalUser.Value;
-                var localUserNullable = _steamworksService.LocalUser.Value;
+                    Debug.Log("[SteamUserProfiles] Services ready, proceeding to UI setup...");
 
-                if (localUserNullable is { } localUser)
-                {
-                    Debug.Log($"Local User {localUser.AccountId}");
-
-                    // NameText.text = localUser.Name; // or .Name if your custom wrapper exposes that
-                    // StatusText.text = localUser.State.ToString();
-
-                    //  localUser.LoadAvatar(texture =>
-                    // {
-                    //     AvatarImage.sprite = Sprite.Create(
-                    //         texture,
-                    //         new Rect(0, 0, texture.width, texture.height),
-                    //         new Vector2(0.5f, 0.5f)
-                    //     );
-                    // });
-
-                    // _lastStatus.Value = localUser.State.ToString();
-
-
-                    // Subscription for the Names
-                    // _steamworksService.LocalUser
-                    //     .Where(user => user != null)
-                    //     .Subscribe(user =>
-                    //     {
-                    //         NameText.text = user.Name;
-                    //         StatusText.text = user.State.ToString();
-
-                    //         user.LoadAvatar(texture =>
-                    //         {
-                    //             AvatarImage.sprite = Sprite.Create(texture, new Rect(0, 0, texture.width, texture.height), Vector2.one * 0.5f);
-                    //         });
-                    //     })
-                    //     .AddTo(_disposables);
-
-
-
-                    //Apply(localUser);
+                    await RenderLocalUserAsync(linkedToken);
                 }
-                // var user = API.User.Client.Id;
-                // Apply(user);
+                catch (OperationCanceledException)
+                {
+                    Debug.LogWarning("[SteamUserProfiles] Initialization canceled.");
+                }
             }
 
-             public void Dispose()
+            private async UniTask RenderLocalUserAsync(CancellationToken token)
             {
+                var localUserNullable = _steamworksService.LocalUser.Value;
+                if (localUserNullable is not UserData localUser)
+                {
+                    Debug.LogWarning("[SteamUserProfiles] No local user found.");
+                    return;
+                }
 
+                var prefab = await Addressables.LoadAssetAsync<GameObject>("UI/UserProfile").Task;
+                var panelGO = _globalCanvas.SpawnPanel(prefab, UICanvasLayer.HUD);
+
+                if (!panelGO.TryGetComponent(out UIStreamUserProfile uiProfile))
+                {
+                    Debug.LogError("[SteamUserProfiles] Spawned profile panel missing UIStreamUserProfile.");
+                    return;
+                }
+
+                await uiProfile.BindAsync(new SteamFriendViewModel
+                {
+                    Name = localUser.Name,
+                    Status = localUser.State.ToString(),
+                    AvatarTask = UniTask.Create(() =>
+                    {
+                        var tcs = new UniTaskCompletionSource<Texture2D?>();
+                        localUser.LoadAvatar(t => tcs.TrySetResult(t));
+                        return tcs.Task;
+                    }),
+                    RawSteamUser = localUser
+                });
+            }
+
+
+            public void Dispose()
+            {
                 _cts?.Cancel();
                 _cts?.Dispose();
                 _disposables.Dispose();
             }
             
-            // public void Apply(UserData user)
-            // {
-            //     currentUser = user;
-            //     if (!currentUser.RequestInformation())
-            //         UpdateUserData();
-            // }
-
-            // private void UpdateUserData()
-            // {
-            //     if (!currentUser.IsValid)
-            //     {
-            //         Debug.LogWarning("Current user was not valid, returning before update");
-            //         return;
-            //     }
-
-            //     NameText.text = currentUser.Name;
-
-            //     var inGame = currentUser.GetGamePlayed(out FriendGameInfo gameInfo);
-            //     var inThisGame = inGame && gameInfo.Game.App == API.App.Client.Id;
-            //     var state = currentUser.State;
-
-            //     string gameName = "Not in game";
-            //     if(gameInfo.Game != null)
-            //         gameName = "Playing " + gameInfo.Game.Name;
-
-            //     StatusText.text = gameName;
-
-            // }
 
         }
 

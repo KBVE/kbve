@@ -9,7 +9,7 @@ using R3;
 namespace KBVE.SSDB.Steam.UI
 {
 
-    public class UIStreamUserProfile : MonoBehaviour, IAsyncDisposable
+    public class UIStreamUserProfile : MonoBehaviour, IDisposable
     {
 
 
@@ -43,7 +43,7 @@ namespace KBVE.SSDB.Steam.UI
             );
         }
 
-        public async UniTaskVoid BindAsync(SteamFriendViewModel viewModel)
+        public async UniTask BindAsync(SteamFriendViewModel viewModel)
         {
             _cts?.Cancel();
             _cts = new CancellationTokenSource();
@@ -101,20 +101,23 @@ namespace KBVE.SSDB.Steam.UI
         }
 
 
-        public async ValueTask DisposeAsync()
+        public void Dispose()
         {
-                    _bindings?.Dispose();
-                    _cts?.Cancel();
-                    _cts?.Dispose();
-                    if (_lastAvatar != null)
-                        UnityEngine.Object.Destroy(_lastAvatar);
+            _bindings?.Dispose();
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _cts = null;
 
-                    await UniTask.Yield();
+            if (_lastAvatar != null)
+            {
+                UnityEngine.Object.Destroy(_lastAvatar);
+                _lastAvatar = null;
+            }
         }
 
         private void OnDestroy()
         {
-            _ = DisposeAsync();
+             Dispose();
         }
 
 

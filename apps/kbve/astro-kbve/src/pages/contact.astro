@@ -1,5 +1,6 @@
 ---
 import Layout from 'src/layouts/core/Layout.astro';
+import DashLayout from 'src/layouts/components/dashboard/layout/DashLayout.astro';
 const pageTitle: string = `Contact | KBVE`;
 
 // Define the variables that will be used in this component
@@ -29,7 +30,7 @@ title={pageTitle}
     "inLanguage": "en-US"
   }}
   >
-
+<DashLayout>
   <section class="px-6 py-12 sm:px-8 lg:px-12">
   <div
     class="mx-auto max-w-7xl relative flex flex-col md:flex-row rounded-3xl bg-white/5 backdrop-blur-md ring-1 ring-white/10
@@ -105,5 +106,5 @@ title={pageTitle}
     </div>
   </div>
 </section>
-
+</DashLayout>
 </Layout>
