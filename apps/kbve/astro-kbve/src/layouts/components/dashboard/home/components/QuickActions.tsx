@@ -72,9 +72,10 @@ const QuickActions = () => {
     <div className={twMerge(clsx(
       "relative overflow-hidden group/container",
       "bg-zinc-800/40 backdrop-blur-xl border border-zinc-700/50",
-      "rounded-xl p-6 shadow-2xl",
+      "rounded-xl p-6 shadow-2xl shadow-inner shadow-zinc-900/30",
       "hover:border-zinc-600/60 transition-all duration-500",
       "hover:shadow-xl hover:shadow-cyan-400/10",
+      "hover:shadow-inner hover:shadow-zinc-900/50",
       "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/5 before:to-transparent before:rounded-xl",
       "after:absolute after:inset-px after:bg-gradient-to-br after:from-zinc-700/20 after:to-zinc-800/20 after:rounded-xl after:-z-10"
     ))}>
@@ -117,6 +118,8 @@ const QuickActions = () => {
               "hover:shadow-2xl hover:shadow-cyan-400/20",
               "hover:border-zinc-600/60 hover:bg-zinc-700/50",
               "preserve-3d transform-style-3d",
+              "shadow-inner shadow-zinc-900/40",
+              "hover:shadow-inner hover:shadow-zinc-900/60",
               "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/8 before:to-transparent before:rounded-xl before:opacity-0 before:hover:opacity-100 before:transition-opacity before:duration-300",
               "after:absolute after:inset-px after:bg-gradient-to-br after:from-zinc-600/10 after:to-zinc-800/30 after:rounded-xl after:-z-10"
             ))}>
@@ -135,6 +138,8 @@ const QuickActions = () => {
                   "transition-all duration-300 transform-gpu",
                   "group-hover/card:scale-110 group-hover/card:rotate-12",
                   "group-hover/card:shadow-lg group-hover/card:translate-z-8",
+                  "shadow-inner shadow-zinc-800/60",
+                  "group-hover/card:shadow-inner group-hover/card:shadow-zinc-800/80",
                   "before:absolute before:inset-0 before:bg-gradient-to-br before:from-white/10 before:to-transparent before:rounded-lg"
                 ))}>
                   <span className={twMerge(clsx(
