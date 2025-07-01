@@ -66,21 +66,77 @@ const QuickActions = () => {
 
   return (
     <div className={twMerge(clsx(
-      "bg-zinc-800 rounded-lg p-6 border border-zinc-700"
+      "bg-zinc-800 rounded-lg p-6 border border-zinc-700",
+      "relative overflow-hidden group/container",
+      "hover:border-zinc-600 transition-all duration-300",
+      "hover:shadow-xl hover:shadow-cyan-400/5"
     ))}>
-      <h3 className={twMerge(clsx("text-lg font-semibold text-white mb-4"))}>Quick Actions</h3>
+      {/* Subtle background animation */}
+      <div className={twMerge(clsx(
+        "absolute inset-0 bg-gradient-to-br from-cyan-400/5 via-transparent to-transparent",
+        "opacity-0 group-hover/container:opacity-100 transition-opacity duration-500"
+      ))} />
+      
+      <h3 className={twMerge(clsx(
+        "text-lg font-semibold text-white mb-4 relative z-10",
+        "transition-all duration-300",
+        "group-hover/container:text-cyan-100"
+      ))}>
+        Quick Actions
+      </h3>
       <div className="space-y-3">
         {quickActions.map((action, index) => (
           <button
             key={index}
             className={twMerge(clsx(
-              "w-full flex items-center space-x-3 p-3 rounded-lg",
-              "hover:bg-zinc-700 transition-colors text-left"
+              "w-full flex items-center space-x-3 p-3 rounded-lg text-left group",
+              "relative overflow-hidden",
+              "hover:bg-zinc-700/50 hover:border-zinc-600 hover:shadow-lg",
+              "hover:scale-[1.02] hover:-translate-y-0.5",
+              "transition-all duration-300 ease-out",
+              "border border-transparent",
+              "backdrop-blur-sm"
             ))}
           >
-            <span className={twMerge(clsx(action.color))}>{action.icon}</span>
-            <span className={twMerge(clsx("text-white"))}>{action.label}</span>
-            <ChevronRight className={twMerge(clsx("w-4 h-4 text-zinc-400 ml-auto"))} />
+            {/* Hover glow effect */}
+            <div className={twMerge(clsx(
+              "absolute inset-0 rounded-lg opacity-0 group-hover:opacity-20",
+              "bg-gradient-to-r from-cyan-400/10 via-transparent to-cyan-400/10",
+              "transition-opacity duration-300"
+            ))} />
+            
+            {/* Icon with enhanced hover effects */}
+            <span className={twMerge(clsx(
+              action.color,
+              "relative z-10 transition-all duration-300",
+              "group-hover:scale-110 group-hover:drop-shadow-lg",
+              "group-hover:brightness-125"
+            ))}>
+              {action.icon}
+            </span>
+            
+            {/* Label with slide effect */}
+            <span className={twMerge(clsx(
+              "text-white relative z-10 font-medium",
+              "transition-all duration-300",
+              "group-hover:translate-x-1 group-hover:text-cyan-100"
+            ))}>
+              {action.label}
+            </span>
+            
+            {/* Enhanced chevron with rotation and movement */}
+            <ChevronRight className={twMerge(clsx(
+              "w-4 h-4 text-zinc-400 ml-auto relative z-10",
+              "transition-all duration-300",
+              "group-hover:text-cyan-400 group-hover:translate-x-1",
+              "group-hover:rotate-12 group-hover:scale-110"
+            ))} />
+            
+            {/* Subtle border glow on hover */}
+            <div className={twMerge(clsx(
+              "absolute inset-0 rounded-lg opacity-0 group-hover:opacity-100",
+              "ring-1 ring-cyan-400/20 transition-opacity duration-300"
+            ))} />
           </button>
         ))}
       </div>
