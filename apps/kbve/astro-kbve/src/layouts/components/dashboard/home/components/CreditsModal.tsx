@@ -61,13 +61,13 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
     // Start fade-out after 1.2s to let the gif play most of its loop
     setTimeout(() => {
       setSmokeFading(true);
-    }, 1200);
+    }, 1500);
     
     // Hide smoke completely after fade animation (1.5s total)
     setTimeout(() => {
       setShowSmoke(false);
       setSmokeFading(false);
-    }, 1500);
+    }, 1800);
   }, []);
 
   // Memoized event handlers to prevent unnecessary re-renders
@@ -247,20 +247,21 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
         <div
           className="fixed pointer-events-none z-[100000]"
           style={{
-            left: smokePosition.x - 48, // Center the 96px (w-24) wide animation
-            top: smokePosition.y - 48,  // Center the 96px (h-24) tall animation
+            left: smokePosition.x - 64, // Center the 128px (w-32) wide animation
+            top: smokePosition.y - 64,  // Center the 128px (h-32) tall animation
           }}
         >
           <img
             src="/assets/images/ui/animation/smoke/smoke2.gif"
             alt=""
             className={clsx(
-              "w-24 h-24 object-contain transition-opacity duration-300",
+              "w-32 h-32 object-contain transition-opacity duration-300",
+              "sepia saturate-200 hue-rotate-180 brightness-125", // Cyan color overlay
               smokeFading ? "opacity-0" : "opacity-90"
             )}
             style={{
               imageRendering: 'auto',
-              filter: 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.4)) brightness(1.1)',
+              filter: 'drop-shadow(0 0 16px rgba(6, 182, 212, 0.6)) brightness(1.2)',
               mixBlendMode: 'screen'
             }}
           />
