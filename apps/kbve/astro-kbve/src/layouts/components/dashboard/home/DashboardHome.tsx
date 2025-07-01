@@ -63,7 +63,11 @@ const DashboardHome = () => {
         
         // Guest mode vs logged in user
         const isGuest = !user || !userId;
-        const username = isGuest ? 'Guest' : (user.email?.split('@')[0] || 'User');
+        const username = (() => {
+          if (isGuest || !user?.email) return 'Guest';
+          const emailParts = user.email.split('@');
+          return emailParts.length > 0 && emailParts[0] ? emailParts[0] : 'User';
+        })();
         
         // Handle user balance - extract credits value if it's an object
         let creditBalance = 0;
@@ -188,7 +192,11 @@ const DashboardHome = () => {
   };
 
   const isGuest = !user || !userId;
-  const username = isGuest ? 'Guest' : (user?.email?.split('@')[0] || 'User');
+  const username = (() => {
+    if (isGuest || !user?.email) return 'Guest';
+    const emailParts = user.email.split('@');
+    return emailParts.length > 0 && emailParts[0] ? emailParts[0] : 'User';
+  })();
 
   if (loading) {
     return null; // Skeleton is handled by Astro component

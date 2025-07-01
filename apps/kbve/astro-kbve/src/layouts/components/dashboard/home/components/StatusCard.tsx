@@ -14,21 +14,24 @@ const StatusCard = () => {
   const userId = useStore(userIdAtom);
   const [loading, setLoading] = useState(true);
   const [systemStatus, setSystemStatus] = useState<SystemStatus[]>([]);
-  const [visible, setVisible] = useState(false);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
 
   useEffect(() => {
     const handleCrossFade = () => {
-      const skeleton = document.getElementById('status-card');
-      if (skeleton) {
-        skeleton.style.transition = 'opacity 0.5s ease-out';
-        skeleton.style.opacity = '0';
-      }
+      const skeleton = document.getElementById('status-card-skeleton');
+      const content = document.getElementById('status-card-content');
       
-      setTimeout(() => {
-        setVisible(true);
-      }, 100);
+      if (skeleton && content) {
+        // Hide skeleton and show content
+        skeleton.style.opacity = '0';
+        content.style.opacity = '1';
+        
+        // After transition, hide skeleton completely to free up space
+        setTimeout(() => {
+          skeleton.style.display = 'none';
+        }, 500);
+      }
     };
 
     const fetchSystemStatus = async () => {
@@ -84,8 +87,7 @@ const StatusCard = () => {
 
   return (
     <div className={twMerge(clsx(
-      "bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500",
-      visible ? "opacity-100" : "opacity-0"
+      "bg-zinc-800 rounded-lg p-6 border border-zinc-700"
     ))}>
       <h3 className={twMerge(clsx("text-lg font-semibold text-white mb-4"))}>
         {isGuest ? 'Service Status' : 'Account Status'}
