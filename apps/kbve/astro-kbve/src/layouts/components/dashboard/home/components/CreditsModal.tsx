@@ -46,6 +46,29 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
   // Animation states
   const [isVisible, setIsVisible] = useState(false);
   const [isClosing, setIsClosing] = useState(false);
+  
+  // Smoke animation states
+  const [showSmoke, setShowSmoke] = useState(false);
+  const [smokePosition, setSmokePosition] = useState({ x: 0, y: 0 });
+  const [smokeFading, setSmokeFading] = useState(false);
+
+  // Function to trigger smoke animation at click position
+  const triggerSmokeEffect = useCallback((clientX: number, clientY: number) => {
+    setSmokePosition({ x: clientX, y: clientY });
+    setShowSmoke(true);
+    setSmokeFading(false);
+    
+    // Start fade-out after 1.2s to let the gif play most of its loop
+    setTimeout(() => {
+      setSmokeFading(true);
+    }, 1200);
+    
+    // Hide smoke completely after fade animation (1.5s total)
+    setTimeout(() => {
+      setShowSmoke(false);
+      setSmokeFading(false);
+    }, 1500);
+  }, []);
 
   // Memoized event handlers to prevent unnecessary re-renders
   const handleKeyDown = useCallback((e: KeyboardEvent) => {
@@ -75,9 +98,14 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
   }, [isClosing, isVisible, isOpen, onClose]);
 
   // Enhanced close handler with animation - now prevents double calls
-  const handleClose = useCallback(() => {
+  const handleClose = useCallback((clientX?: number, clientY?: number) => {
     // Prevent multiple calls or calls when already closing
     if (isClosing || !isOpen || !isVisible) return;
+    
+    // Trigger smoke effect if click coordinates are provided
+    if (clientX !== undefined && clientY !== undefined) {
+      triggerSmokeEffect(clientX, clientY);
+    }
     
     setIsClosing(true);
     setIsVisible(false);
@@ -96,13 +124,13 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
       onClose();
       closeTimeoutRef.current = null;
     }, 350);
-  }, [onClose, isClosing, isOpen, isVisible, handleKeyDown]);
+  }, [onClose, isClosing, isOpen, isVisible, handleKeyDown, triggerSmokeEffect]);
 
   const handleBackdropClick = useCallback((e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (e.target === e.currentTarget && !isClosing && isVisible) {
-      handleClose();
+      handleClose(e.clientX, e.clientY);
     }
   }, [isClosing, handleClose, isVisible]);
 
@@ -115,7 +143,7 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
     e.preventDefault();
     e.stopPropagation();
     if (!isClosing) {
-      handleClose();
+      handleClose(e.clientX, e.clientY);
     }
   }, [handleClose, isClosing]);
 
@@ -203,11 +231,42 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
     };
   }, []);
 
+  // Preload smoke animation for better performance
+  useEffect(() => {
+    const img = new Image();
+    img.src = '/assets/images/ui/animation/smoke/smoke2.gif';
+  }, []);
+
   // Don't render anything if modal should not be visible
   if (!isOpen && !isVisible) return null;
 
   return (
     <Portal>
+      {/* Smoke animation effect */}
+      {showSmoke && (
+        <div
+          className="fixed pointer-events-none z-[100000]"
+          style={{
+            left: smokePosition.x - 48, // Center the 96px (w-24) wide animation
+            top: smokePosition.y - 48,  // Center the 96px (h-24) tall animation
+          }}
+        >
+          <img
+            src="/assets/images/ui/animation/smoke/smoke2.gif"
+            alt=""
+            className={clsx(
+              "w-24 h-24 object-contain transition-opacity duration-300",
+              smokeFading ? "opacity-0" : "opacity-90"
+            )}
+            style={{
+              imageRendering: 'auto',
+              filter: 'drop-shadow(0 0 12px rgba(255, 255, 255, 0.4)) brightness(1.1)',
+              mixBlendMode: 'screen'
+            }}
+          />
+        </div>
+      )}
+      
       <div 
         className={clsx(
           "fixed inset-0 bg-black/50 flex items-center justify-center p-4 backdrop-blur-sm",
