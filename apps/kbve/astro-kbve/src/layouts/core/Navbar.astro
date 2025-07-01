@@ -163,10 +163,10 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
         <button id="close-member-modal" class="absolute top-2 right-2 text-neutral-400 hover:text-red-400 text-xl font-bold">&times;</button>
         <h2 class="text-xl font-bold mb-4 text-cyan-700 dark:text-cyan-200">Member Menu</h2>
         <ul class="flex flex-col gap-3 mb-4">
-          <li><a href="/profile" class="text-cyan-600 dark:text-cyan-300 hover:underline">Profile</a></li>
-          <li><a href="/logout" class="text-cyan-600 dark:text-cyan-300 hover:underline">Logout</a></li>
-          <li><a href="/messages" class="text-cyan-600 dark:text-cyan-300 hover:underline">Messages</a></li>
-          <li><a href="/igbc" class="text-cyan-600 dark:text-cyan-300 hover:underline">IGBC</a></li>
+          <li><a href="/profile" data-astro-prefetch class="text-cyan-600 dark:text-cyan-300 hover:underline">Profile</a></li>
+          <li><a href="/logout" data-astro-prefetch class="text-cyan-600 dark:text-cyan-300 hover:underline">Logout</a></li>
+          <li><a href="/messages" data-astro-prefetch class="text-cyan-600 dark:text-cyan-300 hover:underline">Messages</a></li>
+          <li><a href="/igbc" data-astro-prefetch class="text-cyan-600 dark:text-cyan-300 hover:underline">IGBC</a></li>
         </ul>
       </div>
     `;
