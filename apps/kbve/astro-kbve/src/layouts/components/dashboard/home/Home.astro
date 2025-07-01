@@ -9,7 +9,8 @@ import TableCard from './components/TableCard';
 import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
 import DashLayout from '../layout/DashLayout.astro';
 import { Adsense } from '@kbve/astropad';
-
+//import QuadGlassPanel from 'src/layouts/components/panel/QuadGlassPanel.astro';
+import QuadGlassPanel from './components/panel/QuadPanel.astro';
 ---
 <DashLayout>
   
@@ -115,6 +116,8 @@ import { Adsense } from '@kbve/astropad';
             <TableCard client:only="react" />
           </div>
         </div>
+
+        
       </div>
 
       <!-- Right Column - Sidebar -->
@@ -206,4 +209,13 @@ import { Adsense } from '@kbve/astropad';
             <WelcomeInfo client:only="react" />
           </div>
         </div>
+      </div>
+      <!-- End Right Column - Sidebar -->
+    </div>
+    <!-- End Main Dashboard Grid -->
+
+    <div class="relative">
+          <QuadGlassPanel />
+    </div>
+       
 </DashLayout>
