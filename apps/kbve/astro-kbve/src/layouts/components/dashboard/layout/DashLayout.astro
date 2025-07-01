@@ -8,6 +8,7 @@ import ChartCard from 'src/layouts/components/dashboard/home//components/ChartCa
 import TableCard from 'src/layouts/components/dashboard/home/components/TableCard';
 import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
 import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
+import DashboardFooter from 'src/layouts/components/dashboard/footer/DashboardFooter.astro';
 ---
 
 <style>
@@ -15,7 +16,7 @@ import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
 </style>
 
 <div
-	class="min-h-screen bg-zinc-900 text-white perspective-distant"
+	class="min-h-screen bg-zinc-900 text-white perspective-distant dashboard-container"
 	data-grid="home">
 	<!-- Header Section -->
 	<header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm">
@@ -91,7 +92,11 @@ import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
 			</main>
 		</div>
 	</div>
+
 </div>
+
+	<!-- Footer -->
+	 <DashboardFooter />
 
 <script>
 	// Sidebar functionality

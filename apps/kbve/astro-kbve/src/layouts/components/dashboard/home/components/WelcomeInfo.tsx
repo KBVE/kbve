@@ -9,14 +9,14 @@ const WelcomeInfo = () => {
   const userBalance = useStore(userBalanceAtom);
   const [loading, setLoading] = useState(true);
   const [membershipTier, setMembershipTier] = useState<'Guest' | 'Basic' | 'Premium' | 'VIP'>('Guest');
-  const [visible, setVisible] = useState(false);
 
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
-  const username = useMemo(() => 
-    isGuest ? 'Guest' : (user?.email?.split('@')[0] || 'User'), 
-    [isGuest, user]
-  );
+  const username = useMemo(() => {
+    if (isGuest || !user?.email) return 'Guest';
+    const emailParts = user.email.split('@');
+    return emailParts.length > 0 && emailParts[0] ? emailParts[0] : 'User';
+  }, [isGuest, user]);
 
   const creditBalance = useMemo(() => {
     if (isGuest || !userBalance) return 0;
@@ -39,14 +39,18 @@ const WelcomeInfo = () => {
   useEffect(() => {
     const handleCrossFade = () => {
       const skeleton = document.getElementById('welcome-skeleton');
-      if (skeleton) {
-        skeleton.style.transition = 'opacity 0.5s ease-out';
-        skeleton.style.opacity = '0';
-      }
+      const content = document.getElementById('welcome-info-content');
       
-      setTimeout(() => {
-        setVisible(true);
-      }, 100);
+      if (skeleton && content) {
+        // Hide skeleton and show content
+        skeleton.style.opacity = '0';
+        content.style.opacity = '1';
+        
+        // After transition, hide skeleton completely to free up space
+        setTimeout(() => {
+          skeleton.style.display = 'none';
+        }, 500);
+      }
     };
 
     const loadWelcomeInfo = async () => {
@@ -71,12 +75,9 @@ const WelcomeInfo = () => {
     return null;
   }
 
-  console.log('WelcomeInfo: Rendering component, visible:', visible); // Debug log
-
   return (
     <div className={twMerge(clsx(
-      "bg-zinc-800 rounded-lg p-6 border border-zinc-700 transition-opacity duration-500",
-      visible ? "opacity-100" : "opacity-0"
+      "bg-zinc-800 rounded-lg p-6 border border-zinc-700"
     ))}>
       <h3 className={twMerge(clsx("text-lg font-semibold text-white mb-4"))}>
         Welcome{!isGuest && `, ${username}`}!
