@@ -101,7 +101,7 @@ const UsernameBalance: React.FC = () => {
           <div className="bg-white dark:bg-zinc-900 rounded-2xl shadow-2xl p-8 flex flex-col items-center gap-4 border border-cyan-200 dark:border-cyan-700 max-w-xs">
             <div className="text-2xl text-green-600 dark:text-green-400 font-bold mb-2">Success!</div>
             <div className="text-base text-neutral-700 dark:text-neutral-200 text-center">Your username has been registered.</div>
-            <a href="/profile" className="mt-2 px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold shadow hover:from-cyan-400 hover:to-purple-400 transition-colors">Go to Profile</a>
+            <a href="/profile" data-astro-prefetch className="mt-2 px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-500 to-purple-500 text-white font-bold shadow hover:from-cyan-400 hover:to-purple-400 transition-colors">Go to Profile</a>
             <button onClick={() => setSuccess(null)} className="text-xs text-cyan-600 dark:text-cyan-300 mt-2 underline">Close</button>
           </div>
         </div>
