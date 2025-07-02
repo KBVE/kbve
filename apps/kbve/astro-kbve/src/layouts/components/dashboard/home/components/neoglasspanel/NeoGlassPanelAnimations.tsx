@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { AnimationUtils } from './utils';
 import type { AnimationConfig, NeoGlassAnimationElements, AnimationState } from './types';
 
@@ -41,6 +41,8 @@ export const NeoGlassPanelAnimations: React.FC<{ config?: Partial<AnimationConfi
   const [currentIndex, setCurrentIndex] = useState(0);
   const [isVisible, setIsVisible] = useState(false);
   const [animationState, setAnimationState] = useState<AnimationState>('idle');
+  const [isReducedMotion, setIsReducedMotion] = useState(false);
+  
   const elementsRef = useRef<NeoGlassAnimationElements>({
     panel: null,
     title: null,
@@ -53,70 +55,92 @@ export const NeoGlassPanelAnimations: React.FC<{ config?: Partial<AnimationConfi
     decoration: null,
     magnetic: null,
   });
+  
   const cleanupFunctions = useRef<Array<() => void>>([]);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const intervalRef = useRef<number | null>(null);
+  const animationFrameRef = useRef<number | null>(null);
+  const particleTimeoutRefs = useRef<number[]>([]);
 
-  const animConfig = { ...defaultAnimationConfig, ...config };
+  // Memoize the merged configuration to prevent unnecessary re-renders
+  const animConfig = useMemo(() => ({ 
+    ...defaultAnimationConfig, 
+    ...config 
+  }), [config]);
+
+  // Check for reduced motion preference
+  useEffect(() => {
+    const mediaQuery = window.matchMedia('(prefers-reduced-motion: reduce)');
+    setIsReducedMotion(mediaQuery.matches);
+    
+    const handleChange = (e: MediaQueryListEvent) => {
+      setIsReducedMotion(e.matches);
+    };
+    
+    mediaQuery.addEventListener('change', handleChange);
+    cleanupFunctions.current.push(() => mediaQuery.removeEventListener('change', handleChange));
+    
+    return () => mediaQuery.removeEventListener('change', handleChange);
+  }, []);
 
   // Initialize elements and inject styles
   useEffect(() => {
     AnimationUtils.injectAnimationStyles();
     
-    // Find all elements
-    elementsRef.current = {
-      panel: document.querySelector('[data-neoglass-panel]'),
-      title: document.querySelector('[data-neoglass-title]'),
-      subtitle: document.querySelector('[data-neoglass-subtitle]'),
-      description: document.querySelector('[data-neoglass-description]'),
-      badge: document.querySelector('[data-neoglass-badge]'),
-      glow: document.querySelector('[data-neoglass-glow]'),
-      particles: document.querySelector('[data-neoglass-particles]'),
-      background: document.querySelector('[data-neoglass-bg]'),
-      decoration: document.querySelector('[data-neoglass-decor]'),
-      magnetic: document.querySelector('[data-neoglass-magnetic]'),
-    };
+    // Find all elements with error handling
+    try {
+      elementsRef.current = {
+        panel: document.querySelector('[data-neoglass-panel]'),
+        title: document.querySelector('[data-neoglass-title]'),
+        subtitle: document.querySelector('[data-neoglass-subtitle]'),
+        description: document.querySelector('[data-neoglass-description]'),
+        badge: document.querySelector('[data-neoglass-badge]'),
+        glow: document.querySelector('[data-neoglass-glow]'),
+        particles: document.querySelector('[data-neoglass-particles]'),
+        background: document.querySelector('[data-neoglass-bg]'),
+        decoration: document.querySelector('[data-neoglass-decor]'),
+        magnetic: document.querySelector('[data-neoglass-magnetic]'),
+      };
 
-    // Set up intersection observer
-    if (elementsRef.current.panel) {
-      const observer = AnimationUtils.createVisibilityObserver(setIsVisible);
-      observer.observe(elementsRef.current.panel);
-      
-      cleanupFunctions.current.push(() => {
-        observer.disconnect();
-      });
+      // Set up intersection observer with better options
+      if (elementsRef.current.panel) {
+        const observer = AnimationUtils.createVisibilityObserver(setIsVisible, 0.1);
+        observer.observe(elementsRef.current.panel);
+        
+        cleanupFunctions.current.push(() => observer.disconnect());
+      }
+    } catch (error) {
+      console.warn('Failed to initialize NeoGlass elements:', error);
     }
 
     return () => {
       cleanupFunctions.current.forEach(cleanup => cleanup());
       cleanupFunctions.current = [];
-    };
-  }, []);
-
-  // Text rotation effect with improved animations
-  useEffect(() => {
-    if (!isVisible || animationState === 'paused') return;
-
-    const rotateText = async () => {
-      setAnimationState('animating');
-      const nextIndex = (currentIndex + 1) % animConfig.textRotation.titles.length;
       
-      await updateTextContent(nextIndex);
-      setCurrentIndex(nextIndex);
-      setAnimationState('idle');
-    };
-
-    intervalRef.current = setInterval(rotateText, animConfig.textRotation.interval);
-
-    return () => {
+      // Cleanup timeouts and animation frames
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
       }
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
+      }
+      particleTimeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId));
+      particleTimeoutRefs.current = [];
     };
-  }, [isVisible, currentIndex, animationState, animConfig.textRotation.interval]);
+  }, []);
 
-  const updateTextContent = async (index: number): Promise<void> => {
+  // Memoized text update function
+  const updateTextContent = useCallback(async (index: number): Promise<void> => {
     const { title, subtitle, description, badge } = elementsRef.current;
     const { titles, subtitles, descriptions, badges } = animConfig.textRotation;
+
+    // Skip animations if reduced motion is preferred
+    if (isReducedMotion) {
+      if (title) title.textContent = titles[index];
+      if (subtitle) subtitle.textContent = subtitles[index];
+      if (description) description.textContent = descriptions[index];
+      if (badge) badge.textContent = badges[index];
+      return;
+    }
 
     const promises: Promise<void>[] = [];
 
@@ -143,139 +167,235 @@ export const NeoGlassPanelAnimations: React.FC<{ config?: Partial<AnimationConfi
       if (description) description.textContent = descriptions[index];
       if (badge) badge.textContent = badges[index];
     }
-  };
+  }, [animConfig.textRotation, isReducedMotion]);
 
-  // Enhanced particle system
+  // Text rotation effect with improved animations
   useEffect(() => {
-    if (!isVisible || !elementsRef.current.particles) return;
+    if (!isVisible || animationState === 'paused' || isReducedMotion) return;
 
-    const createParticle = () => {
-      const particle = AnimationUtils.createParticle({
-        size: Math.random() * 3 + 1,
-        color: animConfig.particles.colors[Math.floor(Math.random() * animConfig.particles.colors.length)],
-        opacity: Math.random() * 0.5 + 0.2,
-        duration: Math.random() * 3 + 2,
-        delay: Math.random() * 0.5,
-      });
-
-      elementsRef.current.particles?.appendChild(particle);
-
-      // Remove particle after animation
-      setTimeout(() => {
-        if (particle.parentNode) {
-          particle.parentNode.removeChild(particle);
-        }
-      }, 6000);
+    const rotateText = async () => {
+      if (animationState === 'animating') return; // Prevent overlapping animations
+      
+      setAnimationState('animating');
+      const nextIndex = (currentIndex + 1) % animConfig.textRotation.titles.length;
+      
+      try {
+        await updateTextContent(nextIndex);
+        setCurrentIndex(nextIndex);
+      } catch (error) {
+        console.warn('Text rotation failed:', error);
+      } finally {
+        setAnimationState('idle');
+      }
     };
 
-    // Create initial particles
-    for (let i = 0; i < animConfig.particles.count; i++) {
-      setTimeout(() => createParticle(), i * 500);
+    intervalRef.current = window.setInterval(rotateText, animConfig.textRotation.interval);
+
+    return () => {
+      if (intervalRef.current) {
+        clearInterval(intervalRef.current);
+        intervalRef.current = null;
+      }
+    };
+  }, [isVisible, currentIndex, animationState, animConfig.textRotation.interval, updateTextContent, isReducedMotion]);
+
+  // Enhanced particle system with better performance
+  useEffect(() => {
+    if (!isVisible || !elementsRef.current.particles || isReducedMotion) return;
+
+    const createParticle = () => {
+      try {
+        const particle = AnimationUtils.createParticle({
+          size: Math.random() * 3 + 1,
+          color: animConfig.particles.colors[Math.floor(Math.random() * animConfig.particles.colors.length)],
+          opacity: Math.random() * 0.5 + 0.2,
+          duration: Math.random() * 3 + 2,
+          delay: Math.random() * 0.5,
+        });
+
+        elementsRef.current.particles?.appendChild(particle);
+
+        // Use requestAnimationFrame for smoother cleanup
+        const timeoutId = window.setTimeout(() => {
+          if (particle.parentNode) {
+            particle.parentNode.removeChild(particle);
+          }
+          // Remove from timeout refs
+          const index = particleTimeoutRefs.current.indexOf(timeoutId);
+          if (index > -1) {
+            particleTimeoutRefs.current.splice(index, 1);
+          }
+        }, 6000);
+        
+        particleTimeoutRefs.current.push(timeoutId);
+      } catch (error) {
+        console.warn('Failed to create particle:', error);
+      }
+    };
+
+    // Create initial particles with staggered timing
+    const initialParticles = Math.min(animConfig.particles.count, 10); // Cap for performance
+    for (let i = 0; i < initialParticles; i++) {
+      const timeoutId = window.setTimeout(() => createParticle(), i * 500);
+      particleTimeoutRefs.current.push(timeoutId);
     }
 
-    // Continue creating particles
-    const particleInterval = setInterval(createParticle, 2000);
+    // Continue creating particles at intervals
+    const particleInterval = window.setInterval(createParticle, 2000);
     cleanupFunctions.current.push(() => clearInterval(particleInterval));
 
     return () => {
       clearInterval(particleInterval);
+      // Clean up any pending timeouts
+      particleTimeoutRefs.current.forEach(timeoutId => clearTimeout(timeoutId));
+      particleTimeoutRefs.current = [];
     };
-  }, [isVisible, animConfig.particles]);
+  }, [isVisible, animConfig.particles, isReducedMotion]);
 
-  // Enhanced glow effect
+  // Enhanced glow effect with performance optimization
   useEffect(() => {
-    if (!isVisible || !elementsRef.current.glow) return;
+    if (!isVisible || !elementsRef.current.glow || isReducedMotion) return;
 
     const glowElement = elementsRef.current.glow as HTMLElement;
     if (!glowElement) return;
 
     const animateGlow = () => {
-      const intensity = animConfig.glowEffect.intensity;
-      const color = animConfig.glowEffect.color;
-      
-      glowElement.style.setProperty('--glow-intensity', intensity.toString());
-      glowElement.style.setProperty('--glow-color', color);
-      
-      // Pulse effect
-      glowElement.classList.add('animate-pulse');
-      
-      setTimeout(() => {
-        glowElement.classList.remove('animate-pulse');
-      }, 2000);
+      try {
+        const intensity = animConfig.glowEffect.intensity;
+        const color = animConfig.glowEffect.color;
+        
+        glowElement.style.setProperty('--glow-intensity', intensity.toString());
+        glowElement.style.setProperty('--glow-color', color);
+        
+        // Use CSS animation instead of classes for better performance
+        glowElement.style.animation = 'glow-pulse 2s ease-in-out';
+        
+        const timeoutId = window.setTimeout(() => {
+          glowElement.style.animation = '';
+        }, 2000);
+        
+        particleTimeoutRefs.current.push(timeoutId);
+      } catch (error) {
+        console.warn('Glow animation failed:', error);
+      }
     };
 
     animateGlow();
-    const glowInterval = setInterval(animateGlow, 4000);
+    const glowInterval = window.setInterval(animateGlow, 4000);
     cleanupFunctions.current.push(() => clearInterval(glowInterval));
 
     return () => {
       clearInterval(glowInterval);
     };
-  }, [isVisible, animConfig.glowEffect]);
+  }, [isVisible, animConfig.glowEffect, isReducedMotion]);
 
-  // Parallax scroll effect
+  // Parallax scroll effect with requestAnimationFrame
   useEffect(() => {
+    if (isReducedMotion) return;
+
+    let ticking = false;
+
     const handleScroll = () => {
-      if (!elementsRef.current.panel) return;
+      if (!ticking) {
+        animationFrameRef.current = requestAnimationFrame(() => {
+          try {
+            if (!elementsRef.current.panel) return;
 
-      const rect = elementsRef.current.panel.getBoundingClientRect();
-      const scrollProgress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / window.innerHeight));
-      
-      // Apply parallax to background
-      const bgElement = elementsRef.current.background as HTMLElement;
-      if (bgElement) {
-        const translateY = (scrollProgress - 0.5) * 20;
-        bgElement.style.transform = `translateY(${translateY}px)`;
-      }
+            const rect = elementsRef.current.panel.getBoundingClientRect();
+            const scrollProgress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / window.innerHeight));
+            
+            // Apply parallax to background
+            const bgElement = elementsRef.current.background as HTMLElement;
+            if (bgElement) {
+              const translateY = (scrollProgress - 0.5) * 20;
+              bgElement.style.transform = `translateY(${translateY}px)`;
+            }
 
-      // Apply subtle rotation to decorative elements
-      const decorElement = elementsRef.current.decoration as HTMLElement;
-      if (decorElement) {
-        const rotation = scrollProgress * 15;
-        decorElement.style.transform = `rotate(${rotation}deg)`;
+            // Apply subtle rotation to decorative elements
+            const decorElement = elementsRef.current.decoration as HTMLElement;
+            if (decorElement) {
+              const rotation = scrollProgress * 15;
+              decorElement.style.transform = `rotate(${rotation}deg)`;
+            }
+          } catch (error) {
+            console.warn('Parallax scroll failed:', error);
+          }
+          
+          ticking = false;
+        });
+        ticking = true;
       }
     };
 
-    const throttledScroll = AnimationUtils.throttle(handleScroll, 16);
-    window.addEventListener('scroll', throttledScroll, { passive: true });
-    cleanupFunctions.current.push(() => window.removeEventListener('scroll', throttledScroll));
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    cleanupFunctions.current.push(() => window.removeEventListener('scroll', handleScroll));
 
-    return () => window.removeEventListener('scroll', throttledScroll);
-  }, []);
-
-  // Magnetic hover effect
-  useEffect(() => {
-    const handleMouseMove = (e: MouseEvent) => {
-      if (!elementsRef.current.panel) return;
-
-      const rect = elementsRef.current.panel.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
-      
-      const centerX = rect.width / 2;
-      const centerY = rect.height / 2;
-      
-      const magneticStrength = 0.1;
-      const offsetX = (x - centerX) * magneticStrength;
-      const offsetY = (y - centerY) * magneticStrength;
-      
-      const magneticElement = elementsRef.current.magnetic as HTMLElement;
-      if (magneticElement) {
-        magneticElement.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+    return () => {
+      window.removeEventListener('scroll', handleScroll);
+      if (animationFrameRef.current) {
+        cancelAnimationFrame(animationFrameRef.current);
       }
+    };
+  }, [isReducedMotion]);
+
+  // Magnetic hover effect with performance optimization
+  useEffect(() => {
+    if (isReducedMotion) return;
+
+    let animationId: number | null = null;
+
+    const handleMouseMove = (e: MouseEvent) => {
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
+
+      animationId = requestAnimationFrame(() => {
+        try {
+          if (!elementsRef.current.panel) return;
+
+          const rect = elementsRef.current.panel.getBoundingClientRect();
+          const x = e.clientX - rect.left;
+          const y = e.clientY - rect.top;
+          
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+          
+          const magneticStrength = 0.1;
+          const offsetX = (x - centerX) * magneticStrength;
+          const offsetY = (y - centerY) * magneticStrength;
+          
+          const magneticElement = elementsRef.current.magnetic as HTMLElement;
+          if (magneticElement) {
+            magneticElement.style.transform = `translate(${offsetX}px, ${offsetY}px)`;
+          }
+        } catch (error) {
+          console.warn('Magnetic effect failed:', error);
+        }
+      });
     };
 
     const handleMouseLeave = () => {
-      const magneticElement = elementsRef.current.magnetic as HTMLElement;
-      if (magneticElement) {
-        magneticElement.style.transform = 'translate(0px, 0px)';
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+        animationId = null;
       }
+
+      requestAnimationFrame(() => {
+        try {
+          const magneticElement = elementsRef.current.magnetic as HTMLElement;
+          if (magneticElement) {
+            magneticElement.style.transform = 'translate(0px, 0px)';
+          }
+        } catch (error) {
+          console.warn('Magnetic reset failed:', error);
+        }
+      });
     };
 
     const panel = elementsRef.current.panel;
     if (panel) {
-      panel.addEventListener('mousemove', handleMouseMove);
-      panel.addEventListener('mouseleave', handleMouseLeave);
+      panel.addEventListener('mousemove', handleMouseMove, { passive: true });
+      panel.addEventListener('mouseleave', handleMouseLeave, { passive: true });
       
       cleanupFunctions.current.push(() => {
         panel.removeEventListener('mousemove', handleMouseMove);
@@ -288,8 +408,11 @@ export const NeoGlassPanelAnimations: React.FC<{ config?: Partial<AnimationConfi
         panel.removeEventListener('mousemove', handleMouseMove);
         panel.removeEventListener('mouseleave', handleMouseLeave);
       }
+      if (animationId) {
+        cancelAnimationFrame(animationId);
+      }
     };
-  }, []);
+  }, [isReducedMotion]);
 
   return null; // This component only handles animations, doesn't render anything
 };
