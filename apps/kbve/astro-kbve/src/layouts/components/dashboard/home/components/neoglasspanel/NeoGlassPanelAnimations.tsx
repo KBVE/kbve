@@ -120,20 +120,29 @@ export const NeoGlassPanelAnimations: React.FC<{ config?: Partial<AnimationConfi
 
     const promises: Promise<void>[] = [];
 
-    if (title) {
-      promises.push(AnimationUtils.animateTextTransition(title, titles[index]));
-    }
-    if (subtitle) {
-      promises.push(AnimationUtils.animateTextTransition(subtitle, subtitles[index]));
-    }
-    if (description) {
-      promises.push(AnimationUtils.animateTextTransition(description, descriptions[index]));
-    }
-    if (badge) {
-      promises.push(AnimationUtils.animateTextTransition(badge, badges[index]));
-    }
+    try {
+      if (title) {
+        promises.push(AnimationUtils.animateTextTransition(title, titles[index]));
+      }
+      if (subtitle) {
+        promises.push(AnimationUtils.animateTextTransition(subtitle, subtitles[index]));
+      }
+      if (description) {
+        promises.push(AnimationUtils.animateTextTransition(description, descriptions[index]));
+      }
+      if (badge) {
+        promises.push(AnimationUtils.animateTextTransition(badge, badges[index]));
+      }
 
-    await Promise.all(promises);
+      await Promise.all(promises);
+    } catch (error) {
+      // Fallback to simple text change if animations fail
+      console.warn('Animation failed, using fallback:', error);
+      if (title) title.textContent = titles[index];
+      if (subtitle) subtitle.textContent = subtitles[index];
+      if (description) description.textContent = descriptions[index];
+      if (badge) badge.textContent = badges[index];
+    }
   };
 
   // Enhanced particle system

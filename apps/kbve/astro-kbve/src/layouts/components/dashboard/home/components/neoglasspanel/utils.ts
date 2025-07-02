@@ -2,7 +2,7 @@ import type { ParticleConfig, GlowConfig } from './types';
 
 export class AnimationUtils {
   /**
-   * Creates a smooth transition between text content
+   * Creates a smooth transition between text content without layout shift
    */
   static animateTextTransition(
     element: Element,
@@ -10,23 +10,71 @@ export class AnimationUtils {
     duration: number = 300
   ): Promise<void> {
     return new Promise((resolve) => {
-      // Fade out
+      const parent = element.parentElement;
+      if (!parent) {
+        element.textContent = newText;
+        resolve();
+        return;
+      }
+
+      // Store original styles
+      const originalPosition = (element as HTMLElement).style.position;
+      const originalWidth = (element as HTMLElement).style.width;
+      const originalHeight = (element as HTMLElement).style.height;
+      
+      // Get current dimensions before transition
+      const rect = element.getBoundingClientRect();
+      const parentRect = parent.getBoundingClientRect();
+      
+      // Create a clone for the new text
+      const clone = element.cloneNode(true) as HTMLElement;
+      clone.textContent = newText;
+      clone.style.position = 'absolute';
+      clone.style.top = `${rect.top - parentRect.top}px`;
+      clone.style.left = `${rect.left - parentRect.left}px`;
+      clone.style.width = `${rect.width}px`;
+      clone.style.height = `${rect.height}px`;
+      clone.style.opacity = '0';
+      clone.style.transform = 'scale(0.95)';
+      clone.style.zIndex = '1';
+      
+      // Make parent relative if it isn't already
+      const parentPosition = getComputedStyle(parent).position;
+      if (parentPosition === 'static') {
+        parent.style.position = 'relative';
+      }
+      
+      parent.appendChild(clone);
+      
+      // Fade out original
       element.classList.add('transition-all', 'duration-300');
-      element.classList.add('opacity-0', 'transform', 'scale-95', 'blur-sm');
+      (element as HTMLElement).style.opacity = '0';
+      (element as HTMLElement).style.transform = 'scale(0.95)';
       
       setTimeout(() => {
-        element.textContent = newText;
+        // Fade in clone
+        clone.style.transition = 'all 300ms ease-out';
+        clone.style.opacity = '1';
+        clone.style.transform = 'scale(1)';
         
-        // Fade in
-        element.classList.remove('opacity-0', 'scale-95', 'blur-sm');
-        element.classList.add('opacity-100', 'scale-100');
-        
-        // Cleanup
         setTimeout(() => {
-          element.classList.remove(
-            'transition-all', 'duration-300', 'transform', 
-            'scale-100', 'opacity-100'
-          );
+          // Replace original content and restore
+          element.textContent = newText;
+          (element as HTMLElement).style.opacity = '1';
+          (element as HTMLElement).style.transform = 'scale(1)';
+          (element as HTMLElement).style.position = originalPosition;
+          (element as HTMLElement).style.width = originalWidth;
+          (element as HTMLElement).style.height = originalHeight;
+          
+          // Remove clone and cleanup
+          parent.removeChild(clone);
+          element.classList.remove('transition-all', 'duration-300');
+          
+          // Restore parent position if we changed it
+          if (parentPosition === 'static') {
+            parent.style.position = '';
+          }
+          
           resolve();
         }, duration);
       }, duration / 2);
@@ -245,11 +293,39 @@ export class AnimationUtils {
         background-clip: text;
       }
 
+      /* Layout stability classes */
+      .neoglass-fixed-layout {
+        contain: layout;
+      }
+      
+      .neoglass-text-container {
+        contain: layout style;
+        will-change: auto;
+      }
+      
+      [data-neoglass-title],
+      [data-neoglass-subtitle],
+      [data-neoglass-description],
+      [data-neoglass-badge] {
+        contain: style;
+        word-break: break-word;
+        overflow-wrap: break-word;
+        text-overflow: ellipsis;
+      }
+
+      /* Prevent layout shifts during animations */
+      .neoglass-animating {
+        contain: layout style paint;
+      }
+
       @media (prefers-reduced-motion: reduce) {
         * {
           animation-duration: 0.01ms !important;
           animation-iteration-count: 1 !important;
           transition-duration: 0.01ms !important;
+        }
+        .neoglass-text-container {
+          contain: layout;
         }
       }
     `;

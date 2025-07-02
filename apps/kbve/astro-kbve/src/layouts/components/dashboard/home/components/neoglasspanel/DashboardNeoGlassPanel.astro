@@ -13,6 +13,37 @@ const {
 } = Astro.props;
 ---
 
+<style>
+	.line-clamp-6 {
+		display: -webkit-box;
+		-webkit-line-clamp: 6;
+		-webkit-box-orient: vertical;
+		overflow: hidden;
+	}
+	
+	[data-neoglass-title],
+	[data-neoglass-subtitle],
+	[data-neoglass-description],
+	[data-neoglass-badge] {
+		word-wrap: break-word;
+		overflow-wrap: break-word;
+		hyphens: auto;
+	}
+	
+	/* Ensure fixed layout during animations */
+	.neoglass-fixed-layout {
+		min-height: 400px;
+		display: flex;
+		flex-direction: column;
+	}
+	
+	/* Prevent content jumping */
+	.neoglass-text-container {
+		position: relative;
+		overflow: hidden;
+	}
+</style>
+
 <section class="py-4">
 	<div
 		data-neoglass-panel
@@ -34,37 +65,45 @@ const {
 			style="filter: drop-shadow(0 0 calc(var(--glow-intensity, 0.4) * 10px) var(--glow-color, #22d3ee));">
 		</div>
 		<!-- Left Content Block -->
-		<div class="p-8 flex-1 space-y-5 relative z-20">
+		<div class="p-8 flex-1 space-y-5 relative z-20 neoglass-fixed-layout">
 			<!-- Badge with Animation -->
-			<div
-				class="inline-flex items-center gap-2 text-xs font-semibold bg-cyan-300/90 text-cyan-950 px-3 py-1 rounded-full shadow border border-white/30
-				group-hover:bg-cyan-200/95 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-cyan-400/25
-				transition-all duration-250 ease-out will-change-transform">
-				<svg
-					xmlns="http://www.w3.org/2000/svg"
-					class="w-4 h-4 group-hover:rotate-90 transition-transform duration-400 ease-out will-change-transform"
-					fill="currentColor"
-					viewBox="0 0 24 24">
-					<circle cx="12" cy="12" r="10"></circle>
-				</svg>
-				<span data-neoglass-badge class="transition-all duration-300">{badge}</span>
+			<div class="neoglass-text-container">
+				<div
+					class="inline-flex items-center gap-2 text-xs font-semibold bg-cyan-300/90 text-cyan-950 px-3 py-1 rounded-full shadow border border-white/30
+					group-hover:bg-cyan-200/95 group-hover:scale-105 group-hover:shadow-lg group-hover:shadow-cyan-400/25
+					transition-all duration-250 ease-out will-change-transform h-7 min-w-[4rem]">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						class="w-4 h-4 group-hover:rotate-90 transition-transform duration-400 ease-out will-change-transform flex-shrink-0"
+						fill="currentColor"
+						viewBox="0 0 24 24">
+						<circle cx="12" cy="12" r="10"></circle>
+					</svg>
+					<span data-neoglass-badge class="transition-all duration-300 whitespace-nowrap overflow-hidden">{badge}</span>
+				</div>
 			</div>
 
 			<!-- Title with Glow Effect -->
-			<h2 data-neoglass-title class="text-3xl sm:text-4xl font-bold text-white group-hover:text-cyan-50 
-			         group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]
-			         transition-all duration-300 ease-out will-change-auto">
-				{title}
-			</h2>
-			<p data-neoglass-subtitle class="text-base text-zinc-300 group-hover:text-zinc-200 transition-all duration-300">
-				{subtitle}
-			</p>
+			<div class="h-20 sm:h-24 flex items-start neoglass-text-container">
+				<h2 data-neoglass-title class="text-3xl sm:text-4xl font-bold text-white group-hover:text-cyan-50 
+				         group-hover:drop-shadow-[0_0_8px_rgba(34,211,238,0.4)]
+				         transition-all duration-300 ease-out will-change-auto leading-tight w-full">
+					{title}
+				</h2>
+			</div>
+			
+			<div class="h-12 flex items-start neoglass-text-container">
+				<p data-neoglass-subtitle class="text-base text-zinc-300 group-hover:text-zinc-200 transition-all duration-300 leading-relaxed w-full">
+					{subtitle}
+				</p>
+			</div>
 
 			<!-- Description Block with Subtle Animation -->
-			<div
-				class="mt-6 border-t border-white/10 group-hover:border-cyan-400/30 pt-6 text-base leading-relaxed text-zinc-300 
-				       group-hover:text-zinc-200 transition-all duration-250 delay-50">
-				<span data-neoglass-description class="transition-all duration-300">{description}</span>
+			<div class="mt-6 border-t border-white/10 group-hover:border-cyan-400/30 pt-6 h-32 overflow-hidden neoglass-text-container">
+				<span data-neoglass-description class="block text-base leading-relaxed text-zinc-300 
+				       group-hover:text-zinc-200 transition-all duration-300 line-clamp-6 w-full">
+					{description}
+				</span>
 			</div>
 
 			<!-- Enhanced Button with Multiple Hover States -->
