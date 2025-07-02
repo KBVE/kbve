@@ -80,7 +80,7 @@ const StatusModal = ({ open, loading, error, success, onClose }: { open: boolean
 							</div>
 						</div>
 						<div className="flex gap-2">
-							<a 
+                                                        <a data-astro-prefetch
 								href="/profile" 
 								className="px-4 py-2 rounded bg-gradient-to-r from-cyan-600 to-purple-600 hover:from-cyan-700 hover:to-purple-700 text-white font-bold shadow transition"
 							>
@@ -460,8 +460,8 @@ export const Register = () => {
 					/>
 					<label htmlFor="legal-agree" className="text-sm text-zinc-300 leading-relaxed">
 						I agree to the{' '}
-						<a 
-							href="https://kbve.com/legal/" 
+                                                <a data-astro-prefetch
+                                                        href="https://kbve.com/legal/"
 							target="_blank" 
 							rel="noopener noreferrer" 
 							className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors duration-300"
@@ -469,8 +469,8 @@ export const Register = () => {
 							Terms of Service
 						</a>
 						{' '}and{' '}
-						<a 
-							href="https://kbve.com/privacy/" 
+                                                <a data-astro-prefetch
+                                                        href="https://kbve.com/privacy/"
 							target="_blank" 
 							rel="noopener noreferrer" 
 							className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors duration-300"
@@ -515,8 +515,8 @@ export const Register = () => {
 				<div className="mt-6 text-center">
 					<span className="text-zinc-400">
 						Already have an account?{' '}
-						<a 
-							href="/login" 
+                                                <a data-astro-prefetch
+                                                        href="/login"
 							className="text-cyan-400 hover:text-cyan-300 underline underline-offset-2 transition-colors duration-300 font-medium"
 						>
 							Sign in here
