@@ -43,6 +43,7 @@ const supportOptions = [
         <p class="text-lg text-zinc-300">{tagline}</p>
         <a
           href="/contact"
+          data-astro-prefetch
           class="inline-block bg-gradient-to-br from-cyan-400 to-purple-500 text-neutral-800 font-semibold py-2 px-6 rounded-full shadow hover:from-cyan-300 hover:to-purple-400 transition-all">
           Contact Us
         </a>
@@ -67,6 +68,7 @@ const supportOptions = [
         {supportOptions.map((opt) => (
           <a
             href={opt.href}
+            data-astro-prefetch
             class="group relative rounded-3xl p-6 bg-white/5 backdrop-blur-md ring-1 ring-white/10 ring-offset-1 ring-offset-white/5 shadow-[inset_0_0_0.5px_rgba(255,255,255,0.15),0_20px_40px_rgba(0,0,0,0.4)] hover:shadow-[0_0_0_3px_rgba(103,232,249,0.6),0_0_35px_12px_rgba(192,132,252,0.35)] transition-all duration-300">
             <div class="absolute inset-[8px] rounded-2xl pointer-events-none border border-white/10 group-hover:border-cyan-400"></div>
             <div class="relative space-y-4 z-10">
