@@ -15,7 +15,7 @@ const subTitle: string = `Please wait while we complete your login.`;
       <div class="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-cyan-400 mb-6"></div>
       <h1 class="text-3xl font-bold text-neutral-900 dark:text-white mb-2">{title}</h1>
       <h2 class="text-lg text-neutral-700 dark:text-zinc-200 mb-4">{subTitle}</h2>
-      <p class="text-neutral-600 dark:text-zinc-400 text-center mb-2">You are being securely logged in via OAuth. If you are not redirected automatically, <a href="/profile" class="underline text-cyan-600 dark:text-cyan-400">click here</a>.</p>
+      <p class="text-neutral-600 dark:text-zinc-400 text-center mb-2">You are being securely logged in via OAuth. If you are not redirected automatically, <a href="/profile" data-astro-prefetch class="underline text-cyan-600 dark:text-cyan-400">click here</a>.</p>
       <div id="oauth-handler">
         <OAuth client:only="react" />
       </div>
