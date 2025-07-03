@@ -35,15 +35,6 @@ const MiniNav = ({ className }: MiniNavProps) => {
 
     const initializeComponent = async () => {
       try {
-        // Debug logging - just read the current atom values
-        console.log('MiniNav Debug:', {
-          user: user,
-          userId: userId,
-          isGuest: isGuest,
-          displayName: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User',
-          avatarUrl: user?.user_metadata?.avatar_url || user?.user_metadata?.picture
-        });
-        
         // Simulate loading time for better UX
         await new Promise(resolve => setTimeout(resolve, 800));
         
@@ -88,9 +79,9 @@ const MiniNav = ({ className }: MiniNavProps) => {
   ];
 
   const userMenuItems = [
-    { icon: User, label: 'Profile', href: '/dashboard/profile' },
-    { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
-    { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
+    { icon: User, label: 'Profile', href: '/profile' },
+    { icon: Settings, label: 'Settings', href: '/settings' },
+    { icon: Bell, label: 'Notifications', href: '/notifications' },
     { icon: LogOut, label: 'Sign Out', href: '/logout', divider: true },
   ];
 
@@ -118,7 +109,7 @@ const MiniNav = ({ className }: MiniNavProps) => {
       }}
     >
       {/* Navigation Items */}
-      <nav className="hidden md:flex items-center space-x-2">
+      <nav className="hidden md:flex items-center space-x-3 mr-4">
         {navItems.map((item) => (
           <a
             key={item.label}
@@ -136,39 +127,33 @@ const MiniNav = ({ className }: MiniNavProps) => {
       <div className="relative">
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-          className="flex items-center space-x-3 p-2 rounded-lg hover:bg-zinc-800 transition-all duration-200"
+          className="flex items-center space-x-4 px-4 py-3 rounded-lg hover:bg-zinc-800 transition-all duration-200"
         >
           {/* User Avatar */}
-          <div className="relative">
+          <div className="relative w-12 h-12">
             {avatarUrl ? (
               <img
                 src={avatarUrl}
                 alt={displayName}
-                className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700 hover:border-cyan-500 transition-colors duration-200"
-                onError={(e) => {
-                  console.log('Avatar image failed to load:', avatarUrl);
-                }}
+                className="w-full h-full rounded-full object-cover border-2 border-zinc-700 hover:border-cyan-500 transition-colors duration-200"
               />
             ) : (
-              <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm border-2 border-zinc-700 hover:border-cyan-500 transition-colors duration-200">
+              <div className="w-full h-full rounded-full bg-gradient-to-br from-cyan-500 to-blue-600 flex items-center justify-center text-white font-semibold text-sm border-2 border-zinc-700 hover:border-cyan-500 transition-colors duration-200">
                 {userInitials}
               </div>
             )}
+
             {!isGuest && (
-              <div className="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 rounded-full border-2 border-zinc-900"></div>
+              <span className="absolute -bottom-1 -right-1 w-4 h-4 rounded-full bg-green-500 border-2 border-zinc-900"></span>
             )}
           </div>
 
-          {/* User Info - Always show for debugging */}
-          <div className="hidden sm:block text-left">
-            <p className="text-sm font-medium text-white">{displayName}</p>
-            <p className="text-xs text-zinc-400">
+          {/* User Info */}
+          <div className="hidden sm:flex flex-col justify-center text-left leading-tight">
+            <span className="text-sm font-semibold text-white truncate">{displayName}</span>
+            <span className="text-xs text-zinc-400 truncate">
               {isGuest ? 'Guest Account' : user?.email || 'Member'}
-            </p>
-            {/* Debug info */}
-            <p className="text-xs text-red-400">
-              Debug: {isGuest ? 'Guest' : 'Logged In'} | UserID: {userId ? 'Yes' : 'No'}
-            </p>
+            </span>
           </div>
 
           {/* Dropdown Arrow */}
