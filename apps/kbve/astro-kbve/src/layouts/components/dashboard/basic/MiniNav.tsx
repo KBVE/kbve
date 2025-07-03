@@ -91,7 +91,7 @@ const MiniNav = ({ className }: MiniNavProps) => {
     { icon: User, label: 'Profile', href: '/dashboard/profile' },
     { icon: Settings, label: 'Settings', href: '/dashboard/settings' },
     { icon: Bell, label: 'Notifications', href: '/dashboard/notifications' },
-    { icon: LogOut, label: 'Sign Out', href: '/auth/signout', divider: true },
+    { icon: LogOut, label: 'Sign Out', href: '/logout', divider: true },
   ];
 
   if (loading) {
