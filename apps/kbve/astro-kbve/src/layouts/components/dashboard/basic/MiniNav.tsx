@@ -1,7 +1,7 @@
 import { useState, useEffect, useMemo } from 'react';
 import { useStore } from '@nanostores/react';
 import { clsx } from 'src/utils/tw';
-import { userAtom, userIdAtom, userBalanceAtom, syncUserBalance, syncSupabaseUser } from 'src/layouts/client/supabase/profile/userstate';
+import { userAtom, userIdAtom, userBalanceAtom } from 'src/layouts/client/supabase/profile/userstate';
 import { BarChart3, TrendingUp, Download, Share, User, Settings, LogOut, Bell } from 'lucide-react';
 
 interface MiniNavProps {
@@ -35,10 +35,14 @@ const MiniNav = ({ className }: MiniNavProps) => {
 
     const initializeComponent = async () => {
       try {
-        syncSupabaseUser();
-        if (userId) {
-          syncUserBalance(userId);
-        }
+        // Debug logging - just read the current atom values
+        console.log('MiniNav Debug:', {
+          user: user,
+          userId: userId,
+          isGuest: isGuest,
+          displayName: user?.user_metadata?.full_name || user?.email?.split('@')[0] || 'User',
+          avatarUrl: user?.user_metadata?.avatar_url || user?.user_metadata?.picture
+        });
         
         // Simulate loading time for better UX
         await new Promise(resolve => setTimeout(resolve, 800));
@@ -53,7 +57,7 @@ const MiniNav = ({ className }: MiniNavProps) => {
     };
 
     initializeComponent();
-  }, [userId]);
+  }, [user, userId, isGuest]);
 
   // Get user display name
   const displayName = useMemo(() => {
@@ -97,10 +101,21 @@ const MiniNav = ({ className }: MiniNavProps) => {
   return (
     <div 
       className={clsx(
-        "flex items-center space-x-4 absolute top-0 left-0 w-full transition-opacity duration-500",
+        "flex items-center space-x-4 transition-opacity duration-500",
         visible ? "opacity-100" : "opacity-0",
         className
       )}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        right: 0,
+        height: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'flex-end',
+        paddingRight: '0'
+      }}
     >
       {/* Navigation Items */}
       <nav className="hidden md:flex items-center space-x-2">
@@ -130,6 +145,9 @@ const MiniNav = ({ className }: MiniNavProps) => {
                 src={avatarUrl}
                 alt={displayName}
                 className="w-10 h-10 rounded-full object-cover border-2 border-zinc-700 hover:border-cyan-500 transition-colors duration-200"
+                onError={(e) => {
+                  console.log('Avatar image failed to load:', avatarUrl);
+                }}
               />
             ) : (
               <div className="w-10 h-10 bg-gradient-to-br from-cyan-500 to-blue-600 rounded-full flex items-center justify-center text-white font-semibold text-sm border-2 border-zinc-700 hover:border-cyan-500 transition-colors duration-200">
@@ -141,11 +159,15 @@ const MiniNav = ({ className }: MiniNavProps) => {
             )}
           </div>
 
-          {/* User Info */}
+          {/* User Info - Always show for debugging */}
           <div className="hidden sm:block text-left">
             <p className="text-sm font-medium text-white">{displayName}</p>
             <p className="text-xs text-zinc-400">
               {isGuest ? 'Guest Account' : user?.email || 'Member'}
+            </p>
+            {/* Debug info */}
+            <p className="text-xs text-red-400">
+              Debug: {isGuest ? 'Guest' : 'Logged In'} | UserID: {userId ? 'Yes' : 'No'}
             </p>
           </div>
 
@@ -165,7 +187,7 @@ const MiniNav = ({ className }: MiniNavProps) => {
 
         {/* Dropdown Menu */}
         {isDropdownOpen && (
-          <div className="absolute right-0 mt-2 w-48 bg-zinc-800 rounded-lg shadow-lg border border-zinc-700 py-1 z-50">
+          <div className="fixed top-16 right-4 w-48 bg-zinc-800 rounded-lg shadow-lg border border-zinc-700 py-1 z-[9999]">
             {userMenuItems.map((item) => (
               <div key={item.label}>
                 {item.divider && <hr className="border-zinc-700 my-1" />}
