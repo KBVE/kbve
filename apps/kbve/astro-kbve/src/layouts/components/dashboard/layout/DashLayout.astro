@@ -9,6 +9,7 @@ import TableCard from 'src/layouts/components/dashboard/home/components/TableCar
 import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
 import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
 import DashboardFooter from 'src/layouts/components/dashboard/footer/DashboardFooter.astro';
+import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 ---
 
 <style>
@@ -58,18 +59,23 @@ import DashboardFooter from 'src/layouts/components/dashboard/footer/DashboardFo
 						</p>
 					</div>
 				</div>
-				<div class="flex items-center space-x-4">
-					<!-- User Avatar Skeleton -->
-					<div
-						class="w-10 h-10 bg-zinc-800 rounded-full animate-pulse">
-					</div>
-					<div class="hidden sm:block">
-						<div class="h-4 bg-zinc-800 rounded w-24 animate-pulse">
-						</div>
+				<div class="relative flex items-center space-x-4">
+					<!-- Avatar Skeleton -->
+					<div class="flex items-center space-x-4" data-skeleton="avatar">
+						<!-- User Avatar Skeleton -->
 						<div
-							class="h-3 bg-zinc-800 rounded w-16 mt-1 animate-pulse">
+							class="w-10 h-10 bg-zinc-800 rounded-full animate-pulse">
+						</div>
+						<div class="hidden sm:block">
+							<div class="h-4 bg-zinc-800 rounded w-24 animate-pulse">
+							</div>
+							<div
+								class="h-3 bg-zinc-800 rounded w-16 mt-1 animate-pulse">
+							</div>
 						</div>
 					</div>
+					<!-- MiniNav Component -->
+					<MiniNav client:only="react" />
 				</div>
 			</div>
 		</div>
