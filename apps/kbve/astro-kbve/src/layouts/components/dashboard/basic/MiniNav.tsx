@@ -92,7 +92,7 @@ const MiniNav = ({ className }: MiniNavProps) => {
   return (
     <div 
       className={clsx(
-        "flex items-center space-x-4 transition-opacity duration-500",
+        "flex items-center space-x-4 transition-opacity duration-500 z-50",
         visible ? "opacity-100" : "opacity-0",
         className
       )}
@@ -105,7 +105,8 @@ const MiniNav = ({ className }: MiniNavProps) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingRight: '0'
+        paddingRight: '0',
+        zIndex: 50
       }}
     >
       {/* Navigation Items */}
