@@ -1,5 +1,6 @@
 ---
 import ReactSidebarNav from './ReactSidebar';
+import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 ---
 
 <aside
@@ -159,10 +160,7 @@ import ReactSidebarNav from './ReactSidebar';
 			</div>
 
       <!-- Google Search -->
-         <script is:inline async src="https://cse.google.com/cse.js?cx=partner-pub-3698214103602019:ab1srxiqkuo">
-        </script>
-        <div class="gcse-searchbox-only"></div>
-
+      <SearchBar />
 
 			<!-- Custom slot content in Quick Stats area -->
 			<div class="mt-4 pt-4 border-t border-zinc-600/50" id="slot-nav">
