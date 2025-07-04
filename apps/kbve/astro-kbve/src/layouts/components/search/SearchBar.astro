@@ -1,9 +1,38 @@
 ---
 
 ---
-<script is:inline async src="https://cse.google.com/cse.js?cx=partner-pub-3698214103602019:ab1srxiqkuo">
-        </script>
 
-        <div class="text-black">
-        <div class="gcse-searchbox-only"></div>
-        </div>
+<script
+	is:inline
+	async
+	src="https://cse.google.com/cse.js?cx=partner-pub-3698214103602019:ab1srxiqkuo"
+></script>
+
+<div class="p-4 rounded-lg text-black">
+	<div class="gcse-searchbox-only"></div>
+</div>
+
+<script is:inline>
+
+    const onSearchBoxLoad = () => {
+			console.log('[CSE] SearchBox rendered — applying styles');
+
+			const apply = (selector, styles) => {
+				const el = document.querySelector(selector);
+				if (el instanceof HTMLElement) {
+					Object.assign(el.style, styles);
+				}
+			};
+
+			const applyToAll = (selector, styles) => {
+				const elements = document.querySelectorAll(selector);
+				elements.forEach((el) => {
+					if (el instanceof HTMLElement) {
+						Object.assign(el.style, styles);
+					}
+				});
+			};
+
+    }
+
+</script>
