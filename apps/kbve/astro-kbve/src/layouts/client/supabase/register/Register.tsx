@@ -215,7 +215,7 @@ export const Register = () => {
 			setLoading(false);
 			// Always reset hCaptcha after submission attempt, even if error is set in try
 			if (hcaptchaRef.current) {
-				hcaptchaRef.current.reset();
+				hcaptchaRef.current.resetCaptcha();
 				setCaptchaToken(null);
 			}
 		}
