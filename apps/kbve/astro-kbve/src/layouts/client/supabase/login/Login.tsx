@@ -18,7 +18,7 @@ const HCAPTCHA_SITE_KEY = 'e19cf4a6-2168-49a2-88fe-716e97569e88';
 
 // Hide skeleton loader when component mounts
 const hideSkeleton = () => {
-  const skeleton = document.querySelector('[data-skeleton="login"]');
+  const skeleton = document.querySelector('[data-skeleton="login"]') as HTMLElement;
   if (skeleton) {
     skeleton.style.display = 'none';
   }
@@ -99,6 +99,8 @@ export const Login = () => {
   });
 
   const [modalOpen, setModalOpen] = useState(false);
+  const [showTooltip, setShowTooltip] = useState(false);
+  const [tooltipTimeoutId, setTooltipTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
   const hcaptchaRef = useRef<any>(null);
 
   // Hide skeleton on component mount
@@ -121,15 +123,20 @@ export const Login = () => {
     setLoading(true);
     try {
       await loginUser();
-    } catch (err: any) {
-      setError(err.message || 'Login failed.');
-    } finally {
-      setLoading(false);
-      // Reset hCaptcha after submission attempt
+      // Success - reset hCaptcha
       if (hcaptchaRef.current) {
-        hcaptchaRef.current.reset();
+        hcaptchaRef.current.resetCaptcha();
         setCaptchaToken(null);
       }
+    } catch (err: any) {
+      setError(err.message || 'Login failed.');
+      // Error - reset hCaptcha
+      if (hcaptchaRef.current) {
+        hcaptchaRef.current.resetCaptcha();
+        setCaptchaToken(null);
+      }
+    } finally {
+      setLoading(false);
     }
   }, [captchaToken, setError, setSuccess, setLoading, setCaptchaToken]);
 
@@ -158,6 +165,45 @@ export const Login = () => {
     setPassword(value);
     setValue('password', value);
   }, [setPassword, setValue]);
+
+  // Tooltip handlers for sign-in button
+  const handleSignInMouseEnter = useCallback(() => {
+    if (!captchaToken) {
+      setShowTooltip(true);
+      
+      // Clear any existing timeout when user hovers
+      if (tooltipTimeoutId) {
+        clearTimeout(tooltipTimeoutId);
+        setTooltipTimeoutId(null);
+      }
+    }
+  }, [captchaToken, tooltipTimeoutId]);
+
+  const handleSignInMouseLeave = useCallback(() => {
+    if (!captchaToken) {
+      // Add a delay before hiding tooltip on mouse leave
+      const timeoutId = setTimeout(() => {
+        setShowTooltip(false);
+      }, 1000); // 1 second delay before hiding on mouse leave
+      
+      setTooltipTimeoutId(timeoutId);
+    }
+  }, [captchaToken, showTooltip]);
+
+  // Clear tooltip when captcha is solved
+  useEffect(() => {
+    if (captchaToken && showTooltip) {
+      const timeoutId = setTimeout(() => {
+        setShowTooltip(false);
+      }, 1500); // 1.5 second delay after captcha is solved
+      
+      setTooltipTimeoutId(timeoutId);
+      
+      return () => {
+        clearTimeout(timeoutId);
+      };
+    }
+  }, [captchaToken, showTooltip]);
 
   return (
     <>
@@ -308,26 +354,43 @@ export const Login = () => {
         </div>
 
         {/* Submit Button */}
-        <button
-          type="submit"
-          disabled={loading || !captchaToken}
-          className={twMerge(
-            'w-full py-3 px-4 rounded-lg font-semibold text-white shadow-lg',
-            'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400',
-            'focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2',
-            'transition-all duration-200 transform active:scale-[0.98]',
-            (loading || !captchaToken) && 'opacity-60 cursor-not-allowed hover:from-cyan-500 hover:to-purple-500'
-          )}
+        <div 
+          className="relative"
+          onMouseEnter={handleSignInMouseEnter}
+          onMouseLeave={handleSignInMouseLeave}
         >
-          {loading ? (
-            <div className="flex items-center justify-center gap-2">
-              <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
-              Signing in...
+          <button
+            type="submit"
+            disabled={loading || !captchaToken}
+            className={twMerge(
+              'w-full py-3 px-4 rounded-lg font-semibold text-white shadow-lg',
+              'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400',
+              'focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2',
+              'transition-all duration-200 transform active:scale-[0.98]',
+              (loading || !captchaToken) && 'opacity-60 cursor-not-allowed hover:from-cyan-500 hover:to-purple-500'
+            )}
+          >
+            {loading ? (
+              <div className="flex items-center justify-center gap-2">
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+                Signing in...
+              </div>
+            ) : (
+              'Sign In'
+            )}
+          </button>
+          
+          {/* Tooltip */}
+          {showTooltip && !captchaToken && (
+            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 
+              bg-red-600 text-white text-sm rounded-lg shadow-lg z-50 whitespace-nowrap
+              pointer-events-none">
+              Please complete the captcha to continue
+              <div className="absolute top-full left-1/2 transform -translate-x-1/2 
+                border-l-4 border-r-4 border-t-4 border-transparent border-t-red-600"></div>
             </div>
-          ) : (
-            'Sign In'
           )}
-        </button>
+        </div>
 
         {/* Footer Links */}
         <div className="text-center space-y-2 pt-4 border-t border-zinc-700/50">
