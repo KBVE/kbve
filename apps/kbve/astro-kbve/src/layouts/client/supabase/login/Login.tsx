@@ -333,16 +333,16 @@ export const Login = () => {
         <div className="text-center space-y-2 pt-4 border-t border-zinc-700/50">
           <p className="text-zinc-400 text-sm">
             Don't have an account?{' '}
-            <a 
-              href="/register" 
+            <a data-astro-prefetch
+              href="/register"
               className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-200"
             >
               Create one here
             </a>
           </p>
           <p className="text-zinc-500 text-sm">
-            <a 
-              href="/reset" 
+            <a data-astro-prefetch
+              href="/reset"
               className="hover:text-zinc-400 transition-colors duration-200"
             >
               Forgot your password?

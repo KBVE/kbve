@@ -40,7 +40,7 @@ const MemberCard: React.FC = () => {
     return (
       <div className={twMerge('flex flex-col items-center justify-center gap-4 p-6 rounded-xl bg-gradient-to-br from-cyan-100/60 to-purple-100/40 dark:from-cyan-900/30 dark:to-purple-900/20 shadow-lg')}> 
         <div className="text-lg font-semibold text-neutral-700 dark:text-neutral-200">No member profile found.</div>
-        <a
+        <a data-astro-prefetch
           href="/onboarding"
           className={twMerge(
             'inline-block px-5 py-2 rounded-lg bg-gradient-to-r from-cyan-400 to-purple-400 text-white font-bold shadow hover:from-cyan-500 hover:to-purple-500 transition-colors duration-200',
