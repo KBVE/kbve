@@ -173,7 +173,7 @@ export const SolanaSignInButton: React.FC<{ captchaToken?: string | null; captch
       // Add a delay before hiding tooltip on mouse leave
       const timeoutId = setTimeout(() => {
         setShowTooltip(false);
-      }, 2000); // 2 second delay before hiding on mouse leave
+      }, 1000); // 2 second delay before hiding on mouse leave
       
       setTooltipTimeoutId(timeoutId);
     }
@@ -225,7 +225,7 @@ export const SolanaSignInButton: React.FC<{ captchaToken?: string | null; captch
       {/* Tooltip that appears on hover when disabled */}
       {showTooltip && isDisabled && (
         <div 
-          className="fixed z-[9999] px-3 py-2 text-sm text-white bg-black rounded shadow-lg pointer-events-none"
+          className="absolute z-[9999] px-3 py-2 text-sm text-white bg-black rounded shadow-lg pointer-events-none"
           style={{
             left: '50%',
             transform: 'translateX(-50%)',
