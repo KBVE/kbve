@@ -55,6 +55,12 @@ import ReactSidebarNav from './ReactSidebar';
       <div class="absolute top-0 left-0 right-0 z-10" id="dynamic-nav">
         <ReactSidebarNav client:only="react" />
       </div>
+
+      <div class="relative z-10" id="slot-nav">
+        <slot name="aside" />
+      </div>
+
+
     </div>
 
 
