@@ -91,7 +91,13 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 			</div>
 
 			<!-- Left Sidebar -->
-			<AsideBar />
+			<AsideBar>
+				<div slot="aside">
+					<!-- Custom aside content can be passed here -->
+					<!-- You can add custom navigation or content here -->
+					<slot name="aside" />
+				</div>
+			</AsideBar>
 
 			<main class="flex-1 min-w-0 relative z-0">
 				<slot />
