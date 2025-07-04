@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { clsx } from 'src/utils/tw';
 import { userAtom, userIdAtom, userBalanceAtom } from 'src/layouts/client/supabase/profile/userstate';
@@ -15,6 +15,7 @@ const MiniNav = ({ className }: MiniNavProps) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [visible, setVisible] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
 
   const isGuest = useMemo(() => !user || !userId, [user, userId]);
 
@@ -49,6 +50,31 @@ const MiniNav = ({ className }: MiniNavProps) => {
 
     initializeComponent();
   }, [user, userId, isGuest]);
+
+  // Handle clicks outside dropdown to close it
+  useEffect(() => {
+    const handleMouseDownOutside = (event: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    const handleTouchStartOutside = (event: TouchEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    };
+
+    if (isDropdownOpen) {
+      document.addEventListener('mousedown', handleMouseDownOutside);
+      document.addEventListener('touchstart', handleTouchStartOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleMouseDownOutside);
+      document.removeEventListener('touchstart', handleTouchStartOutside);
+    };
+  }, [isDropdownOpen]);
 
   // Get user display name
   const displayName = useMemo(() => {
@@ -92,7 +118,7 @@ const MiniNav = ({ className }: MiniNavProps) => {
   return (
     <div 
       className={clsx(
-        "flex items-center space-x-4 transition-opacity duration-500",
+        "flex items-center space-x-4 transition-opacity duration-500 z-50",
         visible ? "opacity-100" : "opacity-0",
         className
       )}
@@ -105,7 +131,8 @@ const MiniNav = ({ className }: MiniNavProps) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'flex-end',
-        paddingRight: '0'
+        paddingRight: '0',
+        zIndex: 50
       }}
     >
       {/* Navigation Items */}
@@ -124,7 +151,7 @@ const MiniNav = ({ className }: MiniNavProps) => {
       </nav>
 
       {/* User Profile Section */}
-      <div className="relative">
+      <div className="relative" ref={dropdownRef}>
         <button
           onClick={() => setIsDropdownOpen(!isDropdownOpen)}
           className="flex items-center space-x-4 px-4 py-3 rounded-lg hover:bg-zinc-800 transition-all duration-200"
@@ -172,7 +199,7 @@ const MiniNav = ({ className }: MiniNavProps) => {
 
         {/* Dropdown Menu */}
         {isDropdownOpen && (
-          <div className="fixed top-16 right-4 w-48 bg-zinc-800 rounded-lg shadow-lg border border-zinc-700 py-1 z-[9999]">
+          <div className="absolute top-full right-0 mt-2 w-48 bg-zinc-800 rounded-lg shadow-lg border border-zinc-700 py-1 z-[9999] transform -translate-x-1/4">
             {userMenuItems.map((item) => (
               <div key={item.label}>
                 {item.divider && <hr className="border-zinc-700 my-1" />}
@@ -189,14 +216,6 @@ const MiniNav = ({ className }: MiniNavProps) => {
           </div>
         )}
       </div>
-
-      {/* Overlay to close dropdown */}
-      {isDropdownOpen && (
-        <div
-          className="fixed inset-0 z-40"
-          onClick={() => setIsDropdownOpen(false)}
-        />
-      )}
     </div>
   );
 };
