@@ -61,12 +61,14 @@ const MembersOnly: React.FC = () => {
           <div className="flex gap-3 mt-2">
             <a
               href="/login"
+              data-astro-prefetch
               className="bg-gradient-to-br from-cyan-400 to-purple-500 text-white font-semibold py-2 px-6 rounded-full shadow hover:from-cyan-300 hover:to-purple-400 hover:shadow-lg transition border-2 border-transparent hover:border-cyan-400"
             >
               Login
             </a>
             <a
               href="/register"
+              data-astro-prefetch
               className="bg-gradient-to-br from-purple-500 to-cyan-400 text-white font-semibold py-2 px-6 rounded-full shadow hover:from-purple-400 hover:to-cyan-300 hover:shadow-lg transition border-2 border-transparent hover:border-purple-400"
             >
               Register
