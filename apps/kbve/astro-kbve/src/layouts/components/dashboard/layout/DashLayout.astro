@@ -21,7 +21,7 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 	class="min-h-screen bg-zinc-900 text-white perspective-distant dashboard-container"
 	data-grid="home">
 	<!-- Header Section -->
-	<header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm relative z-50">
+	<header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm relative z-10">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
 			
@@ -74,20 +74,8 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 	</header>
 
 	<!-- Main Dashboard Container -->
-	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-10">
+	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-0">
 		<div class="flex gap-8">
-			<!-- Sidebar Overlay for Mobile -->
-			<div
-				id="sidebar-overlay"
-				class="fixed inset-0 bg-black/60 z-[55] lg:hidden hidden opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out cursor-pointer">
-				<!-- Close hint for better UX -->
-				<div class="absolute top-4 right-4 bg-zinc-800/90 backdrop-blur-sm rounded-full p-2 text-white/70 pointer-events-none">
-					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
-					</svg>
-				</div>
-			</div>
-
 			<!-- Left Sidebar -->
 			<AsideBar>
 				<div slot="aside">
@@ -147,9 +135,14 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 				overlay.classList.add('opacity-100');
 
 				// Prevent body scroll on mobile but allow sidebar scroll
-				const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
-				document.body.style.overflow = 'hidden';
-				document.body.style.paddingRight = `${scrollbarWidth}px`;
+				const currentScrollY = window.scrollY;
+				document.body.style.position = 'fixed';
+				document.body.style.top = `-${currentScrollY}px`;
+				document.body.style.width = '100%';
+				document.body.style.overflowY = 'scroll'; // Maintain scrollbar space
+				
+				// Store scroll position to restore later
+				document.body.dataset.scrollY = currentScrollY.toString();
 
 				// Focus trap for accessibility
 				const focusableElements = sidebar.querySelectorAll(
@@ -175,10 +168,18 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 				overlay.classList.remove('opacity-100');
 				overlay.classList.add('opacity-0', 'pointer-events-none');
 
-				// Re-enable body scroll and remove padding
-				document.body.style.overflow = '';
-				document.body.style.paddingRight = '';
-				document.body.classList.remove('overflow-hidden');
+				// Re-enable body scroll and restore position
+				const scrollY = document.body.dataset.scrollY;
+				document.body.style.position = '';
+				document.body.style.top = '';
+				document.body.style.width = '';
+				document.body.style.overflowY = '';
+				
+				// Restore scroll position
+				if (scrollY) {
+					window.scrollTo(0, parseInt(scrollY));
+					delete document.body.dataset.scrollY;
+				}
 
 				// Remove escape key listener
 				document.removeEventListener('keydown', handleEscape);
@@ -214,10 +215,12 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 		// Close sidebar button click (may not exist initially if React component isn't loaded)
 		function bindCloseSidebarBtn() {
 			const closeBtn = document.getElementById('close-sidebar');
-			if (closeBtn) {
+			if (closeBtn && !closeBtn.dataset.boundByMain) {
+				closeBtn.dataset.boundByMain = 'true';
 				closeBtn.addEventListener('click', function(e) {
 					e.preventDefault();
 					e.stopPropagation();
+					console.log('Close button clicked');
 					closeSidebar();
 				});
 			}
