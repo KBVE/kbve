@@ -10,8 +10,8 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 </div>
 
 <aside
-	id="sidebar"
-	class="absolute lg:static top-0 left-0 h-full lg:h-auto w-64 bg-zinc-800 lg:bg-transparent border-r border-zinc-700 lg:border-zinc-700 lg:z-auto -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:transition-none shadow-2xl lg:shadow-none flex flex-col z-30">
+	   id="sidebar"
+	   class="absolute lg:static top-0 left-0 h-screen lg:h-auto w-64 bg-zinc-800 lg:bg-transparent border-r border-zinc-700 lg:border-zinc-700 lg:z-auto -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:transition-none shadow-2xl lg:shadow-none flex flex-col z-30 overflow-hidden">
 	<!-- Mobile header with close button - ALWAYS visible on mobile, sticky at top -->
 	<div class="lg:hidden flex items-center justify-between p-4 border-b border-zinc-700 bg-zinc-800 flex-shrink-0">
 		<div class="flex items-center space-x-3 group">
@@ -46,8 +46,8 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 			</div>
 			<span
 				class="text-lg font-extrabold tracking-wider bg-gradient-to-r from-cyan-300 via-cyan-400 to-cyan-500 bg-clip-text text-transparent
-          [text-shadow:0_0_3px_rgba(0,255,255,0.7),0_0_10px_rgba(0,255,255,0.4)]
-          group-hover:animate-glow">
+		  [text-shadow:0_0_3px_rgba(0,255,255,0.7),0_0_10px_rgba(0,255,255,0.4)]
+		  group-hover:animate-glow">
 				KBVE
 			</span>
 		</div>
@@ -71,9 +71,9 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 		</button>
 	</div>
 
-	<!-- Scrollable content area - takes remaining height -->
-	<div class="flex-1 overflow-y-auto lg:overflow-visible">
-		<div class="p-6">
+	   <!-- Scrollable content area - takes remaining height, scrollable on mobile -->
+	   <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain lg:overflow-visible lg:overscroll-auto">
+			   <div class="p-6">
 			<!-- Desktop Header - only visible on desktop -->
 			<div class="hidden lg:flex items-center justify-between mb-8">
 				<div class="flex items-center space-x-4 group">
@@ -108,8 +108,8 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 					</div>
 					<span
 						class="text-xl font-extrabold tracking-wider bg-gradient-to-r from-cyan-300 via-cyan-400 to-cyan-500 bg-clip-text text-transparent
-              [text-shadow:0_0_3px_rgba(0,255,255,0.7),0_0_10px_rgba(0,255,255,0.4)]
-              group-hover:animate-glow">
+			  [text-shadow:0_0_3px_rgba(0,255,255,0.7),0_0_10px_rgba(0,255,255,0.4)]
+			  group-hover:animate-glow">
 						KBVE
 					</span>
 				</div>
@@ -243,56 +243,97 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 		}
 	}
 
-	// Ensure close button functionality (backup for main script)
-	function ensureCloseFunctionality() {
-		const closeBtn = document.getElementById('close-sidebar');
+// Ensure close button and overlay functionality (backup for main script)
+function ensureCloseFunctionality() {
+	   const closeBtn = document.getElementById('close-sidebar');
+	   const sidebar = document.getElementById('sidebar');
+	   const overlay = document.getElementById('sidebar-overlay');
+
+	   if (closeBtn && sidebar && overlay) {
+			   // Only add if not already added by main script
+			   if (!closeBtn.dataset.boundByAside && !closeBtn.dataset.boundByMain) {
+					   closeBtn.dataset.boundByAside = 'true';
+					   closeBtn.addEventListener('click', function(e) {
+							   e.preventDefault();
+							   e.stopPropagation();
+							   closeSidebarInternal();
+					   });
+			   }
+			   // Overlay click closes sidebar
+			   if (!overlay.dataset.boundByAside) {
+					   overlay.dataset.boundByAside = 'true';
+					   overlay.addEventListener('click', function(e) {
+							   e.preventDefault();
+							   e.stopPropagation();
+							   closeSidebarInternal();
+					   });
+			   }
+	   }
+}
+
+	// Handle mobile sidebar scrolling
+	function handleMobileSidebarScrolling() {
 		const sidebar = document.getElementById('sidebar');
-		const overlay = document.getElementById('sidebar-overlay');
+		if (!sidebar) return;
 
-		if (closeBtn && sidebar && overlay) {
-			// Only add if not already added by main script
-			if (!closeBtn.dataset.boundByAside && !closeBtn.dataset.boundByMain) {
-				closeBtn.dataset.boundByAside = 'true';
-				closeBtn.addEventListener('click', function(e) {
-					e.preventDefault();
-					e.stopPropagation();
-					
-					// Hide sidebar
-					sidebar.classList.remove('translate-x-0');
-					sidebar.classList.add('-translate-x-full');
-
-					// Hide overlay
-					overlay.classList.remove('opacity-100');
-					overlay.classList.add('opacity-0', 'pointer-events-none');
-
-					// Re-enable body scroll and restore position
-					const scrollY = document.body.dataset.scrollY;
-					document.body.style.position = '';
-					document.body.style.top = '';
-					document.body.style.width = '';
-					document.body.style.overflowY = '';
-					
-					// Restore scroll position
-					if (scrollY) {
-						window.scrollTo(0, parseInt(scrollY));
-						delete document.body.dataset.scrollY;
-					}
-
-					// Hide overlay completely after transition
-					setTimeout(() => {
-						if (overlay.classList.contains('opacity-0')) {
-							overlay.classList.add('hidden');
-						}
-					}, 300);
-				});
+		// Force proper mobile scrolling setup
+		const setupMobileScrolling = () => {
+			if (window.innerWidth < 1024) { // Mobile/tablet breakpoint
+				// Ensure the sidebar itself has proper height and flex behavior
+				sidebar.style.height = '100vh';
+				sidebar.style.display = 'flex';
+				sidebar.style.flexDirection = 'column';
+				
+				// Find the scrollable content container
+				const scrollContainer = sidebar.querySelector('.flex-1') as HTMLElement;
+				if (scrollContainer) {
+					// Force scrollable behavior
+					scrollContainer.style.overflowY = 'auto';
+					scrollContainer.style.minHeight = '0';
+					scrollContainer.style.flex = '1';
+					// iOS smooth scrolling
+					(scrollContainer.style as any).webkitOverflowScrolling = 'touch';
+				}
+			} else {
+				// Reset for desktop
+				sidebar.style.height = '';
+				sidebar.style.display = '';
+				sidebar.style.flexDirection = '';
+				
+				const scrollContainer = sidebar.querySelector('.flex-1') as HTMLElement;
+				if (scrollContainer) {
+					scrollContainer.style.overflowY = '';
+					scrollContainer.style.minHeight = '';
+					scrollContainer.style.flex = '';
+					(scrollContainer.style as any).webkitOverflowScrolling = '';
+				}
 			}
-		}
+		};
+
+		// Watch for sidebar state changes and window resize
+		const observer = new MutationObserver(setupMobileScrolling);
+		observer.observe(sidebar, { 
+			attributes: true, 
+			attributeFilter: ['class'] 
+		});
+
+		// Listen for window resize
+		window.addEventListener('resize', setupMobileScrolling);
+
+		// Initial setup
+		setupMobileScrolling();
+
+		return () => {
+			observer.disconnect();
+			window.removeEventListener('resize', setupMobileScrolling);
+		};
 	}
 
 	// Initialize navigation height adjustment
 	function initializeNavigation() {
 		adjustNavigationHeight();
 		ensureCloseFunctionality();
+		handleMobileSidebarScrolling();
 	}
 
 	// Initialize on DOM load
@@ -311,4 +352,63 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 			ensureCloseFunctionality();
 		}, 100);
 	});
+
+	// Simple and reliable sidebar toggle
+	function toggleSidebar() {
+		const sidebar = document.getElementById('sidebar');
+		const overlay = document.getElementById('sidebar-overlay');
+
+		if (!sidebar || !overlay) return;
+
+		// Get the computed transform style to check actual position
+		const transform = window.getComputedStyle(sidebar).transform;
+		const isOpen = transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)';
+
+		console.log('Current transform:', transform, 'Is open:', isOpen);
+
+		if (isOpen) {
+			// Close sidebar
+			sidebar.classList.add('-translate-x-full');
+			sidebar.classList.remove('translate-x-0');
+			overlay.classList.add('opacity-0', 'pointer-events-none', 'hidden');
+			overlay.classList.remove('opacity-100');
+		} else {
+			// Open sidebar
+			sidebar.classList.remove('-translate-x-full');
+			sidebar.classList.add('translate-x-0');
+			overlay.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+			overlay.classList.add('opacity-100');
+		}
+	}
+
+	function closeSidebarInternal() {
+		const sidebar = document.getElementById('sidebar');
+		const overlay = document.getElementById('sidebar-overlay');
+		
+		if (!sidebar || !overlay) return;
+		
+		sidebar.classList.add('-translate-x-full');
+		sidebar.classList.remove('translate-x-0');
+		overlay.classList.add('opacity-0', 'pointer-events-none');
+		overlay.classList.remove('opacity-100');
+		
+		// Re-enable body scroll and restore position
+		const scrollY = document.body.dataset.scrollY;
+		document.body.style.position = '';
+		document.body.style.top = '';
+		document.body.style.width = '';
+		document.body.style.overflowY = '';
+		
+		if (scrollY) {
+			window.scrollTo(0, parseInt(scrollY));
+			delete document.body.dataset.scrollY;
+		}
+		
+		setTimeout(() => {
+			overlay.classList.add('hidden');
+		}, 300);
+	}
+
+	// Make toggleSidebar globally available
+	(window as any).toggleSidebar = toggleSidebar;
 </script>
