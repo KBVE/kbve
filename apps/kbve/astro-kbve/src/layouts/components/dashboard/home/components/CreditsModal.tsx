@@ -379,6 +379,7 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <a
               href="/igbc"
+              data-astro-prefetch
               className="flex items-center space-x-3 p-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors duration-200 group"
             >
               <Award className="w-5 h-5 text-yellow-400 group-hover:text-yellow-300" />
@@ -391,6 +392,7 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
             
             <a
               href="/docs/credits"
+              data-astro-prefetch
               className="flex items-center space-x-3 p-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors duration-200 group"
             >
               <BookOpen className="w-5 h-5 text-blue-400 group-hover:text-blue-300" />
@@ -403,6 +405,7 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
             
             <a
               href="/marketplace"
+              data-astro-prefetch
               className="flex items-center space-x-3 p-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors duration-200 group"
             >
               <ShoppingCart className="w-5 h-5 text-green-400 group-hover:text-green-300" />
@@ -415,6 +418,7 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
             
             <a
               href="/earn"
+              data-astro-prefetch
               className="flex items-center space-x-3 p-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors duration-200 group"
             >
               <TrendingUp className="w-5 h-5 text-purple-400 group-hover:text-purple-300" />
@@ -427,6 +431,7 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
             
             <a
               href="/referrals"
+              data-astro-prefetch
               className="flex items-center space-x-3 p-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors duration-200 group"
             >
               <Users className="w-5 h-5 text-cyan-400 group-hover:text-cyan-300" />
@@ -439,6 +444,7 @@ const CreditsModal: React.FC<CreditsModalProps> = memo(({
             
             <a
               href="/support"
+              data-astro-prefetch
               className="flex items-center space-x-3 p-3 bg-zinc-800 hover:bg-zinc-700 rounded-lg transition-colors duration-200 group"
             >
               <BookOpen className="w-5 h-5 text-orange-400 group-hover:text-orange-300" />

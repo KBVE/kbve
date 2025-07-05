@@ -39,7 +39,7 @@ export default defineConfig({
         },
     },
     integrations: [
-        MillionLint.astro(),
+        //MillionLint.astro(),
         starlight({
             plugins: [
                 starlightSiteGraph({
