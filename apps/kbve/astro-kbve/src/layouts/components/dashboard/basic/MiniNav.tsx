@@ -199,7 +199,10 @@ const MiniNav = ({ className }: MiniNavProps) => {
 
         {/* Dropdown Menu */}
         {isDropdownOpen && (
-          <div className="absolute top-full right-0 mt-2 w-48 bg-zinc-800 rounded-lg shadow-lg border border-zinc-700 py-1 z-30 transform -translate-x-1/4">
+          <div 
+            className="absolute top-full right-0 mt-2 w-48 bg-zinc-800 rounded-lg shadow-lg border border-zinc-700 py-1 z-30 transform -translate-x-1/4"
+            style={{ zIndex: '100 !important' }}
+          >
             {userMenuItems.map((item) => (
               <div key={item.label}>
                 {item.divider && <hr className="border-zinc-700 my-1" />}
