@@ -48,7 +48,7 @@ const UserEmailWarning: React.FC = () => {
 
       <div className="flex flex-col gap-3 w-full max-w-sm">
         {!user?.email ? (
-          <a
+          <a data-astro-prefetch
             href="/settings"
             className={twMerge(
               'inline-flex items-center justify-center gap-2 px-4 py-2 rounded-lg',
