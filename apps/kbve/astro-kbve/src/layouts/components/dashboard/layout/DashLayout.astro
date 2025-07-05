@@ -32,7 +32,8 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 					<!-- Mobile Menu Button -->
 					<button
 						id="mobile-menu-btn"
-						class="lg:hidden p-2 text-zinc-400 hover:text-white">
+						class="lg:hidden p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors duration-200"
+						aria-label="Open sidebar menu">
 						<svg
 							class="w-6 h-6"
 							fill="none"
@@ -78,7 +79,13 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 			<!-- Sidebar Overlay for Mobile -->
 			<div
 				id="sidebar-overlay"
-				class="fixed inset-0 bg-black/50 z-40 lg:hidden hidden opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out">
+				class="fixed inset-0 bg-black/60 z-[55] lg:hidden hidden opacity-0 pointer-events-none transition-opacity duration-300 ease-in-out cursor-pointer">
+				<!-- Close hint for better UX -->
+				<div class="absolute top-4 right-4 bg-zinc-800/90 backdrop-blur-sm rounded-full p-2 text-white/70 pointer-events-none">
+					<svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+						<path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+					</svg>
+				</div>
 			</div>
 
 			<!-- Left Sidebar -->
@@ -102,12 +109,28 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 	 <DashboardFooter />
 
 <script>
-	// Sidebar functionality
-	document.addEventListener('DOMContentLoaded', function () {
+	// Sidebar functionality with improved reliability
+	let sidebarInitialized = false;
+
+	function initializeSidebar() {
+		// Prevent multiple initializations
+		if (sidebarInitialized) return;
+
 		const mobileMenuBtn = document.getElementById('mobile-menu-btn');
 		const closeSidebarBtn = document.getElementById('close-sidebar');
 		const sidebar = document.getElementById('sidebar');
 		const overlay = document.getElementById('sidebar-overlay');
+
+		// Check if all required elements exist
+		if (!mobileMenuBtn || !sidebar || !overlay) {
+			console.warn('Sidebar elements not found, retrying...');
+			// Retry after a short delay
+			setTimeout(initializeSidebar, 100);
+			return;
+		}
+
+		sidebarInitialized = true;
+		console.log('Sidebar initialized successfully');
 
 		function openSidebar() {
 			if (sidebar && overlay) {
@@ -123,8 +146,22 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 				);
 				overlay.classList.add('opacity-100');
 
-				// Prevent body scroll on mobile
-				document.body.classList.add('overflow-hidden');
+				// Prevent body scroll on mobile but allow sidebar scroll
+				const scrollbarWidth = window.innerWidth - document.documentElement.clientWidth;
+				document.body.style.overflow = 'hidden';
+				document.body.style.paddingRight = `${scrollbarWidth}px`;
+
+				// Focus trap for accessibility
+				const focusableElements = sidebar.querySelectorAll(
+					'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
+				);
+				if (focusableElements.length > 0) {
+					const firstElement = focusableElements[0] as HTMLElement;
+					firstElement.focus();
+				}
+
+				// Add escape key listener
+				document.addEventListener('keydown', handleEscape);
 			}
 		}
 
@@ -138,44 +175,102 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 				overlay.classList.remove('opacity-100');
 				overlay.classList.add('opacity-0', 'pointer-events-none');
 
-				// Re-enable body scroll
+				// Re-enable body scroll and remove padding
+				document.body.style.overflow = '';
+				document.body.style.paddingRight = '';
 				document.body.classList.remove('overflow-hidden');
+
+				// Remove escape key listener
+				document.removeEventListener('keydown', handleEscape);
+
+				// Return focus to menu button
+				if (mobileMenuBtn) {
+					mobileMenuBtn.focus();
+				}
 
 				// Add delay before hiding to allow transition
 				setTimeout(() => {
-					if (overlay.classList.contains('opacity-0')) {
+					if (overlay && overlay.classList.contains('opacity-0')) {
 						overlay.classList.add('hidden');
 					}
 				}, 300);
 			}
 		}
 
+		function handleEscape(e: KeyboardEvent) {
+			if (e.key === 'Escape') {
+				closeSidebar();
+			}
+		}
+
 		// Mobile menu button click
-		mobileMenuBtn?.addEventListener('click', openSidebar);
+		mobileMenuBtn.addEventListener('click', function(e) {
+			e.preventDefault();
+			e.stopPropagation();
+			console.log('Mobile menu button clicked');
+			openSidebar();
+		});
 
-		// Close sidebar button click
-		closeSidebarBtn?.addEventListener('click', closeSidebar);
+		// Close sidebar button click (may not exist initially if React component isn't loaded)
+		function bindCloseSidebarBtn() {
+			const closeBtn = document.getElementById('close-sidebar');
+			if (closeBtn) {
+				closeBtn.addEventListener('click', function(e) {
+					e.preventDefault();
+					e.stopPropagation();
+					closeSidebar();
+				});
+			}
+		}
 
-		// Overlay click to close sidebar
-		overlay?.addEventListener('click', closeSidebar);
+		// Bind immediately and also retry in case React component loads later
+		bindCloseSidebarBtn();
+		setTimeout(bindCloseSidebarBtn, 500);
+		setTimeout(bindCloseSidebarBtn, 1000);
 
-		// Handle escape key
-		document.addEventListener('keydown', function (e) {
-			if (
-				e.key === 'Escape' &&
-				sidebar &&
-				sidebar.classList.contains('translate-x-0')
-			) {
+		// Overlay click to close sidebar (anywhere on overlay)
+		overlay.addEventListener('click', function(e) {
+			// Only close if clicking directly on the overlay, not on sidebar content
+			if (e.target === overlay) {
 				closeSidebar();
 			}
 		});
 
-		// Handle window resize
+		// Handle window resize - close sidebar when switching to desktop
 		window.addEventListener('resize', function () {
 			if (window.innerWidth >= 1024) {
 				// lg breakpoint
 				closeSidebar();
 			}
 		});
+
+		// Handle clicks outside sidebar on mobile (additional safety)
+		document.addEventListener('click', function(e) {
+			const isDesktop = window.innerWidth >= 1024;
+			const isSidebarOpen = sidebar && sidebar.classList.contains('translate-x-0');
+			const target = e.target as Node;
+			
+			if (!isDesktop && isSidebarOpen && !sidebar.contains(target) && target !== mobileMenuBtn) {
+				closeSidebar();
+			}
+		});
+	}
+
+	// Initialize immediately if DOM is ready
+	if (document.readyState === 'loading') {
+		document.addEventListener('DOMContentLoaded', initializeSidebar);
+	} else {
+		initializeSidebar();
+	}
+
+	// Also initialize on Astro page changes (for SPA navigation)
+	document.addEventListener('astro:page-load', function() {
+		sidebarInitialized = false; // Reset flag for new page
+		initializeSidebar();
+	});
+
+	// Initialize after React components load
+	document.addEventListener('astro:after-hydration', function() {
+		setTimeout(initializeSidebar, 100);
 	});
 </script>
