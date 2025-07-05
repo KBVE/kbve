@@ -10,6 +10,8 @@ import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
 import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
 import DashboardFooter from 'src/layouts/components/dashboard/footer/DashboardFooter.astro';
 import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
+import SearchBar from 'src/layouts/components/search/SearchBar.astro';
+
 ---
 
 <style>
@@ -44,21 +46,12 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 					<div>
 						<!-- <h1 class="text-3xl font-bold text-cyan-400">K B V E</h1> -->
 
-						<span
-							id="kbve-tagline"
-							class="block text-lg sm:text-xl font-semibold text-cyan-300">
-							KiloByte Virtual
-							<span
-								id="kbve-word"
-								class="inline-block transition-opacity duration-500 ease-in-out opacity-100">
-								Enterprise
-							</span>
-						</span>
-						<p class="text-zinc-400 mt-1">
-							Welcome back to your control center
-						</p>
+						<SearchBar />
+				
 					</div>
 				</div>
+
+				
 				<div class="relative flex items-center space-x-4">
 					<!-- Avatar Skeleton -->
 					<div class="flex items-center space-x-4" data-skeleton="avatar">

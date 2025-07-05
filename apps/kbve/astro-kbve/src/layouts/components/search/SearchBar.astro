@@ -8,96 +8,114 @@
 	src="https://cse.google.com/cse.js?cx=partner-pub-3698214103602019:ab1srxiqkuo"
 ></script>
 
-<div class="p-4 rounded-lg text-black">
+
+<!-- Wrapper for Google SearchBox -->
+<div class="w-full p-2 rounded-lg bg-zinc-900 border border-cyan-700/30">
 	<div class="gcse-searchbox-only"></div>
 </div>
 
 <script is:inline>
+	const onSearchBoxLoad = () => {
+		console.log('[CSE] Styling native search box');
 
-    const onSearchBoxLoad = () => {
-			console.log('[CSE] SearchBox rendered — applying styles');
+		const apply = (selector, styles) => {
+			const el = document.querySelector(selector);
+			if (el instanceof HTMLElement) {
+				// Try regular Object.assign first (non-conflicting styles)
+				Object.assign(el.style, styles);
 
-			const apply = (selector, styles) => {
-				const el = document.querySelector(selector);
+				// Apply each with !important to guarantee override
+				for (const [prop, value] of Object.entries(styles)) {
+					el.style.setProperty(prop, value, 'important');
+				}
+			}
+		};
+
+		const applyToAll = (selector, styles) => {
+			document.querySelectorAll(selector).forEach((el) => {
 				if (el instanceof HTMLElement) {
 					Object.assign(el.style, styles);
-				}
-			};
-
-			const applyToAll = (selector, styles) => {
-				const elements = document.querySelectorAll(selector);
-				elements.forEach((el) => {
-					if (el instanceof HTMLElement) {
-						Object.assign(el.style, styles);
+					for (const [prop, value] of Object.entries(styles)) {
+						el.style.setProperty(prop, value, 'important');
 					}
-				});
-			};
-
-			// Apply styles to make search box visible and functional
-			apply('.gsc-search-box', {
-				backgroundColor: '#18181b',
-				borderRadius: '0.5rem',
-				border: '1px solid rgba(34, 211, 238, 0.3)',
-				overflow: 'hidden'
+				}
 			});
+		};
+		
+		// Container box styling
+		apply('.gsc-search-box', {
+			backgroundColor: '#27272a',
+			borderRadius: '0.5rem',
+			border: '1px solid rgba(34, 211, 238, 0.3)',
+			overflow: 'hidden',
+			display: 'flex',
+			alignItems: 'center',
+			padding: '0',
+		});
 
-			apply('.gsc-input', {
-				color: '#f4f4f5',
-				backgroundColor: 'transparent',
-				backgroundImage: 'none',
-				padding: '0.75rem 1rem',
-				fontSize: '0.875rem',
-				border: 'none',
-				outline: 'none',
-				minHeight: '2.5rem',
-				width: '100%'
-			});
+		// Input area
+		apply('.gsc-input', {
+			backgroundColor: '#27272a',
+			color: '#f4f4f5',
+			border: 'none',
+			padding: '0.5rem 0.75rem',
+			fontSize: '0.875rem',
+			height: '2.5rem',
+			flex: '1',
+		});
 
-			apply('.gsc-search-button', {
-				backgroundColor: '#0891b2',
-				border: 'none',
-				padding: '0.5rem 0.75rem',
-				minHeight: '2.5rem',
-				display: 'flex',
-				alignItems: 'center',
-				justifyContent: 'center'
-			});
-
-			apply('.gsc-search-button:hover', {
-				backgroundColor: '#0e7490'
-			});
-
-			applyToAll('.gsc-search-button svg', {
-				fill: 'white',
-				width: '1rem',
-				height: '1rem'
-			});
-
-			// Set placeholder text
-			const searchInput = document.querySelector('.gsc-input');
-			if (searchInput) {
-				searchInput.placeholder = 'Search...';
-			}
-    };
-
-	// Wait for Google CSE to load and apply styles
-	window.__gcse = {
-		parsetags: 'onload',
-		callback: function() {
-			setTimeout(onSearchBoxLoad, 100);
+		// Native input element
+		const input = document.querySelector('input.gsc-input');
+		if (input) {
+			input.placeholder = 'Search...';
+			input.style.setProperty('background-color', '#27272a', 'important');
+			input.style.setProperty('color', '#f4f4f5', 'important');
+			input.style.setProperty('border', 'none', 'important');
+			input.style.setProperty('outline', 'none', 'important');
+			input.style.setProperty('height', '2.5rem', 'important');
+			input.style.setProperty('font-size', '0.875rem', 'important');
+			input.style.setProperty('padding', '0.5rem 0.75rem', 'important');
 		}
+
+		// Search Button
+		apply('.gsc-search-button', {
+			backgroundColor: '#27272a',
+			border: 'none',
+			minWidth: '2.5rem',
+			height: '2.5rem',
+			padding: '0.5rem',
+			display: 'flex',
+			alignItems: 'center',
+			justifyContent: 'center',
+			position: 'relative',
+			cursor: 'pointer',
+		});
+
+		applyToAll('.gsc-search-button:hover', {
+			backgroundColor: '#0891b2', // Tailwind cyan-600
+		});
+
+		// Optional: style SVG icon inside
+		applyToAll('.gsc-search-button svg', {
+			fill: 'white',
+			width: '1rem',
+			height: '1rem',
+		});
 	};
 
-	// Fallback check
+	// Google CSE hook
+	window.__gcse = {
+		parsetags: 'onload',
+		callback: () => setTimeout(onSearchBoxLoad, 100),
+	};
+
+	// Fallback polling
 	const checkSearchBox = setInterval(() => {
-		const searchInput = document.querySelector('.gsc-input');
-		if (searchInput) {
+		if (document.querySelector('.gsc-input')) {
 			onSearchBoxLoad();
 			clearInterval(checkSearchBox);
 		}
 	}, 500);
 
-	// Stop checking after 10 seconds
 	setTimeout(() => clearInterval(checkSearchBox), 10000);
-
 </script>
