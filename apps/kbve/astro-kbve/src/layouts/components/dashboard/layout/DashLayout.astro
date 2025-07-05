@@ -10,7 +10,6 @@ import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
 import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
 import DashboardFooter from 'src/layouts/components/dashboard/footer/DashboardFooter.astro';
 import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
-import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 
 ---
 
@@ -24,7 +23,11 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 	<!-- Header Section -->
 	<header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm relative z-50">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
+			
 			<div class="flex items-center justify-between">
+
+				
 				<div class="flex items-center space-x-4">
 					<!-- Mobile Menu Button -->
 					<button
@@ -43,12 +46,7 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 							</path>
 						</svg>
 					</button>
-					<div>
-						<!-- <h1 class="text-3xl font-bold text-cyan-400">K B V E</h1> -->
-
-						<SearchBar />
-				
-					</div>
+					
 				</div>
 
 				
