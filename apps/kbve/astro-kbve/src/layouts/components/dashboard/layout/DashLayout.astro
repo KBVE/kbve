@@ -7,11 +7,14 @@ import WelcomeInfo from 'src/layouts/components/dashboard/home//components/Welco
 import ChartCard from 'src/layouts/components/dashboard/home//components/ChartCard';
 import TableCard from 'src/layouts/components/dashboard/home/components/TableCard';
 import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
+import Panel from 'src/layouts/core/Panel.astro';
 import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
 import DashboardFooter from 'src/layouts/components/dashboard/footer/DashboardFooter.astro';
 import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
-
 ---
+
+<!-- Panel -->
+<Panel />
 
 <style>
 	@import 'src/layouts/components/dashboard/home/components/animations.css';
@@ -21,13 +24,10 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 	class="min-h-screen bg-zinc-900 text-white perspective-distant dashboard-container"
 	data-grid="home">
 	<!-- Header Section -->
-	<header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm relative z-10">
+	<header
+		class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm relative z-10">
 		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-
-			
 			<div class="flex items-center justify-between">
-
-				
 				<div class="flex items-center space-x-4">
 					<!-- Mobile Menu Button -->
 					<button
@@ -47,19 +47,20 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 							</path>
 						</svg>
 					</button>
-					
 				</div>
 
-				
 				<div class="relative flex items-center space-x-4">
 					<!-- Avatar Skeleton -->
-					<div class="flex items-center space-x-4" data-skeleton="avatar">
+					<div
+						class="flex items-center space-x-4"
+						data-skeleton="avatar">
 						<!-- User Avatar Skeleton -->
 						<div
 							class="w-10 h-10 bg-zinc-800 rounded-full animate-pulse">
 						</div>
 						<div class="hidden sm:block">
-							<div class="h-4 bg-zinc-800 rounded w-24 animate-pulse">
+							<div
+								class="h-4 bg-zinc-800 rounded w-24 animate-pulse">
 							</div>
 							<div
 								class="h-3 bg-zinc-800 rounded w-16 mt-1 animate-pulse">
@@ -90,11 +91,10 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 			</main>
 		</div>
 	</div>
-
 </div>
 
-	<!-- Footer -->
-	 <DashboardFooter />
+<!-- Footer -->
+<DashboardFooter />
 
 <script>
 	// Sidebar functionality with improved reliability
@@ -140,7 +140,7 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 				document.body.style.top = `-${currentScrollY}px`;
 				document.body.style.width = '100%';
 				document.body.style.overflowY = 'scroll'; // Maintain scrollbar space
-				
+
 				// Store scroll position to restore later
 				document.body.dataset.scrollY = currentScrollY.toString();
 
@@ -174,7 +174,7 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 				document.body.style.top = '';
 				document.body.style.width = '';
 				document.body.style.overflowY = '';
-				
+
 				// Restore scroll position
 				if (scrollY) {
 					window.scrollTo(0, parseInt(scrollY));
@@ -205,7 +205,7 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 		}
 
 		// Mobile menu button click
-		mobileMenuBtn.addEventListener('click', function(e) {
+		mobileMenuBtn.addEventListener('click', function (e) {
 			e.preventDefault();
 			e.stopPropagation();
 			console.log('Mobile menu button clicked');
@@ -217,7 +217,7 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 			const closeBtn = document.getElementById('close-sidebar');
 			if (closeBtn && !closeBtn.dataset.boundByMain) {
 				closeBtn.dataset.boundByMain = 'true';
-				closeBtn.addEventListener('click', function(e) {
+				closeBtn.addEventListener('click', function (e) {
 					e.preventDefault();
 					e.stopPropagation();
 					console.log('Close button clicked');
@@ -232,7 +232,7 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 		setTimeout(bindCloseSidebarBtn, 1000);
 
 		// Overlay click to close sidebar (anywhere on overlay)
-		overlay.addEventListener('click', function(e) {
+		overlay.addEventListener('click', function (e) {
 			// Only close if clicking directly on the overlay, not on sidebar content
 			if (e.target === overlay) {
 				closeSidebar();
@@ -248,12 +248,18 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 		});
 
 		// Handle clicks outside sidebar on mobile (additional safety)
-		document.addEventListener('click', function(e) {
+		document.addEventListener('click', function (e) {
 			const isDesktop = window.innerWidth >= 1024;
-			const isSidebarOpen = sidebar && sidebar.classList.contains('translate-x-0');
+			const isSidebarOpen =
+				sidebar && sidebar.classList.contains('translate-x-0');
 			const target = e.target as Node;
-			
-			if (!isDesktop && isSidebarOpen && !sidebar.contains(target) && target !== mobileMenuBtn) {
+
+			if (
+				!isDesktop &&
+				isSidebarOpen &&
+				!sidebar.contains(target) &&
+				target !== mobileMenuBtn
+			) {
 				closeSidebar();
 			}
 		});
@@ -267,13 +273,13 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 	}
 
 	// Also initialize on Astro page changes (for SPA navigation)
-	document.addEventListener('astro:page-load', function() {
+	document.addEventListener('astro:page-load', function () {
 		sidebarInitialized = false; // Reset flag for new page
 		initializeSidebar();
 	});
 
 	// Initialize after React components load
-	document.addEventListener('astro:after-hydration', function() {
+	document.addEventListener('astro:after-hydration', function () {
 		setTimeout(initializeSidebar, 100);
 	});
 </script>
