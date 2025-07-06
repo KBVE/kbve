@@ -5,29 +5,29 @@ import StaticRight from "./panels/StaticRight.astro"
 import StaticBottom from "./panels/StaticBottom.astro"
 ---
 
-<div id="panels-root" class="pointer-events-none" style="visibility: hidden;" data-panels>
+<div id="panels-root" class="fixed inset-0 top-16 pointer-events-none z-40" style="visibility: hidden;" data-panels>
 	<div
 		data-panels="top"
 		id="panel-top"
-		class="panel fixed inset-x-0 top-0 h-64 translate-y-[-100%]">
+		class="panel absolute inset-x-0 top-0 h-64 translate-y-[-100%]">
         <StaticTop />
 	</div>
 	<div
 		data-panels="right"
 		id="panel-right"
-		class="panel fixed inset-y-0 right-0 w-64 translate-x-[100%]">
+		class="panel absolute inset-y-0 right-0 w-64 translate-x-[100%]">
         <StaticRight />
 	</div>
 	<div
 		data-panels="bottom"
 		id="panel-bottom"
-		class="panel fixed inset-x-0 bottom-0 h-96 translate-y-[100%]">
+		class="panel absolute inset-x-0 bottom-0 h-96 translate-y-[100%]">
         <StaticBottom />
 	</div>
 	<div
 		data-panels="left"
 		id="panel-left"
-		class="panel fixed inset-y-0 left-0 w-screen md:w-96 translate-x-[-100%] lg:static lg:translate-x-0 lg:w-80"
+		class="panel absolute inset-y-0 left-0 w-screen md:w-96 translate-x-[-100%] lg:static lg:translate-x-0 lg:w-80"
 		data-dockable="true">
 		<StaticLeft>
 			<slot name="aside" />
@@ -53,7 +53,7 @@ import StaticBottom from "./panels/StaticBottom.astro"
             'dark:bg-neutral-900/90',
             'backdrop-blur-md',
             'shadow-lg',
-            'z-[100]',
+            'z-50',
             'overflow-auto',
             'border',
             'border-white/10',
@@ -80,7 +80,7 @@ import StaticBottom from "./panels/StaticBottom.astro"
 				if (!panel || !panelState) continue;
 
                 if (!panel.hasAttribute('data-panel-initialized')) {
-                    panel.classList.add('panel', 'fixed', ...transitionClasses);
+                    panel.classList.add('panel', 'absolute', ...transitionClasses);
                     panel.setAttribute('data-panel-initialized', 'true');
                 }
 

@@ -3,10 +3,26 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 ---
 
+<style>
+	.navbar-header {
+		transition: top 0.3s ease-in-out;
+	}
+	
+	.navbar-nav {
+		transition: all 0.3s ease-in-out;
+	}
+
+	/* Dashboard mode adjustments */
+	.navbar-header[data-navbar-context="dashboard"] .navbar-nav {
+		border-bottom: 1px solid rgb(39 39 42); /* zinc-800 */
+	}
+</style>
+
 <header
-	class="sticky inset-x-0 top-4 z-50 flex w-full flex-wrap text-sm md:flex-nowrap md:justify-start">
+	class="navbar-header sticky inset-x-0 z-50 flex w-full flex-wrap text-sm md:flex-nowrap md:justify-start"
+	data-navbar-context="default">
 	<nav
-		class="relative mx-2 w-full rounded-[36px] border border-yellow-100/40 bg-yellow-50/60 px-4 py-3 backdrop-blur-md dark:border-neutral-700/40 dark:bg-neutral-800/40 dark:backdrop-blur-md md:flex md:items-center md:justify-between md:px-6 md:py-0 lg:px-8 xl:mx-auto"
+		class="navbar-nav relative mx-2 w-full rounded-[36px] border border-yellow-100/40 bg-yellow-50/60 px-4 py-3 backdrop-blur-md dark:border-neutral-700/40 dark:bg-neutral-800/40 dark:backdrop-blur-md md:flex md:items-center md:justify-between md:px-6 md:py-0 lg:px-8 xl:mx-auto"
 		aria-label="Global">
 		<div class="flex items-center">
 			<!-- Brand logo -->
@@ -320,7 +336,60 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
   function setupDashboardControls() {
     console.log('[Navbar] Setting up dashboard controls');
     
-    function waitForKbve(callback) {
+    // Detect dashboard context and adjust navbar styling
+    function adjustNavbarForDashboard() {
+      const header = document.querySelector('.navbar-header');
+      const nav = document.querySelector('.navbar-nav');
+      const isDashboardPage = document.querySelector('[data-grid="home"]') || 
+                            document.querySelector('[data-dashboard-header]') ||
+                            window.location.pathname.includes('/dashboard') ||
+                            window.location.pathname === '/c' ||
+                            window.location.pathname === '/settings' ||
+                            window.location.pathname === '/support' ||
+                            window.location.pathname === '/onboarding' ||
+                            window.location.pathname === '/igbc';
+
+      if (header && nav && isDashboardPage) {
+        console.log('[Navbar] Dashboard context detected, adjusting navbar');
+        // Dashboard mode: flush header, darker styling
+        header.setAttribute('data-navbar-context', 'dashboard');
+        header.classList.remove('top-4');
+        header.classList.add('top-0');
+        
+        // Adjust nav styling for dashboard
+        nav.classList.remove('mx-2', 'rounded-[36px]', 'border-yellow-100/40', 'bg-yellow-50/60', 'dark:border-neutral-700/40', 'dark:bg-neutral-800/40');
+        nav.classList.add('mx-0', 'rounded-none', 'border-b', 'border-zinc-800', 'bg-zinc-900/50', 'dark:border-zinc-800', 'dark:bg-zinc-900/50');
+        
+        // Adjust dashboard container padding
+        const dashboardContainer = document.querySelector('[data-grid="home"]');
+        if (dashboardContainer) {
+          dashboardContainer.classList.remove('pt-20');
+          dashboardContainer.classList.add('pt-0');
+        }
+      } else if (header && nav) {
+        console.log('[Navbar] Default context, standard navbar');
+        // Default mode: floating header
+        header.setAttribute('data-navbar-context', 'default');
+        header.classList.remove('top-0');
+        header.classList.add('top-4');
+        
+        // Reset nav styling for default
+        nav.classList.remove('mx-0', 'rounded-none', 'border-b', 'border-zinc-800', 'bg-zinc-900/50', 'dark:border-zinc-800', 'dark:bg-zinc-900/50');
+        nav.classList.add('mx-2', 'rounded-[36px]', 'border-yellow-100/40', 'bg-yellow-50/60', 'dark:border-neutral-700/40', 'dark:bg-neutral-800/40');
+        
+        // Reset dashboard container padding if it exists
+        const dashboardContainer = document.querySelector('[data-grid="home"]');
+        if (dashboardContainer) {
+          dashboardContainer.classList.remove('pt-0');
+          dashboardContainer.classList.add('pt-20');
+        }
+      }
+    }
+
+    // Run immediately
+    adjustNavbarForDashboard();
+    
+    function waitForKbve(callback: () => void) {
       if ('requestIdleCallback' in window) {
         requestIdleCallback(() => {
           if (window.kbve?.uiux?.openPanel) {
