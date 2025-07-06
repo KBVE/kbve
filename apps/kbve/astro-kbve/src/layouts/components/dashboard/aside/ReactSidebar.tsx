@@ -47,24 +47,44 @@ const ReactSidebarNav = React.memo(() => {
 
   // Memoize the crossfade handler to prevent recreating on every render
   const handleCrossFade = useCallback(() => {
-    const skeleton = document.querySelector('[data-skeleton="aside"]') as HTMLElement;
+   // const skeleton = document.querySelector('[data-skeleton="aside"]') as HTMLElement;
+    const skeletons = document.querySelectorAll('[data-skeleton="aside"]') as NodeListOf<HTMLElement>;
+
     const dynamicNav = document.getElementById('dynamic-nav') as HTMLElement;
     const navContainer = document.getElementById('nav-container') as HTMLElement;
     
-    if (skeleton && dynamicNav && navContainer) {
-      // Get the actual height of the skeleton content
-      const skeletonHeight = skeleton.offsetHeight;
+    // if (skeleton && dynamicNav && navContainer) {
+    //   // Get the actual height of the skeleton content
+    //   const skeletonHeight = skeleton.offsetHeight;
       
-      // Set the dynamic navigation container to match skeleton height
-      dynamicNav.style.minHeight = `${skeletonHeight}px`;
+    //   // Set the dynamic navigation container to match skeleton height
+    //   dynamicNav.style.minHeight = `${skeletonHeight}px`;
       
-      // Animate skeleton fade out
+    //   // Animate skeleton fade out
+    //   skeleton.style.transition = 'opacity 0.5s ease-out';
+    //   skeleton.style.opacity = '0';
+    //   skeleton.style.pointerEvents = 'none';
+    //   skeleton.style.zIndex = '-1';
+    //   skeleton.style.visibility = 'hidden';
+    // }
+     if (skeletons.length > 0 && dynamicNav && navContainer) {
+    let totalHeight = 0;
+
+    // Calculate total height of all skeletons combined (optional; for dynamic layout)
+    skeletons.forEach(skeleton => {
+      totalHeight += skeleton.offsetHeight;
+
+      // Apply fade-out and hide styles
       skeleton.style.transition = 'opacity 0.5s ease-out';
       skeleton.style.opacity = '0';
       skeleton.style.pointerEvents = 'none';
       skeleton.style.zIndex = '-1';
       skeleton.style.visibility = 'hidden';
-    }
+    });
+
+    // Set dynamic nav height based on the first skeleton's height or combined if needed
+    dynamicNav.style.minHeight = `${totalHeight}px`;
+  }
     
     // Fade in this component with a small delay for smooth transition
     setTimeout(() => setVisible(true), 100);

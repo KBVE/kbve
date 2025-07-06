@@ -24,7 +24,9 @@ import StaticBottom from "./panels/StaticBottom.astro"
 	<div
 		id="panel-left"
 		class="panel fixed inset-y-0 left-0 w-screen md:w-96 translate-x-[-100%]">
-		<StaticLeft />
+		<StaticLeft>
+			<slot name="aside" />
+		</StaticLeft>
 	</div>
 </div>
 
