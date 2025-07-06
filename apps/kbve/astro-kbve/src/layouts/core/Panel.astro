@@ -7,21 +7,25 @@ import StaticBottom from "./panels/StaticBottom.astro"
 
 <div id="panels-root" class="pointer-events-none" style="visibility: hidden;" data-panels>
 	<div
+		data-panels="top"
 		id="panel-top"
 		class="panel fixed inset-x-0 top-0 h-64 translate-y-[-100%]">
         <StaticTop />
 	</div>
 	<div
+		data-panels="right"
 		id="panel-right"
 		class="panel fixed inset-y-0 right-0 w-64 translate-x-[100%]">
         <StaticRight />
 	</div>
 	<div
+		data-panels="bottom"
 		id="panel-bottom"
 		class="panel fixed inset-x-0 bottom-0 h-96 translate-y-[100%]">
         <StaticBottom />
 	</div>
 	<div
+		data-panels="left"
 		id="panel-left"
 		class="panel fixed inset-y-0 left-0 w-screen md:w-96 translate-x-[-100%]">
 		<StaticLeft>
