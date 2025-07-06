@@ -1,5 +1,6 @@
 ---
 import BrandLogo from 'src/layouts/core/BrandLogo.astro';
+import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 ---
 
 <header
@@ -21,6 +22,49 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 					class="absolute -top-1 -right-1 h-2 w-2 rounded-full bg-cyan-400 group-hover:animate-ping">
 				</span>
 			</a>
+
+			<div class="w-px h-10 bg-neutral-300 dark:bg-white/20 mx-4"></div>
+
+			<!-- Dashboard Controls -->
+			<div class="flex items-center space-x-2">
+				<!-- Mobile Menu Button for Dashboard -->
+				<button
+					id="mobile-menu-btn"
+					class="lg:hidden p-2 text-zinc-400 hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors duration-200"
+					aria-label="Open sidebar menu">
+					<svg
+						class="w-5 h-5"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 6h16M4 12h16M4 18h16">
+						</path>
+					</svg>
+				</button>
+				
+				<!-- Panel Toggle Button for Desktop -->
+				<button
+					id="panel-toggle-btn"
+					class="hidden lg:block p-2 text-zinc-400 hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors duration-200"
+					aria-label="Toggle side panel">
+					<svg
+						class="w-5 h-5"
+						fill="none"
+						stroke="currentColor"
+						viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z">
+						</path>
+					</svg>
+				</button>
+			</div>
 
 			<div class="w-px h-10 bg-neutral-300 dark:bg-white/20 mx-4"></div>
 
@@ -147,6 +191,29 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 				</button>
 			</div>
 		</div>
+
+		<!-- Dashboard User Section -->
+		<div class="flex items-center space-x-4 ml-auto">
+			<!-- Avatar Skeleton -->
+			<div
+				class="flex items-center space-x-4"
+				data-skeleton="avatar">
+				<!-- User Avatar Skeleton -->
+				<div
+					class="w-8 h-8 bg-zinc-300 dark:bg-zinc-800 rounded-full animate-pulse">
+				</div>
+				<div class="hidden sm:block">
+					<div
+						class="h-3 bg-zinc-300 dark:bg-zinc-800 rounded w-20 animate-pulse">
+					</div>
+					<div
+						class="h-2 bg-zinc-300 dark:bg-zinc-800 rounded w-12 mt-1 animate-pulse">
+					</div>
+				</div>
+			</div>
+			<!-- MiniNav Component -->
+			<MiniNav client:only="react" />
+		</div>
 	</nav>
 </header>
 
@@ -241,10 +308,75 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
     document.addEventListener('DOMContentLoaded', function() {
       console.log('[Navbar] DOMContentLoaded event');
       tryInjectMemberButton();
+      setupDashboardControls();
     });
   } else {
     console.log('[Navbar] DOM already loaded');
     tryInjectMemberButton();
+    setupDashboardControls();
   }
+
+  // Setup dashboard controls functionality
+  function setupDashboardControls() {
+    console.log('[Navbar] Setting up dashboard controls');
+    
+    function waitForKbve(callback) {
+      if ('requestIdleCallback' in window) {
+        requestIdleCallback(() => {
+          if (window.kbve?.uiux?.openPanel) {
+            callback();
+          } else {
+            setTimeout(() => waitForKbve(callback), 50);
+          }
+        });
+      } else {
+        const interval = setInterval(() => {
+          if (window.kbve?.uiux?.openPanel) {
+            clearInterval(interval);
+            callback();
+          }
+        }, 100);
+      }
+    }
+
+    waitForKbve(() => {
+      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
+      const panelToggleBtn = document.getElementById('panel-toggle-btn');
+
+      // Mobile menu button - opens left panel as overlay
+      if (mobileMenuBtn) {
+        mobileMenuBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('[Navbar] Mobile menu button clicked');
+          window.kbve?.uiux?.openPanel?.('left');
+        });
+      }
+
+      // Desktop panel toggle button - toggles docking
+      if (panelToggleBtn) {
+        panelToggleBtn.addEventListener('click', function (e) {
+          e.preventDefault();
+          e.stopPropagation();
+          console.log('[Navbar] Panel toggle button clicked');
+          const currentState = window.kbve?.uiux?.state?.get()?.panelManager?.left?.open;
+          if (currentState) {
+            window.kbve?.uiux?.closePanel?.('left');
+          } else {
+            window.kbve?.uiux?.openPanel?.('left');
+          }
+        });
+      }
+
+      console.log('[Navbar] Dashboard controls initialized');
+    });
+  }
+
+  // Also run on Astro page changes
+  document.addEventListener('astro:page-load', function() {
+    console.log('[Navbar] astro:page-load event');
+    setupDashboardControls();
+  });
+
 })();
 </script>

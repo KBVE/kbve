@@ -27,7 +27,8 @@ import StaticBottom from "./panels/StaticBottom.astro"
 	<div
 		data-panels="left"
 		id="panel-left"
-		class="panel fixed inset-y-0 left-0 w-screen md:w-96 translate-x-[-100%]">
+		class="panel fixed inset-y-0 left-0 w-screen md:w-96 translate-x-[-100%] lg:static lg:translate-x-0 lg:w-80"
+		data-dockable="true">
 		<StaticLeft>
 			<slot name="aside" />
 		</StaticLeft>
@@ -65,6 +66,8 @@ import StaticBottom from "./panels/StaticBottom.astro"
             bottom: Object.freeze(['translate-y-[100%]', 'translate-y-0']),
         });
 
+		// Desktop docking state for left panel
+		let leftPanelDocked = false;
 
 		function getTransformClass(side, hide) {
             return transformMap[side][hide ? 0 : 1];
@@ -81,16 +84,49 @@ import StaticBottom from "./panels/StaticBottom.astro"
                     panel.setAttribute('data-panel-initialized', 'true');
                 }
 
-				if (side === 'left') panel.classList.add('inset-y-0', 'left-0', 'w-screen', 'md:w-96');
-				if (side === 'right') panel.classList.add('inset-y-0', 'right-0', 'w-screen', 'md:w-96');
-				if (side === 'top') panel.classList.add('inset-x-0', 'top-0', 'h-64');
-				if (side === 'bottom') panel.classList.add('inset-x-0', 'bottom-0', 'h-64');
+				// Handle docking for left panel on desktop
+				if (side === 'left' && panel.hasAttribute('data-dockable')) {
+					const isDesktop = window.innerWidth >= 1024;
+					
+					if (isDesktop && panelState.open && !leftPanelDocked) {
+						// Dock the panel
+						panel.classList.remove('fixed', 'translate-x-[-100%]', 'translate-x-0');
+						panel.classList.add('static', 'transform-none');
+						leftPanelDocked = true;
+						
+						// Add margin to main content
+						adjustMainContentMargin(true);
+					} else if (isDesktop && !panelState.open && leftPanelDocked) {
+						// Undock the panel
+						panel.classList.remove('static', 'transform-none');
+						panel.classList.add('fixed', 'translate-x-[-100%]');
+						leftPanelDocked = false;
+						
+						// Remove margin from main content
+						adjustMainContentMargin(false);
+					} else if (!isDesktop) {
+						// Mobile behavior - always use fixed positioning
+						panel.classList.remove('static', 'transform-none');
+						panel.classList.add('fixed');
+						panel.classList.add(getTransformClass(side, !panelState.open));
+						if (leftPanelDocked) {
+							leftPanelDocked = false;
+							adjustMainContentMargin(false);
+						}
+					}
+				} else {
+					// Standard panel behavior for other sides
+					if (side === 'left') panel.classList.add('inset-y-0', 'left-0', 'w-screen', 'md:w-96');
+					if (side === 'right') panel.classList.add('inset-y-0', 'right-0', 'w-screen', 'md:w-96');
+					if (side === 'top') panel.classList.add('inset-x-0', 'top-0', 'h-64');
+					if (side === 'bottom') panel.classList.add('inset-x-0', 'bottom-0', 'h-64');
 
-				panel.classList.remove(
-					'translate-x-[-100%]', 'translate-x-[100%]', 'translate-x-0',
-					'translate-y-[-100%]', 'translate-y-[100%]', 'translate-y-0'
-				);
-				panel.classList.add(getTransformClass(side, !panelState.open));
+					panel.classList.remove(
+						'translate-x-[-100%]', 'translate-x-[100%]', 'translate-x-0',
+						'translate-y-[-100%]', 'translate-y-[100%]', 'translate-y-0'
+					);
+					panel.classList.add(getTransformClass(side, !panelState.open));
+				}
 
 				let content = panel.querySelector('.panel-content');
 				if (!content) {
@@ -124,6 +160,26 @@ import StaticBottom from "./panels/StaticBottom.astro"
 			}
 		}
 
+		function adjustMainContentMargin(docked) {
+			const dashboardContainer = document.querySelector('[data-grid="home"]');
+			if (dashboardContainer) {
+				if (docked) {
+					dashboardContainer.style.marginLeft = '20rem'; // w-80 = 20rem
+				} else {
+					dashboardContainer.style.marginLeft = '';
+				}
+			}
+		}
+
+		// Handle window resize to undock on mobile
+		function handleResize() {
+			const isDesktop = window.innerWidth >= 1024;
+			if (!isDesktop && leftPanelDocked) {
+				// Force close and undock on mobile
+				window.kbve?.uiux?.closePanel?.('left');
+			}
+		}
+
 		function waitForKbve(callback) {
 			if ('requestIdleCallback' in window) {
 				requestIdleCallback(() => {
@@ -146,6 +202,7 @@ import StaticBottom from "./panels/StaticBottom.astro"
 		waitForKbve((state) => {
 			updatePanels(state.get());
 			state.subscribe(updatePanels);
+			window.addEventListener('resize', handleResize);
 			console.log('[Panels] Reactive binding initialized');
 
 			document.addEventListener('keydown', (e) => {
