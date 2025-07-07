@@ -1,279 +1,31 @@
 ---
-import StatsCards from 'src/layouts/components/dashboard/home//components/StatsCards';
-import ActivityFeed from 'src/layouts/components/dashboard/home//components/ActivityFeed';
-import QuickActions from 'src/layouts/components/dashboard/home//components/QuickActions';
-import StatusCard from 'src/layouts/components/dashboard/home//components/StatusCard';
-import WelcomeInfo from 'src/layouts/components/dashboard/home//components/WelcomeInfo';
-import ChartCard from 'src/layouts/components/dashboard/home//components/ChartCard';
-import TableCard from 'src/layouts/components/dashboard/home/components/TableCard';
-import NeoGlassPanel from 'src/layouts/components/panel/NeoGlassPanel.astro';
-import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
+import Panel from 'src/layouts/core/Panel.astro';
 import DashboardFooter from 'src/layouts/components/dashboard/footer/DashboardFooter.astro';
-import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
-
 ---
 
 <style>
 	@import 'src/layouts/components/dashboard/home/components/animations.css';
 </style>
 
+<!-- Panel system - positioned absolutely, doesn't affect layout flow -->
+<Panel>
+	<div slot="aside">
+		<!-- Custom aside content can be passed here -->
+		<slot name="aside" />
+	</div>
+</Panel>
+
 <div
-	class="min-h-screen bg-zinc-900 text-white perspective-distant dashboard-container"
+	class="min-h-screen bg-zinc-900 text-white perspective-distant dashboard-container transition-all duration-300"
 	data-grid="home">
-	<!-- Header Section -->
-	<header class="border-b border-zinc-800 bg-zinc-900/50 backdrop-blur-sm relative z-10">
-		<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-
-			
-			<div class="flex items-center justify-between">
-
-				
-				<div class="flex items-center space-x-4">
-					<!-- Mobile Menu Button -->
-					<button
-						id="mobile-menu-btn"
-						class="lg:hidden p-2 text-zinc-400 hover:text-white hover:bg-zinc-800 rounded-lg transition-colors duration-200"
-						aria-label="Open sidebar menu">
-						<svg
-							class="w-6 h-6"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24">
-							<path
-								stroke-linecap="round"
-								stroke-linejoin="round"
-								stroke-width="2"
-								d="M4 6h16M4 12h16M4 18h16">
-							</path>
-						</svg>
-					</button>
-					
-				</div>
-
-				
-				<div class="relative flex items-center space-x-4">
-					<!-- Avatar Skeleton -->
-					<div class="flex items-center space-x-4" data-skeleton="avatar">
-						<!-- User Avatar Skeleton -->
-						<div
-							class="w-10 h-10 bg-zinc-800 rounded-full animate-pulse">
-						</div>
-						<div class="hidden sm:block">
-							<div class="h-4 bg-zinc-800 rounded w-24 animate-pulse">
-							</div>
-							<div
-								class="h-3 bg-zinc-800 rounded w-16 mt-1 animate-pulse">
-							</div>
-						</div>
-					</div>
-					<!-- MiniNav Component -->
-					<MiniNav client:only="react" />
-				</div>
-			</div>
-		</div>
-	</header>
-
+	
 	<!-- Main Dashboard Container -->
 	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative z-0">
-		<div class="flex gap-8">
-			<!-- Left Sidebar -->
-			<AsideBar>
-				<div slot="aside">
-					<!-- Custom aside content can be passed here -->
-					<!-- You can add custom navigation or content here -->
-					<slot name="aside" />
-				</div>
-			</AsideBar>
-
-			<main class="flex-1 min-w-0 relative z-0">
-				<slot />
-			</main>
+		<div class="w-full relative z-0" aria-label="Dashboard Content">
+			<slot />
 		</div>
 	</div>
-
 </div>
 
-	<!-- Footer -->
-	 <DashboardFooter />
-
-<script>
-	// Sidebar functionality with improved reliability
-	let sidebarInitialized = false;
-
-	function initializeSidebar() {
-		// Prevent multiple initializations
-		if (sidebarInitialized) return;
-
-		const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-		const closeSidebarBtn = document.getElementById('close-sidebar');
-		const sidebar = document.getElementById('sidebar');
-		const overlay = document.getElementById('sidebar-overlay');
-
-		// Check if all required elements exist
-		if (!mobileMenuBtn || !sidebar || !overlay) {
-			console.warn('Sidebar elements not found, retrying...');
-			// Retry after a short delay
-			setTimeout(initializeSidebar, 100);
-			return;
-		}
-
-		sidebarInitialized = true;
-		console.log('Sidebar initialized successfully');
-
-		function openSidebar() {
-			if (sidebar && overlay) {
-				// Show sidebar
-				sidebar.classList.remove('-translate-x-full');
-				sidebar.classList.add('translate-x-0');
-
-				// Show overlay
-				overlay.classList.remove(
-					'hidden',
-					'opacity-0',
-					'pointer-events-none'
-				);
-				overlay.classList.add('opacity-100');
-
-				// Prevent body scroll on mobile but allow sidebar scroll
-				const currentScrollY = window.scrollY;
-				document.body.style.position = 'fixed';
-				document.body.style.top = `-${currentScrollY}px`;
-				document.body.style.width = '100%';
-				document.body.style.overflowY = 'scroll'; // Maintain scrollbar space
-				
-				// Store scroll position to restore later
-				document.body.dataset.scrollY = currentScrollY.toString();
-
-				// Focus trap for accessibility
-				const focusableElements = sidebar.querySelectorAll(
-					'button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])'
-				);
-				if (focusableElements.length > 0) {
-					const firstElement = focusableElements[0] as HTMLElement;
-					firstElement.focus();
-				}
-
-				// Add escape key listener
-				document.addEventListener('keydown', handleEscape);
-			}
-		}
-
-		function closeSidebar() {
-			if (sidebar && overlay) {
-				// Hide sidebar on mobile, keep visible on desktop
-				sidebar.classList.remove('translate-x-0');
-				sidebar.classList.add('-translate-x-full');
-
-				// Hide overlay
-				overlay.classList.remove('opacity-100');
-				overlay.classList.add('opacity-0', 'pointer-events-none');
-
-				// Re-enable body scroll and restore position
-				const scrollY = document.body.dataset.scrollY;
-				document.body.style.position = '';
-				document.body.style.top = '';
-				document.body.style.width = '';
-				document.body.style.overflowY = '';
-				
-				// Restore scroll position
-				if (scrollY) {
-					window.scrollTo(0, parseInt(scrollY));
-					delete document.body.dataset.scrollY;
-				}
-
-				// Remove escape key listener
-				document.removeEventListener('keydown', handleEscape);
-
-				// Return focus to menu button
-				if (mobileMenuBtn) {
-					mobileMenuBtn.focus();
-				}
-
-				// Add delay before hiding to allow transition
-				setTimeout(() => {
-					if (overlay && overlay.classList.contains('opacity-0')) {
-						overlay.classList.add('hidden');
-					}
-				}, 300);
-			}
-		}
-
-		function handleEscape(e: KeyboardEvent) {
-			if (e.key === 'Escape') {
-				closeSidebar();
-			}
-		}
-
-		// Mobile menu button click
-		mobileMenuBtn.addEventListener('click', function(e) {
-			e.preventDefault();
-			e.stopPropagation();
-			console.log('Mobile menu button clicked');
-			openSidebar();
-		});
-
-		// Close sidebar button click (may not exist initially if React component isn't loaded)
-		function bindCloseSidebarBtn() {
-			const closeBtn = document.getElementById('close-sidebar');
-			if (closeBtn && !closeBtn.dataset.boundByMain) {
-				closeBtn.dataset.boundByMain = 'true';
-				closeBtn.addEventListener('click', function(e) {
-					e.preventDefault();
-					e.stopPropagation();
-					console.log('Close button clicked');
-					closeSidebar();
-				});
-			}
-		}
-
-		// Bind immediately and also retry in case React component loads later
-		bindCloseSidebarBtn();
-		setTimeout(bindCloseSidebarBtn, 500);
-		setTimeout(bindCloseSidebarBtn, 1000);
-
-		// Overlay click to close sidebar (anywhere on overlay)
-		overlay.addEventListener('click', function(e) {
-			// Only close if clicking directly on the overlay, not on sidebar content
-			if (e.target === overlay) {
-				closeSidebar();
-			}
-		});
-
-		// Handle window resize - close sidebar when switching to desktop
-		window.addEventListener('resize', function () {
-			if (window.innerWidth >= 1024) {
-				// lg breakpoint
-				closeSidebar();
-			}
-		});
-
-		// Handle clicks outside sidebar on mobile (additional safety)
-		document.addEventListener('click', function(e) {
-			const isDesktop = window.innerWidth >= 1024;
-			const isSidebarOpen = sidebar && sidebar.classList.contains('translate-x-0');
-			const target = e.target as Node;
-			
-			if (!isDesktop && isSidebarOpen && !sidebar.contains(target) && target !== mobileMenuBtn) {
-				closeSidebar();
-			}
-		});
-	}
-
-	// Initialize immediately if DOM is ready
-	if (document.readyState === 'loading') {
-		document.addEventListener('DOMContentLoaded', initializeSidebar);
-	} else {
-		initializeSidebar();
-	}
-
-	// Also initialize on Astro page changes (for SPA navigation)
-	document.addEventListener('astro:page-load', function() {
-		sidebarInitialized = false; // Reset flag for new page
-		initializeSidebar();
-	});
-
-	// Initialize after React components load
-	document.addEventListener('astro:after-hydration', function() {
-		setTimeout(initializeSidebar, 100);
-	});
-</script>
+<!-- Footer -->
+<DashboardFooter />

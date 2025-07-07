@@ -40,7 +40,7 @@ interface Props {
 		<Meta meta={meta} structuredData={structuredData} />
 		{pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
 		<!-- <ClientRouter /> -->
-		<Panel />
+		<!-- <Panel /> -->
 
 		<!-- <style is:global>
 			.scrollbar-hide::-webkit-scrollbar {
@@ -144,9 +144,11 @@ interface Props {
 		
 	</head>
 
+
 	<body
-		class="light:bg-neutral-200 selection:bg-cyan-400 selection:text-neutral-700 bg-stone-950">
+		class="selection:bg-cyan-400 selection:text-neutral-700 bg-zinc-900">
 		<!-- <div class="px-4 sm:px-6 lg:px-8 pt-2"></div> -->
+		
 		<Navbar />
 
 		<main id="main-slot">

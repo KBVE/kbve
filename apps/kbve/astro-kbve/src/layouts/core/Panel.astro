@@ -5,26 +5,114 @@ import StaticRight from "./panels/StaticRight.astro"
 import StaticBottom from "./panels/StaticBottom.astro"
 ---
 
-<div id="panels-root" class="pointer-events-none" style="visibility: hidden;" data-panels>
+<style>
+	/* Collapsed panel styling */
+	[data-panels="left"] {
+		transition: width 0.3s ease-in-out;
+	}
+	
+	[data-panels="left"][data-collapsed="true"] {
+		width: 60px !important;
+	}
+	
+	[data-panels="left"][data-collapsed="false"] {
+		width: 320px !important;
+	}
+	
+	/* Hide text and adjust layout when collapsed */
+	[data-panels="left"][data-collapsed="true"] .sidebar-text {
+		opacity: 0;
+		transform: scale(0.8);
+		transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+		pointer-events: none;
+	}
+	
+	[data-panels="left"][data-collapsed="false"] .sidebar-text {
+		opacity: 1;
+		transform: scale(1);
+		transition: opacity 0.3s ease-in-out 0.1s, transform 0.3s ease-in-out 0.1s;
+		pointer-events: auto;
+	}
+	
+	/* Adjust sidebar items layout when collapsed */
+	[data-panels="left"][data-collapsed="true"] .sidebar-item {
+		justify-content: center;
+		padding-left: 0.75rem;
+		padding-right: 0.75rem;
+	}
+	
+	[data-panels="left"][data-collapsed="false"] .sidebar-item {
+		justify-content: flex-start;
+		padding-left: 0.75rem;
+		padding-right: 0.75rem;
+	}
+	
+	/* Hide space between icon and text when collapsed */
+	[data-panels="left"][data-collapsed="true"] .sidebar-item {
+		gap: 0;
+	}
+	
+	[data-panels="left"][data-collapsed="false"] .sidebar-item {
+		gap: 0.75rem;
+	}
+	
+	/* Ensure icons remain visible and centered */
+	[data-panels="left"][data-collapsed="true"] .sidebar-item svg {
+		flex-shrink: 0;
+	}
+	
+	/* Better responsive behavior on mobile */
+	@media (max-width: 1023px) {
+		[data-panels="left"][data-collapsed="true"],
+		[data-panels="left"][data-collapsed="false"] {
+			width: 100vw !important;
+		}
+		
+		[data-panels="left"] .sidebar-text {
+			opacity: 1 !important;
+			transform: scale(1) !important;
+		}
+		
+		[data-panels="left"] .sidebar-item {
+			justify-content: flex-start !important;
+			gap: 0.75rem !important;
+			padding-left: 0.75rem !important;
+			padding-right: 0.75rem !important;
+		}
+	}
+</style>
+
+<div id="panels-root" class="fixed inset-0 top-0 pointer-events-none z-40" style="visibility: hidden;" data-panels>
+	<!-- Top Panel: For staff debugging and admin tools only (hidden off-screen by default) -->
 	<div
+		data-panels="top"
 		id="panel-top"
-		class="panel fixed inset-x-0 top-0 h-64 translate-y-[-100%]">
+		class="panel absolute inset-x-0 top-0 h-64 translate-y-[-100%] z-60">
         <StaticTop />
 	</div>
+	<!-- Right Panel: For additional tools, settings, or secondary content -->
 	<div
+		data-panels="right"
 		id="panel-right"
-		class="panel fixed inset-y-0 right-0 w-64 translate-x-[100%]">
+		class="panel absolute inset-y-0 right-0 w-64 translate-x-[100%] top-16">
         <StaticRight />
 	</div>
+	<!-- Bottom Panel: For status information, logs, or footer content -->
 	<div
+		data-panels="bottom"
 		id="panel-bottom"
-		class="panel fixed inset-x-0 bottom-0 h-96 translate-y-[100%]">
+		class="panel absolute inset-x-0 bottom-0 h-96 translate-y-[100%]">
         <StaticBottom />
 	</div>
+	<!-- Left Panel: Main navigation sidebar -->
 	<div
+		data-panels="left"
 		id="panel-left"
-		class="panel fixed inset-y-0 left-0 w-screen md:w-96 translate-x-[-100%]">
-		<StaticLeft />
+		class="panel absolute inset-y-0 left-0 w-screen md:w-96 translate-x-[-100%] lg:static lg:translate-x-0 lg:w-80 top-16"
+		data-dockable="true">
+		<StaticLeft>
+			<slot name="aside" />
+		</StaticLeft>
 	</div>
 </div>
 
@@ -46,11 +134,18 @@ import StaticBottom from "./panels/StaticBottom.astro"
             'dark:bg-neutral-900/90',
             'backdrop-blur-md',
             'shadow-lg',
-            'z-[100]',
             'overflow-auto',
             'border',
             'border-white/10',
         ]);
+
+        // Special z-index classes for different panels
+        const zIndexClasses = Object.freeze({
+            top: 'z-60',    // Higher than navbar (z-50) for staff debugging
+            left: 'z-50',   // Same as navbar
+            right: 'z-50',  // Same as navbar  
+            bottom: 'z-50', // Same as navbar
+        });
 
         const transformMap = Object.freeze({
             left: Object.freeze(['translate-x-[-100%]', 'translate-x-0']),
@@ -59,6 +154,8 @@ import StaticBottom from "./panels/StaticBottom.astro"
             bottom: Object.freeze(['translate-y-[100%]', 'translate-y-0']),
         });
 
+		// Desktop docking state for left panel
+		let leftPanelDocked = false;
 
 		function getTransformClass(side, hide) {
             return transformMap[side][hide ? 0 : 1];
@@ -71,20 +168,72 @@ import StaticBottom from "./panels/StaticBottom.astro"
 				if (!panel || !panelState) continue;
 
                 if (!panel.hasAttribute('data-panel-initialized')) {
-                    panel.classList.add('panel', 'fixed', ...transitionClasses);
+                    panel.classList.add('panel', 'absolute', ...transitionClasses, zIndexClasses[side]);
                     panel.setAttribute('data-panel-initialized', 'true');
                 }
 
-				if (side === 'left') panel.classList.add('inset-y-0', 'left-0', 'w-screen', 'md:w-96');
-				if (side === 'right') panel.classList.add('inset-y-0', 'right-0', 'w-screen', 'md:w-96');
-				if (side === 'top') panel.classList.add('inset-x-0', 'top-0', 'h-64');
-				if (side === 'bottom') panel.classList.add('inset-x-0', 'bottom-0', 'h-64');
+				// Handle docking for left panel on desktop
+				if (side === 'left' && panel.hasAttribute('data-dockable')) {
+					const isDesktop = window.innerWidth >= 1024;
+					
+					if (isDesktop && panelState.open && !leftPanelDocked) {
+						// Dock the panel
+						panel.classList.remove('fixed', 'translate-x-[-100%]', 'translate-x-0');
+						panel.classList.add('static', 'transform-none');
+						leftPanelDocked = true;
+						
+						// Add margin to main content
+						adjustMainContentMargin(true);
+					} else if (isDesktop && !panelState.open && leftPanelDocked) {
+						// Undock the panel
+						panel.classList.remove('static', 'transform-none');
+						panel.classList.add('fixed', 'translate-x-[-100%]');
+						leftPanelDocked = false;
+						
+						// Remove margin from main content
+						adjustMainContentMargin(false);
+					} else if (!isDesktop) {
+						// Mobile behavior - always use fixed positioning
+						panel.classList.remove('static', 'transform-none');
+						panel.classList.add('fixed');
+						panel.classList.add(getTransformClass(side, !panelState.open));
+						if (leftPanelDocked) {
+							leftPanelDocked = false;
+							adjustMainContentMargin(false);
+						}
+					}
+				} else {
+					// Standard panel behavior for other sides
+					if (side === 'left') {
+						panel.classList.add('inset-y-0', 'left-0', 'w-screen', 'md:w-96');
+						// Left panel should start below navbar
+						if (!panel.classList.contains('top-16')) {
+							panel.classList.add('top-16');
+						}
+					}
+					if (side === 'right') {
+						panel.classList.add('inset-y-0', 'right-0', 'w-screen', 'md:w-96');
+						// Right panel should start below navbar
+						if (!panel.classList.contains('top-16')) {
+							panel.classList.add('top-16');
+						}
+					}
+					if (side === 'top') {
+						panel.classList.add('inset-x-0', 'top-0', 'h-64');
+						// Top panel should start at very top (above navbar)
+						panel.classList.remove('top-16');
+					}
+					if (side === 'bottom') {
+						panel.classList.add('inset-x-0', 'bottom-0', 'h-64');
+						// Bottom panel doesn't need top positioning
+					}
 
-				panel.classList.remove(
-					'translate-x-[-100%]', 'translate-x-[100%]', 'translate-x-0',
-					'translate-y-[-100%]', 'translate-y-[100%]', 'translate-y-0'
-				);
-				panel.classList.add(getTransformClass(side, !panelState.open));
+					panel.classList.remove(
+						'translate-x-[-100%]', 'translate-x-[100%]', 'translate-x-0',
+						'translate-y-[-100%]', 'translate-y-[100%]', 'translate-y-0'
+					);
+					panel.classList.add(getTransformClass(side, !panelState.open));
+				}
 
 				let content = panel.querySelector('.panel-content');
 				if (!content) {
@@ -118,6 +267,26 @@ import StaticBottom from "./panels/StaticBottom.astro"
 			}
 		}
 
+		function adjustMainContentMargin(docked) {
+			const dashboardContainer = document.querySelector('[data-grid="home"]');
+			if (dashboardContainer) {
+				if (docked) {
+					dashboardContainer.style.marginLeft = '20rem'; // w-80 = 20rem
+				} else {
+					dashboardContainer.style.marginLeft = '';
+				}
+			}
+		}
+
+		// Handle window resize to undock on mobile
+		function handleResize() {
+			const isDesktop = window.innerWidth >= 1024;
+			if (!isDesktop && leftPanelDocked) {
+				// Force close and undock on mobile
+				window.kbve?.uiux?.closePanel?.('left');
+			}
+		}
+
 		function waitForKbve(callback) {
 			if ('requestIdleCallback' in window) {
 				requestIdleCallback(() => {
@@ -140,6 +309,7 @@ import StaticBottom from "./panels/StaticBottom.astro"
 		waitForKbve((state) => {
 			updatePanels(state.get());
 			state.subscribe(updatePanels);
+			window.addEventListener('resize', handleResize);
 			console.log('[Panels] Reactive binding initialized');
 
 			document.addEventListener('keydown', (e) => {
