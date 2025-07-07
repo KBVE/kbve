@@ -215,14 +215,10 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 
       if (header && nav && isDashboardPage) {
         console.log('[Navbar] Dashboard context detected, adjusting navbar');
-        // Dashboard mode: flush header, darker styling
+        // Dashboard mode: flush header
         header.setAttribute('data-navbar-context', 'dashboard');
         header.classList.remove('top-4');
         header.classList.add('top-0');
-        
-        // Adjust nav styling for dashboard
-        nav.classList.remove('mx-2', 'rounded-[36px]', 'border-yellow-100/40', 'bg-yellow-50/60', 'dark:border-neutral-700/40', 'dark:bg-neutral-800/40');
-        nav.classList.add('mx-0', 'rounded-none', 'border-b', 'border-zinc-800', 'bg-zinc-900/50', 'dark:border-zinc-800', 'dark:bg-zinc-900/50');
         
         // Adjust dashboard container padding
         const dashboardContainer = document.querySelector('[data-grid="home"]');
@@ -236,10 +232,6 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
         header.setAttribute('data-navbar-context', 'default');
         header.classList.remove('top-0');
         header.classList.add('top-4');
-        
-        // Reset nav styling for default
-        nav.classList.remove('mx-0', 'rounded-none', 'border-b', 'border-zinc-800', 'bg-zinc-900/50', 'dark:border-zinc-800', 'dark:bg-zinc-900/50');
-        nav.classList.add('mx-2', 'rounded-[36px]', 'border-yellow-100/40', 'bg-yellow-50/60', 'dark:border-neutral-700/40', 'dark:bg-neutral-800/40');
         
         // Reset dashboard container padding if it exists
         const dashboardContainer = document.querySelector('[data-grid="home"]');
