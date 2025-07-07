@@ -82,8 +82,8 @@ import StaticBottom from "./panels/StaticBottom.astro"
 	}
 </style>
 
-<div id="panels-root" class="fixed inset-0 top-16 pointer-events-none z-40" style="visibility: hidden;" data-panels>
-	<!-- Top Panel: For staff debugging and admin tools only (hidden by default) -->
+<div id="panels-root" class="fixed inset-0 top-0 pointer-events-none z-40" style="visibility: hidden;" data-panels>
+	<!-- Top Panel: For staff debugging and admin tools only (hidden off-screen by default) -->
 	<div
 		data-panels="top"
 		id="panel-top"
@@ -94,7 +94,7 @@ import StaticBottom from "./panels/StaticBottom.astro"
 	<div
 		data-panels="right"
 		id="panel-right"
-		class="panel absolute inset-y-0 right-0 w-64 translate-x-[100%]">
+		class="panel absolute inset-y-0 right-0 w-64 translate-x-[100%] top-16">
         <StaticRight />
 	</div>
 	<!-- Bottom Panel: For status information, logs, or footer content -->
@@ -108,7 +108,7 @@ import StaticBottom from "./panels/StaticBottom.astro"
 	<div
 		data-panels="left"
 		id="panel-left"
-		class="panel absolute inset-y-0 left-0 w-screen md:w-96 translate-x-[-100%] lg:static lg:translate-x-0 lg:w-80"
+		class="panel absolute inset-y-0 left-0 w-screen md:w-96 translate-x-[-100%] lg:static lg:translate-x-0 lg:w-80 top-16"
 		data-dockable="true">
 		<StaticLeft>
 			<slot name="aside" />
@@ -204,10 +204,29 @@ import StaticBottom from "./panels/StaticBottom.astro"
 					}
 				} else {
 					// Standard panel behavior for other sides
-					if (side === 'left') panel.classList.add('inset-y-0', 'left-0', 'w-screen', 'md:w-96');
-					if (side === 'right') panel.classList.add('inset-y-0', 'right-0', 'w-screen', 'md:w-96');
-					if (side === 'top') panel.classList.add('inset-x-0', 'top-0', 'h-64');
-					if (side === 'bottom') panel.classList.add('inset-x-0', 'bottom-0', 'h-64');
+					if (side === 'left') {
+						panel.classList.add('inset-y-0', 'left-0', 'w-screen', 'md:w-96');
+						// Left panel should start below navbar
+						if (!panel.classList.contains('top-16')) {
+							panel.classList.add('top-16');
+						}
+					}
+					if (side === 'right') {
+						panel.classList.add('inset-y-0', 'right-0', 'w-screen', 'md:w-96');
+						// Right panel should start below navbar
+						if (!panel.classList.contains('top-16')) {
+							panel.classList.add('top-16');
+						}
+					}
+					if (side === 'top') {
+						panel.classList.add('inset-x-0', 'top-0', 'h-64');
+						// Top panel should start at very top (above navbar)
+						panel.classList.remove('top-16');
+					}
+					if (side === 'bottom') {
+						panel.classList.add('inset-x-0', 'bottom-0', 'h-64');
+						// Bottom panel doesn't need top positioning
+					}
 
 					panel.classList.remove(
 						'translate-x-[-100%]', 'translate-x-[100%]', 'translate-x-0',

@@ -281,11 +281,7 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 
       // Universal menu button - handles both mobile and desktop scenarios
       if (universalMenuBtn) {
-        /**
-         * @param {boolean} collapsed
-         * @param {boolean} panelOpen
-         */
-        const updateButtonState = (collapsed, panelOpen) => {
+        const updateButtonState = (collapsed: boolean, panelOpen: boolean) => {
           const menuIcon = document.getElementById('menu-icon');
           const isDesktop = window.innerWidth >= 1024;
           

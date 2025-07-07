@@ -11,6 +11,12 @@ import PanelCloseButton from './PanelCloseButton.astro';
     <PanelCloseButton side="top" />
   </div>
 
+  <!-- Staff Warning -->
+  <div class="mt-2 p-2 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded text-xs">
+    <p class="text-red-700 dark:text-red-300 font-medium">⚠️ STAFF ONLY</p>
+    <p class="text-red-600 dark:text-red-400">This panel is for debugging and administrative purposes only.</p>
+  </div>
+
   <div class="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm text-center">
     <div class="bg-red-100/60 dark:bg-red-900/30 p-3 rounded-md">
       <p class="font-semibold text-red-700 dark:text-red-300">Debug Mode</p>
