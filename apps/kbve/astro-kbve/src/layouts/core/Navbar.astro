@@ -47,7 +47,8 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 				<button
 					id="universal-menu-btn"
 					class="p-2 text-zinc-400 hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors duration-200"
-					aria-label="Toggle menu">
+					aria-label="Toggle menu"
+					onclick="toggleNavbarMenu()">
 					<svg
 						id="menu-icon"
 						class="w-5 h-5 transition-transform duration-200"
@@ -97,7 +98,17 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 	</nav>
 </header>
 
-<script>
+<script is:inline>
+// Simple global function for the navbar menu button
+function toggleNavbarMenu() {
+  console.log('[Navbar] Menu button clicked');
+  if (typeof window.toggleSidebar === 'function') {
+    window.toggleSidebar();
+  } else {
+    console.warn('[Navbar] toggleSidebar not available yet');
+  }
+}
+
 (function() {
   function setupDashboardControls() {
     console.log('[Navbar] Setting up dashboard controls');
@@ -147,169 +158,114 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
     // Run immediately
     adjustNavbarForDashboard();
     
-    function waitForKbve(callback: () => void) {
-      if ('requestIdleCallback' in window) {
-        requestIdleCallback(() => {
-          if (window.kbve?.uiux?.openPanel) {
-            callback();
-          } else {
-            setTimeout(() => waitForKbve(callback), 50);
-          }
-        });
-      } else {
-        const interval = setInterval(() => {
-          if (window.kbve?.uiux?.openPanel) {
-            clearInterval(interval);
-            callback();
-          }
-        }, 100);
+    // Local menu state management
+    const universalMenuBtn = document.getElementById('universal-menu-btn');
+    
+    console.log('[Navbar] Button found:', !!universalMenuBtn);
+    
+    // State tracking
+    let isMenuOpen = false;
+
+    // Simplified function to check sidebar state
+    function checkSidebarState() {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        const transform = window.getComputedStyle(sidebar).transform;
+        const wasOpen = isMenuOpen;
+        isMenuOpen = transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)';
+        
+        // Update button state if it changed
+        if (wasOpen !== isMenuOpen) {
+          updateButtonState();
+        }
       }
     }
 
-    waitForKbve(() => {
-      const universalMenuBtn = document.getElementById('universal-menu-btn');
+    function updateButtonState() {
+      const menuIcon = document.getElementById('menu-icon');
       
-      // State tracking
-      let isCollapsed = false;
-      let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
-
-      // Universal menu button - handles both mobile and desktop scenarios
-      if (universalMenuBtn) {
-        const updateButtonState = (collapsed: boolean, panelOpen: boolean) => {
-          const menuIcon = document.getElementById('menu-icon');
-          const isDesktop = window.innerWidth >= 1024;
-          
-          if (menuIcon) {
-            if (!panelOpen) {
-              // Panel is closed - show menu icon
-              menuIcon.style.transform = 'rotate(0deg)';
-              universalMenuBtn.setAttribute('aria-label', 'Open menu');
-            } else if (isDesktop && collapsed) {
-              // Desktop collapsed - show slightly rotated icon
-              menuIcon.style.transform = 'rotate(90deg)';
-              universalMenuBtn.setAttribute('aria-label', 'Expand menu');
-            } else {
-              // Panel is open/expanded - show rotated icon
-              menuIcon.style.transform = 'rotate(180deg)';
-              universalMenuBtn.setAttribute('aria-label', isDesktop ? 'Collapse menu' : 'Close menu');
-            }
-          }
-        };
-
-        universalMenuBtn.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('[Navbar] Universal menu button clicked');
-          
-          const isMobile = window.innerWidth < 1024; // lg breakpoint
-          const panelState = window.kbve?.uiux?.state?.get()?.panelManager?.left;
-          
-          if (isMobile) {
-            // Mobile behavior: toggle off-canvas sidebar
-            if (panelState?.open) {
-              window.kbve?.uiux?.closePanel?.('left');
-              updateButtonState(false, false);
-            } else {
-              window.kbve?.uiux?.openPanel?.('left');
-              updateButtonState(false, true);
-            }
-          } else {
-            // Desktop behavior: toggle between expanded and collapsed
-            if (panelState?.open) {
-              if (isCollapsed) {
-                // Currently collapsed, expand it
-                isCollapsed = false;
-                window.kbve?.uiux?.updatePanel?.('left', { 
-                  width: '320px',
-                  collapsed: false 
-                });
-                
-                const leftPanel = document.querySelector('[data-panels="left"]');
-                if (leftPanel) {
-                  leftPanel.setAttribute('data-collapsed', 'false');
-                  // Remove hover listeners when expanded
-                  leftPanel.removeEventListener('mouseenter', handleMouseEnter);
-                  leftPanel.removeEventListener('mouseleave', handleMouseLeave);
-                }
-                updateButtonState(false, true);
-              } else {
-                // Currently expanded, collapse it
-                isCollapsed = true;
-                window.kbve?.uiux?.updatePanel?.('left', { 
-                  width: '60px',
-                  collapsed: true 
-                });
-                
-                const leftPanel = document.querySelector('[data-panels="left"]');
-                if (leftPanel) {
-                  leftPanel.setAttribute('data-collapsed', 'true');
-                  // Add hover listeners when collapsed
-                  leftPanel.addEventListener('mouseenter', handleMouseEnter);
-                  leftPanel.addEventListener('mouseleave', handleMouseLeave);
-                }
-                updateButtonState(true, true);
-              }
-            } else {
-              // Panel is closed, open it in expanded state
-              isCollapsed = false;
-              window.kbve?.uiux?.openPanel?.('left');
-              
-              const leftPanel = document.querySelector('[data-panels="left"]');
-              if (leftPanel) {
-                leftPanel.setAttribute('data-collapsed', 'false');
-              }
-              updateButtonState(false, true);
-            }
-          }
-        });
+      if (menuIcon) {
+        if (!isMenuOpen) {
+          // Menu is closed
+          menuIcon.style.transform = 'rotate(0deg)';
+          universalMenuBtn.setAttribute('aria-label', 'Open menu');
+        } else {
+          // Menu is open
+          menuIcon.style.transform = 'rotate(180deg)';
+          universalMenuBtn.setAttribute('aria-label', 'Close menu');
+        }
       }
+    }
 
-      // Hover behavior functions for collapsed desktop mode
-      const handleMouseEnter = () => {
-        if (isCollapsed && window.innerWidth >= 1024) {
-          if (hoverTimeout) clearTimeout(hoverTimeout);
-          window.kbve?.uiux?.updatePanel?.('left', { 
-            width: '320px',
-            collapsed: false 
-          });
-          const leftPanel = document.querySelector('[data-panels="left"]');
-          if (leftPanel) {
-            leftPanel.setAttribute('data-collapsed', 'false');
-          }
-        }
-      };
+    // Monitor sidebar state changes (for button icon updates)
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      // Watch for transform changes on the sidebar
+      const observer = new MutationObserver(checkSidebarState);
+      observer.observe(sidebar, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+      });
       
-      const handleMouseLeave = () => {
-        if (isCollapsed && window.innerWidth >= 1024) {
-          hoverTimeout = setTimeout(() => {
-            window.kbve?.uiux?.updatePanel?.('left', { 
-              width: '60px',
-              collapsed: true 
-            });
-            const leftPanel = document.querySelector('[data-panels="left"]');
-            if (leftPanel) {
-              leftPanel.setAttribute('data-collapsed', 'true');
-            }
-          }, 300); // 300ms delay before collapsing
-        }
-      };
+      // Initial state check
+      checkSidebarState();
+    }
 
-      // Handle window resize to adjust behavior
-      window.addEventListener('resize', function() {
-        const isMobile = window.innerWidth < 1024;
-        const leftPanel = document.querySelector('[data-panels="left"]');
+    // Universal menu button click handler
+    if (universalMenuBtn) {
+      console.log('[Navbar] Adding click listener to menu button');
+      universalMenuBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Navbar] Universal menu button clicked');
         
-        if (isMobile && leftPanel) {
-          // Reset to mobile behavior
-          leftPanel.setAttribute('data-collapsed', 'false');
-          leftPanel.removeEventListener('mouseenter', handleMouseEnter);
-          leftPanel.removeEventListener('mouseleave', handleMouseLeave);
-          isCollapsed = false;
+        // Use the existing sidebar's toggle function
+        if (typeof window.toggleSidebar === 'function') {
+          console.log('[Navbar] Using existing toggleSidebar function');
+          window.toggleSidebar();
+          
+          // Update button icon state
+          const sidebar = document.getElementById('sidebar');
+          if (sidebar) {
+            const transform = window.getComputedStyle(sidebar).transform;
+            const isOpen = transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)';
+            isMenuOpen = !isOpen; // Inverted because we just toggled
+            updateButtonState();
+          }
+        } else {
+          console.warn('[Navbar] toggleSidebar function not available yet, trying fallback');
+          // Fallback to direct sidebar manipulation
+          const sidebar = document.getElementById('sidebar');
+          const overlay = document.getElementById('sidebar-overlay');
+          
+          if (sidebar && overlay) {
+            const transform = window.getComputedStyle(sidebar).transform;
+            const isOpen = transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)';
+            
+            if (isOpen) {
+              // Close sidebar
+              sidebar.classList.add('-translate-x-full');
+              sidebar.classList.remove('translate-x-0');
+              overlay.classList.add('opacity-0', 'pointer-events-none', 'hidden');
+              overlay.classList.remove('opacity-100');
+              isMenuOpen = false;
+            } else {
+              // Open sidebar
+              sidebar.classList.remove('-translate-x-full');
+              sidebar.classList.add('translate-x-0');
+              overlay.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+              overlay.classList.add('opacity-100');
+              isMenuOpen = true;
+            }
+            updateButtonState();
+          }
         }
       });
+    } else {
+      console.warn('[Navbar] Universal menu button not found!');
+    }
 
-      console.log('[Navbar] Universal menu controls initialized');
-    });
+    console.log('[Navbar] Menu controls initialized - using existing sidebar functionality');
   }
 
   // Initialize on page load
