@@ -43,13 +43,14 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 
 			<!-- Dashboard Controls -->
 			<div class="flex items-center space-x-2">
-				<!-- Mobile Menu Button for Dashboard -->
+				<!-- Universal Menu Button -->
 				<button
-					id="mobile-menu-btn"
-					class="lg:hidden p-2 text-zinc-400 hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors duration-200"
-					aria-label="Open sidebar menu">
+					id="universal-menu-btn"
+					class="p-2 text-zinc-400 hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors duration-200"
+					aria-label="Toggle menu">
 					<svg
-						class="w-5 h-5"
+						id="menu-icon"
+						class="w-5 h-5 transition-transform duration-200"
 						fill="none"
 						stroke="currentColor"
 						viewBox="0 0 24 24">
@@ -61,150 +62,13 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 						</path>
 					</svg>
 				</button>
-				
-				<!-- Panel Toggle Button for Desktop -->
-				<button
-					id="panel-toggle-btn"
-					class="hidden lg:block p-2 text-zinc-400 hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors duration-200"
-					aria-label="Toggle side panel">
-					<svg
-						class="w-5 h-5"
-						fill="none"
-						stroke="currentColor"
-						viewBox="0 0 24 24">
-						<path
-							stroke-linecap="round"
-							stroke-linejoin="round"
-							stroke-width="2"
-							d="M9 12l2 2 4-4M7.835 4.697a3.42 3.42 0 001.946-.806 3.42 3.42 0 014.438 0 3.42 3.42 0 001.946.806 3.42 3.42 0 013.138 3.138 3.42 3.42 0 00.806 1.946 3.42 3.42 0 010 4.438 3.42 3.42 0 00-.806 1.946 3.42 3.42 0 01-3.138 3.138 3.42 3.42 0 00-1.946.806 3.42 3.42 0 01-4.438 0 3.42 3.42 0 00-1.946-.806 3.42 3.42 0 01-3.138-3.138 3.42 3.42 0 00-.806-1.946 3.42 3.42 0 010-4.438 3.42 3.42 0 00.806-1.946 3.42 3.42 0 013.138-3.138z">
-						</path>
-					</svg>
-				</button>
 			</div>
 
 			<div class="w-px h-10 bg-neutral-300 dark:bg-white/20 mx-4"></div>
 
-			<!-- Mobile Menu -->
+			<!-- Navigation Links -->
 			<div class="flex flex-row mx-auto" id="nav-menu">
-				<!-- Menu -->
-				<button
-					type="button"
-  					onclick="window.kbve.uiux.openPanel('left', { rawHtml: '<strong>Welcome to the Menu :D</strong>' })"
-					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
-					aria-label="Menu">
-					<!-- Tooltip -->
-					<span
-						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
-						Menu
-					</span>
-
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
-						<path d="M4 12h16"></path><path d="M4 18h16">
-						</path><path d="M4 6h16"></path>
-					</svg>
-					<!-- Label -->
-					<span
-						class="relative text-xs font-medium group-hover:text-purple-400 transition">
-						Menu
-						<span
-							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
-						</span>
-					</span>
-				</button>
-
-				<button
-					type="button"
-  					onclick="window.kbve.uiux.openPanel('top', { rawHtml: '<strong>Welcome to the Dash :D</strong>' })"
-					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
-					aria-label="Dashboard"
-					data-astro-prefetch>
-					<!-- Tooltip -->
-					<span
-						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
-						Dashboard
-					</span>
-
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
-						<rect width="7" height="9" x="3" y="3" rx="1">
-						</rect><rect width="7" height="5" x="14" y="3" rx="1">
-						</rect><rect width="7" height="9" x="14" y="12" rx="1">
-						</rect><rect width="7" height="5" x="3" y="16" rx="1">
-						</rect>
-					</svg>
-
-					<!-- Label -->
-					<span
-						class="relative text-xs font-medium group-hover:text-purple-400 transition">
-						Dash
-						<span
-							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
-						</span>
-					</span>
-				</button>
-				<button
-					type="button"
-					onclick="window.kbve.uiux.openPanel('right', { rawHtml: '<strong>Welcome to the Auth :D</strong>' })"
-					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
-					aria-label="Docs"
-					data-astro-prefetch>
-					<!-- Tooltip -->
-					<span
-						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
-						Register
-					</span>
-
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
-						<path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4">
-						</path><path d="M14 13.12c0 2.38 0 6.38-1 8.88">
-						</path><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02">
-						</path><path d="M2 12a10 10 0 0 1 18-6"></path><path
-							d="M2 16h.01">
-						</path><path d="M21.8 16c.2-2 .131-5.354 0-6">
-						</path><path
-							d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2">
-						</path><path d="M8.65 22c.21-.66.45-1.32.57-2">
-						</path><path d="M9 6.8a6 6 0 0 1 9 5.2v2"></path>
-					</svg>
-
-					<!-- Label -->
-					<span
-						class="relative text-xs font-medium group-hover:text-purple-400 transition">
-						Auth
-						<span
-							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
-						</span>
-					</span>
-				</button>
+				<!-- Navigation items can be added here if needed -->
 			</div>
 		</div>
 
@@ -409,35 +273,152 @@ import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
     }
 
     waitForKbve(() => {
-      const mobileMenuBtn = document.getElementById('mobile-menu-btn');
-      const panelToggleBtn = document.getElementById('panel-toggle-btn');
+      const universalMenuBtn = document.getElementById('universal-menu-btn');
+      
+      // State tracking
+      let isCollapsed = false;
+      let hoverTimeout: ReturnType<typeof setTimeout> | null = null;
 
-      // Mobile menu button - opens left panel as overlay
-      if (mobileMenuBtn) {
-        mobileMenuBtn.addEventListener('click', function (e) {
+      // Universal menu button - handles both mobile and desktop scenarios
+      if (universalMenuBtn) {
+        /**
+         * @param {boolean} collapsed
+         * @param {boolean} panelOpen
+         */
+        const updateButtonState = (collapsed, panelOpen) => {
+          const menuIcon = document.getElementById('menu-icon');
+          const isDesktop = window.innerWidth >= 1024;
+          
+          if (menuIcon) {
+            if (!panelOpen) {
+              // Panel is closed - show menu icon
+              menuIcon.style.transform = 'rotate(0deg)';
+              universalMenuBtn.setAttribute('aria-label', 'Open menu');
+            } else if (isDesktop && collapsed) {
+              // Desktop collapsed - show slightly rotated icon
+              menuIcon.style.transform = 'rotate(90deg)';
+              universalMenuBtn.setAttribute('aria-label', 'Expand menu');
+            } else {
+              // Panel is open/expanded - show rotated icon
+              menuIcon.style.transform = 'rotate(180deg)';
+              universalMenuBtn.setAttribute('aria-label', isDesktop ? 'Collapse menu' : 'Close menu');
+            }
+          }
+        };
+
+        universalMenuBtn.addEventListener('click', function (e) {
           e.preventDefault();
           e.stopPropagation();
-          console.log('[Navbar] Mobile menu button clicked');
-          window.kbve?.uiux?.openPanel?.('left');
-        });
-      }
-
-      // Desktop panel toggle button - toggles docking
-      if (panelToggleBtn) {
-        panelToggleBtn.addEventListener('click', function (e) {
-          e.preventDefault();
-          e.stopPropagation();
-          console.log('[Navbar] Panel toggle button clicked');
-          const currentState = window.kbve?.uiux?.state?.get()?.panelManager?.left?.open;
-          if (currentState) {
-            window.kbve?.uiux?.closePanel?.('left');
+          console.log('[Navbar] Universal menu button clicked');
+          
+          const isMobile = window.innerWidth < 1024; // lg breakpoint
+          const panelState = window.kbve?.uiux?.state?.get()?.panelManager?.left;
+          
+          if (isMobile) {
+            // Mobile behavior: toggle off-canvas sidebar
+            if (panelState?.open) {
+              window.kbve?.uiux?.closePanel?.('left');
+              updateButtonState(false, false);
+            } else {
+              window.kbve?.uiux?.openPanel?.('left');
+              updateButtonState(false, true);
+            }
           } else {
-            window.kbve?.uiux?.openPanel?.('left');
+            // Desktop behavior: toggle between expanded and collapsed
+            if (panelState?.open) {
+              if (isCollapsed) {
+                // Currently collapsed, expand it
+                isCollapsed = false;
+                window.kbve?.uiux?.updatePanel?.('left', { 
+                  width: '320px',
+                  collapsed: false 
+                });
+                
+                const leftPanel = document.querySelector('[data-panels="left"]');
+                if (leftPanel) {
+                  leftPanel.setAttribute('data-collapsed', 'false');
+                  // Remove hover listeners when expanded
+                  leftPanel.removeEventListener('mouseenter', handleMouseEnter);
+                  leftPanel.removeEventListener('mouseleave', handleMouseLeave);
+                }
+                updateButtonState(false, true);
+              } else {
+                // Currently expanded, collapse it
+                isCollapsed = true;
+                window.kbve?.uiux?.updatePanel?.('left', { 
+                  width: '60px',
+                  collapsed: true 
+                });
+                
+                const leftPanel = document.querySelector('[data-panels="left"]');
+                if (leftPanel) {
+                  leftPanel.setAttribute('data-collapsed', 'true');
+                  // Add hover listeners when collapsed
+                  leftPanel.addEventListener('mouseenter', handleMouseEnter);
+                  leftPanel.addEventListener('mouseleave', handleMouseLeave);
+                }
+                updateButtonState(true, true);
+              }
+            } else {
+              // Panel is closed, open it in expanded state
+              isCollapsed = false;
+              window.kbve?.uiux?.openPanel?.('left');
+              
+              const leftPanel = document.querySelector('[data-panels="left"]');
+              if (leftPanel) {
+                leftPanel.setAttribute('data-collapsed', 'false');
+              }
+              updateButtonState(false, true);
+            }
           }
         });
       }
 
-      console.log('[Navbar] Dashboard controls initialized');
+      // Hover behavior functions for collapsed desktop mode
+      const handleMouseEnter = () => {
+        if (isCollapsed && window.innerWidth >= 1024) {
+          if (hoverTimeout) clearTimeout(hoverTimeout);
+          window.kbve?.uiux?.updatePanel?.('left', { 
+            width: '320px',
+            collapsed: false 
+          });
+          const leftPanel = document.querySelector('[data-panels="left"]');
+          if (leftPanel) {
+            leftPanel.setAttribute('data-collapsed', 'false');
+          }
+        }
+      };
+      
+      const handleMouseLeave = () => {
+        if (isCollapsed && window.innerWidth >= 1024) {
+          hoverTimeout = setTimeout(() => {
+            window.kbve?.uiux?.updatePanel?.('left', { 
+              width: '60px',
+              collapsed: true 
+            });
+            const leftPanel = document.querySelector('[data-panels="left"]');
+            if (leftPanel) {
+              leftPanel.setAttribute('data-collapsed', 'true');
+            }
+          }, 300); // 300ms delay before collapsing
+        }
+      };
+
+      // Handle window resize to adjust behavior
+      window.addEventListener('resize', function() {
+        const isMobile = window.innerWidth < 1024;
+        const leftPanel = document.querySelector('[data-panels="left"]');
+        
+        if (isMobile && leftPanel) {
+          // Reset to mobile behavior
+          leftPanel.setAttribute('data-collapsed', 'false');
+          leftPanel.removeEventListener('mouseenter', handleMouseEnter);
+          leftPanel.removeEventListener('mouseleave', handleMouseLeave);
+          isCollapsed = false;
+        }
+      });
+
+      console.log('[Navbar] Universal menu controls initialized');
     });
   }
 

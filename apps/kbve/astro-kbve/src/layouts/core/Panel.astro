@@ -5,25 +5,106 @@ import StaticRight from "./panels/StaticRight.astro"
 import StaticBottom from "./panels/StaticBottom.astro"
 ---
 
+<style>
+	/* Collapsed panel styling */
+	[data-panels="left"] {
+		transition: width 0.3s ease-in-out;
+	}
+	
+	[data-panels="left"][data-collapsed="true"] {
+		width: 60px !important;
+	}
+	
+	[data-panels="left"][data-collapsed="false"] {
+		width: 320px !important;
+	}
+	
+	/* Hide text and adjust layout when collapsed */
+	[data-panels="left"][data-collapsed="true"] .sidebar-text {
+		opacity: 0;
+		transform: scale(0.8);
+		transition: opacity 0.2s ease-in-out, transform 0.2s ease-in-out;
+		pointer-events: none;
+	}
+	
+	[data-panels="left"][data-collapsed="false"] .sidebar-text {
+		opacity: 1;
+		transform: scale(1);
+		transition: opacity 0.3s ease-in-out 0.1s, transform 0.3s ease-in-out 0.1s;
+		pointer-events: auto;
+	}
+	
+	/* Adjust sidebar items layout when collapsed */
+	[data-panels="left"][data-collapsed="true"] .sidebar-item {
+		justify-content: center;
+		padding-left: 0.75rem;
+		padding-right: 0.75rem;
+	}
+	
+	[data-panels="left"][data-collapsed="false"] .sidebar-item {
+		justify-content: flex-start;
+		padding-left: 0.75rem;
+		padding-right: 0.75rem;
+	}
+	
+	/* Hide space between icon and text when collapsed */
+	[data-panels="left"][data-collapsed="true"] .sidebar-item {
+		gap: 0;
+	}
+	
+	[data-panels="left"][data-collapsed="false"] .sidebar-item {
+		gap: 0.75rem;
+	}
+	
+	/* Ensure icons remain visible and centered */
+	[data-panels="left"][data-collapsed="true"] .sidebar-item svg {
+		flex-shrink: 0;
+	}
+	
+	/* Better responsive behavior on mobile */
+	@media (max-width: 1023px) {
+		[data-panels="left"][data-collapsed="true"],
+		[data-panels="left"][data-collapsed="false"] {
+			width: 100vw !important;
+		}
+		
+		[data-panels="left"] .sidebar-text {
+			opacity: 1 !important;
+			transform: scale(1) !important;
+		}
+		
+		[data-panels="left"] .sidebar-item {
+			justify-content: flex-start !important;
+			gap: 0.75rem !important;
+			padding-left: 0.75rem !important;
+			padding-right: 0.75rem !important;
+		}
+	}
+</style>
+
 <div id="panels-root" class="fixed inset-0 top-16 pointer-events-none z-40" style="visibility: hidden;" data-panels>
+	<!-- Top Panel: For staff debugging and admin tools only (hidden by default) -->
 	<div
 		data-panels="top"
 		id="panel-top"
-		class="panel absolute inset-x-0 top-0 h-64 translate-y-[-100%]">
+		class="panel absolute inset-x-0 top-0 h-64 translate-y-[-100%] z-60">
         <StaticTop />
 	</div>
+	<!-- Right Panel: For additional tools, settings, or secondary content -->
 	<div
 		data-panels="right"
 		id="panel-right"
 		class="panel absolute inset-y-0 right-0 w-64 translate-x-[100%]">
         <StaticRight />
 	</div>
+	<!-- Bottom Panel: For status information, logs, or footer content -->
 	<div
 		data-panels="bottom"
 		id="panel-bottom"
 		class="panel absolute inset-x-0 bottom-0 h-96 translate-y-[100%]">
         <StaticBottom />
 	</div>
+	<!-- Left Panel: Main navigation sidebar -->
 	<div
 		data-panels="left"
 		id="panel-left"
@@ -53,11 +134,18 @@ import StaticBottom from "./panels/StaticBottom.astro"
             'dark:bg-neutral-900/90',
             'backdrop-blur-md',
             'shadow-lg',
-            'z-50',
             'overflow-auto',
             'border',
             'border-white/10',
         ]);
+
+        // Special z-index classes for different panels
+        const zIndexClasses = Object.freeze({
+            top: 'z-60',    // Higher than navbar (z-50) for staff debugging
+            left: 'z-50',   // Same as navbar
+            right: 'z-50',  // Same as navbar  
+            bottom: 'z-50', // Same as navbar
+        });
 
         const transformMap = Object.freeze({
             left: Object.freeze(['translate-x-[-100%]', 'translate-x-0']),
@@ -80,7 +168,7 @@ import StaticBottom from "./panels/StaticBottom.astro"
 				if (!panel || !panelState) continue;
 
                 if (!panel.hasAttribute('data-panel-initialized')) {
-                    panel.classList.add('panel', 'absolute', ...transitionClasses);
+                    panel.classList.add('panel', 'absolute', ...transitionClasses, zIndexClasses[side]);
                     panel.setAttribute('data-panel-initialized', 'true');
                 }
 

@@ -166,7 +166,7 @@ const ReactSidebarNav = React.memo(() => {
 						key={route}
 						href={route}
 						className={clsx(
-							'flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-300 group will-change-transform motion-reduce:transition-none',
+							'sidebar-item flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-300 group will-change-transform motion-reduce:transition-none',
 							'focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-zinc-800',
 							isActive
 								? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 hover:bg-cyan-400/20 hover:border-cyan-400/30'
@@ -181,14 +181,14 @@ const ReactSidebarNav = React.memo(() => {
 						}}>
 						<Icon
 							className={clsx(
-								'w-5 h-5 transition-colors duration-300 motion-reduce:transition-none',
+								'w-5 h-5 flex-shrink-0 transition-colors duration-300 motion-reduce:transition-none',
 								isActive
 									? 'text-cyan-400 group-hover:text-cyan-300'
 									: 'text-zinc-400 group-hover:text-white',
 							)}
 							aria-hidden="true"
 						/>
-						<span className="transition-colors duration-300 motion-reduce:transition-none">
+						<span className="sidebar-text transition-colors duration-300 motion-reduce:transition-none">
 							{name}
 						</span>
 					</a>
@@ -210,7 +210,7 @@ const ReactSidebarNav = React.memo(() => {
 							key={route}
 							href={route}
 							className={clsx(
-								'flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-300 group will-change-transform motion-reduce:transition-none',
+								'sidebar-item flex items-center space-x-3 px-3 py-2 rounded-lg transition-all duration-300 group will-change-transform motion-reduce:transition-none',
 								'focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-zinc-800',
 								isActive
 									? 'bg-cyan-400/10 text-cyan-400 border border-cyan-400/20 hover:bg-cyan-400/20 hover:border-cyan-400/30'
@@ -226,14 +226,14 @@ const ReactSidebarNav = React.memo(() => {
 							}}>
 							<Icon
 								className={clsx(
-									'w-5 h-5 transition-colors duration-300 motion-reduce:transition-none',
+									'w-5 h-5 flex-shrink-0 transition-colors duration-300 motion-reduce:transition-none',
 									isActive
 										? 'text-cyan-400 group-hover:text-cyan-300'
 										: 'text-zinc-400 group-hover:text-white',
 								)}
 								aria-hidden="true"
 							/>
-							<span className="transition-colors duration-300 motion-reduce:transition-none">
+							<span className="sidebar-text transition-colors duration-300 motion-reduce:transition-none">
 								{name}
 							</span>
 						</a>
