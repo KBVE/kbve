@@ -1,5 +1,13 @@
-import { emailAtom, passwordAtom, errorAtom, successAtom, loadingAtom, captchaTokenAtom } from './loginstatestate';
-import { supabase } from 'src/layouts/client/supabase/supabaseClient';
+import { atom } from 'nanostores';
+import { supabase } from '@kbve/astropad';
+
+// State atoms
+export const emailAtom = atom<string>("");
+export const passwordAtom = atom<string>("");
+export const errorAtom = atom<string>("");
+export const successAtom = atom<string>("");
+export const loadingAtom = atom<boolean>(false);
+export const captchaTokenAtom = atom<string | null>(null);
 
 export async function loginUser() {
   const email = emailAtom.get();

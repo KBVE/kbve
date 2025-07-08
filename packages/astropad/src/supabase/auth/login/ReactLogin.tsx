@@ -10,8 +10,8 @@ import {
   successAtom,
   captchaTokenAtom,
   loadingAtom,
-} from './loginstatestate';
-import { loginUser } from './factory-login';
+} from './factoryLogin';
+import { loginUser } from './factoryLogin';
 import { signInWithDiscord, signInWithGithub, SolanaSignInButton } from '../auth/OAuthSignIn';
 
 const HCAPTCHA_SITE_KEY = 'e19cf4a6-2168-49a2-88fe-716e97569e88';
