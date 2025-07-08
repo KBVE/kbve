@@ -1,1 +1,128 @@
+import { atom } from 'nanostores';
 import { supabase } from '@kbve/astropad';
+
+type OAuthProvider = 'github' | 'discord' | 'google' | 'twitter';
+
+class OAuthService {
+  private static instance: OAuthService;
+  
+  // State atoms
+  public readonly loadingAtom = atom<boolean>(false);
+  public readonly errorAtom = atom<string>("");
+  public readonly successAtom = atom<string>("");
+  public readonly providerAtom = atom<OAuthProvider | null>(null);
+
+  private constructor() {}
+
+  public static getInstance(): OAuthService {
+    if (!OAuthService.instance) {
+      OAuthService.instance = new OAuthService();
+    }
+    return OAuthService.instance;
+  }
+
+  private getRedirectUrl(): string {
+    return `${window.location.origin}/auth/callback`;
+  }
+
+  private clearMessages(): void {
+    this.errorAtom.set("");
+    this.successAtom.set("");
+  }
+
+  public async signInWithProvider(provider: OAuthProvider): Promise<void> {
+    this.clearMessages();
+    this.loadingAtom.set(true);
+    this.providerAtom.set(provider);
+
+    try {
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider,
+        options: {
+          redirectTo: this.getRedirectUrl(),
+        },
+      });
+
+      if (error) throw error;
+      
+      this.successAtom.set(`Redirecting to ${provider}...`);
+      // The redirect happens automatically, no need to manually redirect
+    } catch (err: any) {
+      this.errorAtom.set(err.message || `${provider} sign-in failed.`);
+      this.providerAtom.set(null);
+    } finally {
+      this.loadingAtom.set(false);
+    }
+  }
+
+  public async signInWithGithub(): Promise<void> {
+    return this.signInWithProvider('github');
+  }
+
+  public async signInWithDiscord(): Promise<void> {
+    return this.signInWithProvider('discord');
+  }
+
+  public async signInWithGoogle(): Promise<void> {
+    return this.signInWithProvider('google');
+  }
+
+  public async signInWithTwitter(): Promise<void> {
+    return this.signInWithProvider('twitter');
+  }
+
+  public async handleAuthCallback(): Promise<void> {
+    this.clearMessages();
+    this.loadingAtom.set(true);
+
+    try {
+      const { data, error } = await supabase.auth.getSession();
+      
+      if (error) throw error;
+      
+      if (data.session) {
+        this.successAtom.set("Authentication successful! Redirecting...");
+        setTimeout(() => {
+          window.location.href = `${window.location.origin}/profile/`;
+        }, 1500);
+      } else {
+        throw new Error("No session found after OAuth callback");
+      }
+    } catch (err: any) {
+      this.errorAtom.set(err.message || "Authentication failed.");
+    } finally {
+      this.loadingAtom.set(false);
+      this.providerAtom.set(null);
+    }
+  }
+
+  public async signOut(): Promise<void> {
+    this.clearMessages();
+    this.loadingAtom.set(true);
+
+    try {
+      const { error } = await supabase.auth.signOut();
+      
+      if (error) throw error;
+      
+      this.successAtom.set("Signed out successfully!");
+      setTimeout(() => {
+        window.location.href = `${window.location.origin}/`;
+      }, 1000);
+    } catch (err: any) {
+      this.errorAtom.set(err.message || "Sign out failed.");
+    } finally {
+      this.loadingAtom.set(false);
+      this.providerAtom.set(null);
+    }
+  }
+
+  public clearState(): void {
+    this.clearMessages();
+    this.loadingAtom.set(false);
+    this.providerAtom.set(null);
+  }
+}
+
+// Export singleton instance
+export const oauthService = OAuthService.getInstance();
