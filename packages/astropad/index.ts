@@ -9,8 +9,10 @@ export { default as AdsenseArticle } from './src/adsense/AdsenseArticle.astro';
 export { default as Adsense } from './src/adsense/Adsense.astro';
 export { default as Giscus } from './src/giscus/Giscus.astro';
 
+//  [Supabase]
+export { supabase } from './src/supabase/states/supabaseClient';
 
-
+//  [ConchShell]
 export { default as ConchShell } from './src/conchshell/ConchShell.astro';
 
 export { default as DevCode } from './src/devcode/DevCode.astro';
