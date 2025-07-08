@@ -14,6 +14,7 @@ export { supabase } from './src/supabase/states/supabaseClient';
 
 //  [Auth Services]
 export { loginService } from './src/supabase/auth/login/ServiceLogin';
+export { oauthService } from './src/supabase/auth/oauth/ServiceOAuth';
 
 //  [ConchShell]
 export { default as ConchShell } from './src/conchshell/ConchShell.astro';
