@@ -12,6 +12,9 @@ export { default as Giscus } from './src/giscus/Giscus.astro';
 //  [Supabase]
 export { supabase } from './src/supabase/states/supabaseClient';
 
+//  [Auth Services]
+export { loginService } from './src/supabase/auth/login/ServiceLogin';
+
 //  [ConchShell]
 export { default as ConchShell } from './src/conchshell/ConchShell.astro';
 

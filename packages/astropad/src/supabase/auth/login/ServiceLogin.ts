@@ -19,7 +19,9 @@ class LoginService {
       LoginService.instance = new LoginService();
     }
     return LoginService.instance;
-  }  public async loginUser() {
+  }
+
+  public async loginUser() {
     const email = this.emailAtom.get();
     const password = this.passwordAtom.get();
     const captchaToken = this.captchaTokenAtom.get();
@@ -46,7 +48,7 @@ class LoginService {
       if (signInError) throw signInError;
       this.successAtom.set("Login successful! Redirecting...");
       setTimeout(() => {
-        window.location.href = "https://kbve.com/profile/";
+        window.location.href = `${window.location.origin}/profile/`;
       }, 1500);
     } catch (err: any) {
       this.errorAtom.set(err.message || "Login failed.");
@@ -58,16 +60,3 @@ class LoginService {
 
 // Export singleton instance
 export const loginService = LoginService.getInstance();
-
-// Export atoms for easy access
-export const {
-  emailAtom,
-  passwordAtom,
-  errorAtom,
-  successAtom,
-  loadingAtom,
-  captchaTokenAtom
-} = loginService;
-
-// Export the login function for backward compatibility
-export const loginUser = () => loginService.loginUser();

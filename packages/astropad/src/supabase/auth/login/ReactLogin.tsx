@@ -3,15 +3,7 @@ import HCaptcha from '@hcaptcha/react-hcaptcha';
 import { useStore } from '@nanostores/react';
 import { useForm } from 'react-hook-form';
 import { clsx, twMerge } from 'src/utils/tw';
-import {
-  emailAtom,
-  passwordAtom,
-  errorAtom,
-  successAtom,
-  captchaTokenAtom,
-  loadingAtom,
-} from './factoryLogin';
-import { loginUser } from './factoryLogin';
+import { loginService } from '@kbve/astropad';
 import { signInWithDiscord, signInWithGithub, SolanaSignInButton } from '../auth/OAuthSignIn';
 
 const HCAPTCHA_SITE_KEY = 'e19cf4a6-2168-49a2-88fe-716e97569e88';
@@ -67,19 +59,19 @@ const StatusModal = React.memo(({ open, loading, error, success, onClose }: {
 });
 
 export const Login = () => {
-  const email = useStore(emailAtom);
-  const password = useStore(passwordAtom);
-  const error = useStore(errorAtom);
-  const success = useStore(successAtom);
-  const loading = useStore(loadingAtom);
-  const captchaToken = useStore(captchaTokenAtom);
+  const email = useStore(loginService.emailAtom);
+  const password = useStore(loginService.passwordAtom);
+  const error = useStore(loginService.errorAtom);
+  const success = useStore(loginService.successAtom);
+  const loading = useStore(loginService.loadingAtom);
+  const captchaToken = useStore(loginService.captchaTokenAtom);
 
-  const setEmail = (v: string) => emailAtom.set(v);
-  const setPassword = (v: string) => passwordAtom.set(v);
-  const setError = (v: string) => errorAtom.set(v);
-  const setSuccess = (v: string) => successAtom.set(v);
-  const setLoading = (v: boolean) => loadingAtom.set(v);
-  const setCaptchaToken = (v: string | null) => captchaTokenAtom.set(v);
+  const setEmail = (v: string) => loginService.emailAtom.set(v);
+  const setPassword = (v: string) => loginService.passwordAtom.set(v);
+  const setError = (v: string) => loginService.errorAtom.set(v);
+  const setSuccess = (v: string) => loginService.successAtom.set(v);
+  const setLoading = (v: boolean) => loginService.loadingAtom.set(v);
+  const setCaptchaToken = (v: string | null) => loginService.captchaTokenAtom.set(v);
 
   type FormValues = {
     email: string;
@@ -122,7 +114,7 @@ export const Login = () => {
     
     setLoading(true);
     try {
-      await loginUser();
+      await loginService.loginUser();
       // Success - reset hCaptcha
       if (hcaptchaRef.current) {
         hcaptchaRef.current.resetCaptcha();
