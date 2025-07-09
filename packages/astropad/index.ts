@@ -16,6 +16,7 @@ export { supabase } from './src/supabase/states/supabaseClient';
 export { loginService } from './src/supabase/auth/login/ServiceLogin';
 export { oauthService } from './src/supabase/auth/oauth/ServiceOAuth';
 export { registerService } from './src/supabase/auth/register/ServiceRegister';
+export { logoutService } from './src/supabase/auth/logout/ServiceLogout';
 
 //  [React Auth Components]
 export { ReactLogin } from './src/supabase/auth/login/ReactLogin';
