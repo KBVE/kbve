@@ -1,0 +1,70 @@
+---
+import { ReactLogout } from '@kbve/astropad';
+---
+
+<div class="logout-container">
+  <!-- Skeleton loading state while React component hydrates -->
+  <div class="logout-skeleton">
+    <div class="flex items-center justify-center p-4 rounded-lg bg-slate-800 border border-slate-700">
+      <div class="text-center">
+        <div class="animate-pulse">
+          <div class="w-5 h-5 bg-slate-600 rounded-full mx-auto mb-2"></div>
+          <div class="w-32 h-4 bg-slate-600 rounded mx-auto"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <!-- React component will replace the skeleton when hydrated -->
+  <ReactLogout client:only="react" />
+</div>
+
+<style>
+  .logout-container {
+    position: relative;
+  }
+  
+  .logout-skeleton {
+    /* Show skeleton initially */
+    display: block;
+  }
+  
+  /* Hide skeleton when React component is hydrated */
+  .logout-container:has([data-astro-cid-text]) .logout-skeleton {
+    display: none;
+  }
+  
+  /* Ensure smooth transition */
+  .logout-container > * {
+    transition: opacity 0.2s ease-in-out;
+  }
+</style>
+
+<script>
+  // Hide skeleton when React component mounts
+  document.addEventListener('DOMContentLoaded', () => {
+    const container = document.querySelector('.logout-container');
+    const skeleton = container?.querySelector('.logout-skeleton');
+    
+    if (container && skeleton) {
+      // Set up observer to hide skeleton when React component renders
+      const observer = new MutationObserver(() => {
+        const reactComponent = container.querySelector('[data-reactroot], [data-react-component]');
+        if (reactComponent) {
+          skeleton.style.display = 'none';
+          observer.disconnect();
+        }
+      });
+      
+      observer.observe(container, {
+        childList: true,
+        subtree: true
+      });
+      
+      // Fallback: hide skeleton after a reasonable time
+      setTimeout(() => {
+        skeleton.style.display = 'none';
+      }, 1000);
+    }
+  });
+</script>

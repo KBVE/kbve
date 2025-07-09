@@ -14,7 +14,7 @@ interface ReactLogoutProps {
   className?: string;
 }
 
-const ReactLogout: React.FC<ReactLogoutProps> = ({ 
+export const ReactLogout: React.FC<ReactLogoutProps> = ({ 
   variant = 'default',
   className 
 }) => {
@@ -170,5 +170,3 @@ const ReactLogout: React.FC<ReactLogoutProps> = ({
   // If no hash confirmation and not in progress, return null (auto logout already triggered)
   return null;
 };
-
-export default ReactLogout;

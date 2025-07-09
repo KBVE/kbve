@@ -36,6 +36,20 @@ class LogoutService {
     this.statusAtom.set('loading');
 
     try {
+      // First check if user is logged in
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (!sessionData.session) {
+        // User is not logged in
+        this.statusAtom.set('error');
+        this.errorAtom.set("You are not currently logged in. Redirecting to login...");
+        
+        setTimeout(() => {
+          window.location.href = `${window.location.origin}/login`;
+        }, 2000);
+        return;
+      }
+
       const { error } = await supabase.auth.signOut();
       
       // Clear local storage
@@ -52,26 +66,26 @@ class LogoutService {
       setTimeout(() => {
         window.location.href = `${window.location.origin}/login`;
       }, 1500);
-      
-    } catch (err: any) {
-      this.statusAtom.set('error');
-      this.errorAtom.set(err.message || "Logout failed.");
-      
-      // Even on error, redirect to home page after a delay
-      setTimeout(() => {
-        window.location.href = `${window.location.origin}/`;
-      }, 3000);
-    } finally {
-      this.loadingAtom.set(false);
-    }
-  }
-
   public async logoutAndRedirectHome(): Promise<void> {
     this.clearMessages();
     this.loadingAtom.set(true);
     this.statusAtom.set('loading');
 
     try {
+      // First check if user is logged in
+      const { data: sessionData } = await supabase.auth.getSession();
+      
+      if (!sessionData.session) {
+        // User is not logged in
+        this.statusAtom.set('error');
+        this.errorAtom.set("You are not currently logged in. Redirecting to login...");
+        
+        setTimeout(() => {
+          window.location.href = `${window.location.origin}/login`;
+        }, 2000);
+        return;
+      }
+
       const { error } = await supabase.auth.signOut();
       
       // Clear local storage
@@ -87,6 +101,20 @@ class LogoutService {
       // Redirect to home page after successful logout
       setTimeout(() => {
         window.location.href = `${window.location.origin}/`;
+      }, 1500);
+      
+    } catch (err: any) {
+      this.statusAtom.set('error');
+      this.errorAtom.set(err.message || "Logout failed.");
+      
+      // Redirect to home page after a delay even on error
+      setTimeout(() => {
+        window.location.href = `${window.location.origin}/`;
+      }, 3000);
+    } finally {
+      this.loadingAtom.set(false);
+    }
+  }     window.location.href = `${window.location.origin}/`;
       }, 1500);
       
     } catch (err: any) {
