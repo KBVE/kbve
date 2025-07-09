@@ -205,7 +205,7 @@ export default defineConfig({
             experimentalDisableStreaming: true,
         }),
         svelte(),
-
+        mdx(),
         AstroPWA({
             base: '/',
             scope: '/',
