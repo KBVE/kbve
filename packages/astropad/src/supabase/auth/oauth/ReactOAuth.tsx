@@ -287,27 +287,20 @@ export const SolanaSignInButton: React.FC<{
       
       {showTooltip && !captchaToken && (
         <div 
-          className="absolute z-[9999] px-3 py-2 text-sm rounded shadow-lg pointer-events-none border"
+          className="absolute z-[9999] px-3 py-2 text-sm rounded-lg shadow-lg pointer-events-none border whitespace-nowrap
+            bg-red-600 text-white border-red-500"
           style={{
             left: '50%',
             transform: 'translateX(-50%)',
             bottom: 'calc(100% + 8px)',
-            minWidth: '200px',
-            textAlign: 'center',
-            backgroundColor: 'var(--sl-color-gray-6, #272727)',
-            color: 'var(--sl-color-white, #fff)',
-            borderColor: 'var(--sl-color-gray-5, #383838)'
+            minWidth: '220px',
+            textAlign: 'center'
           }}
         >
-          <div className="text-yellow-300 font-semibold mb-1.5 text-sm">⚠️ Captcha Required</div>
-          <div className="text-xs leading-relaxed">Complete the hCaptcha challenge {captchaRef ? 'below' : ''} to continue</div>
+          <div className="font-semibold mb-1 text-sm">⚠️ Captcha Required</div>
+          <div className="text-xs leading-relaxed">Complete the hCaptcha challenge below to continue with Solana</div>
           <div 
-            className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0"
-            style={{
-              borderLeft: '5px solid transparent',
-              borderRight: '5px solid transparent',
-              borderTop: '5px solid var(--sl-color-gray-6, #272727)'
-            }}
+            className="absolute top-full left-1/2 transform -translate-x-1/2 w-0 h-0 border-l-[5px] border-r-[5px] border-t-[5px] border-transparent border-t-red-600"
           />
         </div>
       )}
