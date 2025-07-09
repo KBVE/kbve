@@ -17,15 +17,15 @@ export { loginService } from './src/supabase/auth/login/ServiceLogin';
 export { oauthService } from './src/supabase/auth/oauth/ServiceOAuth';
 export { registerService } from './src/supabase/auth/register/ServiceRegister';
 
-//  [React Login Components]
+//  [React Auth Components]
 export { ReactLogin } from './src/supabase/auth/login/ReactLogin';
-
-//  [React OAuth Components]
 export { ReactOAuth } from './src/supabase/auth/oauth/ReactOAuth';
+export { ReactRegister } from './src/supabase/auth/register/ReactRegister';
 
 //  [Astro OAuth Components]
 export { default as AstroOAuth } from './src/supabase/auth/oauth/EntityOAuth.astro';
 export { default as AstroLogin } from './src/supabase/auth/login/EntityLogin.astro';
+export { default as AstroRegister } from './src/supabase/auth/register/EntityRegister.astro';
 
 //  [ConchShell]
 export { default as ConchShell } from './src/conchshell/ConchShell.astro';
