@@ -3,10 +3,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useStore } from '@nanostores/react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-// import { oauthService, supabase } from '@kbve/astropad';
+import { oauthService, supabase } from '@kbve/astropad';
 
-import { oauthService } from './ServiceOAuth';
-import { supabase } from '../../states/supabaseClient';
+// import { oauthService } from './ServiceOAuth';
+// import { supabase } from '../../states/supabaseClient';
 
 const cn = (...inputs: any[]) => {
   return twMerge(clsx(inputs));
