@@ -29,7 +29,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
   const [hasConfirmHash, setHasConfirmHash] = useState(false);
 
   // Shared button styles to ensure identical styling
-  const buttonBaseStyles = 'px-4 py-2 min-w-[80px] h-9 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 focus:outline-none group';
+  const buttonBaseStyles = 'h-10 px-4 min-w-[80px] rounded-md text-sm font-medium flex items-center justify-center gap-2 leading-none transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 focus:outline-none group';
 
   // Check for hash and handle automatic logout
   useEffect(() => {
@@ -147,7 +147,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
             </p>
           </div>
           
-          <div className="flex gap-3 justify-center">
+          <div className="grid grid-cols-2 gap-3 items-baseline justify-items-center">
             <button
               onClick={handleCancelLogout}
               aria-label="Cancel logout"
@@ -159,7 +159,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
                 'focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900'
               )}
             >
-              <X className="w-4 h-4 group-hover:text-[var(--sl-color-accent)] transition-colors duration-200" />
+              <X className="w-4 h-4 align-middle" />
               Cancel
             </button>
             <button
@@ -168,12 +168,12 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
               className={cn(
                 buttonBaseStyles,
                 'bg-red-600 text-white hover:bg-red-700',
-                'border border-red-500 hover:border-red-400',
+                'border border-red-600 hover:border-red-700',
                 'hover:shadow-lg hover:shadow-red-500/25',
                 'focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900'
               )}
             >
-              <LogOut className="w-4 h-4 group-hover:text-red-200 transition-colors duration-200" />
+              <LogOut className="w-4 h-4 align-middle" />
               Logout
             </button>
           </div>

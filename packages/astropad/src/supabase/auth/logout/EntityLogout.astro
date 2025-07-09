@@ -7,21 +7,45 @@ import { ReactLogout } from '@kbve/astropad';
   <div class="logout-skeleton" data-skeleton="logout">
     <div class="p-4 rounded-lg border bg-slate-900 border-slate-700">
       <div class="text-center space-y-4">
-        <!-- Minimal skeleton content to match container height -->
+        <!-- Enhanced skeleton content with shimmer effects -->
         <div class="animate-pulse">
-          <!-- Icon area -->
-          <div class="w-12 h-12 mx-auto rounded-full bg-slate-600/20 mb-4"></div>
-          
-          <!-- Text area -->
-          <div class="space-y-2 mb-4">
-            <div class="w-32 h-5 bg-slate-600/20 rounded mx-auto"></div>
-            <div class="w-48 h-4 bg-slate-600/20 rounded mx-auto"></div>
+          <!-- Icon area with shimmer -->
+          <div class="relative w-12 h-12 mx-auto rounded-full bg-red-500/10 border border-red-500/20 mb-4 overflow-hidden">
+            <div class="absolute inset-0 bg-gradient-to-r from-transparent via-slate-500/10 to-transparent animate-shimmer"></div>
+            <div class="flex items-center justify-center w-full h-full">
+              <div class="w-6 h-6 bg-slate-600/30 rounded"></div>
+            </div>
           </div>
           
-          <!-- Button area -->
+          <!-- Text area with shimmer -->
+          <div class="space-y-2 mb-4">
+            <div class="relative w-32 h-5 bg-slate-600/20 rounded mx-auto overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-slate-500/10 to-transparent animate-shimmer"></div>
+            </div>
+            <div class="relative w-48 h-4 bg-slate-600/20 rounded mx-auto overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-slate-500/10 to-transparent animate-shimmer"></div>
+            </div>
+          </div>
+          
+          <!-- Enhanced button area -->
           <div class="flex gap-3 justify-center">
-            <div class="min-w-[80px] h-9 bg-slate-600/20 rounded-md"></div>
-            <div class="min-w-[80px] h-9 bg-slate-600/20 rounded-md"></div>
+            <!-- Cancel button skeleton -->
+            <div class="relative min-w-[80px] h-9 bg-slate-700/60 border border-slate-600/60 rounded-md overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-slate-500/10 to-transparent animate-shimmer"></div>
+              <div class="flex items-center justify-center gap-2 h-full px-4">
+                <div class="w-4 h-4 bg-slate-500/30 rounded"></div>
+                <div class="w-10 h-3 bg-slate-500/30 rounded"></div>
+              </div>
+            </div>
+            
+            <!-- Logout button skeleton -->
+            <div class="relative min-w-[80px] h-9 bg-red-600/60 border border-red-500/60 rounded-md overflow-hidden">
+              <div class="absolute inset-0 bg-gradient-to-r from-transparent via-red-500/10 to-transparent animate-shimmer"></div>
+              <div class="flex items-center justify-center gap-2 h-full px-4">
+                <div class="w-4 h-4 bg-red-400/30 rounded"></div>
+                <div class="w-8 h-3 bg-red-400/30 rounded"></div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
@@ -45,5 +69,19 @@ import { ReactLogout } from '@kbve/astropad';
   /* Ensure smooth transition */
   .logout-container > * {
     transition: opacity 0.2s ease-in-out;
+  }
+  
+  /* Custom shimmer animation */
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-100%);
+    }
+    100% {
+      transform: translateX(100%);
+    }
+  }
+  
+  .animate-shimmer {
+    animation: shimmer 2s ease-in-out infinite;
   }
 </style>
