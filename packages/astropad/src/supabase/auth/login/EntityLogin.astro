@@ -20,6 +20,12 @@ import { ReactLogin } from '@kbve/astropad';
 		--panel-hover-ring: color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
 		--glow-border: color-mix(in srgb, var(--sl-color-accent) 10%, transparent);
 		--glow-hover-border: color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+		--drop-shadow-color: color-mix(in srgb, var(--sl-color-accent) 60%, transparent);
+	}
+
+	/* Dark theme adjustments */
+	[data-theme="dark"] [data-neoglass-panel] {
+		--drop-shadow-color: color-mix(in srgb, var(--sl-color-accent) 80%, rgba(255,255,255,0.1));
 	}
 
 	[data-neoglass-panel]:hover {
@@ -53,11 +59,11 @@ import { ReactLogin } from '@kbve/astropad';
              transition-all duration-300 ease-out will-change-transform"
 			style="
 				border-color: var(--glow-border);
-				filter: drop-shadow(0 0 calc(var(--glow-intensity, 0.4) * 10px) var(--sl-color-accent));
+				filter: drop-shadow(0 0 calc(var(--glow-intensity, 0.4) * 10px) var(--drop-shadow-color));
 			">
 		</div>
 		<!-- Login Form Container -->
-		<div class="relative mx-auto">
+		<div class="relative mx-auto min-h-[1200px]">
 			<!-- Login Skeleton - Higher z-index -->
 			<div class="relative z-20 max-w-md mx-auto min-h-[1200px]" data-skeleton="login">
 				<!-- OAuth Buttons Skeleton -->
@@ -107,7 +113,7 @@ import { ReactLogin } from '@kbve/astropad';
 				<!-- Form Fields Skeleton -->
 				<div class="space-y-5">
 					{
-						Array.from({ length: 2 }).map((_, i) => (
+						Array.from({ length: 5 }).map((_, i) => (
 							<div class="space-y-2">
 								<div
 									class="h-4 rounded w-24 animate-[shimmer_2s_infinite]"
@@ -142,7 +148,7 @@ import { ReactLogin } from '@kbve/astropad';
 			</div>
 
 			<!-- Dynamic Login Form - Will overlay skeleton -->
-			<div class="max-w-md mx-auto">
+			<div class="max-w-md mx-auto min-h-[1200px]">
 				<ReactLogin client:only="react" />
 			</div>
 		</div>
