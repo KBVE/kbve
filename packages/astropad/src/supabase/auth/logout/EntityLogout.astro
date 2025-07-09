@@ -5,11 +5,24 @@ import { ReactLogout } from '@kbve/astropad';
 <div class="logout-container">
   <!-- Skeleton loading state while React component hydrates -->
   <div class="logout-skeleton" data-skeleton="logout">
-    <div class="flex items-center justify-center p-4 rounded-lg bg-slate-800 border border-slate-700">
-      <div class="text-center">
+    <div class="p-4 rounded-lg border bg-slate-900 border-slate-700">
+      <div class="text-center space-y-4">
+        <!-- Minimal skeleton content to match container height -->
         <div class="animate-pulse">
-          <div class="w-5 h-5 bg-slate-600 rounded-full mx-auto mb-2"></div>
-          <div class="w-32 h-4 bg-slate-600 rounded mx-auto"></div>
+          <!-- Icon area -->
+          <div class="w-12 h-12 mx-auto rounded-full bg-slate-600/20 mb-4"></div>
+          
+          <!-- Text area -->
+          <div class="space-y-2 mb-4">
+            <div class="w-32 h-5 bg-slate-600/20 rounded mx-auto"></div>
+            <div class="w-48 h-4 bg-slate-600/20 rounded mx-auto"></div>
+          </div>
+          
+          <!-- Button area -->
+          <div class="flex gap-3 justify-center">
+            <div class="min-w-[80px] h-9 bg-slate-600/20 rounded-md"></div>
+            <div class="min-w-[80px] h-9 bg-slate-600/20 rounded-md"></div>
+          </div>
         </div>
       </div>
     </div>

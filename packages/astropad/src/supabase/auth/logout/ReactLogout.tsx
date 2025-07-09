@@ -4,6 +4,8 @@ import { useStore } from '@nanostores/react';
 import { logoutService } from '@kbve/astropad';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { LogOut, AlertTriangle, X, Loader2 } from 'lucide-react';
+
 
 const cn = (...inputs: any[]) => {
   return twMerge(clsx(inputs));
@@ -25,6 +27,9 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
 
   const [showConfirmation, setShowConfirmation] = useState(false);
   const [hasConfirmHash, setHasConfirmHash] = useState(false);
+
+  // Shared button styles to ensure identical styling
+  const buttonBaseStyles = 'px-4 py-2 min-w-[80px] h-9 rounded-md text-sm font-medium flex items-center justify-center gap-2 transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 focus:outline-none group';
 
   // Check for hash and handle automatic logout
   useEffect(() => {
@@ -90,9 +95,9 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
   const getStatusColor = () => {
     switch (status) {
       case 'loading':
-        return 'text-slate-400';
+        return 'text-[var(--sl-color-accent)]';
       case 'success':
-        return 'text-cyan-400';
+        return 'text-[var(--sl-color-accent)]';
       case 'error':
         return 'text-red-400';
       default:
@@ -110,7 +115,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
       )}>
         <div className="text-center">
           {status === 'loading' && (
-            <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-cyan-500 mx-auto mb-2"></div>
+            <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[var(--sl-color-accent)]" />
           )}
           <p className={cn('text-sm', getStatusColor())}>
             {getStatusMessage()}
@@ -130,9 +135,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
       )}>
         <div className="text-center space-y-4">
           <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-red-500/10 border border-red-500/20">
-            <svg className="w-6 h-6 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4c-.77-.833-1.964-.833-2.732 0L3.732 16.5c-.77.833.192 2.5 1.732 2.5z" />
-            </svg>
+            <AlertTriangle className="w-6 h-6 text-red-400" />
           </div>
           
           <div>
@@ -147,24 +150,30 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
           <div className="flex gap-3 justify-center">
             <button
               onClick={handleCancelLogout}
+              aria-label="Cancel logout"
               className={cn(
-                'px-4 py-2 rounded-md text-sm font-medium',
+                buttonBaseStyles,
                 'bg-slate-700 text-slate-300 hover:bg-slate-600',
                 'border border-slate-600 hover:border-slate-500',
-                'transition-colors duration-200'
+                'hover:shadow-md',
+                'focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900'
               )}
             >
+              <X className="w-4 h-4 group-hover:text-[var(--sl-color-accent)] transition-colors duration-200" />
               Cancel
             </button>
             <button
               onClick={handleConfirmLogout}
+              aria-label="Confirm logout"
               className={cn(
-                'px-4 py-2 rounded-md text-sm font-medium',
+                buttonBaseStyles,
                 'bg-red-600 text-white hover:bg-red-700',
                 'border border-red-500 hover:border-red-400',
-                'transition-colors duration-200'
+                'hover:shadow-lg hover:shadow-red-500/25',
+                'focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900'
               )}
             >
+              <LogOut className="w-4 h-4 group-hover:text-red-200 transition-colors duration-200" />
               Logout
             </button>
           </div>
