@@ -29,9 +29,9 @@ export const GithubSignInButton: React.FC = () => {
         "group relative overflow-hidden",
         "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded font-medium transition-all ease-out duration-300",
         "bg-[#24292f] hover:bg-gradient-to-r hover:from-[#24292f] hover:to-[#2f363d] text-white",
-        "hover:ring-2 hover:ring-offset-2 hover:ring-[#24292f]/50",
+        "hover:ring-2 hover:ring-offset-2 hover:ring-[var(--sl-color-accent)]/50",
         "dark:bg-[#24292f] dark:hover:from-[#24292f] dark:hover:to-[#2f363d] dark:text-white",
-        "light:bg-[#f6f8fa] light:hover:from-[#f6f8fa] light:hover:to-[#e1e4e8] light:text-[#24292f] light:hover:ring-[#24292f]/20",
+        "bg-[#f6f8fa] hover:from-[#f6f8fa] hover:to-[#e1e4e8] text-[#24292f] hover:ring-[#24292f]/20",
         loading && "opacity-50 cursor-not-allowed"
       )}
       type="button"
@@ -72,9 +72,9 @@ export const DiscordSignInButton: React.FC = () => {
         "group relative overflow-hidden",
         "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded font-medium transition-all ease-out duration-300",
         "bg-[#5865F2] hover:bg-gradient-to-r hover:from-[#5865F2] hover:to-[#4752c4] text-white",
-        "hover:ring-2 hover:ring-offset-2 hover:ring-[#5865F2]/50",
+        "hover:ring-2 hover:ring-offset-2 hover:ring-[var(--sl-color-accent)]/50",
         "dark:bg-[#5865F2] dark:hover:from-[#5865F2] dark:hover:to-[#4752c4] dark:text-white",
-        "light:bg-[#5865F2] light:hover:from-[#5865F2] light:hover:to-[#4752c4] light:text-white",
+        "bg-[#5865F2] hover:from-[#5865F2] hover:to-[#4752c4] text-white",
         loading && "opacity-50 cursor-not-allowed"
       )}
       type="button"
@@ -236,7 +236,7 @@ export const SolanaSignInButton: React.FC<{
           "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded font-medium transition-all ease-out duration-300",
           "bg-gradient-to-r from-[#9945FF] to-[#14F195] text-white",
           "hover:from-[#8A3FD9] hover:to-[#00D4AA]",
-          "hover:ring-2 hover:ring-offset-2 hover:ring-[#9945FF]/50",
+          "hover:ring-2 hover:ring-offset-2 hover:ring-[var(--sl-color-accent)]/50",
           isDisabled 
             ? "opacity-50 cursor-not-allowed" 
             : ""
