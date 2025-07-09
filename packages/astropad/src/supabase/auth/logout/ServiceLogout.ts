@@ -66,6 +66,20 @@ class LogoutService {
       setTimeout(() => {
         window.location.href = `${window.location.origin}/login`;
       }, 1500);
+      
+    } catch (err: any) {
+      this.statusAtom.set('error');
+      this.errorAtom.set(err.message || "Logout failed.");
+      
+      // Even on error, redirect to home page after a delay
+      setTimeout(() => {
+        window.location.href = `${window.location.origin}/`;
+      }, 3000);
+    } finally {
+      this.loadingAtom.set(false);
+    }
+  }
+
   public async logoutAndRedirectHome(): Promise<void> {
     this.clearMessages();
     this.loadingAtom.set(true);
@@ -103,18 +117,8 @@ class LogoutService {
         window.location.href = `${window.location.origin}/`;
       }, 1500);
       
-    } catch (err: any) {
-      this.statusAtom.set('error');
-      this.errorAtom.set(err.message || "Logout failed.");
-      
-      // Redirect to home page after a delay even on error
       setTimeout(() => {
         window.location.href = `${window.location.origin}/`;
-      }, 3000);
-    } finally {
-      this.loadingAtom.set(false);
-    }
-  }     window.location.href = `${window.location.origin}/`;
       }, 1500);
       
     } catch (err: any) {

@@ -29,6 +29,12 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
   // Check for hash and handle automatic logout
   useEffect(() => {
     if (typeof window !== 'undefined') {
+      // Hide the skeleton when React component mounts
+      const skeleton = document.querySelector('[data-skeleton="logout"]');
+      if (skeleton) {
+        (skeleton as HTMLElement).style.display = 'none';
+      }
+
       const hash = window.location.hash;
       const hasConfirm = hash === '#confirm';
       setHasConfirmHash(hasConfirm);
