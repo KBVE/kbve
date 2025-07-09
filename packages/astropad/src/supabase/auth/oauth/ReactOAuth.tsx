@@ -5,9 +5,6 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { oauthService, supabase } from '@kbve/astropad';
 
-// import { oauthService } from './ServiceOAuth';
-// import { supabase } from '../../states/supabaseClient';
-
 const cn = (...inputs: any[]) => {
   return twMerge(clsx(inputs));
 };
@@ -27,7 +24,7 @@ export const GithubSignInButton: React.FC = () => {
       disabled={loading}
       className={cn(
         "group relative overflow-hidden",
-        "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded font-medium transition-all ease-out duration-300",
+        "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded-xl font-medium transition-all ease-out duration-300",
         "bg-[#f6f8fa] hover:bg-gradient-to-r hover:from-[#f6f8fa] hover:to-[#e1e4e8] text-[#24292f]",
         "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
         "dark:bg-[#24292f] dark:hover:from-[#24292f] dark:hover:to-[#2f363d] dark:text-white",
@@ -69,7 +66,7 @@ export const DiscordSignInButton: React.FC = () => {
       disabled={loading}
       className={cn(
         "group relative overflow-hidden",
-        "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded font-medium transition-all ease-out duration-300",
+        "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded-xl font-medium transition-all ease-out duration-300",
         "bg-[#5865F2] hover:bg-gradient-to-r hover:from-[#5865F2] hover:to-[#4752c4] text-white",
         "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
         "dark:bg-[#5865F2] dark:hover:from-[#5865F2] dark:hover:to-[#4752c4] dark:text-white",
@@ -102,7 +99,7 @@ export const SolanaSignInButton: React.FC<{
 }> = ({ captchaToken, captchaRef }) => {
   const loading = useStore(oauthService.loadingAtom);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipTimeoutId, setTooltipTimeoutId] = useState<NodeJS.Timeout | null>(null);
+  const [tooltipTimeoutId, setTooltipTimeoutId] = useState<number | null>(null);
 
   useEffect(() => {
     if (captchaToken && showTooltip) {
@@ -231,49 +228,59 @@ export const SolanaSignInButton: React.FC<{
         disabled={isDisabled}
         className={cn(
           "group relative overflow-hidden",
-          "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded font-medium transition-all ease-out duration-300",
-          "bg-gradient-to-r from-[#9945FF] to-[#14F195] text-white",
-          "hover:from-[#8A3FD9] hover:to-[#00D4AA]",
-          "dark:from-[#9945FF] dark:to-[#14F195] dark:hover:from-[#8A3FD9] dark:hover:to-[#00D4AA]",
+          "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[48px] rounded-xl font-semibold transition-all ease-out duration-300",
+          "text-white",
+          // Light mode
+          "bg-purple-600 hover:bg-purple-700",
+          // Dark mode
+          "dark:bg-gradient-to-r dark:from-purple-600 dark:to-green-400",
+          "dark:hover:from-purple-700 dark:hover:to-green-500",
+          // Ring and cursor
           "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
-          isDisabled 
-            ? "opacity-50 cursor-not-allowed" 
-            : ""
+          isDisabled && "opacity-50 cursor-not-allowed"
         )}
+        style={{
+          textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+        }}
         type="button"
       >
-        <span className="absolute right-0 w-8 h-32 -mt-12 bg-white/30 dark:bg-white/20 opacity-10 rotate-12 translate-x-12 group-hover:-translate-x-40 transition-all duration-1000 ease-out pointer-events-none"></span>
+        {/* ✨ Shimmer effect */}
+        <span
+          className="absolute right-0 w-10 h-32 -mt-12 bg-white/40 dark:bg-white/20 opacity-10 rotate-12 blur-sm translate-x-12 group-hover:-translate-x-40 transition-transform duration-1000 ease-out pointer-events-none"
+        ></span>
         
         {loading ? (
-          <div className="relative flex items-center justify-center gap-3">
+          <div className="flex items-center justify-center gap-2">
             <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
             <span className="text-sm font-medium leading-relaxed">Connecting...</span>
           </div>
         ) : (
-          <div className="relative flex items-center justify-center gap-3">
-            <svg className="w-4 h-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-sm" fill="currentColor" viewBox="0 0 397.7 311.7" aria-hidden="true">
+          <div className="flex items-center justify-center gap-2">
+            <svg
+              className="w-5 h-5 transition-transform duration-300 group-hover:scale-110 drop-shadow"
+              fill="currentColor"
+              viewBox="0 0 397.7 311.7"
+              aria-hidden="true"
+            >
               <defs>
-                <linearGradient id="solana-gradient-1" gradientUnits="userSpaceOnUse" x1="360.8791" y1="351.4553" x2="141.213" y2="-69.2936" gradientTransform="matrix(1 0 0 -1 0 314)">
-                  <stop offset="0" stopColor="#00FFA3"/>
-                  <stop offset="1" stopColor="#DC1FFF"/>
+                <linearGradient id="solana-gradient-1" x1="360.8791" y1="351.4553" x2="141.213" y2="-69.2936" gradientTransform="matrix(1 0 0 -1 0 314)">
+                  <stop offset="0" stopColor="#00FFA3" />
+                  <stop offset="1" stopColor="#DC1FFF" />
                 </linearGradient>
-                <linearGradient id="solana-gradient-2" gradientUnits="userSpaceOnUse" x1="264.8291" y1="401.6014" x2="45.163" y2="-19.1475" gradientTransform="matrix(1 0 0 -1 0 314)">
-                  <stop offset="0" stopColor="#00FFA3"/>
-                  <stop offset="1" stopColor="#DC1FFF"/>
+                <linearGradient id="solana-gradient-2" x1="264.8291" y1="401.6014" x2="45.163" y2="-19.1475" gradientTransform="matrix(1 0 0 -1 0 314)">
+                  <stop offset="0" stopColor="#00FFA3" />
+                  <stop offset="1" stopColor="#DC1FFF" />
                 </linearGradient>
-                <linearGradient id="solana-gradient-3" gradientUnits="userSpaceOnUse" x1="312.5484" y1="376.688" x2="92.8822" y2="-44.061" gradientTransform="matrix(1 0 0 -1 0 314)">
-                  <stop offset="0" stopColor="#00FFA3"/>
-                  <stop offset="1" stopColor="#DC1FFF"/>
+                <linearGradient id="solana-gradient-3" x1="312.5484" y1="376.688" x2="92.8822" y2="-44.061" gradientTransform="matrix(1 0 0 -1 0 314)">
+                  <stop offset="0" stopColor="#00FFA3" />
+                  <stop offset="1" stopColor="#DC1FFF" />
                 </linearGradient>
               </defs>
-              <path fill="url(#solana-gradient-1)" d="M64.6,237.9c2.4-2.4,5.7-3.8,9.2-3.8h317.4c5.8,0,8.7,7,4.6,11.1l-62.7,62.7c-2.4,2.4-5.7,3.8-9.2,3.8H6.5
-                c-5.8,0-8.7-7-4.6-11.1L64.6,237.9z"/>
-              <path fill="url(#solana-gradient-2)" d="M64.6,3.8C67.1,1.4,70.4,0,73.8,0h317.4c5.8,0,8.7,7,4.6,11.1l-62.7,62.7c-2.4,2.4-5.7,3.8-9.2,3.8H6.5
-                c-5.8,0-8.7-7-4.6-11.1L64.6,3.8z"/>
-              <path fill="url(#solana-gradient-3)" d="M333.1,120.1c-2.4-2.4-5.7-3.8-9.2-3.8H6.5c-5.8,0-8.7,7-4.6,11.1l62.7,62.7c2.4,2.4,5.7,3.8,9.2,3.8h317.4
-                c5.8,0,8.7-7,4.6-11.1L333.1,120.1z"/>
+              <path fill="url(#solana-gradient-1)" d="M64.6,237.9c2.4-2.4,5.7-3.8,9.2-3.8h317.4c5.8,0,8.7,7,4.6,11.1l-62.7,62.7c-2.4,2.4-5.7,3.8-9.2,3.8H6.5c-5.8,0-8.7-7-4.6-11.1L64.6,237.9z" />
+              <path fill="url(#solana-gradient-2)" d="M64.6,3.8C67.1,1.4,70.4,0,73.8,0h317.4c5.8,0,8.7,7,4.6,11.1l-62.7,62.7c-2.4,2.4-5.7,3.8-9.2,3.8H6.5c-5.8,0-8.7-7-4.6-11.1L64.6,3.8z" />
+              <path fill="url(#solana-gradient-3)" d="M333.1,120.1c-2.4-2.4-5.7-3.8-9.2-3.8H6.5c-5.8,0-8.7,7-4.6,11.1l62.7,62.7c2.4,2.4,5.7,3.8,9.2,3.8h317.4c5.8,0,8.7-7,4.6-11.1L333.1,120.1z" />
             </svg>
-            <span className="text-sm font-medium leading-relaxed">Continue with Solana</span>
+            <span className="text-sm font-semibold tracking-wide">Continue with Solana</span>
           </div>
         )}
       </button>
