@@ -99,7 +99,7 @@ export const SolanaSignInButton: React.FC<{
 }> = ({ captchaToken, captchaRef }) => {
   const loading = useStore(oauthService.loadingAtom);
   const [showTooltip, setShowTooltip] = useState(false);
-  const [tooltipTimeoutId, setTooltipTimeoutId] = useState<number | null>(null);
+  const [tooltipTimeoutId, setTooltipTimeoutId] = useState<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (captchaToken && showTooltip) {
