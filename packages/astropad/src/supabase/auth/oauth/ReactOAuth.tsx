@@ -3,7 +3,10 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useStore } from '@nanostores/react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { oauthService, supabase } from '@kbve/astropad';
+// import { oauthService, supabase } from '@kbve/astropad';
+
+import { oauthService } from './ServiceOAuth';
+import { supabase } from '../../states/supabaseClient';
 
 const cn = (...inputs: any[]) => {
   return twMerge(clsx(inputs));
@@ -126,7 +129,7 @@ export const SolanaSignInButton: React.FC<{
         setTooltipTimeoutId(null);
       }
       
-      if (captchaRef?.current) {
+      if (captchaRef?.current && typeof window !== 'undefined') {
         try {
           let captchaElement = captchaRef.current;
           
@@ -170,7 +173,7 @@ export const SolanaSignInButton: React.FC<{
         chain: 'solana',
         statement: 'I accept the Terms of Service at https://kbve.com/legal/',
         options: {
-          url: `${window.location.origin}/auth/callback`,
+          url: typeof window !== 'undefined' ? `${window.location.origin}/auth/callback` : '/auth/callback',
           captchaToken
         }
       });
@@ -181,7 +184,10 @@ export const SolanaSignInButton: React.FC<{
         if (captchaRef?.current) {
           captchaRef.current.resetCaptcha();
         }
-        window.location.href = `${window.location.origin}/profile/`;
+        // Redirect to profile page on successful authentication
+        if (typeof window !== 'undefined') {
+          window.location.href = `${window.location.origin}/profile/`;
+        }
       }
     } catch (error: any) {
       console.error('Solana sign-in error:', error);
