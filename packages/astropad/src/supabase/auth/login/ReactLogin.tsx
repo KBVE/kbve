@@ -33,12 +33,17 @@ const StatusModal = React.memo(({ open, loading, error, success, onClose }: {
   if (!open) return null;
   
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-      <div className="bg-neutral-900 text-white rounded-xl shadow-lg p-8 max-w-sm w-full flex flex-col items-center relative
-        border border-neutral-700/50 backdrop-blur-md">
+    <div className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm" style={{ backgroundColor: 'var(--backdrop-color)' }}>
+      <div className="rounded-xl shadow-lg p-8 max-w-sm w-full flex flex-col items-center relative backdrop-blur-md" 
+           style={{ 
+             backgroundColor: 'var(--sl-color-gray-6)', 
+             color: 'var(--sl-color-white)',
+             border: '1px solid var(--sl-color-gray-5)'
+           }}>
         {loading && (
           <>
-            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 border-cyan-400 mb-4"></div>
+            <div className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mb-4" 
+                 style={{ borderTopColor: 'var(--sl-color-accent)', borderBottomColor: 'var(--sl-color-accent)' }}></div>
             <div className="text-lg font-semibold mb-2">Logging in…</div>
           </>
         )}
@@ -52,8 +57,18 @@ const StatusModal = React.memo(({ open, loading, error, success, onClose }: {
             </div>
             <button 
               onClick={onClose} 
-              className="mt-4 px-4 py-2 rounded-lg bg-cyan-600 hover:bg-cyan-700 text-white font-bold shadow-lg
-                transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2"
+              className="mt-4 px-4 py-2 rounded-lg font-bold shadow-lg transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2"
+              style={{ 
+                backgroundColor: 'var(--sl-color-accent)',
+                color: 'var(--sl-color-white)',
+                '--tw-ring-color': 'var(--sl-color-accent)'
+              } as any}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--sl-color-accent-high)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.backgroundColor = 'var(--sl-color-accent)';
+              }}
             >
               Close
             </button>
@@ -216,9 +231,9 @@ export const ReactLogin = () => {
 
       {/* Divider */}
       <div className="flex items-center my-8">
-        <div className="flex-1 h-px bg-zinc-600"></div>
-        <span className="px-4 text-sm text-zinc-400 font-medium">or</span>
-        <div className="flex-1 h-px bg-zinc-600"></div>
+        <div className="flex-1 h-px" style={{ backgroundColor: 'var(--sl-color-gray-4)' }}></div>
+        <span className="px-4 text-sm font-medium" style={{ color: 'var(--sl-color-gray-3)' }}>or</span>
+        <div className="flex-1 h-px" style={{ backgroundColor: 'var(--sl-color-gray-4)' }}></div>
       </div>
       
       {/* Login Form */}
@@ -228,29 +243,39 @@ export const ReactLogin = () => {
         style={{ maxWidth: 400, margin: '0 auto' }}
       >
         <div className="text-center mb-6">
-          <h2 className="text-2xl font-bold text-white mb-2">
+          <h2 className="text-2xl font-bold mb-2" style={{ color: 'var(--sl-color-white)' }}>
             Sign in with Email
           </h2>
-          <p className="text-zinc-400 text-sm">
+          <p className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
             Enter your credentials to access your account
           </p>
         </div>
 
         {/* Error/Success Messages */}
         {error && (
-          <div className="p-3 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-center text-sm">
+          <div className="p-3 rounded-lg border text-center text-sm" 
+               style={{ 
+                 backgroundColor: 'rgba(239, 68, 68, 0.1)', 
+                 borderColor: 'rgba(239, 68, 68, 0.2)',
+                 color: '#f87171'
+               }}>
             {error}
           </div>
         )}
         {success && (
-          <div className="p-3 rounded-lg bg-green-500/10 border border-green-500/20 text-green-400 text-center text-sm">
+          <div className="p-3 rounded-lg border text-center text-sm"
+               style={{ 
+                 backgroundColor: 'rgba(34, 197, 94, 0.1)', 
+                 borderColor: 'rgba(34, 197, 94, 0.2)',
+                 color: '#4ade80'
+               }}>
             {success}
           </div>
         )}
 
         {/* Email Field */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-300">
+          <label className="block text-sm font-medium" style={{ color: 'var(--sl-color-gray-2)' }}>
             Email Address
           </label>
           <input
@@ -265,13 +290,17 @@ export const ReactLogin = () => {
             value={email}
             onChange={handleEmailChange}
             className={clsx(
-              'block w-full rounded-lg border px-4 py-3 bg-zinc-800/50 text-white placeholder-zinc-400',
-              'focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent',
-              'transition-all duration-200',
+              'block w-full rounded-lg border px-4 py-3 transition-all duration-200',
+              'focus:outline-none focus:ring-2 focus:border-transparent',
               errors.email 
                 ? 'border-red-500 focus:ring-red-500' 
-                : 'border-zinc-600 hover:border-zinc-500'
+                : 'hover:border-opacity-80'
             )}
+            style={{
+              backgroundColor: 'var(--sl-color-gray-5)',
+              color: 'var(--sl-color-white)',
+              borderColor: errors.email ? '#ef4444' : 'var(--sl-color-gray-4)'
+            }}
             placeholder="Enter your email"
           />
           {errors.email && (
@@ -281,7 +310,7 @@ export const ReactLogin = () => {
 
         {/* Password Field */}
         <div className="space-y-2">
-          <label className="block text-sm font-medium text-zinc-300">
+          <label className="block text-sm font-medium" style={{ color: 'var(--sl-color-gray-2)' }}>
             Password
           </label>
           <input
@@ -296,13 +325,17 @@ export const ReactLogin = () => {
             value={password}
             onChange={handlePasswordChange}
             className={clsx(
-              'block w-full rounded-lg border px-4 py-3 bg-zinc-800/50 text-white placeholder-zinc-400',
-              'focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:border-transparent',
-              'transition-all duration-200',
+              'block w-full rounded-lg border px-4 py-3 transition-all duration-200',
+              'focus:outline-none focus:ring-2 focus:border-transparent',
               errors.password 
                 ? 'border-red-500 focus:ring-red-500' 
-                : 'border-zinc-600 hover:border-zinc-500'
+                : 'hover:border-opacity-80'
             )}
+            style={{
+              backgroundColor: 'var(--sl-color-gray-5)',
+              color: 'var(--sl-color-white)',
+              borderColor: errors.password ? '#ef4444' : 'var(--sl-color-gray-4)'
+            }}
             placeholder="Enter your password"
           />
           {errors.password && (
@@ -331,12 +364,26 @@ export const ReactLogin = () => {
             type="submit"
             disabled={loading || !captchaToken}
             className={twMerge(
-              'w-full py-3 px-4 rounded-lg font-semibold text-white shadow-lg',
-              'bg-gradient-to-r from-cyan-500 to-purple-500 hover:from-cyan-400 hover:to-purple-400',
-              'focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2',
+              'w-full py-3 px-4 rounded-lg font-semibold shadow-lg',
+              'focus:outline-none focus:ring-2 focus:ring-offset-2',
               'transition-all duration-200 transform active:scale-[0.98]',
-              (loading || !captchaToken) && 'opacity-60 cursor-not-allowed hover:from-cyan-500 hover:to-purple-500'
+              (loading || !captchaToken) && 'opacity-60 cursor-not-allowed'
             )}
+            style={{
+              backgroundColor: 'var(--sl-color-accent)',
+              color: 'var(--sl-color-white)',
+              border: 'none'
+            }}
+            onMouseEnter={(e) => {
+              if (!loading && captchaToken) {
+                e.currentTarget.style.backgroundColor = 'var(--sl-color-accent-high)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!loading && captchaToken) {
+                e.currentTarget.style.backgroundColor = 'var(--sl-color-accent)';
+              }
+            }}
           >
             {loading ? (
               <div className="flex items-center justify-center gap-2">
@@ -351,30 +398,36 @@ export const ReactLogin = () => {
           {/* Tooltip */}
           {showTooltip && !captchaToken && (
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2 mb-2 px-3 py-2 
-              bg-red-600 text-white text-sm rounded-lg shadow-lg z-50 whitespace-nowrap
-              pointer-events-none">
+              text-sm rounded-lg shadow-lg z-50 whitespace-nowrap pointer-events-none"
+              style={{
+                backgroundColor: '#dc2626',
+                color: 'var(--sl-color-white)'
+              }}>
               Please complete the captcha to continue
               <div className="absolute top-full left-1/2 transform -translate-x-1/2 
-                border-l-4 border-r-4 border-t-4 border-transparent border-t-red-600"></div>
+                border-l-4 border-r-4 border-t-4 border-transparent"
+                style={{ borderTopColor: '#dc2626' }}></div>
             </div>
           )}
         </div>
 
         {/* Footer Links */}
-        <div className="text-center space-y-2 pt-4 border-t border-zinc-700/50">
-          <p className="text-zinc-400 text-sm">
+        <div className="text-center space-y-2 pt-4" style={{ borderTop: '1px solid var(--sl-color-gray-5)' }}>
+          <p className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
             Don't have an account?{' '}
             <a data-astro-prefetch
               href="/register"
-              className="text-cyan-400 hover:text-cyan-300 font-medium transition-colors duration-200"
+              className="font-medium transition-colors duration-200 hover:opacity-80"
+              style={{ color: 'var(--sl-color-accent)' }}
             >
               Create one here
             </a>
           </p>
-          <p className="text-zinc-500 text-sm">
+          <p className="text-sm" style={{ color: 'var(--sl-color-gray-4)' }}>
             <a data-astro-prefetch
               href="/reset"
-              className="hover:text-zinc-400 transition-colors duration-200"
+              className="transition-colors duration-200 hover:opacity-80"
+              style={{ color: 'var(--sl-color-gray-3)' }}
             >
               Forgot your password?
             </a>
