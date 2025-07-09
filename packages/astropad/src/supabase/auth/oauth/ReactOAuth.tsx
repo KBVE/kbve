@@ -28,19 +28,18 @@ export const GithubSignInButton: React.FC = () => {
       className={cn(
         "group relative overflow-hidden",
         "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded font-medium transition-all ease-out duration-300",
-        "bg-[#24292f] hover:bg-gradient-to-r hover:from-[#24292f] hover:to-[#2f363d] text-white",
-        "hover:ring-2 hover:ring-offset-2 hover:ring-[var(--sl-color-accent)]/50",
+        "bg-[#f6f8fa] hover:bg-gradient-to-r hover:from-[#f6f8fa] hover:to-[#e1e4e8] text-[#24292f]",
+        "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
         "dark:bg-[#24292f] dark:hover:from-[#24292f] dark:hover:to-[#2f363d] dark:text-white",
-        "bg-[#f6f8fa] hover:from-[#f6f8fa] hover:to-[#e1e4e8] text-[#24292f] hover:ring-[#24292f]/20",
         loading && "opacity-50 cursor-not-allowed"
       )}
       type="button"
     >
-      <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
+      <span className="absolute right-0 w-8 h-32 -mt-12 bg-white/30 dark:bg-white/20 opacity-10 rotate-12 translate-x-12 group-hover:-translate-x-40 transition-all duration-1000 ease-out pointer-events-none"></span>
       
       {isLoading ? (
         <div className="relative flex items-center justify-center gap-3">
-          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+          <div className="w-4 h-4 border-2 border-[#24292f]/30 border-t-[#24292f] dark:border-white/30 dark:border-t-white rounded-full animate-spin"></div>
           <span className="text-sm font-medium leading-relaxed">Connecting...</span>
         </div>
       ) : (
@@ -72,14 +71,13 @@ export const DiscordSignInButton: React.FC = () => {
         "group relative overflow-hidden",
         "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded font-medium transition-all ease-out duration-300",
         "bg-[#5865F2] hover:bg-gradient-to-r hover:from-[#5865F2] hover:to-[#4752c4] text-white",
-        "hover:ring-2 hover:ring-offset-2 hover:ring-[var(--sl-color-accent)]/50",
+        "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
         "dark:bg-[#5865F2] dark:hover:from-[#5865F2] dark:hover:to-[#4752c4] dark:text-white",
-        "bg-[#5865F2] hover:from-[#5865F2] hover:to-[#4752c4] text-white",
         loading && "opacity-50 cursor-not-allowed"
       )}
       type="button"
     >
-      <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
+      <span className="absolute right-0 w-8 h-32 -mt-12 bg-white/30 dark:bg-white/20 opacity-10 rotate-12 translate-x-12 group-hover:-translate-x-40 transition-all duration-1000 ease-out pointer-events-none"></span>
       
       {isLoading ? (
         <div className="relative flex items-center justify-center gap-3">
@@ -236,14 +234,15 @@ export const SolanaSignInButton: React.FC<{
           "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded font-medium transition-all ease-out duration-300",
           "bg-gradient-to-r from-[#9945FF] to-[#14F195] text-white",
           "hover:from-[#8A3FD9] hover:to-[#00D4AA]",
-          "hover:ring-2 hover:ring-offset-2 hover:ring-[var(--sl-color-accent)]/50",
+          "dark:from-[#9945FF] dark:to-[#14F195] dark:hover:from-[#8A3FD9] dark:hover:to-[#00D4AA]",
+          "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
           isDisabled 
             ? "opacity-50 cursor-not-allowed" 
             : ""
         )}
         type="button"
       >
-        <span className="absolute right-0 w-8 h-32 -mt-12 transition-all duration-1000 transform translate-x-12 bg-white opacity-10 rotate-12 group-hover:-translate-x-40 ease"></span>
+        <span className="absolute right-0 w-8 h-32 -mt-12 bg-white/30 dark:bg-white/20 opacity-10 rotate-12 translate-x-12 group-hover:-translate-x-40 transition-all duration-1000 ease-out pointer-events-none"></span>
         
         {loading ? (
           <div className="relative flex items-center justify-center gap-3">
