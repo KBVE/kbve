@@ -16,11 +16,15 @@ export { supabase } from './src/supabase/states/supabaseClient';
 export { loginService } from './src/supabase/auth/login/ServiceLogin';
 export { oauthService } from './src/supabase/auth/oauth/ServiceOAuth';
 
+//  [React Login Components]
+export { ReactLogin } from './src/supabase/auth/login/ReactLogin';
+
 //  [React OAuth Components]
-export { ReactOAuth, GithubSignInButton, DiscordSignInButton, SolanaSignInButton } from './src/supabase/auth/oauth/ReactOAuth';
+export { ReactOAuth } from './src/supabase/auth/oauth/ReactOAuth';
 
 //  [Astro OAuth Components]
 export { default as AstroOAuth } from './src/supabase/auth/oauth/EntityOAuth.astro';
+export { default as AstroLogin } from './src/supabase/auth/login/EntityLogin.astro';
 
 //  [ConchShell]
 export { default as ConchShell } from './src/conchshell/ConchShell.astro';
