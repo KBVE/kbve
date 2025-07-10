@@ -64,9 +64,9 @@ import { ReactLogout } from '@kbve/astropad';
 		</div>
 		
 		<!-- Logout Content Container -->
-		<div class="relative p-4">
+		<div class="relative p-8">
 			<!-- Skeleton loading state while React component hydrates -->
-			<div class="logout-skeleton" data-skeleton="logout">
+			<div class="logout-skeleton p-8" data-skeleton="logout">
 				<div class="text-center space-y-4">
 					<!-- Enhanced skeleton content with shimmer effects -->
 					<div class="animate-pulse">
@@ -162,7 +162,7 @@ import { ReactLogout } from '@kbve/astropad';
 	/* Logout container specific styles */
 	.logout-container {
 		position: relative;
-		min-height: 250px; /* Prevent layout shift */
+		min-height: 320px; /* Prevent layout shift - increased for expanded content */
 	}
 	
 	.logout-skeleton {
