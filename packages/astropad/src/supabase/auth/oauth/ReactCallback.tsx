@@ -246,7 +246,6 @@ const AuthProcessor = React.memo(() => {
 			}, 2000);
 		}
 	}, [error, timeoutReached, fallbackAuthSubscription]);
-
 	// Render the stable UI
 	return (
 		<div
@@ -260,65 +259,64 @@ const AuthProcessor = React.memo(() => {
 					border: '1px solid var(--sl-color-gray-5)',
 				}}>
 				{loading && (
-					<>
-						<div
-							className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mb-4"
-							style={{
-								borderTopColor: 'var(--sl-color-accent)',
-								borderBottomColor: 'var(--sl-color-accent)',
-							}}></div>
-						<div className="text-lg font-semibold mb-2">
-							Processing OAuth callback…
-						</div>
-						<div className="text-sm opacity-80">
-							Please wait while we complete your authentication.
-						</div>
-						{fallbackStatus && (
-							<div className="text-xs opacity-60 mt-3 text-center">
-								{fallbackStatus}
-							</div>
-						)}
-						{fallbackAttempts && fallbackAttempts > 0 && (
-							<div className="text-xs opacity-40 mt-1">
-              
-								Fallback attempt: {fallbackAttempts}/3
-							</div>
-						)}
-					</>
+					<LoadingUI 
+						status={fallbackStatus} 
+						attempts={fallbackAttempts} 
+					/>
 				)}
 				{!loading && success && (
-					<>
-						<div className="text-4xl mb-4">✅</div>
-						<div className="text-lg font-semibold mb-2 text-green-400">
-							{success}
-						</div>
-						<div className="text-sm opacity-80">
-							You will be redirected automatically.
-						</div>
-					</>
+					<SuccessUI message={success} />
 				)}
 				{!loading && error && (
-					<>
-						<div className="text-4xl mb-4">❌</div>
-						<div className="text-lg font-semibold mb-2 text-red-400">
-							{error}
-						</div>
-						<div className="text-sm opacity-80">
-							You will be redirected to the login page.
-						</div>
-						{fallbackStatus && (
-							<div className="text-xs opacity-60 mt-3 text-center border-t border-gray-500 pt-3">
-								<strong>Fallback Status:</strong>
-								<br />
-								{fallbackStatus}
-							</div>
-						)}
-					</>
+					<ErrorUI 
+						message={error} 
+						status={fallbackStatus} 
+					/>
 				)}
 			</div>
 		</div>
-	);
-});
+	);});
+
+// UI Components
+const LoadingUI = ({ status, attempts }: { status: string; attempts: number }) => (
+	<>
+		<div
+			className="animate-spin rounded-full h-12 w-12 border-t-4 border-b-4 mb-4"
+			style={{
+				borderTopColor: 'var(--sl-color-accent)',
+				borderBottomColor: 'var(--sl-color-accent)',
+			}}></div>
+		<div className="text-lg font-semibold mb-2">Processing OAuth callback…</div>
+		<div className="text-sm opacity-80">Please wait while we complete your authentication.</div>
+		{status && <div className="text-xs opacity-60 mt-3 text-center">{status}</div>}
+		{attempts > 0 && (
+			<div className="text-xs opacity-40 mt-1">Fallback attempt: {attempts}/3</div>
+		)}
+	</>
+);
+
+const SuccessUI = ({ message }: { message: string }) => (
+	<>
+		<div className="text-4xl mb-4">✅</div>
+		<div className="text-lg font-semibold mb-2 text-green-400">{message}</div>
+		<div className="text-sm opacity-80">You will be redirected automatically.</div>
+	</>
+);
+
+const ErrorUI = ({ message, status }: { message: string; status: string }) => (
+	<>
+		<div className="text-4xl mb-4">❌</div>
+		<div className="text-lg font-semibold mb-2 text-red-400">{message}</div>
+		<div className="text-sm opacity-80">You will be redirected to the login page.</div>
+		{status && (
+			<div className="text-xs opacity-60 mt-3 text-center border-t border-gray-500 pt-3">
+				<strong>Fallback Status:</strong>
+				<br />
+				{status}
+			</div>
+		)}
+	</>
+);
 
 // Main stable component that never re-renders
 export const ReactCallback = () => {
