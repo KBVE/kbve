@@ -71,6 +71,39 @@ class OAuthService {
     return this.signInWithProvider('twitter');
   }
 
+  public async initializeOAuthCallback(): Promise<void> {
+    this.clearMessages();
+    this.loadingAtom.set(true);
+
+    try {
+      const url = new URL(window.location.href);
+      const oauthError = url.searchParams.get('error');
+      
+      if (oauthError) {
+        throw new Error(`OAuth Error: ${oauthError}`);
+      }
+
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+
+      const session = data.session;
+      if (!session) throw new Error("No session found after OAuth redirect.");
+
+      this.successAtom.set("OAuth login successful. Redirecting...");
+      
+      // You might want to prefetch profile data here too
+      setTimeout(() => {
+        window.location.href = `${window.location.origin}/profile/`;
+      }, 1200);
+
+    } catch (err: any) {
+      this.errorAtom.set(err.message || "OAuth callback failed.");
+    } finally {
+      this.loadingAtom.set(false);
+      this.providerAtom.set(null);
+    }
+  }
+
   public async handleAuthCallback(): Promise<void> {
     this.clearMessages();
     this.loadingAtom.set(true);
