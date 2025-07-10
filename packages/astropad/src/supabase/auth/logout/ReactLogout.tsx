@@ -30,7 +30,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = checking, true/false = result
 
   // Shared button styles to ensure identical styling
-  const buttonBaseStyles = 'h-10 px-4 min-w-[80px] rounded-md text-sm font-medium flex items-center justify-center gap-2 leading-none transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 focus:outline-none group';
+  const buttonBaseStyles = 'h-10 px-4 min-w-[80px] rounded-md text-sm font-medium flex items-center justify-center gap-2 leading-none transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 focus:outline-none group cursor-pointer';
 
   // Check for hash and handle automatic logout
   useEffect(() => {
