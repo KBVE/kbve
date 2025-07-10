@@ -21,7 +21,7 @@ const AuthProcessor = React.memo(() => {
   const [fallbackStatus, setFallbackStatus] = useState<string>('');
   const [timeoutReached, setTimeoutReached] = useState(false);
   const authSubscriptionRef = useRef<any>(null);
-  const fallbackTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Primary OAuth callback processing
   const handleCallback = useCallback(async () => {
