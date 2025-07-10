@@ -110,7 +110,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
       case 'success':
         return 'text-[var(--sl-color-accent)]';
       case 'error':
-        return 'text-[var(--sl-color-red)]';
+        return 'text-red-500'; // Using standard Tailwind red since no red in starlight vars
       default:
         return '';
     }
@@ -145,18 +145,18 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
         <div 
           className="flex items-center justify-center w-12 h-12 mx-auto rounded-full border"
           style={{ 
-            backgroundColor: 'color-mix(in srgb, var(--sl-color-red) 10%, transparent)',
-            borderColor: 'color-mix(in srgb, var(--sl-color-red) 20%, transparent)'
+            backgroundColor: 'color-mix(in srgb, #ef4444 10%, transparent)', // red-500 with transparency
+            borderColor: 'color-mix(in srgb, #ef4444 20%, transparent)'
           }}
         >
-          <AlertTriangle className="w-6 h-6" style={{ color: 'var(--sl-color-red)' }} />
+          <AlertTriangle className="w-6 h-6 text-red-500" />
         </div>
         
         <div>
-          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--sl-color-text)' }}>
+          <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--sl-color-white)' }}>
             Confirm Logout
           </h3>
-          <p className="text-sm" style={{ color: 'var(--sl-color-text-accent)' }}>
+          <p className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
             Are you sure you want to log out? You'll need to sign in again to access your account.
           </p>
         </div>
@@ -167,15 +167,13 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
             aria-label="Cancel logout"
             className={cn(
               buttonBaseStyles,
-              'hover:shadow-md focus:ring-2 focus:ring-offset-2'
+              'border hover:shadow-md focus:ring-2 focus:ring-offset-2 focus:ring-[var(--sl-color-accent)]'
             )}
             style={{
-              backgroundColor: 'color-mix(in srgb, var(--sl-color-gray-5) 80%, transparent)',
-              color: 'var(--sl-color-text)',
-              borderColor: 'color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent)',
-              '--tw-ring-color': 'var(--sl-color-accent)',
-              '--tw-ring-offset-color': 'var(--sl-color-bg)'
-            } as React.CSSProperties}
+              backgroundColor: 'color-mix(in srgb, var(--sl-color-gray-5) 60%, transparent)',
+              color: 'var(--sl-color-white)',
+              borderColor: 'var(--sl-color-gray-4)'
+            }}
           >
             <X className="w-4 h-4 align-middle" />
             Cancel
@@ -185,16 +183,9 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
             aria-label="Confirm logout"
             className={cn(
               buttonBaseStyles,
-              'hover:shadow-lg focus:ring-2 focus:ring-offset-2'
+              'border bg-red-600 text-white hover:bg-red-700 border-red-600 hover:border-red-700',
+              'hover:shadow-lg focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
             )}
-            style={{
-              backgroundColor: 'var(--sl-color-red)',
-              color: 'var(--sl-color-white)',
-              borderColor: 'var(--sl-color-red)',
-              '--tw-ring-color': 'var(--sl-color-red)',
-              '--tw-ring-offset-color': 'var(--sl-color-bg)',
-              '--tw-shadow-color': 'color-mix(in srgb, var(--sl-color-red) 25%, transparent)'
-            } as React.CSSProperties}
           >
             <LogOut className="w-4 h-4 align-middle" />
             Logout
