@@ -172,15 +172,18 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
   // If logout is in progress, show status
   if (status !== 'idle') {
     return (
-      <div className={cn(
-        'flex items-center justify-center p-4',
-        className
-      )}>
+      <div 
+        key="logout-status"
+        className={cn(
+          'flex items-center justify-center p-4',
+          className
+        )}
+      >
         <div className="text-center">
           {status === 'loading' && (
-            <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[var(--sl-color-accent)]" />
+            <Loader2 key="loading-spinner" className="w-5 h-5 animate-spin mx-auto mb-2 text-[var(--sl-color-accent)]" />
           )}
-          <p className={cn('text-sm', getStatusColor)}>
+          <p key="status-message" className={cn('text-sm', getStatusColor)}>
             {getStatusMessage}
           </p>
         </div>
@@ -193,11 +196,11 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
     // Still checking login status
     if (isLoggedIn === null) {
       return (
-        <div className={cn('text-center space-y-4', className)}>
+        <div key="checking-status" className={cn('text-center space-y-4', className)}>
           <div className="flex items-center justify-center">
-            <Loader2 className="w-5 h-5 animate-spin text-[var(--sl-color-accent)]" />
+            <Loader2 key="check-spinner" className="w-5 h-5 animate-spin text-[var(--sl-color-accent)]" />
           </div>
-          <p className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
+          <p key="checking-message" className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
             Checking login status...
           </p>
         </div>
@@ -207,25 +210,27 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
     // User is not logged in - show "silly goose" message
     if (!isLoggedIn) {
       return (
-        <div className={cn('text-center space-y-4', className)}>
+        <div key="silly-goose" className={cn('text-center space-y-4', className)}>
           <div 
+            key="silly-goose-icon"
             className="flex items-center justify-center w-12 h-12 mx-auto rounded-full border"
             style={accentIconStyle}
           >
-            <AlertTriangle className="w-6 h-6 text-[var(--sl-color-accent)]" />
+            <AlertTriangle key="silly-goose-triangle" className="w-6 h-6 text-[var(--sl-color-accent)]" />
           </div>
           
-          <div>
-            <h3 className="text-lg font-semibold mb-2 flex items-center justify-center gap-2" style={{ color: 'var(--sl-color-white)' }}>
-              You silly goose! <Smile className="w-5 h-5 text-[var(--sl-color-accent)]" />
+          <div key="silly-goose-content">
+            <h3 key="silly-goose-title" className="text-lg font-semibold mb-2 flex items-center justify-center gap-2" style={{ color: 'var(--sl-color-white)' }}>
+              You silly goose! <Smile key="silly-goose-smile" className="w-5 h-5 text-[var(--sl-color-accent)]" />
             </h3>
-            <p className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
+            <p key="silly-goose-message" className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
               You're already logged out. Would you like to sign in or create a new account?
             </p>
           </div>
           
-          <div className="grid grid-cols-2 gap-3 items-baseline justify-items-center">
+          <div key="silly-goose-buttons" className="grid grid-cols-2 gap-3 items-baseline justify-items-center">
             <button
+              key="login-button"
               onClick={handleGoToLogin}
               aria-label="Go to login"
               className={cn(
@@ -234,10 +239,11 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
               )}
               style={cancelButtonStyle}
             >
-              <LogOut className="w-4 h-4 align-middle rotate-180" />
+              <LogOut key="login-icon" className="w-4 h-4 align-middle rotate-180" />
               Login
             </button>
             <button
+              key="register-button"
               onClick={handleGoToRegister}
               aria-label="Go to register"
               className={cn(
@@ -246,7 +252,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
               )}
               style={registerButtonStyle}
             >
-              <X className="w-4 h-4 align-middle rotate-45" />
+              <X key="register-icon" className="w-4 h-4 align-middle rotate-45" />
               Register
             </button>
           </div>
@@ -257,25 +263,27 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
     // User IS logged in - show normal confirmation
     if (showConfirmation) {
       return (
-        <div className={cn('text-center space-y-4', className)}>
+        <div key="logout-confirmation" className={cn('text-center space-y-4', className)}>
           <div 
+            key="logout-icon"
             className="flex items-center justify-center w-12 h-12 mx-auto rounded-full border"
             style={redIconStyle}
           >
-            <AlertTriangle className="w-6 h-6 text-red-500" />
+            <AlertTriangle key="logout-triangle" className="w-6 h-6 text-red-500" />
           </div>
           
-          <div>
-            <h3 className="text-lg font-semibold mb-2" style={{ color: 'var(--sl-color-white)' }}>
+          <div key="logout-content">
+            <h3 key="logout-title" className="text-lg font-semibold mb-2" style={{ color: 'var(--sl-color-white)' }}>
               Confirm Logout
             </h3>
-            <p className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
+            <p key="logout-message" className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
               Are you sure you want to log out? You'll need to sign in again to access your account.
             </p>
           </div>
           
-          <div className="grid grid-cols-2 gap-3 items-baseline justify-items-center">
+          <div key="logout-buttons" className="grid grid-cols-2 gap-3 items-baseline justify-items-center">
             <button
+              key="cancel-button"
               onClick={handleCancelLogout}
               aria-label="Cancel logout"
               className={cn(
@@ -284,10 +292,11 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
               )}
               style={cancelButtonStyle}
             >
-              <X className="w-4 h-4 align-middle" />
+              <X key="cancel-icon" className="w-4 h-4 align-middle" />
               Cancel
             </button>
             <button
+              key="confirm-logout-button"
               onClick={handleConfirmLogout}
               aria-label="Confirm logout"
               className={cn(
@@ -296,7 +305,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
                 'hover:shadow-lg focus:ring-2 focus:ring-offset-2 focus:ring-red-500'
               )}
             >
-              <LogOut className="w-4 h-4 align-middle" />
+              <LogOut key="logout-icon" className="w-4 h-4 align-middle" />
               Logout
             </button>
           </div>
