@@ -1,19 +1,90 @@
 ---
 title: Callback
-description: |
-    KBVE Login
+description: Learn about the KBVE login callback process and its implementation for secure user authentication.
 tableOfContents: true
 graph:
-   visible: false
+  visible: false
 sidebar:
-    label: Webmaster
-    order: 3
-unsplash: 1522071820081-009f0129c71c
-img: https://images.unsplash.com/photo-1522071820081-009f0129c71c?fit=crop&w=1400&h=700&q=75
+  label: Webmaster
+  order: 3
+image:
+  src: https://images.unsplash.com/photo-1522071820081-009f0129c71c?fit=crop&w=1400&h=700&q=75
+  alt: Secure authentication interface
+  credit: Unsplash
 tags:
-    - tools
+  - authentication
+  - login
+  - callback
+  - security
+  - webmaster
 ---
 
 import { AstroCallback } from '@kbve/astropad';
+import { Card, CardGrid, Aside} from '@astrojs/starlight/components';
 
 <AstroCallback  />
+
+## Authentication Callback Overview
+
+The callback system handles secure user authentication after successful login attempts. This process ensures that user sessions are properly established and validated.
+
+<Aside type="tip">
+The callback URL must be properly configured in your authentication provider to ensure seamless user experience.
+</Aside>
+
+<CardGrid>
+  <Card title="Security Features" icon="shield">
+    - Token validation and verification
+    - Session management
+    - CSRF protection
+    - Secure cookie handling
+  </Card>
+  
+  <Card title="Error Handling" icon="warning">
+    - Invalid token detection
+    - Expired session handling
+    - Network error recovery
+    - User-friendly error messages
+  </Card>
+  
+  <Card title="Implementation" icon="laptop">
+    - OAuth 2.0 compliance
+    - JWT token processing
+    - Redirect management
+    - State parameter validation
+  </Card>
+  
+  <Card title="Best Practices" icon="star">
+    - Always validate callback parameters
+    - Implement proper error logging
+    - Use secure transport (HTTPS)
+    - Regular token refresh cycles
+  </Card>
+</CardGrid>
+
+## Configuration Requirements
+
+<Aside type="caution">
+Ensure all callback URLs are registered with your authentication provider before deploying to production.
+</Aside>
+
+### Required Environment Variables
+
+The following environment variables must be configured for proper callback functionality:
+
+- `AUTH_CLIENT_ID` - Your application's client identifier
+- `AUTH_CLIENT_SECRET` - Your application's client secret
+- `AUTH_REDIRECT_URI` - The registered callback URL
+- `AUTH_DOMAIN` - Your authentication provider's domain
+
+### Callback Flow Process
+
+1. **User Authentication**: User completes login at the authentication provider
+2. **Redirect to Callback**: Provider redirects to your registered callback URL
+3. **Token Exchange**: Your application exchanges the authorization code for tokens
+4. **Session Creation**: A secure session is established for the authenticated user
+5. **Final Redirect**: User is redirected to their intended destination
+
+<Aside type="note">
+The entire callback process typically completes within 2-3 seconds under normal network conditions.
+</Aside>

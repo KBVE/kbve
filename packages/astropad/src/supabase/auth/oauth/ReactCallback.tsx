@@ -82,7 +82,14 @@ export const ReactCallback = () => {
   // Hide skeleton and process callback on component mount
   useEffect(() => {
     hideSkeleton();
+    // Start watching auth state changes as a fallback mechanism
+    oauthService.watchAuthState();
     handleCallback();
+
+    // Cleanup function to unsubscribe from auth state changes
+    return () => {
+      oauthService.unwatchAuthState();
+    };
   }, [handleCallback]);
 
   // Close modal when not loading and no active state
