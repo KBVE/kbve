@@ -34,10 +34,21 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
   // Check for hash and handle automatic logout
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      // Hide the skeleton when React component mounts
+      // Start fade transition when React component mounts
+      const container = document.querySelector('.logout-container');
       const skeleton = document.querySelector('[data-skeleton="logout"]');
-      if (skeleton) {
-        (skeleton as HTMLElement).style.display = 'none';
+      
+      if (container && skeleton) {
+        // Add hydrated class to container to show React component
+        container.classList.add('hydrated');
+        
+        // Start fade out of skeleton
+        skeleton.classList.add('fade-out');
+        
+        // Remove skeleton from DOM after fade completes
+        setTimeout(() => {
+          (skeleton as HTMLElement).style.display = 'none';
+        }, 300);
       }
 
       const hash = window.location.hash;

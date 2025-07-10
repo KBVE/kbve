@@ -59,16 +59,34 @@ import { ReactLogout } from '@kbve/astropad';
 <style>
   .logout-container {
     position: relative;
+    min-height: 200px; /* Prevent layout shift */
   }
   
   .logout-skeleton {
-    /* Show skeleton initially */
-    display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    opacity: 1;
+    z-index: 10;
+    transition: opacity 0.3s ease-in-out;
   }
   
-  /* Ensure smooth transition */
-  .logout-container > * {
-    transition: opacity 0.2s ease-in-out;
+  .logout-skeleton.fade-out {
+    opacity: 0;
+    pointer-events: none;
+  }
+  
+  /* React component container */
+  .logout-container > :last-child {
+    position: relative;
+    z-index: 20;
+    opacity: 0;
+    transition: opacity 0.3s ease-in-out;
+  }
+  
+  .logout-container.hydrated > :last-child {
+    opacity: 1;
   }
   
   /* Custom shimmer animation */
