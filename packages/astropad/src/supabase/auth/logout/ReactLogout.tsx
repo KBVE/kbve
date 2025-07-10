@@ -120,8 +120,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
   if (status !== 'idle') {
     return (
       <div className={cn(
-        'flex items-center justify-center p-4 rounded-lg',
-        'bg-slate-800 border border-slate-700',
+        'flex items-center justify-center p-4',
         className
       )}>
         <div className="text-center">
@@ -140,54 +139,51 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
   if (hasConfirmHash && showConfirmation) {
     return (
       <div className={cn(
-        'p-4 rounded-lg border',
-        'bg-slate-900 border-slate-700',
+        'text-center space-y-4',
         className
       )}>
-        <div className="text-center space-y-4">
-          <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-red-500/10 border border-red-500/20">
-            <AlertTriangle className="w-6 h-6 text-red-400" />
-          </div>
-          
-          <div>
-            <h3 className="text-lg font-semibold text-slate-200 mb-2">
-              Confirm Logout
-            </h3>
-            <p className="text-sm text-slate-400">
-              Are you sure you want to log out? You'll need to sign in again to access your account.
-            </p>
-          </div>
-          
-          <div className="grid grid-cols-2 gap-3 items-baseline justify-items-center">
-            <button
-              onClick={handleCancelLogout}
-              aria-label="Cancel logout"
-              className={cn(
-                buttonBaseStyles,
-                'bg-slate-700 text-slate-300 hover:bg-slate-600',
-                'border border-slate-600 hover:border-slate-500',
-                'hover:shadow-md',
-                'focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900'
-              )}
-            >
-              <X className="w-4 h-4 align-middle" />
-              Cancel
-            </button>
-            <button
-              onClick={handleConfirmLogout}
-              aria-label="Confirm logout"
-              className={cn(
-                buttonBaseStyles,
-                'bg-red-600 text-white hover:bg-red-700',
-                'border border-red-600 hover:border-red-700',
-                'hover:shadow-lg hover:shadow-red-500/25',
-                'focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900'
-              )}
-            >
-              <LogOut className="w-4 h-4 align-middle" />
-              Logout
-            </button>
-          </div>
+        <div className="flex items-center justify-center w-12 h-12 mx-auto rounded-full bg-red-500/10 border border-red-500/20">
+          <AlertTriangle className="w-6 h-6 text-red-400" />
+        </div>
+        
+        <div>
+          <h3 className="text-lg font-semibold text-slate-200 mb-2">
+            Confirm Logout
+          </h3>
+          <p className="text-sm text-slate-400">
+            Are you sure you want to log out? You'll need to sign in again to access your account.
+          </p>
+        </div>
+        
+        <div className="grid grid-cols-2 gap-3 items-baseline justify-items-center">
+          <button
+            onClick={handleCancelLogout}
+            aria-label="Cancel logout"
+            className={cn(
+              buttonBaseStyles,
+              'bg-slate-700 text-slate-300 hover:bg-slate-600',
+              'border border-slate-600 hover:border-slate-500',
+              'hover:shadow-md',
+              'focus:ring-2 focus:ring-slate-500 focus:ring-offset-2 focus:ring-offset-slate-900'
+            )}
+          >
+            <X className="w-4 h-4 align-middle" />
+            Cancel
+          </button>
+          <button
+            onClick={handleConfirmLogout}
+            aria-label="Confirm logout"
+            className={cn(
+              buttonBaseStyles,
+              'bg-red-600 text-white hover:bg-red-700',
+              'border border-red-600 hover:border-red-700',
+              'hover:shadow-lg hover:shadow-red-500/25',
+              'focus:ring-2 focus:ring-red-500 focus:ring-offset-2 focus:ring-offset-slate-900'
+            )}
+          >
+            <LogOut className="w-4 h-4 align-middle" />
+            Logout
+          </button>
         </div>
       </div>
     );
