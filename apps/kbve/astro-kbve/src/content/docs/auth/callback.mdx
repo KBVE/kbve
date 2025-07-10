@@ -24,67 +24,68 @@ import { Card, CardGrid, Aside} from '@astrojs/starlight/components';
 
 <AstroCallback  />
 
-## Authentication Callback Overview
+## Supabase Authentication Callback
 
-The callback system handles secure user authentication after successful login attempts. This process ensures that user sessions are properly established and validated.
+The [Supabase](/application/supabase/) callback handles the authentication flow after users complete login through various providers (GitHub, Google, Discord, etc.). This endpoint processes the authentication tokens and establishes secure user sessions.
 
 <Aside type="tip">
-The callback URL must be properly configured in your authentication provider to ensure seamless user experience.
+Supabase callback URLs must be registered in your Supabase project's Authentication settings under "Site URL" and "Redirect URLs".
 </Aside>
 
 <CardGrid>
-  <Card title="Security Features" icon="shield">
-    - Token validation and verification
-    - Session management
-    - CSRF protection
-    - Secure cookie handling
+  <Card title="Supabase Auth Features" icon="shield">
+    - JWT token validation via Supabase Auth
+    - Automatic session management
+    - Row Level Security (RLS) integration
+    - Built-in PKCE flow protection
   </Card>
   
-  <Card title="Error Handling" icon="warning">
-    - Invalid token detection
-    - Expired session handling
-    - Network error recovery
-    - User-friendly error messages
+  <Card title="Provider Support" icon="globe">
+    - GitHub OAuth integration
+    - Google OAuth integration
+    - Discord OAuth integration
+    - Magic link authentication
   </Card>
   
-  <Card title="Implementation" icon="laptop">
-    - OAuth 2.0 compliance
-    - JWT token processing
-    - Redirect management
-    - State parameter validation
+  <Card title="Session Handling" icon="laptop">
+    - Automatic token refresh
+    - Server-side session validation
+    - Cookie-based persistence
+    - Secure httpOnly cookies
   </Card>
   
-  <Card title="Best Practices" icon="star">
-    - Always validate callback parameters
-    - Implement proper error logging
-    - Use secure transport (HTTPS)
-    - Regular token refresh cycles
+  <Card title="Supabase Integration" icon="database">
+    - Direct user profile creation
+    - Automatic user metadata sync
+    - Real-time subscription setup
+    - Database trigger activation
   </Card>
 </CardGrid>
 
-## Configuration Requirements
+## Supabase Configuration
 
 <Aside type="caution">
-Ensure all callback URLs are registered with your authentication provider before deploying to production.
+Ensure your callback URL is added to both "Site URL" and "Redirect URLs" in your Supabase project settings.
 </Aside>
 
-### Required Environment Variables
+### Required Supabase Environment Variables
 
-The following environment variables must be configured for proper callback functionality:
+Configure these environment variables for Supabase authentication:
 
-- `AUTH_CLIENT_ID` - Your application's client identifier
-- `AUTH_CLIENT_SECRET` - Your application's client secret
-- `AUTH_REDIRECT_URI` - The registered callback URL
-- `AUTH_DOMAIN` - Your authentication provider's domain
+- `PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anon/public key
+- `SUPABASE_SERVICE_KEY` - Your Supabase service role key (server-side only)
+- `SUPABASE_JWT_SECRET` - JWT secret for token verification
 
-### Callback Flow Process
+### Supabase Callback Flow
 
-1. **User Authentication**: User completes login at the authentication provider
-2. **Redirect to Callback**: Provider redirects to your registered callback URL
-3. **Token Exchange**: Your application exchanges the authorization code for tokens
-4. **Session Creation**: A secure session is established for the authenticated user
-5. **Final Redirect**: User is redirected to their intended destination
+1. **Provider Authentication**: User completes OAuth with GitHub/Google/Discord
+2. **Supabase Redirect**: Provider redirects to your Supabase callback URL
+3. **Token Processing**: Supabase Auth exchanges code for access/refresh tokens
+4. **User Creation**: Supabase automatically creates user record in auth.users
+5. **Session Establishment**: Client receives session with JWT tokens
+6. **Profile Sync**: User metadata synced to your profiles table via triggers
 
 <Aside type="note">
-The entire callback process typically completes within 2-3 seconds under normal network conditions.
+Supabase handles token refresh automatically. Sessions are valid for 1 hour by default and refresh tokens last 30 days.
 </Aside>
