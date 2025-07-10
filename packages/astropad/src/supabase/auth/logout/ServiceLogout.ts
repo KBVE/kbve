@@ -30,6 +30,22 @@ class LogoutService {
     }
   }
 
+  public async isUserLoggedIn(): Promise<boolean> {
+    try {
+      const { data: sessionData, error } = await supabase.auth.getSession();
+      
+      if (error) {
+        console.warn('Error checking session:', error);
+        return false;
+      }
+      
+      return !!sessionData?.session;
+    } catch (err) {
+      console.warn('Failed to check login status:', err);
+      return false;
+    }
+  }
+
   public async logoutUser(): Promise<void> {
     this.clearMessages();
     this.loadingAtom.set(true);
