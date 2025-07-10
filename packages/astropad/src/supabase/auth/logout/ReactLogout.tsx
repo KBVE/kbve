@@ -1,5 +1,5 @@
 /** @jsxImportSource react */
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState, useCallback, useEffect, useMemo } from 'react';
 import { useStore } from '@nanostores/react';
 import { logoutService } from '@kbve/astropad';
 import { clsx } from 'clsx';
@@ -29,8 +29,10 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
   const [hasConfirmHash, setHasConfirmHash] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = checking, true/false = result
 
-  // Shared button styles to ensure identical styling
-  const buttonBaseStyles = 'h-10 px-4 min-w-[80px] rounded-md text-sm font-medium flex items-center justify-center gap-2 leading-none transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 focus:outline-none group cursor-pointer';
+  // Shared button styles to ensure identical styling - memoized since it never changes
+  const buttonBaseStyles = useMemo(() => 
+    'h-10 px-4 min-w-[80px] rounded-md text-sm font-medium flex items-center justify-center gap-2 leading-none transition-all duration-200 ease-in-out hover:scale-105 active:scale-95 focus:outline-none group cursor-pointer'
+  , []);
 
   // Check for hash and handle automatic logout
   useEffect(() => {
@@ -118,7 +120,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
     }
   }, []);
 
-  const getStatusMessage = () => {
+  const getStatusMessage = useMemo(() => {
     switch (status) {
       case 'loading':
         return 'Logging you out…';
@@ -129,9 +131,9 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
       default:
         return '';
     }
-  };
+  }, [status, success, error]);
 
-  const getStatusColor = () => {
+  const getStatusColor = useMemo(() => {
     switch (status) {
       case 'loading':
         return 'text-[var(--sl-color-accent)]';
@@ -142,7 +144,30 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
       default:
         return '';
     }
-  };
+  }, [status]);
+
+  // Memoized style objects for better performance
+  const accentIconStyle = useMemo(() => ({ 
+    backgroundColor: 'color-mix(in srgb, var(--sl-color-accent) 10%, transparent)',
+    borderColor: 'color-mix(in srgb, var(--sl-color-accent) 20%, transparent)'
+  }), []);
+
+  const redIconStyle = useMemo(() => ({ 
+    backgroundColor: 'color-mix(in srgb, #ef4444 10%, transparent)',
+    borderColor: 'color-mix(in srgb, #ef4444 20%, transparent)'
+  }), []);
+
+  const cancelButtonStyle = useMemo(() => ({
+    backgroundColor: 'color-mix(in srgb, var(--sl-color-gray-5) 60%, transparent)',
+    color: 'var(--sl-color-white)',
+    borderColor: 'var(--sl-color-gray-4)'
+  }), []);
+
+  const registerButtonStyle = useMemo(() => ({
+    backgroundColor: 'color-mix(in srgb, var(--sl-color-accent) 80%, transparent)',
+    color: 'var(--sl-color-white)',
+    borderColor: 'var(--sl-color-accent)'
+  }), []);
 
   // If logout is in progress, show status
   if (status !== 'idle') {
@@ -155,8 +180,8 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
           {status === 'loading' && (
             <Loader2 className="w-5 h-5 animate-spin mx-auto mb-2 text-[var(--sl-color-accent)]" />
           )}
-          <p className={cn('text-sm', getStatusColor())}>
-            {getStatusMessage()}
+          <p className={cn('text-sm', getStatusColor)}>
+            {getStatusMessage}
           </p>
         </div>
       </div>
@@ -185,10 +210,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
         <div className={cn('text-center space-y-4', className)}>
           <div 
             className="flex items-center justify-center w-12 h-12 mx-auto rounded-full border"
-            style={{ 
-              backgroundColor: 'color-mix(in srgb, var(--sl-color-accent) 10%, transparent)',
-              borderColor: 'color-mix(in srgb, var(--sl-color-accent) 20%, transparent)'
-            }}
+            style={accentIconStyle}
           >
             <AlertTriangle className="w-6 h-6 text-[var(--sl-color-accent)]" />
           </div>
@@ -210,11 +232,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
                 buttonBaseStyles,
                 'border hover:shadow-md focus:ring-2 focus:ring-offset-2 focus:ring-[var(--sl-color-accent)]'
               )}
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--sl-color-gray-5) 60%, transparent)',
-                color: 'var(--sl-color-white)',
-                borderColor: 'var(--sl-color-gray-4)'
-              }}
+              style={cancelButtonStyle}
             >
               <LogOut className="w-4 h-4 align-middle rotate-180" />
               Login
@@ -226,11 +244,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
                 buttonBaseStyles,
                 'border hover:shadow-md focus:ring-2 focus:ring-offset-2 focus:ring-[var(--sl-color-accent)]'
               )}
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--sl-color-accent) 80%, transparent)',
-                color: 'var(--sl-color-white)',
-                borderColor: 'var(--sl-color-accent)'
-              }}
+              style={registerButtonStyle}
             >
               <X className="w-4 h-4 align-middle rotate-45" />
               Register
@@ -246,10 +260,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
         <div className={cn('text-center space-y-4', className)}>
           <div 
             className="flex items-center justify-center w-12 h-12 mx-auto rounded-full border"
-            style={{ 
-              backgroundColor: 'color-mix(in srgb, #ef4444 10%, transparent)', // red-500 with transparency
-              borderColor: 'color-mix(in srgb, #ef4444 20%, transparent)'
-            }}
+            style={redIconStyle}
           >
             <AlertTriangle className="w-6 h-6 text-red-500" />
           </div>
@@ -271,11 +282,7 @@ export const ReactLogout: React.FC<ReactLogoutProps> = ({
                 buttonBaseStyles,
                 'border hover:shadow-md focus:ring-2 focus:ring-offset-2 focus:ring-[var(--sl-color-accent)]'
               )}
-              style={{
-                backgroundColor: 'color-mix(in srgb, var(--sl-color-gray-5) 60%, transparent)',
-                color: 'var(--sl-color-white)',
-                borderColor: 'var(--sl-color-gray-4)'
-              }}
+              style={cancelButtonStyle}
             >
               <X className="w-4 h-4 align-middle" />
               Cancel
