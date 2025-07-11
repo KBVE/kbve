@@ -2,6 +2,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useStore } from '@nanostores/react';
 import { oauthService, supabase } from '@kbve/astropad';
+import { FixedSizeList as List } from "react-window";
+
 
 // Hide skeleton loader when component mounts
 const hideSkeleton = () => {
