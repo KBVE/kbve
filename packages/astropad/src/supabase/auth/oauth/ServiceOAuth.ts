@@ -118,9 +118,9 @@ class OAuthService {
       
       if (data.session) {
         this.successAtom.set("Authentication successful! Redirecting...");
-        setTimeout(() => {
-          window.location.href = `${window.location.origin}/profile/`;
-        }, 1500);
+        // setTimeout(() => {
+        //   window.location.href = `${window.location.origin}/profile/`;
+        // }, 1500);
       } else {
         throw new Error("No session found after OAuth callback");
       }

@@ -189,6 +189,19 @@ const AuthProcessor = React.memo(() => {
 		setFallbackStates(prev => ({ ...prev, [key]: status }));
 	}, []);
 
+	// Reusable redirect functions
+	const redirectToProfile = useCallback((delay: number = 2000) => {
+		// setTimeout(() => {
+		// 	window.location.href = `${window.location.origin}/profile/`;
+		// }, delay);
+	}, []);
+
+	const redirectToLogin = useCallback((delay: number = 3000) => {
+		// setTimeout(() => {
+		// 	window.location.href = `${window.location.origin}/login/`;
+		// }, delay);
+	}, []);
+
 	// Primary OAuth callback processing
 	const handleCallback = useCallback(async () => {
 		try {
@@ -209,9 +222,7 @@ const AuthProcessor = React.memo(() => {
 			'Authentication callback timed out. Please try signing in again.',
 		);
 
-		setTimeout(() => {
-			window.location.href = `${window.location.origin}/login/`;
-		}, 3000);
+		redirectToLogin();
 	}, [updateFallbackState]);
 
 	// Fallback URL params check
@@ -237,9 +248,7 @@ const AuthProcessor = React.memo(() => {
 						'Session restored from URL tokens! Redirecting...',
 					);
 					// Delay redirect to show success state
-					setTimeout(() => {
-						window.location.href = `${window.location.origin}/profile/`;
-					}, 2000);
+					redirectToProfile();
 				}
 			} else {
 				updateFallbackState('urlCheck', 'failed');
@@ -281,9 +290,7 @@ const AuthProcessor = React.memo(() => {
 					'Session found via fallback! Redirecting...',
 				);
 				// Delay redirect to show success state
-				setTimeout(() => {
-					window.location.href = `${window.location.origin}/profile/`;
-				}, 2000);
+				redirectToProfile();
 			} else {
 				updateFallbackState('sessionCheck', 'failed');
 				// Try next fallback after a delay
@@ -324,9 +331,7 @@ const AuthProcessor = React.memo(() => {
 					}
 
 					// Delay redirect to show success state
-					setTimeout(() => {
-						window.location.href = `${window.location.origin}/profile/`;
-					}, 2000);
+					redirectToProfile();
 				} else if (
 					event === 'SIGNED_OUT' ||
 					(event === 'TOKEN_REFRESHED' && !session)
