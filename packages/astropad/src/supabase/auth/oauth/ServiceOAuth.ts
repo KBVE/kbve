@@ -95,9 +95,9 @@ class OAuthService {
       this.successAtom.set("OAuth login successful. Redirecting...");
       
       // You might want to prefetch profile data here too
-      setTimeout(() => {
-        window.location.href = `${window.location.origin}/profile/`;
-      }, 1200);
+      // setTimeout(() => {
+      //   window.location.href = `${window.location.origin}/profile/`;
+      // }, 1200);
 
     } catch (err: any) {
       this.errorAtom.set(err.message || "OAuth callback failed.");

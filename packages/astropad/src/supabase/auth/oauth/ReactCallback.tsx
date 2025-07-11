@@ -3,6 +3,7 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useStore } from '@nanostores/react';
 import { oauthService, supabase } from '@kbve/astropad';
 import { FixedSizeList as List } from "react-window";
+import AutoSizer from "react-virtualized-auto-sizer";
 
 
 // Hide skeleton loader when component mounts
@@ -19,28 +20,42 @@ const hideSkeleton = () => {
 interface AuthStep {
 	id: string;
 	title: string;
-	status: 'pending' | 'active' | 'completed' | 'failed';
+	status: 'skeleton' | 'pending' | 'active' | 'completed' | 'failed';
 	message?: string;
 	timestamp?: number;
 }
 
-// Enhanced StepItem for log-based timeline
+// Enhanced StepItem for log-based timeline with skeleton states
 const StepItem = ({ index, style, data }: { index: number; style: any; data: AuthStep[] }) => {
 	const step = data[index];
+	
+	if (step.status === 'skeleton') {
+		return (
+			<div style={style} className="px-4 py-2">
+				<div className="flex items-start gap-3">
+					<div className="w-6 h-6 bg-zinc-700 rounded-full animate-pulse mt-1"></div>
+					<div className="flex-1">
+						<div className="h-4 bg-zinc-700 rounded animate-pulse w-3/4"></div>
+						<div className="h-3 bg-zinc-800 rounded animate-pulse w-1/2 mt-1"></div>
+					</div>
+				</div>
+			</div>
+		);
+	}
 	
 	const statusEmoji = {
 		pending: '🟡',
 		active: '🔄',
 		completed: '✅',
 		failed: '❌',
-	}[step.status];
+	}[step.status] || '🔄';
 
 	const color = {
 		pending: 'text-yellow-400',
 		active: 'text-blue-400',
 		completed: 'text-green-400',
 		failed: 'text-red-400',
-	}[step.status];
+	}[step.status] || 'text-blue-400';
 
 	return (
 		<div style={style} className="px-4 py-2">
@@ -59,44 +74,136 @@ const StepItem = ({ index, style, data }: { index: number; style: any; data: Aut
 
 // Internal component that handles all the auth processing
 const AuthProcessor = React.memo(() => {
+	// Use stores to track different states
 	const loading = useStore(oauthService.loadingAtom);
 	const error = useStore(oauthService.errorAtom);
 	const success = useStore(oauthService.successAtom);
+	const provider = useStore(oauthService.providerAtom);
 
 	const [fallbackAttempts, setFallbackAttempts] = useState(0);
 	const [timeoutReached, setTimeoutReached] = useState(false);
-	const [authSteps, setAuthSteps] = useState<AuthStep[]>([]);
+	const [fallbackStates, setFallbackStates] = useState({
+		authListener: 'skeleton' as AuthStep['status'],
+		sessionCheck: 'skeleton' as AuthStep['status'],
+		urlCheck: 'skeleton' as AuthStep['status'],
+		timeout: 'skeleton' as AuthStep['status'],
+	});
 
 	const authSubscriptionRef = useRef<any>(null);
 	const fallbackTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-	// Log utility function - adds new steps to the timeline
-	const log = useCallback((title: string, status: AuthStep['status'], message?: string) => {
-		setAuthSteps(prev => [...prev, {
-			id: crypto.randomUUID(),
-			title,
-			status,
-			message,
-			timestamp: Date.now(),
-		}]);
+	// Create dynamic auth steps based on current state
+	const authSteps = useMemo((): AuthStep[] => {
+		const steps: AuthStep[] = [];
+
+		// Step 1: Initial loading state
+		if (loading) {
+			steps.push({
+				id: 'loading',
+				title: 'Processing OAuth callback',
+				status: 'active',
+				message: 'Authenticating with OAuth provider...',
+				timestamp: Date.now(),
+			});
+		} else if (success) {
+			steps.push({
+				id: 'success',
+				title: 'Authentication successful!',
+				status: 'completed',
+				message: success,
+				timestamp: Date.now(),
+			});
+		} else if (error) {
+			steps.push({
+				id: 'error',
+				title: 'Primary authentication failed',
+				status: 'failed',
+				message: error,
+				timestamp: Date.now(),
+			});
+		} else {
+			steps.push({
+				id: 'init',
+				title: 'Initializing OAuth callback',
+				status: 'skeleton',
+				message: 'Starting authentication process...',
+				timestamp: Date.now(),
+			});
+		}
+
+		// Step 2: Auth listener fallback
+		if (fallbackStates.authListener !== 'skeleton') {
+			steps.push({
+				id: 'fallback-listener',
+				title: 'Auth state listener',
+				status: fallbackStates.authListener,
+				message: fallbackStates.authListener === 'active' ? 'Setting up auth state listener...' : 
+						fallbackStates.authListener === 'completed' ? 'Sign-in detected via listener!' :
+						fallbackStates.authListener === 'failed' ? 'Auth listener timeout' : '',
+				timestamp: Date.now(),
+			});
+		}
+
+		// Step 3: Session check fallback
+		if (fallbackStates.sessionCheck !== 'skeleton') {
+			steps.push({
+				id: 'fallback-session',
+				title: `Session check ${fallbackAttempts > 0 ? `#${fallbackAttempts}` : ''}`,
+				status: fallbackStates.sessionCheck,
+				message: fallbackStates.sessionCheck === 'active' ? 'Checking session directly...' :
+						fallbackStates.sessionCheck === 'completed' ? 'Session found!' :
+						fallbackStates.sessionCheck === 'failed' ? 'No session found' : '',
+				timestamp: Date.now(),
+			});
+		}
+
+		// Step 4: URL parameters check
+		if (fallbackStates.urlCheck !== 'skeleton') {
+			steps.push({
+				id: 'fallback-url',
+				title: 'URL parameters check',
+				status: fallbackStates.urlCheck,
+				message: fallbackStates.urlCheck === 'active' ? 'Looking for auth tokens in URL...' :
+						fallbackStates.urlCheck === 'completed' ? 'Session restored from URL!' :
+						fallbackStates.urlCheck === 'failed' ? 'No tokens found in URL' : '',
+				timestamp: Date.now(),
+			});
+		}
+
+		// Step 5: Timeout handling
+		if (fallbackStates.timeout !== 'skeleton') {
+			steps.push({
+				id: 'timeout',
+				title: 'Timeout handling',
+				status: fallbackStates.timeout,
+				message: fallbackStates.timeout === 'failed' ? 'Authentication timeout - redirecting to login...' : '',
+				timestamp: Date.now(),
+			});
+		}
+
+		return steps;
+	}, [loading, error, success, fallbackStates, fallbackAttempts]);
+
+	// Helper to update fallback states
+	const updateFallbackState = useCallback((key: keyof typeof fallbackStates, status: AuthStep['status']) => {
+		setFallbackStates(prev => ({ ...prev, [key]: status }));
 	}, []);
 
 	// Primary OAuth callback processing
 	const handleCallback = useCallback(async () => {
 		try {
-			log('Primary OAuth callback started', 'active', 'Processing primary callback...');
 			await oauthService.handleAuthCallback();
-			// Note: Success will be handled by the useEffect watching success state
+			// Success is handled by the service and tracked via useStore
 		} catch (err: any) {
 			console.error('Primary OAuth callback error:', err);
-			log('Primary OAuth callback failed', 'failed', err.message);
+			// Error is handled by the service and tracked via useStore
 		}
-	}, [log]);
+	}, []);
 
 	// Fallback timeout redirect
 	const fallbackTimeoutRedirect = useCallback(() => {
 		setTimeoutReached(true);
-		log('Authentication timeout reached', 'failed', 'Redirecting to login...');
+		updateFallbackState('timeout', 'failed');
 
 		oauthService.errorAtom.set(
 			'Authentication callback timed out. Please try signing in again.',
@@ -105,20 +212,18 @@ const AuthProcessor = React.memo(() => {
 		setTimeout(() => {
 			window.location.href = `${window.location.origin}/login/`;
 		}, 3000);
-	}, [log]);
+	}, [updateFallbackState]);
 
 	// Fallback URL params check
 	const fallbackUrlParamsCheck = useCallback(async () => {
 		try {
-			log('URL parameters check started', 'active', 'Checking URL parameters...');
+			updateFallbackState('urlCheck', 'active');
 
 			const url = new URL(window.location.href);
 			const accessToken = url.searchParams.get('access_token');
 			const refreshToken = url.searchParams.get('refresh_token');
 
 			if (accessToken && refreshToken) {
-				log('Tokens found in URL', 'active', 'Setting session with URL tokens...');
-
 				const { data, error } = await supabase.auth.setSession({
 					access_token: accessToken,
 					refresh_token: refreshToken,
@@ -127,17 +232,17 @@ const AuthProcessor = React.memo(() => {
 				if (error) throw error;
 
 				if (data.session) {
-					log('Session restored from URL tokens', 'completed', 'Authentication successful!');
+					updateFallbackState('urlCheck', 'completed');
 					oauthService.successAtom.set(
 						'Session restored from URL tokens! Redirecting...',
 					);
+					// Delay redirect to show success state
 					setTimeout(() => {
 						window.location.href = `${window.location.origin}/profile/`;
-					}, 1000);
+					}, 2000);
 				}
 			} else {
-				log('No tokens found in URL', 'failed', 'URL parameters check failed');
-
+				updateFallbackState('urlCheck', 'failed');
 				// Try final fallback after delay
 				setTimeout(() => {
 					fallbackTimeoutRedirect();
@@ -145,24 +250,23 @@ const AuthProcessor = React.memo(() => {
 			}
 		} catch (err: any) {
 			console.error('URL params fallback error:', err);
-			log('URL parameters check failed', 'failed', err.message);
-
+			updateFallbackState('urlCheck', 'failed');
 			setTimeout(() => {
 				fallbackTimeoutRedirect();
 			}, 2000);
 		}
-	}, [log, fallbackTimeoutRedirect]);
+	}, [updateFallbackState, fallbackTimeoutRedirect]);
 
 	// Fallback session check
 	const fallbackSessionCheck = useCallback(async () => {
 		if (fallbackAttempts >= 3) {
-			log('Max fallback attempts reached', 'failed', 'Stopping further attempts');
+			updateFallbackState('sessionCheck', 'failed');
 			return;
 		}
 
 		try {
 			setFallbackAttempts((prev) => prev + 1);
-			log(`Direct session check #${fallbackAttempts + 1} started`, 'active', 'Checking session directly...');
+			updateFallbackState('sessionCheck', 'active');
 
 			const {
 				data: { session },
@@ -172,16 +276,16 @@ const AuthProcessor = React.memo(() => {
 			if (error) throw error;
 
 			if (session) {
-				log('Session found via direct check', 'completed', 'Authentication successful!');
+				updateFallbackState('sessionCheck', 'completed');
 				oauthService.successAtom.set(
 					'Session found via fallback! Redirecting...',
 				);
+				// Delay redirect to show success state
 				setTimeout(() => {
 					window.location.href = `${window.location.origin}/profile/`;
-				}, 1000);
+				}, 2000);
 			} else {
-				log(`Direct session check #${fallbackAttempts + 1} failed`, 'failed', 'No session found, trying next fallback...');
-
+				updateFallbackState('sessionCheck', 'failed');
 				// Try next fallback after a delay
 				setTimeout(() => {
 					fallbackUrlParamsCheck();
@@ -189,27 +293,26 @@ const AuthProcessor = React.memo(() => {
 			}
 		} catch (err: any) {
 			console.error(`Fallback ${fallbackAttempts + 1} error:`, err);
-			log(`Direct session check #${fallbackAttempts + 1} failed`, 'failed', err.message);
-
+			updateFallbackState('sessionCheck', 'failed');
 			// Try next fallback after a delay
 			setTimeout(() => {
 				fallbackUrlParamsCheck();
 			}, 2000);
 		}
-	}, [fallbackAttempts, log, fallbackUrlParamsCheck]);
+	}, [fallbackAttempts, updateFallbackState, fallbackUrlParamsCheck]);
 
 	// Fallback auth subscription listener
 	const fallbackAuthSubscription = useCallback(() => {
 		if (authSubscriptionRef.current) return; // Prevent multiple subscriptions
 
-		log('Auth state listener started', 'active', 'Setting up auth state listener...');
+		updateFallbackState('authListener', 'active');
 
 		const subscription = supabase.auth.onAuthStateChange(
 			(event, session) => {
 				console.log('Auth state change detected:', event, session);
 
 				if (event === 'SIGNED_IN' && session) {
-					log('Auth state change: Sign-in detected', 'completed', 'Authentication successful!');
+					updateFallbackState('authListener', 'completed');
 					oauthService.successAtom.set(
 						'Authentication successful via subscription! Redirecting...',
 					);
@@ -220,14 +323,15 @@ const AuthProcessor = React.memo(() => {
 						authSubscriptionRef.current = null;
 					}
 
+					// Delay redirect to show success state
 					setTimeout(() => {
 						window.location.href = `${window.location.origin}/profile/`;
-					}, 1000);
+					}, 2000);
 				} else if (
 					event === 'SIGNED_OUT' ||
 					(event === 'TOKEN_REFRESHED' && !session)
 				) {
-					log('Auth state change: Sign-out detected', 'failed', 'Auth subscription detected sign-out or failed refresh...');
+					updateFallbackState('authListener', 'failed');
 					// Continue to next fallback
 					setTimeout(() => {
 						fallbackSessionCheck();
@@ -241,16 +345,14 @@ const AuthProcessor = React.memo(() => {
 		// Set a timeout for this fallback - if no auth change within 5 seconds, try next fallback
 		setTimeout(() => {
 			if (authSubscriptionRef.current) {
-				log('Auth state listener timeout', 'failed', 'No auth change detected, trying next fallback...');
+				updateFallbackState('authListener', 'failed');
 				fallbackSessionCheck();
 			}
 		}, 5000);
-	}, [log, fallbackSessionCheck]);
+	}, [updateFallbackState, fallbackSessionCheck]);
 
 	// Initialize auth processing on component mount
 	useEffect(() => {
-		log('OAuth callback processor initialized', 'active', 'Starting authentication process...');
-		
 		// Start watching auth state changes as a fallback mechanism
 		oauthService.watchAuthState();
 		handleCallback();
@@ -262,7 +364,6 @@ const AuthProcessor = React.memo(() => {
 			const currentError = oauthService.errorAtom.get();
 
 			if (!currentSuccess && !currentError) {
-				log('Primary callback timeout', 'failed', 'Primary callback taking too long, starting fallback...');
 				fallbackAuthSubscription();
 			}
 		}, 6000);
@@ -279,43 +380,19 @@ const AuthProcessor = React.memo(() => {
 				authSubscriptionRef.current = null;
 			}
 		};
-	}, [handleCallback, fallbackAuthSubscription, log]);
+	}, [handleCallback, fallbackAuthSubscription]);
 
-	// Handle loading state changes
-	useEffect(() => {
-		if (loading) {
-			// If we're loading and no step is active, make sure we have an initial log entry
-			if (authSteps.length === 0) {
-				log('Authentication loading', 'active', 'Initializing authentication...');
-			}
-		}
-	}, [loading, authSteps, log]);
-
-	// Handle error state changes - start fallback on error
+	// Handle error state - start fallback sequence
 	useEffect(() => {
 		if (error && !timeoutReached) {
-			log('Error detected, starting fallback', 'failed', 'Primary authentication failed, starting fallback sequence...');
-			// On error, start fallback sequence after a delay, beginning with auth subscription
+			// Start fallback sequence after a delay
 			setTimeout(() => {
 				fallbackAuthSubscription();
 			}, 2000);
 		}
-	}, [error, timeoutReached, fallbackAuthSubscription, log]);
+	}, [error, timeoutReached, fallbackAuthSubscription]);
 
-	// Handle success state changes - complete primary step
-	useEffect(() => {
-		if (success) {
-			log('Primary OAuth callback completed', 'completed', 'Authentication successful!');
-		}
-	}, [success, log]);
-
-	// Handle error state changes - log error
-	useEffect(() => {
-		if (error) {
-			log('OAuth callback error', 'failed', error);
-		}
-	}, [error, log]);
-	// Render the stable UI - just the log timeline
+	// Render the stable UI - completely static, no re-renders
 	return (
 		<div
 			className="fixed inset-0 z-50 flex items-center justify-center backdrop-blur-sm"
@@ -329,17 +406,23 @@ const AuthProcessor = React.memo(() => {
 				<div className="text-sm font-semibold mb-2 opacity-80">
 					Authentication Log:
 				</div>
-				<List
-					height={400}
-					itemCount={authSteps.length}
-					itemSize={52}
-					itemData={authSteps}
-					width="100%">
-					{StepItem}
-				</List>
+				<AutoSizer>
+					{({ height, width }) => (
+						<List
+							className="List"
+							height={height}
+							itemCount={authSteps.length}
+							itemSize={52}
+							itemData={authSteps}
+							width={width}>
+							{StepItem}
+						</List>
+					)}
+				</AutoSizer>
 			</div>
 		</div>
-	);});
+	);
+});
 
 // Main stable component that never re-renders
 export const ReactCallback = () => {
