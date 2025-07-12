@@ -1,11 +1,28 @@
 ---
 import BrandLogo from 'src/layouts/core/BrandLogo.astro';
+import MiniNav from 'src/layouts/components/dashboard/basic/MiniNav';
 ---
 
+<style>
+	.navbar-header {
+		transition: top 0.3s ease-in-out;
+	}
+	
+	.navbar-nav {
+		transition: all 0.3s ease-in-out;
+	}
+
+	/* Dashboard mode adjustments */
+	.navbar-header[data-navbar-context="dashboard"] .navbar-nav {
+		border-bottom: 1px solid rgb(39 39 42); /* zinc-800 */
+	}
+</style>
+
 <header
-	class="sticky inset-x-0 top-4 z-50 flex w-full flex-wrap text-sm md:flex-nowrap md:justify-start">
+	class="navbar-header sticky inset-x-0 z-50 flex w-full flex-wrap text-sm min-h-11 md:min-h-12 md:flex-nowrap md:justify-start"
+	data-navbar-context="default">
 	<nav
-		class="relative mx-2 w-full rounded-[36px] border border-yellow-100/40 bg-yellow-50/60 px-4 py-3 backdrop-blur-md dark:border-neutral-700/40 dark:bg-neutral-800/40 dark:backdrop-blur-md md:flex md:items-center md:justify-between md:px-6 md:py-0 lg:px-8 xl:mx-auto"
+		class="navbar-nav relative mx-2 w-full rounded-[36px] border border-yellow-100/40 bg-yellow-50/60 px-4 py-2 backdrop-blur-md dark:border-neutral-700/40 dark:bg-neutral-800/40 dark:backdrop-blur-md md:flex md:items-center md:justify-between md:px-6 md:py-2 lg:px-8 xl:mx-auto"
 		aria-label="Global">
 		<div class="flex items-center">
 			<!-- Brand logo -->
@@ -24,227 +41,241 @@ import BrandLogo from 'src/layouts/core/BrandLogo.astro';
 
 			<div class="w-px h-10 bg-neutral-300 dark:bg-white/20 mx-4"></div>
 
-			<!-- Mobile Menu -->
-			<div class="flex flex-row mx-auto" id="nav-menu">
-				<!-- Menu -->
+			<!-- Dashboard Controls -->
+			<div class="flex items-center space-x-2">
+				<!-- Universal Menu Button -->
 				<button
-					type="button"
-  					onclick="window.kbve.uiux.openPanel('left', { rawHtml: '<strong>Welcome to the Menu :D</strong>' })"
-					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
-					aria-label="Menu">
-					<!-- Tooltip -->
-					<span
-						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
-						Menu
-					</span>
-
+					id="universal-menu-btn"
+					class="p-2 text-zinc-400 hover:text-cyan-400 hover:bg-cyan-50 dark:hover:bg-cyan-900/20 rounded-lg transition-colors duration-200"
+					aria-label="Toggle menu"
+					onclick="toggleNavbarMenu()">
 					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
+						id="menu-icon"
+						class="w-5 h-5 transition-transform duration-200"
 						fill="none"
 						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
-						<path d="M4 12h16"></path><path d="M4 18h16">
-						</path><path d="M4 6h16"></path>
+						viewBox="0 0 24 24">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M4 6h16M4 12h16M4 18h16">
+						</path>
 					</svg>
-					<!-- Label -->
-					<span
-						class="relative text-xs font-medium group-hover:text-purple-400 transition">
-						Menu
-						<span
-							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
-						</span>
-					</span>
-				</button>
-
-				<button
-					type="button"
-  					onclick="window.kbve.uiux.openPanel('top', { rawHtml: '<strong>Welcome to the Dash :D</strong>' })"
-					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
-					aria-label="Dashboard"
-					data-astro-prefetch>
-					<!-- Tooltip -->
-					<span
-						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
-						Dashboard
-					</span>
-
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
-						<rect width="7" height="9" x="3" y="3" rx="1">
-						</rect><rect width="7" height="5" x="14" y="3" rx="1">
-						</rect><rect width="7" height="9" x="14" y="12" rx="1">
-						</rect><rect width="7" height="5" x="3" y="16" rx="1">
-						</rect>
-					</svg>
-
-					<!-- Label -->
-					<span
-						class="relative text-xs font-medium group-hover:text-purple-400 transition">
-						Dash
-						<span
-							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
-						</span>
-					</span>
-				</button>
-				<button
-					type="button"
-					onclick="window.kbve.uiux.openPanel('right', { rawHtml: '<strong>Welcome to the Auth :D</strong>' })"
-					class="group relative flex flex-col items-center justify-center p-2 text-cyan-400 hover:text-purple-400 transition-colors duration-300"
-					aria-label="Docs"
-					data-astro-prefetch>
-					<!-- Tooltip -->
-					<span
-						class="absolute -bottom-8 scale-0 rounded bg-stone-500/40 opacity-[.4] px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">
-						Register
-					</span>
-
-					<svg
-						xmlns="http://www.w3.org/2000/svg"
-						width="24"
-						height="24"
-						viewBox="0 0 24 24"
-						fill="none"
-						stroke="currentColor"
-						stroke-width="2"
-						stroke-linecap="round"
-						stroke-linejoin="round"
-						class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-purple-400">
-						<path d="M12 10a2 2 0 0 0-2 2c0 1.02-.1 2.51-.26 4">
-						</path><path d="M14 13.12c0 2.38 0 6.38-1 8.88">
-						</path><path d="M17.29 21.02c.12-.6.43-2.3.5-3.02">
-						</path><path d="M2 12a10 10 0 0 1 18-6"></path><path
-							d="M2 16h.01">
-						</path><path d="M21.8 16c.2-2 .131-5.354 0-6">
-						</path><path
-							d="M5 19.5C5.5 18 6 15 6 12a6 6 0 0 1 .34-2">
-						</path><path d="M8.65 22c.21-.66.45-1.32.57-2">
-						</path><path d="M9 6.8a6 6 0 0 1 9 5.2v2"></path>
-					</svg>
-
-					<!-- Label -->
-					<span
-						class="relative text-xs font-medium group-hover:text-purple-400 transition">
-						Auth
-						<span
-							class="absolute -bottom-0.5 left-0 h-0.5 w-0 bg-purple-400 transition-all duration-300 group-hover:w-full">
-						</span>
-					</span>
 				</button>
 			</div>
+
+			<div class="w-px h-10 bg-neutral-300 dark:bg-white/20 mx-4"></div>
+
+			<!-- Navigation Links -->
+			<div class="flex flex-row mx-auto" id="nav-menu">
+				<!-- Navigation items can be added here if needed -->
+			</div>
+		</div>
+
+		<!-- Dashboard User Section -->
+		<div class="flex items-center space-x-4 ml-auto">
+			<!-- Avatar Skeleton -->
+			<div
+				class="flex items-center space-x-4"
+				data-skeleton="avatar">
+				<!-- User Avatar Skeleton -->
+				<div
+					class="w-8 h-8 bg-zinc-300 dark:bg-zinc-800 rounded-full animate-pulse">
+				</div>
+				<div class="hidden sm:block">
+					<div
+						class="h-3 bg-zinc-300 dark:bg-zinc-800 rounded w-20 animate-pulse">
+					</div>
+					<div
+						class="h-2 bg-zinc-300 dark:bg-zinc-800 rounded w-12 mt-1 animate-pulse">
+					</div>
+				</div>
+			</div>
+			<!-- MiniNav Component -->
+			<MiniNav client:only="react" />
 		</div>
 	</nav>
 </header>
 
-<script>
+<script is:inline>
+// Simple global function for the navbar menu button
+function toggleNavbarMenu() {
+  console.log('[Navbar] Menu button clicked');
+  if (typeof window.toggleSidebar === 'function') {
+    window.toggleSidebar();
+  } else {
+    console.warn('[Navbar] toggleSidebar not available yet');
+  }
+}
 
 (function() {
-  function createModal() {
-    if (document.getElementById('member-modal')) return;
-    const modal = document.createElement('div');
-    modal.id = 'member-modal';
-    modal.className = 'fixed inset-0 z-[9999] flex items-center justify-center bg-black/40 backdrop-blur-sm transition-opacity duration-300 opacity-0 pointer-events-none';
-    modal.innerHTML = `
-      <div class="bg-white dark:bg-neutral-900 rounded-2xl shadow-2xl p-8 max-w-xs w-full scale-95 opacity-0 translate-y-8 transition-all duration-300" id="member-modal-content">
-        <button id="close-member-modal" class="absolute top-2 right-2 text-neutral-400 hover:text-red-400 text-xl font-bold">&times;</button>
-        <h2 class="text-xl font-bold mb-4 text-cyan-700 dark:text-cyan-200">Member Menu</h2>
-        <ul class="flex flex-col gap-3 mb-4">
-          <li><a href="/profile" data-astro-prefetch class="text-cyan-600 dark:text-cyan-300 hover:underline">Profile</a></li>
-          <li><a href="/logout" data-astro-prefetch class="text-cyan-600 dark:text-cyan-300 hover:underline">Logout</a></li>
-          <li><a href="/messages" data-astro-prefetch class="text-cyan-600 dark:text-cyan-300 hover:underline">Messages</a></li>
-          <li><a href="/igbc" data-astro-prefetch class="text-cyan-600 dark:text-cyan-300 hover:underline">IGBC</a></li>
-        </ul>
-      </div>
-    `;
-    document.body.appendChild(modal);
-    setTimeout(() => {
-      modal.classList.remove('opacity-0', 'pointer-events-none');
-      const content = document.getElementById('member-modal-content');
-      if (content) {
-        content.classList.remove('scale-95', 'opacity-0', 'translate-y-8');
-        content.classList.add('scale-100', 'opacity-100', 'translate-y-0');
-      }
-      const closeBtn = document.getElementById('close-member-modal');
-      if (closeBtn) {
-        closeBtn.onclick = function() {
-          modal.classList.add('opacity-0', 'pointer-events-none');
-          setTimeout(() => modal.remove(), 300);
-        };
-      }
-    }, 10);
-    modal.onclick = function(e) {
-      if (e.target === modal) {
-        modal.classList.add('opacity-0', 'pointer-events-none');
-        setTimeout(() => modal.remove(), 300);
-      }
-    };
-  }
-  function injectMemberButton() {
-    console.log('[Navbar] injectMemberButton called');
-    if (document.getElementById('member-menu-btn')) {
-      console.log('[Navbar] member-menu-btn already exists globally');
-      return; // Prevent double-inject
-    }
-    const navMenu = document.getElementById('nav-menu');
-    if (!navMenu) {
-      console.log('[Navbar] nav-menu not found');
-      return;
-    }
-    if (navMenu.querySelector('#member-menu-btn')) {
-      console.log('[Navbar] member-menu-btn already exists in nav-menu');
-      return; // Extra check inside nav-menu
-    }
-    const btn = document.createElement('button');
-    btn.id = 'member-menu-btn';
-    btn.type = 'button';
-    btn.className = 'group relative flex flex-col items-center justify-center p-2 text-purple-600 dark:text-purple-300 hover:text-cyan-400 transition-colors duration-300';
-    btn.innerHTML = `
-      <span class="absolute -bottom-8 scale-0 rounded bg-purple-500/40 px-2 py-1 text-xs text-white opacity-0 shadow-md transition-all duration-300 group-hover:scale-100 group-hover:opacity-100">Member</span>
-      <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="lucide transition-transform duration-300 group-hover:-translate-y-1 group-hover:rotate-1 group-hover:text-cyan-400"><circle cx="12" cy="12" r="10"></circle><path d="M12 16v-4"></path><path d="M12 8h.01"></path></svg>
-      <span class="relative text-xs font-medium group-hover:text-cyan-400 transition">Member</span>
-    `;
-    btn.onclick = createModal;
-    navMenu.appendChild(btn);
-    console.log('[Navbar] member-menu-btn injected');
-  }
+  function setupDashboardControls() {
+    console.log('[Navbar] Setting up dashboard controls');
+    
+    // Detect dashboard context and adjust navbar styling
+    function adjustNavbarForDashboard() {
+      const header = document.querySelector('.navbar-header');
+      const nav = document.querySelector('.navbar-nav');
+      const isDashboardPage = document.querySelector('[data-grid="home"]') || 
+                            document.querySelector('[data-dashboard-header]') ||
+                            window.location.pathname.includes('/dashboard') ||
+                            window.location.pathname === '/c' ||
+                            window.location.pathname === '/settings' ||
+                            window.location.pathname === '/support' ||
+                            window.location.pathname === '/onboarding' ||
+                            window.location.pathname === '/igbc';
 
-  function tryInjectMemberButton() {
-    console.log('[Navbar] tryInjectMemberButton called');
-    if (typeof window !== 'undefined') {
-      try {
-        const isMember = localStorage.getItem('isMember');
-        console.log('[Navbar] localStorage.isMember =', isMember);
-        if (isMember === 'true') {
-          injectMemberButton();
+      if (header && nav && isDashboardPage) {
+        console.log('[Navbar] Dashboard context detected, adjusting navbar');
+        // Dashboard mode: flush header
+        header.setAttribute('data-navbar-context', 'dashboard');
+        header.classList.remove('top-4');
+        header.classList.add('top-0');
+        
+        // Adjust dashboard container padding
+        const dashboardContainer = document.querySelector('[data-grid="home"]');
+        if (dashboardContainer) {
+          dashboardContainer.classList.remove('pt-20');
+          dashboardContainer.classList.add('pt-0');
         }
-      } catch (e) {
-        console.log('[Navbar] localStorage access error', e);
+      } else if (header && nav) {
+        console.log('[Navbar] Default context, standard navbar');
+        // Default mode: floating header
+        header.setAttribute('data-navbar-context', 'default');
+        header.classList.remove('top-0');
+        header.classList.add('top-4');
+        
+        // Reset dashboard container padding if it exists
+        const dashboardContainer = document.querySelector('[data-grid="home"]');
+        if (dashboardContainer) {
+          dashboardContainer.classList.remove('pt-0');
+          dashboardContainer.classList.add('pt-20');
+        }
       }
     }
+
+    // Run immediately
+    adjustNavbarForDashboard();
+    
+    // Local menu state management
+    const universalMenuBtn = document.getElementById('universal-menu-btn');
+    
+    console.log('[Navbar] Button found:', !!universalMenuBtn);
+    
+    // State tracking
+    let isMenuOpen = false;
+
+    // Simplified function to check sidebar state
+    function checkSidebarState() {
+      const sidebar = document.getElementById('sidebar');
+      if (sidebar) {
+        const transform = window.getComputedStyle(sidebar).transform;
+        const wasOpen = isMenuOpen;
+        isMenuOpen = transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)';
+        
+        // Update button state if it changed
+        if (wasOpen !== isMenuOpen) {
+          updateButtonState();
+        }
+      }
+    }
+
+    function updateButtonState() {
+      const menuIcon = document.getElementById('menu-icon');
+      
+      if (menuIcon) {
+        if (!isMenuOpen) {
+          // Menu is closed
+          menuIcon.style.transform = 'rotate(0deg)';
+          universalMenuBtn.setAttribute('aria-label', 'Open menu');
+        } else {
+          // Menu is open
+          menuIcon.style.transform = 'rotate(180deg)';
+          universalMenuBtn.setAttribute('aria-label', 'Close menu');
+        }
+      }
+    }
+
+    // Monitor sidebar state changes (for button icon updates)
+    const sidebar = document.getElementById('sidebar');
+    if (sidebar) {
+      // Watch for transform changes on the sidebar
+      const observer = new MutationObserver(checkSidebarState);
+      observer.observe(sidebar, {
+        attributes: true,
+        attributeFilter: ['class', 'style']
+      });
+      
+      // Initial state check
+      checkSidebarState();
+    }
+
+    // Universal menu button click handler
+    if (universalMenuBtn) {
+      console.log('[Navbar] Adding click listener to menu button');
+      universalMenuBtn.addEventListener('click', function (e) {
+        e.preventDefault();
+        e.stopPropagation();
+        console.log('[Navbar] Universal menu button clicked');
+        
+        // Use the existing sidebar's toggle function
+        if (typeof window.toggleSidebar === 'function') {
+          console.log('[Navbar] Using existing toggleSidebar function');
+          window.toggleSidebar();
+          
+          // Update button icon state
+          const sidebar = document.getElementById('sidebar');
+          if (sidebar) {
+            const transform = window.getComputedStyle(sidebar).transform;
+            const isOpen = transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)';
+            isMenuOpen = !isOpen; // Inverted because we just toggled
+            updateButtonState();
+          }
+        } else {
+          console.warn('[Navbar] toggleSidebar function not available yet, trying fallback');
+          // Fallback to direct sidebar manipulation
+          const sidebar = document.getElementById('sidebar');
+          const overlay = document.getElementById('sidebar-overlay');
+          
+          if (sidebar && overlay) {
+            const transform = window.getComputedStyle(sidebar).transform;
+            const isOpen = transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)';
+            
+            if (isOpen) {
+              // Close sidebar
+              sidebar.classList.add('-translate-x-full');
+              sidebar.classList.remove('translate-x-0');
+              overlay.classList.add('opacity-0', 'pointer-events-none', 'hidden');
+              overlay.classList.remove('opacity-100');
+              isMenuOpen = false;
+            } else {
+              // Open sidebar
+              sidebar.classList.remove('-translate-x-full');
+              sidebar.classList.add('translate-x-0');
+              overlay.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+              overlay.classList.add('opacity-100');
+              isMenuOpen = true;
+            }
+            updateButtonState();
+          }
+        }
+      });
+    } else {
+      console.warn('[Navbar] Universal menu button not found!');
+    }
+
+    console.log('[Navbar] Menu controls initialized - using existing sidebar functionality');
   }
 
+  // Initialize on page load
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', function() {
-      console.log('[Navbar] DOMContentLoaded event');
-      tryInjectMemberButton();
-    });
+    document.addEventListener('DOMContentLoaded', setupDashboardControls);
   } else {
-    console.log('[Navbar] DOM already loaded');
-    tryInjectMemberButton();
+    setupDashboardControls();
   }
+
+  // Also run on Astro page changes
+  document.addEventListener('astro:page-load', setupDashboardControls);
 })();
 </script>

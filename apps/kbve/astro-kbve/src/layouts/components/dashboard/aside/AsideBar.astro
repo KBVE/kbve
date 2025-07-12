@@ -1,6 +1,5 @@
 ---
 import ReactSidebarNav from './ReactSidebar';
-import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 ---
 
 <!-- Sidebar Overlay for Mobile -->
@@ -10,10 +9,11 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 </div>
 
 <aside
-	   id="sidebar"
-	   class="absolute lg:static top-0 left-0 h-screen lg:h-auto w-64 bg-zinc-800 lg:bg-transparent border-r border-zinc-700 lg:border-zinc-700 lg:z-auto -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:transition-none shadow-2xl lg:shadow-none flex flex-col z-30 overflow-hidden">
+	id="sidebar"
+	class="absolute lg:static top-0 left-0 h-screen lg:h-auto w-64 bg-zinc-800 lg:bg-transparent border-r border-zinc-700 lg:border-zinc-700 lg:z-auto -translate-x-full lg:translate-x-0 transition-transform duration-300 ease-in-out lg:transition-none shadow-2xl lg:shadow-none flex flex-col z-30 overflow-hidden">
 	<!-- Mobile header with close button - ALWAYS visible on mobile, sticky at top -->
-	<div class="lg:hidden flex items-center justify-between p-4 border-b border-zinc-700 bg-zinc-800 flex-shrink-0">
+	<div
+		class="lg:hidden flex items-center justify-between p-4 border-b border-zinc-700 bg-zinc-800 flex-shrink-0">
 		<div class="flex items-center space-x-3 group">
 			<div
 				class="relative w-8 h-8 rounded-lg bg-cyan-400/30 backdrop-blur-md shadow-inner shadow-cyan-500/20 ring-1 ring-cyan-300/30 flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
@@ -71,9 +71,10 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 		</button>
 	</div>
 
-	   <!-- Scrollable content area - takes remaining height, scrollable on mobile -->
-	   <div class="flex-1 min-h-0 overflow-y-auto overscroll-contain lg:overflow-visible lg:overscroll-auto">
-			   <div class="p-6">
+	<!-- Scrollable content area - takes remaining height, scrollable on mobile -->
+	<div
+		class="flex-1 min-h-0 overflow-y-auto overscroll-contain lg:overflow-visible lg:overscroll-auto">
+		<div class="p-6">
 			<!-- Desktop Header - only visible on desktop -->
 			<div class="hidden lg:flex items-center justify-between mb-8">
 				<div class="flex items-center space-x-4 group">
@@ -115,104 +116,112 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 				</div>
 			</div>
 
-		<!-- Navigation Menu Container -->
-		<div class="relative" id="nav-container">
-			<!-- Navigation Skeleton - Higher z-index, dynamically sized -->
-			<nav
-				class="space-y-2 relative z-20"
-				data-skeleton="aside"
-				id="nav-skeleton">
-				{/* Main navigation items */}
-				{
-					Array.from({ length: 4 }).map((_, i) => (
-						<div class="flex items-center space-x-3 px-3 py-2 rounded-lg h-10">
-							<div class="w-5 h-5 bg-zinc-700 rounded animate-pulse" />
-							<div class="h-4 bg-zinc-700 rounded w-20 animate-pulse" />
-						</div>
-					))
-				}
+			<!-- Navigation Menu Container -->
+			<div class="relative" id="nav-container">
+				<!-- Navigation Skeleton - Higher z-index, dynamically sized -->
+				<nav
+					class="space-y-2 relative z-20"
+					data-skeleton="aside"
+					id="nav-skeleton">
+					{/* Main navigation items */}
+					{
+						Array.from({ length: 4 }).map((_, i) => (
+							<div class="flex items-center space-x-3 px-3 py-2 rounded-lg h-10">
+								<div class="w-5 h-5 bg-zinc-700 rounded animate-pulse" />
+								<div class="h-4 bg-zinc-700 rounded w-20 animate-pulse" />
+							</div>
+						))
+					}
 
-				{/* Divider skeleton */}
-				<div class="py-2 h-6">
-					<div class="h-px bg-zinc-600 animate-pulse"></div>
+					{/* Divider skeleton */}
+					<div class="py-2 h-6">
+						<div class="h-px bg-zinc-600 animate-pulse"></div>
+					</div>
+
+					{
+						/* Additional navigation items - flexible count for future expansion */
+					}
+					{
+						Array.from({ length: 6 }).map((_, i) => (
+							<div class="flex items-center space-x-3 px-3 py-2 rounded-lg h-10">
+								<div class="w-5 h-5 bg-zinc-700 rounded animate-pulse" />
+								<div class="h-4 bg-zinc-700 rounded w-24 animate-pulse" />
+							</div>
+						))
+					}
+				</nav>
+
+				<!-- Dynamic Navigation - positioned to match skeleton exactly -->
+				<div
+					class="absolute top-0 left-0 right-0 z-10"
+					id="dynamic-nav">
+					<ReactSidebarNav client:only="react" />
 				</div>
-
-				{
-					/* Additional navigation items - flexible count for future expansion */
-				}
-				{
-					Array.from({ length: 6 }).map((_, i) => (
-						<div class="flex items-center space-x-3 px-3 py-2 rounded-lg h-10">
-							<div class="w-5 h-5 bg-zinc-700 rounded animate-pulse" />
-							<div class="h-4 bg-zinc-700 rounded w-24 animate-pulse" />
-						</div>
-					))
-				}
-			</nav>
-
-			<!-- Dynamic Navigation - positioned to match skeleton exactly -->
-			<div class="absolute top-0 left-0 right-0 z-10" id="dynamic-nav">
-				<ReactSidebarNav client:only="react" />
 			</div>
-		</div>
 
-		<!-- Legal -->
-		<div
-			class="mt-6 pt-6 border-t border-zinc-700"
-			data-section="aside-legal">
+			<!-- Legal -->
 			<div
-				class="flex items-center justify-center space-x-2 text-xs text-zinc-500">
-				<a
-					href="/legal"
-					data-astro-prefetch
-					class="hover:text-zinc-300 transition-colors duration-200">
-					Legal
-				</a>
-				<span class="text-zinc-600">•</span>
-				<a
-					href="/legal/tos"
-					data-astro-prefetch
-					class="hover:text-zinc-300 transition-colors duration-200">
-					ToS
-				</a>
-				<span class="text-zinc-600">•</span>
-				<a
-					href="/legal/privacy"
-					data-astro-prefetch
-					class="hover:text-zinc-300 transition-colors duration-200">
-					Privacy
-				</a>
-			</div>
-		</div>
-		<!-- Quick Stats -->
-		<div
-			class="mt-6 pt-6 border-t border-zinc-700"
-			data-section="aside-quick-stats">
-			<h3
-				class="text-xs font-medium text-zinc-400 mb-3 uppercase tracking-wider">
-				Quick Stats
-			</h3>
-			<div class="space-y-2">
-				<div class="flex items-center justify-between">
-					<span class="text-xs text-zinc-300">Active Users</span>
-					<span class="text-xs font-medium text-cyan-400">1,234</span>
-				</div>
-				<div class="flex items-center justify-between">
-					<span class="text-xs text-zinc-300">Revenue</span>
-					<span class="text-xs font-medium text-green-400">
-						$12.5K
-					</span>
-				</div>
-				<div class="flex items-center justify-between">
-					<span class="text-xs text-zinc-300">Projects</span>
-					<span class="text-xs font-medium text-blue-400">42</span>
+				class="mt-6 pt-6 border-t border-zinc-700"
+				data-section="aside-legal">
+				<div
+					class="flex items-center justify-center space-x-2 text-xs text-zinc-500">
+					<a
+						href="/legal"
+						data-astro-prefetch
+						class="hover:text-zinc-300 transition-colors duration-200">
+						Legal
+					</a>
+					<span class="text-zinc-600">•</span>
+					<a
+						href="/legal/tos"
+						data-astro-prefetch
+						class="hover:text-zinc-300 transition-colors duration-200">
+						ToS
+					</a>
+					<span class="text-zinc-600">•</span>
+					<a
+						href="/legal/privacy"
+						data-astro-prefetch
+						class="hover:text-zinc-300 transition-colors duration-200">
+						Privacy
+					</a>
 				</div>
 			</div>
-			<!-- Custom slot content in Quick Stats area -->
-			<div class="mt-4 pt-4 border-t border-zinc-600/50" id="slot-nav">
-				<slot name="aside" />
+			<!-- Quick Stats -->
+			<div
+				class="mt-6 pt-6 border-t border-zinc-700"
+				data-section="aside-quick-stats">
+				<h3
+					class="text-xs font-medium text-zinc-400 mb-3 uppercase tracking-wider">
+					Quick Stats
+				</h3>
+				<div class="space-y-2">
+					<div class="flex items-center justify-between">
+						<span class="text-xs text-zinc-300">Active Users</span>
+						<span class="text-xs font-medium text-cyan-400">
+							1,234
+						</span>
+					</div>
+					<div class="flex items-center justify-between">
+						<span class="text-xs text-zinc-300">Revenue</span>
+						<span class="text-xs font-medium text-green-400">
+							$12.5K
+						</span>
+					</div>
+					<div class="flex items-center justify-between">
+						<span class="text-xs text-zinc-300">Projects</span>
+						<span class="text-xs font-medium text-blue-400">
+							42
+						</span>
+					</div>
+				</div>
+				<!-- Custom slot content in Quick Stats area -->
+				<div
+					class="mt-4 pt-4 border-t border-zinc-600/50"
+					id="slot-nav">
+					<slot name="aside" />
+				</div>
 			</div>
-		</div>
 		</div>
 	</div>
 </aside>
@@ -243,33 +252,34 @@ import SearchBar from 'src/layouts/components/search/SearchBar.astro';
 		}
 	}
 
-// Ensure close button and overlay functionality (backup for main script)
-function ensureCloseFunctionality() {
-	   const closeBtn = document.getElementById('close-sidebar');
-	   const sidebar = document.getElementById('sidebar');
-	   const overlay = document.getElementById('sidebar-overlay');
+	// Ensure close button and overlay functionality (backup for main script)
+	function ensureCloseFunctionality() {
+		const closeBtn = document.getElementById('close-sidebar');
+		const sidebar = document.getElementById('sidebar');
+		const overlay = document.getElementById('sidebar-overlay');
 
-	   if (closeBtn && sidebar && overlay) {
-			   // Only add if not already added by main script
-			   if (!closeBtn.dataset.boundByAside && !closeBtn.dataset.boundByMain) {
-					   closeBtn.dataset.boundByAside = 'true';
-					   closeBtn.addEventListener('click', function(e) {
-							   e.preventDefault();
-							   e.stopPropagation();
-							   closeSidebarInternal();
-					   });
-			   }
-			   // Overlay click closes sidebar
-			   if (!overlay.dataset.boundByAside) {
-					   overlay.dataset.boundByAside = 'true';
-					   overlay.addEventListener('click', function(e) {
-							   e.preventDefault();
-							   e.stopPropagation();
-							   closeSidebarInternal();
-					   });
-			   }
-	   }
-}
+		if (closeBtn && sidebar && overlay) {
+			if (
+				!closeBtn.dataset.boundByAside &&
+				!closeBtn.dataset.boundByMain
+			) {
+				closeBtn.dataset.boundByAside = 'true';
+				closeBtn.addEventListener('click', function (e) {
+					e.preventDefault();
+					e.stopPropagation();
+					closeSidebarInternal();
+				});
+			}
+			if (!overlay.dataset.boundByAside) {
+				overlay.dataset.boundByAside = 'true';
+				overlay.addEventListener('click', function (e) {
+					e.preventDefault();
+					e.stopPropagation();
+					closeSidebarInternal();
+				});
+			}
+		}
+	}
 
 	// Handle mobile sidebar scrolling
 	function handleMobileSidebarScrolling() {
@@ -278,29 +288,35 @@ function ensureCloseFunctionality() {
 
 		// Force proper mobile scrolling setup
 		const setupMobileScrolling = () => {
-			if (window.innerWidth < 1024) { // Mobile/tablet breakpoint
+			if (window.innerWidth < 1024) {
+				// Mobile/tablet breakpoint
 				// Ensure the sidebar itself has proper height and flex behavior
 				sidebar.style.height = '100vh';
 				sidebar.style.display = 'flex';
 				sidebar.style.flexDirection = 'column';
-				
+
 				// Find the scrollable content container
-				const scrollContainer = sidebar.querySelector('.flex-1') as HTMLElement;
+				const scrollContainer = sidebar.querySelector(
+					'.flex-1'
+				) as HTMLElement;
 				if (scrollContainer) {
 					// Force scrollable behavior
 					scrollContainer.style.overflowY = 'auto';
 					scrollContainer.style.minHeight = '0';
 					scrollContainer.style.flex = '1';
 					// iOS smooth scrolling
-					(scrollContainer.style as any).webkitOverflowScrolling = 'touch';
+					(scrollContainer.style as any).webkitOverflowScrolling =
+						'touch';
 				}
 			} else {
 				// Reset for desktop
 				sidebar.style.height = '';
 				sidebar.style.display = '';
 				sidebar.style.flexDirection = '';
-				
-				const scrollContainer = sidebar.querySelector('.flex-1') as HTMLElement;
+
+				const scrollContainer = sidebar.querySelector(
+					'.flex-1'
+				) as HTMLElement;
 				if (scrollContainer) {
 					scrollContainer.style.overflowY = '';
 					scrollContainer.style.minHeight = '';
@@ -312,9 +328,9 @@ function ensureCloseFunctionality() {
 
 		// Watch for sidebar state changes and window resize
 		const observer = new MutationObserver(setupMobileScrolling);
-		observer.observe(sidebar, { 
-			attributes: true, 
-			attributeFilter: ['class'] 
+		observer.observe(sidebar, {
+			attributes: true,
+			attributeFilter: ['class'],
 		});
 
 		// Listen for window resize
@@ -347,7 +363,7 @@ function ensureCloseFunctionality() {
 	document.addEventListener('astro:page-load', initializeNavigation);
 
 	// Run after React components hydrate
-	document.addEventListener('astro:after-hydration', function() {
+	document.addEventListener('astro:after-hydration', function () {
 		setTimeout(() => {
 			ensureCloseFunctionality();
 		}, 100);
@@ -362,7 +378,8 @@ function ensureCloseFunctionality() {
 
 		// Get the computed transform style to check actual position
 		const transform = window.getComputedStyle(sidebar).transform;
-		const isOpen = transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)';
+		const isOpen =
+			transform === 'none' || transform === 'matrix(1, 0, 0, 1, 0, 0)';
 
 		console.log('Current transform:', transform, 'Is open:', isOpen);
 
@@ -376,7 +393,11 @@ function ensureCloseFunctionality() {
 			// Open sidebar
 			sidebar.classList.remove('-translate-x-full');
 			sidebar.classList.add('translate-x-0');
-			overlay.classList.remove('hidden', 'opacity-0', 'pointer-events-none');
+			overlay.classList.remove(
+				'hidden',
+				'opacity-0',
+				'pointer-events-none'
+			);
 			overlay.classList.add('opacity-100');
 		}
 	}
@@ -384,26 +405,26 @@ function ensureCloseFunctionality() {
 	function closeSidebarInternal() {
 		const sidebar = document.getElementById('sidebar');
 		const overlay = document.getElementById('sidebar-overlay');
-		
+
 		if (!sidebar || !overlay) return;
-		
+
 		sidebar.classList.add('-translate-x-full');
 		sidebar.classList.remove('translate-x-0');
 		overlay.classList.add('opacity-0', 'pointer-events-none');
 		overlay.classList.remove('opacity-100');
-		
+
 		// Re-enable body scroll and restore position
 		const scrollY = document.body.dataset.scrollY;
 		document.body.style.position = '';
 		document.body.style.top = '';
 		document.body.style.width = '';
 		document.body.style.overflowY = '';
-		
+
 		if (scrollY) {
 			window.scrollTo(0, parseInt(scrollY));
 			delete document.body.dataset.scrollY;
 		}
-		
+
 		setTimeout(() => {
 			overlay.classList.add('hidden');
 		}, 300);
