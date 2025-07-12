@@ -21,11 +21,13 @@ export { logoutService } from './src/supabase/auth/logout/ServiceLogout';
 //  [React Auth Components]
 export { ReactLogin } from './src/supabase/auth/login/ReactLogin';
 export { ReactOAuth } from './src/supabase/auth/oauth/ReactOAuth';
+export { ReactCallback } from './src/supabase/auth/oauth/ReactCallback';
 export { ReactRegister } from './src/supabase/auth/register/ReactRegister';
 export { ReactLogout } from './src/supabase/auth/logout/ReactLogout';
 
 //  [Astro OAuth Components]
 export { default as AstroOAuth } from './src/supabase/auth/oauth/EntityOAuth.astro';
+export { default as AstroCallback } from './src/supabase/auth/oauth/EntityCallback.astro';
 export { default as AstroLogin } from './src/supabase/auth/login/EntityLogin.astro';
 export { default as AstroRegister } from './src/supabase/auth/register/EntityRegister.astro';
 export { default as AstroLogout } from './src/supabase/auth/logout/EntityLogout.astro';
