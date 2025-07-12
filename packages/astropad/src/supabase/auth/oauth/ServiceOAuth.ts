@@ -1,5 +1,6 @@
 import { atom } from 'nanostores';
 import { supabase } from '@kbve/astropad';
+import type { AuthChangeEvent } from '@supabase/supabase-js';
 
 type OAuthProvider = 'github' | 'discord' | 'google' | 'twitter';
 
@@ -11,6 +12,8 @@ class OAuthService {
   public readonly errorAtom = atom<string>("");
   public readonly successAtom = atom<string>("");
   public readonly providerAtom = atom<OAuthProvider | null>(null);
+
+  private authStateSubscription: any = null;
 
   private constructor() {}
 
@@ -71,6 +74,39 @@ class OAuthService {
     return this.signInWithProvider('twitter');
   }
 
+  public async initializeOAuthCallback(): Promise<void> {
+    this.clearMessages();
+    this.loadingAtom.set(true);
+
+    try {
+      const url = new URL(window.location.href);
+      const oauthError = url.searchParams.get('error');
+      
+      if (oauthError) {
+        throw new Error(`OAuth Error: ${oauthError}`);
+      }
+
+      const { data, error } = await supabase.auth.getSession();
+      if (error) throw error;
+
+      const session = data.session;
+      if (!session) throw new Error("No session found after OAuth redirect.");
+
+      this.successAtom.set("OAuth login successful. Redirecting...");
+      
+      // You might want to prefetch profile data here too
+      // setTimeout(() => {
+      //   window.location.href = `${window.location.origin}/profile/`;
+      // }, 1200);
+
+    } catch (err: any) {
+      this.errorAtom.set(err.message || "OAuth callback failed.");
+    } finally {
+      this.loadingAtom.set(false);
+      this.providerAtom.set(null);
+    }
+  }
+
   public async handleAuthCallback(): Promise<void> {
     this.clearMessages();
     this.loadingAtom.set(true);
@@ -82,9 +118,9 @@ class OAuthService {
       
       if (data.session) {
         this.successAtom.set("Authentication successful! Redirecting...");
-        setTimeout(() => {
-          window.location.href = `${window.location.origin}/profile/`;
-        }, 1500);
+        // setTimeout(() => {
+        //   window.location.href = `${window.location.origin}/profile/`;
+        // }, 1500);
       } else {
         throw new Error("No session found after OAuth callback");
       }
@@ -121,6 +157,55 @@ class OAuthService {
     this.clearMessages();
     this.loadingAtom.set(false);
     this.providerAtom.set(null);
+    this.unwatchAuthState();
+  }
+
+  public watchAuthState(): void {
+    // Unsubscribe from previous subscription if exists
+    this.unwatchAuthState();
+
+    this.authStateSubscription = supabase.auth.onAuthStateChange((event: AuthChangeEvent, session) => {
+      console.log(`[OAuthService] Auth state changed: ${event}`, session);
+
+      switch (event) {
+        case 'SIGNED_IN':
+          this.successAtom.set("User signed in.");
+          break;
+
+        case 'SIGNED_OUT':
+          this.successAtom.set("User signed out.");
+          break;
+
+        case 'TOKEN_REFRESHED':
+          this.successAtom.set("Session refreshed.");
+          break;
+
+        case 'USER_UPDATED':
+          this.successAtom.set("User updated.");
+          break;
+
+        case 'INITIAL_SESSION':
+          if (session) {
+            this.successAtom.set("Session initialized.");
+          }
+          break;
+
+        default:
+          this.successAtom.set(`Auth event: ${event}`);
+          break;
+      }
+
+      if (!session) {
+        this.errorAtom.set("No active session.");
+      }
+    });
+  }
+
+  public unwatchAuthState(): void {
+    if (this.authStateSubscription) {
+      this.authStateSubscription.subscription?.unsubscribe();
+      this.authStateSubscription = null;
+    }
   }
 }
 
