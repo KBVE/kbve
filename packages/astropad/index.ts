@@ -11,6 +11,7 @@ export { default as Giscus } from './src/giscus/Giscus.astro';
 
 //  [Supabase]
 export { supabase } from './src/supabase/states/supabaseClient';
+export { userClientService } from './src/supabase/states/userClient';
 
 //  [Auth Services]
 export { loginService } from './src/supabase/auth/login/ServiceLogin';
