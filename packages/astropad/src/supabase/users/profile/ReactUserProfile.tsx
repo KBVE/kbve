@@ -12,7 +12,7 @@ import { FixedSizeGrid as Grid } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { User, BadgeCheck, MailCheck, Link2, ListTree, X } from 'lucide-react';
+import { User, BadgeCheck, MailCheck, Link2, ListTree, X, Shield, Key, Bell, Palette, Globe, Download, Trash2, Eye, Settings, CreditCard, Activity, Users, Lock, Calendar } from 'lucide-react';
 
 const cn = (...inputs: any[]) => {
 	return twMerge(clsx(inputs));
@@ -39,32 +39,122 @@ const userProfilePanels = [
 	{
 		id: 'profile',
 		title: 'Profile Info',
-		icon: <User className="w-6 h-6 text-cyan-400" />,
+		icon: <User className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
 		description: 'Manage your email, phone, and display name.',
 	},
 	{
 		id: 'username',
 		title: 'Username',
-		icon: <BadgeCheck className="w-6 h-6 text-cyan-400" />,
+		icon: <BadgeCheck className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
 		description: 'Claim or update your username.',
 	},
 	{
 		id: 'email',
 		title: 'Email Verification',
-		icon: <MailCheck className="w-6 h-6 text-cyan-400" />,
+		icon: <MailCheck className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
 		description: 'Resend or verify your email address.',
 	},
 	{
 		id: 'linked',
 		title: 'Linked Accounts',
-		icon: <Link2 className="w-6 h-6 text-cyan-400" />,
+		icon: <Link2 className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
 		description: 'Connect GitHub, Discord, or Google.',
 	},
 	{
 		id: 'logs',
 		title: 'Activity Log',
-		icon: <ListTree className="w-6 h-6 text-cyan-400" />,
+		icon: <ListTree className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
 		description: 'View recent profile activity logs.',
+	},
+	{
+		id: 'security',
+		title: 'Security Settings',
+		icon: <Shield className="w-6 h-6" style={{ color: 'var(--sl-color-accent-high)' }} />,
+		description: 'Manage two-factor authentication and security.',
+	},
+	{
+		id: 'password',
+		title: 'Change Password',
+		icon: <Key className="w-6 h-6" style={{ color: 'var(--sl-color-accent-high)' }} />,
+		description: 'Update your account password.',
+	},
+	{
+		id: 'notifications',
+		title: 'Notifications',
+		icon: <Bell className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
+		description: 'Configure notification preferences.',
+	},
+	{
+		id: 'appearance',
+		title: 'Appearance',
+		icon: <Palette className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
+		description: 'Customize theme and display settings.',
+	},
+	{
+		id: 'language',
+		title: 'Language & Region',
+		icon: <Globe className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
+		description: 'Set your preferred language and timezone.',
+	},
+	{
+		id: 'export',
+		title: 'Export Data',
+		icon: <Download className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
+		description: 'Download your account data and settings.',
+	},
+	{
+		id: 'delete',
+		title: 'Delete Account',
+		icon: <Trash2 className="w-6 h-6" style={{ color: 'var(--sl-color-accent-high)' }} />,
+		description: 'Permanently delete your account and data.',
+	},
+	{
+		id: 'privacy',
+		title: 'Privacy Settings',
+		icon: <Eye className="w-6 h-6" style={{ color: 'var(--sl-color-gray-3)' }} />,
+		description: 'Control who can see your profile information.',
+	},
+	{
+		id: 'preferences',
+		title: 'App Preferences',
+		icon: <Settings className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
+		description: 'Configure application behavior and defaults.',
+	},
+	{
+		id: 'billing',
+		title: 'Billing & Payments',
+		icon: <CreditCard className="w-6 h-6" style={{ color: 'var(--sl-color-accent-high)' }} />,
+		description: 'Manage subscription and payment methods.',
+	},
+	{
+		id: 'analytics',
+		title: 'Usage Analytics',
+		icon: <Activity className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
+		description: 'View your account activity and statistics.',
+	},
+	{
+		id: 'teams',
+		title: 'Teams & Groups',
+		icon: <Users className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
+		description: 'Manage team memberships and invitations.',
+	},
+	{
+		id: 'sessions',
+		title: 'Active Sessions',
+		icon: <Lock className="w-6 h-6" style={{ color: 'var(--sl-color-accent-high)' }} />,
+		description: 'View and manage your active login sessions.',
+	},
+	{
+		id: 'backup',
+		title: 'Data Backup',
+		icon: <Calendar className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
+		description: 'Schedule automatic backups of your data.',
+	},
+	{
+		id: 'api',
+		title: 'API Access',
+		icon: <Key className="w-6 h-6" style={{ color: 'var(--sl-color-accent-high)' }} />,
+		description: 'Generate and manage API keys and tokens.',
 	},
 ];
 
@@ -74,18 +164,18 @@ const renderGridShell = (
 ) => {
 	return (
 		<div className="w-full max-w-6xl mx-auto min-h-[500px]">
-			<AutoSizer disableHeight>
-				{({ width }) => {
+			<AutoSizer>
+				{({ width, height }) => {
 					const columnWidth = 300;
 					const columnCount = Math.max(1, Math.floor(width / columnWidth));
 					const rowCount = Math.ceil(panels.length / columnCount);
-					const rowHeight = 120;
+					const rowHeight = 140; 
 
 					return (
 						<Grid
 							columnCount={columnCount}
 							columnWidth={columnWidth}
-							height={rowCount * rowHeight}
+							height={height}
 							rowCount={rowCount}
 							rowHeight={rowHeight}
 							width={width}
@@ -101,11 +191,26 @@ const renderGridShell = (
 									<div style={style} className="p-2">
 										<button
 											onClick={() => setSelectedPanel(panel.id)}
-											className="group w-full h-full rounded-xl p-4 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 transition text-left flex flex-col justify-between"
+											className="group w-full h-full rounded-xl p-4 border transition text-left flex flex-col justify-between"
+											style={{
+												backgroundColor: 'var(--sl-color-gray-6)',
+												borderColor: 'var(--sl-color-gray-5)',
+												color: 'var(--sl-color-white)',
+											}}
+											onMouseEnter={(e) => {
+												e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-5)';
+											}}
+											onMouseLeave={(e) => {
+												e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-6)';
+											}}
 										>
 											<div>{panel.icon}</div>
-											<div className="mt-2 text-white font-semibold">{panel.title}</div>
-											<div className="text-sm text-zinc-400">{panel.description}</div>
+											<div className="mt-2 font-semibold" style={{ color: 'var(--sl-color-white)' }}>
+												{panel.title}
+											</div>
+											<div className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
+												{panel.description}
+											</div>
 										</button>
 									</div>
 								);
@@ -137,10 +242,9 @@ export const ReactUserProfile = () => {
 	useEffect(() => {
 		const handleSkeletonFadeOut = () => {
 			hideSkeleton();
-			// Delay showing the React component until skeleton has faded out
 			setTimeout(() => {
 				setIsVisible(true);
-			}, 600); // Slightly longer than the skeleton fade out duration
+			}, 600); 
 		};
 
 		handleSkeletonFadeOut();
@@ -152,7 +256,9 @@ export const ReactUserProfile = () => {
 			isVisible ? "opacity-100" : "opacity-0"
 		)}>
 			<div className="flex items-center justify-between">
-				<div className="text-xl font-bold text-white">Welcome, {displayName}</div>
+				<div className="text-xl font-bold" style={{ color: 'var(--sl-color-white)' }}>
+					Welcome, {displayName}
+				</div>
 			</div>
 
 			{renderGridShell(userProfilePanels, setSelectedPanel)}
