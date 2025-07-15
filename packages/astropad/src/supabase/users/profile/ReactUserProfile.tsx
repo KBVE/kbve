@@ -121,6 +121,7 @@ const renderGridShell = (
 
 export const ReactUserProfile = () => {
 	const [selectedPanel, setSelectedPanel] = useState<null | string>(null);
+	const [isVisible, setIsVisible] = useState(false);
 	const user = useStore(userClientService.userAtom);
 
 	const displayName = useMemo(() => {
@@ -134,11 +135,22 @@ export const ReactUserProfile = () => {
 	}, [user]);
 
 	useEffect(() => {
-		hideSkeleton();
+		const handleSkeletonFadeOut = () => {
+			hideSkeleton();
+			// Delay showing the React component until skeleton has faded out
+			setTimeout(() => {
+				setIsVisible(true);
+			}, 600); // Slightly longer than the skeleton fade out duration
+		};
+
+		handleSkeletonFadeOut();
 	}, []);
 
     return (
-		<div className="p-6 space-y-6 min-h-[600px]">
+		<div className={cn(
+			"p-6 space-y-6 min-h-[600px] transition-opacity duration-500 ease-in",
+			isVisible ? "opacity-100" : "opacity-0"
+		)}>
 			<div className="flex items-center justify-between">
 				<div className="text-xl font-bold text-white">Welcome, {displayName}</div>
 			</div>
