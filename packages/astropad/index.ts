@@ -35,6 +35,8 @@ export { default as AstroCallback } from './src/supabase/auth/oauth/EntityCallba
 export { default as AstroLogin } from './src/supabase/auth/login/EntityLogin.astro';
 export { default as AstroRegister } from './src/supabase/auth/register/EntityRegister.astro';
 export { default as AstroLogout } from './src/supabase/auth/logout/EntityLogout.astro';
+//  [Astro User Components]
+export { default as AstroUserProfile } from './src/supabase/users/profile/EntityUserProfile.astro';
 
 //  [ConchShell]
 export { default as ConchShell } from './src/conchshell/ConchShell.astro';
