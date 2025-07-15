@@ -18,6 +18,8 @@ export { loginService } from './src/supabase/auth/login/ServiceLogin';
 export { oauthService } from './src/supabase/auth/oauth/ServiceOAuth';
 export { registerService } from './src/supabase/auth/register/ServiceRegister';
 export { logoutService } from './src/supabase/auth/logout/ServiceLogout';
+//  [User Service]
+export { userProfileService } from './src/supabase/users/profile/ServiceUserProfile'; 
 
 //  [React Auth Components]
 export { ReactLogin } from './src/supabase/auth/login/ReactLogin';
@@ -25,6 +27,7 @@ export { ReactOAuth } from './src/supabase/auth/oauth/ReactOAuth';
 export { ReactCallback } from './src/supabase/auth/oauth/ReactCallback';
 export { ReactRegister } from './src/supabase/auth/register/ReactRegister';
 export { ReactLogout } from './src/supabase/auth/logout/ReactLogout';
+export { ReactUserProfile } from './src/supabase/users/profile/ReactUserProfile';
 
 //  [Astro OAuth Components]
 export { default as AstroOAuth } from './src/supabase/auth/oauth/EntityOAuth.astro';
