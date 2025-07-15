@@ -163,7 +163,13 @@ const renderGridShell = (
 	setSelectedPanel: (id: string) => void
 ) => {
 	return (
-		<div className="w-full max-w-6xl mx-auto min-h-[500px]">
+		<div 
+			className="w-full max-w-6xl mx-auto min-h-[500px] rounded-xl p-4 border"
+			style={{
+				backgroundColor: 'color-mix(in srgb, var(--sl-color-gray-6) 60%, transparent)',
+				borderColor: 'color-mix(in srgb, var(--sl-color-gray-5) 30%, transparent)',
+			}}
+		>
 			<AutoSizer>
 				{({ width, height }) => {
 					const columnWidth = 300;
