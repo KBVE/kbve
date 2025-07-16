@@ -34,6 +34,36 @@ const hideSkeleton = () => {
 	}
 };
 
+const populateUsernameElements = (username: string) => {
+	// Find all elements with data-object="username_$string"
+	const usernameElements = document.querySelectorAll(
+		'[data-object="username_$string"]',
+	) as NodeListOf<HTMLElement>;
+
+	usernameElements.forEach((element) => {
+		// Skip if the element already contains the correct username
+		if (element.textContent && element.textContent.trim() === username) {
+			return;
+		}
+
+		// Set initial state for smoother fade-in animation
+		element.style.opacity = '0';
+		element.style.transform = 'translateY(8px)'; // Subtle slide-up effect
+		element.style.transition = 'opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1), transform 1200ms cubic-bezier(0.4, 0, 0.2, 1)';
+		
+		// Set the username text (replaces any existing content like ":)")
+		element.textContent = username;
+		
+		// Trigger smoother fade-in animation with slight delay
+		requestAnimationFrame(() => {
+			setTimeout(() => {
+				element.style.opacity = '1';
+				element.style.transform = 'translateY(0)';
+			}, 50); // Small delay for smoother effect
+		});
+	});
+};
+
 const userProfilePanels = [
 	{
 		id: 'profile',
@@ -299,16 +329,32 @@ export const ReactUserProfile = () => {
 		return renderProfileHeader(displayName);
 	}, [displayName]);
 
+	// Populate username elements when displayName changes
+	useEffect(() => {
+		if (displayName && displayName !== 'Guest') {
+			// Use a slight delay to ensure DOM is ready
+			const timeoutId = setTimeout(() => {
+				populateUsernameElements(displayName);
+			}, 100);
+
+			return () => clearTimeout(timeoutId);
+		}
+	}, [displayName]);
+
 	useEffect(() => {
 		const handleSkeletonFadeOut = () => {
 			hideSkeleton();
 			setTimeout(() => {
 				setIsVisible(true);
+				// Also populate username elements after component becomes visible
+				if (displayName && displayName !== 'Guest') {
+					populateUsernameElements(displayName);
+				}
 			}, 600); 
 		};
 
 		handleSkeletonFadeOut();
-	}, []);
+	}, [displayName]);
 
 	// Initialize user service and sync data when component mounts
 	// Safe to call multiple times - will only initialize once
