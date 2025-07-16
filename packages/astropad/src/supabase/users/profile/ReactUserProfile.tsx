@@ -8,8 +8,7 @@ import React, {
 } from 'react';
 import { useStore } from '@nanostores/react';
 import { userClientService, supabase, userProfileService } from '@kbve/astropad';
-import { FixedSizeGrid as Grid } from 'react-window';
-import AutoSizer from 'react-virtualized-auto-sizer';
+import { Virtuoso } from 'react-virtuoso'
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { User, BadgeCheck, MailCheck, Link2, ListTree, X, Shield, Key, Bell, Palette, Globe, Download, Trash2, Eye, Settings, CreditCard, Activity, Users, Lock, Calendar } from 'lucide-react';
@@ -162,73 +161,113 @@ const renderGridShell = (
 	panels: typeof userProfilePanels,
 	setSelectedPanel: (id: string) => void
 ) => {
+	const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
+	const [containerWidth, setContainerWidth] = useState(0);
+
+	// Calculate responsive columns based on container width
+	const { columnCount, columnWidth } = useMemo(() => {
+		const minColumnWidth = 280;
+		const maxColumnWidth = 320;
+		const gap = 16;
+		const padding = 32; // Account for container padding
+		
+		if (containerWidth === 0) {
+			return { columnCount: 1, columnWidth: minColumnWidth };
+		}
+		
+		const availableWidth = containerWidth - padding;
+		const cols = Math.max(1, Math.floor((availableWidth + gap) / (minColumnWidth + gap)));
+		const width = Math.min(maxColumnWidth, (availableWidth - (gap * (cols - 1))) / cols);
+		
+		return { columnCount: cols, columnWidth: width };
+	}, [containerWidth]);
+
+	// Convert panels into rows for the grid
+	const rows = useMemo(() => {
+		const result = [];
+		for (let i = 0; i < panels.length; i += columnCount) {
+			result.push(panels.slice(i, i + columnCount));
+		}
+		return result;
+	}, [panels, columnCount]);
+
+	// Handle container resize
+	useEffect(() => {
+		if (!containerRef) return;
+		
+		const resizeObserver = new ResizeObserver((entries) => {
+			for (const entry of entries) {
+				setContainerWidth(entry.contentRect.width);
+			}
+		});
+		
+		resizeObserver.observe(containerRef);
+		setContainerWidth(containerRef.clientWidth);
+		
+		return () => resizeObserver.disconnect();
+	}, [containerRef]);
+
 	return (
 		<div 
+			ref={setContainerRef}
 			className="w-full max-w-6xl mx-auto min-h-[500px] rounded-xl p-4 border"
 			style={{
 				backgroundColor: 'color-mix(in srgb, var(--sl-color-gray-6) 60%, transparent)',
 				borderColor: 'color-mix(in srgb, var(--sl-color-gray-5) 30%, transparent)',
 			}}
 		>
-			<AutoSizer>
-				{({ width, height }) => {
-					const columnWidth = 300;
-					const columnCount = Math.max(1, Math.floor(width / columnWidth));
-					const rowCount = Math.ceil(panels.length / columnCount);
-					const rowHeight = 140; 
-
-					return (
-						<Grid
-							columnCount={columnCount}
-							columnWidth={columnWidth}
-							height={height}
-							rowCount={rowCount}
-							rowHeight={rowHeight}
-							width={width}
-							itemData={panels}
-						>
-							{({ columnIndex, rowIndex, style, data }) => {
-								const index = rowIndex * columnCount + columnIndex;
-								if (index >= data.length) return null;
-
-								const panel = data[index];
-
-								return (
-									<div style={style} className="p-2">
-										<button
-											onClick={() => setSelectedPanel(panel.id)}
-											className="group w-full h-full rounded-xl p-4 border transition text-left flex flex-col justify-between"
-											style={{
-												backgroundColor: 'var(--sl-color-gray-6)',
-												borderColor: 'var(--sl-color-gray-5)',
-												color: 'var(--sl-color-white)',
-											}}
-											onMouseEnter={(e) => {
-												e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-5)';
-											}}
-											onMouseLeave={(e) => {
-												e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-6)';
-											}}
-										>
-											<div>{panel.icon}</div>
-											<div className="mt-2 font-semibold" style={{ color: 'var(--sl-color-white)' }}>
-												{panel.title}
-											</div>
-											<div className="text-sm" style={{ color: 'var(--sl-color-gray-3)' }}>
-												{panel.description}
-											</div>
-										</button>
-									</div>
-								);
-							}}
-						</Grid>
-					);
-				}}
-			</AutoSizer>
+			<Virtuoso
+				data={rows}
+				itemContent={(index, row) => (
+					<div 
+						className="flex gap-4 mb-4"
+						style={{
+							justifyContent: columnCount === 1 ? 'center' : 'flex-start',
+						}}
+					>
+						{row.map((panel) => (
+							<button
+								key={panel.id}
+								onClick={() => setSelectedPanel(panel.id)}
+								className="group rounded-xl p-4 border transition text-left flex flex-col justify-start items-start overflow-hidden"
+								style={{
+									backgroundColor: 'var(--sl-color-gray-6)',
+									borderColor: 'var(--sl-color-gray-5)',
+									color: 'var(--sl-color-white)',
+									width: columnWidth,
+									minHeight: '140px',
+								}}
+								onMouseEnter={(e) => {
+									e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-5)';
+								}}
+								onMouseLeave={(e) => {
+									e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-6)';
+								}}
+							>
+								<div className="mb-3 flex-shrink-0">{panel.icon}</div>
+								<div className="font-semibold mb-2 flex-shrink-0" style={{ color: 'var(--sl-color-white)' }}>
+									{panel.title}
+								</div>
+								<div 
+									className="text-sm leading-relaxed flex-1 overflow-hidden" 
+									style={{ 
+										color: 'var(--sl-color-gray-3)',
+										display: '-webkit-box',
+										WebkitLineClamp: 3,
+										WebkitBoxOrient: 'vertical',
+									}}
+								>
+									{panel.description}
+								</div>
+							</button>
+						))}
+					</div>
+				)}
+				style={{ height: '500px' }}
+			/>
 		</div>
 	);
 };
-
 const renderProfileHeader = (displayName: string) => {
 	return (
 		<div className="flex items-center justify-between">
