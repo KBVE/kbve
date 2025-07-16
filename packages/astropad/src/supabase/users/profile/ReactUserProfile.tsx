@@ -256,6 +256,20 @@ export const ReactUserProfile = () => {
 		handleSkeletonFadeOut();
 	}, []);
 
+	// Initialize user service and sync data when component mounts
+	// Safe to call multiple times - will only initialize once
+	useEffect(() => {
+		const initializeUser = async () => {
+			try {
+				await userClientService.initialize();
+			} catch (error) {
+				console.error('[ReactUserProfile] Failed to initialize user service:', error);
+			}
+		};
+
+		initializeUser();
+	}, []);
+
     return (
 		<div className={cn(
 			"p-6 space-y-6 min-h-[600px] transition-opacity duration-500 ease-in",

@@ -16,6 +16,9 @@ export type UserBalanceView = {
 
 class UserClientService {
   private static instance: UserClientService;
+  private isInitialized = false;
+  private isInitializing = false;
+  private initPromise: Promise<void> | null = null;
 
   // Core user state atoms
   public readonly userAtom = atom<User | null>(null);
@@ -71,6 +74,9 @@ class UserClientService {
    * Sync user data with Supabase session
    */
   public async syncSupabaseUser(): Promise<void> {
+    
+    console.log('[AstroPad] Supabase Sync Called');
+    
     this.userLoadingAtom.set(true);
     this.userErrorAtom.set("");
 
@@ -205,8 +211,41 @@ class UserClientService {
 
   /**
    * Initialize the service (call this when the app starts)
+   * Safe to call multiple times - will only initialize once
    */
   public async initialize(): Promise<void> {
+    // If already initialized, return immediately
+    if (this.isInitialized) {
+      return;
+    }
+
+    // If currently initializing, return the existing promise
+    if (this.isInitializing && this.initPromise) {
+      return this.initPromise;
+    }
+
+    // Start initialization
+    this.isInitializing = true;
+    this.initPromise = this.doInitialize();
+
+    try {
+      await this.initPromise;
+      this.isInitialized = true;
+    } catch (error) {
+      console.error('[UserClientService] Initialization failed:', error);
+      // Reset flags so initialization can be retried
+      this.isInitializing = false;
+      this.initPromise = null;
+      throw error;
+    } finally {
+      this.isInitializing = false;
+    }
+  }
+
+  /**
+   * Internal initialization logic
+   */
+  private async doInitialize(): Promise<void> {
     await this.syncSupabaseUser();
     
     // Auto-sync balance if user is logged in
@@ -217,6 +256,15 @@ class UserClientService {
         await this.syncUserBalance(identifier);
       }
     }
+  }
+
+  /**
+   * Reset initialization state (useful for testing or re-initialization)
+   */
+  public resetInitialization(): void {
+    this.isInitialized = false;
+    this.isInitializing = false;
+    this.initPromise = null;
   }
 }
 
