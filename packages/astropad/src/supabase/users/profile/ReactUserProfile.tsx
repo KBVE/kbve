@@ -229,6 +229,16 @@ const renderGridShell = (
 	);
 };
 
+const renderProfileHeader = (displayName: string) => {
+	return (
+		<div className="flex items-center justify-between">
+			<div className="text-xl font-bold" style={{ color: 'var(--sl-color-white)' }}>
+				Welcome, {displayName}
+			</div>
+		</div>
+	);
+};
+
 
 export const ReactUserProfile = () => {
 	const [selectedPanel, setSelectedPanel] = useState<null | string>(null);
@@ -244,6 +254,11 @@ export const ReactUserProfile = () => {
 			'User'
 		);
 	}, [user]);
+
+	// Memoize the header to prevent unnecessary re-renders
+	const profileHeader = useMemo(() => {
+		return renderProfileHeader(displayName);
+	}, [displayName]);
 
 	useEffect(() => {
 		const handleSkeletonFadeOut = () => {
@@ -275,11 +290,7 @@ export const ReactUserProfile = () => {
 			"p-6 space-y-6 min-h-[600px] transition-opacity duration-500 ease-in",
 			isVisible ? "opacity-100" : "opacity-0"
 		)}>
-			<div className="flex items-center justify-between">
-				<div className="text-xl font-bold" style={{ color: 'var(--sl-color-white)' }}>
-					Welcome, {displayName}
-				</div>
-			</div>
+			{profileHeader}
 
 			{renderGridShell(userProfilePanels, setSelectedPanel)}
 
