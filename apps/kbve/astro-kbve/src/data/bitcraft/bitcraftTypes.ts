@@ -1,42 +1,121 @@
+import { z } from 'astro:schema';
+
 /**
  * Bitcraft Game Types
- * Type definitions for Bitcraft professions, progress tracking, and calculator forms
+ * Zod schemas and type definitions for Bitcraft professions, progress tracking, and calculator forms
  */
 
-export type BitcraftProfession = 
-  | "Carpentry"
-  | "Farming" 
-  | "Fishing"
-  | "Foraging"
-  | "Forestry"
-  | "Hunting"
-  | "Leatherworking"
-  | "Masonry"
-  | "Mining"
-  | "Scholar"
-  | "Smithing"
-  | "Tailoring";
+// Zod schema for BitcraftProfession
+export const BitcraftProfessionSchema = z.enum([
+  "Carpentry",
+  "Farming",
+  "Fishing",
+  "Foraging",
+  "Forestry",
+  "Hunting",
+  "Leatherworking",
+  "Masonry",
+  "Mining",
+  "Scholar",
+  "Smithing",
+  "Tailoring"
+]);
 
-export interface ProfessionProgress {
-  profession: BitcraftProfession;
-  currentEffort: number;
-  totalEffort: number;
-  effortPerTick: number;
-  timePerTick: number;
-  lastUpdated: Date;
-}
+// Type inference from zod schema
+export type BitcraftProfession = z.infer<typeof BitcraftProfessionSchema>;
 
-export interface BitcraftFormData {
-  profession: BitcraftProfession;
-  totalEffort: number;
-  effortPerTick: number;
-  timePerTick: number;
-  currentProgress: number;
-}
+// Zod schema for ProfessionProgress
+export const ProfessionProgressSchema = z.object({
+  profession: BitcraftProfessionSchema,
+  currentEffort: z.number().min(0),
+  totalEffort: z.number().min(1),
+  effortPerTick: z.number().min(0),
+  timePerTick: z.number().min(0),
+  lastUpdated: z.date()
+});
 
-export interface ProfessionState {
-  [key in BitcraftProfession]: ProfessionProgress;
-}
+// Type inference from zod schema
+export type ProfessionProgress = z.infer<typeof ProfessionProgressSchema>;
+
+// Zod schema for BitcraftFormData
+export const BitcraftFormDataSchema = z.object({
+  profession: BitcraftProfessionSchema,
+  totalEffort: z.number().min(1),
+  effortPerTick: z.number().min(0),
+  timePerTick: z.number().min(0),
+  currentProgress: z.number().min(0).max(100)
+});
+
+// Type inference from zod schema
+export type BitcraftFormData = z.infer<typeof BitcraftFormDataSchema>;
+
+// Zod schema for ProfessionState
+export const ProfessionStateSchema = z.record(
+  BitcraftProfessionSchema,
+  ProfessionProgressSchema
+);
+
+// Type inference from zod schema
+export type ProfessionState = z.infer<typeof ProfessionStateSchema>;
+
+// Validation utilities
+export const validateProfession = (value: unknown): BitcraftProfession | null => {
+  const result = BitcraftProfessionSchema.safeParse(value);
+  return result.success ? result.data : null;
+};
+
+export const validateProfessionProgress = (value: unknown): ProfessionProgress | null => {
+  const result = ProfessionProgressSchema.safeParse(value);
+  return result.success ? result.data : null;
+};
+
+export const validateFormData = (value: unknown): BitcraftFormData | null => {
+  const result = BitcraftFormDataSchema.safeParse(value);
+  return result.success ? result.data : null;
+};
+
+export const validateProfessionState = (value: unknown): ProfessionState | null => {
+  const result = ProfessionStateSchema.safeParse(value);
+  return result.success ? result.data : null;
+};
+
+// Safe parsing with detailed error handling
+export const parseProfessionProgress = (value: unknown) => {
+  return ProfessionProgressSchema.safeParse(value);
+};
+
+export const parseFormData = (value: unknown) => {
+  return BitcraftFormDataSchema.safeParse(value);
+};
+
+// Helper to create a validated ProfessionProgress object
+export const createProfessionProgress = (
+  profession: BitcraftProfession,
+  currentEffort: number = 0,
+  totalEffort: number = 1000,
+  effortPerTick: number = 10,
+  timePerTick: number = 1.0
+): ProfessionProgress => {
+  const progress = {
+    profession,
+    currentEffort,
+    totalEffort,
+    effortPerTick,
+    timePerTick,
+    lastUpdated: new Date()
+  };
+  
+  // Validate the created object
+  const result = ProfessionProgressSchema.safeParse(progress);
+  if (!result.success) {
+    throw new Error(`Invalid profession progress data: ${result.error.message}`);
+  }
+  
+  return result.data;
+};
+
+// All professions array for iteration and validation
+export const ALL_PROFESSIONS = BitcraftProfessionSchema.options;
 
 export const PROFESSION_COLORS: Record<BitcraftProfession, string> = {
   Carpentry: "#8B4513",
@@ -66,6 +145,18 @@ export const DEFAULT_PROFESSION_SETTINGS: Record<BitcraftProfession, Omit<Profes
   Scholar: { currentEffort: 0, totalEffort: 7500, effortPerTick: 7, timePerTick: 1.1 },
   Smithing: { currentEffort: 0, totalEffort: 16500, effortPerTick: 17, timePerTick: 2.2 },
   Tailoring: { currentEffort: 0, totalEffort: 8000, effortPerTick: 12, timePerTick: 1.4 }
+};
+
+// Helper to get validated default settings for a profession
+export const getDefaultProfessionSettings = (profession: BitcraftProfession) => {
+  const settings = DEFAULT_PROFESSION_SETTINGS[profession];
+  return createProfessionProgress(
+    profession,
+    settings.currentEffort,
+    settings.totalEffort,
+    settings.effortPerTick,
+    settings.timePerTick
+  );
 };
 
 export const PROFESSION_ICONS: Record<BitcraftProfession, string> = {

@@ -1,3 +1,24 @@
 ---
+// BitcraftCalculator.astro
+// Astro component that wraps the React Bitcraft Calculator with client-side hydration
 
+import ReactBitcraft from 'src/data/bitcraft/ReactBitcraft';
+
+export interface Props {
+  className?: string;
+}
+
+const { className } = Astro.props;
 ---
+
+<div class="bitcraft-calculator-wrapper">
+ <ReactBitcraft client:only="react" />
+</div>
+
+<style>
+  .bitcraft-calculator-wrapper {
+    /* Optional: Add any Astro-specific styling here */
+    width: 100%;
+    min-height: 600px;
+  }
+</style>
