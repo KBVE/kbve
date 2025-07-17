@@ -17,49 +17,62 @@ const cn = (...inputs: any[]) => {
 	return twMerge(clsx(inputs));
 };
 
-const hideSkeleton = () => {
-	const skeleton = document.querySelector(
-		'[data-skeleton="user-profile"]',
-	) as HTMLElement | null;
+const hideSkeleton = (ref?: React.RefObject<HTMLElement>) => {
+	const elementsSet = new Set<HTMLElement>();
 
-	if (skeleton && !skeleton.classList.contains('opacity-0')) {
-		skeleton.className = cn(
-			skeleton.className,
-			'opacity-0 pointer-events-none transition-opacity duration-500 ease-out',
-		);
-
-		setTimeout(() => {
-			skeleton.classList.add('invisible');
-		}, 500);
+	if (ref?.current instanceof HTMLElement) {
+		elementsSet.add(ref.current);
 	}
+
+	document.querySelectorAll('#user-profile-skeleton').forEach((el) => {
+		if (el instanceof HTMLElement) {
+			elementsSet.add(el);
+		}
+	});
+
+	document.querySelectorAll('[data-skeleton="user-profile"]').forEach((el) => {
+		if (el instanceof HTMLElement) {
+			elementsSet.add(el);
+		}
+	});
+
+	const elements = Array.from(elementsSet);
+
+	if (elements.length === 0) return;
+
+	elements.forEach((skeleton) => {
+		if (!skeleton.classList.contains('opacity-0')) {
+			skeleton.className = cn(
+				skeleton.className,
+				'opacity-0 pointer-events-none transition-opacity duration-500 ease-out'
+			);
+
+			setTimeout(() => {
+				skeleton.classList.add('invisible');
+			}, 500);
+		}
+	});
 };
 
 const populateUsernameElements = (username: string) => {
-	// Find all elements with data-object="username_$string"
 	const usernameElements = document.querySelectorAll(
 		'[data-object="username_$string"]',
 	) as NodeListOf<HTMLElement>;
 
 	usernameElements.forEach((element) => {
-		// Skip if the element already contains the correct username
 		if (element.textContent && element.textContent.trim() === username) {
 			return;
 		}
 
-		// Set initial state for smoother fade-in animation
 		element.style.opacity = '0';
-		element.style.transform = 'translateY(8px)'; // Subtle slide-up effect
+		element.style.transform = 'translateY(8px)';
 		element.style.transition = 'opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1), transform 1200ms cubic-bezier(0.4, 0, 0.2, 1)';
-		
-		// Set the username text (replaces any existing content like ":)")
 		element.textContent = username;
-		
-		// Trigger smoother fade-in animation with slight delay
 		requestAnimationFrame(() => {
 			setTimeout(() => {
 				element.style.opacity = '1';
 				element.style.transform = 'translateY(0)';
-			}, 50); // Small delay for smoother effect
+			}, 50); 
 		});
 	});
 };
@@ -70,14 +83,14 @@ const userProfilePanels = [
 		title: 'Profile Info',
 		icon: <User className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
 		description: 'Manage your email, phone, and display name.',
-		size: 'large' as const, // Takes up 2 columns
+		size: 'big' as const, // 2x2 - most important
 	},
 	{
 		id: 'username',
 		title: 'Username',
 		icon: <BadgeCheck className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
 		description: 'Claim or update your username.',
-		size: 'medium' as const, // Standard size
+		size: 'medium' as const,
 	},
 	{
 		id: 'email',
@@ -98,14 +111,14 @@ const userProfilePanels = [
 		title: 'Activity Log',
 		icon: <ListTree className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
 		description: 'View recent profile activity logs.',
-		size: 'tall' as const, // Takes up 2 rows
+		size: 'tall' as const,
 	},
 	{
 		id: 'security',
 		title: 'Security Settings',
 		icon: <Shield className="w-6 h-6" style={{ color: 'var(--sl-color-accent-high)' }} />,
 		description: 'Manage two-factor authentication and security.',
-		size: 'medium' as const,
+		size: 'large' as const, // More important - make it larger
 	},
 	{
 		id: 'password',
@@ -147,7 +160,7 @@ const userProfilePanels = [
 		title: 'Delete Account',
 		icon: <Trash2 className="w-6 h-6" style={{ color: 'var(--sl-color-accent-high)' }} />,
 		description: 'Permanently delete your account and data.',
-		size: 'wide' as const, // Takes up full width
+		size: 'wide' as const,
 	},
 	{
 		id: 'privacy',
@@ -182,7 +195,7 @@ const userProfilePanels = [
 		title: 'Teams & Groups',
 		icon: <Users className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
 		description: 'Manage team memberships and invitations.',
-		size: 'medium' as const,
+		size: 'large' as const, // Make it larger for better grid balance
 	},
 	{
 		id: 'sessions',
@@ -203,7 +216,7 @@ const userProfilePanels = [
 		title: 'API Access',
 		icon: <Key className="w-6 h-6" style={{ color: 'var(--sl-color-accent-high)' }} />,
 		description: 'Generate and manage API keys and tokens.',
-		size: 'medium' as const,
+		size: 'tall' as const, // Make it tall for better variety
 	},
 ];
 
@@ -242,35 +255,246 @@ const renderGridShell = (
 		}
 	};
 
-	// Organize panels into rows for virtualization while maintaining bento grid flow
+	// Organize panels into rows for virtualization with optimized bento grid packing
 	const organizedRows = useMemo(() => {
-		const rows: typeof userProfilePanels[] = [];
-		let currentRow: typeof userProfilePanels = [];
-		let currentRowWidth = 0;
+		const rows: (typeof userProfilePanels)[] = [];
 		
-		panels.forEach((panel) => {
-			const { width } = getPanelSize(panel.size);
-			
-			// Check if panel fits in current row
-			if (currentRowWidth + width <= columnCount) {
-				currentRow.push(panel);
-				currentRowWidth += width;
-			} else {
-				// Start new row
-				if (currentRow.length > 0) {
-					rows.push([...currentRow]);
-				}
-				currentRow = [panel];
-				currentRowWidth = width;
+		// Create a grid state to track occupied cells
+		const gridState: boolean[][] = [];
+		
+		// Initialize grid state
+		const initializeRow = (rowIndex: number) => {
+			if (!gridState[rowIndex]) {
+				gridState[rowIndex] = new Array(columnCount).fill(false);
 			}
+		};
+		
+		// Calculate area for sorting (prioritize larger panels)
+		const getPanelArea = (panel: typeof userProfilePanels[0]) => {
+			const { width, height } = getPanelSize(panel.size);
+			return width * height;
+		};
+		
+		// Sort panels by area (descending) and then by priority
+		const sortedPanels = [...panels].sort((a, b) => {
+			const areaA = getPanelArea(a);
+			const areaB = getPanelArea(b);
+			
+			// First, sort by area (larger first)
+			if (areaA !== areaB) {
+				return areaB - areaA;
+			}
+			
+			// Then by size priority (wide > large > tall > medium)
+			const sizePriority = { wide: 4, large: 3, tall: 2, medium: 1, big: 5 };
+			return sizePriority[b.size] - sizePriority[a.size];
 		});
 		
-		// Add remaining panels
-		if (currentRow.length > 0) {
-			rows.push(currentRow);
+		// Find the best position for a panel using a more sophisticated algorithm
+		const findBestPosition = (width: number, height: number) => {
+			let bestPosition = null;
+			let bestScore = -1;
+			
+			// Try to find positions up to a reasonable number of rows
+			for (let row = 0; row < gridState.length + 3; row++) {
+				initializeRow(row);
+				
+				for (let col = 0; col <= columnCount - width; col++) {
+					let canPlace = true;
+					
+					// Check if position is available
+					for (let r = row; r < row + height; r++) {
+						initializeRow(r);
+						for (let c = col; c < col + width; c++) {
+							if (gridState[r][c]) {
+								canPlace = false;
+								break;
+							}
+						}
+						if (!canPlace) break;
+					}
+					
+					if (canPlace) {
+						// Calculate score based on:
+						// 1. Prefer positions that are closer to the top-left
+						// 2. Prefer positions that fill gaps better
+						// 3. Prefer positions that create less fragmentation
+						
+						let score = 0;
+						
+						// Prefer higher positions (lower row numbers)
+						score += (100 - row * 10);
+						
+						// Prefer leftmost positions
+						score += (columnCount - col);
+						
+						// Bonus for filling gaps (adjacent to existing panels)
+						let adjacentBonus = 0;
+						for (let r = row; r < row + height; r++) {
+							for (let c = col; c < col + width; c++) {
+								// Check adjacent cells
+								const adjacent = [
+									[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]
+								];
+								
+								for (const [ar, ac] of adjacent) {
+									if (ar >= 0 && ar < gridState.length && ac >= 0 && ac < columnCount) {
+										if (gridState[ar] && gridState[ar][ac]) {
+											adjacentBonus += 5;
+										}
+									}
+								}
+							}
+						}
+						score += adjacentBonus;
+						
+						// Penalty for creating holes/gaps
+						let gapPenalty = 0;
+						for (let r = row; r < row + height; r++) {
+							for (let c = col; c < col + width; c++) {
+								// Check if placing here creates isolated gaps
+								const neighbors = [
+									[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]
+								];
+								
+								let emptyNeighbors = 0;
+								for (const [nr, nc] of neighbors) {
+									if (nr >= 0 && nr < gridState.length && nc >= 0 && nc < columnCount) {
+										if (!gridState[nr] || !gridState[nr][nc]) {
+											emptyNeighbors++;
+										}
+									}
+								}
+								
+								if (emptyNeighbors > 2) {
+									gapPenalty += 2;
+								}
+							}
+						}
+						score -= gapPenalty;
+						
+						if (score > bestScore) {
+							bestScore = score;
+							bestPosition = { row, col };
+						}
+					}
+				}
+			}
+			
+			return bestPosition;
+		};
+		
+		// Place panels using the optimized algorithm
+		const placedPanels = new Map<number, typeof userProfilePanels[0][]>();
+		const remainingPanels = [...sortedPanels];
+		
+		// First pass: Place larger panels optimally
+		for (let i = remainingPanels.length - 1; i >= 0; i--) {
+			const panel = remainingPanels[i];
+			const { width, height } = getPanelSize(panel.size);
+			const position = findBestPosition(width, height);
+			
+			if (position) {
+				const { row, col } = position;
+				
+				// Mark cells as occupied
+				for (let r = row; r < row + height; r++) {
+					initializeRow(r);
+					for (let c = col; c < col + width; c++) {
+						gridState[r][c] = true;
+					}
+				}
+				
+				// Add panel to the appropriate row
+				if (!placedPanels.has(row)) {
+					placedPanels.set(row, []);
+				}
+				placedPanels.get(row)!.push(panel);
+				
+				// Remove from remaining panels
+				remainingPanels.splice(i, 1);
+			}
 		}
 		
-		return rows;
+		// Second pass: Fill gaps with remaining panels (gap-filling optimization)
+		const findGapPosition = (width: number, height: number) => {
+			// Look for gaps in existing rows first
+			for (let row = 0; row < gridState.length; row++) {
+				if (!gridState[row]) continue;
+				
+				for (let col = 0; col <= columnCount - width; col++) {
+					let canPlace = true;
+					
+					for (let r = row; r < row + height; r++) {
+						if (r >= gridState.length) {
+							initializeRow(r);
+						}
+						for (let c = col; c < col + width; c++) {
+							if (gridState[r][c]) {
+								canPlace = false;
+								break;
+							}
+						}
+						if (!canPlace) break;
+					}
+					
+					if (canPlace) {
+						return { row, col };
+					}
+				}
+			}
+			
+			// If no gaps found, use the regular best position algorithm
+			return findBestPosition(width, height);
+		};
+		
+		// Try to place remaining panels in gaps
+		for (let i = remainingPanels.length - 1; i >= 0; i--) {
+			const panel = remainingPanels[i];
+			const { width, height } = getPanelSize(panel.size);
+			const position = findGapPosition(width, height);
+			
+			if (position) {
+				const { row, col } = position;
+				
+				// Mark cells as occupied
+				for (let r = row; r < row + height; r++) {
+					initializeRow(r);
+					for (let c = col; c < col + width; c++) {
+						gridState[r][c] = true;
+					}
+				}
+				
+				// Add panel to the appropriate row
+				if (!placedPanels.has(row)) {
+					placedPanels.set(row, []);
+				}
+				placedPanels.get(row)!.push(panel);
+				
+				// Remove from remaining panels
+				remainingPanels.splice(i, 1);
+			}
+		}
+		
+		// Convert to array format, filling empty rows
+		const maxRow = Math.max(...placedPanels.keys());
+		for (let i = 0; i <= maxRow; i++) {
+			rows[i] = placedPanels.get(i) || [];
+		}
+		
+		// Calculate grid efficiency for debugging
+		const totalCells = gridState.reduce((total, row) => total + row.length, 0);
+		const occupiedCells = gridState.reduce((total, row) => 
+			total + row.reduce((rowTotal, cell) => rowTotal + (cell ? 1 : 0), 0), 0);
+		const efficiency = totalCells > 0 ? (occupiedCells / totalCells) * 100 : 0;
+		
+		// Log efficiency for debugging (can be removed in production)
+		if (process.env.NODE_ENV === 'development') {
+			console.log(`Grid efficiency: ${efficiency.toFixed(1)}% (${occupiedCells}/${totalCells} cells)`);
+		}
+		
+		// Clean up empty rows
+		return rows.filter(row => row.length > 0);
 	}, [panels, columnCount]);
 
 	// Handle container resize
@@ -300,70 +524,119 @@ const renderGridShell = (
 		>
 			{/* Virtuoso wrapping the bento grid */}
 			<Virtuoso
-				style={{ height: '600px' }}
+				style={{ height: '700px' }}
 				data={organizedRows}
-				itemContent={(index, rowPanels) => (
-					<div 
-						className="grid gap-4 mb-4"
-						style={{
-							gridTemplateColumns: `repeat(${columnCount}, 1fr)`,
-							gridAutoRows: '140px',
-						}}
-					>
-						{rowPanels.map((panel) => {
-							const { width, height } = getPanelSize(panel.size);
-							
-							return (
-								<button
-									key={panel.id}
-									onClick={() => setSelectedPanel(panel.id)}
-									className="group rounded-xl p-4 border transition text-left flex flex-col justify-start items-start overflow-hidden"
-									style={{
+				itemContent={(index, rowPanels) => {
+					if (rowPanels.length === 0) return null;
+					
+					// Calculate the maximum height needed for this row
+					const maxHeight = Math.max(...rowPanels.map(panel => getPanelSize(panel.size).height));
+					
+					// Create a more compact grid layout
+					const baseHeight = 160; // Increased base height for better content display
+					const gap = 16;
+					const totalHeight = maxHeight * baseHeight + (maxHeight - 1) * gap;
+					
+					return (
+						<div 
+							className="grid gap-4 mb-4"
+							style={{
+								gridTemplateColumns: `repeat(${columnCount}, 1fr)`,
+								gridAutoRows: `${baseHeight}px`,
+								minHeight: `${totalHeight}px`,
+							}}
+						>
+							{rowPanels.map((panel) => {
+								const { width, height } = getPanelSize(panel.size);
+								
+								// Add visual variety based on panel size
+								const getPanelStyles = () => {
+									const baseStyles = {
 										backgroundColor: 'var(--sl-color-gray-6)',
 										borderColor: 'var(--sl-color-gray-5)',
 										color: 'var(--sl-color-white)',
 										gridColumn: `span ${width}`,
 										gridRow: `span ${height}`,
-									}}
-									onMouseEnter={(e) => {
-										e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-5)';
-									}}
-									onMouseLeave={(e) => {
-										e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-6)';
-									}}
-								>
-									<div className="mb-3 flex-shrink-0">{panel.icon}</div>
-									<div className="font-semibold mb-2 flex-shrink-0" style={{ color: 'var(--sl-color-white)' }}>
-										{panel.title}
-									</div>
-									<div 
-										className="text-sm leading-relaxed flex-1 overflow-hidden" 
-										style={{ 
-											color: 'var(--sl-color-gray-3)',
-											display: '-webkit-box',
-											WebkitLineClamp: height > 1 ? 6 : 3, // More lines for taller panels
-											WebkitBoxOrient: 'vertical',
+									};
+									
+									// Add size-specific styling
+									switch (panel.size) {
+										case 'big':
+											return {
+												...baseStyles,
+												backgroundImage: 'linear-gradient(135deg, var(--sl-color-gray-6) 0%, var(--sl-color-gray-5) 100%)',
+											};
+										case 'wide':
+											return {
+												...baseStyles,
+												backgroundImage: 'linear-gradient(90deg, var(--sl-color-gray-6) 0%, var(--sl-color-gray-5) 100%)',
+											};
+										case 'tall':
+											return {
+												...baseStyles,
+												backgroundImage: 'linear-gradient(0deg, var(--sl-color-gray-6) 0%, var(--sl-color-gray-5) 100%)',
+											};
+										case 'large':
+											return {
+												...baseStyles,
+												backgroundImage: 'linear-gradient(45deg, var(--sl-color-gray-6) 0%, var(--sl-color-gray-5) 100%)',
+											};
+										default:
+											return baseStyles;
+									}
+								};
+								
+								return (
+									<button
+										key={panel.id}
+										onClick={() => setSelectedPanel(panel.id)}
+										className="group rounded-xl p-6 border transition-all duration-300 text-left flex flex-col justify-start items-start overflow-hidden hover:shadow-lg hover:scale-[1.02] active:scale-[0.98]"
+										style={getPanelStyles()}
+										onMouseEnter={(e) => {
+											e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-5)';
+											e.currentTarget.style.borderColor = 'var(--sl-color-accent)';
+										}}
+										onMouseLeave={(e) => {
+											e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-6)';
+											e.currentTarget.style.borderColor = 'var(--sl-color-gray-5)';
 										}}
 									>
-										{panel.description}
-									</div>
-									{/* Show size indicator for demonstration */}
-									{panel.size !== 'medium' && (
+										<div className="mb-4 flex-shrink-0 transition-transform duration-300 group-hover:scale-110">
+											{panel.icon}
+										</div>
+										<div className="font-semibold mb-3 flex-shrink-0 text-lg" style={{ color: 'var(--sl-color-white)' }}>
+											{panel.title}
+										</div>
 										<div 
-											className="text-xs mt-2 px-2 py-1 rounded"
-											style={{
-												backgroundColor: 'var(--sl-color-accent)',
-												color: 'var(--sl-color-white)',
+											className="text-sm leading-relaxed flex-1 overflow-hidden opacity-80" 
+											style={{ 
+												color: 'var(--sl-color-gray-2)',
+												display: '-webkit-box',
+												WebkitLineClamp: height > 1 ? (height === 2 ? 8 : 4) : 3,
+												WebkitBoxOrient: 'vertical',
 											}}
 										>
-											{panel.size}
+											{panel.description}
 										</div>
-									)}
-								</button>
-							);
-						})}
-					</div>
-				)}
+										{/* Enhanced size indicator */}
+										{panel.size !== 'medium' && (
+											<div 
+												className="text-xs mt-3 px-3 py-1 rounded-full font-medium"
+												style={{
+													backgroundColor: 'var(--sl-color-accent)',
+													color: 'var(--sl-color-white)',
+													opacity: 0.8,
+												}}
+											>
+												{panel.size}
+											</div>
+										)}
+									</button>
+								);
+							})}
+						</div>
+					);
+				}}
 			/>
 		</div>
 	);
