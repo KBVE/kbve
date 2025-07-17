@@ -17,6 +17,21 @@ const cn = (...inputs: any[]) => {
 	return twMerge(clsx(inputs));
 };
 
+/**
+ * Utility function to execute a callback on the next animation frame with an optional delay
+ * @param callback - Function to execute
+ * @param delay - Optional delay in milliseconds (default: 0)
+ */
+const nextFrame = (callback: () => void, delay: number = 0) => {
+	requestAnimationFrame(() => {
+		if (delay > 0) {
+			setTimeout(callback, delay);
+		} else {
+			callback();
+		}
+	});
+};
+
 const hideSkeleton = () => {
 	const skeleton = document.querySelector(
 		'[data-skeleton="user-profile"]',
@@ -29,11 +44,9 @@ const hideSkeleton = () => {
 			skeleton.className,
 			'opacity-0 pointer-events-none transition-opacity duration-500 ease-out',
 		);
-		requestAnimationFrame(() => {
-			setTimeout(() => {
-				skeleton.classList.add('invisible');
-			}, 500);
-		});
+		nextFrame(() => {
+			skeleton.classList.add('invisible');
+		}, 500);
 	}
 };
 
@@ -51,12 +64,10 @@ const populateUsernameElements = (username: string) => {
 		element.style.transform = 'translateY(8px)';
 		element.style.transition = 'opacity 1200ms cubic-bezier(0.4, 0, 0.2, 1), transform 1200ms cubic-bezier(0.4, 0, 0.2, 1)';
 		element.textContent = username;
-		requestAnimationFrame(() => {
-			setTimeout(() => {
-				element.style.opacity = '1';
-				element.style.transform = 'translateY(0)';
-			}, 50); 
-		});
+		nextFrame(() => {
+			element.style.opacity = '1';
+			element.style.transform = 'translateY(0)';
+		}, 50);
 	});
 };
 
@@ -379,16 +390,14 @@ export const ReactUserProfile = () => {
 	useEffect(() => {
 		const handleSkeletonFadeOut = () => {
 			hideSkeleton();
-			requestAnimationFrame(() => {
-				setTimeout(() => {
-					if (!isVisible) {
-						setIsVisible(true);
-						if (displayName && displayName !== 'Guest') {
-							populateUsernameElements(displayName);
-						}
+			nextFrame(() => {
+				if (!isVisible) {
+					setIsVisible(true);
+					if (displayName && displayName !== 'Guest') {
+						populateUsernameElements(displayName);
 					}
-				}, 600);
-			});
+				}
+			}, 600);
 		};
 
 		handleSkeletonFadeOut();
