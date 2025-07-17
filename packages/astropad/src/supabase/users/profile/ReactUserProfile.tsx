@@ -379,14 +379,16 @@ export const ReactUserProfile = () => {
 	useEffect(() => {
 		const handleSkeletonFadeOut = () => {
 			hideSkeleton();
-			setTimeout(() => {
-				if (!isVisible) {
-					setIsVisible(true);
-					if (displayName && displayName !== 'Guest') {
-						populateUsernameElements(displayName);
+			requestAnimationFrame(() => {
+				setTimeout(() => {
+					if (!isVisible) {
+						setIsVisible(true);
+						if (displayName && displayName !== 'Guest') {
+							populateUsernameElements(displayName);
+						}
 					}
-				}
-			}, 600); 
+				}, 600);
+			});
 		};
 
 		handleSkeletonFadeOut();
