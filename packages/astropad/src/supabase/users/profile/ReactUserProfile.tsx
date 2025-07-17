@@ -297,11 +297,11 @@ const renderGridShell = (
 			}}
 		>
 			<Virtuoso
-				style={{ height: '700px' }}
+				style={{ height: '700px', paddingRight: '8px' }}
 				data={organizedRows}
 				itemContent={(index, rowPanels) => (
 					<div
-						className="grid gap-4 mb-4"
+						className="grid gap-4 mb-4 pr-2"
 						style={{
 							gridTemplateColumns: `repeat(${columnCount}, 1fr)`,
 							gridAutoRows: '160px',
