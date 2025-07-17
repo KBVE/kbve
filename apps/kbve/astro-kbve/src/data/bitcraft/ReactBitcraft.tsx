@@ -42,6 +42,8 @@ const ReactBitcraft: FC<ReactBitcraftProps> = ({ className }) => {
   
   const [calculation, setCalculation] = useState<EffortCalculation | null>(null);
   const [isCalculating, setIsCalculating] = useState(false);
+  const [isTickerRunning, setIsTickerRunning] = useState(false);
+  const [tickerStats, setTickerStats] = useState({ tickCount: 0, startTime: null as Date | null });
 
   // React Hook Form setup with zod validation
   const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<BitcraftFormData>({
@@ -58,6 +60,70 @@ const ReactBitcraft: FC<ReactBitcraftProps> = ({ className }) => {
 
   // Watch form values for real-time calculations
   const formValues = watch();
+
+  // Ticker control functions
+  const startTicker = () => {
+    if (!formValues.effortPerTick || !formValues.timePerTick) return;
+
+    const success = BitcraftModule.service.bitcraftService.startTicker(
+      selectedProf.profession,
+      {
+        profession: selectedProf.profession,
+        effortPerTick: formValues.effortPerTick,
+        timePerTick: formValues.timePerTick,
+        onTick: (newProgress: number, tickCount: number) => {
+          // Update the form's current progress
+          setValue('currentProgress', newProgress);
+          
+          // Update the profession store
+          BitcraftModule.stores.professionActions.updateProfession(selectedProf.profession, {
+            currentEffort: newProgress
+          });
+          
+          // Update ticker stats
+          setTickerStats(prev => ({ ...prev, tickCount }));
+        },
+        onComplete: (finalProgress: number) => {
+          setIsTickerRunning(false);
+          console.log(`${selectedProf.profession} completed with ${finalProgress} effort!`);
+        }
+      },
+      formValues.currentProgress || 0
+    );
+
+    if (success) {
+      setIsTickerRunning(true);
+      setTickerStats({ tickCount: 0, startTime: new Date() });
+    }
+  };
+
+  const stopTicker = () => {
+    BitcraftModule.service.bitcraftService.stopTicker(selectedProf.profession);
+    setIsTickerRunning(false);
+  };
+
+  // Check ticker status on profession change
+  useEffect(() => {
+    const isRunning = BitcraftModule.service.bitcraftService.isTickerRunning(selectedProf.profession);
+    setIsTickerRunning(isRunning);
+    
+    if (isRunning) {
+      const tickerState = BitcraftModule.service.bitcraftService.getTickerState(selectedProf.profession);
+      if (tickerState) {
+        setTickerStats({
+          tickCount: tickerState.tickCount,
+          startTime: tickerState.startTime
+        });
+      }
+    }
+  }, [selectedProf.profession]);
+
+  // Cleanup tickers on unmount
+  useEffect(() => {
+    return () => {
+      BitcraftModule.service.bitcraftService.stopAllTickers();
+    };
+  }, []);
 
   // Update form when profession changes with safe defaults
   useEffect(() => {
@@ -272,13 +338,30 @@ const ReactBitcraft: FC<ReactBitcraftProps> = ({ className }) => {
                 step={step}
                 min={min}
                 max={max}
+                value={field.value || ''}
                 className={cn(
                   "w-full px-3 py-2 border rounded-md bg-white dark:bg-gray-700 text-gray-900 dark:text-white",
                   error 
                     ? "border-red-500 dark:border-red-400 focus:ring-red-500 focus:border-red-500" 
                     : "border-gray-300 dark:border-gray-600 focus:ring-blue-500 focus:border-blue-500"
                 )}
-                onChange={(e) => field.onChange(Number(e.target.value))}
+                onChange={(e) => {
+                  const value = e.target.value;
+                  // Allow empty string for better UX when clearing the field
+                  if (value === '') {
+                    field.onChange(0);
+                  } else {
+                    // Only convert to number if it's a valid number
+                    const numValue = Number(value);
+                    if (!isNaN(numValue)) {
+                      field.onChange(numValue);
+                    }
+                  }
+                }}
+                onFocus={(e) => {
+                  // Select all text when focusing to make it easier to replace
+                  e.target.select();
+                }}
               />
               {error && (
                 <p className="mt-1 text-sm text-red-600 dark:text-red-400">
@@ -399,6 +482,57 @@ const ReactBitcraft: FC<ReactBitcraftProps> = ({ className }) => {
               <RotateCcw className="w-4 h-4" />
               Reset
             </button>
+          </div>
+          
+          {/* Ticker Controls */}
+          <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+              Auto-Progress Ticker
+            </h4>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                onClick={isTickerRunning ? stopTicker : startTicker}
+                disabled={!isFormValid || !formValues.effortPerTick || !formValues.timePerTick}
+                className={cn(
+                  "flex-1 px-4 py-2 rounded-md transition-colors duration-200 flex items-center justify-center gap-2",
+                  isTickerRunning
+                    ? "bg-red-500 hover:bg-red-600 text-white"
+                    : "bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
+                )}
+              >
+                {isTickerRunning ? (
+                  <>
+                    <Pause className="w-4 h-4" />
+                    Stop Ticker
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-4 h-4" />
+                    Start Ticker
+                  </>
+                )}
+              </button>
+            </div>
+            
+            {/* Ticker Status */}
+            {isTickerRunning && (
+              <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-green-800 dark:text-green-200">
+                    🕒 Ticker Active
+                  </span>
+                  <span className="text-green-600 dark:text-green-400 font-medium">
+                    {tickerStats.tickCount} ticks
+                  </span>
+                </div>
+                {tickerStats.startTime && (
+                  <div className="text-xs text-green-700 dark:text-green-300 mt-1">
+                    Started: {tickerStats.startTime.toLocaleTimeString()}
+                  </div>
+                )}
+              </div>
+            )}
           </div>
         </form>
       </div>

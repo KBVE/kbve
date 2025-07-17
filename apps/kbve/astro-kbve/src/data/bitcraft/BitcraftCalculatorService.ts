@@ -25,8 +25,26 @@ export interface BitcraftTaskConfig {
   currentProgress?: number;
 }
 
+// New interface for ticker functionality
+export interface TickerConfig {
+  profession: string;
+  effortPerTick: number;
+  timePerTick: number;
+  onTick: (newProgress: number, tickCount: number) => void;
+  onComplete?: (finalProgress: number) => void;
+}
+
+export interface TickerState {
+  isRunning: boolean;
+  startTime: Date;
+  tickCount: number;
+  currentProgress: number;
+  intervalId?: NodeJS.Timeout;
+}
+
 export class BitcraftCalculatorService {
   private static instance: BitcraftCalculatorService;
+  private tickers: Map<string, TickerState> = new Map();
 
   private constructor() {
     // Private constructor to prevent direct instantiation
@@ -172,6 +190,108 @@ export class BitcraftCalculatorService {
         timeToReachSeconds: timeToReach
       };
     });
+  }
+
+  /**
+   * Starts a ticker for real-time progress updates
+   * @param profession Profession identifier
+   * @param config Ticker configuration
+   * @param initialProgress Starting progress value
+   * @returns True if ticker started successfully
+   */
+  public startTicker(profession: string, config: TickerConfig, initialProgress: number = 0): boolean {
+    // Stop existing ticker for this profession
+    this.stopTicker(profession);
+
+    const tickerState: TickerState = {
+      isRunning: true,
+      startTime: new Date(),
+      tickCount: 0,
+      currentProgress: initialProgress,
+      intervalId: undefined
+    };
+
+    // Convert time per tick from seconds to milliseconds
+    const intervalMs = config.timePerTick * 1000;
+
+    tickerState.intervalId = setInterval(() => {
+      if (!tickerState.isRunning) {
+        this.stopTicker(profession);
+        return;
+      }
+
+      tickerState.tickCount++;
+      tickerState.currentProgress += config.effortPerTick;
+
+      // Call the onTick callback
+      config.onTick(tickerState.currentProgress, tickerState.tickCount);
+
+      // Check if task is complete (optional total effort check could be added)
+      if (config.onComplete && tickerState.currentProgress >= (config as any).totalEffort) {
+        config.onComplete(tickerState.currentProgress);
+        this.stopTicker(profession);
+      }
+    }, intervalMs);
+
+    this.tickers.set(profession, tickerState);
+    return true;
+  }
+
+  /**
+   * Stops a ticker for a specific profession
+   * @param profession Profession identifier
+   * @returns True if ticker was stopped
+   */
+  public stopTicker(profession: string): boolean {
+    const ticker = this.tickers.get(profession);
+    
+    if (ticker && ticker.intervalId) {
+      clearInterval(ticker.intervalId);
+      ticker.isRunning = false;
+      this.tickers.delete(profession);
+      return true;
+    }
+    
+    return false;
+  }
+
+  /**
+   * Stops all active tickers
+   */
+  public stopAllTickers(): void {
+    for (const [profession, ticker] of this.tickers) {
+      if (ticker.intervalId) {
+        clearInterval(ticker.intervalId);
+      }
+    }
+    this.tickers.clear();
+  }
+
+  /**
+   * Gets the current state of a ticker
+   * @param profession Profession identifier
+   * @returns Ticker state or null if not found
+   */
+  public getTickerState(profession: string): TickerState | null {
+    return this.tickers.get(profession) || null;
+  }
+
+  /**
+   * Checks if a ticker is running for a profession
+   * @param profession Profession identifier
+   * @returns True if ticker is active
+   */
+  public isTickerRunning(profession: string): boolean {
+    const ticker = this.tickers.get(profession);
+    return ticker?.isRunning ?? false;
+  }
+
+  /**
+   * Gets all active tickers
+   * @returns Map of all active tickers
+   */
+  public getActiveTickers(): Map<string, TickerState> {
+    return new Map(this.tickers);
   }
 }
 

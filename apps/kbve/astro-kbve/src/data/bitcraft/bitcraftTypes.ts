@@ -43,7 +43,7 @@ export const BitcraftFormDataSchema = z.object({
   totalEffort: z.number().min(1),
   effortPerTick: z.number().min(0),
   timePerTick: z.number().min(0),
-  currentProgress: z.number().min(0).max(100)
+  currentProgress: z.number().min(0) // Removed .max(100) since effort can exceed 100
 });
 
 // Type inference from zod schema
