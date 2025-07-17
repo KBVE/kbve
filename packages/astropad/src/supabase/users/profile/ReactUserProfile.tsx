@@ -22,7 +22,7 @@ const hideSkeleton = () => {
 		'[data-skeleton="user-profile"]',
 	) as HTMLElement | null;
 
-	//if (!skeleton) return;
+	if (!skeleton) return;
 
 	if (skeleton && !skeleton.classList.contains('opacity-0')) {
 		skeleton.className = cn(
@@ -178,7 +178,7 @@ const userProfilePanels = [
 		title: 'Teams & Groups',
 		icon: <Users className="w-6 h-6" style={{ color: 'var(--sl-color-accent)' }} />,
 		description: 'Manage team memberships and invitations.',
-		size: 'large' as const, // Make it larger for better grid balance
+		size: 'large' as const,
 	},
 	{
 		id: 'sessions',
@@ -199,7 +199,7 @@ const userProfilePanels = [
 		title: 'API Access',
 		icon: <Key className="w-6 h-6" style={{ color: 'var(--sl-color-accent-high)' }} />,
 		description: 'Generate and manage API keys and tokens.',
-		size: 'tall' as const, // Make it tall for better variety
+		size: 'tall' as const, 
 	},
 ];
 
@@ -210,19 +210,17 @@ const renderGridShell = (
 	const [containerRef, setContainerRef] = useState<HTMLDivElement | null>(null);
 	const [containerWidth, setContainerWidth] = useState(0);
 
-	// Calculate responsive columns based on container width
 	const columnCount = useMemo(() => {
 		const minColumnWidth = 280;
 		const gap = 16;
 		const padding = 32;
 		
-		if (containerWidth === 0) return 3; // Default
+		if (containerWidth === 0) return 3;
 		
 		const availableWidth = containerWidth - padding;
 		return Math.max(1, Math.floor((availableWidth + gap) / (minColumnWidth + gap)));
 	}, [containerWidth]);
 
-	// Helper function to get panel dimensions
 	const getPanelSize = useCallback((size: string) => {
 		switch (size) {
 			case 'large':
@@ -238,7 +236,6 @@ const renderGridShell = (
 		}
 	}, [columnCount]);
 
-	// Organize panels into rows for virtualization
 	const organizedRows = useMemo(() => {
 		const rows: (typeof userProfilePanels)[] = [];
 		let currentRow: typeof userProfilePanels = [];
@@ -264,7 +261,6 @@ const renderGridShell = (
 		return rows;
 	}, [panels, columnCount, getPanelSize]);
 
-	// Handle container resize
 	useEffect(() => {
 		if (!containerRef) return;
 		
@@ -366,15 +362,12 @@ export const ReactUserProfile = () => {
 		);
 	}, [user]);
 
-	// Memoize the header to prevent unnecessary re-renders
 	const profileHeader = useMemo(() => {
 		return renderProfileHeader(displayName);
 	}, [displayName]);
 
-	// Populate username elements when displayName changes
 	useEffect(() => {
 		if (displayName && displayName !== 'Guest') {
-			// Use a slight delay to ensure DOM is ready
 			const timeoutId = setTimeout(() => {
 				populateUsernameElements(displayName);
 			}, 100);
@@ -389,7 +382,6 @@ export const ReactUserProfile = () => {
 			setTimeout(() => {
 				if (!isVisible) {
 					setIsVisible(true);
-					// Also populate username elements after component becomes visible
 					if (displayName && displayName !== 'Guest') {
 						populateUsernameElements(displayName);
 					}
