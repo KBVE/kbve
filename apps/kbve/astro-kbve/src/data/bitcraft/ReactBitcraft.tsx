@@ -24,7 +24,8 @@ import {
   BitcraftFormDataSchema,
   validateFormData,
   parseFormData,
-  ALL_PROFESSIONS
+  ALL_PROFESSIONS,
+  DEFAULT_SYNC_OFFSET_MS
 } from './bitcraftTypes';
 import type { EffortCalculation } from './BitcraftCalculatorService';
 
@@ -44,6 +45,7 @@ const ReactBitcraft: FC<ReactBitcraftProps> = ({ className }) => {
   const [isCalculating, setIsCalculating] = useState(false);
   const [isTickerRunning, setIsTickerRunning] = useState(false);
   const [tickerStats, setTickerStats] = useState({ tickCount: 0, startTime: null as Date | null });
+  const [showSyncSettings, setShowSyncSettings] = useState(false);
 
   // React Hook Form setup with zod validation
   const { control, handleSubmit, watch, setValue, reset, formState: { errors } } = useForm<BitcraftFormData>({
@@ -52,7 +54,8 @@ const ReactBitcraft: FC<ReactBitcraftProps> = ({ className }) => {
       totalEffort: currentProgress?.totalEffort || 1000,
       effortPerTick: currentProgress?.effortPerTick || 10,
       timePerTick: currentProgress?.timePerTick || 1.0,
-      currentProgress: currentProgress?.currentEffort || 0
+      currentProgress: currentProgress?.currentEffort || 0,
+      syncOffset: DEFAULT_SYNC_OFFSET_MS
     },
     // Enable zod validation
     mode: 'onChange'
@@ -71,6 +74,7 @@ const ReactBitcraft: FC<ReactBitcraftProps> = ({ className }) => {
         profession: selectedProf.profession,
         effortPerTick: formValues.effortPerTick,
         timePerTick: formValues.timePerTick,
+        syncOffset: formValues.syncOffset || DEFAULT_SYNC_OFFSET_MS,
         onTick: (newProgress: number, tickCount: number) => {
           // Update the form's current progress
           setValue('currentProgress', newProgress);
@@ -134,6 +138,10 @@ const ReactBitcraft: FC<ReactBitcraftProps> = ({ className }) => {
       setValue('effortPerTick', professionData.effortPerTick || 10);
       setValue('timePerTick', professionData.timePerTick || 1.0);
       setValue('currentProgress', professionData.currentEffort || 0);
+      // Keep sync offset from current form value or use default
+      if (!formValues.syncOffset) {
+        setValue('syncOffset', DEFAULT_SYNC_OFFSET_MS);
+      }
     }
   }, [selectedProf.profession, professions, setValue]);
 
@@ -422,120 +430,172 @@ const ReactBitcraft: FC<ReactBitcraftProps> = ({ className }) => {
 
   // Render function for profession selector panel
   const renderProfessionSelector = () => (
-    <div className="space-y-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">Select Profession</h3>
-        <div className="grid grid-cols-2 gap-2">
-          {ALL_PROFESSIONS.map(renderProfessionButton)}
-        </div>
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-6 shadow-sm border border-gray-200 dark:border-gray-700">
+      <h3 className="text-xl font-semibold mb-4 text-gray-900 dark:text-white text-center">
+        Select Profession
+      </h3>
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-3">
+        {ALL_PROFESSIONS.map(renderProfessionButton)}
       </div>
     </div>
   );
 
   // Render function for settings form panel
   const renderSettingsForm = () => (
-    <div className="space-y-4">
-      <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
-        <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
-          {BitcraftModule.constants.PROFESSION_ICONS[selectedProf.profession as BitcraftProfession]} {selectedProf.profession} Settings
-        </h3>
+    <div className="bg-white dark:bg-gray-800 rounded-lg p-4 shadow-sm border border-gray-200 dark:border-gray-700">
+      <h3 className="text-lg font-semibold mb-3 text-gray-900 dark:text-white">
+        {BitcraftModule.constants.PROFESSION_ICONS[selectedProf.profession as BitcraftProfession]} {selectedProf.profession} Settings
+      </h3>
+      
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {renderValidationStatus()}
         
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
-          {renderValidationStatus()}
+        <div className="grid grid-cols-2 gap-4">
+          {renderFormInput("totalEffort", "Total Effort", { min: "1" })}
+          {renderFormInput("currentProgress", "Current Progress", { 
+            min: "0", 
+            max: formValues.totalEffort 
+          })}
+          {renderFormInput("effortPerTick", "Effort per Tick", { 
+            step: "0.1", 
+            min: "0.1" 
+          })}
+          {renderFormInput("timePerTick", "Time per Tick (s)", { 
+            step: "0.01", 
+            min: "0.01" 
+          })}
+        </div>
+        
+        {/* Collapsible Sync Offset Settings */}
+        <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+          <button
+            type="button"
+            onClick={() => setShowSyncSettings(!showSyncSettings)}
+            className="flex items-center justify-between w-full text-left text-sm font-medium text-gray-700 dark:text-gray-300 hover:text-gray-900 dark:hover:text-white transition-colors"
+          >
+            <span className="flex items-center gap-2">
+              🌐 Server Sync Settings
+              <span className="text-xs bg-gray-100 dark:bg-gray-700 px-2 py-1 rounded">
+                {formValues.syncOffset || DEFAULT_SYNC_OFFSET_MS}ms
+              </span>
+            </span>
+            <span className={cn(
+              "transition-transform duration-200",
+              showSyncSettings ? "rotate-180" : "rotate-0"
+            )}>
+              ▼
+            </span>
+          </button>
           
-          <div className="grid grid-cols-2 gap-4">
-            {renderFormInput("totalEffort", "Total Effort", { min: "1" })}
-            {renderFormInput("currentProgress", "Current Progress", { 
-              min: "0", 
-              max: formValues.totalEffort 
-            })}
-            {renderFormInput("effortPerTick", "Effort per Tick", { 
-              step: "0.1", 
-              min: "0.1" 
-            })}
-            {renderFormInput("timePerTick", "Time per Tick (s)", { 
-              step: "0.01", 
-              min: "0.01" 
-            })}
-          </div>
+          {showSyncSettings && (
+            <div className="mt-3 space-y-4 animate-in slide-in-from-top-2 duration-200">
+              <div className="grid grid-cols-1 gap-4">
+                {renderFormInput("syncOffset", "Sync Offset (ms)", { 
+                  min: "0", 
+                  max: 5000,
+                  step: "25"
+                })}
+                <div className="text-xs text-gray-600 dark:text-gray-400 bg-gray-50 dark:bg-gray-800 p-3 rounded-lg">
+                  <p className="font-medium mb-1">💡 Sync Offset Tips:</p>
+                  <ul className="space-y-1">
+                    <li>• <strong>250ms</strong> - Default, good for most connections</li>
+                    <li>• <strong>500ms</strong> - Higher latency or slower connections</li>
+                    <li>• <strong>100ms</strong> - Low latency, fast connections</li>
+                    <li>• <strong>0ms</strong> - Perfect connection (theoretical)</li>
+                  </ul>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+        
+        <div className="flex gap-2">
+          <button
+            type="submit"
+            disabled={!isFormValid}
+            className={cn(
+              "flex-1 px-4 py-2 rounded-md transition-colors duration-200 flex items-center justify-center gap-2",
+              isFormValid
+                ? "bg-blue-500 hover:bg-blue-600 text-white"
+                : "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+            )}
+          >
+            <Save className="w-4 h-4" />
+            {isFormValid ? "Save" : "Fix Errors to Save"}
+          </button>
           
+          <button
+            type="button"
+            onClick={handleReset}
+            className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center justify-center gap-2"
+          >
+            <RotateCcw className="w-4 h-4" />
+            Reset
+          </button>
+        </div>
+        
+        {/* Ticker Controls */}
+        <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
+          <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
+            Auto-Progress Ticker
+          </h4>
           <div className="flex gap-2">
             <button
-              type="submit"
-              disabled={!isFormValid}
+              type="button"
+              onClick={isTickerRunning ? stopTicker : startTicker}
+              disabled={!isFormValid || !formValues.effortPerTick || !formValues.timePerTick}
               className={cn(
                 "flex-1 px-4 py-2 rounded-md transition-colors duration-200 flex items-center justify-center gap-2",
-                isFormValid
-                  ? "bg-blue-500 hover:bg-blue-600 text-white"
-                  : "bg-gray-300 dark:bg-gray-600 text-gray-500 dark:text-gray-400 cursor-not-allowed"
+                isTickerRunning
+                  ? "bg-red-500 hover:bg-red-600 text-white"
+                  : "bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
               )}
             >
-              <Save className="w-4 h-4" />
-              {isFormValid ? "Save" : "Fix Errors to Save"}
-            </button>
-            
-            <button
-              type="button"
-              onClick={handleReset}
-              className="bg-gray-500 hover:bg-gray-600 text-white px-4 py-2 rounded-md transition-colors duration-200 flex items-center justify-center gap-2"
-            >
-              <RotateCcw className="w-4 h-4" />
-              Reset
+              {isTickerRunning ? (
+                <>
+                  <Pause className="w-4 h-4" />
+                  Stop Ticker
+                </>
+              ) : (
+                <>
+                  <Play className="w-4 h-4" />
+                  Start Ticker
+                </>
+              )}
             </button>
           </div>
           
-          {/* Ticker Controls */}
-          <div className="border-t border-gray-200 dark:border-gray-600 pt-4">
-            <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">
-              Auto-Progress Ticker
-            </h4>
-            <div className="flex gap-2">
-              <button
-                type="button"
-                onClick={isTickerRunning ? stopTicker : startTicker}
-                disabled={!isFormValid || !formValues.effortPerTick || !formValues.timePerTick}
-                className={cn(
-                  "flex-1 px-4 py-2 rounded-md transition-colors duration-200 flex items-center justify-center gap-2",
-                  isTickerRunning
-                    ? "bg-red-500 hover:bg-red-600 text-white"
-                    : "bg-green-500 hover:bg-green-600 text-white disabled:bg-gray-300 disabled:text-gray-500 disabled:cursor-not-allowed"
-                )}
-              >
-                {isTickerRunning ? (
-                  <>
-                    <Pause className="w-4 h-4" />
-                    Stop Ticker
-                  </>
-                ) : (
-                  <>
-                    <Play className="w-4 h-4" />
-                    Start Ticker
-                  </>
-                )}
-              </button>
-            </div>
-            
-            {/* Ticker Status */}
-            {isTickerRunning && (
-              <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-green-800 dark:text-green-200">
-                    🕒 Ticker Active
-                  </span>
-                  <span className="text-green-600 dark:text-green-400 font-medium">
-                    {tickerStats.tickCount} ticks
-                  </span>
+          {/* Ticker Status */}
+          {isTickerRunning && (
+            <div className="mt-3 p-3 bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800 rounded-lg">
+              <div className="flex items-center justify-between text-sm mb-2">
+                <span className="text-green-800 dark:text-green-200">
+                  🕒 Ticker Active
+                </span>
+                <span className="text-green-600 dark:text-green-400 font-medium">
+                  {tickerStats.tickCount} ticks
+                </span>
+              </div>
+              <div className="grid grid-cols-2 gap-2 text-xs text-green-700 dark:text-green-300">
+                <div>
+                  <strong>Base Tick:</strong> {((formValues.timePerTick || 0) * 1000).toFixed(0)}ms
+                </div>
+                <div>
+                  <strong>Sync Offset:</strong> {formValues.syncOffset || DEFAULT_SYNC_OFFSET_MS}ms
+                </div>
+                <div>
+                  <strong>Actual Interval:</strong> {((formValues.timePerTick || 0) * 1000 + (formValues.syncOffset || DEFAULT_SYNC_OFFSET_MS)).toFixed(0)}ms
                 </div>
                 {tickerStats.startTime && (
-                  <div className="text-xs text-green-700 dark:text-green-300 mt-1">
-                    Started: {tickerStats.startTime.toLocaleTimeString()}
+                  <div>
+                    <strong>Started:</strong> {tickerStats.startTime.toLocaleTimeString()}
                   </div>
                 )}
               </div>
-            )}
-          </div>
-        </form>
-      </div>
+            </div>
+          )}
+        </div>
+      </form>
     </div>
   );
 
@@ -742,13 +802,20 @@ const ReactBitcraft: FC<ReactBitcraftProps> = ({ className }) => {
 
   // Main render shell
   return (
-    <div className={cn("w-full max-w-4xl mx-auto p-6 space-y-6", className)}>
+    <div className={cn("w-full max-w-6xl mx-auto p-6 space-y-6", className)}>
       {renderHeader()}
       
-      <div className="grid gap-6 lg:grid-cols-3">
-        {renderProfessionSelector()}
-        {renderSettingsForm()}
-        {renderResultsPanel()}
+      {/* Profession Selector - Full Width Top */}
+      {renderProfessionSelector()}
+      
+      {/* Two Column Layout - Settings | Summary */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <div className="space-y-4">
+          {renderSettingsForm()}
+        </div>
+        <div className="space-y-4">
+          {renderResultsPanel()}
+        </div>
       </div>
     </div>
   );

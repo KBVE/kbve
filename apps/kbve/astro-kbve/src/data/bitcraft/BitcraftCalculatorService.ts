@@ -30,6 +30,7 @@ export interface TickerConfig {
   profession: string;
   effortPerTick: number;
   timePerTick: number;
+  syncOffset?: number; // Sync offset in milliseconds (default 250ms)
   onTick: (newProgress: number, tickCount: number) => void;
   onComplete?: (finalProgress: number) => void;
 }
@@ -211,8 +212,15 @@ export class BitcraftCalculatorService {
       intervalId: undefined
     };
 
-    // Convert time per tick from seconds to milliseconds
-    const intervalMs = config.timePerTick * 1000;
+    // Convert time per tick from seconds to milliseconds and add sync offset
+    const baseTick = config.timePerTick * 1000;
+    const syncOffset = config.syncOffset || 250; // Default 250ms lag adjustment
+    const adjustedTickMs = baseTick + syncOffset;
+
+    console.log(`Starting ticker for ${profession}:`);
+    console.log(`Base tick time: ${baseTick}ms`);
+    console.log(`Sync offset: ${syncOffset}ms`);
+    console.log(`Adjusted tick time: ${adjustedTickMs}ms`);
 
     tickerState.intervalId = setInterval(() => {
       if (!tickerState.isRunning) {
@@ -231,7 +239,7 @@ export class BitcraftCalculatorService {
         config.onComplete(tickerState.currentProgress);
         this.stopTicker(profession);
       }
-    }, intervalMs);
+    }, adjustedTickMs);
 
     this.tickers.set(profession, tickerState);
     return true;

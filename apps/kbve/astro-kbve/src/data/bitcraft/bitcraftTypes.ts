@@ -43,7 +43,8 @@ export const BitcraftFormDataSchema = z.object({
   totalEffort: z.number().min(1),
   effortPerTick: z.number().min(0),
   timePerTick: z.number().min(0),
-  currentProgress: z.number().min(0) // Removed .max(100) since effort can exceed 100
+  currentProgress: z.number().min(0), // Removed .max(100) since effort can exceed 100
+  syncOffset: z.number().min(0).max(5000).optional() // Sync offset in milliseconds (0-5000ms)
 });
 
 // Type inference from zod schema
@@ -146,6 +147,9 @@ export const DEFAULT_PROFESSION_SETTINGS: Record<BitcraftProfession, Omit<Profes
   Smithing: { currentEffort: 0, totalEffort: 16500, effortPerTick: 17, timePerTick: 2.2 },
   Tailoring: { currentEffort: 0, totalEffort: 8000, effortPerTick: 12, timePerTick: 1.4 }
 };
+
+// Default sync offset constant
+export const DEFAULT_SYNC_OFFSET_MS = 250;
 
 // Helper to get validated default settings for a profession
 export const getDefaultProfessionSettings = (profession: BitcraftProfession) => {
