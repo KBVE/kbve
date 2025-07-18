@@ -1,4 +1,3 @@
-// ...existing code...
 import React, { useEffect, useState, useMemo } from 'react';
 import { userClientService } from '@kbve/astropad';
 import {
@@ -71,15 +70,12 @@ const GuestNavItems = [
 const ReactStarlightNav: React.FC = () => {
   const [userInfo, setUserInfo] = useState<{ username?: string; isMember: boolean }>({ isMember: false });
   const [loading, setLoading] = useState(true);
-  // Skeleton fade-out state
   const [skeletonVisible, setSkeletonVisible] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
       try {
-        // Use getCurrentUsername() to avoid unnecessary Supabase calls
         const username = userClientService.getCurrentUsername();
-        // Use userAtom for membership status
         const isMember = !!userClientService.userAtom.get();
         setUserInfo({
           username: username ?? undefined,
@@ -93,7 +89,6 @@ const ReactStarlightNav: React.FC = () => {
     fetchUser();
   }, []);
 
-  // Fade out skeleton and fade in nav bar (smoother)
   useEffect(() => {
   if (!loading) {
     nextFrame(() => hideSkeleton(), 50);
@@ -102,7 +97,6 @@ const ReactStarlightNav: React.FC = () => {
 
   const navigationItems = userInfo.isMember ? MainNavItems : GuestNavItems;
 
-  // Animate icons in when nav becomes visible
   return (
     <nav
       className={cn(
@@ -111,14 +105,14 @@ const ReactStarlightNav: React.FC = () => {
       )}
       role="navigation"
       aria-label="Starlight navigation"
-      style={{ zIndex: 20, transition: 'opacity 0.5s cubic-bezier(0.4,0,0.2,1)' }}
+      style={{ zIndex: 20, transition: 'opacity 0.5s cubic-bezier(0.4,0,0.2,1)', alignItems: 'flex-end' }}
     >
       {navigationItems.map(({ route, name, Icon, tooltip }, idx) => (
         <a
           key={route}
           href={route}
           className={cn(
-            'group relative flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-md',
+            'group relative overflow-visible flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-md',
             'text-gray-600 dark:text-gray-400',
             'hover:text-gray-900 dark:hover:text-gray-100',
             'hover:bg-gray-100 dark:hover:bg-gray-800',
@@ -126,7 +120,7 @@ const ReactStarlightNav: React.FC = () => {
             'transition-all duration-200 ease-in-out active:scale-95',
             !loading ? 'animate-nav-in' : ''
           )}
-          style={!loading ? { animationDelay: `${idx * 80}ms` } : undefined}
+          style={!loading ? { animationDelay: `${idx * 80}ms`, alignItems: 'flex-end' } : { alignItems: 'flex-end' }}
           title={tooltip}
           aria-label={tooltip}
         >
@@ -135,15 +129,18 @@ const ReactStarlightNav: React.FC = () => {
               'w-5 h-5 md:w-4 md:h-4 transition-transform duration-200 group-hover:scale-110',
               !loading ? 'animate-icon-in' : ''
             )}
-            style={!loading ? { animationDelay: `${idx * 80 + 100}ms` } : undefined}
+            style={!loading ? { animationDelay: `${idx * 80 + 100}ms`, willChange: 'transform' } : { willChange: 'transform' }}
             aria-hidden="true"
           />
           {/* Tooltip */}
-          <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-3
-            px-3 py-2 text-xs font-medium text-white bg-gray-900 dark:bg-gray-700
-            rounded-md shadow-lg opacity-0 group-hover:opacity-100
-            transition-opacity duration-200 pointer-events-none
-            whitespace-nowrap z-[9999]">
+          <div
+            className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1.5
+              px-3 py-2 text-xs font-medium text-white bg-gray-900 dark:bg-gray-700
+              rounded-md shadow-lg opacity-0 group-hover:opacity-100
+              transition-opacity duration-200 pointer-events-none
+              whitespace-nowrap"
+            style={{ willChange: 'transform', zIndex: 99999 }}
+          >
             {tooltip}
             <div className="absolute bottom-full left-1/2 transform -translate-x-1/2
               border-4 border-transparent border-b-gray-900 dark:border-b-gray-700"></div>
@@ -151,51 +148,6 @@ const ReactStarlightNav: React.FC = () => {
         </a>
       ))}
 
-      {/* Search icon (always visible) */}
-      <button
-        className={cn(
-          'group relative flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-md',
-          'text-gray-600 dark:text-gray-400',
-          'hover:text-gray-900 dark:hover:text-gray-100',
-          'hover:bg-gray-100 dark:hover:bg-gray-800',
-          'focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2',
-          'transition-all duration-200 ease-in-out active:scale-95',
-          !loading ? 'animate-nav-in' : ''
-        )}
-        style={!loading ? { animationDelay: `${navigationItems.length * 80}ms` } : undefined}
-        onClick={() => {
-          const searchButton = document.querySelector('[data-open-modal]') as HTMLElement;
-          if (searchButton) {
-            searchButton.click();
-          } else {
-            const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
-            if (searchInput) {
-              searchInput.focus();
-            }
-          }
-        }}
-        title="Search documentation"
-        aria-label="Search documentation"
-      >
-        <Search 
-          className={cn(
-            'w-5 h-5 md:w-4 md:h-4 transition-transform duration-200 group-hover:scale-110',
-            !loading ? 'animate-icon-in' : ''
-          )}
-          style={!loading ? { animationDelay: `${navigationItems.length * 80 + 100}ms` } : undefined}
-          aria-hidden="true"
-        />
-        {/* Tooltip */}
-        <div className="absolute top-full left-1/2 transform -translate-x-1/2 mt-3
-          px-3 py-2 text-xs font-medium text-white bg-gray-900 dark:bg-gray-700
-          rounded-md shadow-lg opacity-0 group-hover:opacity-100
-          transition-opacity duration-200 pointer-events-none
-          whitespace-nowrap z-[9999]">
-          Search documentation
-          <div className="absolute bottom-full left-1/2 transform -translate-x-1/2
-            border-4 border-transparent border-b-gray-900 dark:border-b-gray-700"></div>
-        </div>
-      </button>
 
       {/* Visual separator for member status */}
       <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-2" />
