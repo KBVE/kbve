@@ -35,6 +35,8 @@ const GuestNavItems = [
 const ReactStarlightNav: React.FC = () => {
   const [userInfo, setUserInfo] = useState<{ username?: string; isMember: boolean }>({ isMember: false });
   const [loading, setLoading] = useState(true);
+  // Skeleton fade-out state
+  const [skeletonVisible, setSkeletonVisible] = useState(true);
 
   useEffect(() => {
     const fetchUser = async () => {
@@ -55,23 +57,39 @@ const ReactStarlightNav: React.FC = () => {
     fetchUser();
   }, []);
 
+  // Fade out skeleton and fade in nav bar
+  useEffect(() => {
+    if (!loading) {
+      // Start fade out
+      setTimeout(() => {
+        setSkeletonVisible(false);
+        // Remove skeleton from DOM after fade
+        setTimeout(() => {
+          const skeleton = document.getElementById('nav-skeleton');
+          if (skeleton) {
+            skeleton.style.opacity = '0';
+            skeleton.style.pointerEvents = 'none';
+            skeleton.style.zIndex = '-1';
+            setTimeout(() => {
+              skeleton.style.display = 'none';
+            }, 400);
+          }
+        }, 400);
+      }, 100);
+    }
+  }, [loading]);
+
   const navigationItems = userInfo.isMember ? MainNavItems : GuestNavItems;
 
-  if (loading) {
-    return (
-      <nav className="flex items-center space-x-1 ml-4">
-        {Array.from({ length: 4 }).map((_, i) => (
-          <div
-            key={i}
-            className="w-8 h-8 bg-gray-200 dark:bg-gray-700 rounded-md animate-pulse"
-          />
-        ))}
-      </nav>
-    );
-  }
+  // Always render nav, but fade in when ready
 
   return (
-    <nav className="flex items-center space-x-1 ml-2 md:ml-4" role="navigation" aria-label="Starlight navigation">
+    <nav
+      className={`flex items-center space-x-1 ml-2 md:ml-4 transition-opacity duration-500 ${loading ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
+      role="navigation"
+      aria-label="Starlight navigation"
+      style={{ zIndex: loading ? 0 : 20 }}
+    >
       {navigationItems.map(({ route, name, Icon, tooltip }) => (
         <a
           key={route}
