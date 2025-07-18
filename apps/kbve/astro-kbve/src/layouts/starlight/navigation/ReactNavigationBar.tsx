@@ -1,3 +1,4 @@
+// ...existing code...
 import React, { useEffect, useState, useMemo } from 'react';
 import { userClientService } from '@kbve/astropad';
 import {
@@ -15,6 +16,41 @@ import {
   MessageCircle,
   Award,
 } from 'lucide-react';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => {
+  return twMerge(clsx(inputs));
+};
+
+
+/**
+ * Utility function to execute a callback on the next animation frame with an optional delay
+ * @param callback - Function to execute
+ * @param delay - Optional delay in milliseconds (default: 0)
+ */
+const nextFrame = (callback: () => void, delay: number = 0) => {
+  requestAnimationFrame(() => {
+    if (delay > 0) {
+      setTimeout(callback, delay);
+    } else {
+      callback();
+    }
+  });
+};
+
+const hideSkeleton = () => {
+  const skeleton = document.querySelector('#nav-skeleton') || document.querySelector('[data-skeleton="navigation"]');
+  if (skeleton instanceof HTMLElement) {
+    skeleton.style.transition = 'opacity 0.5s ease';
+    skeleton.style.opacity = '0';
+    skeleton.style.pointerEvents = 'none';
+    skeleton.style.display = 'none';
+  }
+};
+
+
+
 
 // Main navigation items (max 4 icons, no Home)
 const MainNavItems = [
@@ -57,55 +93,49 @@ const ReactStarlightNav: React.FC = () => {
     fetchUser();
   }, []);
 
-  // Fade out skeleton and fade in nav bar
+  // Fade out skeleton and fade in nav bar (smoother)
   useEffect(() => {
-    if (!loading) {
-      // Start fade out
-      setTimeout(() => {
-        setSkeletonVisible(false);
-        // Remove skeleton from DOM after fade
-        setTimeout(() => {
-          const skeleton = document.getElementById('nav-skeleton');
-          if (skeleton) {
-            skeleton.style.opacity = '0';
-            skeleton.style.pointerEvents = 'none';
-            skeleton.style.zIndex = '-1';
-            setTimeout(() => {
-              skeleton.style.display = 'none';
-            }, 400);
-          }
-        }, 400);
-      }, 100);
-    }
-  }, [loading]);
+  if (!loading) {
+    nextFrame(() => hideSkeleton(), 50);
+  }
+}, [loading]);
 
   const navigationItems = userInfo.isMember ? MainNavItems : GuestNavItems;
 
-  // Always render nav, but fade in when ready
-
+  // Animate icons in when nav becomes visible
   return (
     <nav
-      className={`flex items-center space-x-1 ml-2 md:ml-4 transition-opacity duration-500 ${loading ? 'opacity-0 pointer-events-none' : 'opacity-100 pointer-events-auto'}`}
+      className={cn(
+        'flex items-center space-x-1 ml-2 md:ml-4 transition-opacity duration-500',
+        !loading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+      )}
       role="navigation"
       aria-label="Starlight navigation"
-      style={{ zIndex: loading ? 0 : 20 }}
+      style={{ zIndex: 20, transition: 'opacity 0.5s cubic-bezier(0.4,0,0.2,1)' }}
     >
-      {navigationItems.map(({ route, name, Icon, tooltip }) => (
+      {navigationItems.map(({ route, name, Icon, tooltip }, idx) => (
         <a
           key={route}
           href={route}
-          className="group relative flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-md
-            text-gray-600 dark:text-gray-400 
-            hover:text-gray-900 dark:hover:text-gray-100
-            hover:bg-gray-100 dark:hover:bg-gray-800
-            focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2
-            transition-all duration-200 ease-in-out
-            active:scale-95"
+          className={cn(
+            'group relative flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-md',
+            'text-gray-600 dark:text-gray-400',
+            'hover:text-gray-900 dark:hover:text-gray-100',
+            'hover:bg-gray-100 dark:hover:bg-gray-800',
+            'focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2',
+            'transition-all duration-200 ease-in-out active:scale-95',
+            !loading ? 'animate-nav-in' : ''
+          )}
+          style={!loading ? { animationDelay: `${idx * 80}ms` } : undefined}
           title={tooltip}
           aria-label={tooltip}
         >
           <Icon 
-            className="w-5 h-5 md:w-4 md:h-4 transition-transform duration-200 group-hover:scale-110" 
+            className={cn(
+              'w-5 h-5 md:w-4 md:h-4 transition-transform duration-200 group-hover:scale-110',
+              !loading ? 'animate-icon-in' : ''
+            )}
+            style={!loading ? { animationDelay: `${idx * 80 + 100}ms` } : undefined}
             aria-hidden="true"
           />
           {/* Tooltip */}
@@ -123,19 +153,22 @@ const ReactStarlightNav: React.FC = () => {
 
       {/* Search icon (always visible) */}
       <button
-        className="group relative flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-md
-          text-gray-600 dark:text-gray-400 
-          hover:text-gray-900 dark:hover:text-gray-100
-          hover:bg-gray-100 dark:hover:bg-gray-800
-          focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2
-          transition-all duration-200 ease-in-out
-          active:scale-95"
+        className={cn(
+          'group relative flex items-center justify-center w-10 h-10 md:w-8 md:h-8 rounded-md',
+          'text-gray-600 dark:text-gray-400',
+          'hover:text-gray-900 dark:hover:text-gray-100',
+          'hover:bg-gray-100 dark:hover:bg-gray-800',
+          'focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2',
+          'transition-all duration-200 ease-in-out active:scale-95',
+          !loading ? 'animate-nav-in' : ''
+        )}
+        style={!loading ? { animationDelay: `${navigationItems.length * 80}ms` } : undefined}
         onClick={() => {
           const searchButton = document.querySelector('[data-open-modal]') as HTMLElement;
           if (searchButton) {
             searchButton.click();
           } else {
-            const searchInput = document.querySelector('input[type=\"search\"]') as HTMLInputElement;
+            const searchInput = document.querySelector('input[type="search"]') as HTMLInputElement;
             if (searchInput) {
               searchInput.focus();
             }
@@ -145,7 +178,11 @@ const ReactStarlightNav: React.FC = () => {
         aria-label="Search documentation"
       >
         <Search 
-          className="w-5 h-5 md:w-4 md:h-4 transition-transform duration-200 group-hover:scale-110" 
+          className={cn(
+            'w-5 h-5 md:w-4 md:h-4 transition-transform duration-200 group-hover:scale-110',
+            !loading ? 'animate-icon-in' : ''
+          )}
+          style={!loading ? { animationDelay: `${navigationItems.length * 80 + 100}ms` } : undefined}
           aria-hidden="true"
         />
         {/* Tooltip */}
