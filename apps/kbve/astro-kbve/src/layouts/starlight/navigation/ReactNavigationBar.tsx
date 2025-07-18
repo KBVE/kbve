@@ -84,9 +84,7 @@ const ReactStarlightNav: React.FC = () => {
   const username = userClientService.getCurrentUsername();
   const isMember = !!userAtomValue;
   const navigationItems = useMemo(() => isMember ? MainNavItems : GuestNavItems, [isMember]);
-  // ...existing code...
 
-  // Shell component for navigation rendering
   const NavigationShell = React.useCallback(() => (
     <nav
       className={cn(
@@ -122,9 +120,9 @@ const ReactStarlightNav: React.FC = () => {
             style={!loading ? { animationDelay: `${idx * 80 + 100}ms`, willChange: 'transform' } : { willChange: 'transform' }}
             aria-hidden="true"
           />
-          {/* Tooltip */}
+          {/* Tooltip - now appears to the right of the icon */}
           <div
-            className="absolute top-full left-1/2 transform -translate-x-1/2 mt-1.5
+            className="absolute left-full top-1/2 transform -translate-y-1/2 ml-2
               px-3 py-2 text-xs font-medium text-white bg-gray-900 dark:bg-gray-700
               rounded-md shadow-lg opacity-0 group-hover:opacity-100
               transition-opacity duration-200 pointer-events-none
@@ -132,8 +130,8 @@ const ReactStarlightNav: React.FC = () => {
             style={{ willChange: 'transform', zIndex: 99999 }}
           >
             {tooltip}
-            <div className="absolute bottom-full left-1/2 transform -translate-x-1/2
-              border-4 border-transparent border-b-gray-900 dark:border-b-gray-700"></div>
+            <div className="absolute left-0 top-1/2 transform -translate-y-1/2 -ml-2
+              border-4 border-transparent border-r-gray-900 dark:border-r-gray-700"></div>
           </div>
         </a>
       ))}
