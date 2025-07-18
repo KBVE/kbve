@@ -191,7 +191,7 @@ This is an open source Unity game that is currently located under `/apps/saber/`
 #### Atlas
 
 Atlas is a [Python pip package](https://pypi.org/p/kbve) for generic baseline ml applications.
-Atlas currently only has `pyautogen` but a couple other packages are planned but as of right now, we are waiting on the stablization of the OpenAI v1 API.
+Atlas currently only has `ag2` but a couple other packages are planned but as of right now, we are waiting on the stablization of the OpenAI v1 API.
 The Atlas Library is currently broken needs to be wait on a couple packages to be updated, including LiteLLM.
 
 #### AstroVe
