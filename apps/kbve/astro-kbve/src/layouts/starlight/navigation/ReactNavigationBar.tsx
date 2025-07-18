@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
+import { useStore } from '@nanostores/react';
 
 const cn = (...inputs: any[]) => {
   return twMerge(clsx(inputs));
@@ -49,8 +50,6 @@ const hideSkeleton = () => {
 };
 
 
-
-
 // Main navigation items (max 4 icons, no Home)
 const MainNavItems = [
   { route: '/profile', name: 'Profile', Icon: User, tooltip: 'Your profile' },
@@ -68,36 +67,27 @@ const GuestNavItems = [
 ] as const;
 
 const ReactStarlightNav: React.FC = () => {
-  const [userInfo, setUserInfo] = useState<{ username?: string; isMember: boolean }>({ isMember: false });
+  const userAtomValue = useStore(userClientService.userAtom);
   const [loading, setLoading] = useState(true);
   const [skeletonVisible, setSkeletonVisible] = useState(true);
 
   useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const username = userClientService.getCurrentUsername();
-        const isMember = !!userClientService.userAtom.get();
-        setUserInfo({
-          username: username ?? undefined,
-          isMember,
-        });
-      } catch {
-        setUserInfo({ isMember: false });
-      }
-      setLoading(false);
-    };
-    fetchUser();
-  }, []);
+    setLoading(false);
+  }, [userAtomValue]);
 
   useEffect(() => {
-  if (!loading) {
-    nextFrame(() => hideSkeleton(), 50);
-  }
-}, [loading]);
+    if (!loading) {
+      nextFrame(() => hideSkeleton(), 50);
+    }
+  }, [loading]);
 
-  const navigationItems = userInfo.isMember ? MainNavItems : GuestNavItems;
+  const username = userClientService.getCurrentUsername();
+  const isMember = !!userAtomValue;
+  const navigationItems = useMemo(() => isMember ? MainNavItems : GuestNavItems, [isMember]);
+  // ...existing code...
 
-  return (
+  // Shell component for navigation rendering
+  const NavigationShell = React.useCallback(() => (
     <nav
       className={cn(
         'flex items-center space-x-1 ml-2 md:ml-4 transition-opacity duration-500',
@@ -148,25 +138,26 @@ const ReactStarlightNav: React.FC = () => {
         </a>
       ))}
 
-
       {/* Visual separator for member status */}
       <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-2" />
 
       {/* Member status indicator and username */}
       <div className="flex items-center justify-center w-10 h-10 md:w-8 md:h-8">
         <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${
-          userInfo.isMember 
+          isMember 
             ? 'bg-green-500 shadow-sm shadow-green-500/50' 
             : 'bg-gray-400 dark:bg-gray-600'
         }`} 
-        title={userInfo.isMember ? `Logged in${userInfo.username ? ` as ${userInfo.username}` : ''}` : 'Guest user'}
+        title={isMember ? `Logged in${username ? ` as ${username}` : ''}` : 'Guest user'}
         />
-        {userInfo.isMember && userInfo.username && (
-          <span className="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300 hidden md:inline">{userInfo.username}</span>
+        {isMember && username && (
+          <span className="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300 hidden md:inline">{username}</span>
         )}
       </div>
     </nav>
-  );
+  ), [navigationItems, loading, isMember, username]);
+
+  return <NavigationShell />;
 };
 
 export default ReactStarlightNav;
