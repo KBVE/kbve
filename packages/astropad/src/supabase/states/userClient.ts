@@ -15,6 +15,12 @@ export type UserBalanceView = {
 };
 
 class UserClientService {
+  /**
+   * Get the current username from local atom (no Supabase call)
+   */
+  public getCurrentUsername(): string | null {
+    return this.usernameAtom.get();
+  }
   private static instance: UserClientService;
   private isInitialized = false;
   private isInitializing = false;

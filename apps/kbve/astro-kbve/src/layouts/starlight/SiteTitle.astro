@@ -1,8 +1,8 @@
 ---
 import docsLogo from "src/layouts/starlight/images/docs_logo.svg?raw";
 import type { Props } from "@astrojs/starlight/props";
-
-import ReactSidebarNav from "./ReactStarlightNav";
+import StarlightNav from "./navigation/StarlightNav.astro";
+// import ReactSidebarNav from "./ReactStarlightNav";
 
 const main = "/";
 const locale = Astro.props.locale ? Astro.props.locale + "/" : "";
@@ -14,9 +14,10 @@ const docs = "/docs";
   <a href="/" data-astro-prefetch>
     <img src="/assets/images/brand/letter_logo.png" />
   </a>
-  <a class="docs-logo" href={docs} data-astro-prefetch set:html={docsLogo} aria-label="KBVE Docs" />
+  <!-- <a class="docs-logo" href={docs} data-astro-prefetch set:html={docsLogo} aria-label="KBVE Docs" /> -->
 
-  <ReactSidebarNav client:only="react" />
+  <!-- <ReactSidebarNav client:only="react" /> -->
+   <StarlightNav />
 </span>
 
 <style>
