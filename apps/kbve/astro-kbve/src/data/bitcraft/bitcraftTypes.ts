@@ -8,7 +8,8 @@ import { z } from 'astro:schema';
 // Zod schema for BitcraftProfession
 export const BitcraftProfessionSchema = z.enum([
   "Carpentry",
-  "Farming",
+  "Cooking",
+  "Farming", 
   "Fishing",
   "Foraging",
   "Forestry",
@@ -120,6 +121,7 @@ export const ALL_PROFESSIONS = BitcraftProfessionSchema.options;
 
 export const PROFESSION_COLORS: Record<BitcraftProfession, string> = {
   Carpentry: "#8B4513",
+  Cooking: "#FF6347",
   Farming: "#228B22",
   Fishing: "#4682B4",
   Foraging: "#32CD32",
@@ -135,6 +137,7 @@ export const PROFESSION_COLORS: Record<BitcraftProfession, string> = {
 
 export const DEFAULT_PROFESSION_SETTINGS: Record<BitcraftProfession, Omit<ProfessionProgress, 'profession' | 'lastUpdated'>> = {
   Carpentry: { currentEffort: 0, totalEffort: 12700, effortPerTick: 11, timePerTick: 1.53 },
+  Cooking: { currentEffort: 0, totalEffort: 8000, effortPerTick: 10, timePerTick: 1.5 },
   Farming: { currentEffort: 0, totalEffort: 10000, effortPerTick: 12, timePerTick: 1.4 },
   Fishing: { currentEffort: 0, totalEffort: 8500, effortPerTick: 9, timePerTick: 1.8 },
   Foraging: { currentEffort: 0, totalEffort: 6000, effortPerTick: 8, timePerTick: 1.2 },
@@ -165,6 +168,7 @@ export const getDefaultProfessionSettings = (profession: BitcraftProfession) => 
 
 export const PROFESSION_ICONS: Record<BitcraftProfession, string> = {
   Carpentry: "🪚",
+  Cooking: "🍳",
   Farming: "🌾",
   Fishing: "🎣",
   Foraging: "🍄",
