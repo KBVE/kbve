@@ -9,7 +9,7 @@ import { BitcraftCalculatorService, bitcraftService, BitcraftService } from './B
 import { DEFAULT_BITCRAFT_TASK, BITCRAFT_PRESETS, calculateDefaultTask } from './BitcraftCalculatorService';
 import { PROFESSION_COLORS, PROFESSION_ICONS, DEFAULT_PROFESSION_SETTINGS } from './bitcraftTypes';
 import { professionProgressStore, selectedProfessionStore, currentProfessionProgress, professionActions, useProfessionProgress, useSelectedProfession, useCurrentProfessionProgress } from './professionStore';
-import ReactBitcraft from './ReactBitcraft';
+// import ReactBitcraft from './ReactBitcraft';
 
 // Singleton instance for the Bitcraft module
 class BitcraftModule {
@@ -63,9 +63,9 @@ class BitcraftModule {
   };
 
   // React components
-  public components = {
-    Calculator: ReactBitcraft,
-  };
+  // public components = {
+  //   Calculator: ReactBitcraft,
+  // };
 
   // Quick start utilities
   public utils = {
