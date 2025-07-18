@@ -90,7 +90,7 @@ const ReactStarlightNav: React.FC = () => {
   const NavigationShell = React.useCallback(() => (
     <nav
       className={cn(
-        'flex items-center space-x-1 ml-2 md:ml-4 transition-opacity duration-500',
+        'flex items-center space-x-1 ml-2 md:ml-4 transition-opacity duration-500 overflow-visible',
         !loading ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
       )}
       role="navigation"
