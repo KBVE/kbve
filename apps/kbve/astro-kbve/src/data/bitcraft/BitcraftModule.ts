@@ -84,7 +84,40 @@ class BitcraftModule {
         timePerTick,
         currentProgress
       });
-    }
+    },
+    /**
+     * Tracks ticks and stops when completed.
+     * @param totalEffort Total effort required
+     * @param effortPerTick Effort gained per tick
+     * @param timePerTick Time per tick (ms)
+     * @param currentProgress Initial progress
+     * @param onTick Callback for each tick
+     * @param onComplete Callback when completed
+     * @returns stop function
+     */
+    trackTicks: (
+      totalEffort: number,
+      effortPerTick: number,
+      timePerTick: number,
+      currentProgress: number = 0,
+      onTick?: (progress: number) => void,
+      onComplete?: () => void
+    ) => {
+      let progress = currentProgress;
+      let intervalId: ReturnType<typeof setInterval> | null = setInterval(() => {
+        progress += effortPerTick;
+        if (onTick) onTick(progress);
+        if (progress >= totalEffort) {
+          if (intervalId) clearInterval(intervalId);
+          intervalId = null;
+          if (onComplete) onComplete();
+        }
+      }, timePerTick);
+      return () => {
+        if (intervalId) clearInterval(intervalId);
+        intervalId = null;
+      };
+    },
   };
 }
 
