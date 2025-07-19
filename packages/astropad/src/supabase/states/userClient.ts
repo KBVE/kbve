@@ -15,6 +15,8 @@ export type UserBalanceView = {
 };
 
 class UserClientService {
+  // Atom to track readiness of the service
+  public readonly userClientServiceReadyAtom = atom<boolean>(false);
   /**
    * Get the current username from local atom (no Supabase call)
    */
@@ -54,8 +56,18 @@ class UserClientService {
   private constructor() {}
 
   public static getInstance(): UserClientService {
-    if (!UserClientService.instance) {
-      UserClientService.instance = new UserClientService();
+    // If running in browser and global already exists, use it
+    if (typeof window !== 'undefined') {
+      if ((window as any).userClientService) {
+        UserClientService.instance = (window as any).userClientService;
+      } else if (!UserClientService.instance) {
+        UserClientService.instance = new UserClientService();
+        (window as any).userClientService = UserClientService.instance;
+      }
+    } else {
+      if (!UserClientService.instance) {
+        UserClientService.instance = new UserClientService();
+      }
     }
     return UserClientService.instance;
   }
@@ -237,6 +249,7 @@ class UserClientService {
     try {
       await this.initPromise;
       this.isInitialized = true;
+      this.userClientServiceReadyAtom.set(true); // Set ready atom after init
     } catch (error) {
       console.error('[UserClientService] Initialization failed:', error);
       // Reset flags so initialization can be retried

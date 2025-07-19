@@ -19,6 +19,12 @@ import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
 import { useStore } from '@nanostores/react';
 
+// Use global userClientService if available, else fallback to import
+const userClientServiceRef =
+  typeof window !== 'undefined' && (window as any).userClientService
+    ? (window as any).userClientService
+    : userClientService;
+
 const cn = (...inputs: any[]) => {
   return twMerge(clsx(inputs));
 };
@@ -67,20 +73,26 @@ const GuestNavItems = [
 ] as const;
 
 const ReactStarlightNav: React.FC = () => {
-  const userAtomValue = useStore(userClientService.userAtom);
+
+  const isReady = useStore(userClientServiceRef.userClientServiceReadyAtom);
+  const userAtomValue = useStore(userClientServiceRef.userAtom);
+  const username = useStore(userClientServiceRef.usernameAtom);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    setLoading(false);
-  }, [userAtomValue]);
+    // Only set loading to false when ready
+    if (isReady) {
+      setLoading(false);
+    }
+  }, [isReady]);
 
   useEffect(() => {
-    if (!loading) {
+    // Only hide skeleton when ready and not loading
+    if (isReady && !loading) {
       nextFrame(() => hideSkeleton(), 50);
     }
-  }, [loading]);
+  }, [isReady, loading]);
 
-  const username = userClientService.getCurrentUsername();
   const isMember = !!userAtomValue;
   const navigationItems = useMemo(() => isMember ? MainNavItems : GuestNavItems, [isMember]);
 
@@ -154,7 +166,11 @@ const ReactStarlightNav: React.FC = () => {
     </nav>
   ), [navigationItems, loading, isMember, username]);
 
+  if (!isReady) {
+    return null; // Or a skeleton/loading fallback
+  }
+
   return <NavigationShell />;
-};
+}
 
 export default ReactStarlightNav;
