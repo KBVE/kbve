@@ -69,7 +69,6 @@ const GuestNavItems = [
 const ReactStarlightNav: React.FC = () => {
   const userAtomValue = useStore(userClientService.userAtom);
   const [loading, setLoading] = useState(true);
-  const [skeletonVisible, setSkeletonVisible] = useState(true);
 
   useEffect(() => {
     setLoading(false);
