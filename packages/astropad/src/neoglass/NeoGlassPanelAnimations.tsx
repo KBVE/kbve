@@ -28,11 +28,16 @@ const defaultAnimationConfig: AnimationConfig = {
   },
   particles: {
     count: 6,
-    colors: ['#22d3ee', '#06b6d4', '#0891b2', '#0e7490']
+    colors: [
+      'var(--sl-color-accent)',
+      'var(--sl-color-accent-high)', 
+      'var(--sl-color-accent-low)',
+      'var(--sl-color-accent)'
+    ]
   },
   glowEffect: {
     intensity: 0.4,
-    color: '#22d3ee'
+    color: 'var(--sl-color-accent-low)'
   }
 };
 

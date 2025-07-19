@@ -30,7 +30,7 @@ export class AnimationUtils {
       isAnimating && 'contain-layout contain-style contain-paint',
       // Shimmer effect
       enableShimmer && [
-        'bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent',
+        'bg-gradient-to-r from-transparent via-[var(--sl-color-accent-high)]/40 to-transparent',
         'bg-[length:200%_100%] animate-[shimmer_2s_infinite]',
         'bg-clip-text [-webkit-background-clip:text]'
       ]
@@ -69,13 +69,16 @@ export class AnimationUtils {
   static getGlowClasses(options?: {
     isActive?: boolean;
     intensity?: 'low' | 'medium' | 'high';
+    useAccentHigh?: boolean;
   }): string {
-    const { isActive = false, intensity = 'medium' } = options || {};
+    const { isActive = false, intensity = 'medium', useAccentHigh = false } = options || {};
+    
+    const glowColor = useAccentHigh ? 'var(--sl-color-accent-high)' : 'var(--sl-color-accent-low)';
     
     const intensityMap = {
-      low: 'drop-shadow-[0_0_5px_var(--glow-color)]',
-      medium: 'drop-shadow-[0_0_10px_var(--glow-color)]',
-      high: 'drop-shadow-[0_0_20px_var(--glow-color)]'
+      low: `drop-shadow-[0_0_5px_${glowColor}]`,
+      medium: `drop-shadow-[0_0_10px_${glowColor}]`,
+      high: `drop-shadow-[0_0_20px_${glowColor}]`
     };
 
     return this.cn(
@@ -170,6 +173,7 @@ export class AnimationUtils {
     options?: {
       isActive?: boolean;
       intensity?: 'low' | 'medium' | 'high';
+      useAccentHigh?: boolean;
       additionalClasses?: string;
     }
   ): void {
