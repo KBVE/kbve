@@ -15,6 +15,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
     public class UIAuth : MonoBehaviour, IDisposable, IAsyncStartable
     {
         private CancellationTokenSource _cts;
+        private bool _hasStarted = false;
 
         private readonly CompositeDisposable _subscription = new();
 
@@ -30,14 +31,29 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
 
         public async UniTask StartAsync(CancellationToken cancellation = default)
         {
+            if (_hasStarted)
+            {
+                Debug.LogWarning("UIAuth has already started. Skipping duplicate initialization.");
+                return;
+            }
 
-            _cts = new CancellationTokenSource();
-            var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellation).Token;
-            await UniTask.WaitUntil(() => _globalCanvas?.Canvas != null
-            && _hudService?.HUDPanel != null, cancellationToken: linkedToken);
-            await Operator.R();
+            try
+            {
+                _hasStarted = true;
+                _cts = new CancellationTokenSource();
+                var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellation).Token;
+                await UniTask.WaitUntil(() => _globalCanvas?.Canvas != null
+                && _hudService?.HUDPanel != null, cancellationToken: linkedToken);
+                await Operator.R();
 
-            // await UniTask.CompletedTask;
+                // await UniTask.CompletedTask;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Error in UIAuth.StartAsync: {ex.Message}");
+                _hasStarted = false; // Reset flag on error to allow retry
+                throw;
+            }
         }
 
         // private async UniTask FetchWebDataAsync()
@@ -54,6 +70,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             _cts?.Dispose();
             _subscription?.Dispose();
             _cts = null;
+            _hasStarted = false;
         }
 
         private void OnDestroy()
