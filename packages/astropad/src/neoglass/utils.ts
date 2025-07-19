@@ -1,6 +1,187 @@
 import type { ParticleConfig, GlowConfig } from './types';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
 
 export class AnimationUtils {
+  /**
+   * Utility function for merging Tailwind CSS classes
+   */
+  static cn(...inputs: any[]): string {
+    return twMerge(clsx(inputs));
+  }
+
+  /**
+   * Returns Tailwind classes for neoglass text containers
+   */
+  static getTextContainerClasses(options?: {
+    isAnimating?: boolean;
+    enableShimmer?: boolean;
+  }): string {
+    const { isAnimating = false, enableShimmer = false } = options || {};
+    
+    return this.cn(
+      // Layout stability
+      'relative overflow-hidden',
+      'break-words overflow-wrap-break-word',
+      'text-ellipsis',
+      // Performance optimizations
+      'contain-style will-change-auto',
+      // Animation states
+      isAnimating && 'contain-layout contain-style contain-paint',
+      // Shimmer effect
+      enableShimmer && [
+        'bg-gradient-to-r from-transparent via-cyan-400/40 to-transparent',
+        'bg-[length:200%_100%] animate-[shimmer_2s_infinite]',
+        'bg-clip-text [-webkit-background-clip:text]'
+      ]
+    );
+  }
+
+  /**
+   * Returns Tailwind classes for fixed layout containers
+   */
+  static getFixedLayoutClasses(): string {
+    return this.cn(
+      'contain-layout',
+      'min-h-[400px] flex flex-col'
+    );
+  }
+
+  /**
+   * Returns Tailwind classes for particle elements
+   */
+  static getParticleClasses(config: {
+    size: number;
+    opacity: number;
+    color?: string;
+  }): string {
+    return this.cn(
+      'absolute rounded-full pointer-events-none z-[1]',
+      'blur-[0.5px] will-change-transform animate-[float-particle_var(--duration,3s)_infinite_ease-in-out]',
+      `w-[${config.size}px] h-[${config.size}px]`,
+      `opacity-[${config.opacity}]`
+    );
+  }
+
+  /**
+   * Returns Tailwind classes for glow effects
+   */
+  static getGlowClasses(options?: {
+    isActive?: boolean;
+    intensity?: 'low' | 'medium' | 'high';
+  }): string {
+    const { isActive = false, intensity = 'medium' } = options || {};
+    
+    const intensityMap = {
+      low: 'drop-shadow-[0_0_5px_var(--glow-color)]',
+      medium: 'drop-shadow-[0_0_10px_var(--glow-color)]',
+      high: 'drop-shadow-[0_0_20px_var(--glow-color)]'
+    };
+
+    return this.cn(
+      'transition-all duration-300',
+      intensityMap[intensity],
+      isActive && 'animate-[glow-pulse_2s_ease-in-out]'
+    );
+  }
+
+  /**
+   * Returns Tailwind classes for smooth transitions
+   */
+  static getTransitionClasses(options?: {
+    duration?: 'fast' | 'normal' | 'slow';
+    easing?: 'linear' | 'ease' | 'ease-in-out' | 'spring';
+  }): string {
+    const { duration = 'normal', easing = 'ease-in-out' } = options || {};
+    
+    const durationMap = {
+      fast: 'duration-200',
+      normal: 'duration-300',
+      slow: 'duration-500'
+    };
+
+    const easingMap = {
+      linear: 'ease-linear',
+      ease: 'ease-out',
+      'ease-in-out': 'ease-in-out',
+      spring: '[transition-timing-function:cubic-bezier(0.4,0,0.2,1)]'
+    };
+
+    return this.cn(
+      'transition-all',
+      durationMap[duration],
+      easingMap[easing]
+    );
+  }
+
+  /**
+   * Returns classes for reduced motion support
+   */
+  static getReducedMotionClasses(): string {
+    return this.cn(
+      'motion-reduce:animate-none',
+      'motion-reduce:transition-none',
+      'motion-reduce:transform-none'
+    );
+  }
+
+  /**
+   * Applies Tailwind classes to elements dynamically
+   */
+  static applyClassesToElement(
+    element: HTMLElement,
+    classes: string,
+    options?: { replace?: boolean }
+  ): void {
+    const { replace = false } = options || {};
+    
+    if (replace) {
+      element.className = classes;
+    } else {
+      element.className = this.cn(element.className, classes);
+    }
+  }
+
+  /**
+   * Applies text container classes with animation state
+   */
+  static applyTextContainerClasses(
+    element: HTMLElement,
+    options?: {
+      isAnimating?: boolean;
+      enableShimmer?: boolean;
+      additionalClasses?: string;
+    }
+  ): void {
+    const classes = this.cn(
+      this.getTextContainerClasses(options),
+      this.getReducedMotionClasses(),
+      options?.additionalClasses
+    );
+    
+    this.applyClassesToElement(element, classes);
+  }
+
+  /**
+   * Applies glow classes with state management
+   */
+  static applyGlowClasses(
+    element: HTMLElement,
+    options?: {
+      isActive?: boolean;
+      intensity?: 'low' | 'medium' | 'high';
+      additionalClasses?: string;
+    }
+  ): void {
+    const classes = this.cn(
+      this.getGlowClasses(options),
+      this.getReducedMotionClasses(),
+      options?.additionalClasses
+    );
+    
+    this.applyClassesToElement(element, classes);
+  }
+
   /**
    * Creates a smooth typewriter-style text transition
    */
@@ -111,20 +292,19 @@ export class AnimationUtils {
   static createParticle(config: ParticleConfig): HTMLElement {
     const particle = document.createElement('div');
     
+    // Use Tailwind classes for most styling
+    particle.className = this.getParticleClasses({
+      size: config.size,
+      opacity: config.opacity
+    });
+    
+    // Set CSS custom properties and positioning
     particle.style.cssText = `
-      position: absolute;
-      width: ${config.size}px;
-      height: ${config.size}px;
       background: ${config.color};
-      border-radius: 50%;
-      opacity: ${config.opacity};
       left: ${Math.random() * 100}%;
       top: ${Math.random() * 100}%;
-      pointer-events: none;
-      z-index: 1;
-      filter: blur(0.5px);
-      animation: float-particle ${config.duration}s infinite ease-in-out ${config.delay}s;
-      will-change: transform, opacity;
+      --duration: ${config.duration}s;
+      animation-delay: ${config.delay}s;
     `;
 
     return particle;
@@ -269,11 +449,12 @@ export class AnimationUtils {
   }
 
   /**
-   * Adds required CSS keyframes to the document
+   * Adds required CSS keyframes to the document (minimal CSS for keyframes only)
    */
   static injectAnimationStyles(): void {
     if (document.querySelector('#neoglass-animation-styles')) return;
 
+    // Only include keyframes that can't be done with Tailwind
     const styles = `
       @keyframes float-particle {
         0%, 100% { 
@@ -299,58 +480,9 @@ export class AnimationUtils {
         50% { filter: drop-shadow(0 0 20px var(--glow-color)); }
       }
 
-      @keyframes text-shimmer {
+      @keyframes shimmer {
         0% { background-position: -200% center; }
         100% { background-position: 200% center; }
-      }
-
-      .neoglass-text-shimmer {
-        background: linear-gradient(
-          90deg, 
-          transparent, 
-          rgba(34, 211, 238, 0.4), 
-          transparent
-        );
-        background-size: 200% 100%;
-        animation: text-shimmer 2s infinite;
-        -webkit-background-clip: text;
-        background-clip: text;
-      }
-
-      /* Layout stability classes */
-      .neoglass-fixed-layout {
-        contain: layout;
-      }
-      
-      .neoglass-text-container {
-        contain: layout style;
-        will-change: auto;
-      }
-      
-      [data-neoglass-title],
-      [data-neoglass-subtitle],
-      [data-neoglass-description],
-      [data-neoglass-badge] {
-        contain: style;
-        word-break: break-word;
-        overflow-wrap: break-word;
-        text-overflow: ellipsis;
-      }
-
-      /* Prevent layout shifts during animations */
-      .neoglass-animating {
-        contain: layout style paint;
-      }
-
-      @media (prefers-reduced-motion: reduce) {
-        * {
-          animation-duration: 0.01ms !important;
-          animation-iteration-count: 1 !important;
-          transition-duration: 0.01ms !important;
-        }
-        .neoglass-text-container {
-          contain: layout;
-        }
       }
     `;
 

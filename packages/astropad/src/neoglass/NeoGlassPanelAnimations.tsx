@@ -1,12 +1,6 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { AnimationUtils } from './utils';
 import type { AnimationConfig, NeoGlassAnimationElements, AnimationState } from './types';
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-const cn = (...inputs: any[]) => {
-  return twMerge(clsx(inputs));
-};
 
 
 const defaultAnimationConfig: AnimationConfig = {
