@@ -304,12 +304,12 @@ export const NeoGlassPanelAnimations: React.FC<{ config?: Partial<AnimationConfi
             const rect = elementsRef.current.panel.getBoundingClientRect();
             const scrollProgress = Math.max(0, Math.min(1, (window.innerHeight - rect.top) / window.innerHeight));
             
-            // Apply parallax to background
-            const bgElement = elementsRef.current.background as HTMLElement;
-            if (bgElement) {
-              const translateY = (scrollProgress - 0.5) * 20;
-              bgElement.style.transform = `translateY(${translateY}px)`;
-            }
+            // Apply parallax to background - DISABLED to fix clipping
+            // const bgElement = elementsRef.current.background as HTMLElement;
+            // if (bgElement) {
+            //   const translateY = (scrollProgress - 0.5) * 20;
+            //   bgElement.style.transform = `translateY(${translateY}px)`;
+            // }
 
             // Apply subtle rotation to decorative elements
             const decorElement = elementsRef.current.decoration as HTMLElement;
