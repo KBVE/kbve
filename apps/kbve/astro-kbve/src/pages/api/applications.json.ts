@@ -10,7 +10,7 @@ export const GET = async () => {
 	const applications: any[] = [];
 
 	for (const entry of applicationEntries) {
-		const { title, description } = entry.data;
+		const { title } = entry.data;
 		if (!title) continue;
 
 		const application = {
