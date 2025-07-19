@@ -78,7 +78,8 @@ const NavigationShell: React.FC<{
   isMember: boolean;
   username: string | null;
   loading: boolean;
-}> = ({ navigationItems, isMember, username, loading }) => (
+  avatarUrl?: string | null;
+}> = ({ navigationItems, isMember, username, loading, avatarUrl }) => (
   <nav
     className={cn(
       'flex items-center space-x-1 ml-2 md:ml-4 transition-opacity duration-500 overflow-visible',
@@ -132,8 +133,8 @@ const NavigationShell: React.FC<{
     {/* Visual separator for member status */}
     <div className="h-6 w-px bg-gray-300 dark:bg-gray-600 mx-2" />
 
-    {/* Member status indicator and username */}
-    <div className="flex items-center justify-center w-10 h-10 md:w-8 md:h-8">
+    {/* Member status indicator, avatar, and username */}
+    <div className="flex items-center min-w-0 max-w-xs md:max-w-sm">
       <div className={`w-2 h-2 rounded-full transition-colors duration-300 ${
         isMember 
           ? 'bg-green-500 shadow-sm shadow-green-500/50' 
@@ -141,8 +142,22 @@ const NavigationShell: React.FC<{
       }`} 
       title={isMember ? `Logged in${username ? ` as ${username}` : ''}` : 'Guest user'}
       />
+      {isMember && avatarUrl && (
+        <img
+          src={avatarUrl}
+          alt="avatar"
+          className="ml-2 w-6 h-6 rounded-full object-cover border border-gray-300 dark:border-gray-700 shadow"
+          style={{ minWidth: 24, minHeight: 24 }}
+        />
+      )}
       {isMember && username && (
-        <span className="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300 hidden md:inline">{username}</span>
+        <span
+          className="ml-2 text-xs font-medium text-gray-700 dark:text-gray-300 truncate block max-w-[7rem] md:max-w-[10rem]"
+          style={{ lineHeight: '1.2', minWidth: 0 }}
+          title={username}
+        >
+          {username}
+        </span>
       )}
     </div>
   </nav>
@@ -152,6 +167,7 @@ const ReactStarlightNav: React.FC = () => {
   const isReady = useStore(userClientServiceRef.userClientServiceReadyAtom);
   const userAtomValue = useStore(userClientServiceRef.userAtom);
   const username = useStore(userClientServiceRef.usernameAtom);
+  const avatarUrl = userAtomValue?.user_metadata?.avatar_url || null;
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -179,6 +195,7 @@ const ReactStarlightNav: React.FC = () => {
       isMember={isMember}
       username={username}
       loading={loading}
+      avatarUrl={avatarUrl}
     />
   );
 }
