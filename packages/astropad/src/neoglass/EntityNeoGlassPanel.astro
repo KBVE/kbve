@@ -130,13 +130,13 @@ const {
 		<div
 			data-neoglass-bg
 			class="hidden md:block w-1/3 relative rounded-r-3xl overflow-hidden border-l border-white/10 
-			       group-hover:border-cyan-400/30 backdrop-blur-xl transition-all duration-500 will-change-auto">
+			       group-hover:border-cyan-400/30 transition-all duration-500 will-change-auto">
 			<!-- Enhanced Overlay with Animated Glow -->
-			<div class="absolute inset-0 bg-cyan-900/30 group-hover:bg-cyan-800/40 transition-all duration-500 z-0"></div>
+			<div data-overlay class="absolute -top-4 -right-4 -bottom-4 left-0 bg-cyan-900/30 group-hover:bg-cyan-800/40 transition-all duration-500 z-0 rounded-r-3xl"></div>
 			
 			<!-- Animated Gradient Overlay -->
-			<div class="absolute inset-0 bg-gradient-to-br from-transparent via-cyan-400/10 to-transparent 
-			           opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-5"></div>
+			<div data-animated-gradient-overlay class="absolute -top-4 -right-4 -bottom-4 left-0 bg-gradient-to-br from-transparent via-cyan-400/10 to-transparent 
+			           opacity-0 group-hover:opacity-100 transition-opacity duration-700 z-5 rounded-r-3xl"></div>
 
 			<!-- Enhanced SVG Decoration with Animations -->
 			<svg
