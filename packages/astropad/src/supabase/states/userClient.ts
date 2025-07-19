@@ -57,17 +57,25 @@ class UserClientService {
 
   public static getInstance(): UserClientService {
     // If running in browser and global already exists, use it
+    let createdNew = false;
     if (typeof window !== 'undefined') {
       if ((window as any).userClientService) {
         UserClientService.instance = (window as any).userClientService;
       } else if (!UserClientService.instance) {
         UserClientService.instance = new UserClientService();
         (window as any).userClientService = UserClientService.instance;
+        createdNew = true;
       }
     } else {
       if (!UserClientService.instance) {
         UserClientService.instance = new UserClientService();
+        createdNew = true;
       }
+    }
+    // If a new instance was created, initialize it
+    if (createdNew) {
+      // Note: initialize() is async, but getInstance is sync. Fire and forget.
+      UserClientService.instance.initialize();
     }
     return UserClientService.instance;
   }
