@@ -1,6 +1,13 @@
 import React, { useEffect, useRef, useState, useCallback, useMemo } from 'react';
 import { AnimationUtils } from './utils';
 import type { AnimationConfig, NeoGlassAnimationElements, AnimationState } from './types';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => {
+  return twMerge(clsx(inputs));
+};
+
 
 const defaultAnimationConfig: AnimationConfig = {
   textRotation: {
@@ -128,7 +135,7 @@ export const NeoGlassPanelAnimations: React.FC<{ config?: Partial<AnimationConfi
     };
   }, []);
 
-  // Memoized text update function
+  // Memoized text update function with staggered animations
   const updateTextContent = useCallback(async (index: number): Promise<void> => {
     const { title, subtitle, description, badge } = elementsRef.current;
     const { titles, subtitles, descriptions, badges } = animConfig.textRotation;
@@ -142,23 +149,49 @@ export const NeoGlassPanelAnimations: React.FC<{ config?: Partial<AnimationConfi
       return;
     }
 
-    const promises: Promise<void>[] = [];
-
     try {
-      if (title) {
-        promises.push(AnimationUtils.animateTextTransition(title, titles[index]));
-      }
-      if (subtitle) {
-        promises.push(AnimationUtils.animateTextTransition(subtitle, subtitles[index]));
-      }
-      if (description) {
-        promises.push(AnimationUtils.animateTextTransition(description, descriptions[index]));
-      }
+      // Stagger animations for a more natural feel
+      const animations: Promise<void>[] = [];
+
+      // Badge changes instantly (small text)
       if (badge) {
-        promises.push(AnimationUtils.animateTextTransition(badge, badges[index]));
+        badge.textContent = badges[index];
       }
 
-      await Promise.all(promises);
+      // Title uses smooth morph (most prominent)
+      if (title) {
+        animations.push(
+          new Promise(resolve => {
+            setTimeout(() => {
+              AnimationUtils.animateTextMorph(title, titles[index], 500).then(resolve);
+            }, 0);
+          })
+        );
+      }
+
+      // Subtitle uses typewriter effect (medium prominence)
+      if (subtitle) {
+        animations.push(
+          new Promise(resolve => {
+            setTimeout(() => {
+              AnimationUtils.animateTextTransition(subtitle, subtitles[index], 600).then(resolve);
+            }, 200);
+          })
+        );
+      }
+
+      // Description uses simple fade (large text block)
+      if (description) {
+        animations.push(
+          new Promise(resolve => {
+            setTimeout(() => {
+              AnimationUtils.animateTextMorph(description, descriptions[index], 400).then(resolve);
+            }, 400);
+          })
+        );
+      }
+
+      await Promise.all(animations);
     } catch (error) {
       // Fallback to simple text change if animations fail
       console.warn('Animation failed, using fallback:', error);

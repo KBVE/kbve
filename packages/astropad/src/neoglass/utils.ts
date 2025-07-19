@@ -2,82 +2,106 @@ import type { ParticleConfig, GlowConfig } from './types';
 
 export class AnimationUtils {
   /**
-   * Creates a smooth transition between text content without layout shift
+   * Creates a smooth typewriter-style text transition
    */
   static animateTextTransition(
     element: Element,
     newText: string,
-    duration: number = 300
+    duration: number = 800
   ): Promise<void> {
     return new Promise((resolve) => {
-      const parent = element.parentElement;
-      if (!parent) {
-        element.textContent = newText;
+      const htmlElement = element as HTMLElement;
+      const originalText = element.textContent || '';
+      
+      // Skip animation if text is the same
+      if (originalText === newText) {
         resolve();
         return;
       }
 
-      // Store original styles
-      const originalPosition = (element as HTMLElement).style.position;
-      const originalWidth = (element as HTMLElement).style.width;
-      const originalHeight = (element as HTMLElement).style.height;
+      // Use a gentler fade + typewriter effect
+      htmlElement.style.transition = 'opacity 300ms ease-out';
       
-      // Get current dimensions before transition
-      const rect = element.getBoundingClientRect();
-      const parentRect = parent.getBoundingClientRect();
-      
-      // Create a clone for the new text
-      const clone = element.cloneNode(true) as HTMLElement;
-      clone.textContent = newText;
-      clone.style.position = 'absolute';
-      clone.style.top = `${rect.top - parentRect.top}px`;
-      clone.style.left = `${rect.left - parentRect.left}px`;
-      clone.style.width = `${rect.width}px`;
-      clone.style.height = `${rect.height}px`;
-      clone.style.opacity = '0';
-      clone.style.transform = 'scale(0.95)';
-      clone.style.zIndex = '1';
-      
-      // Make parent relative if it isn't already
-      const parentPosition = getComputedStyle(parent).position;
-      if (parentPosition === 'static') {
-        parent.style.position = 'relative';
-      }
-      
-      parent.appendChild(clone);
-      
-      // Fade out original
-      element.classList.add('transition-all', 'duration-300');
-      (element as HTMLElement).style.opacity = '0';
-      (element as HTMLElement).style.transform = 'scale(0.95)';
+      // Phase 1: Gentle fade out
+      htmlElement.style.opacity = '0.3';
       
       setTimeout(() => {
-        // Fade in clone
-        clone.style.transition = 'all 300ms ease-out';
-        clone.style.opacity = '1';
-        clone.style.transform = 'scale(1)';
+        // Phase 2: Typewriter effect
+        this.typewriterEffect(htmlElement, newText, duration * 0.6).then(() => {
+          // Phase 3: Fade back to full opacity
+          htmlElement.style.opacity = '1';
+          setTimeout(resolve, 100);
+        });
+      }, 150);
+    });
+  }
+
+  /**
+   * Creates a typewriter effect for text
+   */
+  private static typewriterEffect(
+    element: HTMLElement,
+    targetText: string,
+    duration: number
+  ): Promise<void> {
+    return new Promise((resolve) => {
+      const chars = targetText.split('');
+      const interval = duration / chars.length;
+      let currentIndex = 0;
+      
+      // Clear current text
+      element.textContent = '';
+      
+      const typeChar = () => {
+        if (currentIndex < chars.length) {
+          element.textContent += chars[currentIndex];
+          currentIndex++;
+          setTimeout(typeChar, interval);
+        } else {
+          resolve();
+        }
+      };
+      
+      typeChar();
+    });
+  }
+
+  /**
+   * Alternative smooth morphing text transition
+   */
+  static animateTextMorph(
+    element: Element,
+    newText: string,
+    duration: number = 600
+  ): Promise<void> {
+    return new Promise((resolve) => {
+      const htmlElement = element as HTMLElement;
+      const originalText = element.textContent || '';
+      
+      if (originalText === newText) {
+        resolve();
+        return;
+      }
+
+      // Apply smooth morph effect
+      htmlElement.style.transition = `all ${duration}ms cubic-bezier(0.4, 0, 0.2, 1)`;
+      htmlElement.style.filter = 'blur(2px)';
+      htmlElement.style.opacity = '0.7';
+      htmlElement.style.transform = 'scale(0.98)';
+      
+      setTimeout(() => {
+        element.textContent = newText;
+        htmlElement.style.filter = 'blur(0px)';
+        htmlElement.style.opacity = '1';
+        htmlElement.style.transform = 'scale(1)';
         
         setTimeout(() => {
-          // Replace original content and restore
-          element.textContent = newText;
-          (element as HTMLElement).style.opacity = '1';
-          (element as HTMLElement).style.transform = 'scale(1)';
-          (element as HTMLElement).style.position = originalPosition;
-          (element as HTMLElement).style.width = originalWidth;
-          (element as HTMLElement).style.height = originalHeight;
-          
-          // Remove clone and cleanup
-          parent.removeChild(clone);
-          element.classList.remove('transition-all', 'duration-300');
-          
-          // Restore parent position if we changed it
-          if (parentPosition === 'static') {
-            parent.style.position = '';
-          }
-          
+          htmlElement.style.transition = '';
+          htmlElement.style.filter = '';
+          htmlElement.style.transform = '';
           resolve();
         }, duration);
-      }, duration / 2);
+      }, duration / 3);
     });
   }
 
