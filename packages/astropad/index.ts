@@ -9,6 +9,12 @@ export { default as AdsenseArticle } from './src/adsense/AdsenseArticle.astro';
 export { default as Adsense } from './src/adsense/Adsense.astro';
 export { default as Giscus } from './src/giscus/Giscus.astro';
 
+//  [Panels]
+export { default as AstroNeoGlassPanel } from './src/neoglass/EntityNeoGlassPanel.astro';
+
+//  [Lottie]
+export { default as AstroLottie } from './src/lottie/EntityLottie.astro';
+
 //  [Supabase]
 export { supabase } from './src/supabase/states/supabaseClient';
 export { userClientService } from './src/supabase/states/userClient';
