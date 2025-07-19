@@ -270,6 +270,7 @@
 		"react-spring": "^9.7.4",
 		"react-unity-webgl": "^9.8.0",
 		"react-virtualized-auto-sizer": "^1.0.26",
+		"react-virtuoso": "^4.13.0",
 		"react-window": "^1.8.11",
 		"recharts": "^2.13.3",
 		"reflect-metadata": "^0.1.14",

@@ -295,7 +295,7 @@ class UserProfileService {
   }
 
   /**
-   * Reset all state
+   * Reset all stated
    */
   public resetState(): void {
     this.clearMessages();
