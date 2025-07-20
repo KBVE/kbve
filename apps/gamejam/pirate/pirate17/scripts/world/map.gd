@@ -6,7 +6,8 @@ var tiles: Dictionary = {}
 var map_size: Vector2i = Vector2i(100, 100)
 
 var tile_colors = {
-	"water": "#4A90E2",
+	"lake": "#4A90E2",
+	"ocean": "#1E3A8A",
 	"land": "#8DB600", 
 	"sand": "#F5A623",
 	"forest": "#228B22",
@@ -14,35 +15,49 @@ var tile_colors = {
 	"grass": "#7CFC00"
 }
 
+var passable_tiles = ["lake", "land", "sand", "forest", "mountain", "grass"]
+
 func _ready():
 	generate_initial_map()
 
 func generate_initial_map():
-	# Step 1: Create base terrain (ocean vs land)
+	# Step 1: Create ocean border
+	generate_ocean_border()
+	
+	# Step 2: Create base terrain (lakes vs land)
 	generate_base_terrain()
 	
-	# Step 2: Add mountain ranges
+	# Step 3: Add mountain ranges
 	generate_mountains()
 	
-	# Step 3: Add beaches/sand near water
+	# Step 4: Add beaches/sand near water
 	generate_beaches()
 	
-	# Step 4: Add forests to grasslands
+	# Step 5: Add forests to grasslands
 	generate_forests()
+
+func generate_ocean_border():
+	# Create ocean tiles around the entire border
+	for x in range(map_size.x):
+		for y in range(map_size.y):
+			if x == 0 or x == map_size.x - 1 or y == 0 or y == map_size.y - 1:
+				set_tile(x, y, tile_colors["ocean"])
+			else:
+				set_tile(x, y, tile_colors["grass"])  # Default to grass for interior
 
 func generate_base_terrain():
 	var noise = FastNoiseLite.new()
 	noise.seed = randi()
 	noise.frequency = 0.1
 	
-	for x in range(map_size.x):
-		for y in range(map_size.y):
+	for x in range(1, map_size.x - 1):  # Skip ocean border
+		for y in range(1, map_size.y - 1):  # Skip ocean border
 			var noise_value = noise.get_noise_2d(x, y)
 			
-			# Use noise to determine land vs water
-			# Values < -0.2 = water, >= -0.2 = land
+			# Use noise to determine land vs lakes (inland water)
+			# Values < -0.2 = lake, >= -0.2 = grassland
 			if noise_value < -0.2:
-				set_tile(x, y, tile_colors["water"])
+				set_tile(x, y, tile_colors["lake"])
 			else:
 				set_tile(x, y, tile_colors["grass"])
 
@@ -51,30 +66,31 @@ func generate_mountains():
 	mountain_noise.seed = randi()
 	mountain_noise.frequency = 0.05
 	
-	for x in range(map_size.x):
-		for y in range(map_size.y):
-			# Only place mountains on land
-			if get_tile(x, y) != tile_colors["water"]:
+	for x in range(1, map_size.x - 1):  # Skip ocean border
+		for y in range(1, map_size.y - 1):  # Skip ocean border
+			# Only place mountains on grassland
+			if get_tile(x, y) == tile_colors["grass"]:
 				var mountain_value = mountain_noise.get_noise_2d(x, y)
 				if mountain_value > 0.4:
 					set_tile(x, y, tile_colors["mountain"])
 
 func generate_beaches():
-	for x in range(map_size.x):
-		for y in range(map_size.y):
-			# Only process land tiles
-			if get_tile(x, y) != tile_colors["water"]:
-				# Check if adjacent to water
+	for x in range(1, map_size.x - 1):  # Skip ocean border
+		for y in range(1, map_size.y - 1):  # Skip ocean border
+			# Only process grassland tiles
+			if get_tile(x, y) == tile_colors["grass"]:
+				# Check if adjacent to water (lake or ocean)
 				var neighbors = get_neighbors(x, y)
 				var near_water = false
 				
 				for neighbor_pos in neighbors:
-					if get_tile(neighbor_pos.x, neighbor_pos.y) == tile_colors["water"]:
+					var tile = get_tile(neighbor_pos.x, neighbor_pos.y)
+					if tile == tile_colors["lake"] or tile == tile_colors["ocean"]:
 						near_water = true
 						break
 				
 				# Convert grassland near water to sand
-				if near_water and get_tile(x, y) == tile_colors["grass"]:
+				if near_water:
 					set_tile(x, y, tile_colors["sand"])
 
 func generate_forests():
@@ -82,8 +98,8 @@ func generate_forests():
 	forest_noise.seed = randi()
 	forest_noise.frequency = 0.15
 	
-	for x in range(map_size.x):
-		for y in range(map_size.y):
+	for x in range(1, map_size.x - 1):  # Skip ocean border
+		for y in range(1, map_size.y - 1):  # Skip ocean border
 			# Only add forests to grassland
 			if get_tile(x, y) == tile_colors["grass"]:
 				var forest_value = forest_noise.get_noise_2d(x, y)
@@ -97,7 +113,14 @@ func set_tile(x: int, y: int, color: String):
 
 func get_tile(x: int, y: int) -> String:
 	var key = Vector2i(x, y)
-	return tiles.get(key, tile_colors["water"])
+	return tiles.get(key, tile_colors["ocean"])
+
+func is_tile_passable(x: int, y: int) -> bool:
+	var tile_color = get_tile(x, y)
+	for tile_type in passable_tiles:
+		if tile_color == tile_colors[tile_type]:
+			return true
+	return false
 
 func is_valid_position(x: int, y: int) -> bool:
 	return x >= 0 and x < map_size.x and y >= 0 and y < map_size.y

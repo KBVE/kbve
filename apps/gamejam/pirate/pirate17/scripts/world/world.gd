@@ -12,7 +12,7 @@ func set_tile_at(x: int, y: int, color: String):
 	map.set_tile(x, y, color)
 
 func is_valid_position(x: int, y: int) -> bool:
-	return map.is_valid_position(x, y)
+	return map.is_valid_position(x, y) and map.is_tile_passable(x, y)
 
 func get_neighbors_at(x: int, y: int) -> Array:
 	return map.get_neighbors(x, y)
