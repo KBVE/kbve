@@ -5,6 +5,17 @@
 [node name="Main" type="Node2D"]
 script = ExtResource("1_1k2mh")
 
+[node name="Background" type="ColorRect" parent="."]
+z_index = -100
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -5000.0
+offset_top = -5000.0
+offset_right = 5000.0
+offset_bottom = 5000.0
+color = Color(0.117647, 0.227451, 0.541176, 1)
+
 [node name="Camera2D" type="Camera2D" parent="."]
 
 [node name="MapContainer" type="Node2D" parent="."]

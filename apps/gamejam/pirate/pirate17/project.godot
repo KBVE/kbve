@@ -15,6 +15,10 @@ run/main_scene="res://scenes/title.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
+[rendering/environment]
+
+default_clear_color=Color(0.117647, 0.227451, 0.541176, 1)
+
 [autoload]
 
 Global="*res://scripts/global.gd"
