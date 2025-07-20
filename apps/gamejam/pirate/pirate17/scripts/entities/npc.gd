@@ -17,30 +17,29 @@ var follow_distance: int = 1  # Stay this far from player when following
 
 var spawn_position: Vector2i
 var is_following_player: bool = false
+var is_initialized: bool = false
 
 # Path visualization
 var path_visualizer: Node2D
 var dash_lines: Array[Line2D] = []
 
 func _ready():
-	# Initialize position first
-	grid_position = Vector2i(0, 0)
-	spawn_position = grid_position
-	target_position = grid_position
+	# Set z-index to render above map tiles
+	z_index = 10
 	
-	# Create movement component
-	move_component = Movement.MoveComponent.new(self, grid_position)
+	# Only initialize default position if not already initialized
+	if not is_initialized:
+		grid_position = Vector2i(0, 0)
+		spawn_position = grid_position
+		target_position = grid_position
+		
+		# Create movement component
+		move_component = Movement.MoveComponent.new(self, grid_position)
 	
-	# Create visual representation (black square)
+	# Always create visual and setup components
 	create_visual()
-	
-	# Create path visualizer
 	create_path_visualizer()
-	
-	# Set up movement timer
 	setup_movement_timer()
-	
-	# Connect movement signals
 	connect_movement_signals()
 
 func connect_movement_signals():
@@ -51,12 +50,28 @@ func _on_movement_finished(entity: Node2D, at: Vector2i):
 		hide_movement_path()
 
 func create_visual():
+	# Create a container for better visibility
+	var visual_container = Node2D.new()
+	visual_container.z_index = 15
+	
+	# Create main NPC sprite (black square)
 	npc_sprite = ColorRect.new()
 	npc_sprite.color = Color.BLACK
 	npc_sprite.size = Vector2(World.TILE_SIZE * 0.8, World.TILE_SIZE * 0.8)
 	npc_sprite.position = Vector2(-npc_sprite.size.x / 2, -npc_sprite.size.y / 2)
-	add_child(npc_sprite)
-	print("NPC visual created - size: ", npc_sprite.size, " color: ", npc_sprite.color)
+	
+	# Create a white border for better visibility
+	var border = ColorRect.new()
+	border.color = Color.WHITE
+	border.size = Vector2(World.TILE_SIZE * 0.9, World.TILE_SIZE * 0.9)
+	border.position = Vector2(-border.size.x / 2, -border.size.y / 2)
+	border.z_index = -1  # Behind the black square
+	
+	visual_container.add_child(border)
+	visual_container.add_child(npc_sprite)
+	add_child(visual_container)
+	
+	print("NPC visual created - size: ", npc_sprite.size, " color: ", npc_sprite.color, " with white border")
 
 func setup_movement_timer():
 	movement_timer = Timer.new()
@@ -66,25 +81,39 @@ func setup_movement_timer():
 	add_child(movement_timer)
 
 func initialize(start_pos: Vector2i):
+	is_initialized = true
 	grid_position = start_pos
 	spawn_position = start_pos
 	target_position = start_pos
-	position = Vector2(grid_position.x * World.TILE_SIZE, grid_position.y * World.TILE_SIZE)
 	
-	# Update movement component with correct position
-	if move_component:
+	# Create or update movement component with correct position
+	if not move_component:
+		move_component = Movement.MoveComponent.new(self, start_pos)
+	else:
 		move_component.current_grid_pos = start_pos
 		move_component.target_grid_pos = start_pos
 		move_component.target_world_pos = Movement.get_world_position(start_pos)
-		position = move_component.target_world_pos
+	
+	# Set the actual world position
+	position = Movement.get_world_position(start_pos)
 	
 	print("NPC initialized at grid: ", grid_position, " world: ", position)
 
 func update_position_after_scene_ready():
 	# Called after NPC is added to scene tree to ensure position is correct
-	if move_component:
-		position = move_component.target_world_pos
-		print("Updated NPC position after scene ready: ", position)
+	if is_initialized:
+		# Re-apply the correct position using Movement utility
+		position = Movement.get_world_position(grid_position)
+		
+		# Also update movement component to match
+		if move_component:
+			move_component.current_grid_pos = grid_position
+			move_component.target_grid_pos = grid_position
+			move_component.target_world_pos = Movement.get_world_position(grid_position)
+		
+		print("Updated NPC position after scene ready - grid: ", grid_position, " world: ", position)
+	else:
+		print("NPC not initialized yet, skipping position update")
 
 func _on_movement_timer_timeout():
 	# Randomize movement interval

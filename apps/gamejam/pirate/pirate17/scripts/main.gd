@@ -228,7 +228,7 @@ func setup_npc_container():
 func spawn_npcs():
 	print("Starting NPC spawn process...")
 	# Spawn NPCs through World system
-	World.spawn_npcs(8)
+	World.spawn_npcs(15)
 	
 	# Add spawned NPCs to the scene
 	var npc_list = World.get_npcs()
