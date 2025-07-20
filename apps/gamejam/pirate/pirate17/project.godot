@@ -15,18 +15,6 @@ run/main_scene="res://scenes/title.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
 
-[display]
-
-window/size/viewport_width=1280
-window/size/viewport_height=720
-window/size/mode=2
-window/stretch/mode="canvas_items"
-window/stretch/aspect="keep"
-
-[rendering/environment]
-
-default_clear_color=Color(0.117647, 0.227451, 0.541176, 1)
-
 [autoload]
 
 Global="*res://scripts/global.gd"
@@ -34,7 +22,19 @@ Player="*res://scripts/player/player.gd"
 Map="*res://scripts/world/map.gd"
 World="*res://scripts/world/world.gd"
 
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/mode=2
+window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/item_downloader/plugin.cfg")
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
+environment/default_clear_color=Color(0.117647, 0.227451, 0.541176, 1)

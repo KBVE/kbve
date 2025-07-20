@@ -25,7 +25,7 @@ func get_neighbors_at(x: int, y: int) -> Array:
 func get_map_size() -> Vector2i:
 	return map.map_size
 
-func spawn_npcs(count: int = 8):
+func spawn_npcs(count: int = 15):
 	# Clear existing NPCs
 	clear_npcs()
 	
