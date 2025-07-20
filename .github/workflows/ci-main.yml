@@ -156,6 +156,22 @@ jobs:
     #               echo "matrix=$(echo "$MATRIX" | jq -c)" >> "$GITHUB_OUTPUT"
 
 
+    ## Godot
+
+    generate_godot_matrix:
+      needs: ['deploy', 'alter', 'globals']
+      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+      with:
+        items: |
+            [
+                {
+                    "name": "pirate17",
+                    "condition": "${{ needs.alter.outputs.droid == 'true' }}",
+                    "project": "pirate17",
+                    "version": "4.4"
+                }
+            ]
+
     ## NPM
     generate_npm_matrix:
       needs: ['deploy', 'alter', 'globals']
