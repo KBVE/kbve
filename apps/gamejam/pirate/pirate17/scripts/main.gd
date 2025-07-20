@@ -1,10 +1,13 @@
 extends Node2D
 
 const Movement = preload("res://scripts/world/movement.gd")
+const BorderSlicer = preload("res://scripts/ui/border_slicer.gd")
 
 @onready var camera = $Camera2D
 @onready var map_container = $MapContainer
 @onready var player = $Player
+@onready var path_line = $PathVisualizer/PathLine
+@onready var target_highlight = $PathVisualizer/TargetHighlight
 @onready var ui_player_name = $UI/PlayerInfo/PlayerName
 @onready var ui_health_value = $UI/PlayerInfo/HealthBar/HealthValue
 @onready var ui_mana_value = $UI/PlayerInfo/ManaBar/ManaValue
@@ -15,11 +18,25 @@ var tile_sprites = {}
 var player_movement: Movement.MoveComponent
 
 func _ready():
+	# Load border assets first
+	BorderSlicer.load_and_slice_borders()
+	
 	generate_map_display()
 	setup_player_movement()
 	update_ui()
 	connect_player_stats()
 	connect_movement_signals()
+	setup_target_highlight()
+
+func setup_target_highlight():
+	# Set the border texture for target highlighting - use a nice decorative border
+	var border_texture = BorderSlicer.get_border_texture_by_position(2, 0)  # Third border, more decorative
+	if border_texture:
+		target_highlight.texture = border_texture
+		target_highlight.modulate = Color(0.8, 1.0, 1.0, 0.9)  # Slight cyan tint with transparency
+		print("Target highlight border texture set")
+	else:
+		print("Failed to load border texture")
 
 func setup_player_movement():
 	player_movement = Movement.MoveComponent.new(player, Vector2i(50, 50))
@@ -69,6 +86,7 @@ func _input(event):
 func _process(delta):
 	player_movement.process_movement(delta)
 	camera.position = player.position
+	update_movement_path()
 
 func connect_movement_signals():
 	player_movement.movement_started.connect(_on_movement_started)
@@ -76,11 +94,95 @@ func connect_movement_signals():
 
 func _on_movement_started(entity: Node2D, from: Vector2i, to: Vector2i):
 	if entity == player:
-		pass  # Can add movement start effects here
+		show_movement_path(from, to)
 
 func _on_movement_finished(entity: Node2D, at: Vector2i):
 	if entity == player:
-		pass  # Can add movement finish effects here
+		hide_movement_path()
+
+func show_movement_path(from: Vector2i, to: Vector2i):
+	var start_pos = Movement.get_world_position(from)
+	var end_pos = Movement.get_world_position(to)
+	
+	# Create dotted line path with custom points
+	path_line.clear_points()
+	create_dotted_line(start_pos, end_pos)
+	
+	# Show target highlight with border
+	show_target_border(to)
+
+func show_target_border(grid_pos: Vector2i):
+	var world_pos = Movement.get_world_position(grid_pos)
+	target_highlight.position = world_pos
+	target_highlight.visible = true
+	
+	# Start pulsing animation
+	start_border_animation()
+
+func start_border_animation():
+	# Create a smooth pulsing animation that breathes between 0.9 and 1.1 scale
+	var tween = create_tween()
+	tween.set_loops()  # Loop indefinitely
+	tween.set_ease(Tween.EASE_IN_OUT)
+	tween.set_trans(Tween.TRANS_SINE)
+	
+	# Start from normal scale
+	target_highlight.scale = Vector2.ONE
+	
+	# Gentle breathing animation
+	tween.tween_property(target_highlight, "scale", Vector2(1.1, 1.1), 0.8)
+	tween.tween_property(target_highlight, "scale", Vector2(0.9, 0.9), 0.8)
+
+func stop_border_animation():
+	# Stop any running tweens and reset scale
+	var tweens = get_tree().get_processed_tweens()
+	for tween in tweens:
+		if tween.is_valid():
+			tween.kill()
+	target_highlight.scale = Vector2.ONE
+
+func create_dotted_line(start: Vector2, end: Vector2):
+	var direction = (end - start).normalized()
+	var distance = start.distance_to(end)
+	var dash_length = 8.0
+	var gap_length = 6.0
+	var current_distance = 0.0
+	var drawing_dash = true
+	
+	path_line.add_point(start)
+	
+	while current_distance < distance:
+		var segment_length = dash_length if drawing_dash else gap_length
+		current_distance += segment_length
+		
+		if current_distance >= distance:
+			path_line.add_point(end)
+			break
+		
+		var point = start + direction * current_distance
+		
+		if drawing_dash:
+			path_line.add_point(point)
+		else:
+			# Start new line segment
+			if current_distance + dash_length < distance:
+				path_line.add_point(point)
+		
+		drawing_dash = not drawing_dash
+
+func hide_movement_path():
+	path_line.clear_points()
+	stop_border_animation()
+	target_highlight.visible = false
+
+func update_movement_path():
+	if player_movement.is_currently_moving():
+		var current_pos = player.position
+		var target_pos = Movement.get_world_position(player_movement.get_target_position())
+		
+		# Update path line to show current position to target
+		path_line.clear_points()
+		create_dotted_line(current_pos, target_pos)
 
 func update_ui():
 	ui_player_name.text = Global.player.player_name
