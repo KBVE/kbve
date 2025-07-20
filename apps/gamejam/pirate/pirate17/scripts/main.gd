@@ -226,9 +226,22 @@ func setup_npc_container():
 	add_child(npc_container)
 
 func spawn_npcs():
+	print("Starting NPC spawn process...")
 	# Spawn NPCs through World system
-	World.spawn_npcs(5)
+	World.spawn_npcs(8)
 	
 	# Add spawned NPCs to the scene
-	for npc in World.get_npcs():
+	var npc_list = World.get_npcs()
+	print("Retrieved ", npc_list.size(), " NPCs from World")
+	
+	for npc in npc_list:
+		# Add to scene first, then ensure position is set correctly
 		npc_container.add_child(npc)
+		# Force update position after being added to scene tree
+		npc.update_position_after_scene_ready()
+		print("Added NPC to scene at world position: ", npc.position)
+
+func get_player_position() -> Vector2i:
+	if player_movement:
+		return player_movement.get_current_position()
+	return Vector2i(50, 50)  # Default fallback position

@@ -25,12 +25,14 @@ func get_neighbors_at(x: int, y: int) -> Array:
 func get_map_size() -> Vector2i:
 	return map.map_size
 
-func spawn_npcs(count: int = 5):
+func spawn_npcs(count: int = 8):
 	# Clear existing NPCs
 	clear_npcs()
 	
 	var spawn_attempts = 0
 	var max_attempts = count * 10
+	
+	print("Attempting to spawn ", count, " NPCs...")
 	
 	while npcs.size() < count and spawn_attempts < max_attempts:
 		spawn_attempts += 1
@@ -40,9 +42,14 @@ func spawn_npcs(count: int = 5):
 		var spawn_y = randi_range(5, MAP_HEIGHT - 5)
 		var spawn_pos = Vector2i(spawn_x, spawn_y)
 		
+		print("Spawn attempt ", spawn_attempts, " at position: ", spawn_pos)
+		
 		# Check if position is valid for NPC spawn
 		if is_valid_npc_spawn(spawn_pos):
+			print("Position is valid, creating NPC")
 			create_npc_at(spawn_pos)
+		else:
+			print("Position rejected")
 
 func is_valid_npc_spawn(pos: Vector2i) -> bool:
 	# Check if tile is passable
@@ -64,10 +71,10 @@ func is_valid_npc_spawn(pos: Vector2i) -> bool:
 	return true
 
 func create_npc_at(pos: Vector2i):
-	var npc_scene = preload("res://scripts/entities/npc.gd")
 	var npc = NPC.new()
 	npc.initialize(pos)
 	npcs.append(npc)
+	print("Created NPC at position: ", pos, " - Total NPCs: ", npcs.size())
 
 func clear_npcs():
 	for npc in npcs:
