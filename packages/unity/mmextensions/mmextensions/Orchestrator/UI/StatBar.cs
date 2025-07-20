@@ -36,7 +36,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                             _label.text = $"{_type}: {Mathf.FloorToInt(cur)} / {Mathf.FloorToInt(max)}";
                             return Mathf.Clamp01(percent);
                         })
-                    .ObserveOnMainThread()
                     .Subscribe(val =>
                         {
                             Debug.Log($"[StatBar] {_type} updated fill: {val}");
