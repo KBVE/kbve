@@ -10,6 +10,7 @@ using UnityEngine.Networking;
 using UnityEngine.UI;
 using R3;
 using VContainer;
+using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator;
 using KBVE.MMExtensions.Orchestrator.Interfaces; // For IGlobalCanvas
 using KBVE.SSDB.Steam; // For SteamworksService

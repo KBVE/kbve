@@ -1,0 +1,80 @@
+---
+title: KiloByte Virtual Enterprise
+head:
+    - tag: title
+      content: KiloByte Virtual Enterprise | KBVE
+description: |
+    Welcome to KBVE - Kilobyte Virtual Engine. 
+    Discover cutting-edge software and automation solutions designed to streamline and enhance your projects.
+template: splash
+editUrl: false
+lastUpdated: false
+next: false
+sidebar:
+    label: Webmaster
+    order: 4
+
+---
+
+import '../../styles/starlight_main.css';
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { AstroLottie, AstroNeoGlassPanel } from '@kbve/astropad';
+
+<AstroNeoGlassPanel />
+
+<AstroLottie
+  src="https://kbve.com/assets/lottie/holydance.lottie"
+  id="my-lottie"
+  autoplay={true}
+  loop={true}
+/>
+
+<CardGrid stagger>
+
+<Card title="Developer Resources" icon="document">
+Dive into a rich collection of developer-centric guides, from in-depth tutorials to handy cheat sheets.
+Whether you're just starting out or looking to deepen your expertise, our resources offer clear, step-by-step instructions and practical tips to enhance your coding journey.
+
+<LinkCard
+  title="Mastering JavaScript"
+  description="Unlock the full potential of JavaScript with our extensive guides on building dynamic applications, from client-side to server-side with NodeJS."
+  href="/application/javascript/"
+/>
+
+<LinkCard
+  title="Docker Demystified"
+  description="Dive into our comprehensive Docker tutorials to streamline your app deployments, manage containers, and harness the power of Docker Compose."
+  href="/application/docker/"
+/>
+
+</Card>
+
+<Card title="Tools, Software, and Services" icon="seti:eslint">
+Explore KBVE's extensive collection of cutting-edge tools, versatile software, and professional services.
+Each section provides in-depth specifications, practical usage guides, and essential maintenance tips to help you maximize efficiency and achieve your goals.
+
+<LinkCard
+  title="KBVE Jukebox"
+  description="Experience the ultimate music tool that curates playlists based on your favorite keywords. Enjoy a personalized musical journey with our diverse selection."
+  href="/music/"
+/>
+
+<LinkCard
+  title="Webmaster Utility"
+  description="Optimize your website with our powerful webmaster tool. From SEO enhancements to performance tracking, streamline your site management with ease."
+  href="/webmaster/"
+/>
+
+</Card>
+
+<Card title="Assets and Investments" icon="seti:puppet">
+Discover KBVE's comprehensive guide to assets, including stocks and cryptocurrencies.
+Each section provides detailed market analysis, investment strategies, and maintenance tips to help you make informed financial decisions and maximize your portfolio's potential.
+</Card>
+
+<Card title="Automation Software and Hardware" icon="seti:terraform">
+Delve into KBVE's extensive range of automation tools and hardware solutions.
+Each section provides in-depth specifications, practical usage guides, and maintenance tips to help you streamline processes and enhance productivity with cutting-edge technology.
+
+</Card>
+</CardGrid>
