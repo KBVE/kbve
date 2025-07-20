@@ -24,8 +24,8 @@ color = Color(0.117647, 0.227451, 0.541176, 1)
 z_index = 10
 
 [node name="PathLine" type="Line2D" parent="PathVisualizer"]
-width = 2.0
-default_color = Color(1, 1, 1, 0.4)
+width = 3.0
+default_color = Color(0.8, 0.2, 0.2, 0.8)
 
 [node name="TargetHighlight" type="TextureRect" parent="PathVisualizer"]
 anchors_preset = 8

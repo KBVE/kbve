@@ -116,22 +116,24 @@ func show_target_border(grid_pos: Vector2i):
 	target_highlight.position = world_pos
 	target_highlight.visible = true
 	
+	# Stop any existing animation before starting new one
+	stop_border_animation()
 	# Start pulsing animation
 	start_border_animation()
 
 func start_border_animation():
-	# Create a smooth pulsing animation that breathes between 0.9 and 1.1 scale
+	# Create a more pronounced pulsing animation
 	var tween = create_tween()
 	tween.set_loops()  # Loop indefinitely
 	tween.set_ease(Tween.EASE_IN_OUT)
-	tween.set_trans(Tween.TRANS_SINE)
+	tween.set_trans(Tween.TRANS_BACK)  # More dramatic easing
 	
 	# Start from normal scale
 	target_highlight.scale = Vector2.ONE
 	
-	# Gentle breathing animation
-	tween.tween_property(target_highlight, "scale", Vector2(1.1, 1.1), 0.8)
-	tween.tween_property(target_highlight, "scale", Vector2(0.9, 0.9), 0.8)
+	# More pronounced animation - scales between 0.7 and 1.3
+	tween.tween_property(target_highlight, "scale", Vector2(1.3, 1.3), 0.5)
+	tween.tween_property(target_highlight, "scale", Vector2(0.7, 0.7), 0.5)
 
 func stop_border_animation():
 	# Stop any running tweens and reset scale
@@ -144,31 +146,22 @@ func stop_border_animation():
 func create_dotted_line(start: Vector2, end: Vector2):
 	var direction = (end - start).normalized()
 	var distance = start.distance_to(end)
-	var dash_length = 8.0
-	var gap_length = 6.0
+	var dash_length = 15.0  # Length of each dash
+	var gap_length = 10.0   # Length of each gap
 	var current_distance = 0.0
-	var drawing_dash = true
 	
-	path_line.add_point(start)
-	
+	# Create individual dash segments
 	while current_distance < distance:
-		var segment_length = dash_length if drawing_dash else gap_length
-		current_distance += segment_length
+		var dash_start = start + direction * current_distance
+		var dash_end_distance = min(current_distance + dash_length, distance)
+		var dash_end = start + direction * dash_end_distance
 		
-		if current_distance >= distance:
-			path_line.add_point(end)
-			break
+		# Add this dash segment (pair of points)
+		path_line.add_point(dash_start)
+		path_line.add_point(dash_end)
 		
-		var point = start + direction * current_distance
-		
-		if drawing_dash:
-			path_line.add_point(point)
-		else:
-			# Start new line segment
-			if current_distance + dash_length < distance:
-				path_line.add_point(point)
-		
-		drawing_dash = not drawing_dash
+		# Move to start of next dash
+		current_distance += dash_length + gap_length
 
 func hide_movement_path():
 	path_line.clear_points()
