@@ -47,6 +47,7 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                         });
         }
 
+
         public void Dispose()
         {
             _subscription?.Dispose();

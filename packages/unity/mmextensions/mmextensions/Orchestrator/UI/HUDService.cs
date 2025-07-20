@@ -186,6 +186,8 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
             fillImage.type = Image.Type.Filled;
             fillImage.fillMethod = Image.FillMethod.Horizontal;
             fillImage.fillAmount = 1f;
+            // Assign default white sprite for proper fill rendering
+            fillImage.sprite = Resources.GetBuiltinResource<Sprite>("UI/Skin/UISprite");
             var fillRT = fill.GetComponent<RectTransform>();
             fillRT.anchorMin = Vector2.zero;
             fillRT.anchorMax = Vector2.one;
