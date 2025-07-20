@@ -17,7 +17,9 @@ var follow_distance: int = 1  # Stay this far from player when following
 
 var spawn_position: Vector2i
 var is_following_player: bool = false
+var has_seen_player: bool = false  # Once true, NPC remembers the player
 var is_initialized: bool = false
+var max_follow_distance: int = 20  # Max distance before giving up following
 
 # Path visualization
 var path_visualizer: Node2D
@@ -73,6 +75,19 @@ func create_visual():
 	
 	print("NPC visual created - size: ", npc_sprite.size, " color: ", npc_sprite.color, " with white border")
 
+func update_visual_state():
+	# Change NPC color based on behavior state
+	if npc_sprite:
+		if is_following_player:
+			# Dark red when following player
+			npc_sprite.color = Color(0.6, 0.1, 0.1, 1.0)
+		elif has_seen_player:
+			# Dark orange when returning to spawn after losing player
+			npc_sprite.color = Color(0.6, 0.3, 0.1, 1.0)
+		else:
+			# Black when wandering normally
+			npc_sprite.color = Color.BLACK
+
 func setup_movement_timer():
 	movement_timer = Timer.new()
 	movement_timer.wait_time = movement_interval
@@ -122,15 +137,33 @@ func _on_movement_timer_timeout():
 	# Check if player is nearby
 	var player_distance = get_distance_to_player()
 	
+	# Check if NPC should enter or stay in following mode
 	if player_distance <= detection_range:
-		# Follow player behavior
+		# Player is within detection range - start following
+		has_seen_player = true
 		is_following_player = true
+	elif has_seen_player and player_distance <= max_follow_distance:
+		# Player was seen before and is still within max follow range - keep following
+		is_following_player = true
+	elif has_seen_player and player_distance > max_follow_distance:
+		# Player is too far away - give up following and return to spawn area
+		is_following_player = false
+		has_seen_player = false
+		print("NPC lost track of player, returning to spawn area")
+	else:
+		# Player never seen or out of range - wander randomly
+		is_following_player = false
+	
+	# Execute movement based on current state
+	if is_following_player:
+		update_visual_state()
 		attempt_follow_player()
 	else:
-		# Random movement behavior
-		is_following_player = false
-		# Decide whether to move (70% chance)
-		if randf() < 0.7:
+		update_visual_state()
+		# Random movement behavior (return to spawn area if too far)
+		if get_distance_to_spawn() > movement_range * 2:
+			attempt_return_to_spawn()
+		elif randf() < 0.7:
 			attempt_random_move()
 
 func attempt_random_move():
@@ -206,6 +239,34 @@ func get_distance_to_player() -> int:
 		return 999
 	var player_pos = main_scene.get_player_position()
 	return abs(grid_position.x - player_pos.x) + abs(grid_position.y - player_pos.y)
+
+func get_distance_to_spawn() -> int:
+	# Calculate distance from current position to spawn point
+	return abs(grid_position.x - spawn_position.x) + abs(grid_position.y - spawn_position.y)
+
+func attempt_return_to_spawn():
+	# Move towards spawn position
+	var direction_to_spawn = Vector2i(
+		sign(spawn_position.x - grid_position.x),
+		sign(spawn_position.y - grid_position.y)
+	)
+	
+	# Try to move towards spawn, with some randomness
+	var possible_moves = [direction_to_spawn]
+	
+	# Add adjacent directions for more natural movement
+	if direction_to_spawn.x != 0:
+		possible_moves.append(Vector2i(direction_to_spawn.x, 0))
+	if direction_to_spawn.y != 0:
+		possible_moves.append(Vector2i(0, direction_to_spawn.y))
+	
+	possible_moves.shuffle()
+	
+	for direction in possible_moves:
+		var new_pos = grid_position + direction
+		if is_valid_move(new_pos):
+			move_to(new_pos)
+			break
 
 func attempt_follow_player():
 	var main_scene = get_tree().current_scene
