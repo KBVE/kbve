@@ -49,10 +49,21 @@ func load_from_local_file() -> bool:
 		print("Local itemdb.json is not a dictionary")
 		return false
 	
-	items_data = data
-	is_loaded = true
-	print("Item database loaded from local file with ", items_data.size(), " items")
-	return true
+	# Check if JSON has "items" array structure
+	if data.has("items") and data["items"] is Array:
+		var items_array = data["items"]
+		# Convert array to dictionary for easier lookup
+		items_data = {}
+		for item in items_array:
+			if item is Dictionary and item.has("id"):
+				items_data[item["id"]] = item
+		
+		is_loaded = true
+		print("Item database loaded from local file with ", items_data.size(), " items")
+		return true
+	else:
+		print("Local itemdb.json does not have expected 'items' array structure")
+		return false
 
 func load_fallback_data():
 	# Hardcoded fallback data based on the JSON structure
@@ -305,39 +316,38 @@ func create_inventory_item(item_id: String) -> Inventory.InventoryItem:
 		item_data.get("description", "")
 	)
 	
-	# Map category from database to inventory enum
-	var category_map = {
-		"Consumable": Inventory.ItemCategory.CONSUMABLE,
-		"Equipment": Inventory.ItemCategory.WEAPON,  # Will be refined based on type
-		"Treasure": Inventory.ItemCategory.TREASURE,
-		"Key Item": Inventory.ItemCategory.KEY_ITEM
-	}
-	
-	var db_category = item_data.get("category", "Misc")
-	item.category = category_map.get(db_category, Inventory.ItemCategory.MISC)
-	
-	# Refine equipment category based on type
+	# Map type from database to inventory category
 	var item_type = item_data.get("type", "")
-	if item_type == "Weapon":
-		item.category = Inventory.ItemCategory.WEAPON
-		item.is_equipable = true
-		item.equipment_slot = Inventory.EquipmentSlot.WEAPON
-	elif item_type == "Armor":
-		item.category = Inventory.ItemCategory.ARMOR
-		item.is_equipable = true
-		item.equipment_slot = Inventory.EquipmentSlot.CHEST  # Default, could be refined
+	match item_type:
+		"Food", "Drink", "Potion":
+			item.category = Inventory.ItemCategory.CONSUMABLE
+		"Tool", "Utility", "Tech":
+			item.category = Inventory.ItemCategory.WEAPON  # Treat as equipment
+		"Material", "Component":
+			item.category = Inventory.ItemCategory.MATERIAL
+		"Apparel":
+			item.category = Inventory.ItemCategory.ARMOR
+			item.is_equipable = true
+			item.equipment_slot = Inventory.EquipmentSlot.CHEST
+		"Curio", "Document":
+			item.category = Inventory.ItemCategory.KEY_ITEM
+		_:
+			item.category = Inventory.ItemCategory.MISC
 	
 	# Set other properties
-	item.icon_path = item_data.get("image", "")
+	item.icon_path = item_data.get("img", "")  # JSON uses "img" not "image"
 	item.value = item_data.get("price", 0)
 	
 	# Set stack size based on consumable status
 	if item_data.get("consumable", false):
-		item.max_stack = 10  # Consumables stack
-	elif item_data.get("type", "") == "Currency":
-		item.max_stack = 999  # Currency stacks heavily
+		if item_data.get("stackable", false):
+			item.max_stack = 10  # Stackable consumables
+		else:
+			item.max_stack = 1   # Non-stackable consumables
+	elif item_data.get("stackable", false):
+		item.max_stack = 99      # Stackable materials
 	else:
-		item.max_stack = 1  # Equipment doesn't stack
+		item.max_stack = 1       # Equipment doesn't stack
 	
 	# Set stats from bonuses
 	var bonuses = item_data.get("bonuses", {})

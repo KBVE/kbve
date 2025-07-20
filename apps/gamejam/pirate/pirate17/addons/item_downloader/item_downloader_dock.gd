@@ -9,6 +9,7 @@ const LOCAL_JSON_PATH = "res://data/itemdb.json"
 
 # UI elements
 var download_button: Button
+var update_button: Button
 var progress_label: Label
 var progress_bar: ProgressBar
 var log_text: TextEdit
@@ -21,6 +22,7 @@ var total_files: int = 0
 var completed_files: int = 0
 var is_downloading: bool = false
 var json_http_request: HTTPRequest
+var force_update: bool = false
 
 func _init():
 	name = "ItemDB Downloader"
@@ -43,8 +45,15 @@ func setup_ui():
 	# Download button
 	download_button = Button.new()
 	download_button.text = "Download ItemDB & Images"
-	download_button.pressed.connect(_on_download_pressed)
+	download_button.pressed.connect(_on_download_pressed.bind(false))
 	vbox.add_child(download_button)
+	
+	# Update/Sync button
+	update_button = Button.new()
+	update_button.text = "🔄 Force Update/Sync"
+	update_button.pressed.connect(_on_download_pressed.bind(true))
+	update_button.modulate = Color(1.0, 0.9, 0.7, 1.0)  # Slight yellow tint
+	vbox.add_child(update_button)
 	
 	# Progress label
 	progress_label = Label.new()
@@ -76,19 +85,25 @@ func setup_ui():
 	clear_button.pressed.connect(_on_clear_log)
 	vbox.add_child(clear_button)
 
-func _on_download_pressed():
+func _on_download_pressed(force_update_mode: bool = false):
 	if is_downloading:
 		log_message("Download already in progress...")
 		return
 	
+	force_update = force_update_mode
 	is_downloading = true
 	download_button.disabled = true
+	update_button.disabled = true
 	progress_bar.value = 0
 	completed_files = 0
 	total_files = 0
 	
-	log_message("=== ItemDB Asset Downloader ===")
-	log_message("Starting download process...")
+	if force_update:
+		log_message("=== ItemDB FORCE UPDATE/SYNC ===")
+		log_message("Force updating all files (ignoring existing)...")
+	else:
+		log_message("=== ItemDB Asset Downloader ===") 
+		log_message("Starting download process...")
 	
 	# Create directories
 	ensure_directories_exist()
@@ -125,6 +140,18 @@ func ensure_directories_exist():
 		log_message("Created assets/items directory")
 
 func download_json_file():
+	# Check if JSON already exists and we're not force updating
+	if not force_update and FileAccess.file_exists(LOCAL_JSON_PATH):
+		log_message("JSON file already exists, loading from local file...")
+		var file = FileAccess.open(LOCAL_JSON_PATH, FileAccess.READ)
+		if file:
+			var json_content = file.get_as_text()
+			file.close()
+			parse_and_download_images(json_content)
+			return
+		else:
+			log_message("Failed to read existing JSON, downloading fresh copy...")
+	
 	log_message("Downloading itemdb.json...")
 	progress_label.text = "Downloading JSON..."
 	
@@ -170,31 +197,61 @@ func parse_and_download_images(json_string: String):
 	var parse_result = json.parse(json_string)
 	
 	if parse_result != OK:
-		log_message("Failed to parse JSON")
+		log_message("Failed to parse JSON - Error: " + str(parse_result))
 		reset_download_state()
 		return
 	
 	var data = json.data
 	if not data is Dictionary:
-		log_message("JSON is not a dictionary")
+		log_message("JSON root is not a dictionary, type: " + str(typeof(data)))
 		reset_download_state()
 		return
 	
-	# Extract all image paths
-	var image_paths: Array[String] = []
+	# Check if JSON has "items" array structure
+	var items_array: Array = []
+	if data.has("items") and data["items"] is Array:
+		items_array = data["items"]
+		log_message("JSON parsed successfully. Found items array with " + str(items_array.size()) + " items")
+	else:
+		log_message("JSON structure not recognized. Root keys: " + str(data.keys()))
+		reset_download_state()
+		return
 	
-	for item_key in data:
-		var item_data = data[item_key]
-		if item_data is Dictionary and item_data.has("image"):
-			var image_path = item_data["image"]
+	# Extract all image paths from items array
+	var image_paths: Array[String] = []
+	var processed_items = 0
+	
+	for item_data in items_array:
+		processed_items += 1
+		
+		if processed_items <= 5:  # Log first 5 items for debugging
+			log_message("Item " + str(processed_items) + ": " + str(item_data.keys() if item_data is Dictionary else "Not a dict"))
+		
+		if item_data is Dictionary and item_data.has("img"):  # Note: it's "img" not "image"
+			var image_path = item_data["img"]
 			if image_path is String and not image_path.is_empty():
 				image_paths.append(image_path)
+				if image_paths.size() <= 3:  # Log first 3 image paths
+					log_message("Found image path: " + image_path)
 	
+	log_message("Processed " + str(processed_items) + " items")
 	log_message("Found " + str(image_paths.size()) + " images to download")
+	
+	if image_paths.size() == 0:
+		log_message("No images found! Checking JSON structure...")
+		# Let's examine the first item more closely
+		var first_key = data.keys()[0] if data.keys().size() > 0 else ""
+		if not first_key.is_empty():
+			var first_item = data[first_key]
+			log_message("First item structure: " + str(first_item))
+		reset_download_state()
+		return
 	
 	# Prepare download queue
 	total_files = image_paths.size()
 	progress_bar.max_value = total_files
+	
+	var skipped_files = 0
 	
 	for image_path in image_paths:
 		var download_info = {
@@ -202,7 +259,33 @@ func parse_and_download_images(json_string: String):
 			"local_path": LOCAL_ASSETS_PATH + image_path.trim_prefix("/"),
 			"relative_path": image_path
 		}
+		
+		# Check if file already exists (skip if not force updating)
+		if not force_update and FileAccess.file_exists(download_info["local_path"]):
+			skipped_files += 1
+			if skipped_files <= 3:  # Log first few skips
+				log_message("Skipping existing file: " + download_info["relative_path"])
+			continue
+		
 		download_queue.append(download_info)
+		
+		if download_queue.size() <= 3:  # Log first 3 download URLs
+			log_message("Download URL: " + download_info["url"])
+			log_message("Local path: " + download_info["local_path"])
+	
+	if skipped_files > 0:
+		log_message("Skipped " + str(skipped_files) + " existing files (use Force Update to re-download)")
+	
+	# Update total files to only count what we're actually downloading
+	total_files = download_queue.size()
+	progress_bar.max_value = total_files
+	
+	if total_files == 0:
+		log_message("No files to download! All images already exist.")
+		if not force_update:
+			log_message("Use 'Force Update/Sync' button to re-download existing files.")
+		download_complete()
+		return
 	
 	# Start downloading images
 	start_image_downloads()
@@ -291,8 +374,10 @@ func download_complete():
 func reset_download_state():
 	is_downloading = false
 	download_button.disabled = false
+	update_button.disabled = false
 	current_downloads = 0
 	download_queue.clear()
+	force_update = false
 
 func ensure_directory_path(dir_path: String):
 	var parts = dir_path.split("/")
