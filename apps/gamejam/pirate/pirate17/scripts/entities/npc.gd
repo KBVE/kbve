@@ -88,9 +88,11 @@ func create_visual():
 	# Create fantasy state badge
 	state_badge = FantasyStateBadge.new()
 	state_badge.state_text = "Wandering..."
-	state_badge.position = Vector2(-35, -45)  # Position above the NPC
 	state_badge.z_index = 25  # Above everything else
 	visual_container.add_child(state_badge)
+	
+	# Position badge above NPC after it's sized
+	call_deferred("position_state_badge")
 	
 	add_child(visual_container)
 
@@ -125,6 +127,13 @@ func transition_to_state(new_state: NPCState):
 		if movement_timer:
 			movement_timer.start()
 
+func position_state_badge():
+	if state_badge:
+		# Center the badge horizontally above the NPC
+		var badge_x = -state_badge.size.x / 2
+		var badge_y = -45  # Fixed distance above NPC
+		state_badge.position = Vector2(badge_x, badge_y)
+
 func update_state_label():
 	if state_badge:
 		match current_state:
@@ -134,6 +143,9 @@ func update_state_label():
 				state_badge.update_state("Aggressive!")
 			NPCState.RETURNING:
 				state_badge.update_state("Retreating...")
+		
+		# Reposition badge after text change
+		call_deferred("position_state_badge")
 
 func update_visual_state():
 	# Change NPC color based on current state
