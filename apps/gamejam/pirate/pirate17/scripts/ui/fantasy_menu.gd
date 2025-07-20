@@ -35,7 +35,7 @@ func setup_title():
 		title_label.text = menu_title
 		title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		title_label.add_theme_font_size_override("font_size", 16)
+		title_label.add_theme_font_size_override("font_size", 28)
 		title_label.add_theme_color_override("font_color", Color.WHITE)
 		title_label.add_theme_color_override("font_shadow_color", Color.BLACK)
 		title_label.add_theme_constant_override("shadow_offset_x", 2)
