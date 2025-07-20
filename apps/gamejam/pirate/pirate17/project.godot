@@ -11,8 +11,13 @@ config_version=5
 [application]
 
 config/name="pirate17"
+run/main_scene="res://scenes/title.tscn"
 config/features=PackedStringArray("4.4", "GL Compatibility")
 config/icon="res://icon.svg"
+
+[autoload]
+
+Global="*res://scripts/global.gd"
 
 [rendering]
 
