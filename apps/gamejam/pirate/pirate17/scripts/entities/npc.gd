@@ -36,7 +36,7 @@ var path_visualizer: Node2D
 var dash_lines: Array[Line2D] = []
 
 # UI elements
-var state_label: Label
+var state_badge: FantasyStateBadge
 
 func _ready():
 	# Set z-index to render above map tiles
@@ -85,17 +85,12 @@ func create_visual():
 	visual_container.add_child(border)
 	visual_container.add_child(npc_sprite)
 	
-	# Create state label
-	state_label = Label.new()
-	state_label.text = "Wandering..."
-	state_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	state_label.position = Vector2(-30, -40)  # Position above the NPC
-	state_label.size = Vector2(60, 20)
-	state_label.add_theme_color_override("font_color", Color.WHITE)
-	state_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	state_label.add_theme_constant_override("shadow_offset_x", 1)
-	state_label.add_theme_constant_override("shadow_offset_y", 1)
-	visual_container.add_child(state_label)
+	# Create fantasy state badge
+	state_badge = FantasyStateBadge.new()
+	state_badge.state_text = "Wandering..."
+	state_badge.position = Vector2(-35, -45)  # Position above the NPC
+	state_badge.z_index = 25  # Above everything else
+	visual_container.add_child(state_badge)
 	
 	add_child(visual_container)
 
@@ -131,14 +126,14 @@ func transition_to_state(new_state: NPCState):
 			movement_timer.start()
 
 func update_state_label():
-	if state_label:
+	if state_badge:
 		match current_state:
 			NPCState.WANDERING:
-				state_label.text = "Wandering..."
+				state_badge.update_state("Wandering...")
 			NPCState.AGGRESSIVE:
-				state_label.text = "Aggressive!"
+				state_badge.update_state("Aggressive!")
 			NPCState.RETURNING:
-				state_label.text = "Retreating..."
+				state_badge.update_state("Retreating...")
 
 func update_visual_state():
 	# Change NPC color based on current state
