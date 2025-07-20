@@ -39,9 +39,14 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                     .Subscribe(val =>
                         {
                             Debug.Log($"[StatBar] {_type} updated fill: {val}");
-                            _fill.fillAmount = val;
+                            if (_fill != null)
+                            {
+                                _fill.fillAmount = val;
+                                _fill.SetVerticesDirty();
+                            }
                         });
         }
+
 
         public void Dispose()
         {
