@@ -61,5 +61,6 @@
       "questdb",
       "khash",
       "plpgsql"
-    ]
+    ],
+    "godotTools.editorPath.godot4": "/Applications/Godot.app"
 }

@@ -64,6 +64,10 @@ on:
       droid:
         description: "Droid Package changed"
         value: ${{ jobs.alter.outputs.droid }}
+      # ? Godot
+      pirate17:
+        description: "Pirate 17 Gamejam"
+        value: ${{ jobs.alter.outputs.pirate17 }}
       # TODO:
       discordsh_website:
         description: "Discord.sh changed"
@@ -108,6 +112,7 @@ jobs:
     runs-on: ubuntu-latest
     name: File Alterations
     outputs:
+      pirate17: ${{ steps.delta.outputs.pirate17_any_changed }}
       q_crate: ${{ steps.delta.outputs.q_crate_any_changed }}
       jedi_crate: ${{ steps.delta.outputs.jedi_crate_any_changed }}
       soul_crate: ${{ steps.delta.outputs.soul_crate_any_changed }}
@@ -146,6 +151,8 @@ jobs:
         uses: step-security/changed-files@v45
         with:
           files_yaml: |
+            pirate17:
+                - 'apps/gamejam/pirate/pirate17/**'
             q_crate:
                 - 'packages/rust/q/README.md'
             jedi_crate:
