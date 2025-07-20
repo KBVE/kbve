@@ -51,12 +51,12 @@ static func load_and_slice_borders():
 			var slice_image = Image.create(actual_tile_width, actual_tile_height, true, Image.FORMAT_RGBA8)
 			slice_image.blit_rect(border_image, slice_rect, Vector2i.ZERO)
 			
-			# Make black pixels transparent (assuming black centers should be transparent)
+			# Make black/dark pixels transparent (assuming black centers should be transparent)
 			for px in range(actual_tile_width):
 				for py in range(actual_tile_height):
 					var pixel_color = slice_image.get_pixel(px, py)
-					# If pixel is very dark (close to black), make it transparent
-					if pixel_color.r < 0.1 and pixel_color.g < 0.1 and pixel_color.b < 0.1:
+					# If pixel is dark (more aggressive threshold), make it transparent
+					if pixel_color.r < 0.3 and pixel_color.g < 0.3 and pixel_color.b < 0.3:
 						slice_image.set_pixel(px, py, Color(0, 0, 0, 0))  # Fully transparent
 			
 			# Convert to texture

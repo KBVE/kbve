@@ -18,7 +18,8 @@ var tile_sprites = {}
 var player_movement: Movement.MoveComponent
 
 func _ready():
-	# Load border assets first
+	# Force reload border assets with updated transparency
+	BorderSlicer.is_loaded = false  # Force reload
 	BorderSlicer.load_and_slice_borders()
 	
 	generate_map_display()
@@ -113,7 +114,8 @@ func show_movement_path(from: Vector2i, to: Vector2i):
 
 func show_target_border(grid_pos: Vector2i):
 	var world_pos = Movement.get_world_position(grid_pos)
-	target_highlight.position = world_pos
+	# Center the border on the tile by offsetting by half the border size
+	target_highlight.position = world_pos - Vector2(24, 24)  # Half of 48x48 size
 	target_highlight.visible = true
 	
 	# Stop any existing animation before starting new one
@@ -146,8 +148,8 @@ func stop_border_animation():
 func create_dotted_line(start: Vector2, end: Vector2):
 	var direction = (end - start).normalized()
 	var distance = start.distance_to(end)
-	var dash_length = 15.0  # Length of each dash
-	var gap_length = 10.0   # Length of each gap
+	var dash_length = 12.0  # Length of each dash
+	var gap_length = 8.0    # Gap between dashes (reasonable spacing)
 	var current_distance = 0.0
 	
 	# Create individual dash segments
