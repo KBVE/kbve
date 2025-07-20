@@ -29,6 +29,10 @@ window/size/viewport_height=720
 window/size/mode=2
 window/stretch/mode="canvas_items"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/item_downloader/plugin.cfg")
+
 [rendering]
 
 renderer/rendering_method="gl_compatibility"
