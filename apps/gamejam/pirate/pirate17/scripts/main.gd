@@ -18,6 +18,7 @@ const TILE_SIZE = 32
 var tile_sprites = {}
 var player_movement: Movement.MoveComponent
 var dash_lines: Array[Line2D] = []
+var npc_container: Node2D
 
 func _ready():
 	# Force reload border assets with updated transparency
@@ -26,6 +27,8 @@ func _ready():
 	
 	generate_map_display()
 	setup_player_movement()
+	setup_npc_container()
+	spawn_npcs()
 	update_ui()
 	connect_player_stats()
 	connect_movement_signals()
@@ -216,3 +219,16 @@ func _on_mana_changed(new_value: int, max_value: int):
 
 func _on_energy_changed(new_value: int, max_value: int):
 	ui_energy_value.text = str(new_value) + "/" + str(max_value)
+
+func setup_npc_container():
+	npc_container = Node2D.new()
+	npc_container.name = "NPCs"
+	add_child(npc_container)
+
+func spawn_npcs():
+	# Spawn NPCs through World system
+	World.spawn_npcs(5)
+	
+	# Add spawned NPCs to the scene
+	for npc in World.get_npcs():
+		npc_container.add_child(npc)
