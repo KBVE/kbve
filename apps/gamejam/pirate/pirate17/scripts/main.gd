@@ -7,6 +7,7 @@ const BorderSlicer = preload("res://scripts/ui/border_slicer.gd")
 @onready var map_container = $MapContainer
 @onready var player = $Player
 @onready var path_line = $PathVisualizer/PathLine
+@onready var path_visualizer = $PathVisualizer
 @onready var target_highlight = $PathVisualizer/TargetHighlight
 @onready var ui_player_name = $UI/PlayerInfo/PlayerName
 @onready var ui_health_value = $UI/PlayerInfo/HealthBar/HealthValue
@@ -16,6 +17,7 @@ const BorderSlicer = preload("res://scripts/ui/border_slicer.gd")
 const TILE_SIZE = 32
 var tile_sprites = {}
 var player_movement: Movement.MoveComponent
+var dash_lines: Array[Line2D] = []
 
 func _ready():
 	# Force reload border assets with updated transparency
@@ -146,27 +148,43 @@ func stop_border_animation():
 	target_highlight.scale = Vector2.ONE
 
 func create_dotted_line(start: Vector2, end: Vector2):
+	# Clear existing dash lines
+	clear_dash_lines()
+	
 	var direction = (end - start).normalized()
 	var distance = start.distance_to(end)
-	var dash_length = 12.0  # Length of each dash
-	var gap_length = 8.0    # Gap between dashes (reasonable spacing)
+	var dash_length = 10.0  # Length of each dash
+	var gap_length = 12.0   # Gap between dashes
 	var current_distance = 0.0
 	
-	# Create individual dash segments
+	# Create separate Line2D nodes for each dash
 	while current_distance < distance:
 		var dash_start = start + direction * current_distance
 		var dash_end_distance = min(current_distance + dash_length, distance)
 		var dash_end = start + direction * dash_end_distance
 		
-		# Add this dash segment (pair of points)
-		path_line.add_point(dash_start)
-		path_line.add_point(dash_end)
+		# Create a new Line2D for this dash
+		var dash_line = Line2D.new()
+		dash_line.width = 3.0
+		dash_line.default_color = Color(0.8, 0.2, 0.2, 0.8)
+		dash_line.add_point(dash_start)
+		dash_line.add_point(dash_end)
+		
+		path_visualizer.add_child(dash_line)
+		dash_lines.append(dash_line)
 		
 		# Move to start of next dash
 		current_distance += dash_length + gap_length
 
+func clear_dash_lines():
+	for dash_line in dash_lines:
+		if dash_line and is_instance_valid(dash_line):
+			dash_line.queue_free()
+	dash_lines.clear()
+
 func hide_movement_path():
 	path_line.clear_points()
+	clear_dash_lines()
 	stop_border_animation()
 	target_highlight.visible = false
 
