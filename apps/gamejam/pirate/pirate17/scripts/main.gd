@@ -1,5 +1,7 @@
 extends Node2D
 
+const Movement = preload("res://scripts/world/movement.gd")
+
 @onready var camera = $Camera2D
 @onready var map_container = $MapContainer
 @onready var player = $Player
@@ -9,19 +11,19 @@ extends Node2D
 @onready var ui_energy_value = $UI/PlayerInfo/EnergyBar/EnergyValue
 
 const TILE_SIZE = 32
-const MOVE_SPEED = 200.0
 var tile_sprites = {}
-var player_grid_pos = Vector2i(50, 50)
-var target_position = Vector2.ZERO
-var is_moving = false
-var movement_path = []
+var player_movement: Movement.MoveComponent
 
 func _ready():
 	generate_map_display()
-	position_player()
-	camera.position = player.position
+	setup_player_movement()
 	update_ui()
 	connect_player_stats()
+	connect_movement_signals()
+
+func setup_player_movement():
+	player_movement = Movement.MoveComponent.new(player, Vector2i(50, 50))
+	camera.position = player.position
 
 func generate_map_display():
 	var map_size = World.get_map_size()
@@ -40,16 +42,10 @@ func create_tile_sprite(x: int, y: int, color_hex: String):
 	map_container.add_child(tile)
 	tile_sprites[Vector2i(x, y)] = tile
 
-func position_player():
-	var world_pos = Vector2(
-		player_grid_pos.x * TILE_SIZE + TILE_SIZE / 2,
-		player_grid_pos.y * TILE_SIZE + TILE_SIZE / 2
-	)
-	player.position = world_pos
-
 func _input(event):
 	if event is InputEventKey and event.pressed:
-		var new_pos = player_grid_pos
+		var current_pos = player_movement.get_current_position()
+		var new_pos = current_pos
 		
 		match event.keycode:
 			KEY_W, KEY_UP:
@@ -61,40 +57,30 @@ func _input(event):
 			KEY_D, KEY_RIGHT:
 				new_pos.x += 1
 		
-		if World.is_valid_position(new_pos.x, new_pos.y):
-			player_grid_pos = new_pos
-			position_player()
-			camera.position = player.position
+		if new_pos != current_pos:
+			player_movement.move_to(new_pos, true)  # Immediate movement for WASD
 	
-	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT and not is_moving:
+	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var mouse_world_pos = get_global_mouse_position()
-		var grid_pos = Vector2i(
-			int(mouse_world_pos.x / TILE_SIZE),
-			int(mouse_world_pos.y / TILE_SIZE)
-		)
+		var grid_pos = Movement.get_grid_position(mouse_world_pos)
 		
-		if World.is_valid_position(grid_pos.x, grid_pos.y):
-			start_movement_to(grid_pos)
+		player_movement.move_to(grid_pos, false)  # Smooth movement for clicks
 
 func _process(delta):
-	if is_moving:
-		var distance = player.position.distance_to(target_position)
-		if distance < 5.0:
-			player.position = target_position
-			is_moving = false
-			camera.position = player.position
-		else:
-			var direction = (target_position - player.position).normalized()
-			player.position += direction * MOVE_SPEED * delta
-			camera.position = player.position
+	player_movement.process_movement(delta)
+	camera.position = player.position
 
-func start_movement_to(grid_pos: Vector2i):
-	player_grid_pos = grid_pos
-	target_position = Vector2(
-		grid_pos.x * TILE_SIZE + TILE_SIZE / 2,
-		grid_pos.y * TILE_SIZE + TILE_SIZE / 2
-	)
-	is_moving = true
+func connect_movement_signals():
+	player_movement.movement_started.connect(_on_movement_started)
+	player_movement.movement_finished.connect(_on_movement_finished)
+
+func _on_movement_started(entity: Node2D, from: Vector2i, to: Vector2i):
+	if entity == player:
+		pass  # Can add movement start effects here
+
+func _on_movement_finished(entity: Node2D, at: Vector2i):
+	if entity == player:
+		pass  # Can add movement finish effects here
 
 func update_ui():
 	ui_player_name.text = Global.player.player_name
