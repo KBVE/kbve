@@ -171,7 +171,8 @@ jobs:
                     "branch": "main",
                     "deploy_to_itch": true,
                     "export_name": "pirate17",
-                    "project_path": "pirate17",
+                    "project_path": "./apps/gamejam/pirate/pirate17",
+                    "build_artifact_name": "pirate17",
                     "itch_username": "kbve",
                     "itch_gameid": "pirate17",
                     "godot_version": "4.4.1"
@@ -191,6 +192,7 @@ jobs:
         godot_version: ${{ matrix.godot_version }}
         export_name: ${{ matrix.export_name }}
         project_path: ${{ matrix.project_path }}
+        build_artifact_name: ${{ matrix.build_artifact_name }}
         itch_username: ${{ matrix.itch_username }}
         itch_gameid: ${{ matrix.itch_gameid }}
       secrets:
