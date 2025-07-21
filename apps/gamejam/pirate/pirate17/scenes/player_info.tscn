@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://b2m3g0p8r4q1v"]
+[gd_scene load_steps=8 format=3 uid="uid://b2m3g0p8r4q1v"]
 
 [ext_resource type="Script" path="res://scripts/ui/player_info.gd" id="1_0a1b2"]
 [ext_resource type="Texture2D" uid="uid://bc8ndvfbxavm6" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_bg"]
@@ -6,6 +6,7 @@
 [ext_resource type="Texture2D" uid="uid://b4h2xrwqy31jn" path="res://assets/ui/fantasy/ValueRed_120x8.png" id="4_health_val"]
 [ext_resource type="Texture2D" uid="uid://b0rjy6p11k8h7" path="res://assets/ui/fantasy/ValueBlue_120x8.png" id="5_mana_val"]
 [ext_resource type="Texture2D" uid="uid://bmg6gn0o5qhyl" path="res://assets/ui/fantasy/ValueBar_128x16.png" id="6_energy"]
+[ext_resource type="PackedScene" uid="uid://cxm8v4k1l2n3p" path="res://scenes/fantasy_progress_bar.tscn" id="7_progress"]
 
 [node name="PlayerInfo" type="Control"]
 layout_mode = 3
@@ -13,11 +14,11 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
-offset_top = -160.0
-offset_right = 240.0
+offset_top = -300.0
+offset_right = 350.0
 offset_bottom = -10.0
 grow_vertical = 0
-custom_minimum_size = Vector2(230, 150)
+custom_minimum_size = Vector2(340, 290)
 z_index = 100
 script = ExtResource("1_0a1b2")
 
@@ -62,163 +63,66 @@ offset_left = 15.0
 offset_top = 15.0
 offset_right = -15.0
 offset_bottom = -15.0
-add_theme_constant_override("separation", 8)
+add_theme_constant_override("separation", 2)
 z_index = 101
 
-[node name="PlayerName" type="Label" parent="Container"]
+[node name="PlayerNameContainer" type="Control" parent="Container"]
 layout_mode = 2
-text = "Captain Placeholder"
-horizontal_alignment = 1
-add_theme_font_size_override("font_size", 14)
-add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 1))
-add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-add_theme_constant_override("shadow_offset_x", 1)
-add_theme_constant_override("shadow_offset_y", 1)
-z_index = 102
+custom_minimum_size = Vector2(200, 30)
+
+[node name="PlayerNameBG" type="ColorRect" parent="Container/PlayerNameContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.2, 0.2, 0.2, 0.5)
+z_index = 104
+
+[node name="PlayerName" type="RichTextLabel" parent="Container/PlayerNameContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+bbcode_enabled = true
+text = "[center][color=yellow][font_size=18]Captain Placeholder[/font_size][/color][/center]"
+fit_content = true
+z_index = 106
 
 [node name="Spacer1" type="Control" parent="Container"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 8)
+custom_minimum_size = Vector2(0, 2)
 
-[node name="HealthBar" type="VBoxContainer" parent="Container"]
+[node name="HealthBar" parent="Container" instance=ExtResource("7_progress")]
 layout_mode = 2
+custom_minimum_size = Vector2(280, 50)
+size_flags_horizontal = 3
+size_flags_vertical = 0
+background_texture = ExtResource("6_energy")
+bar_color = Color(1, 0.3, 0.3, 1)
 z_index = 102
-
-[node name="HealthPanel" type="NinePatchRect" parent="Container/HealthBar"]
-layout_mode = 2
-custom_minimum_size = Vector2(200, 28)
-texture = ExtResource("3_health")
-patch_margin_left = 25
-patch_margin_top = 10
-patch_margin_right = 25
-patch_margin_bottom = 10
-
-[node name="HealthContainer" type="HBoxContainer" parent="Container/HealthBar/HealthPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = 5.0
-offset_right = -10.0
-offset_bottom = -5.0
-
-[node name="HealthLabel" type="Label" parent="Container/HealthBar/HealthPanel/HealthContainer"]
-layout_mode = 2
-text = "Health:"
-add_theme_font_size_override("font_size", 10)
-add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 1))
-add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-add_theme_constant_override("shadow_offset_x", 1)
-add_theme_constant_override("shadow_offset_y", 1)
-z_index = 103
-
-[node name="HealthValue" type="Label" parent="Container/HealthBar/HealthPanel/HealthContainer"]
-layout_mode = 2
-size_flags_horizontal = 10
-text = "100/100"
-horizontal_alignment = 2
-add_theme_font_size_override("font_size", 10)
-add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
-add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-add_theme_constant_override("shadow_offset_x", 1)
-add_theme_constant_override("shadow_offset_y", 1)
-z_index = 103
 
 [node name="Spacer2" type="Control" parent="Container"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 4)
+custom_minimum_size = Vector2(0, 2)
 
-[node name="ManaBar" type="VBoxContainer" parent="Container"]
+[node name="ManaBar" parent="Container" instance=ExtResource("7_progress")]
 layout_mode = 2
+custom_minimum_size = Vector2(280, 50)
+size_flags_horizontal = 3
+size_flags_vertical = 0
+background_texture = ExtResource("6_energy")
+bar_color = Color(0.3, 0.5, 1, 1)
 z_index = 102
-
-[node name="ManaPanel" type="NinePatchRect" parent="Container/ManaBar"]
-layout_mode = 2
-custom_minimum_size = Vector2(200, 24)
-texture = ExtResource("6_energy")
-patch_margin_left = 12
-patch_margin_top = 6
-patch_margin_right = 12
-patch_margin_bottom = 6
-
-[node name="ManaContainer" type="HBoxContainer" parent="Container/ManaBar/ManaPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 3.0
-offset_right = -8.0
-offset_bottom = -3.0
-
-[node name="ManaLabel" type="Label" parent="Container/ManaBar/ManaPanel/ManaContainer"]
-layout_mode = 2
-text = "Mana:"
-add_theme_font_size_override("font_size", 10)
-add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 1))
-add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-add_theme_constant_override("shadow_offset_x", 1)
-add_theme_constant_override("shadow_offset_y", 1)
-z_index = 103
-
-[node name="ManaValue" type="Label" parent="Container/ManaBar/ManaPanel/ManaContainer"]
-layout_mode = 2
-size_flags_horizontal = 10
-text = "50/50"
-horizontal_alignment = 2
-add_theme_font_size_override("font_size", 10)
-add_theme_color_override("font_color", Color(0.3, 0.5, 1, 1))
-add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-add_theme_constant_override("shadow_offset_x", 1)
-add_theme_constant_override("shadow_offset_y", 1)
-z_index = 103
 
 [node name="Spacer3" type="Control" parent="Container"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 4)
+custom_minimum_size = Vector2(0, 2)
 
-[node name="EnergyBar" type="VBoxContainer" parent="Container"]
+[node name="EnergyBar" parent="Container" instance=ExtResource("7_progress")]
 layout_mode = 2
+custom_minimum_size = Vector2(280, 50)
+size_flags_horizontal = 3
+size_flags_vertical = 0
+background_texture = ExtResource("6_energy")
+bar_color = Color(0.9, 0.7, 0.2, 1)
 z_index = 102
-
-[node name="EnergyPanel" type="NinePatchRect" parent="Container/EnergyBar"]
-layout_mode = 2
-custom_minimum_size = Vector2(200, 24)
-texture = ExtResource("6_energy")
-patch_margin_left = 12
-patch_margin_top = 6
-patch_margin_right = 12
-patch_margin_bottom = 6
-
-[node name="EnergyContainer" type="HBoxContainer" parent="Container/EnergyBar/EnergyPanel"]
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 3.0
-offset_right = -8.0
-offset_bottom = -3.0
-
-[node name="EnergyLabel" type="Label" parent="Container/EnergyBar/EnergyPanel/EnergyContainer"]
-layout_mode = 2
-text = "Energy:"
-add_theme_font_size_override("font_size", 10)
-add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 1))
-add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-add_theme_constant_override("shadow_offset_x", 1)
-add_theme_constant_override("shadow_offset_y", 1)
-z_index = 103
-
-[node name="EnergyValue" type="Label" parent="Container/EnergyBar/EnergyPanel/EnergyContainer"]
-layout_mode = 2
-size_flags_horizontal = 10
-text = "100/100"
-horizontal_alignment = 2
-add_theme_font_size_override("font_size", 10)
-add_theme_color_override("font_color", Color(0.9, 0.7, 0.2, 1))
-add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
-add_theme_constant_override("shadow_offset_x", 1)
-add_theme_constant_override("shadow_offset_y", 1)
-z_index = 103
