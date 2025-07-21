@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://b2m3g0p8r4q1v"]
 
 [ext_resource type="Script" path="res://scripts/ui/player_info.gd" id="1_0a1b2"]
-[ext_resource type="Texture2D" uid="uid://b6y3lxdx8y87v" path="res://assets/ui/fantasy/CharacterBox_56x57.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://bc8ndvfbxavm6" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_bg"]
 [ext_resource type="Texture2D" uid="uid://cue6qbp2y8a7o" path="res://assets/ui/fantasy/HealthBarPanel_160x41.png" id="3_health"]
 [ext_resource type="Texture2D" uid="uid://b4h2xrwqy31jn" path="res://assets/ui/fantasy/ValueRed_120x8.png" id="4_health_val"]
 [ext_resource type="Texture2D" uid="uid://b0rjy6p11k8h7" path="res://assets/ui/fantasy/ValueBlue_120x8.png" id="5_mana_val"]
@@ -13,32 +13,57 @@ anchors_preset = 2
 anchor_top = 1.0
 anchor_bottom = 1.0
 offset_left = 10.0
-offset_top = -140.0
-offset_right = 220.0
+offset_top = -160.0
+offset_right = 240.0
 offset_bottom = -10.0
 grow_vertical = 0
+custom_minimum_size = Vector2(230, 150)
+z_index = 100
 script = ExtResource("1_0a1b2")
+
+[node name="BackgroundFallback" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.1, 0.1, 0.1, 0.8)
+z_index = 98
+
+[node name="Border" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0.7, 0.6, 0.4, 1)
+z_index = 98
 
 [node name="Background" type="NinePatchRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 2.0
+offset_top = 2.0
+offset_right = -2.0
+offset_bottom = -2.0
 texture = ExtResource("2_bg")
-patch_margin_left = 10
-patch_margin_top = 10
-patch_margin_right = 10
-patch_margin_bottom = 10
+patch_margin_left = 20
+patch_margin_top = 20
+patch_margin_right = 20
+patch_margin_bottom = 20
+z_index = 99
 
 [node name="Container" type="VBoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 8.0
-offset_top = 8.0
-offset_right = -8.0
-offset_bottom = -8.0
+offset_left = 15.0
+offset_top = 15.0
+offset_right = -15.0
+offset_bottom = -15.0
+add_theme_constant_override("separation", 8)
+z_index = 101
 
 [node name="PlayerName" type="Label" parent="Container"]
 layout_mode = 2
@@ -49,22 +74,24 @@ add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 1))
 add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
 add_theme_constant_override("shadow_offset_x", 1)
 add_theme_constant_override("shadow_offset_y", 1)
+z_index = 102
 
 [node name="Spacer1" type="Control" parent="Container"]
 layout_mode = 2
-custom_minimum_size = Vector2(0, 5)
+custom_minimum_size = Vector2(0, 8)
 
 [node name="HealthBar" type="VBoxContainer" parent="Container"]
 layout_mode = 2
+z_index = 102
 
 [node name="HealthPanel" type="NinePatchRect" parent="Container/HealthBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 25)
+custom_minimum_size = Vector2(200, 28)
 texture = ExtResource("3_health")
-patch_margin_left = 20
-patch_margin_top = 8
-patch_margin_right = 20
-patch_margin_bottom = 8
+patch_margin_left = 25
+patch_margin_top = 10
+patch_margin_right = 25
+patch_margin_bottom = 10
 
 [node name="HealthContainer" type="HBoxContainer" parent="Container/HealthBar/HealthPanel"]
 layout_mode = 1
@@ -81,6 +108,10 @@ layout_mode = 2
 text = "Health:"
 add_theme_font_size_override("font_size", 10)
 add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 1))
+add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+add_theme_constant_override("shadow_offset_x", 1)
+add_theme_constant_override("shadow_offset_y", 1)
+z_index = 103
 
 [node name="HealthValue" type="Label" parent="Container/HealthBar/HealthPanel/HealthContainer"]
 layout_mode = 2
@@ -89,18 +120,27 @@ text = "100/100"
 horizontal_alignment = 2
 add_theme_font_size_override("font_size", 10)
 add_theme_color_override("font_color", Color(1, 0.3, 0.3, 1))
+add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+add_theme_constant_override("shadow_offset_x", 1)
+add_theme_constant_override("shadow_offset_y", 1)
+z_index = 103
+
+[node name="Spacer2" type="Control" parent="Container"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 4)
 
 [node name="ManaBar" type="VBoxContainer" parent="Container"]
 layout_mode = 2
+z_index = 102
 
 [node name="ManaPanel" type="NinePatchRect" parent="Container/ManaBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 20)
+custom_minimum_size = Vector2(200, 24)
 texture = ExtResource("6_energy")
-patch_margin_left = 8
-patch_margin_top = 4
-patch_margin_right = 8
-patch_margin_bottom = 4
+patch_margin_left = 12
+patch_margin_top = 6
+patch_margin_right = 12
+patch_margin_bottom = 6
 
 [node name="ManaContainer" type="HBoxContainer" parent="Container/ManaBar/ManaPanel"]
 layout_mode = 1
@@ -117,6 +157,10 @@ layout_mode = 2
 text = "Mana:"
 add_theme_font_size_override("font_size", 10)
 add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 1))
+add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+add_theme_constant_override("shadow_offset_x", 1)
+add_theme_constant_override("shadow_offset_y", 1)
+z_index = 103
 
 [node name="ManaValue" type="Label" parent="Container/ManaBar/ManaPanel/ManaContainer"]
 layout_mode = 2
@@ -125,18 +169,27 @@ text = "50/50"
 horizontal_alignment = 2
 add_theme_font_size_override("font_size", 10)
 add_theme_color_override("font_color", Color(0.3, 0.5, 1, 1))
+add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+add_theme_constant_override("shadow_offset_x", 1)
+add_theme_constant_override("shadow_offset_y", 1)
+z_index = 103
+
+[node name="Spacer3" type="Control" parent="Container"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 4)
 
 [node name="EnergyBar" type="VBoxContainer" parent="Container"]
 layout_mode = 2
+z_index = 102
 
 [node name="EnergyPanel" type="NinePatchRect" parent="Container/EnergyBar"]
 layout_mode = 2
-custom_minimum_size = Vector2(160, 20)
+custom_minimum_size = Vector2(200, 24)
 texture = ExtResource("6_energy")
-patch_margin_left = 8
-patch_margin_top = 4
-patch_margin_right = 8
-patch_margin_bottom = 4
+patch_margin_left = 12
+patch_margin_top = 6
+patch_margin_right = 12
+patch_margin_bottom = 6
 
 [node name="EnergyContainer" type="HBoxContainer" parent="Container/EnergyBar/EnergyPanel"]
 layout_mode = 1
@@ -153,6 +206,10 @@ layout_mode = 2
 text = "Energy:"
 add_theme_font_size_override("font_size", 10)
 add_theme_color_override("font_color", Color(0.9, 0.85, 0.7, 1))
+add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+add_theme_constant_override("shadow_offset_x", 1)
+add_theme_constant_override("shadow_offset_y", 1)
+z_index = 103
 
 [node name="EnergyValue" type="Label" parent="Container/EnergyBar/EnergyPanel/EnergyContainer"]
 layout_mode = 2
@@ -161,3 +218,7 @@ text = "100/100"
 horizontal_alignment = 2
 add_theme_font_size_override("font_size", 10)
 add_theme_color_override("font_color", Color(0.9, 0.7, 0.2, 1))
+add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+add_theme_constant_override("shadow_offset_x", 1)
+add_theme_constant_override("shadow_offset_y", 1)
+z_index = 103

@@ -7,26 +7,53 @@ var mana_value_label: Label
 var energy_value_label: Label
 
 func _ready():
-	# Get node references safely
-	player_name_label = get_node("Container/PlayerName")
-	health_value_label = get_node("Container/HealthBar/HealthPanel/HealthContainer/HealthValue")
-	mana_value_label = get_node("Container/ManaBar/ManaPanel/ManaContainer/ManaValue")
-	energy_value_label = get_node("Container/EnergyBar/EnergyPanel/EnergyContainer/EnergyValue")
+	# Defer initialization to ensure all child nodes are ready
+	call_deferred("initialize_ui")
+
+func initialize_ui():
+	# Get node references safely with existence checks
+	if has_node("Container/PlayerName"):
+		player_name_label = get_node("Container/PlayerName")
+	
+	if has_node("Container/HealthBar/HealthPanel/HealthContainer/HealthValue"):
+		health_value_label = get_node("Container/HealthBar/HealthPanel/HealthContainer/HealthValue")
+	
+	if has_node("Container/ManaBar/ManaPanel/ManaContainer/ManaValue"):
+		mana_value_label = get_node("Container/ManaBar/ManaPanel/ManaContainer/ManaValue")
+	
+	if has_node("Container/EnergyBar/EnergyPanel/EnergyContainer/EnergyValue"):
+		energy_value_label = get_node("Container/EnergyBar/EnergyPanel/EnergyContainer/EnergyValue")
 	
 	# Verify all nodes were found
 	if not player_name_label or not health_value_label or not mana_value_label or not energy_value_label:
 		print("PlayerInfoUI: Some nodes not found!")
+		print("PlayerName:", player_name_label)
+		print("HealthValue:", health_value_label)
+		print("ManaValue:", mana_value_label)
+		print("EnergyValue:", energy_value_label)
 		return
 	
 	update_player_info()
 	connect_player_stats()
 
 func update_player_info():
-	if Global.player and player_name_label and health_value_label and mana_value_label and energy_value_label:
-		player_name_label.text = Global.player.player_name
+	if not Global.player:
+		print("PlayerInfoUI: Global.player is null")
+		return
+	
+	if not player_name_label or not health_value_label or not mana_value_label or not energy_value_label:
+		print("PlayerInfoUI: Some UI labels are null")
+		return
+	
+	print("PlayerInfoUI: Updating with player name: ", Global.player.player_name)
+	player_name_label.text = Global.player.player_name
+	
+	if Global.player.stats:
 		health_value_label.text = str(Global.player.stats.health) + "/" + str(Global.player.stats.max_health)
 		mana_value_label.text = str(Global.player.stats.mana) + "/" + str(Global.player.stats.max_mana)
 		energy_value_label.text = str(Global.player.stats.energy) + "/" + str(Global.player.stats.max_energy)
+	else:
+		print("PlayerInfoUI: Player stats are null")
 
 func connect_player_stats():
 	if Global.player and Global.player.stats:
