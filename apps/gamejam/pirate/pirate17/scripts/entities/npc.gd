@@ -12,18 +12,31 @@ var npc_sprite: ColorRect
 var movement_timer: Timer
 var movement_interval: float = 2.0  # Move every 2 seconds
 var movement_range: int = 3  # How far NPC can move from spawn
-var detection_range: int = 4  # How close to detect player
 var follow_distance: int = 1  # Stay this far from player when following
 
 var spawn_position: Vector2i
-var is_following_player: bool = false
-var has_seen_player: bool = false  # Once true, NPC remembers the player
 var is_initialized: bool = false
-var max_follow_distance: int = 20  # Max distance before giving up following
+
+# Enhanced AI State System
+enum NPCState {
+	WANDERING,    # Black - Normal wandering around spawn
+	AGGRESSIVE,   # Dark Red - Actively following player
+	RETURNING     # Dark Orange - Lost player, returning to spawn
+}
+
+var current_state: NPCState = NPCState.WANDERING
+var detection_range: int = 4     # How close to detect player and become aggressive
+var chase_threshold: int = 7     # Chase up to this distance when aggressive
+var restart_distance: int = 8    # Begin restart process at this distance
+var reset_distance: int = 10     # Give up and reset at this distance
+var is_following_player: bool = false  # Legacy variable for compatibility
 
 # Path visualization
 var path_visualizer: Node2D
 var dash_lines: Array[Line2D] = []
+
+# UI elements
+var state_badge: FantasyStateBadge
 
 func _ready():
 	# Set z-index to render above map tiles
@@ -71,22 +84,139 @@ func create_visual():
 	
 	visual_container.add_child(border)
 	visual_container.add_child(npc_sprite)
-	add_child(visual_container)
 	
-	print("NPC visual created - size: ", npc_sprite.size, " color: ", npc_sprite.color, " with white border")
+	# Create fantasy state badge
+	state_badge = FantasyStateBadge.new()
+	state_badge.state_text = "Wandering..."
+	state_badge.z_index = 25  # Above everything else
+	visual_container.add_child(state_badge)
+	
+	# Position badge above NPC after it's sized
+	call_deferred("position_state_badge")
+	
+	add_child(visual_container)
+
+func transition_to_state(new_state: NPCState):
+	if current_state != new_state:
+		current_state = new_state
+		
+		# Update legacy following variable for compatibility
+		is_following_player = (current_state == NPCState.AGGRESSIVE)
+		
+		# Update state label
+		update_state_label()
+		
+		# Reset movement timer to ensure it continues working
+		if movement_timer:
+			movement_timer.stop()
+			
+		# Adjust movement speed based on state
+		match current_state:
+			NPCState.AGGRESSIVE:
+				movement_timer.wait_time = randf_range(1.0, 2.0)  # Faster when aggressive
+			NPCState.RETURNING:
+				movement_timer.wait_time = randf_range(1.0, 2.0)  # Fast retreating speed
+				# Immediately attempt to retreat when entering retreating state
+				call_deferred("attempt_retreat_from_player")
+			NPCState.WANDERING:
+				movement_timer.wait_time = randf_range(1.5, 3.0)  # Normal wandering speed
+				# Immediately attempt a move when entering wandering state
+				call_deferred("attempt_random_move")
+		
+		# Restart the timer to ensure it continues
+		if movement_timer:
+			movement_timer.start()
+
+func position_state_badge():
+	if state_badge:
+		# Center the badge horizontally above the NPC
+		var badge_x = -state_badge.size.x / 2
+		var badge_y = -45  # Fixed distance above NPC
+		state_badge.position = Vector2(badge_x, badge_y)
+
+func update_state_label():
+	if state_badge:
+		match current_state:
+			NPCState.WANDERING:
+				state_badge.update_state("Wandering...")
+			NPCState.AGGRESSIVE:
+				state_badge.update_state("Aggressive!")
+			NPCState.RETURNING:
+				state_badge.update_state("Retreating...")
+		
+		# Reposition badge after text change
+		call_deferred("position_state_badge")
 
 func update_visual_state():
-	# Change NPC color based on behavior state
+	# Change NPC color based on current state
 	if npc_sprite:
-		if is_following_player:
-			# Dark red when following player
-			npc_sprite.color = Color(0.6, 0.1, 0.1, 1.0)
-		elif has_seen_player:
-			# Dark orange when returning to spawn after losing player
-			npc_sprite.color = Color(0.6, 0.3, 0.1, 1.0)
-		else:
-			# Black when wandering normally
-			npc_sprite.color = Color.BLACK
+		match current_state:
+			NPCState.WANDERING:
+				# Black when wandering normally
+				npc_sprite.color = Color.BLACK
+			NPCState.AGGRESSIVE:
+				# Dark red when aggressively following player
+				npc_sprite.color = Color(0.6, 0.1, 0.1, 1.0)
+			NPCState.RETURNING:
+				# Dark yellow/orange when returning to spawn after losing player
+				npc_sprite.color = Color(0.7, 0.5, 0.1, 1.0)
+
+func attempt_aggressive_chase():
+	# More aggressive movement when player is far but still trackable
+	var main_scene = get_tree().current_scene
+	if not main_scene or not main_scene.has_method("get_player_position"):
+		return
+	
+	var player_pos = main_scene.get_player_position()
+	
+	# Move directly towards player (ignore normal follow distance)
+	var direction_to_player = Vector2i(
+		sign(player_pos.x - grid_position.x),
+		sign(player_pos.y - grid_position.y)
+	)
+	
+	# Try to move towards player with some randomness for pathfinding
+	var possible_moves = [direction_to_player]
+	
+	# Add diagonal and adjacent moves for better pathfinding
+	if direction_to_player.x != 0 and direction_to_player.y != 0:
+		possible_moves.append(Vector2i(direction_to_player.x, 0))
+		possible_moves.append(Vector2i(0, direction_to_player.y))
+	
+	# Add some random adjacent directions for dynamic movement
+	var all_directions = [
+		Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0),
+		Vector2i(-1, -1), Vector2i(1, -1), Vector2i(-1, 1), Vector2i(1, 1)
+	]
+	all_directions.shuffle()
+	possible_moves.append_array(all_directions.slice(0, 2))
+	
+	# Try each move until we find a valid one
+	for direction in possible_moves:
+		var new_pos = grid_position + direction
+		if is_valid_aggressive_move(new_pos):
+			move_to(new_pos)
+			break
+
+func is_valid_aggressive_move(pos: Vector2i) -> bool:
+	# Check bounds
+	if pos.x < 0 or pos.x >= World.MAP_WIDTH or pos.y < 0 or pos.y >= World.MAP_HEIGHT:
+		return false
+	
+	# Check if tile is passable
+	var tile_color = Map.get_tile(pos.x, pos.y)
+	if tile_color == Map.tile_colors["ocean"]:
+		return false
+	
+	# Check if player is at this position
+	var main_scene = get_tree().current_scene
+	if main_scene and main_scene.has_method("get_player_position"):
+		var player_pos = main_scene.get_player_position()
+		if pos == player_pos:
+			return false
+	
+	# In aggressive mode, ignore spawn range restrictions
+	return true
 
 func setup_movement_timer():
 	movement_timer = Timer.new()
@@ -111,8 +241,6 @@ func initialize(start_pos: Vector2i):
 	
 	# Set the actual world position
 	position = Movement.get_world_position(start_pos)
-	
-	print("NPC initialized at grid: ", grid_position, " world: ", position)
 
 func update_position_after_scene_ready():
 	# Called after NPC is added to scene tree to ensure position is correct
@@ -125,49 +253,65 @@ func update_position_after_scene_ready():
 			move_component.current_grid_pos = grid_position
 			move_component.target_grid_pos = grid_position
 			move_component.target_world_pos = Movement.get_world_position(grid_position)
-		
-		print("Updated NPC position after scene ready - grid: ", grid_position, " world: ", position)
-	else:
-		print("NPC not initialized yet, skipping position update")
 
 func _on_movement_timer_timeout():
 	# Randomize movement interval
 	movement_timer.wait_time = randf_range(1.5, 3.0)
 	
-	# Check if player is nearby
+	# Get current player distance
 	var player_distance = get_distance_to_player()
 	
-	# Check if NPC should enter or stay in following mode
-	if player_distance <= detection_range:
-		# Player is within detection range - start following
-		has_seen_player = true
-		is_following_player = true
-	elif has_seen_player and player_distance <= max_follow_distance:
-		# Player was seen before and is still within max follow range - keep following
-		is_following_player = true
-	elif has_seen_player and player_distance > max_follow_distance:
-		# Player is too far away - give up following and return to spawn area
-		is_following_player = false
-		has_seen_player = false
-		print("NPC lost track of player, returning to spawn area")
-	else:
-		# Player never seen or out of range - wander randomly
-		is_following_player = false
+	# State machine logic
+	match current_state:
+		NPCState.WANDERING:
+			# Check if player enters detection range
+			if player_distance <= detection_range:
+				transition_to_state(NPCState.AGGRESSIVE)
+			else:
+				# Continue wandering around spawn
+				if get_distance_to_spawn() > movement_range * 2:
+					# Too far from spawn - move back toward it
+					attempt_return_to_spawn()
+				else:
+					# Within wandering range - move randomly
+					attempt_random_move()
+		
+		NPCState.AGGRESSIVE:
+			# Once aggressive, stay aggressive until player is too far
+			if player_distance > reset_distance:
+				# Player is too far - give up and return to spawn
+				transition_to_state(NPCState.RETURNING)
+			elif player_distance > restart_distance:
+				# Player is getting far - begin restart process but still try to chase
+				transition_to_state(NPCState.RETURNING)
+			elif player_distance > chase_threshold:
+				# Player is getting far but still within chase range - move towards them aggressively
+				attempt_aggressive_chase()
+			else:
+				# Player is close - follow normally
+				attempt_follow_player()
+		
+		NPCState.RETURNING:
+			# Check if player is nearby again while returning - re-aggro if so
+			if player_distance <= detection_range:
+				transition_to_state(NPCState.AGGRESSIVE)
+			else:
+				# Move away from player, then transition to wandering after some distance
+				if player_distance >= detection_range + 3:
+					# Far enough from player - resume wandering
+					transition_to_state(NPCState.WANDERING)
+				elif randf() < 0.2:
+					# 20% chance to start wandering even if not far enough
+					transition_to_state(NPCState.WANDERING)
+				else:
+					# Continue moving away from player
+					attempt_retreat_from_player()
 	
-	# Execute movement based on current state
-	if is_following_player:
-		update_visual_state()
-		attempt_follow_player()
-	else:
-		update_visual_state()
-		# Random movement behavior (return to spawn area if too far)
-		if get_distance_to_spawn() > movement_range * 2:
-			attempt_return_to_spawn()
-		elif randf() < 0.7:
-			attempt_random_move()
+	# Update visual appearance based on current state
+	update_visual_state()
 
 func attempt_random_move():
-	# Generate random direction
+	# Generate random direction with 1-5 tile movement
 	var directions = [
 		Vector2i(0, -1),  # Up
 		Vector2i(0, 1),   # Down
@@ -177,13 +321,49 @@ func attempt_random_move():
 	
 	directions.shuffle()
 	
+	# Try different movement distances (1-5 tiles)
+	var movement_distances = [1, 2, 3, 4, 5]
+	movement_distances.shuffle()
+	
+	for direction in directions:
+		for distance in movement_distances:
+			var new_pos = grid_position + (direction * distance)
+			
+			# Check if move is valid and path is clear
+			if is_valid_move(new_pos) and is_path_clear(grid_position, new_pos):
+				move_to(new_pos)
+				return
+	
+	# If no multi-tile move worked, try single tile moves
 	for direction in directions:
 		var new_pos = grid_position + direction
-		
-		# Check if move is valid
 		if is_valid_move(new_pos):
 			move_to(new_pos)
-			break
+			return
+
+func is_path_clear(from: Vector2i, to: Vector2i) -> bool:
+	# Check if all tiles in the path are passable
+	var steps = max(abs(to.x - from.x), abs(to.y - from.y))
+	if steps <= 1:
+		return true  # Single step moves are always "clear"
+	
+	# Check intermediate tiles in the path
+	for i in range(1, steps):
+		var progress = float(i) / float(steps)
+		var check_pos = Vector2i(
+			round(lerp(from.x, to.x, progress)),
+			round(lerp(from.y, to.y, progress))
+		)
+		
+		# Check if this intermediate position is passable
+		if check_pos.x < 0 or check_pos.x >= World.MAP_WIDTH or check_pos.y < 0 or check_pos.y >= World.MAP_HEIGHT:
+			return false
+		
+		var tile_color = Map.get_tile(check_pos.x, check_pos.y)
+		if tile_color == Map.tile_colors["ocean"]:
+			return false
+	
+	return true
 
 func is_valid_move(pos: Vector2i) -> bool:
 	# Check bounds
@@ -198,7 +378,8 @@ func is_valid_move(pos: Vector2i) -> bool:
 	# Check if within movement range of spawn (only when not following player)
 	if not is_following_player:
 		var distance = abs(pos.x - spawn_position.x) + abs(pos.y - spawn_position.y)
-		if distance > movement_range:
+		# Allow larger movement range for wandering (up to 8 tiles from spawn)
+		if distance > movement_range * 2:
 			return false
 	
 	# Check if player is at this position and validate player access
@@ -215,6 +396,27 @@ func is_valid_move(pos: Vector2i) -> bool:
 				return false
 	
 	return true
+
+func is_valid_retreat_move(pos: Vector2i, player_pos: Vector2i) -> bool:
+	# Check basic validity first
+	if pos.x < 0 or pos.x >= World.MAP_WIDTH or pos.y < 0 or pos.y >= World.MAP_HEIGHT:
+		return false
+	
+	# Check if tile is passable
+	var tile_color = Map.get_tile(pos.x, pos.y)
+	if tile_color == Map.tile_colors["ocean"]:
+		return false
+	
+	# Check if player is at this position
+	if pos == player_pos:
+		return false
+	
+	# Prefer moves that increase distance from player
+	var current_distance = abs(grid_position.x - player_pos.x) + abs(grid_position.y - player_pos.y)
+	var new_distance = abs(pos.x - player_pos.x) + abs(pos.y - player_pos.y)
+	
+	# Allow the move if it maintains or increases distance from player
+	return new_distance >= current_distance
 
 func move_to(new_pos: Vector2i):
 	target_position = new_pos
@@ -244,6 +446,50 @@ func get_distance_to_spawn() -> int:
 	# Calculate distance from current position to spawn point
 	return abs(grid_position.x - spawn_position.x) + abs(grid_position.y - spawn_position.y)
 
+func attempt_retreat_from_player():
+	# Move away from player position
+	var main_scene = get_tree().current_scene
+	if not main_scene or not main_scene.has_method("get_player_position"):
+		return
+	
+	var player_pos = main_scene.get_player_position()
+	
+	# Calculate direction away from player
+	var direction_away_from_player = Vector2i(
+		sign(grid_position.x - player_pos.x),
+		sign(grid_position.y - player_pos.y)
+	)
+	
+	# If we're at the same position, pick a random direction
+	if direction_away_from_player == Vector2i.ZERO:
+		var retreat_directions = [
+			Vector2i(0, -1), Vector2i(0, 1), Vector2i(-1, 0), Vector2i(1, 0)
+		]
+		direction_away_from_player = retreat_directions[randi() % retreat_directions.size()]
+	
+	# Try to move away, with some randomness for natural movement
+	var possible_moves = [direction_away_from_player]
+	
+	# Add adjacent directions for more natural movement
+	if direction_away_from_player.x != 0:
+		possible_moves.append(Vector2i(direction_away_from_player.x, 0))
+	if direction_away_from_player.y != 0:
+		possible_moves.append(Vector2i(0, direction_away_from_player.y))
+	
+	# Add some diagonal options
+	possible_moves.append(Vector2i(-1, -1))
+	possible_moves.append(Vector2i(1, -1))
+	possible_moves.append(Vector2i(-1, 1))
+	possible_moves.append(Vector2i(1, 1))
+	
+	possible_moves.shuffle()
+	
+	for direction in possible_moves:
+		var new_pos = grid_position + direction
+		if is_valid_retreat_move(new_pos, player_pos):
+			move_to(new_pos)
+			return
+
 func attempt_return_to_spawn():
 	# Move towards spawn position
 	var direction_to_spawn = Vector2i(
@@ -266,7 +512,7 @@ func attempt_return_to_spawn():
 		var new_pos = grid_position + direction
 		if is_valid_move(new_pos):
 			move_to(new_pos)
-			break
+			return
 
 func attempt_follow_player():
 	var main_scene = get_tree().current_scene
