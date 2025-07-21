@@ -5,91 +5,38 @@ const FantasyButton = preload("res://scripts/ui/fantasy_button.gd")
 
 signal menu_action(action: String, data: Dictionary)
 
-@export var menu_title: String = "" : set = set_menu_title
 @export var background_texture_path: String = "res://assets/ui/fantasy/RectangleBox_96x96.png"
 
-var title_container: Control
-var title_label: Label
-var title_background: NinePatchRect
-var content_container: Control
-var content_background: NinePatchRect
 var button_container: VBoxContainer
+var main_background: NinePatchRect
 
 func _ready():
 	setup_menu_structure()
+	resized.connect(_on_resized)
 
 func setup_menu_structure():
-	# Main vertical container for all menu elements
-	var main_vbox = VBoxContainer.new()
-	main_vbox.anchors_preset = Control.PRESET_FULL_RECT
-	main_vbox.add_theme_constant_override("separation", 20)
-	add_child(main_vbox)
-	
-	# Setup title container if title exists
-	if menu_title != "":
-		setup_title_container(main_vbox)
-	
-	# Setup content container for buttons
-	setup_content_container(main_vbox)
-
-func setup_title_container(parent: Node):
-	# Create title container
-	title_container = Control.new()
-	title_container.custom_minimum_size = Vector2(0, 80)
-	parent.add_child(title_container)
-	
-	# Title background
-	title_background = NinePatchRect.new()
-	title_background.texture = load("res://assets/ui/fantasy/TitleBox_64x16.png")
-	title_background.anchors_preset = Control.PRESET_CENTER
-	title_background.size = Vector2(350, 60)
-	title_background.position = Vector2(-175, -30)
-	title_background.patch_margin_left = 16
-	title_background.patch_margin_right = 16
-	title_background.patch_margin_top = 4
-	title_background.patch_margin_bottom = 4
-	title_container.add_child(title_background)
-	
-	# Title label
-	title_label = Label.new()
-	title_label.text = menu_title
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title_label.add_theme_font_size_override("font_size", 28)
-	title_label.add_theme_color_override("font_color", Color.WHITE)
-	title_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	title_label.add_theme_constant_override("shadow_offset_x", 2)
-	title_label.add_theme_constant_override("shadow_offset_y", 2)
-	title_label.anchors_preset = Control.PRESET_FULL_RECT
-	title_background.add_child(title_label)
-
-func setup_content_container(parent: Node):
-	# Create content container
-	content_container = Control.new()
-	content_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
-	parent.add_child(content_container)
-	
-	# Content background
-	content_background = NinePatchRect.new()
-	content_background.texture = load(background_texture_path)
-	content_background.anchors_preset = Control.PRESET_FULL_RECT
-	content_background.patch_margin_left = 32
-	content_background.patch_margin_right = 32
-	content_background.patch_margin_top = 32
-	content_background.patch_margin_bottom = 32
-	content_container.add_child(content_background)
-	
-	# Button container
+	# Create button container first
 	button_container = VBoxContainer.new()
-	button_container.anchors_preset = Control.PRESET_CENTER
-	button_container.add_theme_constant_override("separation", 20)
+	button_container.anchors_preset = Control.PRESET_FULL_RECT
+	button_container.add_theme_constant_override("separation", 25)
 	button_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	content_container.add_child(button_container)
-
-func set_menu_title(new_title: String):
-	menu_title = new_title
-	if title_label and is_inside_tree():
-		title_label.text = menu_title
+	button_container.offset_left = 50
+	button_container.offset_right = -50
+	button_container.offset_top = 50
+	button_container.offset_bottom = -50
+	add_child(button_container)
+	
+	# Create background and force it to match our size
+	main_background = NinePatchRect.new()
+	main_background.texture = load(background_texture_path)
+	main_background.size = size
+	main_background.position = Vector2.ZERO
+	main_background.patch_margin_left = 32
+	main_background.patch_margin_right = 32
+	main_background.patch_margin_top = 32
+	main_background.patch_margin_bottom = 32
+	add_child(main_background)
+	move_child(main_background, 0)  # Move behind buttons
 
 func add_button(text: String, action: String, button_data: Dictionary = {}):
 	var button = FantasyButton.new()
@@ -134,7 +81,6 @@ func clear_buttons():
 		for child in button_container.get_children():
 			child.queue_free()
 
-
 # Predefined menu layouts
 func create_main_menu():
 	clear_buttons()
@@ -155,3 +101,7 @@ func create_settings_menu():
 	add_button("Video", "video_settings")
 	add_button("Controls", "control_settings")
 	add_button("Back", "back")
+
+func _on_resized():
+	if main_background:
+		main_background.size = size
