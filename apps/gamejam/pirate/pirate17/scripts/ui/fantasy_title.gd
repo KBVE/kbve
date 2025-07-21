@@ -9,19 +9,10 @@ var title_background: NinePatchRect
 
 func _ready():
 	setup_title()
+	resized.connect(_on_resized)
 
 func setup_title():
-	# Create title background
-	title_background = NinePatchRect.new()
-	title_background.texture = load(title_background_path)
-	title_background.anchors_preset = Control.PRESET_FULL_RECT
-	title_background.patch_margin_left = 16
-	title_background.patch_margin_right = 16
-	title_background.patch_margin_top = 4
-	title_background.patch_margin_bottom = 4
-	add_child(title_background)
-	
-	# Create title label
+	# Create title label first
 	title_label = Label.new()
 	title_label.text = title_text
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -32,7 +23,27 @@ func setup_title():
 	title_label.add_theme_constant_override("shadow_offset_x", 2)
 	title_label.add_theme_constant_override("shadow_offset_y", 2)
 	title_label.anchors_preset = Control.PRESET_FULL_RECT
-	title_background.add_child(title_label)
+	title_label.offset_left = 20
+	title_label.offset_right = -20
+	title_label.offset_top = 10
+	title_label.offset_bottom = -10
+	add_child(title_label)
+	
+	# Create title background and force it to match our size
+	title_background = NinePatchRect.new()
+	title_background.texture = load(title_background_path)
+	title_background.size = size
+	title_background.position = Vector2.ZERO
+	title_background.patch_margin_left = 16
+	title_background.patch_margin_right = 16
+	title_background.patch_margin_top = 4
+	title_background.patch_margin_bottom = 4
+	add_child(title_background)
+	move_child(title_background, 0)  # Move behind label
+
+func _on_resized():
+	if title_background:
+		title_background.size = size
 
 func set_title_text(new_text: String):
 	title_text = new_text
