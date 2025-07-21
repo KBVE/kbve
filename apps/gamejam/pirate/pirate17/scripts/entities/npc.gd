@@ -6,7 +6,7 @@ const Movement = preload("res://scripts/world/movement.gd")
 var grid_position: Vector2i
 var target_position: Vector2i
 var move_component: Movement.MoveComponent
-var npc_sprite: ColorRect
+var npc_sprite: Sprite2D
 
 # NPC AI properties
 var movement_timer: Timer
@@ -58,31 +58,49 @@ func _ready():
 	connect_movement_signals()
 
 func connect_movement_signals():
+	move_component.movement_started.connect(_on_movement_started)
 	move_component.movement_finished.connect(_on_movement_finished)
+
+func _on_movement_started(entity: Node2D, from: Vector2i, to: Vector2i):
+	if entity == self:
+		# Rotate NPC to face movement direction
+		update_npc_rotation(from, to)
 
 func _on_movement_finished(entity: Node2D, at: Vector2i):
 	if entity == self:
 		hide_movement_path()
+
+func update_npc_rotation(from: Vector2i, to: Vector2i):
+	"""Update NPC sprite rotation to face movement direction"""
+	if not npc_sprite:
+		return
+		
+	var movement_vector = to - from
+	if movement_vector == Vector2i.ZERO:
+		return
+	
+	# Calculate angle like the player ship
+	var angle = atan2(movement_vector.y, movement_vector.x)
+	var target_angle = angle + PI / 2
+	
+	# Rotate the NPC sprite to face movement direction
+	npc_sprite.rotation = target_angle
 
 func create_visual():
 	# Create a container for better visibility
 	var visual_container = Node2D.new()
 	visual_container.z_index = 15
 	
-	# Create main NPC sprite (black square)
-	npc_sprite = ColorRect.new()
-	npc_sprite.color = Color.BLACK
-	npc_sprite.size = Vector2(World.TILE_SIZE * 0.8, World.TILE_SIZE * 0.8)
-	npc_sprite.position = Vector2(-npc_sprite.size.x / 2, -npc_sprite.size.y / 2)
+	# Create main NPC sprite using enemy airship
+	npc_sprite = Sprite2D.new()
+	npc_sprite.texture = load("res://assets/ship/enemy_airship.png")
+	npc_sprite.position = Vector2.ZERO
+	npc_sprite.z_index = 1
 	
-	# Create a white border for better visibility
-	var border = ColorRect.new()
-	border.color = Color.WHITE
-	border.size = Vector2(World.TILE_SIZE * 0.9, World.TILE_SIZE * 0.9)
-	border.position = Vector2(-border.size.x / 2, -border.size.y / 2)
-	border.z_index = -1  # Behind the black square
+	# Scale it appropriately for the game
+	var scale_factor = 0.8  # Slightly smaller than player ship
+	npc_sprite.scale = Vector2(scale_factor, scale_factor)
 	
-	visual_container.add_child(border)
 	visual_container.add_child(npc_sprite)
 	
 	# Create fantasy state badge
@@ -152,14 +170,14 @@ func update_visual_state():
 	if npc_sprite:
 		match current_state:
 			NPCState.WANDERING:
-				# Black when wandering normally
-				npc_sprite.color = Color.BLACK
+				# Normal color when wandering
+				npc_sprite.modulate = Color.WHITE
 			NPCState.AGGRESSIVE:
-				# Dark red when aggressively following player
-				npc_sprite.color = Color(0.6, 0.1, 0.1, 1.0)
+				# Red tint when aggressively following player
+				npc_sprite.modulate = Color(1.0, 0.4, 0.4, 1.0)
 			NPCState.RETURNING:
-				# Dark yellow/orange when returning to spawn after losing player
-				npc_sprite.color = Color(0.7, 0.5, 0.1, 1.0)
+				# Yellow/orange tint when returning to spawn after losing player
+				npc_sprite.modulate = Color(1.0, 0.8, 0.4, 1.0)
 
 func attempt_aggressive_chase():
 	# More aggressive movement when player is far but still trackable
