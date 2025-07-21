@@ -5,66 +5,38 @@ const FantasyButton = preload("res://scripts/ui/fantasy_button.gd")
 
 signal menu_action(action: String, data: Dictionary)
 
-@export var menu_title: String = "" : set = set_menu_title
 @export var background_texture_path: String = "res://assets/ui/fantasy/RectangleBox_96x96.png"
 
-var title_label: Label
-var background_panel: NinePatchRect
 var button_container: VBoxContainer
+var main_background: NinePatchRect
 
 func _ready():
-	setup_menu_background()
-	setup_title()
-	setup_button_container()
+	setup_menu_structure()
+	resized.connect(_on_resized)
 
-func setup_menu_background():
-	# Create background panel
-	background_panel = NinePatchRect.new()
-	background_panel.texture = load(background_texture_path)
-	background_panel.anchors_preset = Control.PRESET_FULL_RECT
-	background_panel.patch_margin_left = 16
-	background_panel.patch_margin_right = 16
-	background_panel.patch_margin_top = 16
-	background_panel.patch_margin_bottom = 16
-	
-	add_child(background_panel)
-
-func setup_title():
-	if menu_title != "":
-		title_label = Label.new()
-		title_label.text = menu_title
-		title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		title_label.add_theme_font_size_override("font_size", 28)
-		title_label.add_theme_color_override("font_color", Color.WHITE)
-		title_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-		title_label.add_theme_constant_override("shadow_offset_x", 2)
-		title_label.add_theme_constant_override("shadow_offset_y", 2)
-		
-		# Position title at top
-		title_label.anchors_preset = Control.PRESET_TOP_WIDE
-		title_label.offset_top = 10
-		title_label.offset_bottom = 40
-		
-		add_child(title_label)
-
-func setup_button_container():
+func setup_menu_structure():
+	# Create button container first
 	button_container = VBoxContainer.new()
-	button_container.anchors_preset = Control.PRESET_CENTER
-	button_container.add_theme_constant_override("separation", 8)
-	
-	# Adjust position based on whether there's a title
-	if title_label:
-		button_container.offset_top = 50
-	else:
-		button_container.offset_top = 20
-	
+	button_container.anchors_preset = Control.PRESET_FULL_RECT
+	button_container.add_theme_constant_override("separation", 25)
+	button_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	button_container.offset_left = 50
+	button_container.offset_right = -50
+	button_container.offset_top = 50
+	button_container.offset_bottom = -50
 	add_child(button_container)
-
-func set_menu_title(new_title: String):
-	menu_title = new_title
-	if title_label:
-		title_label.text = menu_title
+	
+	# Create background and force it to match our size
+	main_background = NinePatchRect.new()
+	main_background.texture = load(background_texture_path)
+	main_background.size = size
+	main_background.position = Vector2.ZERO
+	main_background.patch_margin_left = 32
+	main_background.patch_margin_right = 32
+	main_background.patch_margin_top = 32
+	main_background.patch_margin_bottom = 32
+	add_child(main_background)
+	move_child(main_background, 0)  # Move behind buttons
 
 func add_button(text: String, action: String, button_data: Dictionary = {}):
 	var button = FantasyButton.new()
@@ -105,8 +77,9 @@ func hide_menu():
 	visible = false
 
 func clear_buttons():
-	for child in button_container.get_children():
-		child.queue_free()
+	if button_container:
+		for child in button_container.get_children():
+			child.queue_free()
 
 # Predefined menu layouts
 func create_main_menu():
@@ -128,3 +101,7 @@ func create_settings_menu():
 	add_button("Video", "video_settings")
 	add_button("Controls", "control_settings")
 	add_button("Back", "back")
+
+func _on_resized():
+	if main_background:
+		main_background.size = size

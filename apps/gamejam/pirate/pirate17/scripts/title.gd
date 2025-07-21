@@ -1,8 +1,10 @@
 extends Control
 
 const FantasyMenu = preload("res://scripts/ui/fantasy_menu.gd")
+const FantasyTitle = preload("res://scripts/ui/fantasy_title.gd")
 const FantasyPanel = preload("res://scripts/ui/fantasy_panel.gd")
 
+var title_display: FantasyTitle
 var main_menu: FantasyMenu
 var player_info_panel: FantasyPanel
 
@@ -16,6 +18,7 @@ func _ready():
 
 func setup_ui_deferred():
 	print("Setting up UI deferred...")
+	setup_title_display()
 	setup_main_menu()
 	setup_player_info()
 
@@ -47,25 +50,35 @@ func setup_background():
 	background.z_index = -1  # Put it behind everything
 	add_child(background)
 
+func setup_title_display():
+	print("Setting up title display...")
+	title_display = FantasyTitle.new()
+	title_display.title_text = "Airship Pirate 17"
+	title_display.size = Vector2(400, 80)
+	title_display.position = Vector2(440, 150)
+	add_child(title_display)
+	print("Title display added")
+
 func setup_main_menu():
 	print("Setting up main menu...")
 	main_menu = FantasyMenu.new()
-	main_menu.menu_title = "Pirate Adventure"
 	
-	# Set explicit size and position instead of using anchors
-	main_menu.size = Vector2(300, 400)
-	main_menu.position = Vector2(100, 100)  # Simple top-left positioning for testing
+	# Position below title
+	main_menu.size = Vector2(400, 350)
+	main_menu.position = Vector2(440, 250)  # Center position for typical screen
 	
 	# Connect menu signals
 	main_menu.menu_action.connect(_on_menu_action)
+	
+	# Ensure menu is visible
+	main_menu.visible = true
+	main_menu.z_index = 1
 	
 	add_child(main_menu)
 	print("Main menu added to scene at position: ", main_menu.position, " size: ", main_menu.size)
 	
 	# Add buttons to menu
-	main_menu.add_large_button("Start Game", "start_game")
-	main_menu.add_large_button("Settings", "settings")
-	main_menu.add_large_button("Quit", "quit_game")
+	main_menu.create_main_menu()
 	print("Buttons added to menu")
 	
 	# Debug: print menu visibility

@@ -9,7 +9,7 @@ var state_label: Label
 
 # State colors
 var state_colors = {
-	"Wandering...": Color(0.8, 0.8, 0.8, 1.0),      # Light gray
+	"Patrol...": Color(0.8, 0.8, 0.8, 1.0),      # Light gray
 	"Aggressive!": Color(1.0, 0.4, 0.4, 1.0),       # Red
 	"Retreating...": Color(1.0, 0.8, 0.2, 1.0)      # Yellow/Orange
 }
@@ -113,7 +113,7 @@ func update_state(new_state: String):
 	set_state_text(new_state)
 
 # Convenience function to create and position above an entity
-static func create_above_entity(entity: Node2D, initial_state: String = "Wandering...") -> FantasyStateBadge:
+static func create_above_entity(entity: Node2D, initial_state: String = "Patrol...") -> FantasyStateBadge:
 	var badge = FantasyStateBadge.new()
 	badge.state_text = initial_state
 	badge.position = Vector2(-40, -50)  # Position above entity

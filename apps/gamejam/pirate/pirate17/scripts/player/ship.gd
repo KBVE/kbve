@@ -27,6 +27,13 @@ func setup_sprite():
 	sprite.z_index = 5  # Above particles and map
 	
 	add_child(sprite)
+	
+	# Add shadow to the player ship
+	var ship_shadow = preload("res://scripts/ship_shadow.gd").new()
+	ship_shadow.shadow_offset = Vector2(12, 12)  # Good offset for depth
+	ship_shadow.shadow_scale = 0.7  # Smaller shadow
+	add_child(ship_shadow)
+	move_child(ship_shadow, 0)  # Move shadow to be first child (behind sprite)
 
 func setup_wind_particles():
 	"""Setup wind particle system for the ship"""
