@@ -24,6 +24,8 @@ var structure_container: Node2D
 var interaction_tooltip: StructureInteractionTooltip
 var pending_movement: Vector2i
 var is_waiting_for_rotation: bool = false
+var parallax_bg: ParallaxBackground
+var cloud_manager: CloudManager
 
 func _ready():
 	# Force reload border assets with updated transparency
@@ -47,6 +49,8 @@ func _ready():
 	connect_ship_signals()
 	setup_target_highlight()
 	setup_interaction_system()
+	setup_parallax_background()
+	setup_cloud_manager()
 
 func setup_target_highlight():
 	# Set the border texture for target highlighting - use a nice decorative border
@@ -111,9 +115,14 @@ func _input(event):
 
 func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bool):
 	"""Start movement with smooth rotation animation first"""
-	# Don't initiate new movement if we're already waiting for rotation
+	# If already waiting for rotation, cancel previous and start new movement
 	if is_waiting_for_rotation:
-		return
+		is_waiting_for_rotation = false
+		pending_movement = Vector2i.ZERO
+		# Stop any ongoing rotation
+		if player_ship and player_ship.rotation_tween:
+			player_ship.rotation_tween.kill()
+			player_ship.is_rotating = false
 	
 	# Check if movement is valid
 	if not Movement.is_valid_move(from, to):
@@ -132,8 +141,8 @@ func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bo
 			while angle_diff > PI:
 				angle_diff = abs(angle_diff - 2 * PI)
 			
-			# If significant rotation needed (more than 15 degrees), rotate first
-			if angle_diff > PI / 12:  # 15 degrees threshold
+			# If any rotation needed (more than 5 degrees), rotate first
+			if angle_diff > PI / 36:  # 5 degrees threshold (much more sensitive)
 				is_waiting_for_rotation = true
 				pending_movement = to
 				player_ship.update_direction_from_movement(from, to)
@@ -150,6 +159,7 @@ func _process(delta):
 	camera.position = player.position
 	update_movement_path()
 	check_structure_interactions()
+	update_parallax_effects()
 
 func connect_movement_signals():
 	player_movement.movement_started.connect(_on_movement_started)
@@ -162,6 +172,8 @@ func connect_ship_signals():
 func _on_movement_started(entity: Node2D, from: Vector2i, to: Vector2i):
 	if entity == player:
 		show_movement_path(from, to)
+		# Update wind effects for movement
+		update_ship_wind_effects(true)
 
 func _on_ship_rotation_completed():
 	"""Called when ship finishes rotating - now start the actual movement"""
@@ -174,6 +186,8 @@ func _on_ship_rotation_completed():
 func _on_movement_finished(entity: Node2D, at: Vector2i):
 	if entity == player:
 		hide_movement_path()
+		# Stop wind effects when movement ends
+		update_ship_wind_effects(false)
 
 func show_movement_path(from: Vector2i, to: Vector2i):
 	var start_pos = Movement.get_world_position(from)
@@ -441,3 +455,126 @@ func show_structure_interaction_message(structure):
 	print("Description: ", structure.description)
 	if structure.guards > 0:
 		print("Guards: ", structure.guards)
+
+func setup_parallax_background():
+	"""Setup parallax background with real cloud assets"""
+	parallax_bg = ParallaxBackground.new()
+	add_child(parallax_bg)
+	# Move it to the beginning of the children list to ensure it renders first (behind everything)
+	move_child(parallax_bg, 0)
+	
+	# Create multiple cloud layers for depth effect
+	create_background_cloud_layer()  # Far background
+	create_midground_cloud_layer()   # Middle layer
+	create_foreground_cloud_layer()  # Close layer
+	
+	print("Parallax cloud system initialized with real cloud assets")
+
+func create_background_cloud_layer():
+	"""Create far background cloud layer"""
+	var cloud_layer = ParallaxLayer.new()
+	cloud_layer.motion_scale = Vector2(0.1, 0.1)  # Slowest movement
+	cloud_layer.motion_mirroring = Vector2(2048, 1536)
+	
+	# Add multiple cloud sprites across the layer
+	for i in range(8):  # 8 clouds in background
+		var cloud_sprite = create_cloud_sprite(randi_range(1, 10))
+		cloud_sprite.position = Vector2(
+			randf_range(-1024, 1024),
+			randf_range(-768, 768)
+		)
+		cloud_sprite.scale = Vector2(0.8, 0.8)  # Smaller for distance
+		cloud_sprite.modulate = Color(0.9, 0.9, 1.0, 0.4)  # Faded and blue-tinted
+		cloud_layer.add_child(cloud_sprite)
+	
+	parallax_bg.add_child(cloud_layer)
+
+func create_midground_cloud_layer():
+	"""Create middle distance cloud layer"""
+	var cloud_layer = ParallaxLayer.new()
+	cloud_layer.motion_scale = Vector2(0.3, 0.3)  # Medium movement
+	cloud_layer.motion_mirroring = Vector2(1536, 1152)
+	
+	# Add clouds with medium size and opacity
+	for i in range(6):  # 6 clouds in midground
+		var cloud_sprite = create_cloud_sprite(randi_range(1, 10))
+		cloud_sprite.position = Vector2(
+			randf_range(-768, 768),
+			randf_range(-576, 576)
+		)
+		cloud_sprite.scale = Vector2(1.0, 1.0)  # Normal size
+		cloud_sprite.modulate = Color(0.95, 0.95, 1.0, 0.6)  # Semi-transparent
+		cloud_layer.add_child(cloud_sprite)
+	
+	parallax_bg.add_child(cloud_layer)
+
+func create_foreground_cloud_layer():
+	"""Create close foreground cloud layer"""
+	var cloud_layer = ParallaxLayer.new()
+	cloud_layer.motion_scale = Vector2(0.5, 0.5)  # Fastest movement
+	cloud_layer.motion_mirroring = Vector2(1024, 768)
+	
+	# Add fewer, larger, more visible clouds
+	for i in range(4):  # 4 clouds in foreground
+		var cloud_sprite = create_cloud_sprite(randi_range(1, 10))
+		cloud_sprite.position = Vector2(
+			randf_range(-512, 512),
+			randf_range(-384, 384)
+		)
+		cloud_sprite.scale = Vector2(1.2, 1.2)  # Larger for closeness
+		cloud_sprite.modulate = Color(1.0, 1.0, 1.0, 0.8)  # More opaque
+		cloud_layer.add_child(cloud_sprite)
+	
+	parallax_bg.add_child(cloud_layer)
+
+func create_cloud_sprite(cloud_number: int) -> Sprite2D:
+	"""Create a cloud sprite from the numbered cloud assets"""
+	var sprite = Sprite2D.new()
+	var cloud_path = "res://assets/clouds/cloud_" + str(cloud_number) + ".png"
+	sprite.texture = load(cloud_path)
+	sprite.z_index = -10  # Behind everything
+	return sprite
+
+func setup_cloud_manager():
+	"""Setup optimized cloud management system"""
+	cloud_manager = CloudManager.new()
+	cloud_manager.name = "CloudManager"
+	cloud_manager.z_index = 1  # Above map (in the sky)
+	add_child(cloud_manager)
+	
+	# Set references for the cloud manager
+	cloud_manager.set_camera_reference(camera)
+	cloud_manager.set_player_reference(player)
+	
+	# Connect performance monitoring
+	cloud_manager.clouds_visibility_changed.connect(_on_clouds_visibility_changed)
+	
+	print("Advanced cloud management system initialized")
+
+func _on_clouds_visibility_changed(visible_count: int):
+	"""Called when cloud visibility changes - for performance monitoring"""
+	# Optionally adjust other systems based on cloud load
+	if visible_count > 15:
+		# Too many clouds visible, could reduce other effects
+		pass
+
+func update_ship_wind_effects(is_moving: bool):
+	"""Update ship wind particle effects based on movement state"""
+	if player_ship:
+		var velocity = Vector2.ZERO
+		if is_moving and player_movement:
+			# Calculate velocity based on movement direction and speed
+			var current_pos = player_movement.get_current_position()
+			var target_pos = player_movement.get_target_position()
+			var movement_vector = target_pos - current_pos
+			velocity = Vector2(movement_vector.x, movement_vector.y) * 50.0  # Scale for visual effect
+		
+		player_ship.update_wind_effects(velocity, is_moving)
+
+func update_parallax_effects():
+	"""Update parallax background effects based on camera movement"""
+	if parallax_bg:
+		# Update scroll offset for parallax effect
+		parallax_bg.scroll_offset = camera.position
+	
+	# Cloud system now moves independently - no manual updates needed
