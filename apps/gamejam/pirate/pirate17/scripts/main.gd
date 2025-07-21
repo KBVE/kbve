@@ -6,6 +6,7 @@ const BorderSlicer = preload("res://scripts/ui/border_slicer.gd")
 @onready var camera = $Camera2D
 @onready var map_container = $MapContainer
 @onready var player = $Player
+@onready var player_ship = $Player/PlayerShip
 @onready var path_line = $PathVisualizer/PathLine
 @onready var path_visualizer = $PathVisualizer
 @onready var target_highlight = $PathVisualizer/TargetHighlight
@@ -20,6 +21,9 @@ var player_movement: Movement.MoveComponent
 var dash_lines: Array[Line2D] = []
 var npc_container: Node2D
 var structure_container: Node2D
+var interaction_tooltip: StructureInteractionTooltip
+var pending_movement: Vector2i
+var is_waiting_for_rotation: bool = false
 
 func _ready():
 	# Force reload border assets with updated transparency
@@ -40,7 +44,9 @@ func _ready():
 	update_ui()
 	connect_player_stats()
 	connect_movement_signals()
+	connect_ship_signals()
 	setup_target_highlight()
+	setup_interaction_system()
 
 func setup_target_highlight():
 	# Set the border texture for target highlighting - use a nice decorative border
@@ -87,28 +93,83 @@ func _input(event):
 				new_pos.x -= 1
 			KEY_D, KEY_RIGHT:
 				new_pos.x += 1
+			KEY_F:
+				# Handle structure interaction
+				if interaction_tooltip and interaction_tooltip.visible:
+					interaction_tooltip.handle_interaction_key()
+				return  # Don't process as movement
 		
 		if new_pos != current_pos:
-			player_movement.move_to(new_pos, true)  # Immediate movement for WASD
+			initiate_movement_with_rotation(current_pos, new_pos, true)  # WASD movement
 	
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var mouse_world_pos = get_global_mouse_position()
 		var grid_pos = Movement.get_grid_position(mouse_world_pos)
+		var current_pos = player_movement.get_current_position()
 		
-		player_movement.move_to(grid_pos, false)  # Smooth movement for clicks
+		initiate_movement_with_rotation(current_pos, grid_pos, false)  # Click movement
+
+func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bool):
+	"""Start movement with smooth rotation animation first"""
+	# Don't initiate new movement if we're already waiting for rotation
+	if is_waiting_for_rotation:
+		return
+	
+	# Check if movement is valid
+	if not Movement.is_valid_move(from, to):
+		return
+	
+	# If ship needs to rotate and this isn't immediate movement, do rotation first
+	if player_ship and not immediate:
+		# Calculate if we need significant rotation
+		var movement_vector = to - from
+		if movement_vector != Vector2i.ZERO:
+			var target_angle = atan2(movement_vector.y, movement_vector.x) + PI / 2
+			var current_angle = player_ship.sprite.rotation if player_ship.sprite else 0.0
+			
+			# Normalize angles for comparison
+			var angle_diff = abs(target_angle - current_angle)
+			while angle_diff > PI:
+				angle_diff = abs(angle_diff - 2 * PI)
+			
+			# If significant rotation needed (more than 15 degrees), rotate first
+			if angle_diff > PI / 12:  # 15 degrees threshold
+				is_waiting_for_rotation = true
+				pending_movement = to
+				player_ship.update_direction_from_movement(from, to)
+				return
+	
+	# No significant rotation needed or immediate movement - move directly
+	player_movement.move_to(to, immediate)
+	# Update ship direction for immediate movements
+	if player_ship and immediate:
+		player_ship.update_direction_from_movement(from, to)
 
 func _process(delta):
 	player_movement.process_movement(delta)
 	camera.position = player.position
 	update_movement_path()
+	check_structure_interactions()
 
 func connect_movement_signals():
 	player_movement.movement_started.connect(_on_movement_started)
 	player_movement.movement_finished.connect(_on_movement_finished)
 
+func connect_ship_signals():
+	if player_ship:
+		player_ship.rotation_completed.connect(_on_ship_rotation_completed)
+
 func _on_movement_started(entity: Node2D, from: Vector2i, to: Vector2i):
 	if entity == player:
 		show_movement_path(from, to)
+
+func _on_ship_rotation_completed():
+	"""Called when ship finishes rotating - now start the actual movement"""
+	if is_waiting_for_rotation and pending_movement != Vector2i.ZERO:
+		is_waiting_for_rotation = false
+		# Start the actual movement
+		player_movement.move_to(pending_movement, false)
+		pending_movement = Vector2i.ZERO
 
 func _on_movement_finished(entity: Node2D, at: Vector2i):
 	if entity == player:
@@ -302,18 +363,14 @@ func create_structure_visual(structure):
 	icon_label.size = Vector2(32, 32)
 	structure_visual.add_child(icon_label)
 	
-	# Create structure name label
-	var name_label = Label.new()
-	name_label.text = structure.name
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 10)
-	name_label.add_theme_color_override("font_color", Color.WHITE)
-	name_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	name_label.add_theme_constant_override("shadow_offset_x", 1)
-	name_label.add_theme_constant_override("shadow_offset_y", 1)
-	name_label.position = Vector2(-50, 20)  # Below the icon
-	name_label.size = Vector2(100, 20)
-	structure_visual.add_child(name_label)
+	# Create fantasy structure badge
+	var structure_badge = FantasyStructureBadge.new()
+	structure_badge.structure_name = structure.name
+	structure_badge.structure_type = StructurePool.StructureType.keys()[structure.type]
+	structure_badge.set_badge_texture_by_type(structure.type)
+	structure_badge.position = Vector2(-40, 25)  # Below the icon
+	structure_badge.z_index = 35  # Above everything
+	structure_visual.add_child(structure_badge)
 	
 	structure_container.add_child(structure_visual)
 	
@@ -321,3 +378,66 @@ func create_structure_visual(structure):
 	structure.sprite = structure_visual
 	
 	print("Created visual for ", structure.name, " at ", structure.grid_position)
+
+func setup_interaction_system():
+	# Create interaction tooltip
+	interaction_tooltip = StructureInteractionTooltip.new()
+	interaction_tooltip.z_index = 100  # Above everything else
+	add_child(interaction_tooltip)
+	
+	# Connect interaction signal
+	interaction_tooltip.interaction_requested.connect(_on_structure_interaction_requested)
+	
+	print("Structure interaction system initialized")
+
+func check_structure_interactions():
+	if not player_movement:
+		return
+	
+	var player_pos = player_movement.get_current_position()
+	var interactable_structures = World.get_player_structure_interactions(player_pos)
+	
+	if interactable_structures.size() > 0:
+		# Show tooltip for the first interactable structure
+		var structure = interactable_structures[0]
+		if not interaction_tooltip.visible or interaction_tooltip.current_structure != structure:
+			var player_world_pos = player.position
+			interaction_tooltip.position_above_target(player_world_pos)
+			interaction_tooltip.show_for_structure(structure)
+	else:
+		# Hide tooltip if no structures nearby
+		if interaction_tooltip.visible:
+			interaction_tooltip.hide_tooltip()
+
+func _on_structure_interaction_requested(structure):
+	print("Interacting with structure: ", structure.name, " (", structure.type, ")")
+	
+	# Hide the tooltip
+	interaction_tooltip.hide_tooltip()
+	
+	# Handle different types of interactions
+	if structure.is_enterable:
+		print("Entering ", structure.name, "...")
+		# TODO: Implement structure entering (scene change, interior view, etc.)
+		show_structure_entered_message(structure)
+	else:
+		print("Interacting with ", structure.name, "...")
+		# TODO: Implement non-enterable interactions (talk, trade, etc.)
+		show_structure_interaction_message(structure)
+	
+	# Call the world interaction system
+	World.interact_with_structure_at(structure.grid_position, player)
+
+func show_structure_entered_message(structure):
+	# Temporary feedback - replace with actual entering logic later
+	print("You have entered ", structure.name)
+	print("Population: ", structure.population)
+	print("Services: ", structure.services)
+	print("Shops: ", structure.shops)
+
+func show_structure_interaction_message(structure):
+	# Temporary feedback - replace with actual interaction logic later
+	print("You interact with ", structure.name)
+	print("Description: ", structure.description)
+	if structure.guards > 0:
+		print("Guards: ", structure.guards)

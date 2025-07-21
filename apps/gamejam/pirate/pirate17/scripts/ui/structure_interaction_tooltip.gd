@@ -1,0 +1,110 @@
+class_name StructureInteractionTooltip
+extends Control
+
+signal interaction_requested(structure)
+
+@export var tooltip_texture_path: String = "res://assets/ui/fantasy/HighlightButton_60x23.png"
+
+var background_panel: NinePatchRect
+var interaction_label: Label
+var click_button: Button
+var current_structure = null
+
+func _ready():
+	setup_background()
+	setup_labels()
+	setup_button()
+	
+	# Start hidden
+	visible = false
+	
+	# Set size for interaction tooltip
+	custom_minimum_size = Vector2(140, 60)
+	size = Vector2(140, 60)
+	
+	# Ensure this tooltip intercepts mouse events to prevent click-through
+	mouse_filter = Control.MOUSE_FILTER_STOP
+
+func setup_background():
+	background_panel = NinePatchRect.new()
+	background_panel.texture = load(tooltip_texture_path)
+	background_panel.position = Vector2.ZERO
+	background_panel.size = size
+	
+	# Set nine-patch margins
+	background_panel.patch_margin_left = 8
+	background_panel.patch_margin_right = 8
+	background_panel.patch_margin_top = 4
+	background_panel.patch_margin_bottom = 4
+	
+	# Ensure background also stops mouse events
+	background_panel.mouse_filter = Control.MOUSE_FILTER_STOP
+	
+	add_child(background_panel)
+
+func setup_labels():
+	# Main interaction text
+	interaction_label = Label.new()
+	interaction_label.text = "Press F to Enter"
+	interaction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	interaction_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	interaction_label.add_theme_font_size_override("font_size", 10)
+	interaction_label.add_theme_color_override("font_color", Color.WHITE)
+	interaction_label.add_theme_color_override("font_shadow_color", Color.BLACK)
+	interaction_label.add_theme_constant_override("shadow_offset_x", 1)
+	interaction_label.add_theme_constant_override("shadow_offset_y", 1)
+	
+	interaction_label.position = Vector2(4, 4)
+	interaction_label.size = Vector2(size.x - 8, 25)
+	
+	background_panel.add_child(interaction_label)
+
+func setup_button():
+	# Click to enter button
+	click_button = Button.new()
+	click_button.text = "Click to Enter"
+	click_button.add_theme_font_size_override("font_size", 8)
+	
+	# Style the button to match fantasy theme
+	click_button.add_theme_color_override("font_color", Color.WHITE)
+	click_button.add_theme_color_override("font_pressed_color", Color.YELLOW)
+	click_button.add_theme_color_override("font_hover_color", Color.LIGHT_GRAY)
+	
+	click_button.position = Vector2(8, 30)
+	click_button.size = Vector2(size.x - 16, 22)
+	
+	# Connect button signal
+	click_button.pressed.connect(_on_click_button_pressed)
+	
+	background_panel.add_child(click_button)
+
+func show_for_structure(structure):
+	current_structure = structure
+	
+	# Update text based on structure type
+	var interaction_text = "Press F to Enter"
+	if structure and not structure.is_enterable:
+		interaction_text = "Press F to Interact"
+		click_button.text = "Click to Interact"
+	else:
+		click_button.text = "Click to Enter"
+	
+	interaction_label.text = interaction_text
+	visible = true
+
+func hide_tooltip():
+	current_structure = null
+	visible = false
+
+func _on_click_button_pressed():
+	if current_structure:
+		interaction_requested.emit(current_structure)
+
+func handle_interaction_key():
+	"""Call this when F key is pressed"""
+	if current_structure and visible:
+		interaction_requested.emit(current_structure)
+
+# Position tooltip above player or structure
+func position_above_target(target_position: Vector2, offset: Vector2 = Vector2(-70, -80)):
+	position = target_position + offset
