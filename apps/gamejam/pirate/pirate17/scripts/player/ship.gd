@@ -48,6 +48,7 @@ func update_direction_from_movement(from: Vector2i, to: Vector2i):
 		return  # No movement, keep current rotation
 	
 	# Calculate angle in radians from the movement vector
+	# atan2(y, x) gives us the angle where East = 0, North = -PI/2, West = PI, South = PI/2
 	var angle = atan2(movement_vector.y, movement_vector.x)
 	
 	# Since the airship sprite is already facing North (up), we need to add 90 degrees

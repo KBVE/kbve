@@ -139,8 +139,8 @@ func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bo
 			while angle_diff > PI:
 				angle_diff = abs(angle_diff - 2 * PI)
 			
-			# If significant rotation needed (more than 15 degrees), rotate first
-			if angle_diff > PI / 12:  # 15 degrees threshold
+			# If any rotation needed (more than 5 degrees), rotate first
+			if angle_diff > PI / 36:  # 5 degrees threshold (much more sensitive)
 				is_waiting_for_rotation = true
 				pending_movement = to
 				player_ship.update_direction_from_movement(from, to)
