@@ -21,6 +21,9 @@ func _ready():
 	# Set size for interaction tooltip
 	custom_minimum_size = Vector2(140, 60)
 	size = Vector2(140, 60)
+	
+	# Ensure this tooltip intercepts mouse events to prevent click-through
+	mouse_filter = Control.MOUSE_FILTER_STOP
 
 func setup_background():
 	background_panel = NinePatchRect.new()
@@ -33,6 +36,9 @@ func setup_background():
 	background_panel.patch_margin_right = 8
 	background_panel.patch_margin_top = 4
 	background_panel.patch_margin_bottom = 4
+	
+	# Ensure background also stops mouse events
+	background_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	
 	add_child(background_panel)
 
