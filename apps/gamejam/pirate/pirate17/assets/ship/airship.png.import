@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://dj6t8bt6gxtkp"
-path="res://.godot/imported/sailship.png-8555d381638d0a15a13895748aa06002.ctex"
+uid="uid://js4s5bnbgaee"
+path="res://.godot/imported/airship.png-935fefa3721c482d23044edaac752833.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/ship/water/sailship.png"
-dest_files=["res://.godot/imported/sailship.png-8555d381638d0a15a13895748aa06002.ctex"]
+source_file="res://assets/ship/airship.png"
+dest_files=["res://.godot/imported/airship.png-935fefa3721c482d23044edaac752833.ctex"]
 
 [params]
 

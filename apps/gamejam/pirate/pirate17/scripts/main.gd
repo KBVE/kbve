@@ -6,6 +6,7 @@ const BorderSlicer = preload("res://scripts/ui/border_slicer.gd")
 @onready var camera = $Camera2D
 @onready var map_container = $MapContainer
 @onready var player = $Player
+@onready var player_ship = $Player/PlayerShip
 @onready var path_line = $PathVisualizer/PathLine
 @onready var path_visualizer = $PathVisualizer
 @onready var target_highlight = $PathVisualizer/TargetHighlight
@@ -21,6 +22,8 @@ var dash_lines: Array[Line2D] = []
 var npc_container: Node2D
 var structure_container: Node2D
 var interaction_tooltip: StructureInteractionTooltip
+var pending_movement: Vector2i
+var is_waiting_for_rotation: bool = false
 
 func _ready():
 	# Force reload border assets with updated transparency
@@ -41,6 +44,7 @@ func _ready():
 	update_ui()
 	connect_player_stats()
 	connect_movement_signals()
+	connect_ship_signals()
 	setup_target_highlight()
 	setup_interaction_system()
 
@@ -96,13 +100,50 @@ func _input(event):
 				return  # Don't process as movement
 		
 		if new_pos != current_pos:
-			player_movement.move_to(new_pos, true)  # Immediate movement for WASD
+			initiate_movement_with_rotation(current_pos, new_pos, true)  # WASD movement
 	
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
 		var mouse_world_pos = get_global_mouse_position()
 		var grid_pos = Movement.get_grid_position(mouse_world_pos)
+		var current_pos = player_movement.get_current_position()
 		
-		player_movement.move_to(grid_pos, false)  # Smooth movement for clicks
+		initiate_movement_with_rotation(current_pos, grid_pos, false)  # Click movement
+
+func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bool):
+	"""Start movement with smooth rotation animation first"""
+	# Don't initiate new movement if we're already waiting for rotation
+	if is_waiting_for_rotation:
+		return
+	
+	# Check if movement is valid
+	if not Movement.is_valid_move(from, to):
+		return
+	
+	# If ship needs to rotate and this isn't immediate movement, do rotation first
+	if player_ship and not immediate:
+		# Calculate if we need significant rotation
+		var movement_vector = to - from
+		if movement_vector != Vector2i.ZERO:
+			var target_angle = atan2(movement_vector.y, movement_vector.x) + PI / 2
+			var current_angle = player_ship.sprite.rotation if player_ship.sprite else 0.0
+			
+			# Normalize angles for comparison
+			var angle_diff = abs(target_angle - current_angle)
+			while angle_diff > PI:
+				angle_diff = abs(angle_diff - 2 * PI)
+			
+			# If significant rotation needed (more than 15 degrees), rotate first
+			if angle_diff > PI / 12:  # 15 degrees threshold
+				is_waiting_for_rotation = true
+				pending_movement = to
+				player_ship.update_direction_from_movement(from, to)
+				return
+	
+	# No significant rotation needed or immediate movement - move directly
+	player_movement.move_to(to, immediate)
+	# Update ship direction for immediate movements
+	if player_ship and immediate:
+		player_ship.update_direction_from_movement(from, to)
 
 func _process(delta):
 	player_movement.process_movement(delta)
@@ -114,9 +155,21 @@ func connect_movement_signals():
 	player_movement.movement_started.connect(_on_movement_started)
 	player_movement.movement_finished.connect(_on_movement_finished)
 
+func connect_ship_signals():
+	if player_ship:
+		player_ship.rotation_completed.connect(_on_ship_rotation_completed)
+
 func _on_movement_started(entity: Node2D, from: Vector2i, to: Vector2i):
 	if entity == player:
 		show_movement_path(from, to)
+
+func _on_ship_rotation_completed():
+	"""Called when ship finishes rotating - now start the actual movement"""
+	if is_waiting_for_rotation and pending_movement != Vector2i.ZERO:
+		is_waiting_for_rotation = false
+		# Start the actual movement
+		player_movement.move_to(pending_movement, false)
+		pending_movement = Vector2i.ZERO
 
 func _on_movement_finished(entity: Node2D, at: Vector2i):
 	if entity == player:
