@@ -302,18 +302,14 @@ func create_structure_visual(structure):
 	icon_label.size = Vector2(32, 32)
 	structure_visual.add_child(icon_label)
 	
-	# Create structure name label
-	var name_label = Label.new()
-	name_label.text = structure.name
-	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_label.add_theme_font_size_override("font_size", 10)
-	name_label.add_theme_color_override("font_color", Color.WHITE)
-	name_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	name_label.add_theme_constant_override("shadow_offset_x", 1)
-	name_label.add_theme_constant_override("shadow_offset_y", 1)
-	name_label.position = Vector2(-50, 20)  # Below the icon
-	name_label.size = Vector2(100, 20)
-	structure_visual.add_child(name_label)
+	# Create fantasy structure badge
+	var structure_badge = FantasyStructureBadge.new()
+	structure_badge.structure_name = structure.name
+	structure_badge.structure_type = StructurePool.StructureType.keys()[structure.type]
+	structure_badge.set_badge_texture_by_type(structure.type)
+	structure_badge.position = Vector2(-40, 25)  # Below the icon
+	structure_badge.z_index = 35  # Above everything
+	structure_visual.add_child(structure_badge)
 	
 	structure_container.add_child(structure_visual)
 	
