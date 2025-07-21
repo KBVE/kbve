@@ -11,7 +11,7 @@ var npc_sprite: Sprite2D
 # NPC AI properties
 var movement_timer: Timer
 var movement_interval: float = 2.0  # Move every 2 seconds
-var movement_range: int = 3  # How far NPC can move from spawn
+var movement_range: int = 8  # How far NPC can move from spawn (increased from 3)
 var follow_distance: int = 1  # Stay this far from player when following
 
 var spawn_position: Vector2i
@@ -25,11 +25,15 @@ enum NPCState {
 }
 
 var current_state: NPCState = NPCState.WANDERING
-var detection_range: int = 4     # How close to detect player and become aggressive
-var chase_threshold: int = 7     # Chase up to this distance when aggressive
-var restart_distance: int = 8    # Begin restart process at this distance
-var reset_distance: int = 10     # Give up and reset at this distance
+var detection_range: int = 10    # How close to detect player and become aggressive (increased from 4)
+var chase_threshold: int = 15    # Chase up to this distance when aggressive (increased from 7)
+var restart_distance: int = 18   # Begin restart process at this distance (increased from 8)
+var reset_distance: int = 22     # Give up and reset at this distance (increased from 10)
 var is_following_player: bool = false  # Legacy variable for compatibility
+
+# Performance optimization - late update system
+var aggression_check_timer: Timer
+var aggression_check_interval: float = 1.0  # Check aggression every second instead of every frame
 
 # Path visualization
 var path_visualizer: Node2D
@@ -55,6 +59,7 @@ func _ready():
 	create_visual()
 	create_path_visualizer()
 	setup_movement_timer()
+	setup_aggression_timer()
 	connect_movement_signals()
 
 func connect_movement_signals():
@@ -243,6 +248,13 @@ func setup_movement_timer():
 	movement_timer.autostart = true
 	add_child(movement_timer)
 
+func setup_aggression_timer():
+	aggression_check_timer = Timer.new()
+	aggression_check_timer.wait_time = aggression_check_interval
+	aggression_check_timer.timeout.connect(_on_aggression_check_timeout)
+	aggression_check_timer.autostart = true
+	add_child(aggression_check_timer)
+
 func initialize(start_pos: Vector2i):
 	is_initialized = true
 	grid_position = start_pos
@@ -327,6 +339,30 @@ func _on_movement_timer_timeout():
 	
 	# Update visual appearance based on current state
 	update_visual_state()
+
+func _on_aggression_check_timeout():
+	# Performance optimized - check aggression state changes less frequently
+	var player_distance = get_distance_to_player()
+	
+	match current_state:
+		NPCState.WANDERING:
+			# Check if player enters detection range
+			if player_distance <= detection_range:
+				transition_to_state(NPCState.AGGRESSIVE)
+		NPCState.AGGRESSIVE:
+			# Check if player is too far away
+			if player_distance > reset_distance:
+				transition_to_state(NPCState.RETURNING)
+			elif player_distance > restart_distance:
+				# Player getting far but not lost yet - continue for now
+				pass
+		NPCState.RETURNING:
+			# Check if player is nearby again while returning
+			if player_distance <= detection_range:
+				transition_to_state(NPCState.AGGRESSIVE)
+			elif get_distance_to_spawn() <= 2:
+				# Reached spawn area - resume wandering
+				transition_to_state(NPCState.WANDERING)
 
 func attempt_random_move():
 	# Generate random direction with 1-5 tile movement
