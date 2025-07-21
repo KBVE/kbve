@@ -4,5 +4,3 @@ For the UI we are using
 https://bdragon1727.itch.io/custom-border-and-panels-menu-all-part
 The core UI is from this asset pack.
 https://etahoshi.itch.io/minimal-fantasy-gui-by-eta
-The boats and watership are from 
-https://koreanois.itch.io/boat-and-ship-sprites

@@ -10,10 +10,7 @@ const BorderSlicer = preload("res://scripts/ui/border_slicer.gd")
 @onready var path_line = $PathVisualizer/PathLine
 @onready var path_visualizer = $PathVisualizer
 @onready var target_highlight = $PathVisualizer/TargetHighlight
-@onready var ui_player_name = $UI/PlayerInfo/PlayerName
-@onready var ui_health_value = $UI/PlayerInfo/HealthBar/HealthValue
-@onready var ui_mana_value = $UI/PlayerInfo/ManaBar/ManaValue
-@onready var ui_energy_value = $UI/PlayerInfo/EnergyBar/EnergyValue
+@onready var player_info_ui: PlayerInfoUI = $UI/PlayerInfo
 
 const TILE_SIZE = 32
 var tile_sprites = {}
@@ -43,8 +40,7 @@ func _ready():
 	setup_player_movement()
 	setup_npc_container()
 	spawn_npcs()
-	update_ui()
-	connect_player_stats()
+	# PlayerInfo scene handles its own initialization and connections
 	connect_movement_signals()
 	connect_ship_signals()
 	setup_target_highlight()
@@ -283,25 +279,6 @@ func update_movement_path():
 		path_line.clear_points()
 		create_dotted_line(current_pos, target_pos)
 
-func update_ui():
-	ui_player_name.text = Global.player.player_name
-	ui_health_value.text = str(Global.player.stats.health) + "/" + str(Global.player.stats.max_health)
-	ui_mana_value.text = str(Global.player.stats.mana) + "/" + str(Global.player.stats.max_mana)
-	ui_energy_value.text = str(Global.player.stats.energy) + "/" + str(Global.player.stats.max_energy)
-
-func connect_player_stats():
-	Global.player.stats.health_changed.connect(_on_health_changed)
-	Global.player.stats.mana_changed.connect(_on_mana_changed)
-	Global.player.stats.energy_changed.connect(_on_energy_changed)
-
-func _on_health_changed(new_value: int, max_value: int):
-	ui_health_value.text = str(new_value) + "/" + str(max_value)
-
-func _on_mana_changed(new_value: int, max_value: int):
-	ui_mana_value.text = str(new_value) + "/" + str(max_value)
-
-func _on_energy_changed(new_value: int, max_value: int):
-	ui_energy_value.text = str(new_value) + "/" + str(max_value)
 
 func setup_npc_container():
 	npc_container = Node2D.new()
