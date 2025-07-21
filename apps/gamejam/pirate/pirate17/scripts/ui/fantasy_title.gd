@@ -17,16 +17,16 @@ func setup_title():
 	title_label.text = title_text
 	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	title_label.add_theme_font_size_override("font_size", 28)
+	title_label.add_theme_font_size_override("font_size", 32)
 	title_label.add_theme_color_override("font_color", Color.WHITE)
 	title_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	title_label.add_theme_constant_override("shadow_offset_x", 2)
-	title_label.add_theme_constant_override("shadow_offset_y", 2)
+	title_label.add_theme_constant_override("shadow_offset_x", 3)
+	title_label.add_theme_constant_override("shadow_offset_y", 3)
 	title_label.anchors_preset = Control.PRESET_FULL_RECT
-	title_label.offset_left = 20
-	title_label.offset_right = -20
-	title_label.offset_top = 10
-	title_label.offset_bottom = -10
+	title_label.offset_left = 40
+	title_label.offset_right = -40
+	title_label.offset_top = 15
+	title_label.offset_bottom = -15
 	add_child(title_label)
 	
 	# Create title background and force it to match our size
@@ -34,10 +34,10 @@ func setup_title():
 	title_background.texture = load(title_background_path)
 	title_background.size = size
 	title_background.position = Vector2.ZERO
-	title_background.patch_margin_left = 16
-	title_background.patch_margin_right = 16
-	title_background.patch_margin_top = 4
-	title_background.patch_margin_bottom = 4
+	title_background.patch_margin_left = 32
+	title_background.patch_margin_right = 32
+	title_background.patch_margin_top = 8
+	title_background.patch_margin_bottom = 8
 	add_child(title_background)
 	move_child(title_background, 0)  # Move behind label
 
