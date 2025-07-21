@@ -16,6 +16,7 @@ var bar_textures = {
 }
 
 func _ready():
+	var bar_type = get_meta("bar_type")
 	setup_background()
 	setup_value_bar()
 	setup_label()
@@ -36,8 +37,20 @@ func setup_background():
 func setup_value_bar():
 	value_bar = NinePatchRect.new()
 	
-	# Load appropriate texture based on bar type
+	var bar_type = get_meta("bar_type")
 	var texture_path = bar_textures.get(bar_type, bar_textures["health"])
+	match bar_type:
+		"health":
+			texture_path = bar_textures.get(bar_type, bar_textures["health"])
+		"mana":
+			texture_path = bar_textures.get(bar_type, bar_textures["mana"])
+		"stamina":
+			texture_path = bar_textures.get(bar_type, bar_textures["energy"])
+		_:
+			texture_path = bar_textures.get(bar_type, bar_textures["health"])
+		  # fallback
+	
+	# Load appropriate texture based on bar type
 	value_bar.texture = load(texture_path)
 	
 	value_bar.anchors_preset = Control.PRESET_FULL_RECT
