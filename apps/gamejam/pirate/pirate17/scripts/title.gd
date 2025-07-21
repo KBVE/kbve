@@ -50,7 +50,7 @@ func setup_background():
 func setup_main_menu():
 	print("Setting up main menu...")
 	main_menu = FantasyMenu.new()
-	main_menu.menu_title = "Pirate Adventure"
+	main_menu.menu_title = "Airship Pirate 17"
 	
 	# Set explicit size and position instead of using anchors
 	main_menu.size = Vector2(300, 400)
