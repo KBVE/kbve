@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://cxm8v4k1l2n3p"]
+
+[ext_resource type="Script" path="res://scripts/ui/progress_bar.gd" id="1_progress"]
+
+[node name="FantasyProgressBar" type="Control"]
+layout_mode = 3
+anchors_preset = 0
+custom_minimum_size = Vector2(200, 32)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1_progress")

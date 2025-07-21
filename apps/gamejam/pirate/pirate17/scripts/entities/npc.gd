@@ -19,12 +19,12 @@ var is_initialized: bool = false
 
 # Enhanced AI State System
 enum NPCState {
-	WANDERING,    # Black - Normal wandering around spawn
+	PATROL,    # Black - Normal patrol around spawn
 	AGGRESSIVE,   # Dark Red - Actively following player
 	RETURNING     # Dark Orange - Lost player, returning to spawn
 }
 
-var current_state: NPCState = NPCState.WANDERING
+var current_state: NPCState = NPCState.PATROL
 var detection_range: int = 6     # How close to detect player and become aggressive (reduced from 10)
 var chase_threshold: int = 8     # Chase up to this distance when aggressive (reduced from 15)
 var restart_distance: int = 10   # Begin restart process at this distance (reduced from 18)
@@ -108,9 +108,15 @@ func create_visual():
 	
 	visual_container.add_child(npc_sprite)
 	
+	# Add shadow to NPC ship
+	var ship_shadow = preload("res://scripts/ship_shadow.gd").new()
+	ship_shadow.shadow_offset = Vector2(10, 10)  # Larger offset for better depth
+	ship_shadow.shadow_scale = 0.6  # Much smaller shadow
+	visual_container.add_child(ship_shadow)
+	
 	# Create fantasy state badge
 	state_badge = FantasyStateBadge.new()
-	state_badge.state_text = "Wandering..."
+	state_badge.state_text = "Patrol..."
 	state_badge.z_index = 25  # Above everything else
 	visual_container.add_child(state_badge)
 	
@@ -141,9 +147,9 @@ func transition_to_state(new_state: NPCState):
 				movement_timer.wait_time = randf_range(1.5, 2.5)  # Slower retreating speed (reduced from 1.0-2.0)
 				# Immediately attempt to retreat when entering retreating state
 				call_deferred("attempt_retreat_from_player")
-			NPCState.WANDERING:
-				movement_timer.wait_time = randf_range(2.0, 4.0)  # Slower wandering speed (increased from 1.5-3.0)
-				# Immediately attempt a move when entering wandering state
+			NPCState.PATROL:
+				movement_timer.wait_time = randf_range(2.0, 4.0)  # Slower patrol speed (increased from 1.5-3.0)
+				# Immediately attempt a move when entering patrol state
 				call_deferred("attempt_random_move")
 		
 		# Restart the timer to ensure it continues
@@ -160,8 +166,8 @@ func position_state_badge():
 func update_state_label():
 	if state_badge:
 		match current_state:
-			NPCState.WANDERING:
-				state_badge.update_state("Wandering...")
+			NPCState.PATROL:
+				state_badge.update_state("Patrol...")
 			NPCState.AGGRESSIVE:
 				state_badge.update_state("Aggressive!")
 			NPCState.RETURNING:
@@ -174,8 +180,8 @@ func update_visual_state():
 	# Change NPC color based on current state
 	if npc_sprite:
 		match current_state:
-			NPCState.WANDERING:
-				# Normal color when wandering
+			NPCState.PATROL:
+				# Normal color when patrol
 				npc_sprite.modulate = Color.WHITE
 			NPCState.AGGRESSIVE:
 				# Red tint when aggressively following player
@@ -293,17 +299,17 @@ func _on_movement_timer_timeout():
 	
 	# State machine logic
 	match current_state:
-		NPCState.WANDERING:
+		NPCState.PATROL:
 			# Check if player enters detection range
 			if player_distance <= detection_range:
 				transition_to_state(NPCState.AGGRESSIVE)
 			else:
-				# Continue wandering around spawn
+				# Continue patrol around spawn
 				if get_distance_to_spawn() > movement_range * 2:
 					# Too far from spawn - move back toward it
 					attempt_return_to_spawn()
 				else:
-					# Within wandering range - move randomly
+					# Within patrol range - move randomly
 					attempt_random_move()
 		
 		NPCState.AGGRESSIVE:
@@ -326,13 +332,13 @@ func _on_movement_timer_timeout():
 			if player_distance <= detection_range:
 				transition_to_state(NPCState.AGGRESSIVE)
 			else:
-				# Move away from player, then transition to wandering after some distance
+				# Move away from player, then transition to patrol after some distance
 				if player_distance >= detection_range + 3:
-					# Far enough from player - resume wandering
-					transition_to_state(NPCState.WANDERING)
+					# Far enough from player - resume patrol
+					transition_to_state(NPCState.PATROL)
 				elif randf() < 0.2:
-					# 20% chance to start wandering even if not far enough
-					transition_to_state(NPCState.WANDERING)
+					# 20% chance to start patrol even if not far enough
+					transition_to_state(NPCState.PATROL)
 				else:
 					# Continue moving away from player
 					attempt_retreat_from_player()
@@ -345,7 +351,7 @@ func _on_aggression_check_timeout():
 	var player_distance = get_distance_to_player()
 	
 	match current_state:
-		NPCState.WANDERING:
+		NPCState.PATROL:
 			# Check if player enters detection range
 			if player_distance <= detection_range:
 				transition_to_state(NPCState.AGGRESSIVE)
@@ -361,8 +367,8 @@ func _on_aggression_check_timeout():
 			if player_distance <= detection_range:
 				transition_to_state(NPCState.AGGRESSIVE)
 			elif get_distance_to_spawn() <= 2:
-				# Reached spawn area - resume wandering
-				transition_to_state(NPCState.WANDERING)
+				# Reached spawn area - resume patrol
+				transition_to_state(NPCState.PATROL)
 
 func attempt_random_move():
 	# Generate random direction with 1-5 tile movement
@@ -432,7 +438,7 @@ func is_valid_move(pos: Vector2i) -> bool:
 	# Check if within movement range of spawn (only when not following player)
 	if not is_following_player:
 		var distance = abs(pos.x - spawn_position.x) + abs(pos.y - spawn_position.y)
-		# Allow larger movement range for wandering (up to 8 tiles from spawn)
+		# Allow larger movement range for patrol (up to 8 tiles from spawn)
 		if distance > movement_range * 2:
 			return false
 	

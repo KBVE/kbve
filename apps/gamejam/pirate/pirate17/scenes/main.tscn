@@ -1,7 +1,8 @@
-[gd_scene load_steps=3 format=3 uid="uid://byw3v2c8xdtqu"]
+[gd_scene load_steps=4 format=3 uid="uid://byw3v2c8xdtqu"]
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_1k2mh"]
 [ext_resource type="Script" path="res://scripts/player/ship.gd" id="2_ship"]
+[ext_resource type="PackedScene" uid="uid://b2m3g0p8r4q1v" path="res://scenes/player_info.tscn" id="3_player_info"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_1k2mh")
@@ -43,48 +44,4 @@ script = ExtResource("2_ship")
 
 [node name="UI" type="CanvasLayer" parent="."]
 
-[node name="PlayerInfo" type="VBoxContainer" parent="UI"]
-anchors_preset = 2
-anchor_top = 1.0
-anchor_bottom = 1.0
-offset_left = 10.0
-offset_top = -120.0
-offset_right = 300.0
-offset_bottom = -10.0
-
-[node name="PlayerName" type="Label" parent="UI/PlayerInfo"]
-layout_mode = 2
-text = "Player Name"
-
-[node name="HealthBar" type="HBoxContainer" parent="UI/PlayerInfo"]
-layout_mode = 2
-
-[node name="HealthLabel" type="Label" parent="UI/PlayerInfo/HealthBar"]
-layout_mode = 2
-text = "Health:"
-
-[node name="HealthValue" type="Label" parent="UI/PlayerInfo/HealthBar"]
-layout_mode = 2
-text = "100/100"
-
-[node name="ManaBar" type="HBoxContainer" parent="UI/PlayerInfo"]
-layout_mode = 2
-
-[node name="ManaLabel" type="Label" parent="UI/PlayerInfo/ManaBar"]
-layout_mode = 2
-text = "Mana:"
-
-[node name="ManaValue" type="Label" parent="UI/PlayerInfo/ManaBar"]
-layout_mode = 2
-text = "50/50"
-
-[node name="EnergyBar" type="HBoxContainer" parent="UI/PlayerInfo"]
-layout_mode = 2
-
-[node name="EnergyLabel" type="Label" parent="UI/PlayerInfo/EnergyBar"]
-layout_mode = 2
-text = "Energy:"
-
-[node name="EnergyValue" type="Label" parent="UI/PlayerInfo/EnergyBar"]
-layout_mode = 2
-text = "75/75"
+[node name="PlayerInfo" parent="UI" instance=ExtResource("3_player_info")]
