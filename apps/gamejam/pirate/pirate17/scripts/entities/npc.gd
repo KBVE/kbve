@@ -25,15 +25,15 @@ enum NPCState {
 }
 
 var current_state: NPCState = NPCState.WANDERING
-var detection_range: int = 10    # How close to detect player and become aggressive (increased from 4)
-var chase_threshold: int = 15    # Chase up to this distance when aggressive (increased from 7)
-var restart_distance: int = 18   # Begin restart process at this distance (increased from 8)
-var reset_distance: int = 22     # Give up and reset at this distance (increased from 10)
+var detection_range: int = 6     # How close to detect player and become aggressive (reduced from 10)
+var chase_threshold: int = 8     # Chase up to this distance when aggressive (reduced from 15)
+var restart_distance: int = 10   # Begin restart process at this distance (reduced from 18)
+var reset_distance: int = 12     # Give up and reset at this distance (reduced from 22)
 var is_following_player: bool = false  # Legacy variable for compatibility
 
 # Performance optimization - late update system
 var aggression_check_timer: Timer
-var aggression_check_interval: float = 1.0  # Check aggression every second instead of every frame
+var aggression_check_interval: float = 2.0  # Check aggression less frequently (increased from 1.0)
 
 # Path visualization
 var path_visualizer: Node2D
@@ -136,13 +136,13 @@ func transition_to_state(new_state: NPCState):
 		# Adjust movement speed based on state
 		match current_state:
 			NPCState.AGGRESSIVE:
-				movement_timer.wait_time = randf_range(1.0, 2.0)  # Faster when aggressive
+				movement_timer.wait_time = randf_range(2.0, 3.5)  # Slower when aggressive (reduced from 1.0-2.0)
 			NPCState.RETURNING:
-				movement_timer.wait_time = randf_range(1.0, 2.0)  # Fast retreating speed
+				movement_timer.wait_time = randf_range(1.5, 2.5)  # Slower retreating speed (reduced from 1.0-2.0)
 				# Immediately attempt to retreat when entering retreating state
 				call_deferred("attempt_retreat_from_player")
 			NPCState.WANDERING:
-				movement_timer.wait_time = randf_range(1.5, 3.0)  # Normal wandering speed
+				movement_timer.wait_time = randf_range(2.0, 4.0)  # Slower wandering speed (increased from 1.5-3.0)
 				# Immediately attempt a move when entering wandering state
 				call_deferred("attempt_random_move")
 		
@@ -285,8 +285,8 @@ func update_position_after_scene_ready():
 			move_component.target_world_pos = Movement.get_world_position(grid_position)
 
 func _on_movement_timer_timeout():
-	# Randomize movement interval
-	movement_timer.wait_time = randf_range(1.5, 3.0)
+	# Randomize movement interval - slower overall
+	movement_timer.wait_time = randf_range(2.5, 4.5)
 	
 	# Get current player distance
 	var player_distance = get_distance_to_player()
