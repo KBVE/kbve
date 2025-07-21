@@ -6,9 +6,15 @@ const MAP_HEIGHT = 64
 
 var map: Node
 var npcs: Array[NPC] = []
+var structure_pool: StructurePool
 
 func _ready():
 	map = Map
+	
+	# Initialize structure pool
+	structure_pool = StructurePool.new()
+	structure_pool.name = "StructurePool"
+	add_child(structure_pool)
 
 func get_tile_at(x: int, y: int) -> String:
 	return map.get_tile(x, y)
@@ -56,6 +62,10 @@ func is_valid_npc_spawn(pos: Vector2i) -> bool:
 	if not is_valid_position(pos.x, pos.y):
 		return false
 	
+	# Check if position is occupied by a structure
+	if structure_pool and structure_pool.get_structure_at_position(pos):
+		return false
+	
 	# Check distance from player spawn (center)
 	var center = Vector2i(MAP_WIDTH / 2, MAP_HEIGHT / 2)
 	var distance = abs(pos.x - center.x) + abs(pos.y - center.y)
@@ -84,3 +94,42 @@ func clear_npcs():
 
 func get_npcs() -> Array[NPC]:
 	return npcs
+
+# Structure system integration
+func initialize_world():
+	"""Initialize the complete world system - call this after map generation"""
+	if structure_pool:
+		structure_pool.initialize_structures()
+	
+	print("World initialization complete")
+
+func get_structure_at(pos: Vector2i):
+	"""Get structure at position, if any"""
+	if structure_pool:
+		return structure_pool.get_structure_at_position(pos)
+	return null
+
+func get_player_structure_interactions(player_pos: Vector2i) -> Array:
+	"""Get structures the player can interact with"""
+	if structure_pool:
+		return structure_pool.check_player_interactions(player_pos)
+	return []
+
+func interact_with_structure_at(pos: Vector2i, player: Node):
+	"""Interact with structure at position"""
+	if structure_pool:
+		var structure = structure_pool.get_structure_at_position(pos)
+		if structure:
+			structure_pool.interact_with_structure(structure, player)
+
+func get_all_structures() -> Array:
+	"""Get all active structures"""
+	if structure_pool:
+		return structure_pool.get_all_structures()
+	return []
+
+func get_structure_pool_stats() -> Dictionary:
+	"""Get statistics about the structure pool"""
+	if structure_pool:
+		return structure_pool.get_pool_statistics()
+	return {}
