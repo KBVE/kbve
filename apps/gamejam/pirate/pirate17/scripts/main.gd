@@ -19,6 +19,7 @@ var tile_sprites = {}
 var player_movement: Movement.MoveComponent
 var dash_lines: Array[Line2D] = []
 var npc_container: Node2D
+var structure_container: Node2D
 
 func _ready():
 	# Force reload border assets with updated transparency
@@ -26,6 +27,13 @@ func _ready():
 	BorderSlicer.load_and_slice_borders()
 	
 	generate_map_display()
+	
+	# Initialize world structures after map generation
+	World.initialize_world()
+	
+	# Render structures on the map
+	render_structures()
+	
 	setup_player_movement()
 	setup_npc_container()
 	spawn_npcs()
@@ -245,3 +253,71 @@ func get_player_position() -> Vector2i:
 	if player_movement:
 		return player_movement.get_current_position()
 	return Vector2i(50, 50)  # Default fallback position
+
+func render_structures():
+	# Create structure container
+	structure_container = Node2D.new()
+	structure_container.name = "Structures"
+	structure_container.z_index = 5  # Above map tiles but below NPCs
+	add_child(structure_container)
+	
+	# Get all structures from the world
+	var structures = World.get_all_structures()
+	print("Rendering ", structures.size(), " structures on map")
+	
+	for structure in structures:
+		create_structure_visual(structure)
+
+func create_structure_visual(structure):
+	# Create a visual container for the structure
+	var structure_visual = Node2D.new()
+	structure_visual.name = structure.name
+	structure_visual.z_index = structure.visual_data.get("render_priority", 5)
+	
+	# Position the structure visual at the center of its occupied area
+	var center_x = structure.grid_position.x + (structure.size.x / 2.0) - 0.5
+	var center_y = structure.grid_position.y + (structure.size.y / 2.0) - 0.5
+	structure_visual.position = Vector2(center_x * TILE_SIZE, center_y * TILE_SIZE)
+	
+	# Create background tiles for the structure footprint
+	for x in range(structure.size.x):
+		for y in range(structure.size.y):
+			var tile_bg = ColorRect.new()
+			tile_bg.size = Vector2(TILE_SIZE, TILE_SIZE)
+			tile_bg.position = Vector2(
+				(structure.grid_position.x + x - center_x) * TILE_SIZE,
+				(structure.grid_position.y + y - center_y) * TILE_SIZE
+			)
+			tile_bg.color = structure.visual_data.get("color", Color.GRAY)
+			tile_bg.color.a = 0.8  # Slightly transparent
+			structure_visual.add_child(tile_bg)
+	
+	# Create structure icon/symbol in the center
+	var icon_label = Label.new()
+	icon_label.text = structure.visual_data.get("symbol", "🏗")
+	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	icon_label.add_theme_font_size_override("font_size", 20)
+	icon_label.position = Vector2(-16, -16)  # Center the 32x32 icon
+	icon_label.size = Vector2(32, 32)
+	structure_visual.add_child(icon_label)
+	
+	# Create structure name label
+	var name_label = Label.new()
+	name_label.text = structure.name
+	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	name_label.add_theme_font_size_override("font_size", 10)
+	name_label.add_theme_color_override("font_color", Color.WHITE)
+	name_label.add_theme_color_override("font_shadow_color", Color.BLACK)
+	name_label.add_theme_constant_override("shadow_offset_x", 1)
+	name_label.add_theme_constant_override("shadow_offset_y", 1)
+	name_label.position = Vector2(-50, 20)  # Below the icon
+	name_label.size = Vector2(100, 20)
+	structure_visual.add_child(name_label)
+	
+	structure_container.add_child(structure_visual)
+	
+	# Store reference in the structure for future use
+	structure.sprite = structure_visual
+	
+	print("Created visual for ", structure.name, " at ", structure.grid_position)
