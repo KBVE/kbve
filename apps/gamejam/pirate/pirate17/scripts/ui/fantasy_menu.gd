@@ -8,62 +8,87 @@ signal menu_action(action: String, data: Dictionary)
 @export var menu_title: String = "" : set = set_menu_title
 @export var background_texture_path: String = "res://assets/ui/fantasy/RectangleBox_96x96.png"
 
+var title_container: Control
 var title_label: Label
-var background_panel: NinePatchRect
+var title_background: NinePatchRect
+var content_container: Control
+var content_background: NinePatchRect
 var button_container: VBoxContainer
 
 func _ready():
-	setup_menu_background()
-	setup_title()
-	setup_button_container()
+	setup_menu_structure()
 
-func setup_menu_background():
-	# Create background panel
-	background_panel = NinePatchRect.new()
-	background_panel.texture = load(background_texture_path)
-	background_panel.anchors_preset = Control.PRESET_FULL_RECT
-	background_panel.patch_margin_left = 16
-	background_panel.patch_margin_right = 16
-	background_panel.patch_margin_top = 16
-	background_panel.patch_margin_bottom = 16
+func setup_menu_structure():
+	# Main vertical container for all menu elements
+	var main_vbox = VBoxContainer.new()
+	main_vbox.anchors_preset = Control.PRESET_FULL_RECT
+	main_vbox.add_theme_constant_override("separation", 20)
+	add_child(main_vbox)
 	
-	add_child(background_panel)
-
-func setup_title():
+	# Setup title container if title exists
 	if menu_title != "":
-		title_label = Label.new()
-		title_label.text = menu_title
-		title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		title_label.add_theme_font_size_override("font_size", 28)
-		title_label.add_theme_color_override("font_color", Color.WHITE)
-		title_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-		title_label.add_theme_constant_override("shadow_offset_x", 2)
-		title_label.add_theme_constant_override("shadow_offset_y", 2)
-		
-		# Position title at top
-		title_label.anchors_preset = Control.PRESET_TOP_WIDE
-		title_label.offset_top = 10
-		title_label.offset_bottom = 40
-		
-		add_child(title_label)
+		setup_title_container(main_vbox)
+	
+	# Setup content container for buttons
+	setup_content_container(main_vbox)
 
-func setup_button_container():
+func setup_title_container(parent: Node):
+	# Create title container
+	title_container = Control.new()
+	title_container.custom_minimum_size = Vector2(0, 80)
+	parent.add_child(title_container)
+	
+	# Title background
+	title_background = NinePatchRect.new()
+	title_background.texture = load("res://assets/ui/fantasy/TitleBox_64x16.png")
+	title_background.anchors_preset = Control.PRESET_CENTER
+	title_background.size = Vector2(350, 60)
+	title_background.position = Vector2(-175, -30)
+	title_background.patch_margin_left = 16
+	title_background.patch_margin_right = 16
+	title_background.patch_margin_top = 4
+	title_background.patch_margin_bottom = 4
+	title_container.add_child(title_background)
+	
+	# Title label
+	title_label = Label.new()
+	title_label.text = menu_title
+	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	title_label.add_theme_font_size_override("font_size", 28)
+	title_label.add_theme_color_override("font_color", Color.WHITE)
+	title_label.add_theme_color_override("font_shadow_color", Color.BLACK)
+	title_label.add_theme_constant_override("shadow_offset_x", 2)
+	title_label.add_theme_constant_override("shadow_offset_y", 2)
+	title_label.anchors_preset = Control.PRESET_FULL_RECT
+	title_background.add_child(title_label)
+
+func setup_content_container(parent: Node):
+	# Create content container
+	content_container = Control.new()
+	content_container.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	parent.add_child(content_container)
+	
+	# Content background
+	content_background = NinePatchRect.new()
+	content_background.texture = load(background_texture_path)
+	content_background.anchors_preset = Control.PRESET_FULL_RECT
+	content_background.patch_margin_left = 32
+	content_background.patch_margin_right = 32
+	content_background.patch_margin_top = 32
+	content_background.patch_margin_bottom = 32
+	content_container.add_child(content_background)
+	
+	# Button container
 	button_container = VBoxContainer.new()
 	button_container.anchors_preset = Control.PRESET_CENTER
-	button_container.add_theme_constant_override("separation", 8)
-	
-	# Adjust position based on whether there's a title
-	if title_label:
-		button_container.offset_top = 50
-	else:
-		button_container.offset_top = 20
-	
-	add_child(button_container)
+	button_container.add_theme_constant_override("separation", 20)
+	button_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	content_container.add_child(button_container)
 
 func set_menu_title(new_title: String):
 	menu_title = new_title
-	if title_label:
+	if title_label and is_inside_tree():
 		title_label.text = menu_title
 
 func add_button(text: String, action: String, button_data: Dictionary = {}):
@@ -105,8 +130,10 @@ func hide_menu():
 	visible = false
 
 func clear_buttons():
-	for child in button_container.get_children():
-		child.queue_free()
+	if button_container:
+		for child in button_container.get_children():
+			child.queue_free()
+
 
 # Predefined menu layouts
 func create_main_menu():

@@ -52,12 +52,16 @@ func setup_main_menu():
 	main_menu = FantasyMenu.new()
 	main_menu.menu_title = "Airship Pirate 17"
 	
-	# Set explicit size and position instead of using anchors
-	main_menu.size = Vector2(300, 400)
-	main_menu.position = Vector2(100, 100)  # Simple top-left positioning for testing
+	# Set explicit size and position
+	main_menu.size = Vector2(450, 500)
+	main_menu.position = Vector2(415, 150)  # Center position for typical screen
 	
 	# Connect menu signals
 	main_menu.menu_action.connect(_on_menu_action)
+	
+	# Ensure menu is visible
+	main_menu.visible = true
+	main_menu.z_index = 1
 	
 	add_child(main_menu)
 	print("Main menu added to scene at position: ", main_menu.position, " size: ", main_menu.size)
