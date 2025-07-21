@@ -23,6 +23,9 @@ var pending_movement: Vector2i
 var is_waiting_for_rotation: bool = false
 var parallax_bg: ParallaxBackground
 var cloud_manager: CloudManager
+var total_distance_traveled: float = 0.0  # Track actual distance traveled
+var last_player_position: Vector2 = Vector2.ZERO  # Track previous position
+const ENERGY_COST_DISTANCE: float = 64.0  # 1 energy per 64 pixels (2 tiles worth)
 
 func _ready():
 	# Force reload border assets with updated transparency
@@ -156,6 +159,7 @@ func _process(delta):
 	update_movement_path()
 	check_structure_interactions()
 	update_parallax_effects()
+	track_movement_distance()
 
 func connect_movement_signals():
 	player_movement.movement_started.connect(_on_movement_started)
@@ -547,6 +551,66 @@ func update_ship_wind_effects(is_moving: bool):
 			velocity = Vector2(movement_vector.x, movement_vector.y) * 50.0  # Scale for visual effect
 		
 		player_ship.update_wind_effects(velocity, is_moving)
+
+func track_movement_distance():
+	"""Track distance traveled and deplete energy based on actual movement"""
+	if not Global.player or not Global.player.stats:
+		return
+	
+	# Initialize last position if not set
+	if last_player_position == Vector2.ZERO:
+		last_player_position = player.position
+		return
+	
+	# Calculate distance moved since last frame
+	var current_position = player.position
+	var distance_this_frame = last_player_position.distance_to(current_position)
+	
+	if distance_this_frame > 0.1:  # Only count meaningful movement (avoid tiny floating point changes)
+		total_distance_traveled += distance_this_frame
+		
+		# Check if we should deduct energy
+		if total_distance_traveled >= ENERGY_COST_DISTANCE:
+			var energy_to_deduct = int(total_distance_traveled / ENERGY_COST_DISTANCE)
+			total_distance_traveled = fmod(total_distance_traveled, ENERGY_COST_DISTANCE)  # Keep remainder
+			
+			handle_movement_costs(energy_to_deduct)
+	
+	last_player_position = current_position
+
+func handle_movement_costs(energy_cost: int = 1):
+	"""Handle energy depletion and health costs for player movement"""
+	if not Global.player or not Global.player.stats:
+		return
+	
+	var player_stats = Global.player.stats
+	
+	for i in range(energy_cost):
+		var was_exhausted = player_stats.is_exhausted()
+		
+		print("Distance-based energy depletion - Total distance: ", total_distance_traveled + ENERGY_COST_DISTANCE)
+		print("Before depletion - Energy: ", player_stats.energy, " Health: ", player_stats.health)
+		
+		# Deplete energy first, then health if exhausted
+		player_stats.deplete_energy_or_health(1, 1)
+		
+		print("After depletion - Energy: ", player_stats.energy, " Health: ", player_stats.health)
+		
+		if was_exhausted:
+			print("No energy! Health depleted: ", player_stats.health, "/", player_stats.max_health)
+			# Check if player died
+			if player_stats.health <= 0:
+				handle_player_death()
+		else:
+			print("Energy depleted: ", player_stats.energy, "/", player_stats.max_energy)
+
+func handle_player_death():
+	"""Handle when player's health reaches zero"""
+	print("Player has died from exhaustion!")
+	# TODO: Implement death mechanics (game over screen, respawn, etc.)
+	# For now, just restore some health to prevent softlock
+	Global.player.stats.health = 10
+	print("Emergency health restore activated!")
 
 func update_parallax_effects():
 	"""Update parallax background effects based on camera movement"""
