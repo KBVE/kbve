@@ -14,54 +14,54 @@ var _mana: int = 50
 var _energy: int = 75
 
 var health: int:
-	get:
-		return _health
-	set(value):
-		_health = clamp(value, 0, max_health)
-		health_changed.emit(_health, max_health)
+    get:
+        return _health
+    set(value):
+        _health = clamp(value, 0, max_health)
+        health_changed.emit(_health, max_health)
 
 var mana: int:
-	get:
-		return _mana
-	set(value):
-		_mana = clamp(value, 0, max_mana)
-		mana_changed.emit(_mana, max_mana)
+    get:
+        return _mana
+    set(value):
+        _mana = clamp(value, 0, max_mana)
+        mana_changed.emit(_mana, max_mana)
 
 var energy: int:
-	get:
-		return _energy
-	set(value):
-		_energy = clamp(value, 0, max_energy)
-		energy_changed.emit(_energy, max_energy)
+    get:
+        return _energy
+    set(value):
+        _energy = clamp(value, 0, max_energy)
+        energy_changed.emit(_energy, max_energy)
 
 func _init():
-	health = max_health
-	mana = max_mana
-	energy = max_energy
+    health = max_health
+    mana = max_mana
+    energy = max_energy
 
 func is_alive() -> bool:
-	return health > 0
+    return health > 0
 
 func heal(amount: int):
-	health += amount
+    health += amount
 
 func damage(amount: int):
-	health -= amount
+    health -= amount
 
 func use_mana(amount: int) -> bool:
-	if mana >= amount:
-		mana -= amount
-		return true
-	return false
+    if mana >= amount:
+        mana -= amount
+        return true
+    return false
 
 func restore_mana(amount: int):
-	mana += amount
+    mana += amount
 
 func use_energy(amount: int) -> bool:
-	if energy >= amount:
-		energy -= amount
-		return true
-	return false
+    if energy >= amount:
+        energy -= amount
+        return true
+    return false
 
 func restore_energy(amount: int):
-	energy += amount
+    energy += amount
