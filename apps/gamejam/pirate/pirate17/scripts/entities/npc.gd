@@ -108,6 +108,12 @@ func create_visual():
 	
 	visual_container.add_child(npc_sprite)
 	
+	# Add shadow to NPC ship
+	var ship_shadow = preload("res://scripts/ship_shadow.gd").new()
+	ship_shadow.shadow_offset = Vector2(10, 10)  # Larger offset for better depth
+	ship_shadow.shadow_scale = 0.6  # Much smaller shadow
+	visual_container.add_child(ship_shadow)
+	
 	# Create fantasy state badge
 	state_badge = FantasyStateBadge.new()
 	state_badge.state_text = "Patrol..."
