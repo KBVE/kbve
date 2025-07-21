@@ -24,6 +24,7 @@ var structure_container: Node2D
 var interaction_tooltip: StructureInteractionTooltip
 var pending_movement: Vector2i
 var is_waiting_for_rotation: bool = false
+var parallax_bg: ParallaxBackground
 
 func _ready():
 	# Force reload border assets with updated transparency
@@ -47,6 +48,7 @@ func _ready():
 	connect_ship_signals()
 	setup_target_highlight()
 	setup_interaction_system()
+	setup_parallax_background()
 
 func setup_target_highlight():
 	# Set the border texture for target highlighting - use a nice decorative border
@@ -111,9 +113,14 @@ func _input(event):
 
 func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bool):
 	"""Start movement with smooth rotation animation first"""
-	# Don't initiate new movement if we're already waiting for rotation
+	# If already waiting for rotation, cancel previous and start new movement
 	if is_waiting_for_rotation:
-		return
+		is_waiting_for_rotation = false
+		pending_movement = Vector2i.ZERO
+		# Stop any ongoing rotation
+		if player_ship and player_ship.rotation_tween:
+			player_ship.rotation_tween.kill()
+			player_ship.is_rotating = false
 	
 	# Check if movement is valid
 	if not Movement.is_valid_move(from, to):
@@ -132,8 +139,8 @@ func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bo
 			while angle_diff > PI:
 				angle_diff = abs(angle_diff - 2 * PI)
 			
-			# If significant rotation needed (more than 15 degrees), rotate first
-			if angle_diff > PI / 12:  # 15 degrees threshold
+			# If any rotation needed (more than 5 degrees), rotate first
+			if angle_diff > PI / 36:  # 5 degrees threshold (much more sensitive)
 				is_waiting_for_rotation = true
 				pending_movement = to
 				player_ship.update_direction_from_movement(from, to)
@@ -150,6 +157,7 @@ func _process(delta):
 	camera.position = player.position
 	update_movement_path()
 	check_structure_interactions()
+	update_parallax_effects()
 
 func connect_movement_signals():
 	player_movement.movement_started.connect(_on_movement_started)
@@ -162,6 +170,8 @@ func connect_ship_signals():
 func _on_movement_started(entity: Node2D, from: Vector2i, to: Vector2i):
 	if entity == player:
 		show_movement_path(from, to)
+		# Update wind effects for movement
+		update_ship_wind_effects(true)
 
 func _on_ship_rotation_completed():
 	"""Called when ship finishes rotating - now start the actual movement"""
@@ -174,6 +184,8 @@ func _on_ship_rotation_completed():
 func _on_movement_finished(entity: Node2D, at: Vector2i):
 	if entity == player:
 		hide_movement_path()
+		# Stop wind effects when movement ends
+		update_ship_wind_effects(false)
 
 func show_movement_path(from: Vector2i, to: Vector2i):
 	var start_pos = Movement.get_world_position(from)
@@ -441,3 +453,70 @@ func show_structure_interaction_message(structure):
 	print("Description: ", structure.description)
 	if structure.guards > 0:
 		print("Guards: ", structure.guards)
+
+func setup_parallax_background():
+	"""Setup parallax background for atmospheric effects"""
+	parallax_bg = ParallaxBackground.new()
+	add_child(parallax_bg)
+	# Move it to the beginning of the children list to ensure it renders first (behind everything)
+	move_child(parallax_bg, 0)
+	
+	# Create a simple cloud layer
+	var cloud_layer = ParallaxLayer.new()
+	cloud_layer.motion_scale = Vector2(0.2, 0.2)  # Slow parallax movement
+	cloud_layer.motion_mirroring = Vector2(1024, 1024)
+	
+	# Create simple cloud sprites
+	var cloud_sprite = create_simple_cloud_texture()
+	cloud_layer.add_child(cloud_sprite)
+	parallax_bg.add_child(cloud_layer)
+	
+	print("Parallax background system initialized")
+
+func create_simple_cloud_texture() -> Sprite2D:
+	"""Create a simple cloud texture"""
+	var sprite = Sprite2D.new()
+	
+	# Create a simple cloud texture procedurally
+	var size = 512
+	var image = Image.create(size, size, false, Image.FORMAT_RGBA8)
+	
+	# Simple cloud pattern using random circles
+	for i in range(20):
+		var center_x = randi_range(0, size)
+		var center_y = randi_range(0, size)
+		var radius = randi_range(30, 80)
+		
+		for x in range(max(0, center_x - radius), min(size, center_x + radius)):
+			for y in range(max(0, center_y - radius), min(size, center_y + radius)):
+				var distance = Vector2(x - center_x, y - center_y).length()
+				if distance < radius:
+					var alpha = (1.0 - distance / radius) * 0.3
+					var cloud_color = Color(0.9, 0.9, 1.0, alpha)
+					image.set_pixel(x, y, cloud_color)
+	
+	var texture = ImageTexture.new()
+	texture.set_image(image)
+	sprite.texture = texture
+	sprite.position = Vector2.ZERO
+	
+	return sprite
+
+func update_ship_wind_effects(is_moving: bool):
+	"""Update ship wind particle effects based on movement state"""
+	if player_ship:
+		var velocity = Vector2.ZERO
+		if is_moving and player_movement:
+			# Calculate velocity based on movement direction and speed
+			var current_pos = player_movement.get_current_position()
+			var target_pos = player_movement.get_target_position()
+			var movement_vector = target_pos - current_pos
+			velocity = Vector2(movement_vector.x, movement_vector.y) * 50.0  # Scale for visual effect
+		
+		player_ship.update_wind_effects(velocity, is_moving)
+
+func update_parallax_effects():
+	"""Update parallax background effects based on camera movement"""
+	if parallax_bg:
+		# Update scroll offset for parallax effect
+		parallax_bg.scroll_offset = camera.position

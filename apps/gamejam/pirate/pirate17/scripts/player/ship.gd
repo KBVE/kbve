@@ -7,11 +7,13 @@ var sprite: Sprite2D
 var current_rotation: float = 0.0
 var rotation_tween: Tween
 var is_rotating: bool = false
+var wind_particles: WindParticles
 
 signal rotation_completed
 
 func _ready():
 	setup_sprite()
+	setup_wind_particles()
 
 func setup_sprite():
 	sprite = Sprite2D.new()
@@ -22,8 +24,21 @@ func setup_sprite():
 	
 	# Center the sprite
 	sprite.position = Vector2.ZERO
+	sprite.z_index = 5  # Above particles and map
 	
 	add_child(sprite)
+
+func setup_wind_particles():
+	"""Setup wind particle system for the ship"""
+	wind_particles = WindParticles.new()
+	wind_particles.position = Vector2(0, 15)  # Closer to ship, at the back
+	wind_particles.z_index = 2  # Above map but behind ship sprite
+	add_child(wind_particles)
+
+func update_wind_effects(velocity: Vector2, moving: bool):
+	"""Update wind particle effects based on ship movement"""
+	if wind_particles:
+		wind_particles.update_ship_movement(velocity, moving)
 
 func update_direction_from_movement(from: Vector2i, to: Vector2i):
 	"""Update sprite rotation based on movement vector with smooth animation"""
@@ -33,6 +48,7 @@ func update_direction_from_movement(from: Vector2i, to: Vector2i):
 		return  # No movement, keep current rotation
 	
 	# Calculate angle in radians from the movement vector
+	# atan2(y, x) gives us the angle where East = 0, North = -PI/2, West = PI, South = PI/2
 	var angle = atan2(movement_vector.y, movement_vector.x)
 	
 	# Since the airship sprite is already facing North (up), we need to add 90 degrees

@@ -6,12 +6,12 @@ const Movement = preload("res://scripts/world/movement.gd")
 var grid_position: Vector2i
 var target_position: Vector2i
 var move_component: Movement.MoveComponent
-var npc_sprite: ColorRect
+var npc_sprite: Sprite2D
 
 # NPC AI properties
 var movement_timer: Timer
 var movement_interval: float = 2.0  # Move every 2 seconds
-var movement_range: int = 3  # How far NPC can move from spawn
+var movement_range: int = 8  # How far NPC can move from spawn (increased from 3)
 var follow_distance: int = 1  # Stay this far from player when following
 
 var spawn_position: Vector2i
@@ -25,11 +25,15 @@ enum NPCState {
 }
 
 var current_state: NPCState = NPCState.WANDERING
-var detection_range: int = 4     # How close to detect player and become aggressive
-var chase_threshold: int = 7     # Chase up to this distance when aggressive
-var restart_distance: int = 8    # Begin restart process at this distance
-var reset_distance: int = 10     # Give up and reset at this distance
+var detection_range: int = 10    # How close to detect player and become aggressive (increased from 4)
+var chase_threshold: int = 15    # Chase up to this distance when aggressive (increased from 7)
+var restart_distance: int = 18   # Begin restart process at this distance (increased from 8)
+var reset_distance: int = 22     # Give up and reset at this distance (increased from 10)
 var is_following_player: bool = false  # Legacy variable for compatibility
+
+# Performance optimization - late update system
+var aggression_check_timer: Timer
+var aggression_check_interval: float = 1.0  # Check aggression every second instead of every frame
 
 # Path visualization
 var path_visualizer: Node2D
@@ -55,34 +59,53 @@ func _ready():
 	create_visual()
 	create_path_visualizer()
 	setup_movement_timer()
+	setup_aggression_timer()
 	connect_movement_signals()
 
 func connect_movement_signals():
+	move_component.movement_started.connect(_on_movement_started)
 	move_component.movement_finished.connect(_on_movement_finished)
+
+func _on_movement_started(entity: Node2D, from: Vector2i, to: Vector2i):
+	if entity == self:
+		# Rotate NPC to face movement direction
+		update_npc_rotation(from, to)
 
 func _on_movement_finished(entity: Node2D, at: Vector2i):
 	if entity == self:
 		hide_movement_path()
+
+func update_npc_rotation(from: Vector2i, to: Vector2i):
+	"""Update NPC sprite rotation to face movement direction"""
+	if not npc_sprite:
+		return
+		
+	var movement_vector = to - from
+	if movement_vector == Vector2i.ZERO:
+		return
+	
+	# Calculate angle like the player ship
+	var angle = atan2(movement_vector.y, movement_vector.x)
+	var target_angle = angle + PI / 2
+	
+	# Rotate the NPC sprite to face movement direction
+	npc_sprite.rotation = target_angle
 
 func create_visual():
 	# Create a container for better visibility
 	var visual_container = Node2D.new()
 	visual_container.z_index = 15
 	
-	# Create main NPC sprite (black square)
-	npc_sprite = ColorRect.new()
-	npc_sprite.color = Color.BLACK
-	npc_sprite.size = Vector2(World.TILE_SIZE * 0.8, World.TILE_SIZE * 0.8)
-	npc_sprite.position = Vector2(-npc_sprite.size.x / 2, -npc_sprite.size.y / 2)
+	# Create main NPC sprite using enemy airship
+	npc_sprite = Sprite2D.new()
+	npc_sprite.texture = load("res://assets/ship/enemy_airship.png")
+	npc_sprite.position = Vector2.ZERO
+	npc_sprite.z_index = 1
 	
-	# Create a white border for better visibility
-	var border = ColorRect.new()
-	border.color = Color.WHITE
-	border.size = Vector2(World.TILE_SIZE * 0.9, World.TILE_SIZE * 0.9)
-	border.position = Vector2(-border.size.x / 2, -border.size.y / 2)
-	border.z_index = -1  # Behind the black square
+	# Scale it appropriately for the game
+	var scale_factor = 0.8  # Slightly smaller than player ship
+	npc_sprite.scale = Vector2(scale_factor, scale_factor)
 	
-	visual_container.add_child(border)
 	visual_container.add_child(npc_sprite)
 	
 	# Create fantasy state badge
@@ -152,14 +175,14 @@ func update_visual_state():
 	if npc_sprite:
 		match current_state:
 			NPCState.WANDERING:
-				# Black when wandering normally
-				npc_sprite.color = Color.BLACK
+				# Normal color when wandering
+				npc_sprite.modulate = Color.WHITE
 			NPCState.AGGRESSIVE:
-				# Dark red when aggressively following player
-				npc_sprite.color = Color(0.6, 0.1, 0.1, 1.0)
+				# Red tint when aggressively following player
+				npc_sprite.modulate = Color(1.0, 0.4, 0.4, 1.0)
 			NPCState.RETURNING:
-				# Dark yellow/orange when returning to spawn after losing player
-				npc_sprite.color = Color(0.7, 0.5, 0.1, 1.0)
+				# Yellow/orange tint when returning to spawn after losing player
+				npc_sprite.modulate = Color(1.0, 0.8, 0.4, 1.0)
 
 func attempt_aggressive_chase():
 	# More aggressive movement when player is far but still trackable
@@ -224,6 +247,13 @@ func setup_movement_timer():
 	movement_timer.timeout.connect(_on_movement_timer_timeout)
 	movement_timer.autostart = true
 	add_child(movement_timer)
+
+func setup_aggression_timer():
+	aggression_check_timer = Timer.new()
+	aggression_check_timer.wait_time = aggression_check_interval
+	aggression_check_timer.timeout.connect(_on_aggression_check_timeout)
+	aggression_check_timer.autostart = true
+	add_child(aggression_check_timer)
 
 func initialize(start_pos: Vector2i):
 	is_initialized = true
@@ -309,6 +339,30 @@ func _on_movement_timer_timeout():
 	
 	# Update visual appearance based on current state
 	update_visual_state()
+
+func _on_aggression_check_timeout():
+	# Performance optimized - check aggression state changes less frequently
+	var player_distance = get_distance_to_player()
+	
+	match current_state:
+		NPCState.WANDERING:
+			# Check if player enters detection range
+			if player_distance <= detection_range:
+				transition_to_state(NPCState.AGGRESSIVE)
+		NPCState.AGGRESSIVE:
+			# Check if player is too far away
+			if player_distance > reset_distance:
+				transition_to_state(NPCState.RETURNING)
+			elif player_distance > restart_distance:
+				# Player getting far but not lost yet - continue for now
+				pass
+		NPCState.RETURNING:
+			# Check if player is nearby again while returning
+			if player_distance <= detection_range:
+				transition_to_state(NPCState.AGGRESSIVE)
+			elif get_distance_to_spawn() <= 2:
+				# Reached spawn area - resume wandering
+				transition_to_state(NPCState.WANDERING)
 
 func attempt_random_move():
 	# Generate random direction with 1-5 tile movement
