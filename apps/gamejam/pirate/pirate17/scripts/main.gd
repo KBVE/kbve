@@ -20,6 +20,7 @@ var player_movement: Movement.MoveComponent
 var dash_lines: Array[Line2D] = []
 var npc_container: Node2D
 var structure_container: Node2D
+var interaction_tooltip: StructureInteractionTooltip
 
 func _ready():
 	# Force reload border assets with updated transparency
@@ -41,6 +42,7 @@ func _ready():
 	connect_player_stats()
 	connect_movement_signals()
 	setup_target_highlight()
+	setup_interaction_system()
 
 func setup_target_highlight():
 	# Set the border texture for target highlighting - use a nice decorative border
@@ -87,6 +89,11 @@ func _input(event):
 				new_pos.x -= 1
 			KEY_D, KEY_RIGHT:
 				new_pos.x += 1
+			KEY_F:
+				# Handle structure interaction
+				if interaction_tooltip and interaction_tooltip.visible:
+					interaction_tooltip.handle_interaction_key()
+				return  # Don't process as movement
 		
 		if new_pos != current_pos:
 			player_movement.move_to(new_pos, true)  # Immediate movement for WASD
@@ -101,6 +108,7 @@ func _process(delta):
 	player_movement.process_movement(delta)
 	camera.position = player.position
 	update_movement_path()
+	check_structure_interactions()
 
 func connect_movement_signals():
 	player_movement.movement_started.connect(_on_movement_started)
@@ -317,3 +325,66 @@ func create_structure_visual(structure):
 	structure.sprite = structure_visual
 	
 	print("Created visual for ", structure.name, " at ", structure.grid_position)
+
+func setup_interaction_system():
+	# Create interaction tooltip
+	interaction_tooltip = StructureInteractionTooltip.new()
+	interaction_tooltip.z_index = 100  # Above everything else
+	add_child(interaction_tooltip)
+	
+	# Connect interaction signal
+	interaction_tooltip.interaction_requested.connect(_on_structure_interaction_requested)
+	
+	print("Structure interaction system initialized")
+
+func check_structure_interactions():
+	if not player_movement:
+		return
+	
+	var player_pos = player_movement.get_current_position()
+	var interactable_structures = World.get_player_structure_interactions(player_pos)
+	
+	if interactable_structures.size() > 0:
+		# Show tooltip for the first interactable structure
+		var structure = interactable_structures[0]
+		if not interaction_tooltip.visible or interaction_tooltip.current_structure != structure:
+			var player_world_pos = player.position
+			interaction_tooltip.position_above_target(player_world_pos)
+			interaction_tooltip.show_for_structure(structure)
+	else:
+		# Hide tooltip if no structures nearby
+		if interaction_tooltip.visible:
+			interaction_tooltip.hide_tooltip()
+
+func _on_structure_interaction_requested(structure):
+	print("Interacting with structure: ", structure.name, " (", structure.type, ")")
+	
+	# Hide the tooltip
+	interaction_tooltip.hide_tooltip()
+	
+	# Handle different types of interactions
+	if structure.is_enterable:
+		print("Entering ", structure.name, "...")
+		# TODO: Implement structure entering (scene change, interior view, etc.)
+		show_structure_entered_message(structure)
+	else:
+		print("Interacting with ", structure.name, "...")
+		# TODO: Implement non-enterable interactions (talk, trade, etc.)
+		show_structure_interaction_message(structure)
+	
+	# Call the world interaction system
+	World.interact_with_structure_at(structure.grid_position, player)
+
+func show_structure_entered_message(structure):
+	# Temporary feedback - replace with actual entering logic later
+	print("You have entered ", structure.name)
+	print("Population: ", structure.population)
+	print("Services: ", structure.services)
+	print("Shops: ", structure.shops)
+
+func show_structure_interaction_message(structure):
+	# Temporary feedback - replace with actual interaction logic later
+	print("You interact with ", structure.name)
+	print("Description: ", structure.description)
+	if structure.guards > 0:
+		print("Guards: ", structure.guards)
