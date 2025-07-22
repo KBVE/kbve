@@ -25,7 +25,7 @@ var parallax_bg: ParallaxBackground
 var cloud_manager: CloudManager
 var total_distance_traveled: float = 0.0  # Track actual distance traveled
 var last_player_position: Vector2 = Vector2.ZERO  # Track previous position
-const ENERGY_COST_DISTANCE: float = 64.0  # 1 energy per 64 pixels (2 tiles worth)
+const ENERGY_COST_DISTANCE: float = 128.0  # 1 energy per 128 pixels (4 tiles worth)
 
 func _ready():
 	# Force reload border assets with updated transparency
