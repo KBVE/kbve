@@ -88,27 +88,31 @@ func connect_player_stats():
 		player_ref.stats.health_changed.connect(_on_health_changed)
 		player_ref.stats.mana_changed.connect(_on_mana_changed)
 		player_ref.stats.energy_changed.connect(_on_energy_changed)
-		print("PlayerInfoUI: Connected to player stats signals")
+		print("PlayerInfoUI: Connected to player stats signals for player: ", player_ref.player_name)
+		print("PlayerInfoUI: Player stats object: ", player_ref.stats)
+		print("PlayerInfoUI: Initial energy: ", player_ref.stats.energy, "/", player_ref.stats.max_energy)
 	else:
 		print("PlayerInfoUI: Could not connect to player stats")
+		print("PlayerInfoUI: player_ref: ", player_ref)
+		print("PlayerInfoUI: player_ref.stats: ", player_ref.stats if player_ref else "null")
 
-func _on_health_changed(new_health: int):
+func _on_health_changed(new_health: int, max_health: int):
 	if health_progress_bar:
-		var player_ref = Global.player if Global.player else Player
-		if player_ref and player_ref.stats:
-			health_progress_bar.animate_to_value(new_health)
+		health_progress_bar.set_value(new_health, max_health)
+		print("PlayerInfoUI: Health updated to ", new_health, "/", max_health)
 
-func _on_mana_changed(new_mana: int):
+func _on_mana_changed(new_mana: int, max_mana: int):
 	if mana_progress_bar:
-		var player_ref = Global.player if Global.player else Player
-		if player_ref and player_ref.stats:
-			mana_progress_bar.animate_to_value(new_mana)
+		mana_progress_bar.set_value(new_mana, max_mana)
+		print("PlayerInfoUI: Mana updated to ", new_mana, "/", max_mana)
 
-func _on_energy_changed(new_energy: int):
+func _on_energy_changed(new_energy: int, max_energy: int):
+	print("PlayerInfoUI: _on_energy_changed called with ", new_energy, "/", max_energy)
 	if energy_progress_bar:
-		var player_ref = Global.player if Global.player else Player
-		if player_ref and player_ref.stats:
-			energy_progress_bar.animate_to_value(new_energy)
+		energy_progress_bar.set_value(new_energy, max_energy)
+		print("PlayerInfoUI: Energy updated to ", new_energy, "/", max_energy)
+	else:
+		print("PlayerInfoUI: energy_progress_bar is null!")
 
 # Public method to refresh all stats (useful for external calls)
 func refresh_display():

@@ -35,7 +35,9 @@ var energy: int:
 	get:
 		return _energy
 	set(value):
+		var old_energy = _energy
 		_energy = clamp(value, 0, max_energy)
+		print("Stats: Energy changed from ", old_energy, " to ", _energy, " (max: ", max_energy, ")")
 		energy_changed.emit(_energy, max_energy)
 
 func _init():
@@ -69,3 +71,17 @@ func use_energy(amount: int) -> bool:
 
 func restore_energy(amount: int):
 	energy += amount
+
+func deplete_energy_or_health(energy_cost: int = 1, health_cost: int = 1):
+	"""Deplete energy first, then health if no energy available"""
+	print("Stats: deplete_energy_or_health called - current energy: ", energy, ", cost: ", energy_cost)
+	if energy >= energy_cost:
+		energy -= energy_cost
+		print("Stats: Deducted energy, new value: ", energy)
+	else:
+		health -= health_cost
+		print("Stats: No energy, deducted health, new value: ", health)
+
+func is_exhausted() -> bool:
+	"""Check if player has no energy"""
+	return energy <= 0
