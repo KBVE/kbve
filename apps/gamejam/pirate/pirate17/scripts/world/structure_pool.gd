@@ -112,12 +112,10 @@ class Structure:
 	func get_interaction_tiles() -> Array[Vector2i]:
 		var tiles: Array[Vector2i] = []
 		
-		# Add tiles around the structure perimeter
+		# Add tiles around the structure perimeter AND inside the structure
 		for x in range(grid_position.x - interaction_range, grid_position.x + size.x + interaction_range):
 			for y in range(grid_position.y - interaction_range, grid_position.y + size.y + interaction_range):
-				# Don't include tiles occupied by the structure itself
-				if not is_tile_occupied(Vector2i(x, y)):
-					tiles.append(Vector2i(x, y))
+				tiles.append(Vector2i(x, y))
 		
 		return tiles
 	
