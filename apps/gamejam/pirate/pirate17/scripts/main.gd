@@ -26,8 +26,12 @@ var cloud_manager: CloudManager
 var total_distance_traveled: float = 0.0  # Track actual distance traveled
 var last_player_position: Vector2 = Vector2.ZERO  # Track previous position
 const ENERGY_COST_DISTANCE: float = 128.0  # 1 energy per 128 pixels (4 tiles worth)
+var structure_interior_overlay: StructureInteriorOverlay
 
 func _ready():
+	# Add this scene to the main_scene group for easy finding
+	add_to_group("main_scene")
+	
 	# Force reload border assets with updated transparency
 	BorderSlicer.is_loaded = false  # Force reload
 	BorderSlicer.load_and_slice_borders()
@@ -50,6 +54,7 @@ func _ready():
 	setup_interaction_system()
 	setup_parallax_background()
 	setup_cloud_manager()
+	setup_structure_interior_overlay()
 
 func setup_target_highlight():
 	# Set the border texture for target highlighting - use a nice decorative border
@@ -410,18 +415,21 @@ func _on_structure_interaction_requested(structure):
 	# Hide the tooltip
 	interaction_tooltip.hide_tooltip()
 	
-	# Handle different types of interactions
+	# Show the simple interior overlay
+	if structure_interior_overlay:
+		structure_interior_overlay.show_for_structure(structure)
+	else:
+		# Fallback to old system
+		handle_structure_interaction_fallback(structure)
+
+func handle_structure_interaction_fallback(structure):
+	"""Fallback handler for structure interactions when overlay system is not available"""
+	print("Using fallback interaction handler for ", structure.name)
+	
 	if structure.is_enterable:
-		print("Entering ", structure.name, "...")
-		# TODO: Implement structure entering (scene change, interior view, etc.)
 		show_structure_entered_message(structure)
 	else:
-		print("Interacting with ", structure.name, "...")
-		# TODO: Implement non-enterable interactions (talk, trade, etc.)
 		show_structure_interaction_message(structure)
-	
-	# Call the world interaction system
-	World.interact_with_structure_at(structure.grid_position, player)
 
 func show_structure_entered_message(structure):
 	# Temporary feedback - replace with actual entering logic later
@@ -531,6 +539,23 @@ func setup_cloud_manager():
 	cloud_manager.clouds_visibility_changed.connect(_on_clouds_visibility_changed)
 	
 	print("Advanced cloud management system initialized")
+
+func setup_structure_interior_overlay():
+	"""Setup the simple structure interior overlay system"""
+	structure_interior_overlay = StructureInteriorOverlay.new()
+	structure_interior_overlay.name = "StructureInteriorOverlay"
+	structure_interior_overlay.z_index = 200  # Above everything else
+	add_child(structure_interior_overlay)
+	
+	# Connect exit signal
+	structure_interior_overlay.exit_requested.connect(_on_interior_overlay_exit)
+	
+	print("Structure interior overlay system initialized")
+
+func _on_interior_overlay_exit():
+	"""Called when player exits structure interior overlay"""
+	print("Player exited structure interior")
+	# Overlay handles hiding itself, nothing else needed
 
 func _on_clouds_visibility_changed(visible_count: int):
 	"""Called when cloud visibility changes - for performance monitoring"""

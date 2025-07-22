@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://i8j4k7m3n6p2r"]
+
+[ext_resource type="Script" path="res://scripts/interiors/fortress_interior.gd" id="1_fortress_interior"]
+
+[node name="FortressInterior" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_fortress_interior")
+structure_type = 6
+background_color = Color(0.35, 0.25, 0.25, 1)
+exit_button_text = "Leave Fortress"
