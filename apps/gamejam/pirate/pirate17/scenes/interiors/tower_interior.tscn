@@ -1,0 +1,13 @@
+[gd_scene load_steps=2 format=3 uid="uid://g6i9k3m4p8r2s"]
+
+[ext_resource type="Script" path="res://scripts/interiors/tower_interior.gd" id="1_tower_interior"]
+
+[node name="TowerInterior" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+script = ExtResource("1_tower_interior")
+structure_type = 3
+background_color = Color(0.25, 0.25, 0.35, 1)
+exit_button_text = "Descend Tower"

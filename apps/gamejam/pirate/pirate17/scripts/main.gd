@@ -23,8 +23,15 @@ var pending_movement: Vector2i
 var is_waiting_for_rotation: bool = false
 var parallax_bg: ParallaxBackground
 var cloud_manager: CloudManager
+var total_distance_traveled: float = 0.0  # Track actual distance traveled
+var last_player_position: Vector2 = Vector2.ZERO  # Track previous position
+const ENERGY_COST_DISTANCE: float = 128.0  # 1 energy per 128 pixels (4 tiles worth)
+var structure_interior_overlay: StructureInteriorOverlay
 
 func _ready():
+	# Add this scene to the main_scene group for easy finding
+	add_to_group("main_scene")
+	
 	# Force reload border assets with updated transparency
 	BorderSlicer.is_loaded = false  # Force reload
 	BorderSlicer.load_and_slice_borders()
@@ -47,6 +54,7 @@ func _ready():
 	setup_interaction_system()
 	setup_parallax_background()
 	setup_cloud_manager()
+	setup_structure_interior_overlay()
 
 func setup_target_highlight():
 	# Set the border texture for target highlighting - use a nice decorative border
@@ -156,6 +164,7 @@ func _process(delta):
 	update_movement_path()
 	check_structure_interactions()
 	update_parallax_effects()
+	track_movement_distance()
 
 func connect_movement_signals():
 	player_movement.movement_started.connect(_on_movement_started)
@@ -406,18 +415,21 @@ func _on_structure_interaction_requested(structure):
 	# Hide the tooltip
 	interaction_tooltip.hide_tooltip()
 	
-	# Handle different types of interactions
+	# Show the simple interior overlay
+	if structure_interior_overlay:
+		structure_interior_overlay.show_for_structure(structure)
+	else:
+		# Fallback to old system
+		handle_structure_interaction_fallback(structure)
+
+func handle_structure_interaction_fallback(structure):
+	"""Fallback handler for structure interactions when overlay system is not available"""
+	print("Using fallback interaction handler for ", structure.name)
+	
 	if structure.is_enterable:
-		print("Entering ", structure.name, "...")
-		# TODO: Implement structure entering (scene change, interior view, etc.)
 		show_structure_entered_message(structure)
 	else:
-		print("Interacting with ", structure.name, "...")
-		# TODO: Implement non-enterable interactions (talk, trade, etc.)
 		show_structure_interaction_message(structure)
-	
-	# Call the world interaction system
-	World.interact_with_structure_at(structure.grid_position, player)
 
 func show_structure_entered_message(structure):
 	# Temporary feedback - replace with actual entering logic later
@@ -528,6 +540,23 @@ func setup_cloud_manager():
 	
 	print("Advanced cloud management system initialized")
 
+func setup_structure_interior_overlay():
+	"""Setup the simple structure interior overlay system"""
+	structure_interior_overlay = StructureInteriorOverlay.new()
+	structure_interior_overlay.name = "StructureInteriorOverlay"
+	structure_interior_overlay.z_index = 200  # Above everything else
+	add_child(structure_interior_overlay)
+	
+	# Connect exit signal
+	structure_interior_overlay.exit_requested.connect(_on_interior_overlay_exit)
+	
+	print("Structure interior overlay system initialized")
+
+func _on_interior_overlay_exit():
+	"""Called when player exits structure interior overlay"""
+	print("Player exited structure interior")
+	# Overlay handles hiding itself, nothing else needed
+
 func _on_clouds_visibility_changed(visible_count: int):
 	"""Called when cloud visibility changes - for performance monitoring"""
 	# Optionally adjust other systems based on cloud load
@@ -547,6 +576,66 @@ func update_ship_wind_effects(is_moving: bool):
 			velocity = Vector2(movement_vector.x, movement_vector.y) * 50.0  # Scale for visual effect
 		
 		player_ship.update_wind_effects(velocity, is_moving)
+
+func track_movement_distance():
+	"""Track distance traveled and deplete energy based on actual movement"""
+	if not Global.player or not Global.player.stats:
+		return
+	
+	# Initialize last position if not set
+	if last_player_position == Vector2.ZERO:
+		last_player_position = player.position
+		return
+	
+	# Calculate distance moved since last frame
+	var current_position = player.position
+	var distance_this_frame = last_player_position.distance_to(current_position)
+	
+	if distance_this_frame > 0.1:  # Only count meaningful movement (avoid tiny floating point changes)
+		total_distance_traveled += distance_this_frame
+		
+		# Check if we should deduct energy
+		if total_distance_traveled >= ENERGY_COST_DISTANCE:
+			var energy_to_deduct = int(total_distance_traveled / ENERGY_COST_DISTANCE)
+			total_distance_traveled = fmod(total_distance_traveled, ENERGY_COST_DISTANCE)  # Keep remainder
+			
+			handle_movement_costs(energy_to_deduct)
+	
+	last_player_position = current_position
+
+func handle_movement_costs(energy_cost: int = 1):
+	"""Handle energy depletion and health costs for player movement"""
+	if not Global.player or not Global.player.stats:
+		return
+	
+	var player_stats = Global.player.stats
+	
+	for i in range(energy_cost):
+		var was_exhausted = player_stats.is_exhausted()
+		
+		print("Distance-based energy depletion - Total distance: ", total_distance_traveled + ENERGY_COST_DISTANCE)
+		print("Before depletion - Energy: ", player_stats.energy, " Health: ", player_stats.health)
+		
+		# Deplete energy first, then health if exhausted
+		player_stats.deplete_energy_or_health(1, 1)
+		
+		print("After depletion - Energy: ", player_stats.energy, " Health: ", player_stats.health)
+		
+		if was_exhausted:
+			print("No energy! Health depleted: ", player_stats.health, "/", player_stats.max_health)
+			# Check if player died
+			if player_stats.health <= 0:
+				handle_player_death()
+		else:
+			print("Energy depleted: ", player_stats.energy, "/", player_stats.max_energy)
+
+func handle_player_death():
+	"""Handle when player's health reaches zero"""
+	print("Player has died from exhaustion!")
+	# TODO: Implement death mechanics (game over screen, respawn, etc.)
+	# For now, just restore some health to prevent softlock
+	Global.player.stats.health = 10
+	print("Emergency health restore activated!")
 
 func update_parallax_effects():
 	"""Update parallax background effects based on camera movement"""
