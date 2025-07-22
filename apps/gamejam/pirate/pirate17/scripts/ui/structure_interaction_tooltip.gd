@@ -110,6 +110,12 @@ func _on_click_button_pressed():
 	if current_structure:
 		interaction_requested.emit(current_structure)
 
+func _gui_input(event):
+	# Handle input on the tooltip itself
+	if event is InputEventMouseButton and event.pressed:
+		# This will prevent the event from propagating to the main scene
+		accept_event()
+
 func handle_interaction_key():
 	"""Call this when F key is pressed"""
 	if current_structure and visible:

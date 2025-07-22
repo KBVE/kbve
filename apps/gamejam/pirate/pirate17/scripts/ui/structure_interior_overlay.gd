@@ -18,6 +18,8 @@ func _ready():
 	print("StructureInteriorOverlay: _ready() called")
 	# Set up as fullscreen overlay
 	anchors_preset = Control.PRESET_FULL_RECT
+	size = get_viewport().get_visible_rect().size if get_viewport() else Vector2(1280, 720)
+	position = Vector2.ZERO
 	visible = false
 	mouse_filter = Control.MOUSE_FILTER_STOP
 	
@@ -27,7 +29,7 @@ func _ready():
 	# Handle ESC key for exit
 	set_process_input(true)
 	
-	print("StructureInteriorOverlay: Setup complete, visible = ", visible)
+	print("StructureInteriorOverlay: Setup complete, visible = ", visible, " size = ", size)
 
 func setup_background():
 	# Semi-transparent dark background
@@ -53,12 +55,8 @@ func setup_background():
 	
 	background_panel.size = Vector2(600, 400)
 	
-	# Safe viewport size access
-	var viewport_size = get_viewport().size if get_viewport() else Vector2(1280, 720)
-	background_panel.position = Vector2(
-		(viewport_size.x - 600) / 2,
-		(viewport_size.y - 400) / 2
-	)
+	# Position the panel manually in the center
+	background_panel.position = Vector2(340, 160)  # Center of 1280x720 screen
 	
 	# Set nine-patch margins only if it's a NinePatchRect
 	if background_panel is NinePatchRect:
@@ -145,12 +143,20 @@ func show_for_structure(structure):
 	# Recharge player energy with error handling
 	recharge_player_energy(structure)
 	
+	# Ensure proper sizing and positioning before showing
+	var viewport_size = get_viewport().get_visible_rect().size if get_viewport() else Vector2(1280, 720)
+	size = viewport_size
+	position = Vector2.ZERO
+	
 	# Show the overlay
 	visible = true
+	# Ensure it captures mouse events
+	mouse_filter = Control.MOUSE_FILTER_STOP
 	
 	print("StructureInteriorOverlay: Overlay shown for: ", get_structure_title(structure))
 	print("StructureInteriorOverlay: visible = ", visible, ", is_inside_tree = ", is_inside_tree())
 	print("StructureInteriorOverlay: position = ", position, ", size = ", size)
+	print("StructureInteriorOverlay: viewport_size = ", viewport_size)
 
 func get_structure_title(structure) -> String:
 	# Safe property access with multiple fallbacks
