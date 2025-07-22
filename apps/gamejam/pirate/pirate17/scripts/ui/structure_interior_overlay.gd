@@ -32,11 +32,14 @@ func _ready():
 	print("StructureInteriorOverlay: Setup complete, visible = ", visible, " size = ", size)
 
 func setup_background():
+	print("StructureInteriorOverlay: Setting up background...")
 	# Semi-transparent dark background
 	var dark_bg = ColorRect.new()
 	dark_bg.color = Color(0, 0, 0, 0.7)
 	dark_bg.anchors_preset = Control.PRESET_FULL_RECT
+	dark_bg.name = "DarkBackground"
 	add_child(dark_bg)
+	print("StructureInteriorOverlay: Dark background added, color: ", dark_bg.color)
 	
 	# Main panel in center
 	background_panel = NinePatchRect.new()
@@ -54,9 +57,11 @@ func setup_background():
 		background_panel = fallback_bg
 	
 	background_panel.size = Vector2(600, 400)
+	background_panel.name = "BackgroundPanel"
 	
 	# Position the panel manually in the center
 	background_panel.position = Vector2(340, 160)  # Center of 1280x720 screen
+	print("StructureInteriorOverlay: Panel positioned at: ", background_panel.position, " size: ", background_panel.size)
 	
 	# Set nine-patch margins only if it's a NinePatchRect
 	if background_panel is NinePatchRect:
@@ -66,8 +71,10 @@ func setup_background():
 		background_panel.patch_margin_bottom = 24
 	
 	add_child(background_panel)
+	print("StructureInteriorOverlay: Background panel added to scene")
 
 func setup_ui_elements():
+	print("StructureInteriorOverlay: Setting up UI elements...")
 	# Title
 	title_label = Label.new()
 	title_label.text = "Structure Interior"
@@ -120,6 +127,8 @@ func setup_ui_elements():
 	exit_button.size = Vector2(100, 40)
 	exit_button.pressed.connect(_on_exit_pressed)
 	background_panel.add_child(exit_button)
+	
+	print("StructureInteriorOverlay: All UI elements added to background panel")
 
 func show_for_structure(structure):
 	# Comprehensive null checking
@@ -157,6 +166,8 @@ func show_for_structure(structure):
 	print("StructureInteriorOverlay: visible = ", visible, ", is_inside_tree = ", is_inside_tree())
 	print("StructureInteriorOverlay: position = ", position, ", size = ", size)
 	print("StructureInteriorOverlay: viewport_size = ", viewport_size)
+	print("StructureInteriorOverlay: z_index = ", z_index, ", modulate = ", modulate)
+	print("StructureInteriorOverlay: children count = ", get_child_count())
 
 func get_structure_title(structure) -> String:
 	# Safe property access with multiple fallbacks
