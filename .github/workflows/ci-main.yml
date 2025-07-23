@@ -174,7 +174,7 @@ jobs:
                     "project_path": "./apps/gamejam/pirate/pirate17",
                     "build_artifact_name": "pirate17",
                     "itch_username": "kbve",
-                    "itch_gameid": "pirate17",
+                    "itch_gameid": "airship",
                     "godot_version": "4.4.1"
                 }
             ]
