@@ -22,6 +22,7 @@ func _ready():
 	# Setup UI directly now that signal issue is fixed
 	setup_ui_deferred()
 	setup_social_icons()
+	setup_version_display()
 	print("Title scene setup complete")
 
 func setup_ui_deferred():
@@ -514,7 +515,7 @@ func _on_menu_action(action: String, data: Dictionary):
 				print("Warning: Could not delete all save files")
 			smooth_transition_to_scene("res://scenes/main.tscn")
 		"settings":
-			print("Settings menu not implemented yet")
+			open_settings_dialogue()
 		"quit_game":
 			get_tree().quit()
 
@@ -656,6 +657,37 @@ func create_icon_button(config: Dictionary) -> Control:
 	button.pressed.connect(func(): open_external_link(config.url))
 	
 	return container
+
+func setup_version_display():
+	"""Display game version in bottom right corner"""
+	# Create a CanvasLayer for version display
+	var version_canvas = CanvasLayer.new()
+	version_canvas.layer = 10  # High layer to render on top
+	add_child(version_canvas)
+	
+	# Create version label
+	var version_label = Label.new()
+	version_label.text = "v" + Global.GAME_VERSION
+	version_label.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
+	version_label.position = Vector2(-80, -20)  # Bottom right with padding
+	
+	# Style the version label
+	version_label.add_theme_font_size_override("font_size", 12)
+	version_label.add_theme_color_override("font_color", Color(0.8, 0.8, 0.8, 0.9))
+	version_label.add_theme_color_override("font_shadow_color", Color.BLACK)
+	version_label.add_theme_constant_override("shadow_offset_x", 1)
+	version_label.add_theme_constant_override("shadow_offset_y", 1)
+	
+	version_canvas.add_child(version_label)
+	print("Title: Version display added - ", version_label.text)
+
+func open_settings_dialogue():
+	"""Open the settings menu using SettingsManager"""
+	SettingsManager.open_settings_with_callback(self, _on_settings_closed)
+
+func _on_settings_closed():
+	"""Called when settings menu is closed"""
+	print("Settings menu closed")
 
 func open_external_link(url: String):
 	"""Open URL in default web browser - handles both desktop and web builds"""

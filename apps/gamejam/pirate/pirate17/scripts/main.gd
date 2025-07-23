@@ -113,6 +113,10 @@ func _input(event):
 				if interaction_tooltip and interaction_tooltip.visible:
 					interaction_tooltip.handle_interaction_key()
 				return  # Don't process as movement
+			KEY_ESCAPE:
+				# Open settings dialogue
+				open_settings_dialogue()
+				return
 		
 		if new_pos != current_pos:
 			initiate_movement_with_rotation(current_pos, new_pos, true)  # WASD movement
@@ -719,3 +723,11 @@ func update_parallax_effects():
 		parallax_bg.scroll_offset = camera.position
 	
 	# Cloud system now moves independently - no manual updates needed
+
+func open_settings_dialogue():
+	"""Open the settings menu using SettingsManager"""
+	SettingsManager.open_settings_with_callback(self, _on_settings_closed)
+
+func _on_settings_closed():
+	"""Called when settings menu is closed"""
+	print("Settings menu closed in game")

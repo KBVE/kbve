@@ -11,8 +11,8 @@ const BACKUP_FILE_PATH = "user://player_save_backup.json"
 const TEMP_FILE_PATH = "user://player_save_temp.json"
 
 ### TODO: Dexie Support for Saving.
-# Save file version for future compatibility
-const SAVE_VERSION = "1.0"
+# Save file version for future compatibility - references global game version
+const SAVE_VERSION = Global.GAME_VERSION
 
 ### TODO: Supabase Integrity Hash Function -> via Edge.
 # Data integrity hash for corruption detection
@@ -47,6 +47,7 @@ static func save_player_data(player_data: Dictionary) -> SaveResult:
 	# Create save data structure with metadata
 	var save_data = {
 		"version": SAVE_VERSION,
+		"game_version": Global.GAME_VERSION,
 		"timestamp": Time.get_unix_time_from_system(),
 		"integrity_hash": "",
 		"player_data": player_data
@@ -281,6 +282,14 @@ static func _attempt_load_from_file(file_path: String) -> Dictionary:
 	elif save_data.version != SAVE_VERSION:
 		print("PlayerSaving: WARNING - Version mismatch. File: ", save_data.version, " Expected: ", SAVE_VERSION)
 		# Could implement version migration here
+	
+	# Log game version information for debugging
+	if save_data.has("game_version"):
+		print("PlayerSaving: Save file game version: ", save_data.game_version)
+		if save_data.game_version != Global.GAME_VERSION:
+			print("PlayerSaving: WARNING - Game version mismatch. File: ", save_data.game_version, " Current: ", Global.GAME_VERSION)
+	else:
+		print("PlayerSaving: WARNING - No game version info in save file")
 	
 	# Verify data integrity
 	if not _verify_integrity(save_data):
