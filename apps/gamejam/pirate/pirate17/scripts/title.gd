@@ -1,5 +1,6 @@
 extends Control
 
+## Preloads
 const FantasyMenu = preload("res://scripts/ui/fantasy_menu.gd")
 const FantasyTitle = preload("res://scripts/ui/fantasy_title.gd")
 const FantasyPanel = preload("res://scripts/ui/fantasy_panel.gd")
@@ -17,15 +18,11 @@ func _ready():
 	
 	# Check for saved player data first
 	check_for_saved_data()
-	
 	setup_background()
-	
 	# Setup UI directly now that signal issue is fixed
 	setup_ui_deferred()
 	setup_social_icons()
 	print("Title scene setup complete")
-
-# CloudManager singleton handles all cloud movement and processing
 
 func setup_ui_deferred():
 	print("Setting up UI deferred...")
@@ -75,6 +72,7 @@ func setup_background():
 	background_sprite.z_index = -1  # Put it behind everything
 	
 	# Get screen size
+	### TODO: Dynamic check of viewport, maybe a custom class or library.
 	var screen_size = get_viewport().get_visible_rect().size
 	var texture_size = texture.get_size()
 	
@@ -97,9 +95,12 @@ func setup_background():
 	# Add clouds layer on top of the stars
 	setup_clouds_layer(screen_size)
 
+### TODO: Major! We need to fix the glimmery or shimmer for the stars.
 func setup_stars_layer(screen_size: Vector2):
 	# Load the stars image
 	var stars_texture = load("res://assets/background/stars.png")
+
+	# Generic Warning.
 	if not stars_texture:
 		print("Title: WARNING - Could not load stars.png, skipping stars layer")
 		return
@@ -519,13 +520,19 @@ func _on_menu_action(action: String, data: Dictionary):
 
 func setup_social_icons():
 	"""Setup social media and external link icons in the corner"""
+	# Create a CanvasLayer to ensure icons are always on top
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.layer = 10  # High layer to render on top
+	add_child(canvas_layer)
+	
 	# Create container for icons
 	var icons_container = HBoxContainer.new()
-	icons_container.anchors_preset = Control.PRESET_BOTTOM_LEFT
+	icons_container.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
 	icons_container.position = Vector2(20, -60)  # Bottom left corner with padding
 	icons_container.add_theme_constant_override("separation", 15)
-	icons_container.z_index = 100  # High z-index to ensure visibility
-	add_child(icons_container)
+	canvas_layer.add_child(icons_container)
+	
+	print("Title: Creating social icons container at position: ", icons_container.position)
 	
 	# Icon configurations
 	var icon_configs = [
@@ -550,46 +557,105 @@ func setup_social_icons():
 	]
 	
 	# Create each icon button
-	for config in icon_configs:
+	for i in range(icon_configs.size()):
+		var config = icon_configs[i]
 		var icon_button = create_icon_button(config)
 		if icon_button:
 			icons_container.add_child(icon_button)
+			print("Title: Added icon button '", config.name, "' at index ", i)
+		else:
+			print("Title: Failed to create icon button for ", config.name)
 	
-	print("Title: Social icons setup complete")
+	print("Title: Social icons setup complete - Total buttons: ", icons_container.get_child_count())
 
-func create_icon_button(config: Dictionary) -> TextureButton:
+func create_icon_button(config: Dictionary) -> Control:
 	"""Create a clickable icon button"""
+	# Use a Panel as container to ensure visibility
+	var container = Panel.new()
+	container.custom_minimum_size = Vector2(48, 48)
+	container.size = Vector2(48, 48)
+	
+	# Style the panel
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.2, 0.2, 0.8)  # Dark background
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	container.add_theme_stylebox_override("panel", style)
+	
+	# Create the button
 	var button = TextureButton.new()
-	button.custom_minimum_size = Vector2(48, 48)
-	button.size = Vector2(48, 48)  # Explicitly set size
 	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
-	button.ignore_texture_size = true
-	button.z_index = 101  # Ensure button is above container
+	button.ignore_texture_size = true  # This allows the texture to be resized
+	
+	# Set button to fill container with padding
+	button.set_anchors_preset(Control.PRESET_FULL_RECT)
+	button.offset_left = 4
+	button.offset_top = 4
+	button.offset_right = -4
+	button.offset_bottom = -4
+	
+	container.add_child(button)
 	
 	# Try to load the icon
 	var icon_texture = load(config.icon_path)
 	if icon_texture:
 		button.texture_normal = icon_texture
 		
-		# Add hover effect
-		button.modulate = Color(0.8, 0.8, 0.8, 0.9)  # Slightly dimmed by default
-		button.mouse_entered.connect(func(): button.modulate = Color.WHITE)
-		button.mouse_exited.connect(func(): button.modulate = Color(0.8, 0.8, 0.8, 0.9))
+		# Make icon white/light colored for visibility on dark background
+		button.modulate = Color(0.9, 0.9, 0.9, 1.0)
+		
+		print("Title: Loaded icon texture for ", config.name)
 	else:
 		print("Title: WARNING - Could not load icon: ", config.icon_path)
-		# Create fallback text button
+		# Create fallback colored panel for each service
+		var fallback_color = Color.WHITE
+		match config.name:
+			"GitHub":
+				fallback_color = Color(0.2, 0.2, 0.2, 1.0)  # Dark gray
+			"Bug Report":
+				fallback_color = Color(0.8, 0.2, 0.2, 1.0)  # Red
+			"Discord":
+				fallback_color = Color(0.36, 0.4, 0.95, 1.0)  # Discord blue
+		
+		style.bg_color = fallback_color
+		
+		# Add text label
 		var label = Label.new()
-		label.text = config.name
-		label.add_theme_font_size_override("font_size", 10)
-		button.add_child(label)
+		label.text = config.name.left(2)  # First 2 letters
+		label.add_theme_font_size_override("font_size", 16)
+		label.add_theme_color_override("font_color", Color.WHITE)
+		label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		container.add_child(label)
 	
 	# Set tooltip
-	button.tooltip_text = config.tooltip
+	container.tooltip_text = config.tooltip
+	
+	# Add hover effects
+	container.mouse_entered.connect(func(): 
+		style.bg_color = style.bg_color.lightened(0.2)
+		container.add_theme_stylebox_override("panel", style)
+	)
+	container.mouse_exited.connect(func(): 
+		if icon_texture:
+			style.bg_color = Color(0.2, 0.2, 0.2, 0.8)
+		else:
+			# Restore original color based on service
+			match config.name:
+				"GitHub":
+					style.bg_color = Color(0.2, 0.2, 0.2, 1.0)
+				"Bug Report":
+					style.bg_color = Color(0.8, 0.2, 0.2, 1.0)
+				"Discord":
+					style.bg_color = Color(0.36, 0.4, 0.95, 1.0)
+		container.add_theme_stylebox_override("panel", style)
+	)
 	
 	# Connect click event
 	button.pressed.connect(func(): open_external_link(config.url))
 	
-	return button
+	return container
 
 func open_external_link(url: String):
 	"""Open URL in default web browser - handles both desktop and web builds"""
