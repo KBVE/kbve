@@ -16,6 +16,33 @@ func _ready():
 	setup_ui_deferred()
 	print("Title scene setup complete")
 
+func _process(delta):
+	# Update moving clouds
+	update_moving_clouds(delta)
+
+func update_moving_clouds(delta):
+	# Find all cloud sprites with movement data and update their positions
+	for child in get_children():
+		if child is Sprite2D and child.has_meta("movement_speed"):
+			var movement_speed = child.get_meta("movement_speed")
+			var movement_direction = child.get_meta("movement_direction")
+			var screen_size = child.get_meta("screen_size")
+			
+			# Move the cloud
+			child.position += movement_direction * movement_speed * delta
+			
+			# Wrap around screen edges (with buffer for smooth transition)
+			var buffer = 100.0
+			if child.position.x > screen_size.x + buffer:
+				child.position.x = -buffer
+			elif child.position.x < -buffer:
+				child.position.x = screen_size.x + buffer
+			
+			if child.position.y > screen_size.y + buffer:
+				child.position.y = -buffer
+			elif child.position.y < -buffer:
+				child.position.y = screen_size.y + buffer
+
 func setup_ui_deferred():
 	print("Setting up UI deferred...")
 	setup_title_display()
@@ -43,12 +70,251 @@ func setup_fallback_ui():
 	button_container.add_child(quit_button)
 
 func setup_background():
-	# Create a background ColorRect
-	var background = ColorRect.new()
-	background.color = Color(0.2, 0.15, 0.3, 1.0)  # Dark purple fantasy tone
-	background.anchors_preset = Control.PRESET_FULL_RECT
-	background.z_index = -1  # Put it behind everything
-	add_child(background)
+	# Load the sky background image
+	var texture = load("res://assets/background/sky.png")
+	if not texture:
+		print("Title: WARNING - Could not load sky.png, using fallback color")
+		# Fallback to colored background
+		var fallback_bg = ColorRect.new()
+		fallback_bg.color = Color(0.4, 0.6, 0.9, 1.0)  # Sky blue fallback
+		fallback_bg.anchors_preset = Control.PRESET_FULL_RECT
+		fallback_bg.z_index = -1
+		add_child(fallback_bg)
+		return
+	
+	print("Title: Sky background texture loaded successfully")
+	print("Title: Texture size: ", texture.get_size())
+	
+	# Use Sprite2D instead of TextureRect for better scaling control
+	var background_sprite = Sprite2D.new()
+	background_sprite.texture = texture
+	background_sprite.z_index = -1  # Put it behind everything
+	
+	# Get screen size
+	var screen_size = get_viewport().get_visible_rect().size
+	var texture_size = texture.get_size()
+	
+	# Calculate scale to cover entire screen
+	var scale_x = screen_size.x / texture_size.x
+	var scale_y = screen_size.y / texture_size.y
+	
+	# Position sprite at center of screen
+	background_sprite.position = screen_size / 2
+	background_sprite.scale = Vector2(scale_x, scale_y)
+	
+	add_child(background_sprite)
+	
+	print("Title: Background sprite added - Position: ", background_sprite.position, " Scale: ", background_sprite.scale)
+	print("Title: Screen size: ", screen_size, " Texture size: ", texture_size)
+	
+	# Add stars layer above the sky
+	setup_stars_layer(screen_size)
+	
+	# Add clouds layer on top of the stars
+	setup_clouds_layer(screen_size)
+
+func setup_stars_layer(screen_size: Vector2):
+	# Load the stars image
+	var stars_texture = load("res://assets/background/stars.png")
+	if not stars_texture:
+		print("Title: WARNING - Could not load stars.png, skipping stars layer")
+		return
+	
+	print("Title: Stars texture loaded successfully")
+	print("Title: Stars texture size: ", stars_texture.get_size())
+	
+	# Create stars sprite
+	var stars_sprite = Sprite2D.new()
+	stars_sprite.texture = stars_texture
+	stars_sprite.z_index = -0.5  # Above sky (-1) but below clouds (0)
+	
+	# Get stars texture size
+	var stars_size = stars_texture.get_size()
+	
+	# Calculate scale to cover screen width
+	var scale_x = screen_size.x / stars_size.x
+	var scale_y = scale_x  # Keep aspect ratio
+	
+	# Position stars at the top of the screen
+	stars_sprite.position = Vector2(screen_size.x / 2, stars_size.y * scale_y / 2)
+	stars_sprite.scale = Vector2(scale_x, scale_y)
+	
+	# Make stars slightly transparent for layering effect
+	stars_sprite.modulate = Color(1.0, 1.0, 1.0, 0.9)  # 90% opacity
+	
+	add_child(stars_sprite)
+	
+	# Start shimmer animation
+	start_stars_shimmer_animation(stars_sprite)
+	
+	print("Title: Stars sprite added - Position: ", stars_sprite.position, " Scale: ", stars_sprite.scale)
+
+func start_stars_shimmer_animation(stars_sprite: Sprite2D):
+	# Create a continuous shimmer animation with multiple effects
+	var shimmer_tween = create_tween()
+	shimmer_tween.set_loops()  # Loop indefinitely
+	shimmer_tween.set_parallel(true)  # Allow multiple animations at once
+	
+	# Opacity shimmer - creates a gentle breathing/glowing effect
+	var opacity_tween = shimmer_tween.tween_method(
+		func(alpha: float): stars_sprite.modulate = Color(1.0, 1.0, 1.0, alpha),
+		0.6,  # Start opacity
+		1.0,  # End opacity
+		2.0   # Duration
+	)
+	opacity_tween.set_ease(Tween.EASE_IN_OUT)
+	opacity_tween.set_trans(Tween.TRANS_SINE)
+	
+	# Add reverse opacity animation
+	var opacity_reverse = shimmer_tween.tween_method(
+		func(alpha: float): stars_sprite.modulate = Color(1.0, 1.0, 1.0, alpha),
+		1.0,  # Start opacity
+		0.6,  # End opacity
+		2.0   # Duration
+	)
+	opacity_reverse.set_ease(Tween.EASE_IN_OUT)
+	opacity_reverse.set_trans(Tween.TRANS_SINE)
+	opacity_reverse.set_delay(2.0)  # Start after first animation
+	
+	# Subtle color shimmer - adds a slight blue-white tint variation for starlight
+	var color_tween = shimmer_tween.tween_method(
+		func(color_val: float): 
+			var current_alpha = stars_sprite.modulate.a
+			stars_sprite.modulate = Color(1.0, 1.0, color_val, current_alpha),
+		0.95,  # Slightly warm
+		1.05,  # Slightly cool (more blue)
+		3.0    # Slower color change
+	)
+	color_tween.set_ease(Tween.EASE_IN_OUT)
+	color_tween.set_trans(Tween.TRANS_SINE)
+	
+	# Reverse color animation
+	var color_reverse = shimmer_tween.tween_method(
+		func(color_val: float): 
+			var current_alpha = stars_sprite.modulate.a
+			stars_sprite.modulate = Color(1.0, 1.0, color_val, current_alpha),
+		1.05,  # Cool
+		0.95,  # Warm
+		3.0    # Duration
+	)
+	color_reverse.set_ease(Tween.EASE_IN_OUT)
+	color_reverse.set_trans(Tween.TRANS_SINE)
+	color_reverse.set_delay(3.0)  # Start after first color animation
+	
+	print("Title: Stars shimmer animation started")
+
+func setup_clouds_layer(screen_size: Vector2):
+	# First, create the static clouds.png background
+	create_static_clouds_background(screen_size)
+	
+	# Then add moving pooled clouds on top
+	create_title_cloud_layer(screen_size, "background", 0.3, 4)   # Moving background clouds
+	create_title_cloud_layer(screen_size, "midground", 0.5, 3)   # Moving middle clouds  
+	create_title_cloud_layer(screen_size, "foreground", 0.7, 2)  # Moving foreground clouds
+	
+	print("Title: Static clouds background + moving cloud pool layers created")
+
+func create_static_clouds_background(screen_size: Vector2):
+	# Load the static clouds.png as background
+	var clouds_texture = load("res://assets/background/clouds.png")
+	if not clouds_texture:
+		print("Title: WARNING - Could not load clouds.png, skipping static clouds layer")
+		return
+	
+	print("Title: Static clouds texture loaded successfully")
+	
+	# Create static clouds sprite
+	var static_clouds = Sprite2D.new()
+	static_clouds.texture = clouds_texture
+	static_clouds.z_index = 0  # Above stars but below moving clouds
+	
+	# Get clouds texture size
+	var clouds_size = clouds_texture.get_size()
+	
+	# Calculate scale to cover entire screen
+	var scale_x = screen_size.x / clouds_size.x
+	var scale_y = screen_size.y / clouds_size.y
+	
+	# Position at center of screen
+	static_clouds.position = screen_size / 2
+	static_clouds.scale = Vector2(scale_x, scale_y)
+	
+	# Make static clouds semi-transparent as base layer
+	static_clouds.modulate = Color(1.0, 1.0, 1.0, 0.6)  # 60% opacity
+	
+	add_child(static_clouds)
+	
+	print("Title: Static clouds background added")
+
+func create_title_cloud_layer(screen_size: Vector2, layer_name: String, base_opacity: float, cloud_count: int):
+	# Create multiple clouds using the same system as CloudManager
+	for i in range(cloud_count):
+		var cloud_id = randi_range(1, 10)  # Same range as CloudManager
+		var cloud_path = "res://assets/clouds/cloud_" + str(cloud_id) + ".png"
+		var cloud_texture = load(cloud_path)
+		
+		if not cloud_texture:
+			print("Title: WARNING - Could not load ", cloud_path)
+			continue
+		
+		# Create cloud sprite
+		var cloud_sprite = Sprite2D.new()
+		cloud_sprite.texture = cloud_texture
+		
+		# Set z_index based on layer (all above static clouds at z_index 0)
+		match layer_name:
+			"background":
+				cloud_sprite.z_index = 0.1   # Above static clouds
+			"midground":
+				cloud_sprite.z_index = 0.3   # Above background moving clouds
+			"foreground":
+				cloud_sprite.z_index = 0.5   # Above all other clouds
+		
+		# Position clouds randomly across the screen
+		cloud_sprite.position = Vector2(
+			randf_range(0, screen_size.x),
+			randf_range(0, screen_size.y * 0.7)  # Keep in upper 70% of screen
+		)
+		
+		# Scale based on layer (background smaller, foreground larger)
+		var scale_factor = 0.0
+		var opacity = 0.0
+		match layer_name:
+			"background":
+				scale_factor = randf_range(0.4, 0.7)
+				opacity = randf_range(0.3, 0.5)
+			"midground":  
+				scale_factor = randf_range(0.6, 0.9)
+				opacity = randf_range(0.5, 0.7)
+			"foreground":
+				scale_factor = randf_range(0.8, 1.2)
+				opacity = randf_range(0.7, 0.9)
+		
+		cloud_sprite.scale = Vector2(scale_factor, scale_factor)
+		cloud_sprite.modulate = Color(1.0, 1.0, 1.0, opacity * base_opacity)
+		
+		# Add movement properties to the cloud
+		var movement_speed = 0.0
+		var movement_direction = Vector2.ZERO
+		match layer_name:
+			"background":
+				movement_speed = randf_range(10, 20)   # Slow movement
+				movement_direction = Vector2(randf_range(0.8, 1.0), randf_range(-0.1, 0.1)).normalized()
+			"midground":
+				movement_speed = randf_range(15, 30)   # Medium movement
+				movement_direction = Vector2(randf_range(0.7, 1.0), randf_range(-0.2, 0.2)).normalized()
+			"foreground":
+				movement_speed = randf_range(25, 40)   # Fast movement
+				movement_direction = Vector2(randf_range(0.6, 1.0), randf_range(-0.3, 0.3)).normalized()
+		
+		# Store movement data in the sprite's metadata
+		cloud_sprite.set_meta("movement_speed", movement_speed)
+		cloud_sprite.set_meta("movement_direction", movement_direction)
+		cloud_sprite.set_meta("screen_size", screen_size)
+		
+		add_child(cloud_sprite)
+	
+	print("Title: Created ", cloud_count, " clouds for ", layer_name, " layer")
 
 func setup_title_display():
 	print("Setting up title display...")
