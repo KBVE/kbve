@@ -22,7 +22,7 @@ var interaction_tooltip: StructureInteractionTooltip
 var pending_movement: Vector2i
 var is_waiting_for_rotation: bool = false
 var parallax_bg: ParallaxBackground
-var cloud_manager: CloudManager
+# CloudManager is now a singleton/autoload - no need for local variable
 var total_distance_traveled: float = 0.0  # Track actual distance traveled
 var last_player_position: Vector2 = Vector2.ZERO  # Track previous position
 const ENERGY_COST_DISTANCE: float = 128.0  # 1 energy per 128 pixels (4 tiles worth)
@@ -548,20 +548,15 @@ func create_cloud_sprite(cloud_number: int) -> Sprite2D:
 	return sprite
 
 func setup_cloud_manager():
-	"""Setup optimized cloud management system"""
-	cloud_manager = CloudManager.new()
-	cloud_manager.name = "CloudManager"
-	cloud_manager.z_index = 1  # Above map (in the sky)
-	add_child(cloud_manager)
-	
-	# Set references for the cloud manager
-	cloud_manager.set_camera_reference(camera)
-	cloud_manager.set_player_reference(player)
+	"""Setup optimized cloud management system using singleton"""
+	# CloudManager is now a singleton - just configure it for the main scene
+	CloudManager.set_camera_reference(camera)
+	CloudManager.set_player_reference(player)
 	
 	# Connect performance monitoring
-	cloud_manager.clouds_visibility_changed.connect(_on_clouds_visibility_changed)
+	CloudManager.clouds_visibility_changed.connect(_on_clouds_visibility_changed)
 	
-	print("Advanced cloud management system initialized")
+	print("Advanced cloud management system configured for main scene")
 
 func setup_structure_interior_overlay():
 	"""Setup the simple structure interior overlay system with error handling"""
