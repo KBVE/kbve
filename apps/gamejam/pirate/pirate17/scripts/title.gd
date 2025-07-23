@@ -7,6 +7,7 @@ const FantasyPanel = preload("res://scripts/ui/fantasy_panel.gd")
 var title_display: FantasyTitle
 var main_menu: FantasyMenu
 var player_info_panel: FantasyPanel
+var is_transitioning: bool = false
 
 func _ready():
 	print("Title scene _ready() called")
@@ -310,10 +311,30 @@ func setup_player_info():
 	
 	content_container.add_child(info_vbox)
 
+
+func smooth_transition_to_scene(scene_path: String):
+	"""Perform a smooth transition using dedicated transition scene"""
+	if is_transitioning:
+		return  # Prevent multiple transitions
+		
+	is_transitioning = true
+	print("Starting transition to: ", scene_path)
+	
+	# Disable menu interactions during transition
+	if main_menu:
+		main_menu.set_process_input(false)
+	
+	# Store target scene before changing to transition scene
+	get_tree().set_meta("transition_target", scene_path)
+	
+	# Use the dedicated transition scene
+	get_tree().change_scene_to_file("res://scenes/transition.tscn")
+
+
 func _on_menu_action(action: String, data: Dictionary):
 	match action:
 		"start_game":
-			get_tree().change_scene_to_file("res://scenes/main.tscn")
+			smooth_transition_to_scene("res://scenes/main.tscn")
 		"settings":
 			print("Settings menu not implemented yet")
 		"quit_game":
