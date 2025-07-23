@@ -17,7 +17,7 @@ func _ready():
 	
 	setup_background()
 	setup_labels()
-	setup_button()
+	setup_button()  # Must be called after setup_background() so background_panel exists
 	
 	# Start hidden
 	visible = false
@@ -45,6 +45,9 @@ func setup_background():
 	background_panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	
 	add_child(background_panel)
+	
+	# Move panel to back so labels and button appear on top
+	move_child(background_panel, 0)
 
 func setup_labels():
 	# Main interaction text
@@ -67,7 +70,7 @@ func setup_labels():
 	add_child(interaction_label)
 
 func setup_button():
-	# Click to enter button
+	# Click to enter button - positioned inside the panel
 	click_button = Button.new()
 	click_button.text = "Click to Enter"
 	click_button.add_theme_font_size_override("font_size", 10)
@@ -77,16 +80,18 @@ func setup_button():
 	click_button.add_theme_color_override("font_pressed_color", Color.YELLOW)
 	click_button.add_theme_color_override("font_hover_color", Color.LIGHT_GRAY)
 	
-	click_button.anchors_preset = Control.PRESET_BOTTOM_WIDE
-	click_button.offset_left = 15
-	click_button.offset_right = -15
-	click_button.offset_top = -35
-	click_button.offset_bottom = -10
+	# Position below the "Press F" text, inside the panel
+	click_button.position = Vector2(15, 45)
+	click_button.size = Vector2(130, 25)
 	
 	# Connect button signal
 	click_button.pressed.connect(_on_click_button_pressed)
 	
-	add_child(click_button)
+	# Ensure button blocks mouse events
+	click_button.mouse_filter = Control.MOUSE_FILTER_STOP
+	
+	# Add to background panel, not the main control
+	background_panel.add_child(click_button)
 
 func show_for_structure(structure):
 	current_structure = structure
@@ -108,7 +113,16 @@ func hide_tooltip():
 
 func _on_click_button_pressed():
 	if current_structure:
+		# Stop the input from propagating
+		get_viewport().set_input_as_handled()
 		interaction_requested.emit(current_structure)
+
+func _gui_input(event):
+	# Handle input on the tooltip itself to prevent click-through
+	if event is InputEventMouseButton:
+		# Always consume mouse events over the tooltip
+		accept_event()
+		get_viewport().set_input_as_handled()
 
 func handle_interaction_key():
 	"""Call this when F key is pressed"""

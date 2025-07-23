@@ -111,6 +111,10 @@ func _input(event):
 			initiate_movement_with_rotation(current_pos, new_pos, true)  # WASD movement
 	
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# Check if any UI is visible that should block input
+		if is_ui_blocking_input():
+			return
+			
 		var mouse_world_pos = get_global_mouse_position()
 		var grid_pos = Movement.get_grid_position(mouse_world_pos)
 		var current_pos = player_movement.get_current_position()
@@ -386,7 +390,11 @@ func setup_interaction_system():
 	add_child(interaction_tooltip)
 	
 	# Connect interaction signal
-	interaction_tooltip.interaction_requested.connect(_on_structure_interaction_requested)
+	if interaction_tooltip.has_signal("interaction_requested"):
+		interaction_tooltip.interaction_requested.connect(_on_structure_interaction_requested)
+		print("MAIN: Interaction signal connected successfully")
+	else:
+		print("ERROR: interaction_requested signal not found on tooltip")
 	
 	print("Structure interaction system initialized")
 
@@ -410,15 +418,30 @@ func check_structure_interactions():
 			interaction_tooltip.hide_tooltip()
 
 func _on_structure_interaction_requested(structure):
-	print("Interacting with structure: ", structure.name, " (", structure.type, ")")
+	print("MAIN: _on_structure_interaction_requested called!")
 	
-	# Hide the tooltip
-	interaction_tooltip.hide_tooltip()
+	# Comprehensive error handling for structure interaction
+	if not structure:
+		print("ERROR: Received null structure for interaction")
+		return
 	
-	# Show the simple interior overlay
-	if structure_interior_overlay:
+	# Safe property access for logging - Structure class always has these properties
+	var structure_name = str(structure.name) if structure.name else "Unknown"
+	var structure_type = str(structure.type)
+	
+	print("MAIN: Interacting with structure: ", structure_name, " (", structure_type, ")")
+	print("MAIN: structure_interior_overlay exists: ", structure_interior_overlay != null)
+	print("MAIN: structure_interior_overlay valid: ", is_instance_valid(structure_interior_overlay) if structure_interior_overlay else false)
+	
+	# Hide the tooltip safely
+	if interaction_tooltip and is_instance_valid(interaction_tooltip):
+		interaction_tooltip.hide_tooltip()
+	
+	# Show the simple interior overlay with error handling
+	if structure_interior_overlay and is_instance_valid(structure_interior_overlay):
 		structure_interior_overlay.show_for_structure(structure)
 	else:
+		print("WARNING: Structure interior overlay not available, using fallback")
 		# Fallback to old system
 		handle_structure_interaction_fallback(structure)
 
@@ -541,21 +564,65 @@ func setup_cloud_manager():
 	print("Advanced cloud management system initialized")
 
 func setup_structure_interior_overlay():
-	"""Setup the simple structure interior overlay system"""
+	"""Setup the simple structure interior overlay system with error handling"""
+	print("MAIN: Setting up structure interior overlay...")
+	
+	# Create a CanvasLayer to ensure the overlay renders on top
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.name = "OverlayLayer"
+	canvas_layer.layer = 100  # High layer to render on top
+	add_child(canvas_layer)
+	
+	# Create overlay instance
 	structure_interior_overlay = StructureInteriorOverlay.new()
+	
+	if not structure_interior_overlay:
+		print("ERROR: Failed to create StructureInteriorOverlay instance")
+		return
+		
 	structure_interior_overlay.name = "StructureInteriorOverlay"
-	structure_interior_overlay.z_index = 200  # Above everything else
-	add_child(structure_interior_overlay)
 	
-	# Connect exit signal
-	structure_interior_overlay.exit_requested.connect(_on_interior_overlay_exit)
+	print("MAIN: Adding overlay to canvas layer...")
+	# Add to canvas layer instead of directly to scene
+	canvas_layer.add_child(structure_interior_overlay)
 	
-	print("Structure interior overlay system initialized")
+	# Verify it was added successfully
+	if not structure_interior_overlay.is_inside_tree():
+		print("ERROR: Failed to add overlay to scene tree")
+		structure_interior_overlay = null
+		return
+	
+	print("MAIN: Overlay added successfully, connecting signals...")
+	# Connect exit signal safely
+	if structure_interior_overlay.has_signal("exit_requested"):
+		structure_interior_overlay.exit_requested.connect(_on_interior_overlay_exit)
+		print("MAIN: Exit signal connected successfully")
+	else:
+		print("WARNING: exit_requested signal not found on overlay")
+	
+	print("MAIN: Structure interior overlay system initialized successfully")
+	print("MAIN: Overlay position: ", structure_interior_overlay.position, " size: ", structure_interior_overlay.size)
 
 func _on_interior_overlay_exit():
 	"""Called when player exits structure interior overlay"""
 	print("Player exited structure interior")
 	# Overlay handles hiding itself, nothing else needed
+
+func is_ui_blocking_input() -> bool:
+	"""Check if any UI element should block mouse input to the game world"""
+	# Check if structure interior overlay is visible
+	if structure_interior_overlay and structure_interior_overlay.visible:
+		return true
+	
+	# Check if interaction tooltip is visible
+	if interaction_tooltip and interaction_tooltip.visible:
+		# Check if mouse is over the tooltip
+		var mouse_pos = get_global_mouse_position()
+		var tooltip_rect = Rect2(interaction_tooltip.global_position, interaction_tooltip.size)
+		if tooltip_rect.has_point(mouse_pos):
+			return true
+	
+	return false
 
 func _on_clouds_visibility_changed(visible_count: int):
 	"""Called when cloud visibility changes - for performance monitoring"""
