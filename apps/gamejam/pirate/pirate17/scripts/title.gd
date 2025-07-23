@@ -1,5 +1,6 @@
 extends Control
 
+## Preloads
 const FantasyMenu = preload("res://scripts/ui/fantasy_menu.gd")
 const FantasyTitle = preload("res://scripts/ui/fantasy_title.gd")
 const FantasyPanel = preload("res://scripts/ui/fantasy_panel.gd")
@@ -17,14 +18,11 @@ func _ready():
 	
 	# Check for saved player data first
 	check_for_saved_data()
-	
 	setup_background()
-	
 	# Setup UI directly now that signal issue is fixed
 	setup_ui_deferred()
+	setup_social_icons()
 	print("Title scene setup complete")
-
-# CloudManager singleton handles all cloud movement and processing
 
 func setup_ui_deferred():
 	print("Setting up UI deferred...")
@@ -74,6 +72,7 @@ func setup_background():
 	background_sprite.z_index = -1  # Put it behind everything
 	
 	# Get screen size
+	### TODO: Dynamic check of viewport, maybe a custom class or library.
 	var screen_size = get_viewport().get_visible_rect().size
 	var texture_size = texture.get_size()
 	
@@ -96,9 +95,12 @@ func setup_background():
 	# Add clouds layer on top of the stars
 	setup_clouds_layer(screen_size)
 
+### TODO: Major! We need to fix the glimmery or shimmer for the stars.
 func setup_stars_layer(screen_size: Vector2):
 	# Load the stars image
 	var stars_texture = load("res://assets/background/stars.png")
+
+	# Generic Warning.
 	if not stars_texture:
 		print("Title: WARNING - Could not load stars.png, skipping stars layer")
 		return
@@ -133,40 +135,44 @@ func setup_stars_layer(screen_size: Vector2):
 	print("Title: Stars sprite added - Position: ", stars_sprite.position, " Scale: ", stars_sprite.scale)
 
 func start_stars_shimmer_animation(stars_sprite: Sprite2D):
-	# Create a continuous shimmer animation with multiple effects
+	# Create a more noticeable shimmer animation with enhanced effects
 	var shimmer_tween = create_tween()
 	shimmer_tween.set_loops()  # Loop indefinitely
 	shimmer_tween.set_parallel(true)  # Allow multiple animations at once
 	
-	# Opacity shimmer - creates a gentle breathing/glowing effect
+	# More dramatic opacity shimmer - creates a stronger breathing/glowing effect
 	var opacity_tween = shimmer_tween.tween_method(
 		func(alpha: float): stars_sprite.modulate = Color(1.0, 1.0, 1.0, alpha),
-		0.6,  # Start opacity
-		1.0,  # End opacity
-		2.0   # Duration
+		0.3,  # Much lower start opacity for more dramatic effect
+		1.0,  # Full brightness
+		1.5   # Faster duration for more noticeable pulse
 	)
 	opacity_tween.set_ease(Tween.EASE_IN_OUT)
-	opacity_tween.set_trans(Tween.TRANS_SINE)
+	opacity_tween.set_trans(Tween.TRANS_CUBIC)  # More dramatic curve
 	
 	# Add reverse opacity animation
 	var opacity_reverse = shimmer_tween.tween_method(
 		func(alpha: float): stars_sprite.modulate = Color(1.0, 1.0, 1.0, alpha),
-		1.0,  # Start opacity
-		0.6,  # End opacity
-		2.0   # Duration
+		1.0,  # Full brightness
+		0.3,  # Much dimmer
+		1.5   # Faster duration
 	)
 	opacity_reverse.set_ease(Tween.EASE_IN_OUT)
-	opacity_reverse.set_trans(Tween.TRANS_SINE)
-	opacity_reverse.set_delay(2.0)  # Start after first animation
+	opacity_reverse.set_trans(Tween.TRANS_CUBIC)
+	opacity_reverse.set_delay(1.5)  # Start after first animation
 	
-	# Subtle color shimmer - adds a slight blue-white tint variation for starlight
+	# More noticeable color shimmer - stronger blue-white-yellow tint variation
 	var color_tween = shimmer_tween.tween_method(
 		func(color_val: float): 
 			var current_alpha = stars_sprite.modulate.a
-			stars_sprite.modulate = Color(1.0, 1.0, color_val, current_alpha),
-		0.95,  # Slightly warm
-		1.05,  # Slightly cool (more blue)
-		3.0    # Slower color change
+			# Shift between warm yellow and cool blue
+			var r = lerp(1.0, 0.8, color_val)
+			var g = lerp(1.0, 0.9, color_val)
+			var b = lerp(0.8, 1.2, color_val)
+			stars_sprite.modulate = Color(r, g, b, current_alpha),
+		0.0,  # Start warm/yellow
+		1.0,  # End cool/blue
+		2.0   # Duration
 	)
 	color_tween.set_ease(Tween.EASE_IN_OUT)
 	color_tween.set_trans(Tween.TRANS_SINE)
@@ -175,16 +181,20 @@ func start_stars_shimmer_animation(stars_sprite: Sprite2D):
 	var color_reverse = shimmer_tween.tween_method(
 		func(color_val: float): 
 			var current_alpha = stars_sprite.modulate.a
-			stars_sprite.modulate = Color(1.0, 1.0, color_val, current_alpha),
-		1.05,  # Cool
-		0.95,  # Warm
-		3.0    # Duration
+			# Shift back from blue to yellow
+			var r = lerp(0.8, 1.0, color_val)
+			var g = lerp(0.9, 1.0, color_val)
+			var b = lerp(1.2, 0.8, color_val)
+			stars_sprite.modulate = Color(r, g, b, current_alpha),
+		0.0,  # Start cool/blue
+		1.0,  # End warm/yellow
+		2.0   # Duration
 	)
 	color_reverse.set_ease(Tween.EASE_IN_OUT)
 	color_reverse.set_trans(Tween.TRANS_SINE)
-	color_reverse.set_delay(3.0)  # Start after first color animation
+	color_reverse.set_delay(2.0)  # Start after first color animation
 	
-	print("Title: Stars shimmer animation started")
+	print("Title: Enhanced stars shimmer animation started")
 
 func setup_clouds_layer(screen_size: Vector2):
 	# First, create the static clouds.png background
@@ -507,3 +517,156 @@ func _on_menu_action(action: String, data: Dictionary):
 			print("Settings menu not implemented yet")
 		"quit_game":
 			get_tree().quit()
+
+func setup_social_icons():
+	"""Setup social media and external link icons in the corner"""
+	# Create a CanvasLayer to ensure icons are always on top
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.layer = 10  # High layer to render on top
+	add_child(canvas_layer)
+	
+	# Create container for icons
+	var icons_container = HBoxContainer.new()
+	icons_container.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_LEFT)
+	icons_container.position = Vector2(20, -60)  # Bottom left corner with padding
+	icons_container.add_theme_constant_override("separation", 15)
+	canvas_layer.add_child(icons_container)
+	
+	print("Title: Creating social icons container at position: ", icons_container.position)
+	
+	# Icon configurations
+	var icon_configs = [
+		{
+			"name": "GitHub",
+			"icon_path": "res://assets/icons/github.svg",
+			"url": "https://github.com/KBVE/kbve/tree/dev/apps/gamejam/pirate/pirate17",
+			"tooltip": "View Source Code"
+		},
+		{
+			"name": "Bug Report",
+			"icon_path": "res://assets/icons/bugreport.svg",
+			"url": "https://github.com/KBVE/kbve/issues/new?template=godot_report.md&title=[Bug]+:+[Godot]+:+[Airship]+",
+			"tooltip": "Report a Bug"
+		},
+		{
+			"name": "Discord",
+			"icon_path": "res://assets/icons/discord.svg",
+			"url": "https://kbve.com/discord",
+			"tooltip": "Join our Discord"
+		}
+	]
+	
+	# Create each icon button
+	for i in range(icon_configs.size()):
+		var config = icon_configs[i]
+		var icon_button = create_icon_button(config)
+		if icon_button:
+			icons_container.add_child(icon_button)
+			print("Title: Added icon button '", config.name, "' at index ", i)
+		else:
+			print("Title: Failed to create icon button for ", config.name)
+	
+	print("Title: Social icons setup complete - Total buttons: ", icons_container.get_child_count())
+
+func create_icon_button(config: Dictionary) -> Control:
+	"""Create a clickable icon button"""
+	# Use a Panel as container to ensure visibility
+	var container = Panel.new()
+	container.custom_minimum_size = Vector2(48, 48)
+	container.size = Vector2(48, 48)
+	
+	# Style the panel
+	var style = StyleBoxFlat.new()
+	style.bg_color = Color(0.2, 0.2, 0.2, 0.8)  # Dark background
+	style.corner_radius_top_left = 8
+	style.corner_radius_top_right = 8
+	style.corner_radius_bottom_left = 8
+	style.corner_radius_bottom_right = 8
+	container.add_theme_stylebox_override("panel", style)
+	
+	# Create the button
+	var button = TextureButton.new()
+	button.stretch_mode = TextureButton.STRETCH_KEEP_ASPECT_CENTERED
+	button.ignore_texture_size = true  # This allows the texture to be resized
+	
+	# Set button to fill container with padding
+	button.set_anchors_preset(Control.PRESET_FULL_RECT)
+	button.offset_left = 4
+	button.offset_top = 4
+	button.offset_right = -4
+	button.offset_bottom = -4
+	
+	container.add_child(button)
+	
+	# Try to load the icon
+	var icon_texture = load(config.icon_path)
+	if icon_texture:
+		button.texture_normal = icon_texture
+		
+		# Make icon white/light colored for visibility on dark background
+		button.modulate = Color(0.9, 0.9, 0.9, 1.0)
+		
+		print("Title: Loaded icon texture for ", config.name)
+	else:
+		print("Title: WARNING - Could not load icon: ", config.icon_path)
+		# Create fallback colored panel for each service
+		var fallback_color = Color.WHITE
+		match config.name:
+			"GitHub":
+				fallback_color = Color(0.2, 0.2, 0.2, 1.0)  # Dark gray
+			"Bug Report":
+				fallback_color = Color(0.8, 0.2, 0.2, 1.0)  # Red
+			"Discord":
+				fallback_color = Color(0.36, 0.4, 0.95, 1.0)  # Discord blue
+		
+		style.bg_color = fallback_color
+		
+		# Add text label
+		var label = Label.new()
+		label.text = config.name.left(2)  # First 2 letters
+		label.add_theme_font_size_override("font_size", 16)
+		label.add_theme_color_override("font_color", Color.WHITE)
+		label.set_anchors_and_offsets_preset(Control.PRESET_CENTER)
+		container.add_child(label)
+	
+	# Set tooltip
+	container.tooltip_text = config.tooltip
+	
+	# Add hover effects
+	container.mouse_entered.connect(func(): 
+		style.bg_color = style.bg_color.lightened(0.2)
+		container.add_theme_stylebox_override("panel", style)
+	)
+	container.mouse_exited.connect(func(): 
+		if icon_texture:
+			style.bg_color = Color(0.2, 0.2, 0.2, 0.8)
+		else:
+			# Restore original color based on service
+			match config.name:
+				"GitHub":
+					style.bg_color = Color(0.2, 0.2, 0.2, 1.0)
+				"Bug Report":
+					style.bg_color = Color(0.8, 0.2, 0.2, 1.0)
+				"Discord":
+					style.bg_color = Color(0.36, 0.4, 0.95, 1.0)
+		container.add_theme_stylebox_override("panel", style)
+	)
+	
+	# Connect click event
+	button.pressed.connect(func(): open_external_link(config.url))
+	
+	return container
+
+func open_external_link(url: String):
+	"""Open URL in default web browser - handles both desktop and web builds"""
+	print("Opening external link: ", url)
+	
+	# Check if running in HTML5/Web environment
+	if OS.has_feature("web"):
+		# Use JavaScript to open URL in new tab for web builds
+		JavaScriptBridge.eval("""
+			window.open('%s', '_blank');
+		""" % url)
+	else:
+		# Use OS shell_open for desktop builds
+		OS.shell_open(url)

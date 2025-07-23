@@ -3,14 +3,18 @@ extends RefCounted
 
 ## Robust player save/load system with JSON validation and corruption protection
 ## Handles saving player data to JSON files with backup and integrity checks
+## Trying to make sure that the json is saved locally but we could setup an online save too?
+### TODO: Supabase Player Saving.
 
 const SAVE_FILE_PATH = "user://player_save.json"
 const BACKUP_FILE_PATH = "user://player_save_backup.json"
 const TEMP_FILE_PATH = "user://player_save_temp.json"
 
+### TODO: Dexie Support for Saving.
 # Save file version for future compatibility
 const SAVE_VERSION = "1.0"
 
+### TODO: Supabase Integrity Hash Function -> via Edge.
 # Data integrity hash for corruption detection
 const INTEGRITY_KEY = "pirate17_save_integrity"
 
@@ -29,7 +33,9 @@ enum LoadResult {
 	VERSION_MISMATCH
 }
 
-## Save player data to JSON with corruption protection
+## Save player data to JSON with corruption protection v0.
+## NOTE: I am not too sure how bad the player saving corruption is for godot, but better to be safe.
+## Think of saving as a loop where we keep the original just in case something goes wrong.
 static func save_player_data(player_data: Dictionary) -> SaveResult:
 	print("PlayerSaving: Starting save process...")
 	
@@ -83,7 +89,8 @@ static func load_player_data() -> Dictionary:
 	print("PlayerSaving: Load completed successfully")
 	return result.data
 
-## Check if save file exists
+## Check if save file exists, which is what the title screen references.
+### TODO: Sync save to postgres via edge functions.
 static func save_exists() -> bool:
 	return FileAccess.file_exists(SAVE_FILE_PATH) or FileAccess.file_exists(BACKUP_FILE_PATH)
 
