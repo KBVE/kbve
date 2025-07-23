@@ -7,7 +7,7 @@ signal exit_requested
 
 @export var overlay_texture_path: String = "res://assets/ui/fantasy/RectangleBox_96x96.png"
 
-var background_panel: NinePatchRect
+var background_panel: Control  # Can be either NinePatchRect or ColorRect
 var title_label: Label
 var description_label: Label
 var energy_recharge_label: Label
@@ -37,24 +37,29 @@ func setup_background():
 	var dark_bg = ColorRect.new()
 	dark_bg.color = Color(0, 0, 0, 0.7)
 	dark_bg.anchors_preset = Control.PRESET_FULL_RECT
+	dark_bg.size = get_viewport().get_visible_rect().size if get_viewport() else Vector2(1280, 720)
+	dark_bg.position = Vector2.ZERO
 	dark_bg.name = "DarkBackground"
 	add_child(dark_bg)
-	print("StructureInteriorOverlay: Dark background added, color: ", dark_bg.color)
+	print("StructureInteriorOverlay: Dark background added, color: ", dark_bg.color, " size: ", dark_bg.size)
 	
-	# Main panel in center
-	background_panel = NinePatchRect.new()
+	# Main panel in center - use bright ColorRect for testing visibility
+	var panel_bg = ColorRect.new()
+	panel_bg.color = Color(1.0, 0.0, 0.0, 1.0)  # Bright red for testing
+	panel_bg.size = Vector2(600, 400)
+	background_panel = panel_bg
 	
-	# Safe texture loading
-	var texture = load(overlay_texture_path)
+	# Try to load texture if available
+	var texture = load(overlay_texture_path) if overlay_texture_path != "" else null
 	if texture:
-		background_panel.texture = texture
+		# If texture loads, create NinePatchRect instead
+		var nine_patch = NinePatchRect.new()
+		nine_patch.texture = texture
+		nine_patch.size = Vector2(600, 400)
+		background_panel = nine_patch
+		print("StructureInteriorOverlay: Using NinePatchRect with texture")
 	else:
-		print("WARNING: Could not load overlay texture at ", overlay_texture_path)
-		# Create a fallback colored panel
-		var fallback_bg = ColorRect.new()
-		fallback_bg.color = Color(0.2, 0.2, 0.2, 0.9)
-		fallback_bg.size = Vector2(600, 400)
-		background_panel = fallback_bg
+		print("StructureInteriorOverlay: Using ColorRect fallback")
 	
 	background_panel.size = Vector2(600, 400)
 	background_panel.name = "BackgroundPanel"
@@ -65,10 +70,11 @@ func setup_background():
 	
 	# Set nine-patch margins only if it's a NinePatchRect
 	if background_panel is NinePatchRect:
-		background_panel.patch_margin_left = 24
-		background_panel.patch_margin_right = 24
-		background_panel.patch_margin_top = 24
-		background_panel.patch_margin_bottom = 24
+		var nine_patch = background_panel as NinePatchRect
+		nine_patch.patch_margin_left = 24
+		nine_patch.patch_margin_right = 24
+		nine_patch.patch_margin_top = 24
+		nine_patch.patch_margin_bottom = 24
 	
 	add_child(background_panel)
 	print("StructureInteriorOverlay: Background panel added to scene")
@@ -161,6 +167,15 @@ func show_for_structure(structure):
 	visible = true
 	# Ensure it captures mouse events
 	mouse_filter = Control.MOUSE_FILTER_STOP
+	
+	# Move to front of render order
+	move_to_front()
+	
+	# Double-check dark background is visible
+	var dark_bg = get_node_or_null("DarkBackground")
+	if dark_bg:
+		dark_bg.visible = true
+		print("StructureInteriorOverlay: Dark background visibility = ", dark_bg.visible)
 	
 	print("StructureInteriorOverlay: Overlay shown for: ", get_structure_title(structure))
 	print("StructureInteriorOverlay: visible = ", visible, ", is_inside_tree = ", is_inside_tree())

@@ -563,6 +563,12 @@ func setup_structure_interior_overlay():
 	"""Setup the simple structure interior overlay system with error handling"""
 	print("MAIN: Setting up structure interior overlay...")
 	
+	# Create a CanvasLayer to ensure the overlay renders on top
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.name = "OverlayLayer"
+	canvas_layer.layer = 100  # High layer to render on top
+	add_child(canvas_layer)
+	
 	# Create overlay instance
 	structure_interior_overlay = StructureInteriorOverlay.new()
 	
@@ -571,11 +577,10 @@ func setup_structure_interior_overlay():
 		return
 		
 	structure_interior_overlay.name = "StructureInteriorOverlay"
-	structure_interior_overlay.z_index = 200  # Above everything else
 	
-	print("MAIN: Adding overlay to scene tree...")
-	# Add to scene tree
-	add_child(structure_interior_overlay)
+	print("MAIN: Adding overlay to canvas layer...")
+	# Add to canvas layer instead of directly to scene
+	canvas_layer.add_child(structure_interior_overlay)
 	
 	# Verify it was added successfully
 	if not structure_interior_overlay.is_inside_tree():
