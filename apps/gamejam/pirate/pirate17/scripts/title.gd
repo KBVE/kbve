@@ -43,12 +43,42 @@ func setup_fallback_ui():
 	button_container.add_child(quit_button)
 
 func setup_background():
-	# Create a background ColorRect
-	var background = ColorRect.new()
-	background.color = Color(0.2, 0.15, 0.3, 1.0)  # Dark purple fantasy tone
-	background.anchors_preset = Control.PRESET_FULL_RECT
-	background.z_index = -1  # Put it behind everything
-	add_child(background)
+	# Load the sky background image
+	var texture = load("res://assets/background/sky.png")
+	if not texture:
+		print("Title: WARNING - Could not load sky.png, using fallback color")
+		# Fallback to colored background
+		var fallback_bg = ColorRect.new()
+		fallback_bg.color = Color(0.4, 0.6, 0.9, 1.0)  # Sky blue fallback
+		fallback_bg.anchors_preset = Control.PRESET_FULL_RECT
+		fallback_bg.z_index = -1
+		add_child(fallback_bg)
+		return
+	
+	print("Title: Sky background texture loaded successfully")
+	print("Title: Texture size: ", texture.get_size())
+	
+	# Use Sprite2D instead of TextureRect for better scaling control
+	var background_sprite = Sprite2D.new()
+	background_sprite.texture = texture
+	background_sprite.z_index = -1  # Put it behind everything
+	
+	# Get screen size
+	var screen_size = get_viewport().get_visible_rect().size
+	var texture_size = texture.get_size()
+	
+	# Calculate scale to cover entire screen
+	var scale_x = screen_size.x / texture_size.x
+	var scale_y = screen_size.y / texture_size.y
+	
+	# Position sprite at center of screen
+	background_sprite.position = screen_size / 2
+	background_sprite.scale = Vector2(scale_x, scale_y)
+	
+	add_child(background_sprite)
+	
+	print("Title: Background sprite added - Position: ", background_sprite.position, " Scale: ", background_sprite.scale)
+	print("Title: Screen size: ", screen_size, " Texture size: ", texture_size)
 
 func setup_title_display():
 	print("Setting up title display...")
