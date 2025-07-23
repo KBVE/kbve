@@ -132,6 +132,8 @@ func setup_ui_elements():
 	exit_button.position = Vector2(250, 320)
 	exit_button.size = Vector2(100, 40)
 	exit_button.pressed.connect(_on_exit_pressed)
+	# Ensure button blocks mouse events
+	exit_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	background_panel.add_child(exit_button)
 	
 	print("StructureInteriorOverlay: All UI elements added to background panel")

@@ -111,6 +111,10 @@ func _input(event):
 			initiate_movement_with_rotation(current_pos, new_pos, true)  # WASD movement
 	
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
+		# Check if any UI is visible that should block input
+		if is_ui_blocking_input():
+			return
+			
 		var mouse_world_pos = get_global_mouse_position()
 		var grid_pos = Movement.get_grid_position(mouse_world_pos)
 		var current_pos = player_movement.get_current_position()
@@ -603,6 +607,22 @@ func _on_interior_overlay_exit():
 	"""Called when player exits structure interior overlay"""
 	print("Player exited structure interior")
 	# Overlay handles hiding itself, nothing else needed
+
+func is_ui_blocking_input() -> bool:
+	"""Check if any UI element should block mouse input to the game world"""
+	# Check if structure interior overlay is visible
+	if structure_interior_overlay and structure_interior_overlay.visible:
+		return true
+	
+	# Check if interaction tooltip is visible
+	if interaction_tooltip and interaction_tooltip.visible:
+		# Check if mouse is over the tooltip
+		var mouse_pos = get_global_mouse_position()
+		var tooltip_rect = Rect2(interaction_tooltip.global_position, interaction_tooltip.size)
+		if tooltip_rect.has_point(mouse_pos):
+			return true
+	
+	return false
 
 func _on_clouds_visibility_changed(visible_count: int):
 	"""Called when cloud visibility changes - for performance monitoring"""
