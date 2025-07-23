@@ -67,8 +67,15 @@ func setup_target_highlight():
 		print("Failed to load border texture")
 
 func setup_player_movement():
-	player_movement = Movement.MoveComponent.new(player, Vector2i(50, 50))
+	# Get saved player position or default
+	var start_position = Vector2i(50, 50)
+	if Player:
+		start_position = Player.current_position
+	
+	player_movement = Movement.MoveComponent.new(player, start_position)
 	camera.position = player.position
+	
+	print("Player movement initialized at position: ", start_position)
 
 func generate_map_display():
 	var map_size = World.get_map_size()
@@ -169,6 +176,9 @@ func _process(delta):
 	check_structure_interactions()
 	update_parallax_effects()
 	track_movement_distance()
+	# Update play time
+	if Player:
+		Player.update_play_time(delta)
 
 func connect_movement_signals():
 	player_movement.movement_started.connect(_on_movement_started)
@@ -197,6 +207,9 @@ func _on_movement_finished(entity: Node2D, at: Vector2i):
 		hide_movement_path()
 		# Stop wind effects when movement ends
 		update_ship_wind_effects(false)
+		# Update player position in save data
+		if Player:
+			Player.update_position(at)
 
 func show_movement_path(from: Vector2i, to: Vector2i):
 	var start_pos = Movement.get_world_position(from)
