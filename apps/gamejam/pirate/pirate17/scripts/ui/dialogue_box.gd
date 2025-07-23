@@ -23,6 +23,10 @@ func _on_dialogue_started():
 	show()
 	if advance_indicator:
 		advance_indicator.play("blink")
+	
+	# Trigger auto-save when dialogue starts
+	if Player:
+		Player.auto_save_on_interaction()
 
 func _on_dialogue_ended():
 	hide()

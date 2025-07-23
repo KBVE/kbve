@@ -168,6 +168,30 @@ func delete_save_data() -> bool:
 		initialize_new_player()
 	return success
 
+## Change captain name and auto-save
+func change_captain_name(new_name: String) -> bool:
+	"""Change the captain's name and save immediately"""
+	if new_name.strip_edges().is_empty():
+		print("Cannot set empty captain name")
+		return false
+	
+	var old_name = player_name
+	player_name = new_name.strip_edges()
+	
+	if save_player_data():
+		print("Captain name changed from '", old_name, "' to '", player_name, "'")
+		return true
+	else:
+		player_name = old_name
+		print("Failed to save captain name change")
+		return false
+
+## Semi auto-save for interaction windows
+func auto_save_on_interaction() -> bool:
+	"""Triggered when opening interaction windows"""
+	print("Auto-saving on interaction...")
+	return save_player_data()
+
 ## Get save file information for debugging
 func get_save_info() -> Dictionary:
 	"""Get information about save files"""
