@@ -16,6 +16,33 @@ func _ready():
 	setup_ui_deferred()
 	print("Title scene setup complete")
 
+func _process(delta):
+	# Update moving clouds
+	update_moving_clouds(delta)
+
+func update_moving_clouds(delta):
+	# Find all cloud sprites with movement data and update their positions
+	for child in get_children():
+		if child is Sprite2D and child.has_meta("movement_speed"):
+			var movement_speed = child.get_meta("movement_speed")
+			var movement_direction = child.get_meta("movement_direction")
+			var screen_size = child.get_meta("screen_size")
+			
+			# Move the cloud
+			child.position += movement_direction * movement_speed * delta
+			
+			# Wrap around screen edges (with buffer for smooth transition)
+			var buffer = 100.0
+			if child.position.x > screen_size.x + buffer:
+				child.position.x = -buffer
+			elif child.position.x < -buffer:
+				child.position.x = screen_size.x + buffer
+			
+			if child.position.y > screen_size.y + buffer:
+				child.position.y = -buffer
+			elif child.position.y < -buffer:
+				child.position.y = screen_size.y + buffer
+
 func setup_ui_deferred():
 	print("Setting up UI deferred...")
 	setup_title_display()
@@ -177,37 +204,117 @@ func start_stars_shimmer_animation(stars_sprite: Sprite2D):
 	print("Title: Stars shimmer animation started")
 
 func setup_clouds_layer(screen_size: Vector2):
-	# Load the clouds image
+	# First, create the static clouds.png background
+	create_static_clouds_background(screen_size)
+	
+	# Then add moving pooled clouds on top
+	create_title_cloud_layer(screen_size, "background", 0.3, 4)   # Moving background clouds
+	create_title_cloud_layer(screen_size, "midground", 0.5, 3)   # Moving middle clouds  
+	create_title_cloud_layer(screen_size, "foreground", 0.7, 2)  # Moving foreground clouds
+	
+	print("Title: Static clouds background + moving cloud pool layers created")
+
+func create_static_clouds_background(screen_size: Vector2):
+	# Load the static clouds.png as background
 	var clouds_texture = load("res://assets/background/clouds.png")
 	if not clouds_texture:
-		print("Title: WARNING - Could not load clouds.png, skipping clouds layer")
+		print("Title: WARNING - Could not load clouds.png, skipping static clouds layer")
 		return
 	
-	print("Title: Clouds texture loaded successfully")
-	print("Title: Clouds texture size: ", clouds_texture.get_size())
+	print("Title: Static clouds texture loaded successfully")
 	
-	# Create clouds sprite
-	var clouds_sprite = Sprite2D.new()
-	clouds_sprite.texture = clouds_texture
-	clouds_sprite.z_index = 0  # Above the sky background (which is -1)
+	# Create static clouds sprite
+	var static_clouds = Sprite2D.new()
+	static_clouds.texture = clouds_texture
+	static_clouds.z_index = 0  # Above stars but below moving clouds
 	
 	# Get clouds texture size
 	var clouds_size = clouds_texture.get_size()
 	
-	# Calculate scale to cover entire screen (same as sky)
+	# Calculate scale to cover entire screen
 	var scale_x = screen_size.x / clouds_size.x
 	var scale_y = screen_size.y / clouds_size.y
 	
-	# Position clouds sprite at center of screen
-	clouds_sprite.position = screen_size / 2
-	clouds_sprite.scale = Vector2(scale_x, scale_y)
+	# Position at center of screen
+	static_clouds.position = screen_size / 2
+	static_clouds.scale = Vector2(scale_x, scale_y)
 	
-	# Make clouds slightly transparent for layering effect
-	clouds_sprite.modulate = Color(1.0, 1.0, 1.0, 0.8)  # 80% opacity
+	# Make static clouds semi-transparent as base layer
+	static_clouds.modulate = Color(1.0, 1.0, 1.0, 0.6)  # 60% opacity
 	
-	add_child(clouds_sprite)
+	add_child(static_clouds)
 	
-	print("Title: Clouds sprite added - Position: ", clouds_sprite.position, " Scale: ", clouds_sprite.scale)
+	print("Title: Static clouds background added")
+
+func create_title_cloud_layer(screen_size: Vector2, layer_name: String, base_opacity: float, cloud_count: int):
+	# Create multiple clouds using the same system as CloudManager
+	for i in range(cloud_count):
+		var cloud_id = randi_range(1, 10)  # Same range as CloudManager
+		var cloud_path = "res://assets/clouds/cloud_" + str(cloud_id) + ".png"
+		var cloud_texture = load(cloud_path)
+		
+		if not cloud_texture:
+			print("Title: WARNING - Could not load ", cloud_path)
+			continue
+		
+		# Create cloud sprite
+		var cloud_sprite = Sprite2D.new()
+		cloud_sprite.texture = cloud_texture
+		
+		# Set z_index based on layer (all above static clouds at z_index 0)
+		match layer_name:
+			"background":
+				cloud_sprite.z_index = 0.1   # Above static clouds
+			"midground":
+				cloud_sprite.z_index = 0.3   # Above background moving clouds
+			"foreground":
+				cloud_sprite.z_index = 0.5   # Above all other clouds
+		
+		# Position clouds randomly across the screen
+		cloud_sprite.position = Vector2(
+			randf_range(0, screen_size.x),
+			randf_range(0, screen_size.y * 0.7)  # Keep in upper 70% of screen
+		)
+		
+		# Scale based on layer (background smaller, foreground larger)
+		var scale_factor = 0.0
+		var opacity = 0.0
+		match layer_name:
+			"background":
+				scale_factor = randf_range(0.4, 0.7)
+				opacity = randf_range(0.3, 0.5)
+			"midground":  
+				scale_factor = randf_range(0.6, 0.9)
+				opacity = randf_range(0.5, 0.7)
+			"foreground":
+				scale_factor = randf_range(0.8, 1.2)
+				opacity = randf_range(0.7, 0.9)
+		
+		cloud_sprite.scale = Vector2(scale_factor, scale_factor)
+		cloud_sprite.modulate = Color(1.0, 1.0, 1.0, opacity * base_opacity)
+		
+		# Add movement properties to the cloud
+		var movement_speed = 0.0
+		var movement_direction = Vector2.ZERO
+		match layer_name:
+			"background":
+				movement_speed = randf_range(10, 20)   # Slow movement
+				movement_direction = Vector2(randf_range(0.8, 1.0), randf_range(-0.1, 0.1)).normalized()
+			"midground":
+				movement_speed = randf_range(15, 30)   # Medium movement
+				movement_direction = Vector2(randf_range(0.7, 1.0), randf_range(-0.2, 0.2)).normalized()
+			"foreground":
+				movement_speed = randf_range(25, 40)   # Fast movement
+				movement_direction = Vector2(randf_range(0.6, 1.0), randf_range(-0.3, 0.3)).normalized()
+		
+		# Store movement data in the sprite's metadata
+		cloud_sprite.set_meta("movement_speed", movement_speed)
+		cloud_sprite.set_meta("movement_direction", movement_direction)
+		cloud_sprite.set_meta("screen_size", screen_size)
+		
+		add_child(cloud_sprite)
+	
+	print("Title: Created ", cloud_count, " clouds for ", layer_name, " layer")
 
 func setup_title_display():
 	print("Setting up title display...")
