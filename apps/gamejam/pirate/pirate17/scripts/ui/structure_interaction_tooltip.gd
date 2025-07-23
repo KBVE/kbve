@@ -6,14 +6,15 @@ signal interaction_requested(structure)
 @export var tooltip_texture_path: String = "res://assets/ui/fantasy/RectangleBox_96x96.png"
 
 var background_panel: NinePatchRect
+var structure_name_label: Label
 var interaction_label: Label
 var click_button: Button
 var current_structure = null
 
 func _ready():
-	# Set size for interaction tooltip
-	custom_minimum_size = Vector2(160, 80)
-	size = Vector2(160, 80)
+	# Set size for interaction tooltip - make it bigger
+	custom_minimum_size = Vector2(220, 100)
+	size = Vector2(220, 100)
 	
 	setup_background()
 	setup_labels()
@@ -50,23 +51,31 @@ func setup_background():
 	move_child(background_panel, 0)
 
 func setup_labels():
-	# Main interaction text
+	# Structure name label at the top
+	structure_name_label = Label.new()
+	structure_name_label.text = "Structure Name"
+	structure_name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	structure_name_label.add_theme_font_size_override("font_size", 14)
+	structure_name_label.add_theme_color_override("font_color", Color.YELLOW)
+	structure_name_label.add_theme_color_override("font_shadow_color", Color.BLACK)
+	structure_name_label.add_theme_constant_override("shadow_offset_x", 1)
+	structure_name_label.add_theme_constant_override("shadow_offset_y", 1)
+	structure_name_label.position = Vector2(10, 5)
+	structure_name_label.size = Vector2(200, 20)
+	add_child(structure_name_label)
+	
+	# Main interaction text below the name
 	interaction_label = Label.new()
 	interaction_label.text = "Press F to Enter"
 	interaction_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	interaction_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	interaction_label.add_theme_font_size_override("font_size", 12)
+	interaction_label.add_theme_font_size_override("font_size", 11)
 	interaction_label.add_theme_color_override("font_color", Color.WHITE)
 	interaction_label.add_theme_color_override("font_shadow_color", Color.BLACK)
 	interaction_label.add_theme_constant_override("shadow_offset_x", 1)
 	interaction_label.add_theme_constant_override("shadow_offset_y", 1)
-	
-	interaction_label.anchors_preset = Control.PRESET_TOP_WIDE
-	interaction_label.offset_left = 10
-	interaction_label.offset_right = -10
-	interaction_label.offset_top = 8
-	interaction_label.offset_bottom = 35
-	
+	interaction_label.position = Vector2(10, 25)
+	interaction_label.size = Vector2(200, 20)
 	add_child(interaction_label)
 
 func setup_button():
@@ -81,8 +90,8 @@ func setup_button():
 	click_button.add_theme_color_override("font_hover_color", Color.LIGHT_GRAY)
 	
 	# Position below the "Press F" text, inside the panel
-	click_button.position = Vector2(15, 45)
-	click_button.size = Vector2(130, 25)
+	click_button.position = Vector2(35, 55)
+	click_button.size = Vector2(150, 25)
 	
 	# Connect button signal
 	click_button.pressed.connect(_on_click_button_pressed)
@@ -95,6 +104,12 @@ func setup_button():
 
 func show_for_structure(structure):
 	current_structure = structure
+	
+	# Update structure name
+	if structure and structure.name:
+		structure_name_label.text = structure.name
+	else:
+		structure_name_label.text = "Unknown Structure"
 	
 	# Update text based on structure type
 	var interaction_text = "Press F to Enter"
