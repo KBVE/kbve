@@ -515,7 +515,7 @@ func _on_menu_action(action: String, data: Dictionary):
 				print("Warning: Could not delete all save files")
 			smooth_transition_to_scene("res://scenes/main.tscn")
 		"settings":
-			print("Settings menu not implemented yet")
+			open_settings_dialogue()
 		"quit_game":
 			get_tree().quit()
 
@@ -680,6 +680,14 @@ func setup_version_display():
 	
 	version_canvas.add_child(version_label)
 	print("Title: Version display added - ", version_label.text)
+
+func open_settings_dialogue():
+	"""Open the settings menu using SettingsManager"""
+	SettingsManager.open_settings_with_callback(self, _on_settings_closed)
+
+func _on_settings_closed():
+	"""Called when settings menu is closed"""
+	print("Settings menu closed")
 
 func open_external_link(url: String):
 	"""Open URL in default web browser - handles both desktop and web builds"""
