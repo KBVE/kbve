@@ -110,9 +110,12 @@ func create_visual():
 	
 	# Add shadow to NPC ship
 	var ship_shadow = preload("res://scripts/ship_shadow.gd").new()
-	ship_shadow.shadow_offset = Vector2(10, 10)  # Larger offset for better depth
-	ship_shadow.shadow_scale = 0.6  # Much smaller shadow
+	ship_shadow.shadow_offset = Vector2(12, 15)  # Larger offset for better shadow effect
+	ship_shadow.shadow_scale = 0.7  # Larger shadow size for better visual effect
 	visual_container.add_child(ship_shadow)
+	
+	# Ensure shadow renders under the NPC sprite by adjusting z_index after creation
+	call_deferred("_adjust_shadow_z_index", ship_shadow)
 	
 	# Create fantasy state badge
 	state_badge = FantasyStateBadge.new()
@@ -155,6 +158,11 @@ func transition_to_state(new_state: NPCState):
 		# Restart the timer to ensure it continues
 		if movement_timer:
 			movement_timer.start()
+
+func _adjust_shadow_z_index(ship_shadow):
+	"""Adjust shadow z_index to render under the NPC sprite"""
+	if ship_shadow and ship_shadow.shadow_sprite:
+		ship_shadow.shadow_sprite.z_index = 0  # Under NPC sprite (which is at z_index 1)
 
 func position_state_badge():
 	if state_badge:

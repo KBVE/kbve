@@ -1,4 +1,3 @@
-class_name CloudManager
 extends Node2D
 
 signal clouds_visibility_changed(visible_count: int)

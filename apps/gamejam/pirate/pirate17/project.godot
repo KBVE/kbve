@@ -21,6 +21,7 @@ Global="*res://scripts/global.gd"
 Player="*res://scripts/player/player.gd"
 Map="*res://scripts/world/map.gd"
 World="*res://scripts/world/world.gd"
+CloudManager="*res://scripts/effects/cloud_manager.gd"
 
 [display]
 
