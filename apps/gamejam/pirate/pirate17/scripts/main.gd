@@ -27,6 +27,7 @@ var total_distance_traveled: float = 0.0  # Track actual distance traveled
 var last_player_position: Vector2 = Vector2.ZERO  # Track previous position
 const ENERGY_COST_DISTANCE: float = 128.0  # 1 energy per 128 pixels (4 tiles worth)
 var structure_interior_overlay: StructureInteriorOverlay
+var settings_button: Button
 
 func _ready():
 	# Add this scene to the main_scene group for easy finding
@@ -55,6 +56,7 @@ func _ready():
 	setup_parallax_background()
 	setup_cloud_manager()
 	setup_structure_interior_overlay()
+	setup_settings_button()
 
 func setup_target_highlight():
 	# Set the border texture for target highlighting - use a nice decorative border
@@ -634,6 +636,13 @@ func is_ui_blocking_input() -> bool:
 		if tooltip_rect.has_point(mouse_pos):
 			return true
 	
+	# Check if mouse is over the settings button
+	if settings_button and settings_button.visible:
+		var mouse_pos = get_global_mouse_position()
+		var button_rect = settings_button.get_global_rect()
+		if button_rect.has_point(mouse_pos):
+			return true
+	
 	return false
 
 func _on_clouds_visibility_changed(visible_count: int):
@@ -731,3 +740,54 @@ func open_settings_dialogue():
 func _on_settings_closed():
 	"""Called when settings menu is closed"""
 	print("Settings menu closed in game")
+
+func setup_settings_button():
+	"""Setup a simple settings button in the top-right corner"""
+	# Create a CanvasLayer to ensure button is always on top
+	var ui_layer = CanvasLayer.new()
+	ui_layer.name = "SettingsUI"
+	ui_layer.layer = 100
+	add_child(ui_layer)
+	
+	# Create the settings button
+	settings_button = Button.new()
+	settings_button.text = "⚙ Settings"
+	settings_button.custom_minimum_size = Vector2(120, 40)
+	
+	# Position in top-right corner
+	settings_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
+	settings_button.position = Vector2(-140, 20)  # 20px from top, 140px from right
+	
+	# Style the button
+	var button_style = StyleBoxFlat.new()
+	button_style.bg_color = Color(0.2, 0.2, 0.2, 0.9)
+	button_style.border_color = Color(0.8, 0.6, 0.3, 1.0)
+	button_style.border_width_left = 2
+	button_style.border_width_right = 2
+	button_style.border_width_top = 2
+	button_style.border_width_bottom = 2
+	button_style.corner_radius_top_left = 5
+	button_style.corner_radius_top_right = 5
+	button_style.corner_radius_bottom_left = 5
+	button_style.corner_radius_bottom_right = 5
+	
+	var button_theme = Theme.new()
+	button_theme.set_stylebox("normal", "Button", button_style)
+	button_theme.set_stylebox("hover", "Button", button_style)
+	button_theme.set_stylebox("pressed", "Button", button_style)
+	button_theme.set_color("font_color", "Button", Color.WHITE)
+	button_theme.set_font_size("font_size", "Button", 14)
+	
+	settings_button.theme = button_theme
+	
+	# Connect button signal
+	settings_button.pressed.connect(_on_settings_button_pressed)
+	
+	# Add to UI layer
+	ui_layer.add_child(settings_button)
+	
+	print("Settings button created in top-right corner")
+
+func _on_settings_button_pressed():
+	"""Called when settings button is pressed"""
+	open_settings_dialogue()
