@@ -27,6 +27,7 @@ var last_player_position: Vector2 = Vector2.ZERO  # Track previous position
 const ENERGY_COST_DISTANCE: float = 128.0  # 1 energy per 128 pixels (4 tiles worth)
 var structure_interior_overlay: StructureInteriorOverlay
 var settings_button: Button
+var ocean_tiles: Array[AnimatedSprite2D] = []
 
 func _ready():
 	# Add this scene to the main_scene group for easy finding
@@ -80,6 +81,7 @@ func setup_player_movement():
 
 func generate_map_display():
 	var map_size = World.get_map_size()
+	print("Generating map display with size: ", map_size, " (", map_size.x * TILE_SIZE, "x", map_size.y * TILE_SIZE, " pixels)")
 	
 	for x in range(map_size.x):
 		for y in range(map_size.y):
@@ -87,13 +89,75 @@ func generate_map_display():
 			create_tile_sprite(x, y, tile_color)
 
 func create_tile_sprite(x: int, y: int, color_hex: String):
+	var tile_position = Vector2(x * TILE_SIZE, y * TILE_SIZE)
+	
+	# Debug: Print ocean color comparison
+	var ocean_color = Map.tile_colors["ocean"]
+	if x < 5 and y < 5:
+		print("Tile at ", x, ",", y, " has color: '", color_hex, "' vs ocean: '", ocean_color, "' match: ", color_hex == ocean_color)
+	
+	# Check if this is an ocean tile - use Map.tile_colors for accuracy
+	if color_hex == ocean_color:
+		var ocean_tile = create_animated_ocean_tile()
+		ocean_tile.position = tile_position
+		map_container.add_child(ocean_tile)
+		tile_sprites[Vector2i(x, y)] = ocean_tile
+		print("✓ Created animated OCEAN tile at ", x, ",", y)
+		return
+	
+	# Regular colored tile for non-ocean tiles
 	var tile = ColorRect.new()
 	tile.size = Vector2(TILE_SIZE, TILE_SIZE)
-	tile.position = Vector2(x * TILE_SIZE, y * TILE_SIZE)
+	tile.position = tile_position
 	tile.color = Color(color_hex)
 	
 	map_container.add_child(tile)
 	tile_sprites[Vector2i(x, y)] = tile
+	
+	# Debug: Highlight if this is creating a blue ColorRect that might be ocean
+	if color_hex == "#1E3A8A":
+		print("⚠ Created blue ColorRect at ", x, ",", y, " - this should have been ocean!")
+
+func create_animated_ocean_tile() -> AnimatedSprite2D:
+	var ocean_sprite = AnimatedSprite2D.new()
+	
+	# Load the water spritesheet
+	var spritesheet = load("res://assets/ocean/water_spritesheet_16x16_5frames.png")
+	
+	# Create SpriteFrames for the animated sprite
+	var sprite_frames = SpriteFrames.new()
+	sprite_frames.add_animation("wave")
+	
+	# Since it's 16x16 with 5 frames, each frame is 16x16 pixels
+	# The spritesheet is likely 80x16 (5 frames horizontally)
+	var frame_width = 16
+	var frame_height = 16
+	
+	# Create individual frames from the spritesheet
+	for i in range(5):
+		var atlas_texture = AtlasTexture.new()
+		atlas_texture.atlas = spritesheet
+		atlas_texture.region = Rect2(i * frame_width, 0, frame_width, frame_height)
+		sprite_frames.add_frame("wave", atlas_texture)
+	
+	# Set animation properties
+	sprite_frames.set_animation_speed("wave", 8.0)  # 8 FPS for smooth water
+	sprite_frames.set_animation_loop("wave", true)
+	
+	ocean_sprite.sprite_frames = sprite_frames
+	ocean_sprite.animation = "wave"
+	ocean_sprite.play()
+	
+	# Scale up from 16x16 to 32x32 tile size
+	ocean_sprite.scale = Vector2(2.0, 2.0)
+	
+	# Add slight randomization to animation timing for variety
+	ocean_sprite.speed_scale = randf_range(0.8, 1.2)
+	
+	# Add to ocean tiles array for potential management
+	ocean_tiles.append(ocean_sprite)
+	
+	return ocean_sprite
 
 func _input(event):
 	if event is InputEventKey and event.pressed:
@@ -376,6 +440,13 @@ func spawn_npcs():
 		# Force update position after being added to scene tree
 		npc.update_position_after_scene_ready()
 		print("Added NPC to scene at world position: ", npc.position)
+	
+	# Add dragon to the scene
+	var dragon = World.get_dragon()
+	if dragon:
+		npc_container.add_child(dragon)
+		dragon.update_position_after_scene_ready()
+		print("Added Dragon to scene at world position: ", dragon.position)
 
 func get_player_position() -> Vector2i:
 	if player_movement:

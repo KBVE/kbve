@@ -6,6 +6,7 @@ const MAP_HEIGHT = 64
 
 var map: Node
 var npcs: Array[NPC] = []
+var dragon: DragonNPC = null
 var structure_pool: StructurePool
 
 func _ready():
@@ -34,6 +35,9 @@ func get_map_size() -> Vector2i:
 func spawn_npcs(count: int = 15):
 	# Clear existing NPCs
 	clear_npcs()
+	
+	# Spawn the dragon first
+	spawn_dragon()
 	
 	var spawn_attempts = 0
 	var max_attempts = count * 10
@@ -86,14 +90,59 @@ func create_npc_at(pos: Vector2i):
 	npcs.append(npc)
 	print("Created NPC at position: ", pos, " - Total NPCs: ", npcs.size())
 
+func spawn_dragon():
+	# Clear existing dragon if any
+	if dragon and is_instance_valid(dragon):
+		dragon.queue_free()
+		dragon = null
+	
+	# Find a good spawn position for the dragon
+	var spawn_attempts = 0
+	var max_attempts = 50
+	
+	while spawn_attempts < max_attempts:
+		spawn_attempts += 1
+		
+		# Try to spawn dragon in a corner or edge area
+		var corner_choice = randi() % 4
+		var spawn_pos: Vector2i
+		
+		match corner_choice:
+			0:  # Top-left area
+				spawn_pos = Vector2i(randi_range(5, 15), randi_range(5, 15))
+			1:  # Top-right area
+				spawn_pos = Vector2i(randi_range(MAP_WIDTH - 15, MAP_WIDTH - 5), randi_range(5, 15))
+			2:  # Bottom-left area
+				spawn_pos = Vector2i(randi_range(5, 15), randi_range(MAP_HEIGHT - 15, MAP_HEIGHT - 5))
+			3:  # Bottom-right area
+				spawn_pos = Vector2i(randi_range(MAP_WIDTH - 15, MAP_WIDTH - 5), randi_range(MAP_HEIGHT - 15, MAP_HEIGHT - 5))
+		
+		# Dragons can spawn on any tile (they fly)
+		if spawn_pos.x >= 0 and spawn_pos.x < MAP_WIDTH and spawn_pos.y >= 0 and spawn_pos.y < MAP_HEIGHT:
+			create_dragon_at(spawn_pos)
+			break
+
+func create_dragon_at(pos: Vector2i):
+	dragon = preload("res://scripts/entities/dragon_npc.gd").new()
+	dragon.initialize(pos)
+	print("Created Dragon at position: ", pos)
+
 func clear_npcs():
 	for npc in npcs:
 		if npc and is_instance_valid(npc):
 			npc.queue_free()
 	npcs.clear()
+	
+	# Also clear dragon
+	if dragon and is_instance_valid(dragon):
+		dragon.queue_free()
+		dragon = null
 
 func get_npcs() -> Array[NPC]:
 	return npcs
+
+func get_dragon() -> DragonNPC:
+	return dragon
 
 # Structure system integration
 func initialize_world():

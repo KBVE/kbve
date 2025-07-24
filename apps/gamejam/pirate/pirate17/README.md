@@ -12,3 +12,8 @@ Source for the game is https://github.com/KBVE/kbve/tree/dev/apps/gamejam/pirate
 Official Bug Report is https://github.com/KBVE/kbve/issues/new?template=godot_report.md&title=[Bug]+:+[Godot]+:+[Airship]+
 
 Game Design Doc is https://docs.google.com/document/d/1vY3kt141fB3v1Ucds8ex3I-loJNbbbuCVllB-m0PscQ/
+
+Dragon Sprite is from https://opengameart.org/content/red-dragon-top-down-style
+Dragon Fireball is from https://opengameart.org/content/high-res-fire-ball
+
+Ocean tiles from https://gif-superretroworld.itch.io

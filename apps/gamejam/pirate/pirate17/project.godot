@@ -39,4 +39,4 @@ enabled=PackedStringArray("res://addons/item_downloader/plugin.cfg")
 
 renderer/rendering_method="gl_compatibility"
 renderer/rendering_method.mobile="gl_compatibility"
-environment/default_clear_color=Color(0.117647, 0.227451, 0.541176, 1)
+environment/default_clear_color=Color(0.5, 0.8, 0.9, 1)
