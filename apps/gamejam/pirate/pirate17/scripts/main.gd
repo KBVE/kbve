@@ -22,7 +22,6 @@ var interaction_tooltip: StructureInteractionTooltip
 var pending_movement: Vector2i
 var is_waiting_for_rotation: bool = false
 var parallax_bg: ParallaxBackground
-# CloudManager is now a singleton/autoload - no need for local variable
 var total_distance_traveled: float = 0.0  # Track actual distance traveled
 var last_player_position: Vector2 = Vector2.ZERO  # Track previous position
 const ENERGY_COST_DISTANCE: float = 128.0  # 1 energy per 128 pixels (4 tiles worth)
@@ -124,8 +123,8 @@ func _input(event):
 			initiate_movement_with_rotation(current_pos, new_pos, true)  # WASD movement
 	
 	elif event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		# Check if any UI is visible that should block input
-		if is_ui_blocking_input():
+		# Simple check: is the mouse over any UI control that should block input?
+		if is_mouse_over_blocking_ui():
 			return
 			
 		var mouse_world_pos = get_global_mouse_position()
@@ -133,6 +132,51 @@ func _input(event):
 		var current_pos = player_movement.get_current_position()
 		
 		initiate_movement_with_rotation(current_pos, grid_pos, false)  # Click movement
+
+func is_mouse_over_blocking_ui() -> bool:
+	"""Simple check if mouse is over any UI element that should block game input"""
+	var viewport = get_viewport()
+	if not viewport:
+		return false
+		
+	# Use Godot's built-in GUI input check - this is the most reliable method
+	# It checks if any Control node would receive the mouse event
+	var mouse_pos = viewport.get_mouse_position()
+	
+	# First, use viewport's method to check if GUI will handle the input
+	if viewport.gui_is_dragging():
+		return true
+	
+	# Check specific UI elements we know about
+	# Check settings button with proper rect calculation
+	if settings_button and settings_button.visible:
+		# Get the actual screen rect of the button
+		var button_rect = settings_button.get_global_rect()
+		# Add some padding to make it easier to click
+		button_rect = button_rect.grow(5)
+		if button_rect.has_point(mouse_pos):
+			print("Mouse over settings button - blocking movement")
+			return true
+	
+	# Check if settings menu/dialogue is open
+	var settings_layer = get_node_or_null("SettingsLayer")
+	if settings_layer and settings_layer.visible and settings_layer.get_child_count() > 0:
+		print("Settings menu open - blocking all input")
+		return true
+	
+	# Check if structure interior overlay is visible (it covers the whole screen)
+	if structure_interior_overlay and structure_interior_overlay.visible:
+		print("Structure interior overlay visible - blocking all input")
+		return true
+	
+	# Check if interaction tooltip is visible and mouse is over it
+	if interaction_tooltip and interaction_tooltip.visible:
+		var tooltip_rect = Rect2(interaction_tooltip.global_position, interaction_tooltip.size)
+		if tooltip_rect.has_point(mouse_pos):
+			print("Mouse over interaction tooltip - blocking movement")
+			return true
+	
+	return false
 
 func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bool):
 	"""Start movement with smooth rotation animation first"""
@@ -622,28 +666,6 @@ func _on_interior_overlay_exit():
 	print("Player exited structure interior")
 	# Overlay handles hiding itself, nothing else needed
 
-func is_ui_blocking_input() -> bool:
-	"""Check if any UI element should block mouse input to the game world"""
-	# Check if structure interior overlay is visible
-	if structure_interior_overlay and structure_interior_overlay.visible:
-		return true
-	
-	# Check if interaction tooltip is visible
-	if interaction_tooltip and interaction_tooltip.visible:
-		# Check if mouse is over the tooltip
-		var mouse_pos = get_global_mouse_position()
-		var tooltip_rect = Rect2(interaction_tooltip.global_position, interaction_tooltip.size)
-		if tooltip_rect.has_point(mouse_pos):
-			return true
-	
-	# Check if mouse is over the settings button
-	if settings_button and settings_button.visible:
-		var mouse_pos = get_global_mouse_position()
-		var button_rect = settings_button.get_global_rect()
-		if button_rect.has_point(mouse_pos):
-			return true
-	
-	return false
 
 func _on_clouds_visibility_changed(visible_count: int):
 	"""Called when cloud visibility changes - for performance monitoring"""
@@ -753,6 +775,9 @@ func setup_settings_button():
 	settings_button = Button.new()
 	settings_button.text = "⚙ Settings"
 	settings_button.custom_minimum_size = Vector2(120, 40)
+	
+	# Ensure button properly blocks mouse input
+	settings_button.mouse_filter = Control.MOUSE_FILTER_STOP
 	
 	# Position in top-right corner
 	settings_button.set_anchors_and_offsets_preset(Control.PRESET_TOP_RIGHT)
