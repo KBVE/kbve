@@ -1,8 +1,11 @@
-[gd_scene load_steps=4 format=3 uid="uid://cxg8dj5hjvqbp"]
+[gd_scene load_steps=5 format=3 uid="uid://cxg8dj5hjvqbp"]
 
 [ext_resource type="Script" uid="uid://c2pav53lmw1go" path="res://scripts/entities/spear.gd" id="1_wd8r7"]
 [ext_resource type="Texture2D" uid="uid://pcylgc7upxp3" path="res://assets/spears/metal_spear.png" id="2_n4h5k"]
 [ext_resource type="Script" uid="uid://b14wyg1on7omd" path="res://scripts/entities/debug_tip.gd" id="3_m7k2l"]
+
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 8.0
 
 [node name="Spear" type="Node2D"]
 script = ExtResource("1_wd8r7")
@@ -23,3 +26,11 @@ offset = Vector2(0, -8)
 z_index = 1
 position = Vector2(12, 3)
 script = ExtResource("3_m7k2l")
+
+[node name="HitArea" type="Area2D" parent="."]
+position = Vector2(12, 0)
+collision_layer = 4
+collision_mask = 3
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="HitArea"]
+shape = SubResource("CircleShape2D_1")

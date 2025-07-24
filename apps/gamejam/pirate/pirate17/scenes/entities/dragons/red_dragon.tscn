@@ -1,30 +1,29 @@
-[gd_scene load_steps=7 format=3 uid="uid://b8n5j2k4mam8p"]
+[gd_scene load_steps=7 format=3 uid="uid://c5y3d6x8n4vko"]
 
-[ext_resource type="Script" uid="uid://dii8jql7wgxll" path="res://scripts/entities/npc.gd" id="1_npc_script"]
-[ext_resource type="Texture2D" uid="uid://brqg4awyfyt2b" path="res://assets/ship/enemy_airship.png" id="2_ship_texture"]
+[ext_resource type="Script" uid="uid://by4p5fgvpwdqx" path="res://scripts/entities/dragon_npc.gd" id="1_dragon_script"]
+[ext_resource type="Texture2D" uid="uid://dgyxo1qovxtwn" path="res://assets/dragon/Dragon.png" id="2_dragon_texture"]
 [ext_resource type="Texture2D" uid="uid://ctwtqf7rqpr0a" path="res://assets/ui/fantasy/ValueBar_128x16.png" id="3_health_bg"]
 [ext_resource type="Texture2D" uid="uid://b01ri4w51x8rd" path="res://assets/ui/fantasy/ValueRed_120x8.png" id="4_health_fill"]
 [ext_resource type="Texture2D" uid="uid://ux350mxypu37" path="res://assets/ui/fantasy/ValueBlue_120x8.png" id="5_mana_fill"]
 
-[sub_resource type="CapsuleShape2D" id="CapsuleShape2D_t4q8i"]
-radius = 11.0
-height = 48.0
+[sub_resource type="CircleShape2D" id="CircleShape2D_1"]
+radius = 32.0
 
-[node name="NavyAirship" type="Node2D"]
-script = ExtResource("1_npc_script")
+[node name="RedDragon" type="Node2D"]
+script = ExtResource("1_dragon_script")
 
 [node name="VisualContainer" type="Node2D" parent="."]
-z_index = 15
+z_index = 20
 
-[node name="ShipSprite" type="Sprite2D" parent="VisualContainer"]
-z_index = 1
-scale = Vector2(0.8, 0.8)
-texture = ExtResource("2_ship_texture")
+[node name="DragonSprite" type="Sprite2D" parent="VisualContainer"]
+z_index = 2
+scale = Vector2(0.5, 0.5)
+texture = ExtResource("2_dragon_texture")
 
 [node name="StatusBarsContainer" type="Node2D" parent="VisualContainer"]
 z_index = 30
-position = Vector2(-10, 35)
-scale = Vector2(0.5, 0.5)
+position = Vector2(0, 45)
+scale = Vector2(0.6, 0.6)
 
 [node name="StatusBars" type="Control" parent="VisualContainer/StatusBarsContainer"]
 layout_mode = 3
@@ -47,8 +46,8 @@ offset_left = 4.0
 offset_top = 4.0
 offset_right = 60.0
 offset_bottom = 12.0
-max_value = 10.0
-value = 10.0
+max_value = 20.0
+value = 20.0
 texture_progress = ExtResource("4_health_fill")
 
 [node name="HealthLabel" type="Label" parent="VisualContainer/StatusBarsContainer/StatusBars/HealthBarContainer"]
@@ -69,7 +68,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 11
-text = "10/10"
+text = "20/20"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -88,8 +87,8 @@ offset_left = 4.0
 offset_top = 4.0
 offset_right = 60.0
 offset_bottom = 12.0
-max_value = 10.0
-value = 10.0
+max_value = 20.0
+value = 20.0
 texture_progress = ExtResource("5_mana_fill")
 
 [node name="ManaLabel" type="Label" parent="VisualContainer/StatusBarsContainer/StatusBars/ManaBarContainer"]
@@ -110,7 +109,7 @@ theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 11
-text = "10/10"
+text = "20/20"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -119,5 +118,4 @@ collision_layer = 2
 collision_mask = 4
 
 [node name="CollisionShape2D" type="CollisionShape2D" parent="HitBox"]
-position = Vector2(0, -1)
-shape = SubResource("CapsuleShape2D_t4q8i")
+shape = SubResource("CircleShape2D_1")

@@ -192,11 +192,13 @@ func is_valid_dragon_spawn(pos: Vector2i) -> bool:
 	return true
 
 func create_dragon_at(pos: Vector2i):
-	var new_dragon = preload("res://scripts/entities/dragon_npc.gd").new()
+	# Load the red dragon scene instead of creating script-based dragon
+	var red_dragon_scene = preload("res://scenes/entities/dragons/red_dragon.tscn")
+	var new_dragon = red_dragon_scene.instantiate()
 	new_dragon.initialize(pos)
 	new_dragon.connect("dragon_died", _on_dragon_died)
 	dragons.append(new_dragon)
-	print("Created Dragon at position: ", pos, " - Total dragons: ", dragons.size())
+	print("Created Red Dragon at position: ", pos, " - Total dragons: ", dragons.size())
 
 func _on_dragon_died(dead_dragon: DragonNPC):
 	# Remove dead dragon from array

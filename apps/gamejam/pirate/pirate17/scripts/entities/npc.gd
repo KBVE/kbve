@@ -18,8 +18,8 @@ var spawn_position: Vector2i
 var is_initialized: bool = false
 
 # Health system
-var max_health: int = 3
-var current_health: int = 3
+var max_health: int = 10
+var current_health: int = 10
 var health_bar: ProgressBar
 var click_area: Area2D
 
@@ -58,13 +58,15 @@ var state_badge: FantasyStateBadge
 # Scene-based visual components (will be assigned if using scene)
 @onready var visual_container: Node2D = get_node_or_null("VisualContainer")
 @onready var ship_sprite: Sprite2D = get_node_or_null("VisualContainer/ShipSprite")
-@onready var scene_health_bar: ProgressBar = get_node_or_null("VisualContainer/StatusBars/HealthBar")
-@onready var scene_mana_bar: ProgressBar = get_node_or_null("VisualContainer/StatusBars/ManaBar")
+@onready var scene_health_bar: TextureProgressBar = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/HealthBarContainer/HealthBar")
+@onready var scene_mana_bar: TextureProgressBar = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/ManaBarContainer/ManaBar")
+@onready var scene_health_label: Label = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/HealthBarContainer/HealthLabel")
+@onready var scene_mana_label: Label = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/ManaBarContainer/ManaLabel")
 @onready var scene_click_area: Area2D = get_node_or_null("ClickArea")
 
 # Mana system for navy ships
-var max_mana: int = 3
-var current_mana: int = 3
+var max_mana: int = 10
+var current_mana: int = 10
 
 func _ready():
 	# Set z-index to render above map tiles
@@ -87,6 +89,12 @@ func _ready():
 	setup_attack_timer()
 	connect_movement_signals()
 	setup_click_detection()
+	
+	# Initialize health and mana labels if they exist
+	if scene_health_label:
+		scene_health_label.text = str(current_health) + "/" + str(max_health)
+	if scene_mana_label:
+		scene_mana_label.text = str(current_mana) + "/" + str(max_mana)
 
 func setup_click_detection():
 	click_area = Area2D.new()
@@ -226,6 +234,7 @@ func create_health_bar(container: Node2D):
 
 func take_damage(damage: int):
 	print("DEBUG: NPC take_damage called with ", damage, " damage")
+	print("DEBUG: NPC name: ", name)
 	print("DEBUG: Health before: ", current_health, "/", max_health)
 	
 	current_health -= damage
@@ -263,9 +272,17 @@ func take_damage(damage: int):
 		# Update fantasy health bar - it already uses ValueRed_120x8.png, no need to change color
 		# The ValueBar_128x16.png background contains the ValueRed_120x8.png fill properly
 	
+	# Update health label
+	if scene_health_label:
+		scene_health_label.text = str(current_health) + "/" + str(max_health)
+	
 	# Update mana bar if it exists (for scene-based entities)
 	if scene_mana_bar:
 		scene_mana_bar.value = current_mana
+		
+	# Update mana label
+	if scene_mana_label:
+		scene_mana_label.text = str(current_mana) + "/" + str(max_mana)
 	
 	# Check if NPC should die
 	if current_health <= 0:

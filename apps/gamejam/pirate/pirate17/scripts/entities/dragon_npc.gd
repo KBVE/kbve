@@ -8,6 +8,10 @@ var dragon_state: DragonState = DragonState.IDLE
 var dragon_attack_texture: Texture2D
 var projectile_container: Node2D
 
+# Scene-based visual components (will be assigned if using scene)
+@onready var dragon_visual_container: Node2D = get_node_or_null("VisualContainer")
+@onready var dragon_sprite: Sprite2D = get_node_or_null("VisualContainer/DragonSprite")
+
 enum DragonState {
 	IDLE,
 	ATTACKING,
@@ -27,15 +31,27 @@ func setup_dragon_properties():
 	reset_distance = 15
 	follow_distance = 5
 	aggression_check_interval = 1.5
-	max_health = 10
-	current_health = 10
+	max_health = 20
+	current_health = 20
+	max_mana = 20
+	current_mana = 20
 	attack_range = 8  # Dragons have longer attack range than regular ships
 	attack_cooldown = 3.0  # Dragons attack faster than ships
 	dragon_attack_texture = load("res://assets/dragon/DragonAttack.png")
 
 func create_visual():
-	var visual_container = Node2D.new()
-	visual_container.z_index = 15
+	# Check if we have scene-based visual components
+	if dragon_visual_container and dragon_sprite:
+		# Use scene-based components
+		visual_container = dragon_visual_container
+		npc_sprite = dragon_sprite
+		
+		# Dragon-specific setup is already done in scene
+		return
+	
+	# Fallback: Create script-based visual components for legacy dragons
+	var script_visual_container = Node2D.new()
+	script_visual_container.z_index = 15
 	
 	npc_sprite = Sprite2D.new()
 	npc_sprite.texture = load("res://assets/dragon/Dragon.png")
@@ -44,7 +60,7 @@ func create_visual():
 	npc_sprite.scale = Vector2(0.6, 0.6)
 	npc_sprite.flip_h = false
 	
-	visual_container.add_child(npc_sprite)
+	script_visual_container.add_child(npc_sprite)
 	
 	var ship_shadow = preload("res://scripts/ship_shadow.gd").new()
 	ship_shadow.shadow_offset = Vector2(16, 20)

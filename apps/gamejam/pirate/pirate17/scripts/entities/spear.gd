@@ -14,9 +14,10 @@ var is_active: bool = false
 @onready var sprite: Sprite2D = $SpearSprite
 @onready var glow_sprite: Sprite2D = $GlowSprite  
 @onready var debug_tip_indicator: Node2D = $DebugTip
+@onready var hit_area: Area2D = $HitArea
 
 # Collision detection
-var collision_radius: float = 8.0  # Smaller radius for tip collision
+var collision_radius: float = 16.0  # Increased radius for better hit detection
 var check_interval: float = 0.02  # Check collisions every 0.02 seconds
 var collision_timer: float = 0.0
 var tip_offset: float = 16.0  # Distance from wooden end to tip (adjusted for better alignment)
@@ -26,6 +27,11 @@ func _ready():
 	z_index = 12  # Above most entities but below UI
 	apply_spear_scale()
 	reset_spear()
+	
+	# Connect area collision signals
+	if hit_area:
+		hit_area.area_entered.connect(_on_hit_area_entered)
+		hit_area.body_entered.connect(_on_hit_body_entered)
 
 func apply_spear_scale():
 	"""Apply consistent scaling to spear sprites"""
@@ -97,17 +103,16 @@ func _process(delta):
 	# Move the spear
 	position += velocity * delta
 	
+	# Update hit area position to follow the tip
+	if hit_area and velocity.length() > 0:
+		var direction = velocity.normalized()
+		hit_area.position = direction * tip_offset
+	
 	# Update lifetime
 	lifetime -= delta
 	if lifetime <= 0:
 		deactivate_spear()
 		return
-	
-	# Check for collisions
-	collision_timer += delta
-	if collision_timer >= check_interval:
-		collision_timer = 0.0
-		check_collisions()
 	
 	# Check if out of bounds
 	if position.x < -200 or position.x > 4200 or position.y < -200 or position.y > 4200:
@@ -208,3 +213,26 @@ func deactivate_spear():
 		spear_pool = get_tree().current_scene.get_node_or_null("SpearPool")
 	if spear_pool:
 		spear_pool.return_spear(self)
+
+func _on_hit_area_entered(area: Area2D):
+	"""Called when the spear's hit area enters another Area2D"""
+	if has_hit or not is_active:
+		return
+	
+	# Get the parent node which should be the entity (NavyAirship, etc)
+	var entity = area.get_parent()
+	if entity and entity != owner_entity:
+		print("DEBUG: Spear hit area collision with: ", entity.name)
+		if entity.has_method("take_damage"):
+			hit_entity(entity)
+
+func _on_hit_body_entered(body: Node2D):
+	"""Called when the spear's hit area enters a physics body"""
+	if has_hit or not is_active:
+		return
+	
+	# Handle collision with physics bodies if needed
+	if body and body != owner_entity:
+		print("DEBUG: Spear hit body collision with: ", body.name)
+		if body.has_method("take_damage"):
+			hit_entity(body)
