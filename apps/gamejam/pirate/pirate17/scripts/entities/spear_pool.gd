@@ -14,7 +14,7 @@ func _ready():
 
 func create_spear_pool():
 	"""Create the initial pool of spears"""
-	var spear_scene = preload("res://scenes/entities/spear.tscn")
+	var spear_scene = preload("res://scenes/entities/spear/spear.tscn")
 	for i in range(pool_size):
 		var spear = spear_scene.instantiate()
 		spear.reset_spear()

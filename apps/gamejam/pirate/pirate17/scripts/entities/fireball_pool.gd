@@ -3,7 +3,7 @@ extends Node2D
 
 # Pool configuration
 var pool_size: int = 20
-var fireball_scene = preload("res://scenes/entities/fireball.tscn")
+var fireball_scene = preload("res://scenes/entities/fireball/fireball.tscn")
 
 # Pool management
 var available_fireballs: Array[Fireball] = []
