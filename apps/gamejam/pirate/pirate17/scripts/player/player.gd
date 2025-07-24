@@ -1,6 +1,6 @@
 extends Node
 
-const ULID = preload("res://scripts/utils/ulid.gd")
+const ULIDGenerator = preload("res://scripts/utils/ulid.gd")
 const PlayerSaving = preload("res://scripts/player/player_saving.gd")
 
 var player_ulid: String = ""
@@ -22,7 +22,7 @@ func _ready():
 func initialize_new_player():
 	"""Initialize a new player with default values"""
 	if player_ulid.is_empty():
-		player_ulid = ULID.generate()
+		player_ulid = ULIDGenerator.generate()
 	
 	if player_name.is_empty():
 		player_name = "Captain Anon" + str(randi_range(1000, 9999))

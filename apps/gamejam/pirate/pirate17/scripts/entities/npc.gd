@@ -17,6 +17,12 @@ var follow_distance: int = 1  # Stay this far from player when following
 var spawn_position: Vector2i
 var is_initialized: bool = false
 
+# Health system
+var max_health: int = 3
+var current_health: int = 3
+var health_bar: ProgressBar
+var click_area: Area2D
+
 # Enhanced AI State System
 enum NPCState {
 	PATROL,    # Black - Normal patrol around spawn
@@ -34,6 +40,13 @@ var is_following_player: bool = false  # Legacy variable for compatibility
 # Performance optimization - late update system
 var aggression_check_timer: Timer
 var aggression_check_interval: float = 2.0  # Check aggression less frequently (increased from 1.0)
+
+# Combat system
+var attack_range: int = 6
+var attack_cooldown: float = 4.0
+var spear_speed: float = 280.0
+var attack_timer: Timer
+var is_attacking: bool = false
 
 # Path visualization
 var path_visualizer: Node2D
@@ -60,7 +73,25 @@ func _ready():
 	create_path_visualizer()
 	setup_movement_timer()
 	setup_aggression_timer()
+	setup_attack_timer()
 	connect_movement_signals()
+	setup_click_detection()
+
+func setup_click_detection():
+	click_area = Area2D.new()
+	var collision_shape = CollisionShape2D.new()
+	var shape = CircleShape2D.new()
+	shape.radius = 20
+	collision_shape.shape = shape
+	
+	click_area.add_child(collision_shape)
+	add_child(click_area)
+	
+	click_area.input_event.connect(_on_click_area_input)
+
+func _on_click_area_input(viewport, event, shape_idx):
+	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_RIGHT:
+		take_damage(1)
 
 func connect_movement_signals():
 	move_component.movement_started.connect(_on_movement_started)
@@ -126,7 +157,73 @@ func create_visual():
 	# Position badge above NPC after it's sized
 	call_deferred("position_state_badge")
 	
+	# Create health bar
+	create_health_bar(visual_container)
+	
 	add_child(visual_container)
+
+func create_health_bar(container: Node2D):
+	health_bar = ProgressBar.new()
+	health_bar.size = Vector2(40, 6)
+	health_bar.position = Vector2(-20, -60)
+	health_bar.min_value = 0
+	health_bar.max_value = max_health
+	health_bar.value = current_health
+	health_bar.z_index = 30
+	
+	# Style the health bar
+	var style_bg = StyleBoxFlat.new()
+	style_bg.bg_color = Color(0.2, 0.2, 0.2, 0.8)
+	style_bg.corner_radius_top_left = 2
+	style_bg.corner_radius_top_right = 2
+	style_bg.corner_radius_bottom_left = 2
+	style_bg.corner_radius_bottom_right = 2
+	
+	var style_fg = StyleBoxFlat.new()
+	style_fg.bg_color = Color(0.8, 0.2, 0.2, 1.0)
+	style_fg.corner_radius_top_left = 2
+	style_fg.corner_radius_top_right = 2
+	style_fg.corner_radius_bottom_left = 2
+	style_fg.corner_radius_bottom_right = 2
+	
+	health_bar.add_theme_stylebox_override("background", style_bg)
+	health_bar.add_theme_stylebox_override("fill", style_fg)
+	
+	container.add_child(health_bar)
+
+func take_damage(damage: int):
+	current_health -= damage
+	current_health = max(0, current_health)
+	
+	if health_bar:
+		health_bar.value = current_health
+		
+		# Change health bar color based on health percentage
+		var health_percent = float(current_health) / float(max_health)
+		var style_fg = StyleBoxFlat.new()
+		
+		if health_percent > 0.6:
+			style_fg.bg_color = Color(0.2, 0.8, 0.2, 1.0)  # Green
+		elif health_percent > 0.3:
+			style_fg.bg_color = Color(0.8, 0.8, 0.2, 1.0)  # Yellow
+		else:
+			style_fg.bg_color = Color(0.8, 0.2, 0.2, 1.0)  # Red
+		
+		style_fg.corner_radius_top_left = 2
+		style_fg.corner_radius_top_right = 2
+		style_fg.corner_radius_bottom_left = 2
+		style_fg.corner_radius_bottom_right = 2
+		
+		health_bar.add_theme_stylebox_override("fill", style_fg)
+	
+	# Check if NPC should die
+	if current_health <= 0:
+		die()
+
+func die():
+	print("NPC died!")
+	# Create death effect or animation here
+	queue_free()
 
 func transition_to_state(new_state: NPCState):
 	if current_state != new_state:
@@ -269,6 +366,13 @@ func setup_aggression_timer():
 	aggression_check_timer.autostart = true
 	add_child(aggression_check_timer)
 
+func setup_attack_timer():
+	attack_timer = Timer.new()
+	attack_timer.wait_time = attack_cooldown
+	attack_timer.one_shot = true
+	attack_timer.timeout.connect(_on_attack_cooldown_finished)
+	add_child(attack_timer)
+
 func initialize(start_pos: Vector2i):
 	is_initialized = true
 	grid_position = start_pos
@@ -321,8 +425,11 @@ func _on_movement_timer_timeout():
 					attempt_random_move()
 		
 		NPCState.AGGRESSIVE:
+			# Check if we can attack first
+			if player_distance <= attack_range and not is_attacking and attack_timer.is_stopped():
+				attempt_spear_attack()
 			# Once aggressive, stay aggressive until player is too far
-			if player_distance > reset_distance:
+			elif player_distance > reset_distance:
 				# Player is too far - give up and return to spawn
 				transition_to_state(NPCState.RETURNING)
 			elif player_distance > restart_distance:
@@ -679,3 +786,60 @@ func update_movement_path():
 		# Update path line to show current position to target
 		clear_dash_lines()
 		create_dotted_line(current_pos, target_world_pos)
+
+func attempt_spear_attack():
+	"""Attempt to fire a spear at the player"""
+	var main_scene = get_tree().current_scene
+	if not main_scene or not main_scene.has_method("get_player_position"):
+		return
+	
+	var player = main_scene.get_node_or_null("Player")
+	if not player:
+		return
+	
+	var npc_world_pos = position
+	var player_world_pos = player.position
+	var distance = npc_world_pos.distance_to(player_world_pos)
+	
+	if distance <= attack_range * World.TILE_SIZE:
+		perform_spear_attack(player_world_pos, player)
+
+func perform_spear_attack(target_pos: Vector2, target_entity: Node2D):
+	"""Perform the actual spear attack"""
+	is_attacking = true
+	
+	# Get spear pool reference
+	var spear_pool = get_node_or_null("/root/Main/SpearPool")
+	if not spear_pool:
+		# Try alternative path
+		spear_pool = get_tree().current_scene.get_node_or_null("SpearPool")
+	if not spear_pool:
+		print("SpearPool not found for NPC attack!")
+		is_attacking = false
+		return
+	
+	# Calculate spawn position in front of the ship
+	var direction_to_target = (target_pos - position).normalized()
+	var spawn_offset = 25.0  # Distance from ship center
+	var spear_spawn_pos = position + direction_to_target * spawn_offset
+	
+	# Launch spear
+	var success = spear_pool.launch_spear(
+		spear_spawn_pos,
+		target_pos,
+		spear_speed,
+		1,  # NPC spears do 1 damage
+		self
+	)
+	
+	if success:
+		print("Enemy ship fired spear at player!")
+		# Start cooldown
+		attack_timer.start()
+	else:
+		print("No spears available for NPC attack!")
+		is_attacking = false
+
+func _on_attack_cooldown_finished():
+	"""Called when attack cooldown finishes"""
+	is_attacking = false

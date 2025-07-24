@@ -6,7 +6,8 @@ const MAP_HEIGHT = 64
 
 var map: Node
 var npcs: Array[NPC] = []
-var dragon: DragonNPC = null
+var dragons: Array[DragonNPC] = []
+var max_dragons: int = 3
 var structure_pool: StructurePool
 
 func _ready():
@@ -32,19 +33,73 @@ func get_neighbors_at(x: int, y: int) -> Array:
 func get_map_size() -> Vector2i:
 	return map.map_size
 
-func spawn_npcs(count: int = 15):
-	# Clear existing NPCs
+func spawn_npcs(count: int = 20):
+	# Clear existing NPCs and dragons
 	clear_npcs()
 	
-	# Spawn the dragon first
-	spawn_dragon()
+	# Spawn 3 dragons
+	spawn_initial_dragons()
 	
+	# Try to spawn enemy ships from structures first
+	spawn_npcs_from_structures(count)
+	
+	# Fill remaining count with random spawns if needed
+	if npcs.size() < count:
+		spawn_remaining_npcs_randomly(count)
+
+func spawn_npcs_from_structures(target_count: int):
+	if not structure_pool:
+		return
+	
+	var structures = structure_pool.get_all_structures()
+	var ships_per_structure = max(1, target_count / max(1, structures.size()))
+	
+	print("Spawning enemy ships from ", structures.size(), " structures (", ships_per_structure, " per structure)")
+	
+	for structure in structures:
+		# Skip ruins and temples (peaceful structures)
+		if structure.type in [StructurePool.StructureType.RUINS, StructurePool.StructureType.TEMPLE]:
+			continue
+		
+		# Spawn ships around this structure
+		for i in range(ships_per_structure):
+			if npcs.size() >= target_count:
+				break
+			
+			var spawn_pos = find_spawn_near_structure(structure)
+			if spawn_pos != Vector2i(-1, -1):
+				create_npc_at(spawn_pos)
+
+func find_spawn_near_structure(structure: StructurePool.Structure) -> Vector2i:
+	var attempts = 0
+	var max_attempts = 20
+	
+	while attempts < max_attempts:
+		attempts += 1
+		
+		# Spawn within 3-8 tiles of the structure
+		var distance = randi_range(3, 8)
+		var angle = randf() * 2 * PI
+		var offset_x = int(cos(angle) * distance)
+		var offset_y = int(sin(angle) * distance)
+		
+		var spawn_pos = Vector2i(
+			structure.grid_position.x + structure.size.x / 2 + offset_x,
+			structure.grid_position.y + structure.size.y / 2 + offset_y
+		)
+		
+		if is_valid_npc_spawn(spawn_pos):
+			return spawn_pos
+	
+	return Vector2i(-1, -1)
+
+func spawn_remaining_npcs_randomly(target_count: int):
 	var spawn_attempts = 0
-	var max_attempts = count * 10
+	var max_attempts = (target_count - npcs.size()) * 10
 	
-	print("Attempting to spawn ", count, " NPCs...")
+	print("Filling remaining ships randomly. Need ", target_count - npcs.size(), " more ships.")
 	
-	while npcs.size() < count and spawn_attempts < max_attempts:
+	while npcs.size() < target_count and spawn_attempts < max_attempts:
 		spawn_attempts += 1
 		
 		# Random position
@@ -52,14 +107,9 @@ func spawn_npcs(count: int = 15):
 		var spawn_y = randi_range(5, MAP_HEIGHT - 5)
 		var spawn_pos = Vector2i(spawn_x, spawn_y)
 		
-		print("Spawn attempt ", spawn_attempts, " at position: ", spawn_pos)
-		
 		# Check if position is valid for NPC spawn
 		if is_valid_npc_spawn(spawn_pos):
-			print("Position is valid, creating NPC")
 			create_npc_at(spawn_pos)
-		else:
-			print("Position rejected")
 
 func is_valid_npc_spawn(pos: Vector2i) -> bool:
 	# Check if tile is passable
@@ -87,45 +137,83 @@ func is_valid_npc_spawn(pos: Vector2i) -> bool:
 func create_npc_at(pos: Vector2i):
 	var npc = NPC.new()
 	npc.initialize(pos)
+	# Connect death signal to handle respawning
+	npc.connect("tree_exiting", _on_npc_died.bind(npc))
 	npcs.append(npc)
 	print("Created NPC at position: ", pos, " - Total NPCs: ", npcs.size())
 
-func spawn_dragon():
-	# Clear existing dragon if any
-	if dragon and is_instance_valid(dragon):
-		dragon.queue_free()
-		dragon = null
-	
-	# Find a good spawn position for the dragon
+func spawn_initial_dragons():
+	for i in range(max_dragons):
+		spawn_single_dragon()
+
+func spawn_single_dragon():
 	var spawn_attempts = 0
 	var max_attempts = 50
 	
 	while spawn_attempts < max_attempts:
 		spawn_attempts += 1
 		
-		# Try to spawn dragon in a corner or edge area
-		var corner_choice = randi() % 4
-		var spawn_pos: Vector2i
+		var spawn_pos = get_dragon_spawn_position()
 		
-		match corner_choice:
-			0:  # Top-left area
-				spawn_pos = Vector2i(randi_range(5, 15), randi_range(5, 15))
-			1:  # Top-right area
-				spawn_pos = Vector2i(randi_range(MAP_WIDTH - 15, MAP_WIDTH - 5), randi_range(5, 15))
-			2:  # Bottom-left area
-				spawn_pos = Vector2i(randi_range(5, 15), randi_range(MAP_HEIGHT - 15, MAP_HEIGHT - 5))
-			3:  # Bottom-right area
-				spawn_pos = Vector2i(randi_range(MAP_WIDTH - 15, MAP_WIDTH - 5), randi_range(MAP_HEIGHT - 15, MAP_HEIGHT - 5))
-		
-		# Dragons can spawn on any tile (they fly)
-		if spawn_pos.x >= 0 and spawn_pos.x < MAP_WIDTH and spawn_pos.y >= 0 and spawn_pos.y < MAP_HEIGHT:
+		if is_valid_dragon_spawn(spawn_pos):
 			create_dragon_at(spawn_pos)
 			break
 
+func get_dragon_spawn_position() -> Vector2i:
+	# Spawn from map edges for respawning dragons
+	var edge_choice = randi() % 4
+	var spawn_pos: Vector2i
+	
+	match edge_choice:
+		0:  # Top edge
+			spawn_pos = Vector2i(randi_range(10, MAP_WIDTH - 10), randi_range(0, 5))
+		1:  # Right edge
+			spawn_pos = Vector2i(randi_range(MAP_WIDTH - 5, MAP_WIDTH - 1), randi_range(10, MAP_HEIGHT - 10))
+		2:  # Bottom edge
+			spawn_pos = Vector2i(randi_range(10, MAP_WIDTH - 10), randi_range(MAP_HEIGHT - 5, MAP_HEIGHT - 1))
+		3:  # Left edge
+			spawn_pos = Vector2i(randi_range(0, 5), randi_range(10, MAP_HEIGHT - 10))
+	
+	return spawn_pos
+
+func is_valid_dragon_spawn(pos: Vector2i) -> bool:
+	if pos.x < 0 or pos.x >= MAP_WIDTH or pos.y < 0 or pos.y >= MAP_HEIGHT:
+		return false
+	
+	# Check distance from other dragons
+	for existing_dragon in dragons:
+		if existing_dragon and is_instance_valid(existing_dragon):
+			var distance = abs(pos.x - existing_dragon.grid_position.x) + abs(pos.y - existing_dragon.grid_position.y)
+			if distance < 15:  # Keep dragons spread out
+				return false
+	
+	return true
+
 func create_dragon_at(pos: Vector2i):
-	dragon = preload("res://scripts/entities/dragon_npc.gd").new()
-	dragon.initialize(pos)
-	print("Created Dragon at position: ", pos)
+	var new_dragon = preload("res://scripts/entities/dragon_npc.gd").new()
+	new_dragon.initialize(pos)
+	new_dragon.connect("dragon_died", _on_dragon_died)
+	dragons.append(new_dragon)
+	print("Created Dragon at position: ", pos, " - Total dragons: ", dragons.size())
+
+func _on_dragon_died(dead_dragon: DragonNPC):
+	# Remove dead dragon from array
+	dragons.erase(dead_dragon)
+	print("Dragon died, remaining: ", dragons.size())
+	
+	# Spawn a new dragon if below max
+	if dragons.size() < max_dragons:
+		# Delay respawn slightly
+		var respawn_timer = Timer.new()
+		respawn_timer.wait_time = 3.0
+		respawn_timer.one_shot = true
+		respawn_timer.timeout.connect(func():
+			spawn_single_dragon()
+			respawn_timer.queue_free()
+		)
+		add_child(respawn_timer)
+		respawn_timer.start()
+		print("New dragon will respawn in 3 seconds")
 
 func clear_npcs():
 	for npc in npcs:
@@ -133,16 +221,24 @@ func clear_npcs():
 			npc.queue_free()
 	npcs.clear()
 	
-	# Also clear dragon
-	if dragon and is_instance_valid(dragon):
-		dragon.queue_free()
-		dragon = null
+	# Clear all dragons
+	for dragon in dragons:
+		if dragon and is_instance_valid(dragon):
+			dragon.queue_free()
+	dragons.clear()
 
 func get_npcs() -> Array[NPC]:
 	return npcs
 
-func get_dragon() -> DragonNPC:
-	return dragon
+func get_dragons() -> Array[DragonNPC]:
+	return dragons
+
+func get_all_entities() -> Array[NPC]:
+	var all_entities: Array[NPC] = []
+	all_entities.append_array(npcs)
+	for dragon in dragons:
+		all_entities.append(dragon)
+	return all_entities
 
 # Structure system integration
 func initialize_world():
@@ -176,6 +272,53 @@ func get_all_structures() -> Array:
 	if structure_pool:
 		return structure_pool.get_all_structures()
 	return []
+
+func _on_npc_died(dead_npc: NPC):
+	# Remove dead NPC from array
+	npcs.erase(dead_npc)
+	print("Enemy ship died, remaining: ", npcs.size())
+	
+	# Maintain pool of 20 ships by spawning a replacement
+	if npcs.size() < 20:
+		# Delay respawn slightly
+		var respawn_timer = Timer.new()
+		respawn_timer.wait_time = 2.0
+		respawn_timer.one_shot = true
+		respawn_timer.timeout.connect(func():
+			respawn_single_npc()
+			respawn_timer.queue_free()
+		)
+		add_child(respawn_timer)
+		respawn_timer.start()
+		print("New enemy ship will respawn in 2 seconds")
+
+func respawn_single_npc():
+	# Try to spawn from structures first
+	if structure_pool:
+		var structures = structure_pool.get_all_structures()
+		structures.shuffle()
+		
+		for structure in structures:
+			# Skip peaceful structures
+			if structure.type in [StructurePool.StructureType.RUINS, StructurePool.StructureType.TEMPLE]:
+				continue
+			
+			var spawn_pos = find_spawn_near_structure(structure)
+			if spawn_pos != Vector2i(-1, -1):
+				create_npc_at(spawn_pos)
+				return
+	
+	# Fallback to random spawn
+	var attempts = 0
+	while attempts < 50:
+		attempts += 1
+		var spawn_x = randi_range(5, MAP_WIDTH - 5)
+		var spawn_y = randi_range(5, MAP_HEIGHT - 5)
+		var spawn_pos = Vector2i(spawn_x, spawn_y)
+		
+		if is_valid_npc_spawn(spawn_pos):
+			create_npc_at(spawn_pos)
+			return
 
 func get_structure_pool_stats() -> Dictionary:
 	"""Get statistics about the structure pool"""

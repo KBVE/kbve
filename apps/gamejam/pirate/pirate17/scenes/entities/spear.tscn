@@ -1,0 +1,25 @@
+[gd_scene load_steps=4 format=3 uid="uid://cxg8dj5hjvqbp"]
+
+[ext_resource type="Script" uid="uid://c2pav53lmw1go" path="res://scripts/entities/spear.gd" id="1_wd8r7"]
+[ext_resource type="Texture2D" uid="uid://pcylgc7upxp3" path="res://assets/spears/metal_spear.png" id="2_n4h5k"]
+[ext_resource type="Script" uid="uid://b14wyg1on7omd" path="res://scripts/entities/debug_tip.gd" id="3_m7k2l"]
+
+[node name="Spear" type="Node2D"]
+script = ExtResource("1_wd8r7")
+
+[node name="GlowSprite" type="Sprite2D" parent="."]
+modulate = Color(1.2, 1.2, 1.2, 0.3)
+z_index = -1
+texture = ExtResource("2_n4h5k")
+centered = false
+offset = Vector2(0, -8)
+
+[node name="SpearSprite" type="Sprite2D" parent="."]
+texture = ExtResource("2_n4h5k")
+centered = false
+offset = Vector2(0, -8)
+
+[node name="DebugTip" type="Node2D" parent="."]
+z_index = 1
+position = Vector2(12, 3)
+script = ExtResource("3_m7k2l")

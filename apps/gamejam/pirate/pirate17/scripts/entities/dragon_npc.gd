@@ -1,12 +1,10 @@
 class_name DragonNPC
 extends NPC
 
-var attack_range: int = 8
-var attack_cooldown: float = 3.0
+signal dragon_died(dragon: DragonNPC)
+
 var fireball_speed: float = 200.0
 var dragon_state: DragonState = DragonState.IDLE
-var attack_timer: Timer
-var is_attacking: bool = false
 var dragon_attack_texture: Texture2D
 var projectile_container: Node2D
 
@@ -19,7 +17,6 @@ enum DragonState {
 func _ready():
 	super._ready()
 	setup_dragon_properties()
-	setup_attack_timer()
 	setup_projectile_container()
 
 func setup_dragon_properties():
@@ -30,6 +27,10 @@ func setup_dragon_properties():
 	reset_distance = 15
 	follow_distance = 5
 	aggression_check_interval = 1.5
+	max_health = 10
+	current_health = 10
+	attack_range = 8  # Dragons have longer attack range than regular ships
+	attack_cooldown = 3.0  # Dragons attack faster than ships
 	dragon_attack_texture = load("res://assets/dragon/DragonAttack.png")
 
 func create_visual():
@@ -78,12 +79,6 @@ func update_state_label():
 		
 		call_deferred("position_state_badge")
 
-func setup_attack_timer():
-	attack_timer = Timer.new()
-	attack_timer.wait_time = attack_cooldown
-	attack_timer.one_shot = true
-	attack_timer.timeout.connect(_on_attack_cooldown_finished)
-	add_child(attack_timer)
 
 func setup_projectile_container():
 	var main_scene = get_tree().current_scene
@@ -113,19 +108,16 @@ func _on_aggression_check_timeout():
 		super._on_aggression_check_timeout()
 
 func attempt_fireball_attack():
-	var main_scene = get_tree().current_scene
-	if not main_scene or not main_scene.has_method("get_player_position"):
-		return
-	
-	var player_pos = main_scene.get_player_position()
-	var player_world_pos = Movement.get_world_position(player_pos)
-	var dragon_world_pos = Movement.get_world_position(grid_position)
-	
-	var distance = dragon_world_pos.distance_to(player_world_pos)
-	if distance <= attack_range * World.TILE_SIZE:
-		perform_fireball_attack(player_world_pos)
+	var target = find_nearest_target()
+	if target:
+		var target_world_pos = target.position
+		var dragon_world_pos = Movement.get_world_position(grid_position)
+		
+		var distance = dragon_world_pos.distance_to(target_world_pos)
+		if distance <= attack_range * World.TILE_SIZE:
+			perform_fireball_attack(target_world_pos, target)
 
-func perform_fireball_attack(target_pos: Vector2):
+func perform_fireball_attack(target_pos: Vector2, target_entity: Node2D = null):
 	is_attacking = true
 	dragon_state = DragonState.ATTACKING
 	update_state_label()
@@ -148,14 +140,14 @@ func perform_fireball_attack(target_pos: Vector2):
 	attack_delay_timer.wait_time = 0.5
 	attack_delay_timer.one_shot = true
 	attack_delay_timer.timeout.connect(func(): 
-		launch_fireball(target_pos)
+		launch_fireball(target_pos, target_entity)
 		attack_delay_timer.queue_free()
 	)
 	add_child(attack_delay_timer)
 	attack_delay_timer.start()
 	attack_timer.start()
 
-func launch_fireball(target_pos: Vector2):
+func launch_fireball(target_pos: Vector2, target_entity: Node2D = null):
 	if not projectile_container:
 		setup_projectile_container()
 	
@@ -164,6 +156,7 @@ func launch_fireball(target_pos: Vector2):
 	fireball.set_target(target_pos, fireball_speed)
 	fireball.damage = 1
 	fireball.owner_entity = self
+	fireball.target_entity = target_entity
 	
 	projectile_container.add_child(fireball)
 	
@@ -180,8 +173,38 @@ func launch_fireball(target_pos: Vector2):
 	add_child(recovery_timer)
 	recovery_timer.start()
 
+func find_nearest_target() -> Node2D:
+	var nearest_target: Node2D = null
+	var nearest_distance: float = INF
+	var dragon_world_pos = Movement.get_world_position(grid_position)
+	
+	var world = get_node("/root/Main/World")
+	if not world:
+		return null
+	
+	var npcs = world.get_npcs()
+	for npc in npcs:
+		if npc and is_instance_valid(npc) and npc != self:
+			var distance = dragon_world_pos.distance_to(npc.position)
+			if distance <= attack_range * World.TILE_SIZE and distance < nearest_distance:
+				nearest_target = npc
+				nearest_distance = distance
+	
+	var main_scene = get_tree().current_scene
+	if main_scene and main_scene.has_method("get_player_position"):
+		var player = main_scene.get_node_or_null("Player")
+		if player:
+			var distance = dragon_world_pos.distance_to(player.position)
+			if distance <= attack_range * World.TILE_SIZE and distance < nearest_distance:
+				nearest_target = player
+				nearest_distance = distance
+	
+	return nearest_target
+
 func _on_attack_cooldown_finished():
-	is_attacking = false
+	# Call parent implementation
+	super._on_attack_cooldown_finished()
+	# Add dragon-specific behavior
 	dragon_state = DragonState.IDLE
 	update_state_label()
 
@@ -234,3 +257,7 @@ func update_npc_rotation(from: Vector2i, to: Vector2i):
 	rotation_tween.set_ease(Tween.EASE_OUT)
 	rotation_tween.set_trans(Tween.TRANS_QUART)
 	rotation_tween.tween_property(npc_sprite, "rotation", target_angle, 0.3)
+
+func die():
+	dragon_died.emit(self)
+	super.die()

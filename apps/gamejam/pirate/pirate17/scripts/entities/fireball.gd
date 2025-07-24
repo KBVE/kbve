@@ -5,6 +5,7 @@ extends Node2D
 var velocity: Vector2 = Vector2.ZERO
 var damage: int = 1
 var owner_entity: Node2D  # Who shot this fireball
+var target_entity: Node2D  # Who this fireball is aimed at
 var lifetime: float = 5.0  # Max lifetime in seconds
 var has_hit: bool = false
 
@@ -126,31 +127,46 @@ func check_collisions():
 	if has_hit:
 		return
 	
-	# Get player reference
 	var main_scene = get_tree().current_scene
 	if not main_scene:
 		return
 	
-	var player = main_scene.get_node_or_null("Player")
-	if not player:
-		return
-	
 	# Check collision with player
-	var distance_to_player = position.distance_to(player.position)
-	if distance_to_player <= collision_radius + 16:  # 16 is approx player radius
-		hit_player(player)
+	var player = main_scene.get_node_or_null("Player")
+	if player:
+		var distance_to_player = position.distance_to(player.position)
+		if distance_to_player <= collision_radius + 16:  # 16 is approx player radius
+			hit_entity(player)
+			return
+	
+	# Check collision with NPCs
+	var world = get_node("/root/Main/World")
+	if world:
+		var npcs = world.get_npcs()
+		for npc in npcs:
+			if npc and is_instance_valid(npc) and npc != owner_entity:
+				var distance_to_npc = position.distance_to(npc.position)
+				if distance_to_npc <= collision_radius + 20:  # 20 is approx NPC radius
+					hit_entity(npc)
+					return
 
-func hit_player(player: Node2D):
+func hit_entity(entity: Node2D):
 	if has_hit:
 		return
 	
 	has_hit = true
 	
-	# Deal damage to player
-	if Global.player and Global.player.stats:
-		Global.player.stats.damage(damage)
-		print("Dragon fireball hit player for ", damage, " damage!")
-		print("Player health: ", Global.player.stats.health, "/", Global.player.stats.max_health)
+	# Deal damage based on entity type
+	if entity.get_script() and entity.get_script().get_global_name() == "NPC":
+		# Hit an NPC (enemy ship)
+		entity.take_damage(damage)
+		print("Dragon fireball hit enemy ship for ", damage, " damage!")
+	else:
+		# Hit player
+		if Global.player and Global.player.stats:
+			Global.player.stats.damage(damage)
+			print("Dragon fireball hit player for ", damage, " damage!")
+			print("Player health: ", Global.player.stats.health, "/", Global.player.stats.max_health)
 	
 	# Create impact effect
 	create_impact_effect()

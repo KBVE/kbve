@@ -28,6 +28,9 @@ const ENERGY_COST_DISTANCE: float = 128.0  # 1 energy per 128 pixels (4 tiles wo
 var structure_interior_overlay: StructureInteriorOverlay
 var settings_button: Button
 var ocean_tiles: Array[AnimatedSprite2D] = []
+var spear_pool: SpearPool
+var aim_cursor: Node2D
+var aim_line: Line2D
 
 func _ready():
 	# Add this scene to the main_scene group for easy finding
@@ -47,6 +50,8 @@ func _ready():
 	
 	setup_player_movement()
 	setup_npc_container()
+	setup_spear_pool()
+	setup_aim_cursor()
 	spawn_npcs()
 	# PlayerInfo scene handles its own initialization and connections
 	connect_movement_signals()
@@ -160,6 +165,15 @@ func create_animated_ocean_tile() -> AnimatedSprite2D:
 	return ocean_sprite
 
 func _input(event):
+	# Handle spacebar press/release for aim cursor
+	if event is InputEventKey and event.keycode == KEY_SPACE:
+		if event.pressed and not event.echo:
+			show_aim_cursor()
+		elif not event.pressed:
+			hide_aim_cursor()
+			fire_player_spear()
+		return
+	
 	if event is InputEventKey and event.pressed:
 		var current_pos = player_movement.get_current_position()
 		var new_pos = current_pos
@@ -425,6 +439,55 @@ func setup_npc_container():
 	npc_container.name = "NPCs"
 	add_child(npc_container)
 
+func setup_spear_pool():
+	# Create the spear pool for projectiles
+	spear_pool = preload("res://scripts/entities/spear_pool.gd").new()
+	add_child(spear_pool)
+	print("SpearPool initialized")
+
+func setup_aim_cursor():
+	# Create aim cursor container
+	aim_cursor = Node2D.new()
+	aim_cursor.name = "AimCursor"
+	aim_cursor.z_index = 20
+	aim_cursor.visible = false
+	
+	# Create aim line
+	aim_line = Line2D.new()
+	aim_line.width = 2.0
+	aim_line.default_color = Color(1.0, 0.3, 0.3, 0.7)  # Red with transparency
+	aim_line.add_point(Vector2.ZERO)
+	aim_line.add_point(Vector2.ZERO)
+	aim_cursor.add_child(aim_line)
+	
+	# Create target circle with custom draw
+	var target_circle = Node2D.new()
+	target_circle.name = "TargetCircle"
+	target_circle.z_index = 1
+	# Add a simple draw script inline
+	target_circle.set_script(GDScript.new())
+	target_circle.get_script().source_code = """
+extends Node2D
+
+func _draw():
+	# Draw targeting reticle
+	var radius = 20.0
+	var color = Color(1.0, 0.3, 0.3, 0.8)
+	var width = 2.0
+	
+	# Draw circle
+	draw_arc(Vector2.ZERO, radius, 0, TAU, 32, color, width)
+	
+	# Draw crosshair lines
+	draw_line(Vector2(-radius - 5, 0), Vector2(-radius + 10, 0), color, width)
+	draw_line(Vector2(radius - 10, 0), Vector2(radius + 5, 0), color, width)
+	draw_line(Vector2(0, -radius - 5), Vector2(0, -radius + 10), color, width)
+	draw_line(Vector2(0, radius - 10), Vector2(0, radius + 5), color, width)
+"""
+	aim_cursor.add_child(target_circle)
+	
+	add_child(aim_cursor)
+
 func spawn_npcs():
 	print("Starting NPC spawn process...")
 	# Spawn NPCs through World system
@@ -441,12 +504,15 @@ func spawn_npcs():
 		npc.update_position_after_scene_ready()
 		print("Added NPC to scene at world position: ", npc.position)
 	
-	# Add dragon to the scene
-	var dragon = World.get_dragon()
-	if dragon:
-		npc_container.add_child(dragon)
-		dragon.update_position_after_scene_ready()
-		print("Added Dragon to scene at world position: ", dragon.position)
+	# Add dragons to the scene
+	var dragons = World.get_dragons()
+	print("Retrieved ", dragons.size(), " dragons from World")
+	
+	for dragon in dragons:
+		if dragon and is_instance_valid(dragon):
+			npc_container.add_child(dragon)
+			dragon.update_position_after_scene_ready()
+			print("Added Dragon to scene at world position: ", dragon.position)
 
 func get_player_position() -> Vector2i:
 	if player_movement:
@@ -833,6 +899,106 @@ func open_settings_dialogue():
 func _on_settings_closed():
 	"""Called when settings menu is closed"""
 	print("Settings menu closed in game")
+
+func fire_player_spear():
+	"""Fire a spear from the player ship at the nearest enemy"""
+	if not spear_pool:
+		print("SpearPool not available!")
+		return
+	
+	var player_world_pos = player.position
+	var target = find_nearest_enemy_target(player_world_pos)
+	
+	if target:
+		# Calculate spawn position in front of the ship
+		var direction_to_target = (target.position - player_world_pos).normalized()
+		var spawn_offset = 30.0  # Distance from ship center
+		var spear_spawn_pos = player_world_pos + direction_to_target * spawn_offset
+		
+		var success = spear_pool.launch_spear(
+			spear_spawn_pos,
+			target.position,
+			400.0,  # Speed
+			2,      # Damage
+			player  # Owner
+		)
+		
+		if success:
+			print("Player fired spear at ", target.name if target.has_method("get_name") else "enemy")
+		else:
+			print("No spears available in pool!")
+	else:
+		print("No valid targets found for spear!")
+
+func find_nearest_enemy_target(from_pos: Vector2) -> Node2D:
+	"""Find the nearest enemy target within spear range"""
+	var nearest_target: Node2D = null
+	var nearest_distance: float = INF
+	var max_range: float = 300.0  # Maximum spear range
+	
+	# Check NPCs (enemy ships)
+	var npcs = World.get_npcs()
+	for npc in npcs:
+		if npc and is_instance_valid(npc):
+			var distance = from_pos.distance_to(npc.position)
+			if distance <= max_range and distance < nearest_distance:
+				nearest_target = npc
+				nearest_distance = distance
+	
+	# Check dragons
+	var dragons = World.get_dragons()
+	for dragon in dragons:
+		if dragon and is_instance_valid(dragon):
+			var distance = from_pos.distance_to(dragon.position)
+			if distance <= max_range and distance < nearest_distance:
+				nearest_target = dragon
+				nearest_distance = distance
+	
+	return nearest_target
+
+func show_aim_cursor():
+	"""Show the aim cursor pointing at nearest target"""
+	if not aim_cursor or not aim_line:
+		return
+	
+	var player_world_pos = player.position
+	var target = find_nearest_enemy_target(player_world_pos)
+	
+	if target:
+		aim_cursor.visible = true
+		aim_cursor.position = Vector2.ZERO  # Reset position
+		
+		# Update aim line - make it relative to aim_cursor position
+		aim_line.clear_points()
+		aim_line.add_point(player_world_pos)
+		aim_line.add_point(target.position)
+		aim_line.default_color = Color(1.0, 0.3, 0.3, 0.7)  # Red when target found
+		
+		# Add a target indicator at the target position
+		var target_indicator = aim_cursor.get_node_or_null("TargetCircle")
+		if target_indicator:
+			target_indicator.position = target.position
+			target_indicator.queue_redraw()  # Force redraw
+	else:
+		# Show cursor but indicate no target
+		aim_cursor.visible = true
+		aim_cursor.position = Vector2.ZERO
+		
+		# Show a short line in the direction the player is facing
+		aim_line.clear_points()
+		aim_line.add_point(player_world_pos)
+		# Point forward from player
+		var forward_pos = player_world_pos + Vector2(100, 0)  # Default right
+		if player_ship and player_ship.rotation != 0:
+			var direction = Vector2.from_angle(player_ship.rotation - PI/2)
+			forward_pos = player_world_pos + direction * 100
+		aim_line.add_point(forward_pos)
+		aim_line.default_color = Color(0.5, 0.5, 0.5, 0.5)  # Gray when no target
+
+func hide_aim_cursor():
+	"""Hide the aim cursor"""
+	if aim_cursor:
+		aim_cursor.visible = false
 
 func setup_settings_button():
 	"""Setup a simple settings button in the top-right corner"""
