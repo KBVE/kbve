@@ -20,7 +20,7 @@ var collision_radius: float = 8.0  # Smaller radius for tip collision
 var check_interval: float = 0.02  # Check collisions every 0.02 seconds
 var collision_timer: float = 0.0
 var tip_offset: float = 16.0  # Distance from wooden end to tip (adjusted for better alignment)
-var spear_scale: float = 0.4  # Scale factor for the spear sprites
+var spear_scale: float = 0.25  # Scale factor for the spear sprites (made smaller)
 
 func _ready():
 	z_index = 12  # Above most entities but below UI
@@ -33,6 +33,16 @@ func apply_spear_scale():
 		sprite.scale = Vector2(spear_scale, spear_scale)
 	if glow_sprite:
 		glow_sprite.scale = Vector2(spear_scale * 1.2, spear_scale * 1.2)  # Slightly larger glow
+
+func get_collision_tip_offset() -> Vector2:
+	"""Get the current tip offset vector for collision detection - used by debug indicator"""
+	if velocity == Vector2.ZERO:
+		# If not moving, point right by default
+		return Vector2(tip_offset, 0)
+	else:
+		# Calculate based on current movement direction
+		var direction = velocity.normalized()
+		return direction * tip_offset
 
 
 func reset_spear():
@@ -107,7 +117,8 @@ func check_collisions():
 	if has_hit or not is_active:
 		return
 	
-	# Calculate tip position based on current movement direction
+	# Calculate tip position using the same method as the debug indicator
+	# This ensures collision detection matches the visual debug point
 	var direction = velocity.normalized()
 	var tip_position = position + direction * tip_offset
 	
@@ -131,10 +142,13 @@ func check_collisions():
 	if world:
 		# Check NPCs
 		var npcs = world.get_npcs()
+		print("DEBUG: Checking collision with ", npcs.size(), " NPCs")
 		for npc in npcs:
 			if npc and is_instance_valid(npc) and npc != owner_entity:
 				var distance_to_npc = tip_position.distance_to(npc.position)
+				print("DEBUG: NPC distance: ", distance_to_npc, " (threshold: ", collision_radius + 20, ")")
 				if distance_to_npc <= collision_radius + 20:  # 20 is approx NPC radius
+					print("DEBUG: HIT! Calling hit_entity on NPC")
 					hit_entity(npc)
 					return
 		
@@ -156,7 +170,10 @@ func hit_entity(entity: Node2D):
 	# Check if entity can take damage using a more generic approach
 	if entity.has_method("take_damage"):
 		# Entity has take_damage method (NPCs, Dragons, any custom entity with health)
+		print("DEBUG: Spear hitting entity with take_damage method: ", entity.name)
+		print("DEBUG: Entity health before: ", entity.current_health if "current_health" in entity else "unknown")
 		entity.take_damage(damage)
+		print("DEBUG: Entity health after: ", entity.current_health if "current_health" in entity else "unknown")
 		var entity_name = entity.name if entity.name else "Entity"
 		print("Spear hit ", entity_name, " for ", damage, " damage!")
 	elif entity == get_tree().current_scene.get_node_or_null("Player"):

@@ -55,6 +55,12 @@ var dash_lines: Array[Line2D] = []
 # UI elements
 var state_badge: FantasyStateBadge
 
+# Scene-based visual components (will be assigned if using scene)
+@onready var visual_container: Node2D = get_node_or_null("VisualContainer")
+@onready var ship_sprite: Sprite2D = get_node_or_null("VisualContainer/ShipSprite")
+@onready var scene_health_bar: ProgressBar = get_node_or_null("VisualContainer/HealthBar")
+@onready var scene_click_area: Area2D = get_node_or_null("ClickArea")
+
 func _ready():
 	# Set z-index to render above map tiles
 	z_index = 10
@@ -192,9 +198,15 @@ func create_health_bar(container: Node2D):
 	container.add_child(health_bar)
 
 func take_damage(damage: int):
+	print("DEBUG: NPC take_damage called with ", damage, " damage")
+	print("DEBUG: Health before: ", current_health, "/", max_health)
+	
 	current_health -= damage
 	current_health = max(0, current_health)
 	
+	print("DEBUG: Health after: ", current_health, "/", max_health)
+	
+	# Update health bar (script-created)
 	if health_bar:
 		health_bar.value = current_health
 		
@@ -216,8 +228,14 @@ func take_damage(damage: int):
 		
 		health_bar.add_theme_stylebox_override("fill", style_fg)
 	
+	# Update scene-based health bar
+	if scene_health_bar:
+		scene_health_bar.value = current_health
+		print("DEBUG: Updated scene health bar to ", current_health)
+	
 	# Check if NPC should die
 	if current_health <= 0:
+		print("DEBUG: NPC should die now")
 		die()
 
 func die():

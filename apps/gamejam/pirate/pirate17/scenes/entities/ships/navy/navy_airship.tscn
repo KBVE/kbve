@@ -1,0 +1,27 @@
+[gd_scene load_steps=3 format=3 uid="uid://b8n5j2k4l9m8p"]
+
+[ext_resource type="Script" path="res://scripts/entities/npc.gd" id="1_npc_script"]
+[ext_resource type="Texture2D" path="res://assets/ship/enemy_airship.png" id="2_ship_texture"]
+
+[node name="NavyAirship" type="Node2D"]
+script = ExtResource("1_npc_script")
+
+[node name="VisualContainer" type="Node2D" parent="."]
+z_index = 15
+
+[node name="ShipSprite" type="Sprite2D" parent="VisualContainer"]
+texture = ExtResource("2_ship_texture")
+scale = Vector2(0.8, 0.8)
+z_index = 1
+
+[node name="HealthBar" type="ProgressBar" parent="VisualContainer"]
+size = Vector2(40, 6)
+position = Vector2(-20, -60)
+min_value = 0.0
+max_value = 3.0
+value = 3.0
+z_index = 30
+
+[node name="ClickArea" type="Area2D" parent="."]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="ClickArea"]
