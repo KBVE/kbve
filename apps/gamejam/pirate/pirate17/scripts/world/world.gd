@@ -7,7 +7,7 @@ const MAP_HEIGHT = 64
 var map: Node
 var npcs: Array[NPC] = []
 var dragons: Array[DragonNPC] = []
-var max_dragons: int = 3
+var max_dragons: int = 5
 var structure_pool: StructurePool
 
 func _ready():
@@ -33,7 +33,7 @@ func get_neighbors_at(x: int, y: int) -> Array:
 func get_map_size() -> Vector2i:
 	return map.map_size
 
-func spawn_npcs(count: int = 20):
+func spawn_npcs(count: int = 30):
 	# Clear existing NPCs and dragons
 	clear_npcs()
 	
@@ -282,8 +282,8 @@ func _on_npc_died(dead_npc: NPC):
 	npcs.erase(dead_npc)
 	print("Enemy ship died, remaining: ", npcs.size())
 	
-	# Maintain pool of 20 ships by spawning a replacement
-	if npcs.size() < 20:
+	# Maintain pool of 30 ships by spawning a replacement
+	if npcs.size() < 30:
 		# Delay respawn slightly
 		var respawn_timer = Timer.new()
 		respawn_timer.wait_time = 2.0

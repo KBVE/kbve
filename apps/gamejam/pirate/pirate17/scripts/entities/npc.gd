@@ -20,14 +20,23 @@ var is_initialized: bool = false
 # Health system
 var max_health: int = 10
 var current_health: int = 10
+var max_mana: int = 10
+var current_mana: int = 10
 var health_bar: ProgressBar
 var click_area: Area2D
+
+# Scene-based UI elements (for navy_airship.tscn)
+@onready var scene_health_bar: TextureProgressBar = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/HealthBarContainer/HealthBar")
+@onready var scene_health_label: Label = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/HealthBarContainer/HealthLabel")
+@onready var scene_mana_bar: TextureProgressBar = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/ManaBarContainer/ManaBar")
+@onready var scene_mana_label: Label = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/ManaBarContainer/ManaLabel")
 
 # Enhanced AI State System
 enum NPCState {
 	PATROL,    # Black - Normal patrol around spawn
 	AGGRESSIVE,   # Dark Red - Actively following player
-	RETURNING     # Dark Orange - Lost player, returning to spawn
+	RETURNING,    # Dark Orange - Lost player, returning to spawn
+	RETREATING    # Blue - Hurt, seeking dock for healing
 }
 
 var current_state: NPCState = NPCState.PATROL
@@ -36,6 +45,18 @@ var chase_threshold: int = 8     # Chase up to this distance when aggressive (re
 var restart_distance: int = 10   # Begin restart process at this distance (reduced from 18)
 var reset_distance: int = 12     # Give up and reset at this distance (reduced from 22)
 var is_following_player: bool = false  # Legacy variable for compatibility
+
+# Retreat and dock healing system
+var retreat_health_threshold: float = 0.3  # Retreat when health drops below 30%
+var current_dock_target: Vector2i = Vector2i(-1, -1)  # Target dock position
+var dock_healing_rate: int = 2  # HP per second when at dock
+var dock_healing_timer: Timer
+var is_at_dock: bool = false
+
+# AStar2D pathfinding for dock navigation
+var astar: AStar2D
+var current_path: PackedVector2Array = PackedVector2Array()
+var path_index: int = 0
 
 # Performance optimization - late update system
 var aggression_check_timer: Timer
@@ -58,15 +79,7 @@ var state_badge: FantasyStateBadge
 # Scene-based visual components (will be assigned if using scene)
 @onready var visual_container: Node2D = get_node_or_null("VisualContainer")
 @onready var ship_sprite: Sprite2D = get_node_or_null("VisualContainer/ShipSprite")
-@onready var scene_health_bar: TextureProgressBar = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/HealthBarContainer/HealthBar")
-@onready var scene_mana_bar: TextureProgressBar = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/ManaBarContainer/ManaBar")
-@onready var scene_health_label: Label = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/HealthBarContainer/HealthLabel")
-@onready var scene_mana_label: Label = get_node_or_null("VisualContainer/StatusBarsContainer/StatusBars/ManaBarContainer/ManaLabel")
 @onready var scene_click_area: Area2D = get_node_or_null("ClickArea")
-
-# Mana system for navy ships
-var max_mana: int = 10
-var current_mana: int = 10
 
 func _ready():
 	# Set z-index to render above map tiles
@@ -87,6 +100,7 @@ func _ready():
 	setup_movement_timer()
 	setup_aggression_timer()
 	setup_attack_timer()
+	setup_astar_pathfinding()
 	connect_movement_signals()
 	setup_click_detection()
 	
@@ -284,15 +298,176 @@ func take_damage(damage: int):
 	if scene_mana_label:
 		scene_mana_label.text = str(current_mana) + "/" + str(max_mana)
 	
+	# Check if NPC should retreat to dock for healing
+	var health_percentage = float(current_health) / float(max_health)
+	if health_percentage <= retreat_health_threshold and current_state != NPCState.RETREATING:
+		print("NPC health critical (", health_percentage * 100, "%), seeking dock for healing")
+		transition_to_state(NPCState.RETREATING)
+		find_nearest_dock()
+	
 	# Check if NPC should die
 	if current_health <= 0:
 		print("DEBUG: NPC should die now")
 		die()
 
+func find_nearest_dock():
+	"""Find the nearest port/dock structure for healing"""
+	var nearest_dock_pos = Vector2i(-1, -1)
+	var nearest_distance = INF
+	
+	# Get all structures from World
+	var structures = World.get_all_structures()
+	
+	for structure in structures:
+		# Only consider port structures for dock healing
+		if structure.type == StructurePool.StructureType.PORT:
+			var dock_pos = structure.grid_position
+			var distance = abs(grid_position.x - dock_pos.x) + abs(grid_position.y - dock_pos.y)
+			
+			if distance < nearest_distance:
+				nearest_distance = distance
+				nearest_dock_pos = dock_pos
+	
+	if nearest_dock_pos != Vector2i(-1, -1):
+		current_dock_target = nearest_dock_pos
+		# Clear existing path to recalculate for new target
+		current_path.clear()
+		path_index = 0
+		print("Navy ship found dock at ", current_dock_target, " (distance: ", nearest_distance, ")")
+	else:
+		print("No docks found, ship will retreat to spawn instead")
+		current_dock_target = spawn_position
+		current_path.clear()
+		path_index = 0
+
+func check_dock_proximity():
+	"""Check if NPC is at a dock and start healing if so"""
+	if current_state != NPCState.RETREATING:
+		return
+	
+	# Check if we're at the target dock
+	var distance_to_dock = abs(grid_position.x - current_dock_target.x) + abs(grid_position.y - current_dock_target.y)
+	
+	if distance_to_dock <= 2:  # Within 2 tiles of dock
+		if not is_at_dock:
+			is_at_dock = true
+			print("Navy ship reached dock, beginning healing")
+			start_dock_healing()
+	else:
+		if is_at_dock:
+			is_at_dock = false
+			stop_dock_healing()
+
+func start_dock_healing():
+	"""Begin healing at dock"""
+	if dock_healing_timer:
+		dock_healing_timer.queue_free()
+	
+	dock_healing_timer = Timer.new()
+	dock_healing_timer.wait_time = 1.0  # Heal every second
+	dock_healing_timer.timeout.connect(_on_dock_healing_tick)
+	dock_healing_timer.autostart = true
+	add_child(dock_healing_timer)
+	
+	# Update state badge to show healing
+	update_state_label()
+
+func stop_dock_healing():
+	"""Stop healing when leaving dock"""
+	if dock_healing_timer:
+		dock_healing_timer.queue_free()
+		dock_healing_timer = null
+
+func _on_dock_healing_tick():
+	"""Heal the NPC while at dock"""
+	if current_health < max_health:
+		var old_health = current_health
+		current_health = min(current_health + dock_healing_rate, max_health)
+		print("Navy ship healing: ", old_health, " -> ", current_health, "/", max_health)
+		
+		# Update health display
+		if health_bar:
+			health_bar.value = current_health
+		if scene_health_bar:
+			scene_health_bar.value = current_health
+		if scene_health_label:
+			scene_health_label.text = str(current_health) + "/" + str(max_health)
+		
+		# Check if fully healed
+		if current_health >= max_health:
+			print("Navy ship fully healed, returning to patrol")
+			transition_to_state(NPCState.PATROL)
+			current_dock_target = Vector2i(-1, -1)
+			is_at_dock = false
+			stop_dock_healing()
+
 func die():
 	print("NPC died!")
+	# Clean up dock healing timer
+	if dock_healing_timer:
+		dock_healing_timer.queue_free()
 	# Create death effect or animation here
 	queue_free()
+
+func attempt_move_to_dock():
+	"""Move toward the target dock using AStar2D pathfinding"""
+	if current_dock_target == Vector2i(-1, -1):
+		# No dock target, try to find one
+		find_nearest_dock()
+		return
+	
+	# Check if we need to calculate a new path
+	if current_path.is_empty() or path_index >= current_path.size():
+		current_path = find_path_to_dock()
+		path_index = 1  # Skip the first point (current position)
+		
+		if current_path.is_empty():
+			print("Navy ship couldn't find path to dock, using fallback movement")
+			attempt_move_to_dock_fallback()
+			return
+	
+	# Follow the AStar2D path
+	if path_index < current_path.size():
+		var next_pos = Vector2i(int(current_path[path_index].x), int(current_path[path_index].y))
+		
+		# Get player position for validation
+		var main_scene = get_tree().current_scene
+		var player_pos = Vector2i(32, 32)  # Default center position
+		if main_scene and main_scene.has_method("get_player_position"):
+			player_pos = main_scene.get_player_position()
+		
+		# Validate the next move is still valid (use basic validity since we're pathfinding to dock)
+		if is_valid_move(next_pos):
+			move_to(next_pos)
+			path_index += 1
+		else:
+			# Path is blocked, recalculate on next attempt
+			current_path.clear()
+			path_index = 0
+
+func attempt_move_to_dock_fallback():
+	"""Fallback movement when AStar2D path fails"""
+	var direction_to_dock = Vector2i(
+		sign(current_dock_target.x - grid_position.x),
+		sign(current_dock_target.y - grid_position.y)
+	)
+	
+	# Get player position for retreat validation
+	var main_scene = get_tree().current_scene
+	var player_pos = Vector2i(32, 32)  # Default center position
+	if main_scene and main_scene.has_method("get_player_position"):
+		player_pos = main_scene.get_player_position()
+	
+	var possible_moves = [direction_to_dock]
+	if direction_to_dock.x != 0 and direction_to_dock.y != 0:
+		possible_moves.append(Vector2i(direction_to_dock.x, 0))
+		possible_moves.append(Vector2i(0, direction_to_dock.y))
+	
+	for direction in possible_moves:
+		var new_pos = grid_position + direction
+		if is_valid_retreat_move(new_pos, player_pos):
+			move_to(new_pos)
+			return
 
 func transition_to_state(new_state: NPCState):
 	if current_state != new_state:
@@ -320,6 +495,10 @@ func transition_to_state(new_state: NPCState):
 				movement_timer.wait_time = randf_range(2.0, 4.0)  # Slower patrol speed (increased from 1.5-3.0)
 				# Immediately attempt a move when entering patrol state
 				call_deferred("attempt_random_move")
+			NPCState.RETREATING:
+				movement_timer.wait_time = randf_range(1.0, 1.5)  # Fast movement when seeking dock
+				# Immediately attempt to move toward dock
+				call_deferred("attempt_move_to_dock")
 		
 		# Restart the timer to ensure it continues
 		if movement_timer:
@@ -346,6 +525,11 @@ func update_state_label():
 				state_badge.update_state("Aggressive!")
 			NPCState.RETURNING:
 				state_badge.update_state("Retreating...")
+			NPCState.RETREATING:
+				if is_at_dock:
+					state_badge.update_state("Healing...")
+				else:
+					state_badge.update_state("Seeking Dock!")
 		
 		# Reposition badge after text change
 		call_deferred("position_state_badge")
@@ -363,6 +547,9 @@ func update_visual_state():
 			NPCState.RETURNING:
 				# Yellow/orange tint when returning to spawn after losing player
 				npc_sprite.modulate = Color(1.0, 0.8, 0.4, 1.0)
+			NPCState.RETREATING:
+				# Blue tint when retreating to dock for healing
+				npc_sprite.modulate = Color(0.4, 0.7, 1.0, 1.0)
 
 func attempt_aggressive_chase():
 	# More aggressive movement when player is far but still trackable
@@ -442,6 +629,57 @@ func setup_attack_timer():
 	attack_timer.timeout.connect(_on_attack_cooldown_finished)
 	add_child(attack_timer)
 
+func setup_astar_pathfinding():
+	"""Initialize AStar2D for intelligent pathfinding"""
+	astar = AStar2D.new()
+	
+	# Add points to AStar grid for the entire map
+	for x in range(World.MAP_WIDTH):
+		for y in range(World.MAP_HEIGHT):
+			var id = y * World.MAP_WIDTH + x
+			astar.add_point(id, Vector2(x, y))
+	
+	# Connect points to their neighbors (4-directional movement)
+	for x in range(World.MAP_WIDTH):
+		for y in range(World.MAP_HEIGHT):
+			var id = y * World.MAP_WIDTH + x
+			
+			# Connect to right neighbor
+			if x < World.MAP_WIDTH - 1:
+				var right_id = y * World.MAP_WIDTH + (x + 1)
+				if World.is_valid_position(x + 1, y) and World.is_valid_position(x, y):
+					astar.connect_points(id, right_id)
+			
+			# Connect to bottom neighbor
+			if y < World.MAP_HEIGHT - 1:
+				var bottom_id = (y + 1) * World.MAP_WIDTH + x
+				if World.is_valid_position(x, y + 1) and World.is_valid_position(x, y):
+					astar.connect_points(id, bottom_id)
+
+func get_astar_id(pos: Vector2i) -> int:
+	"""Convert grid position to AStar point ID"""
+	return pos.y * World.MAP_WIDTH + pos.x
+
+func find_path_to_dock() -> PackedVector2Array:
+	"""Use AStar2D to find optimal path to nearest dock"""
+	if current_dock_target == Vector2i(-1, -1):
+		return PackedVector2Array()
+	
+	var start_id = get_astar_id(grid_position)
+	var end_id = get_astar_id(current_dock_target)
+	
+	if not astar.has_point(start_id) or not astar.has_point(end_id):
+		return PackedVector2Array()
+	
+	var path = astar.get_point_path(start_id, end_id)
+	
+	# Convert world positions back to grid positions
+	var grid_path = PackedVector2Array()
+	for point in path:
+		grid_path.append(Vector2i(int(point.x), int(point.y)))
+	
+	return grid_path
+
 func initialize(start_pos: Vector2i):
 	is_initialized = true
 	grid_position = start_pos
@@ -475,14 +713,15 @@ func _on_movement_timer_timeout():
 	# Randomize movement interval - slower overall
 	movement_timer.wait_time = randf_range(2.5, 4.5)
 	
-	# Get current player distance
+	# Get current enemy distance (player or dragons)
 	var player_distance = get_distance_to_player()
+	var enemy_distance = get_distance_to_nearest_enemy()
 	
 	# State machine logic
 	match current_state:
 		NPCState.PATROL:
-			# Check if player enters detection range
-			if player_distance <= detection_range:
+			# Check if any enemy enters detection range
+			if enemy_distance <= detection_range:
 				transition_to_state(NPCState.AGGRESSIVE)
 			else:
 				# Continue patrol around spawn
@@ -494,38 +733,46 @@ func _on_movement_timer_timeout():
 					attempt_random_move()
 		
 		NPCState.AGGRESSIVE:
-			# Check if we can attack first
-			if player_distance <= attack_range and not is_attacking and attack_timer.is_stopped():
+			# Check if we can attack any target first
+			if enemy_distance <= attack_range and not is_attacking and attack_timer.is_stopped():
 				attempt_spear_attack()
-			# Once aggressive, stay aggressive until player is too far
-			elif player_distance > reset_distance:
-				# Player is too far - give up and return to spawn
+			# Once aggressive, stay aggressive until enemies are too far
+			elif enemy_distance > reset_distance:
+				# All enemies are too far - give up and return to spawn
 				transition_to_state(NPCState.RETURNING)
-			elif player_distance > restart_distance:
-				# Player is getting far - begin restart process but still try to chase
+			elif enemy_distance > restart_distance:
+				# Enemies getting far - begin restart process but still try to chase
 				transition_to_state(NPCState.RETURNING)
-			elif player_distance > chase_threshold:
-				# Player is getting far but still within chase range - move towards them aggressively
-				attempt_aggressive_chase()
+			elif player_distance <= chase_threshold:
+				# Player is close enough - prioritize following player
+				if player_distance > chase_threshold:
+					attempt_aggressive_chase()
+				else:
+					attempt_follow_player()
 			else:
-				# Player is close - follow normally
-				attempt_follow_player()
+				# No player nearby but dragons might be - attempt aggressive movement toward nearest enemy
+				attempt_aggressive_chase()
 		
 		NPCState.RETURNING:
-			# Check if player is nearby again while returning - re-aggro if so
-			if player_distance <= detection_range:
+			# Check if any enemy is nearby again while returning - re-aggro if so
+			if enemy_distance <= detection_range:
 				transition_to_state(NPCState.AGGRESSIVE)
 			else:
-				# Move away from player, then transition to patrol after some distance
-				if player_distance >= detection_range + 3:
-					# Far enough from player - resume patrol
+				# Move away from enemies, then transition to patrol after some distance
+				if enemy_distance >= detection_range + 3:
+					# Far enough from all enemies - resume patrol
 					transition_to_state(NPCState.PATROL)
 				elif randf() < 0.2:
 					# 20% chance to start patrol even if not far enough
 					transition_to_state(NPCState.PATROL)
 				else:
-					# Continue moving away from player
+					# Continue moving away from enemies (primarily player)
 					attempt_retreat_from_player()
+		
+		NPCState.RETREATING:
+			# Move toward dock for healing
+			attempt_move_to_dock()
+			check_dock_proximity()
 	
 	# Update visual appearance based on current state
 	update_visual_state()
@@ -533,25 +780,31 @@ func _on_movement_timer_timeout():
 func _on_aggression_check_timeout():
 	# Performance optimized - check aggression state changes less frequently
 	var player_distance = get_distance_to_player()
+	var enemy_distance = get_distance_to_nearest_enemy()
 	
 	match current_state:
 		NPCState.PATROL:
-			# Check if player enters detection range
-			if player_distance <= detection_range:
+			# Check if any enemy enters detection range
+			if enemy_distance <= detection_range:
 				transition_to_state(NPCState.AGGRESSIVE)
 		NPCState.AGGRESSIVE:
-			# Check if player is too far away
-			if player_distance > reset_distance:
+			# Check if all enemies are too far away
+			if enemy_distance > reset_distance:
 				transition_to_state(NPCState.RETURNING)
-			elif player_distance > restart_distance:
-				# Player getting far but not lost yet - continue for now
+			elif enemy_distance > restart_distance:
+				# Enemies getting far but not lost yet - continue for now
 				pass
 		NPCState.RETURNING:
-			# Check if player is nearby again while returning
-			if player_distance <= detection_range:
+			# Check if any enemy is nearby again while returning
+			if enemy_distance <= detection_range:
 				transition_to_state(NPCState.AGGRESSIVE)
 			elif get_distance_to_spawn() <= 2:
 				# Reached spawn area - resume patrol
+				transition_to_state(NPCState.PATROL)
+		
+		NPCState.RETREATING:
+			# Continue retreating to dock unless fully healed
+			if current_health >= max_health:
 				transition_to_state(NPCState.PATROL)
 
 func attempt_random_move():
@@ -685,6 +938,25 @@ func get_distance_to_player() -> int:
 		return 999
 	var player_pos = main_scene.get_player_position()
 	return abs(grid_position.x - player_pos.x) + abs(grid_position.y - player_pos.y)
+
+func get_distance_to_nearest_enemy() -> int:
+	"""Get distance to nearest enemy (player or dragons)"""
+	var nearest_distance = INF
+	
+	# Check distance to player
+	var player_distance = get_distance_to_player()
+	if player_distance < nearest_distance:
+		nearest_distance = player_distance
+	
+	# Check distance to dragons
+	var dragons = World.get_dragons()
+	for dragon in dragons:
+		if dragon and is_instance_valid(dragon):
+			var dragon_distance = abs(grid_position.x - dragon.grid_position.x) + abs(grid_position.y - dragon.grid_position.y)
+			if dragon_distance < nearest_distance:
+				nearest_distance = dragon_distance
+	
+	return int(nearest_distance)
 
 func get_distance_to_spawn() -> int:
 	# Calculate distance from current position to spawn point
@@ -856,22 +1128,47 @@ func update_movement_path():
 		clear_dash_lines()
 		create_dotted_line(current_pos, target_world_pos)
 
-func attempt_spear_attack():
-	"""Attempt to fire a spear at the player"""
-	var main_scene = get_tree().current_scene
-	if not main_scene or not main_scene.has_method("get_player_position"):
-		return
-	
-	var player = main_scene.get_node_or_null("Player")
-	if not player:
-		return
-	
+func find_npc_attack_target() -> Node2D:
+	"""Find the nearest target for NPC attacks (player or dragons)"""
+	var nearest_target: Node2D = null
+	var nearest_distance: float = INF
 	var npc_world_pos = position
-	var player_world_pos = player.position
-	var distance = npc_world_pos.distance_to(player_world_pos)
+	var max_attack_distance = attack_range * World.TILE_SIZE
 	
-	if distance <= attack_range * World.TILE_SIZE:
-		perform_spear_attack(player_world_pos, player)
+	# Check for dragons as targets
+	var dragons = World.get_dragons()
+	for dragon in dragons:
+		if dragon and is_instance_valid(dragon) and dragon != self:
+			var distance = npc_world_pos.distance_to(dragon.position)
+			if distance <= max_attack_distance and distance < nearest_distance:
+				nearest_target = dragon
+				nearest_distance = distance
+	
+	# Check for player target (prioritize player over dragons)
+	var main_scene = get_tree().current_scene
+	if main_scene:
+		var player = main_scene.get_node_or_null("Player")
+		if player:
+			var distance = npc_world_pos.distance_to(player.position)
+			if distance <= max_attack_distance and distance < nearest_distance:
+				nearest_target = player
+				nearest_distance = distance
+		else:
+			# Try alternative player path
+			var player_alt = main_scene.get_node_or_null("@Node2D@*/Player")
+			if player_alt:
+				var distance = npc_world_pos.distance_to(player_alt.position)
+				if distance <= max_attack_distance and distance < nearest_distance:
+					nearest_target = player_alt
+					nearest_distance = distance
+	
+	return nearest_target
+
+func attempt_spear_attack():
+	"""Attempt to fire a spear at the nearest target (player or dragons)"""
+	var target = find_npc_attack_target()
+	if target:
+		perform_spear_attack(target.position, target)
 
 func perform_spear_attack(target_pos: Vector2, target_entity: Node2D):
 	"""Perform the actual spear attack"""

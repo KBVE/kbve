@@ -444,6 +444,18 @@ func setup_spear_pool():
 	spear_pool = preload("res://scripts/entities/spear_pool.gd").new()
 	add_child(spear_pool)
 	print("SpearPool initialized")
+	
+	# Create the fireball pool for dragon projectiles
+	var fireball_pool = preload("res://scripts/entities/fireball_pool.gd").new()
+	fireball_pool.name = "FireballPool"
+	add_child(fireball_pool)
+	print("FireballPool initialized")
+	
+	# Create the regeneration manager for HP/MP recovery
+	var regen_manager = preload("res://scripts/entities/regeneration_manager.gd").new()
+	regen_manager.name = "RegenerationManager"
+	add_child(regen_manager)
+	print("RegenerationManager initialized")
 
 func setup_aim_cursor():
 	# Create aim cursor container
@@ -491,7 +503,7 @@ func _draw():
 func spawn_npcs():
 	print("Starting NPC spawn process...")
 	# Spawn NPCs through World system
-	World.spawn_npcs(15)
+	World.spawn_npcs(25)
 	
 	# Add spawned NPCs to the scene
 	var npc_list = World.get_npcs()
