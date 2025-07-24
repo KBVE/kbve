@@ -58,8 +58,13 @@ var state_badge: FantasyStateBadge
 # Scene-based visual components (will be assigned if using scene)
 @onready var visual_container: Node2D = get_node_or_null("VisualContainer")
 @onready var ship_sprite: Sprite2D = get_node_or_null("VisualContainer/ShipSprite")
-@onready var scene_health_bar: ProgressBar = get_node_or_null("VisualContainer/HealthBar")
+@onready var scene_health_bar: ProgressBar = get_node_or_null("VisualContainer/StatusBars/HealthBar")
+@onready var scene_mana_bar: ProgressBar = get_node_or_null("VisualContainer/StatusBars/ManaBar")
 @onready var scene_click_area: Area2D = get_node_or_null("ClickArea")
+
+# Mana system for navy ships
+var max_mana: int = 3
+var current_mana: int = 3
 
 func _ready():
 	# Set z-index to render above map tiles
@@ -129,9 +134,31 @@ func update_npc_rotation(from: Vector2i, to: Vector2i):
 	npc_sprite.rotation = target_angle
 
 func create_visual():
-	# Create a container for better visibility
-	var visual_container = Node2D.new()
-	visual_container.z_index = 15
+	# Check if we have scene-based visual components
+	if visual_container and ship_sprite:
+		# Use scene-based components
+		npc_sprite = ship_sprite
+		
+		# Add shadow to existing visual container
+		var ship_shadow = preload("res://scripts/ship_shadow.gd").new()
+		ship_shadow.shadow_offset = Vector2(12, 15)
+		ship_shadow.shadow_scale = 0.7
+		visual_container.add_child(ship_shadow)
+		call_deferred("_adjust_shadow_z_index", ship_shadow)
+		
+		# Create fantasy state badge
+		state_badge = FantasyStateBadge.new()
+		state_badge.state_text = "Patrol..."
+		state_badge.z_index = 25
+		visual_container.add_child(state_badge)
+		call_deferred("position_state_badge")
+		
+		# Don't create health bar - use scene-based one
+		return
+	
+	# Fallback: Create script-based visual components for legacy NPCs
+	var script_visual_container = Node2D.new()
+	script_visual_container.z_index = 15
 	
 	# Create main NPC sprite using enemy airship
 	npc_sprite = Sprite2D.new()
@@ -143,13 +170,13 @@ func create_visual():
 	var scale_factor = 0.8  # Slightly smaller than player ship
 	npc_sprite.scale = Vector2(scale_factor, scale_factor)
 	
-	visual_container.add_child(npc_sprite)
+	script_visual_container.add_child(npc_sprite)
 	
 	# Add shadow to NPC ship
 	var ship_shadow = preload("res://scripts/ship_shadow.gd").new()
 	ship_shadow.shadow_offset = Vector2(12, 15)  # Larger offset for better shadow effect
 	ship_shadow.shadow_scale = 0.7  # Larger shadow size for better visual effect
-	visual_container.add_child(ship_shadow)
+	script_visual_container.add_child(ship_shadow)
 	
 	# Ensure shadow renders under the NPC sprite by adjusting z_index after creation
 	call_deferred("_adjust_shadow_z_index", ship_shadow)
@@ -158,15 +185,15 @@ func create_visual():
 	state_badge = FantasyStateBadge.new()
 	state_badge.state_text = "Patrol..."
 	state_badge.z_index = 25  # Above everything else
-	visual_container.add_child(state_badge)
+	script_visual_container.add_child(state_badge)
 	
 	# Position badge above NPC after it's sized
 	call_deferred("position_state_badge")
 	
 	# Create health bar
-	create_health_bar(visual_container)
+	create_health_bar(script_visual_container)
 	
-	add_child(visual_container)
+	add_child(script_visual_container)
 
 func create_health_bar(container: Node2D):
 	health_bar = ProgressBar.new()
@@ -232,6 +259,13 @@ func take_damage(damage: int):
 	if scene_health_bar:
 		scene_health_bar.value = current_health
 		print("DEBUG: Updated scene health bar to ", current_health)
+		
+		# Update fantasy health bar - it already uses ValueRed_120x8.png, no need to change color
+		# The ValueBar_128x16.png background contains the ValueRed_120x8.png fill properly
+	
+	# Update mana bar if it exists (for scene-based entities)
+	if scene_mana_bar:
+		scene_mana_bar.value = current_mana
 	
 	# Check if NPC should die
 	if current_health <= 0:

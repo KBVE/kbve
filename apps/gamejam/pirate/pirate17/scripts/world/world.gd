@@ -135,12 +135,14 @@ func is_valid_npc_spawn(pos: Vector2i) -> bool:
 	return true
 
 func create_npc_at(pos: Vector2i):
-	var npc = NPC.new()
+	# Load the navy airship scene instead of creating script-based NPC
+	var navy_airship_scene = preload("res://scenes/entities/ships/navy/navy_airship.tscn")
+	var npc = navy_airship_scene.instantiate()
 	npc.initialize(pos)
 	# Connect death signal to handle respawning
 	npc.connect("tree_exiting", _on_npc_died.bind(npc))
 	npcs.append(npc)
-	print("Created NPC at position: ", pos, " - Total NPCs: ", npcs.size())
+	print("Created Navy Airship at position: ", pos, " - Total NPCs: ", npcs.size())
 
 func spawn_initial_dragons():
 	for i in range(max_dragons):
