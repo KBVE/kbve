@@ -2,7 +2,7 @@ class_name Movement
 extends RefCounted
 
 const TILE_SIZE = 32
-const MOVE_SPEED = 80.0  # Reduced from 200 for smoother movement
+const MOVE_SPEED = 80.0
 
 static func get_world_position(grid_pos: Vector2i) -> Vector2:
 	return Vector2(
@@ -42,18 +42,13 @@ class MoveComponent:
 			return false
 		
 		if immediate:
-			# WASD style - smooth but interrupts click movement
 			var start_pos = current_grid_pos
 			
-			# Clear any queued movements and stop current movement
 			move_queue.clear()
 			
-			# If currently moving, use current position as start
 			if is_moving:
 				start_pos = current_grid_pos
-				# Don't snap to target, continue from current world position
 			
-			# Set new target
 			target_grid_pos = grid_pos
 			target_world_pos = Movement.get_world_position(grid_pos)
 			is_moving = true
@@ -61,9 +56,7 @@ class MoveComponent:
 			movement_started.emit(entity, start_pos, target_grid_pos)
 			return true
 		else:
-			# Click style - smooth movement with immediate rerouting
 			if is_moving:
-				# Immediately reroute to new target
 				var current_pos = Movement.get_grid_position(entity.position)
 				move_queue.clear()
 				target_grid_pos = grid_pos
@@ -72,7 +65,6 @@ class MoveComponent:
 				movement_started.emit(entity, current_pos, target_grid_pos)
 				return true
 			else:
-				# Start new movement
 				var start_pos = current_grid_pos
 				target_grid_pos = grid_pos
 				target_world_pos = Movement.get_world_position(grid_pos)
@@ -87,25 +79,21 @@ class MoveComponent:
 		
 		var distance = entity.position.distance_to(target_world_pos)
 		if distance < 2.0:
-			# Reached target
 			entity.position = target_world_pos
 			current_grid_pos = target_grid_pos
 			is_moving = false
 			
 			movement_finished.emit(entity, current_grid_pos)
 			
-			# Process queue
 			if move_queue.size() > 0:
 				var next_target = move_queue.pop_front()
 				move_to(next_target, false)
 		else:
-			# Move towards target
 			var direction = (target_world_pos - entity.position).normalized()
 			entity.position += direction * MOVE_SPEED * delta
 	
 	func get_current_position() -> Vector2i:
 		if is_moving:
-			# Return actual position based on world coordinates during movement
 			return Movement.get_grid_position(entity.position)
 		else:
 			return current_grid_pos

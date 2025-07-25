@@ -16,68 +16,53 @@ func _ready():
 	setup_wind_particles()
 
 func setup_sprite():
-	# Get the sprite from the scene instead of creating it dynamically
 	sprite = get_node("Sprite2D")
 	if sprite:
-		sprite.z_index = 5  # Above particles and map
+		sprite.z_index = 5
 	
-	# Add shadow to the player ship
 	var ship_shadow = preload("res://scripts/ship_shadow.gd").new()
-	ship_shadow.shadow_offset = Vector2(12, 12)  # Good offset for depth
-	ship_shadow.shadow_scale = 0.7  # Smaller shadow
+	ship_shadow.shadow_offset = Vector2(12, 12)
+	ship_shadow.shadow_scale = 0.7
 	add_child(ship_shadow)
-	move_child(ship_shadow, 0)  # Move shadow to be first child (behind sprite)
+	move_child(ship_shadow, 0)
 
 func setup_wind_particles():
-	"""Setup wind particle system for the ship"""
 	wind_particles = WindParticles.new()
-	wind_particles.position = Vector2(0, 15)  # Closer to ship, at the back
-	wind_particles.z_index = 2  # Above map but behind ship sprite
+	wind_particles.position = Vector2(0, 15)
+	wind_particles.z_index = 2
 	add_child(wind_particles)
 
 func update_wind_effects(velocity: Vector2, moving: bool):
-	"""Update wind particle effects based on ship movement"""
 	if wind_particles:
 		wind_particles.update_ship_movement(velocity, moving)
 
 func update_direction_from_movement(from: Vector2i, to: Vector2i):
-	"""Update sprite rotation based on movement vector with smooth animation"""
 	var movement_vector = to - from
 	
 	if movement_vector == Vector2i.ZERO:
-		return  # No movement, keep current rotation
+		return
 	
-	# Calculate angle in radians from the movement vector
-	# atan2(y, x) gives us the angle where East = 0, North = -PI/2, West = PI, South = PI/2
 	var angle = atan2(movement_vector.y, movement_vector.x)
 	
-	# Since the airship sprite is already facing North (up), we need to add 90 degrees
-	# to align with the coordinate system where Y+ is down
 	var target_angle = angle + PI / 2
 	
-	# Smooth rotation to the new angle
 	rotate_to_angle_smooth(target_angle)
 
 func rotate_to_angle(target_angle: float):
-	"""Immediately rotate sprite to target angle (for manual control)"""
 	if sprite:
 		sprite.rotation = target_angle
 		current_rotation = target_angle
 
 func rotate_to_angle_smooth(target_angle: float, duration: float = 0.3):
-	"""Smoothly animate rotation to target angle"""
 	if not sprite:
 		return
 	
-	# Stop any existing rotation animation
 	if rotation_tween:
 		rotation_tween.kill()
 	
-	# Calculate the shortest rotation path
 	var current_angle = sprite.rotation
 	var angle_diff = target_angle - current_angle
 	
-	# Normalize angle difference to [-π, π] range for shortest path
 	while angle_diff > PI:
 		angle_diff -= 2 * PI
 	while angle_diff < -PI:
@@ -85,19 +70,16 @@ func rotate_to_angle_smooth(target_angle: float, duration: float = 0.3):
 	
 	var final_angle = current_angle + angle_diff
 	
-	# Create new tween for smooth rotation
 	rotation_tween = create_tween()
 	rotation_tween.set_ease(Tween.EASE_OUT)
 	rotation_tween.set_trans(Tween.TRANS_CUBIC)
 	
 	is_rotating = true
 	
-	# Animate the rotation
 	rotation_tween.tween_property(sprite, "rotation", final_angle, duration)
 	rotation_tween.tween_callback(_on_rotation_complete)
 
 func _on_rotation_complete():
-	"""Called when rotation animation completes"""
 	is_rotating = false
 	current_rotation = sprite.rotation
 	rotation_completed.emit()
@@ -108,7 +90,6 @@ func is_currently_rotating() -> bool:
 func get_current_rotation() -> float:
 	return current_rotation
 
-# Convenience methods for manual direction setting
 func face_north():
 	rotate_to_angle(0)
 
