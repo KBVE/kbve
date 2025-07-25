@@ -32,6 +32,7 @@ var ocean_tiles: Array[AnimatedSprite2D] = []
 var spear_pool: SpearPool
 var aim_cursor: Node2D
 var aim_line: Line2D
+var navy_fleet_manager: NavyFleetManager
 
 var chunk_manager: ChunkManager
 
@@ -441,12 +442,43 @@ func _draw():
 	
 	add_child(aim_cursor)
 
+func setup_navy_fleet_manager():
+	navy_fleet_manager = preload("res://scenes/entities/ships/navy/navy_fleet_manager.gd").new()
+	navy_fleet_manager.name = "NavyFleetManager"
+	add_child(navy_fleet_manager)
+	
+	navy_fleet_manager.fleet_alert.connect(_on_fleet_alert_changed)
+	navy_fleet_manager.formation_created.connect(_on_formation_created)
+	
+	print("Navy Fleet Manager initialized")
+
+func _on_fleet_alert_changed(alert_level: String):
+	print("Fleet Alert Level changed to: ", alert_level)
+
+func _on_formation_created(leader: NavyAI, members: Array[NavyAI]):
+	print("Formation created with leader and ", members.size(), " members")
+
+func get_fleet_status() -> Dictionary:
+	if navy_fleet_manager:
+		return navy_fleet_manager.get_fleet_status()
+	return {}
+
+func debug_fleet_info():
+	if navy_fleet_manager:
+		var status = navy_fleet_manager.get_fleet_status()
+		print("=== FLEET STATUS ===")
+		for key in status.keys():
+			print(key, ": ", status[key])
+		print("===================")
+
 func spawn_npcs():
 	print("Starting NPC spawn process...")
 	World.spawn_npcs(25)
 	
 	var npc_list = World.get_npcs()
 	print("Retrieved ", npc_list.size(), " NPCs from World")
+	
+	setup_navy_fleet_manager()
 	
 	for npc in npc_list:
 		npc_container.add_child(npc)
