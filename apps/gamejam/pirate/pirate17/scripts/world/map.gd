@@ -3,7 +3,7 @@ extends Node
 signal tile_changed(x: int, y: int, color: String)
 
 var tiles: Dictionary = {}
-var map_size: Vector2i = Vector2i(100, 100)
+var map_size: Vector2i = Vector2i(200, 200)
 
 var tile_colors = {
 	"lake": "#4A90E2",

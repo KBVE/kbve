@@ -1,8 +1,8 @@
 extends Node
 
 const TILE_SIZE = 32
-const MAP_WIDTH = 64
-const MAP_HEIGHT = 64
+const MAP_WIDTH = 200
+const MAP_HEIGHT = 200
 
 var map: Node
 var npcs: Array[NPC] = []
