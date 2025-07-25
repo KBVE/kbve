@@ -16,17 +16,10 @@ func _ready():
 	setup_wind_particles()
 
 func setup_sprite():
-	sprite = Sprite2D.new()
-	sprite.texture = load(ship_texture_path)
-	
-	# Single airship sprite - no frames needed
-	# Sprite is already facing North (up)
-	
-	# Center the sprite
-	sprite.position = Vector2.ZERO
-	sprite.z_index = 5  # Above particles and map
-	
-	add_child(sprite)
+	# Get the sprite from the scene instead of creating it dynamically
+	sprite = get_node("Sprite2D")
+	if sprite:
+		sprite.z_index = 5  # Above particles and map
 	
 	# Add shadow to the player ship
 	var ship_shadow = preload("res://scripts/ship_shadow.gd").new()
