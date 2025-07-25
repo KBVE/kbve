@@ -497,9 +497,23 @@ func attempt_move_to_dock():
 			attempt_move_to_dock_fallback()
 			return
 	
-	# Follow the AStar2D path
+	# Follow the AStar2D path with multi-tile movement
 	if path_index < current_path.size():
-		var next_pos = Vector2i(int(current_path[path_index].x), int(current_path[path_index].y))
+		# Try to move multiple tiles at once (up to 5 tiles for faster retreat)
+		var max_move_distance = 5
+		var best_index = path_index
+		var best_pos = Vector2i(int(current_path[path_index].x), int(current_path[path_index].y))
+		
+		# Look ahead in the path to find furthest valid position we can move to
+		for i in range(path_index, min(path_index + max_move_distance, current_path.size())):
+			var check_pos = Vector2i(int(current_path[i].x), int(current_path[i].y))
+			
+			# Check if we can move directly to this position
+			if is_valid_move(check_pos) and is_path_clear(grid_position, check_pos):
+				best_index = i
+				best_pos = check_pos
+			else:
+				break  # Stop if we hit an obstacle
 		
 		# Get player position for validation
 		var main_scene = get_tree().current_scene
@@ -507,17 +521,18 @@ func attempt_move_to_dock():
 		if main_scene and main_scene.has_method("get_player_position"):
 			player_pos = main_scene.get_player_position()
 		
-		# Validate the next move is still valid (use basic validity since we're pathfinding to dock)
-		if is_valid_move(next_pos):
-			move_to(next_pos)
-			path_index += 1
+		# Move to the furthest valid position
+		if is_valid_move(best_pos):
+			move_to(best_pos)
+			path_index = best_index + 1
+			print("Navy ship retreating ", abs(best_pos.x - grid_position.x) + abs(best_pos.y - grid_position.y), " tiles toward dock")
 		else:
 			# Path is blocked, recalculate on next attempt
 			current_path.clear()
 			path_index = 0
 
 func attempt_move_to_dock_fallback():
-	"""Fallback movement when AStar2D path fails"""
+	"""Fallback movement when AStar2D path fails - with multi-tile movement"""
 	var direction_to_dock = Vector2i(
 		sign(current_dock_target.x - grid_position.x),
 		sign(current_dock_target.y - grid_position.y)
@@ -534,6 +549,17 @@ func attempt_move_to_dock_fallback():
 		possible_moves.append(Vector2i(direction_to_dock.x, 0))
 		possible_moves.append(Vector2i(0, direction_to_dock.y))
 	
+	# Try multi-tile movement for each direction
+	for direction in possible_moves:
+		# Try moving up to 5 tiles in the chosen direction
+		for distance in range(5, 0, -1):
+			var new_pos = grid_position + (direction * distance)
+			if is_valid_retreat_move(new_pos, player_pos) and is_path_clear(grid_position, new_pos):
+				move_to(new_pos)
+				print("Navy ship fallback retreat ", distance, " tiles toward dock")
+				return
+	
+	# If multi-tile movement failed, try single tile as last resort
 	for direction in possible_moves:
 		var new_pos = grid_position + direction
 		if is_valid_retreat_move(new_pos, player_pos):

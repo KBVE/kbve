@@ -175,7 +175,14 @@ func respond_to_navy_distress(calling_ship: NavyAI):
 		print("Navy ship responding to distress call")
 
 func _on_movement_timer_timeout():
-	movement_timer.wait_time = randf_range(2.0, 3.5)
+	# Adjust movement speed based on navy state
+	match navy_state:
+		NavyState.EMERGENCY_RETREAT:
+			movement_timer.wait_time = randf_range(0.5, 0.8)  # Much faster when retreating
+		NavyState.DEFENSIVE_POSITION:
+			movement_timer.wait_time = randf_range(1.0, 1.5)  # Faster when responding to help
+		_:
+			movement_timer.wait_time = randf_range(2.0, 3.5)  # Normal speed for patrol
 	
 	handle_navy_specific_behavior()
 	

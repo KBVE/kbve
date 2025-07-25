@@ -940,6 +940,7 @@ func fire_player_spear():
 	var target = find_nearest_enemy_target(player_world_pos)
 	
 	if target:
+		# Fire at the nearest enemy
 		var direction_to_target = (target.position - player_world_pos).normalized()
 		var spawn_offset = 30.0
 		var spear_spawn_pos = player_world_pos + direction_to_target * spawn_offset
@@ -957,7 +958,28 @@ func fire_player_spear():
 		else:
 			print("No spears available in pool!")
 	else:
-		print("No valid targets found for spear!")
+		# No target found - fire in direction of mouse cursor
+		var mouse_world_pos = get_global_mouse_position()
+		var direction_to_mouse = (mouse_world_pos - player_world_pos).normalized()
+		var spawn_offset = 30.0
+		var spear_spawn_pos = player_world_pos + direction_to_mouse * spawn_offset
+		
+		# Calculate target position at maximum range (400 pixels from spawn)
+		var max_range = 400.0
+		var target_pos = spear_spawn_pos + direction_to_mouse * max_range
+		
+		var success = spear_pool.launch_spear(
+			spear_spawn_pos,
+			target_pos,
+			400.0,
+			2,
+			player
+		)
+		
+		if success:
+			print("Player fired spear toward mouse direction")
+		else:
+			print("No spears available in pool!")
 
 func find_nearest_enemy_target(from_pos: Vector2) -> Node2D:
 	var nearest_target: Node2D = null
@@ -1003,17 +1025,29 @@ func show_aim_cursor():
 			target_indicator.position = target.position
 			target_indicator.queue_redraw()
 	else:
+		# No enemies - aim toward mouse cursor
 		aim_cursor.visible = true
 		aim_cursor.position = Vector2.ZERO
 		
+		var mouse_world_pos = get_global_mouse_position()
+		var direction_to_mouse = (mouse_world_pos - player_world_pos).normalized()
+		var aim_distance = 200.0  # Length of aim line
+		var aim_end_pos = player_world_pos + direction_to_mouse * aim_distance
+		
 		aim_line.clear_points()
 		aim_line.add_point(player_world_pos)
-		var forward_pos = player_world_pos + Vector2(100, 0)
-		if player_ship and player_ship.rotation != 0:
-			var direction = Vector2.from_angle(player_ship.rotation - PI/2)
-			forward_pos = player_world_pos + direction * 100
-		aim_line.add_point(forward_pos)
-		aim_line.default_color = Color(0.5, 0.5, 0.5, 0.5)
+		aim_line.add_point(aim_end_pos)
+		aim_line.default_color = Color(0.8, 0.8, 0.2, 0.7)  # Yellow color for manual aim
+		
+		# Show target circle at mouse position (clamped to reasonable distance)
+		var target_indicator = aim_cursor.get_node_or_null("TargetCircle")
+		if target_indicator:
+			var mouse_distance = player_world_pos.distance_to(mouse_world_pos)
+			var clamped_mouse_pos = mouse_world_pos
+			if mouse_distance > 400.0:  # Clamp to max spear range
+				clamped_mouse_pos = player_world_pos + direction_to_mouse * 400.0
+			target_indicator.position = clamped_mouse_pos
+			target_indicator.queue_redraw()
 
 func hide_aim_cursor():
 	if aim_cursor:
