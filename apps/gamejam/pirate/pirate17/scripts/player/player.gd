@@ -196,3 +196,44 @@ func auto_save_on_interaction() -> bool:
 func get_save_info() -> Dictionary:
 	"""Get information about save files"""
 	return PlayerSaving.get_save_info()
+
+## Handle damage from projectiles and enemies
+func take_damage(damage: int):
+	"""Take damage and update health"""
+	print("🔥 PLAYER TAKE_DAMAGE CALLED! Damage: ", damage)
+	print("🔥 Player node name: ", name)
+	print("🔥 Player node type: ", get_class())
+	
+	if not stats:
+		print("❌ WARNING: Player stats not initialized, cannot take damage")
+		return
+	
+	print("DEBUG: Player taking ", damage, " damage")
+	print("DEBUG: Health before: ", stats.health, "/", stats.max_health)
+	
+	# Apply damage to health (this will emit the health_changed signal)
+	stats.health = stats.health - damage
+	
+	print("DEBUG: Health after: ", stats.health, "/", stats.max_health)
+	
+	# Check if player died
+	if stats.health <= 0:
+		print("Player died!")
+		# TODO: Handle player death (respawn, game over, etc.)
+	
+	# Auto-save after taking damage
+	save_player_data()
+
+## Handle incoming projectile damage
+func _on_hitbox_area_entered(area: Area2D):
+	"""Called when projectiles hit the player's hitbox"""
+	print("🎯 PLAYER HITBOX HIT by area: ", area.name)
+	
+	# Check if it's a damaging projectile
+	var projectile = area.get_parent()
+	if projectile and projectile.has_method("hit_entity"):
+		print("🎯 Projectile found: ", projectile.name, " calling hit_entity")
+		projectile.hit_entity(self)
+	elif projectile and "damage" in projectile:
+		print("🎯 Direct damage from: ", projectile.name, " damage: ", projectile.damage)
+		take_damage(projectile.damage)

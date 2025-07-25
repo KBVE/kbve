@@ -32,3 +32,11 @@ How would this suggestion improve gameplay, immersion, or engagement for players
 **Additional Materials (Optional)**
 
 You can include links to references, concept art, screenshots, or similar games for inspiration.
+
+---
+
+**Useful Resources:**
+
+- [Join our Discord](https://kbve.com/discord/)
+- [Godot Application Notes](https://kbve.com/application/godot/)
+- [AirShip Project Page](https://kbve.com/project/airship/)

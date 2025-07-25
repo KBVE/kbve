@@ -185,6 +185,10 @@ func _on_hit_area_entered(area: Area2D):
 	if has_hit or not is_active:
 		return
 	
+	print("🔥 FIREBALL HIT AREA: ", area.name, " (parent: ", area.get_parent().name, ")")
+	print("🔥 Area collision layer: ", area.collision_layer, " mask: ", area.collision_mask)
+	print("🔥 Fireball collision layer: ", hit_area.collision_layer, " mask: ", hit_area.collision_mask)
+	
 	# Get the parent node which should be the entity
 	var entity = area.get_parent()
 	if entity and entity != owner_entity:
