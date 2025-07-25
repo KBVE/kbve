@@ -1,23 +1,27 @@
-[gd_scene load_steps=4 format=3 uid="uid://bxm8v3n7k2qip"]
+[gd_scene load_steps=5 format=3 uid="uid://bxm8v3n7k2qip"]
 
-[ext_resource type="Script" path="res://scripts/player/ship.gd" id="1_airship_script"]
-[ext_resource type="Script" path="res://scripts/player/player.gd" id="2_player_script"]
+[ext_resource type="Script" uid="uid://bhmkcu2exu7st" path="res://scripts/player/ship.gd" id="1_airship_script"]
+[ext_resource type="Script" uid="uid://c5uln67gn3l43" path="res://scripts/player/player.gd" id="2_player_script"]
+[ext_resource type="Texture2D" uid="uid://js4s5bnbgaee" path="res://assets/ship/airship.png" id="3_airship_texture"]
 
 [sub_resource type="CapsuleShape2D" id="CapsuleShape2D_player"]
 radius = 12.0
 height = 52.0
 
 [node name="Airship" type="CharacterBody2D"]
+collision_mask = 2
 script = ExtResource("2_player_script")
 
 [node name="PlayerShip" type="Node2D" parent="."]
 script = ExtResource("1_airship_script")
 
+[node name="Sprite2D" type="Sprite2D" parent="PlayerShip"]
+texture = ExtResource("3_airship_texture")
+
 [node name="CollisionShape2D" type="CollisionShape2D" parent="."]
 shape = SubResource("CapsuleShape2D_player")
 
 [node name="HitBox" type="Area2D" parent="."]
-collision_layer = 1
 collision_mask = 4
 
 [node name="HitBoxCollisionShape2D" type="CollisionShape2D" parent="HitBox"]
