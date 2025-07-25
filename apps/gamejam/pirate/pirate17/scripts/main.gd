@@ -2,6 +2,7 @@ extends Node2D
 
 const Movement = preload("res://scripts/world/movement.gd")
 const BorderSlicer = preload("res://scripts/ui/border_slicer.gd")
+const ChunkManager = preload("res://scripts/world/chunk.gd")
 
 @onready var camera = $Camera2D
 @onready var map_container = $MapContainer
@@ -32,15 +33,24 @@ var spear_pool: SpearPool
 var aim_cursor: Node2D
 var aim_line: Line2D
 
+# Chunk manager for efficient rendering
+var chunk_manager: ChunkManager
+
+# Removed camera smoothing - using direct following
+
 func _ready():
 	# Add this scene to the main_scene group for easy finding
 	add_to_group("main_scene")
+	
+	# Set process input
+	set_process_unhandled_input(true)
 	
 	# Force reload border assets with updated transparency
 	BorderSlicer.is_loaded = false  # Force reload
 	BorderSlicer.load_and_slice_borders()
 	
-	generate_map_display()
+	# Initialize chunk manager instead of generating all tiles
+	setup_chunk_manager()
 	
 	# Initialize world structures after map generation
 	World.initialize_world()
@@ -73,6 +83,19 @@ func setup_target_highlight():
 	else:
 		print("Failed to load border texture")
 
+func setup_chunk_manager():
+	"""Initialize the chunk manager for efficient map rendering"""
+	chunk_manager = ChunkManager.new()
+	chunk_manager.setup(Map, World, map_container)
+	
+	# Load initial chunks around player start position
+	var start_position = Vector2i(50, 50)
+	if Player:
+		start_position = Player.current_position
+	
+	chunk_manager.update_chunks_around_player(start_position)
+	print("Chunk manager initialized with ", chunk_manager.get_loaded_chunk_count(), " chunks")
+
 func setup_player_movement():
 	# Get saved player position or default
 	var start_position = Vector2i(50, 50)
@@ -82,16 +105,20 @@ func setup_player_movement():
 	player_movement = Movement.MoveComponent.new(player, start_position)
 	camera.position = player.position
 	
+	# Direct camera following - no smoothing
+	camera.position = player.position
+	
 	print("Player movement initialized at position: ", start_position)
 
-func generate_map_display():
-	var map_size = World.get_map_size()
-	print("Generating map display with size: ", map_size, " (", map_size.x * TILE_SIZE, "x", map_size.y * TILE_SIZE, " pixels)")
-	
-	for x in range(map_size.x):
-		for y in range(map_size.y):
-			var tile_color = World.get_tile_at(x, y)
-			create_tile_sprite(x, y, tile_color)
+# DEPRECATED - Using chunk system now
+# func generate_map_display():
+# 	var map_size = World.get_map_size()
+# 	print("Generating map display with size: ", map_size, " (", map_size.x * TILE_SIZE, "x", map_size.y * TILE_SIZE, " pixels)")
+# 	
+# 	for x in range(map_size.x):
+# 		for y in range(map_size.y):
+# 			var tile_color = World.get_tile_at(x, y)
+# 			create_tile_sprite(x, y, tile_color)
 
 func create_tile_sprite(x: int, y: int, color_hex: String):
 	var tile_position = Vector2(x * TILE_SIZE, y * TILE_SIZE)
@@ -299,7 +326,15 @@ func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bo
 
 func _process(delta):
 	player_movement.process_movement(delta)
+	# Direct camera follow - no smoothing or interpolation
 	camera.position = player.position
+	
+	# Update chunks based on player position
+	if chunk_manager:
+		var player_grid_pos = Movement.get_grid_position(player.position)
+		chunk_manager.update_chunks_around_player(player_grid_pos)
+		chunk_manager.update_ocean_animation(delta)
+	
 	update_movement_path()
 	check_structure_interactions()
 	update_parallax_effects()
@@ -1065,3 +1100,6 @@ func setup_settings_button():
 func _on_settings_button_pressed():
 	"""Called when settings button is pressed"""
 	open_settings_dialogue()
+
+func _unhandled_input(event):
+	pass  # Removed camera preset cycling - using one good setting
