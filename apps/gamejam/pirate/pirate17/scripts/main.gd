@@ -38,31 +38,51 @@ var chunk_manager: ChunkManager
 
 func _ready():
 	add_to_group("main_scene")
-	
 	set_process_unhandled_input(true)
 	
-	BorderSlicer.is_loaded = false
-	BorderSlicer.load_and_slice_borders()
-	
+	# Only do basic setup here, rest will be handled by loading screen
+	print("Main scene ready, waiting for loading screen to initialize systems")
+
+# Async initialization functions called by loading screen
+func init_basic_systems():
+	"""Initialize basic systems that don't require heavy processing"""
+	print("Main: Initializing basic systems")
+
+func init_chunk_manager():
+	"""Initialize chunk manager for map rendering"""
+	print("Main: Setting up chunk manager")
 	setup_chunk_manager()
-	
-	World.initialize_world()
-	
+
+func init_structures():
+	"""Initialize and render world structures"""
+	print("Main: Placing structures")
 	render_structures()
-	
-	setup_player_movement()
+
+func init_npcs():
+	"""Initialize NPCs and navy fleet"""
+	print("Main: Spawning navy fleet")
 	setup_npc_container()
+	spawn_npcs()
+
+func init_player_systems():
+	"""Initialize player movement and related systems"""
+	print("Main: Setting up player systems")
+	setup_player_movement()
 	setup_spear_pool()
 	setup_aim_cursor()
-	spawn_npcs()
 	connect_movement_signals()
 	connect_ship_signals()
+
+func finalize_initialization():
+	"""Finalize scene setup with UI and background systems"""
+	print("Main: Finalizing scene")
 	setup_target_highlight()
 	setup_interaction_system()
 	setup_parallax_background()
 	setup_cloud_manager()
 	setup_structure_interior_overlay()
 	setup_settings_button()
+	print("Main scene initialization complete!")
 
 func setup_target_highlight():
 	var border_texture = BorderSlicer.get_border_texture_by_position(2, 0)

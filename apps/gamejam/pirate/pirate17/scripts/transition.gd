@@ -80,9 +80,36 @@ func change_to_target_scene():
 	"""Change to the target scene while screen is black"""
 	if target_scene != "":
 		print("Transition: Changing to scene: ", target_scene)
-		get_tree().change_scene_to_file(target_scene)
+		
+		# If transitioning to main scene, use loading screen
+		if target_scene == "res://scenes/main.tscn":
+			show_loading_screen_then_main()
+		else:
+			get_tree().change_scene_to_file(target_scene)
 	else:
 		print("ERROR: No target scene set for transition")
+
+func show_loading_screen_then_main():
+	"""Show loading screen, then load main scene with progress tracking"""
+	# First load the main scene in background
+	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	
+	# Add loading screen overlay
+	var loading_screen_scene = preload("res://scenes/loading_screen.tscn")
+	var loading_screen = loading_screen_scene.instantiate()
+	
+	# Add loading screen to the scene tree
+	get_tree().current_scene.add_child(loading_screen)
+	
+	# Connect loading complete signal
+	loading_screen.loading_complete.connect(_on_loading_complete)
+	
+	# Start the loading process
+	loading_screen.start_loading()
+
+func _on_loading_complete():
+	"""Called when loading screen finishes"""
+	print("Transition: Loading complete, game ready to play")
 
 # Static method to start a transition to a specific scene
 static func transition_to_scene(scene_path: String):
