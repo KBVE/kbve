@@ -97,9 +97,12 @@ func connect_player_stats():
 		print("PlayerInfoUI: player_ref.stats: ", player_ref.stats if player_ref else "null")
 
 func _on_health_changed(new_health: int, max_health: int):
+	print("🎨 PlayerInfoUI: _on_health_changed SIGNAL RECEIVED! ", new_health, "/", max_health)
 	if health_progress_bar:
 		health_progress_bar.set_value(new_health, max_health)
-		print("PlayerInfoUI: Health updated to ", new_health, "/", max_health)
+		print("🎨 PlayerInfoUI: Health bar updated to ", new_health, "/", max_health)
+	else:
+		print("❌ PlayerInfoUI: health_progress_bar is null!")
 
 func _on_mana_changed(new_mana: int, max_mana: int):
 	if mana_progress_bar:

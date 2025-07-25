@@ -171,6 +171,7 @@ func _on_hit_area_entered(area: Area2D):
 		return
 	print("🎯 SPEAR HIT AREA: ", area.name, " (parent: ", area.get_parent().name, ")")
 	print("🎯 Area collision layer: ", area.collision_layer, " mask: ", area.collision_mask)
+	print("🎯 Spear collision layer: ", hit_area.collision_layer, " mask: ", hit_area.collision_mask)
 	var entity = area.get_parent()
 	if entity and entity != owner_entity:
 		print("DEBUG: Spear hit area collision with: ", entity.name)

@@ -18,11 +18,6 @@ func _ready():
 	else:
 		# Initialize new player
 		initialize_new_player()
-	
-	# Connect HitBox signals for damage
-	var hitbox = get_node_or_null("HitBox")
-	if hitbox:
-		hitbox.area_entered.connect(_on_hitbox_area_entered)
 
 func initialize_new_player():
 	"""Initialize a new player with default values"""
@@ -216,8 +211,8 @@ func take_damage(damage: int):
 	print("DEBUG: Player taking ", damage, " damage")
 	print("DEBUG: Health before: ", stats.health, "/", stats.max_health)
 	
-	# Apply damage to health
-	stats.health -= damage
+	# Apply damage to health (this will emit the health_changed signal)
+	stats.health = stats.health - damage
 	
 	print("DEBUG: Health after: ", stats.health, "/", stats.max_health)
 	

@@ -21,7 +21,10 @@ var health: int:
 	get:
 		return _health
 	set(value):
+		var old_health = _health
 		_health = clamp(value, 0, max_health)
+		print("📊 Stats: Health setter called - old: ", old_health, " new: ", _health, "/", max_health)
+		print("📊 Stats: Emitting health_changed signal")
 		health_changed.emit(_health, max_health)
 
 var mana: int:
