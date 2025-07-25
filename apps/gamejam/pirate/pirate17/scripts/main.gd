@@ -33,36 +33,144 @@ var spear_pool: SpearPool
 var aim_cursor: Node2D
 var aim_line: Line2D
 var navy_fleet_manager: NavyFleetManager
+var web_performance_manager: WebPerformanceManager
 
 var chunk_manager: ChunkManager
 
 func _ready():
 	add_to_group("main_scene")
-	
 	set_process_unhandled_input(true)
 	
-	BorderSlicer.is_loaded = false
-	BorderSlicer.load_and_slice_borders()
+	# Only do basic setup here, rest will be handled by loading screen
+	print("Main scene ready, waiting for loading screen to initialize systems")
+
+# Async initialization functions called by loading screen
+func init_basic_systems():
+	"""Initialize basic systems that don't require heavy processing"""
+	print("Main: Initializing basic systems")
 	
+	# Apply web rendering optimizations early
+	var WebRendererOptimizer = preload("res://scripts/performance/web_renderer_optimizer.gd")
+	WebRendererOptimizer.apply_web_rendering_optimizations()
+
+func init_chunk_manager():
+	"""Initialize chunk manager for map rendering"""
+	print("Main: Setting up chunk manager")
 	setup_chunk_manager()
-	
-	World.initialize_world()
-	
+
+func init_structures():
+	"""Initialize and render world structures"""
+	print("Main: Placing structures")
 	render_structures()
-	
-	setup_player_movement()
+
+func init_npcs():
+	"""Initialize NPCs and navy fleet"""
+	print("Main: Spawning navy fleet")
 	setup_npc_container()
+	
+	# Optimized NPC count for browser performance
+	var npc_count = 15  # Browser-optimized count for smooth gameplay
+	print("Main: Using ", npc_count, " NPCs for optimal browser performance")
+	
+	spawn_npcs_with_count(npc_count)
+
+func spawn_npcs_with_count(count: int):
+	"""Spawn NPCs with specified count"""
+	World.spawn_npcs(count)
+	
+	var npc_list = World.get_npcs()
+	print("Retrieved ", npc_list.size(), " NPCs from World")
+	
+	setup_navy_fleet_manager()
+	
+	# Apply browser optimizations to all NPCs
+	for npc in npc_list:
+		if npc and is_instance_valid(npc) and npc.has_method("enable_web_optimizations"):
+			npc.enable_web_optimizations()
+	
+	for npc in npc_list:
+		npc_container.add_child(npc)
+		npc.update_position_after_scene_ready()
+
+func init_player_systems():
+	"""Initialize player movement and related systems"""
+	print("Main: Setting up player systems")
+	setup_player_movement()
 	setup_spear_pool()
 	setup_aim_cursor()
-	spawn_npcs()
 	connect_movement_signals()
 	connect_ship_signals()
+
+func finalize_initialization():
+	"""Finalize scene setup with UI and background systems"""
+	print("Main: Finalizing scene")
 	setup_target_highlight()
 	setup_interaction_system()
 	setup_parallax_background()
 	setup_cloud_manager()
 	setup_structure_interior_overlay()
 	setup_settings_button()
+	setup_web_performance_manager()
+	print("Main scene initialization complete!")
+
+func setup_web_performance_manager():
+	"""Initialize web performance manager for browser optimization"""
+	web_performance_manager = preload("res://scripts/performance/web_performance_manager.gd").new()
+	web_performance_manager.name = "WebPerformanceManager"
+	add_child(web_performance_manager)
+	
+	# Connect performance change signals
+	web_performance_manager.performance_changed.connect(_on_performance_changed)
+	
+	print("Web Performance Manager initialized")
+
+func _on_performance_changed(performance_level: String):
+	print("Performance level changed to: ", performance_level)
+	
+	# Show performance notification to user
+	if performance_level == "LOW":
+		show_performance_notification("Performance optimized for smoother gameplay")
+
+func show_performance_notification(message: String):
+	"""Show a brief notification about performance changes"""
+	# Create a temporary notification label
+	var notification = Label.new()
+	notification.text = message
+	notification.add_theme_font_size_override("font_size", 14)
+	notification.add_theme_color_override("font_color", Color.YELLOW)
+	notification.add_theme_color_override("font_shadow_color", Color.BLACK)
+	notification.add_theme_constant_override("shadow_offset_x", 1)
+	notification.add_theme_constant_override("shadow_offset_y", 1)
+	notification.position = Vector2(20, 50)
+	notification.z_index = 1000
+	
+	add_child(notification)
+	
+	# Fade out after 3 seconds
+	var tween = create_tween()
+	tween.tween_delay(3.0)
+	tween.tween_property(notification, "modulate:a", 0.0, 1.0)
+	tween.tween_callback(notification.queue_free)
+
+# Methods for performance manager integration
+func set_chunk_view_distance(distance: int):
+	"""Set chunk view distance for performance scaling"""
+	if chunk_manager:
+		chunk_manager.set_view_distance(distance)
+
+func set_max_npcs(max_count: int):
+	"""Limit NPC count for performance"""
+	var current_npcs = World.get_npcs()
+	if current_npcs.size() > max_count:
+		# Remove excess NPCs (starting from the end)
+		for i in range(max_count, current_npcs.size()):
+			if current_npcs[i] and is_instance_valid(current_npcs[i]):
+				current_npcs[i].queue_free()
+		print("Reduced NPC count to ", max_count, " for performance")
+
+func get_web_performance_manager() -> WebPerformanceManager:
+	"""Get the web performance manager instance"""
+	return web_performance_manager
 
 func setup_target_highlight():
 	var border_texture = BorderSlicer.get_border_texture_by_position(2, 0)
@@ -165,6 +273,10 @@ func _input(event):
 		return
 	
 	if event is InputEventKey and event.pressed:
+		if not player_movement:
+			print("DEBUG: Key input ignored - player_movement is null")
+			return
+		
 		var current_pos = player_movement.get_current_position()
 		var new_pos = current_pos
 		
@@ -192,6 +304,9 @@ func _input(event):
 		if is_mouse_over_blocking_ui():
 			return
 			
+		if not player_movement:
+			print("DEBUG: Mouse input ignored - player_movement is null")
+			return
 		var mouse_world_pos = get_global_mouse_position()
 		var grid_pos = Movement.get_grid_position(mouse_world_pos)
 		var current_pos = player_movement.get_current_position()
@@ -264,18 +379,22 @@ func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bo
 		player_ship.update_direction_from_movement(from, to)
 
 func _process(delta):
-	player_movement.process_movement(delta)
-	camera.position = player.position
+	# Only process if systems are initialized
+	if player_movement:
+		player_movement.process_movement(delta)
+		camera.position = player.position
+		
+		if chunk_manager:
+			var player_grid_pos = Movement.get_grid_position(player.position)
+			chunk_manager.update_chunks_around_player(player_grid_pos)
+			chunk_manager.update_ocean_animation(delta)
+		
+		update_movement_path()
+		track_movement_distance()
 	
-	if chunk_manager:
-		var player_grid_pos = Movement.get_grid_position(player.position)
-		chunk_manager.update_chunks_around_player(player_grid_pos)
-		chunk_manager.update_ocean_animation(delta)
-	
-	update_movement_path()
+	# These can run even without player movement initialized
 	check_structure_interactions()
 	update_parallax_effects()
-	track_movement_distance()
 	if Player:
 		Player.update_play_time(delta)
 
@@ -378,7 +497,7 @@ func hide_movement_path():
 	target_highlight.visible = false
 
 func update_movement_path():
-	if player_movement.is_currently_moving():
+	if player_movement and player_movement.is_currently_moving():
 		var current_pos = player.position
 		var target_pos = Movement.get_world_position(player_movement.get_target_position())
 		
@@ -472,19 +591,11 @@ func debug_fleet_info():
 		print("===================")
 
 func spawn_npcs():
-	print("Starting NPC spawn process...")
-	World.spawn_npcs(25)
+	"""Legacy spawn function - now calls the optimized version"""
+	var npc_count = 15  # Browser-optimized default count
+	spawn_npcs_with_count(npc_count)
 	
-	var npc_list = World.get_npcs()
-	print("Retrieved ", npc_list.size(), " NPCs from World")
-	
-	setup_navy_fleet_manager()
-	
-	for npc in npc_list:
-		npc_container.add_child(npc)
-		npc.update_position_after_scene_ready()
-		print("Added NPC to scene at world position: ", npc.position)
-	
+	# Handle dragons separately
 	var dragons = World.get_dragons()
 	print("Retrieved ", dragons.size(), " dragons from World")
 	
@@ -497,6 +608,8 @@ func spawn_npcs():
 func get_player_position() -> Vector2i:
 	if player_movement:
 		return player_movement.get_current_position()
+	else:
+		print("WARNING: get_player_position called but player_movement is null")
 	return Vector2i(50, 50)
 
 func render_structures():
@@ -577,12 +690,12 @@ func check_structure_interactions():
 	
 	if interactable_structures.size() > 0:
 		var structure = interactable_structures[0]
-		if not interaction_tooltip.visible or interaction_tooltip.current_structure != structure:
+		if interaction_tooltip and (not interaction_tooltip.visible or interaction_tooltip.current_structure != structure):
 			var player_world_pos = player.position
 			interaction_tooltip.position_above_target(player_world_pos)
 			interaction_tooltip.show_for_structure(structure)
 	else:
-		if interaction_tooltip.visible:
+		if interaction_tooltip and interaction_tooltip.visible:
 			interaction_tooltip.hide_tooltip()
 
 func _on_structure_interaction_requested(structure):
