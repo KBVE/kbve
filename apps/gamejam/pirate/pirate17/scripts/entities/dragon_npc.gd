@@ -29,19 +29,19 @@ func _ready():
 	setup_regeneration()
 
 func setup_dragon_properties():
-	movement_interval = 3.0
-	movement_range = 12
-	detection_range = 8
-	chase_threshold = 10
-	reset_distance = 15
-	follow_distance = 5
-	aggression_check_interval = 1.5
+	movement_interval = 2.0  # Faster movement (reduced from 3.0)
+	movement_range = 18  # Increased movement range (from 12)
+	detection_range = 12  # Increased detection range (from 8)
+	chase_threshold = 15  # Increased chase threshold (from 10)
+	reset_distance = 20  # Increased reset distance (from 15)
+	follow_distance = 4  # Slightly closer follow distance (from 5)
+	aggression_check_interval = 1.0  # More frequent aggression checks (from 1.5)
 	max_health = 20
 	current_health = 20
 	max_mana = 20
 	current_mana = 20
-	attack_range = 8  # Dragons have longer attack range than regular ships
-	attack_cooldown = 3.0  # Dragons attack faster than ships
+	attack_range = 10  # Increased attack range (from 8)
+	attack_cooldown = 2.5  # Slightly faster attacks (from 3.0)
 	dragon_attack_texture = load("res://assets/dragon/DragonAttack.png")
 	
 
@@ -126,21 +126,30 @@ func setup_projectile_container():
 			main_scene.add_child(projectile_container)
 
 func _on_movement_timer_timeout():
-	var player_distance = get_distance_to_player()
-	
-	if player_distance <= attack_range and not is_attacking and attack_timer.is_stopped():
-		attempt_fireball_attack()
-		return
+	# Check if any target is in attack range
+	var target = find_nearest_target()
+	if target:
+		var dragon_world_pos = Movement.get_world_position(grid_position)
+		var distance = dragon_world_pos.distance_to(target.position)
+		
+		if distance <= attack_range * World.TILE_SIZE and not is_attacking and attack_timer.is_stopped():
+			attempt_fireball_attack()
+			return
 	
 	super._on_movement_timer_timeout()
 
 func _on_aggression_check_timeout():
-	var player_distance = get_distance_to_player()
+	# Check if any target is in attack range
+	var target = find_nearest_target()
+	if target:
+		var dragon_world_pos = Movement.get_world_position(grid_position)
+		var distance = dragon_world_pos.distance_to(target.position)
+		
+		if distance <= attack_range * World.TILE_SIZE and not is_attacking and attack_timer.is_stopped():
+			attempt_fireball_attack()
+			return
 	
-	if player_distance <= attack_range and not is_attacking and attack_timer.is_stopped():
-		attempt_fireball_attack()
-	else:
-		super._on_aggression_check_timeout()
+	super._on_aggression_check_timeout()
 
 func attempt_fireball_attack():
 	var target = find_nearest_target()

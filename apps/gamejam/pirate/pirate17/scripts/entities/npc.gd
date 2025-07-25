@@ -3,6 +3,10 @@ extends Node2D
 
 const Movement = preload("res://scripts/world/movement.gd")
 
+# Signals for navy ship communication
+signal calling_for_help(caller: NPC, position: Vector2i)
+signal help_requested(caller: NPC)
+
 var grid_position: Vector2i
 var target_position: Vector2i
 var move_component: Movement.MoveComponent
@@ -36,7 +40,8 @@ enum NPCState {
 	PATROL,    # Black - Normal patrol around spawn
 	AGGRESSIVE,   # Dark Red - Actively following player
 	RETURNING,    # Dark Orange - Lost player, returning to spawn
-	RETREATING    # Blue - Hurt, seeking dock for healing
+	RETREATING,   # Blue - Hurt, seeking dock for healing
+	CALLING_HELP  # Yellow - Calling for reinforcements
 }
 
 var current_state: NPCState = NPCState.PATROL
@@ -52,6 +57,14 @@ var current_dock_target: Vector2i = Vector2i(-1, -1)  # Target dock position
 var dock_healing_rate: int = 2  # HP per second when at dock
 var dock_healing_timer: Timer
 var is_at_dock: bool = false
+
+# Call for help system
+var call_for_help_threshold: float = 0.5  # Call for help when health drops below 50%
+var help_call_range: int = 25  # Ships within 25 tiles will respond
+var has_called_for_help: bool = false
+var help_call_timer: Timer
+var is_responding_to_help: bool = false
+var help_target_position: Vector2i = Vector2i(-1, -1)
 
 # AStar2D pathfinding for dock navigation
 var astar: AStar2D
@@ -298,8 +311,15 @@ func take_damage(damage: int):
 	if scene_mana_label:
 		scene_mana_label.text = str(current_mana) + "/" + str(max_mana)
 	
-	# Check if NPC should retreat to dock for healing
+	# Check health status for different actions
 	var health_percentage = float(current_health) / float(max_health)
+	
+	# Check if NPC should call for help (50% health)
+	if health_percentage <= call_for_help_threshold and not has_called_for_help and current_state != NPCState.RETREATING:
+		print("Navy ship calling for help! Health at ", health_percentage * 100, "%")
+		call_for_help()
+	
+	# Check if NPC should retreat to dock for healing (30% health)
 	if health_percentage <= retreat_health_threshold and current_state != NPCState.RETREATING:
 		print("NPC health critical (", health_percentage * 100, "%), seeking dock for healing")
 		transition_to_state(NPCState.RETREATING)
@@ -401,11 +421,63 @@ func _on_dock_healing_tick():
 			is_at_dock = false
 			stop_dock_healing()
 
+func call_for_help():
+	"""Call nearby ships for help"""
+	has_called_for_help = true
+	transition_to_state(NPCState.CALLING_HELP)
+	
+	# Emit signal to notify other ships
+	calling_for_help.emit(self, grid_position)
+	
+	# Send help request to all nearby ships
+	var all_npcs = World.get_npcs()
+	for npc in all_npcs:
+		if npc and is_instance_valid(npc) and npc != self:
+			var distance = abs(grid_position.x - npc.grid_position.x) + abs(grid_position.y - npc.grid_position.y)
+			if distance <= help_call_range:
+				# Connect to the other ship if not already connected
+				if not is_connected("help_requested", npc._on_help_requested):
+					help_requested.connect(npc._on_help_requested)
+				# Send help request
+				help_requested.emit(self)
+	
+	# Start timer to stop calling for help after a while
+	if help_call_timer:
+		help_call_timer.queue_free()
+	
+	help_call_timer = Timer.new()
+	help_call_timer.wait_time = 10.0  # Call for help for 10 seconds
+	help_call_timer.one_shot = true
+	help_call_timer.timeout.connect(_on_help_call_timeout)
+	add_child(help_call_timer)
+	help_call_timer.start()
+
+func _on_help_call_timeout():
+	"""Stop calling for help after timeout"""
+	if current_state == NPCState.CALLING_HELP:
+		# Return to appropriate state based on health
+		var health_percentage = float(current_health) / float(max_health)
+		if health_percentage <= retreat_health_threshold:
+			transition_to_state(NPCState.RETREATING)
+			find_nearest_dock()
+		else:
+			transition_to_state(NPCState.AGGRESSIVE)
+
+func _on_help_requested(caller: NPC):
+	"""Respond to help request from another ship"""
+	if current_state == NPCState.PATROL and not is_responding_to_help:
+		print(name, " responding to help from ", caller.name)
+		is_responding_to_help = true
+		help_target_position = caller.grid_position
+		transition_to_state(NPCState.AGGRESSIVE)
+
 func die():
 	print("NPC died!")
-	# Clean up dock healing timer
+	# Clean up timers
 	if dock_healing_timer:
 		dock_healing_timer.queue_free()
+	if help_call_timer:
+		help_call_timer.queue_free()
 	# Create death effect or animation here
 	queue_free()
 
@@ -484,21 +556,25 @@ func transition_to_state(new_state: NPCState):
 			movement_timer.stop()
 			
 		# Adjust movement speed based on state
-		match current_state:
-			NPCState.AGGRESSIVE:
-				movement_timer.wait_time = randf_range(2.0, 3.5)  # Slower when aggressive (reduced from 1.0-2.0)
-			NPCState.RETURNING:
-				movement_timer.wait_time = randf_range(1.5, 2.5)  # Slower retreating speed (reduced from 1.0-2.0)
-				# Immediately attempt to retreat when entering retreating state
-				call_deferred("attempt_retreat_from_player")
-			NPCState.PATROL:
-				movement_timer.wait_time = randf_range(2.0, 4.0)  # Slower patrol speed (increased from 1.5-3.0)
-				# Immediately attempt a move when entering patrol state
-				call_deferred("attempt_random_move")
-			NPCState.RETREATING:
-				movement_timer.wait_time = randf_range(1.0, 1.5)  # Fast movement when seeking dock
-				# Immediately attempt to move toward dock
-				call_deferred("attempt_move_to_dock")
+		if movement_timer:
+			match current_state:
+				NPCState.AGGRESSIVE:
+					movement_timer.wait_time = randf_range(2.0, 3.5)  # Slower when aggressive (reduced from 1.0-2.0)
+				NPCState.RETURNING:
+					movement_timer.wait_time = randf_range(1.5, 2.5)  # Slower retreating speed (reduced from 1.0-2.0)
+					# Immediately attempt to retreat when entering retreating state
+					call_deferred("attempt_retreat_from_player")
+				NPCState.PATROL:
+					movement_timer.wait_time = randf_range(2.0, 4.0)  # Slower patrol speed (increased from 1.5-3.0)
+					# Immediately attempt a move when entering patrol state
+					call_deferred("attempt_random_move")
+				NPCState.RETREATING:
+					movement_timer.wait_time = randf_range(1.0, 1.5)  # Fast movement when seeking dock
+					# Immediately attempt to move toward dock
+					call_deferred("attempt_move_to_dock")
+				NPCState.CALLING_HELP:
+					movement_timer.wait_time = randf_range(2.5, 3.5)  # Slower when calling for help
+					# Continue engaging but stay defensive
 		
 		# Restart the timer to ensure it continues
 		if movement_timer:
@@ -522,7 +598,10 @@ func update_state_label():
 			NPCState.PATROL:
 				state_badge.update_state("Patrol...")
 			NPCState.AGGRESSIVE:
-				state_badge.update_state("Aggressive!")
+				if is_responding_to_help:
+					state_badge.update_state("Responding!")
+				else:
+					state_badge.update_state("Aggressive!")
 			NPCState.RETURNING:
 				state_badge.update_state("Retreating...")
 			NPCState.RETREATING:
@@ -530,6 +609,8 @@ func update_state_label():
 					state_badge.update_state("Healing...")
 				else:
 					state_badge.update_state("Seeking Dock!")
+			NPCState.CALLING_HELP:
+				state_badge.update_state("Calling for help!")
 		
 		# Reposition badge after text change
 		call_deferred("position_state_badge")
@@ -550,6 +631,9 @@ func update_visual_state():
 			NPCState.RETREATING:
 				# Blue tint when retreating to dock for healing
 				npc_sprite.modulate = Color(0.4, 0.7, 1.0, 1.0)
+			NPCState.CALLING_HELP:
+				# Yellow tint when calling for help
+				npc_sprite.modulate = Color(1.0, 1.0, 0.4, 1.0)
 
 func attempt_aggressive_chase():
 	# More aggressive movement when player is far but still trackable
@@ -736,10 +820,14 @@ func _on_movement_timer_timeout():
 			# Check if we can attack any target first
 			if enemy_distance <= attack_range and not is_attacking and attack_timer.is_stopped():
 				attempt_spear_attack()
+			# If responding to help, move toward the caller
+			elif is_responding_to_help and help_target_position != Vector2i(-1, -1):
+				attempt_move_to_help_target()
 			# Once aggressive, stay aggressive until enemies are too far
 			elif enemy_distance > reset_distance:
 				# All enemies are too far - give up and return to spawn
 				transition_to_state(NPCState.RETURNING)
+				is_responding_to_help = false
 			elif enemy_distance > restart_distance:
 				# Enemies getting far - begin restart process but still try to chase
 				transition_to_state(NPCState.RETURNING)
@@ -773,6 +861,15 @@ func _on_movement_timer_timeout():
 			# Move toward dock for healing
 			attempt_move_to_dock()
 			check_dock_proximity()
+		
+		NPCState.CALLING_HELP:
+			# Continue fighting defensively while calling for help
+			if enemy_distance <= attack_range and not is_attacking and attack_timer.is_stopped():
+				attempt_spear_attack()
+			elif enemy_distance > detection_range:
+				# Enemy left, stop calling for help
+				has_called_for_help = false
+				transition_to_state(NPCState.PATROL)
 	
 	# Update visual appearance based on current state
 	update_visual_state()
@@ -794,6 +891,17 @@ func _on_aggression_check_timeout():
 			elif enemy_distance > restart_distance:
 				# Enemies getting far but not lost yet - continue for now
 				pass
+		NPCState.CALLING_HELP:
+			# Timeout for calling help - transition back to aggressive after some time
+			if enemy_distance > detection_range + 2:
+				# Enemy left the area, stop calling for help
+				has_called_for_help = false
+				transition_to_state(NPCState.PATROL)
+			elif enemy_distance > reset_distance:
+				# Enemies too far, give up calling for help
+				has_called_for_help = false
+				transition_to_state(NPCState.RETURNING)
+			# Continue calling for help and fighting defensively
 		NPCState.RETURNING:
 			# Check if any enemy is nearby again while returning
 			if enemy_distance <= detection_range:
@@ -1052,6 +1160,44 @@ func attempt_follow_player():
 	# Only move if we found a better position
 	if best_pos != grid_position:
 		move_to(best_pos)
+
+func attempt_move_to_help_target():
+	"""Move toward the ship calling for help"""
+	if help_target_position == Vector2i(-1, -1):
+		is_responding_to_help = false
+		return
+	
+	# Calculate direction to help target
+	var direction_to_help = Vector2i(
+		sign(help_target_position.x - grid_position.x),
+		sign(help_target_position.y - grid_position.y)
+	)
+	
+	# Try different movement options to get closer to help target
+	var possible_moves = [direction_to_help]
+	
+	# Add adjacent directions for more natural movement
+	if direction_to_help.x != 0:
+		possible_moves.append(Vector2i(direction_to_help.x, 0))
+	if direction_to_help.y != 0:
+		possible_moves.append(Vector2i(0, direction_to_help.y))
+	
+	# Try diagonal movements as well
+	if direction_to_help.x != 0 and direction_to_help.y != 0:
+		possible_moves.append(Vector2i(direction_to_help.x, 0))
+		possible_moves.append(Vector2i(0, direction_to_help.y))
+	
+	# Try to move toward help target
+	for direction in possible_moves:
+		var new_pos = grid_position + direction
+		if is_valid_move(new_pos):
+			move_to(new_pos)
+			# Check if we've reached the help target area
+			var distance_to_target = abs(new_pos.x - help_target_position.x) + abs(new_pos.y - help_target_position.y)
+			if distance_to_target <= 3:  # Close enough to help
+				is_responding_to_help = false
+				help_target_position = Vector2i(-1, -1)
+			return
 
 func get_positions_around_player(player_pos: Vector2i, distance: int) -> Array[Vector2i]:
 	var positions: Array[Vector2i] = []

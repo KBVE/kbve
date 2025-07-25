@@ -196,3 +196,30 @@ func auto_save_on_interaction() -> bool:
 func get_save_info() -> Dictionary:
 	"""Get information about save files"""
 	return PlayerSaving.get_save_info()
+
+## Handle damage from projectiles and enemies
+func take_damage(damage: int):
+	"""Take damage and update health"""
+	print("🔥 PLAYER TAKE_DAMAGE CALLED! Damage: ", damage)
+	print("🔥 Player node name: ", name)
+	print("🔥 Player node type: ", get_class())
+	
+	if not stats:
+		print("❌ WARNING: Player stats not initialized, cannot take damage")
+		return
+	
+	print("DEBUG: Player taking ", damage, " damage")
+	print("DEBUG: Health before: ", stats.health, "/", stats.max_health)
+	
+	# Apply damage to health
+	stats.health -= damage
+	
+	print("DEBUG: Health after: ", stats.health, "/", stats.max_health)
+	
+	# Check if player died
+	if stats.health <= 0:
+		print("Player died!")
+		# TODO: Handle player death (respawn, game over, etc.)
+	
+	# Auto-save after taking damage
+	save_player_data()
