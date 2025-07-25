@@ -91,20 +91,35 @@ func change_to_target_scene():
 
 func show_loading_screen_then_main():
 	"""Show loading screen, then load main scene with progress tracking"""
-	# First load the main scene in background
-	get_tree().change_scene_to_file("res://scenes/main.tscn")
+	# Get the tree reference before scene change
+	var tree = get_tree()
+	if not tree:
+		print("ERROR: No scene tree available for transition")
+		return
 	
-	# Add loading screen overlay
+	# Create and add loading screen BEFORE changing scenes
 	var loading_screen_scene = preload("res://scenes/loading_screen.tscn")
 	var loading_screen = loading_screen_scene.instantiate()
 	
-	# Add loading screen to the scene tree
-	get_tree().current_scene.add_child(loading_screen)
+	# Create a CanvasLayer to ensure loading screen stays on top during scene change
+	var canvas_layer = CanvasLayer.new()
+	canvas_layer.layer = 100
+	tree.root.add_child(canvas_layer)
+	canvas_layer.add_child(loading_screen)
 	
 	# Connect loading complete signal
-	loading_screen.loading_complete.connect(_on_loading_complete)
+	loading_screen.loading_complete.connect(func(): 
+		canvas_layer.queue_free()
+		_on_loading_complete()
+	)
 	
-	# Start the loading process
+	# Now change to the main scene
+	tree.change_scene_to_file("res://scenes/main.tscn")
+	
+	# Wait a frame for the scene to be ready
+	await tree.process_frame
+	
+	# Start the loading process after scene is ready
 	loading_screen.start_loading()
 
 func _on_loading_complete():
@@ -114,18 +129,30 @@ func _on_loading_complete():
 # Static method to start a transition to a specific scene
 static func transition_to_scene(scene_path: String):
 	"""Start a transition to the specified scene"""
+	var tree = Engine.get_main_loop() as SceneTree
+	if not tree or not tree.current_scene:
+		print("ERROR: Cannot transition - no scene tree or current scene available")
+		return
+	
 	var transition_scene = preload("res://scenes/transition.tscn")
 	var transition_instance = transition_scene.instantiate()
 	transition_instance.target_scene = scene_path
 	
 	# Add to the scene tree
-	var tree = Engine.get_main_loop() as SceneTree
-	tree.current_scene.get_parent().add_child(transition_instance)
+	var scene_parent = tree.current_scene.get_parent()
+	if not scene_parent:
+		print("ERROR: Cannot transition - current scene has no parent")
+		return
+	
+	scene_parent.add_child(transition_instance)
 	
 	# Remove the current scene after a brief delay to let transition start
 	var current_scene = tree.current_scene
 	var remove_timer = Timer.new()
 	remove_timer.wait_time = 0.1
-	remove_timer.timeout.connect(func(): current_scene.queue_free())
+	remove_timer.timeout.connect(func(): 
+		if current_scene and is_instance_valid(current_scene):
+			current_scene.queue_free()
+	)
 	remove_timer.autostart = true
 	transition_instance.add_child(remove_timer)

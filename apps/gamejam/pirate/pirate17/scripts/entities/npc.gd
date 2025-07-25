@@ -1354,3 +1354,33 @@ func perform_spear_attack(target_pos: Vector2, target_entity: Node2D):
 func _on_attack_cooldown_finished():
 	"""Called when attack cooldown finishes"""
 	is_attacking = false
+
+# Web performance optimization methods
+func set_animation_quality(quality: float):
+	"""Adjust animation quality for performance"""
+	if quality < 1.0:
+		# Reduce animation update frequency
+		if movement_timer:
+			movement_timer.wait_time *= (2.0 - quality)
+		
+		if aggression_check_timer:
+			aggression_check_timer.wait_time *= (2.0 - quality)
+		
+		# Reduce visual update frequency
+		if state_badge:
+			state_badge.modulate.a = 0.8  # Slightly transparent to indicate reduced quality
+
+func enable_web_optimizations():
+	"""Enable browser-specific optimizations for this NPC"""
+	# Reduce update frequencies
+	if movement_timer:
+		movement_timer.wait_time = max(movement_timer.wait_time * 1.5, 3.0)
+	
+	if aggression_check_timer:
+		aggression_check_timer.wait_time = max(aggression_check_timer.wait_time * 1.5, 3.0)
+	
+	# Reduce visual effects
+	if dash_lines.size() > 0:
+		clear_dash_lines()  # Disable movement paths for performance
+	
+	print("NPC web optimizations enabled for ", name)

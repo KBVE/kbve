@@ -2,8 +2,9 @@ class_name ChunkManager
 extends RefCounted
 
 const CHUNK_SIZE = 16
-const VIEW_DISTANCE = 3
+var VIEW_DISTANCE = 3  # Now dynamic for performance scaling
 const TILE_SIZE = 32
+var web_optimized = false
 
 class Chunk:
 	var position: Vector2i
@@ -40,6 +41,20 @@ func setup(map_node: Node, world_node: Node, container: Node2D):
 	map_ref = map_node
 	world_ref = world_node
 	chunk_container = container
+	
+	# Always enable browser optimizations for web-only game
+	enable_web_optimizations()
+
+func enable_web_optimizations():
+	"""Enable browser optimizations - always active for web-only game"""
+	web_optimized = true
+	VIEW_DISTANCE = 2  # Optimized view distance for browser performance
+	print("ChunkManager: Browser optimizations enabled - view distance set to ", VIEW_DISTANCE)
+
+func set_view_distance(distance: int):
+	"""Dynamically adjust view distance for performance scaling"""
+	VIEW_DISTANCE = distance
+	print("ChunkManager: View distance set to ", VIEW_DISTANCE)
 
 func world_to_chunk_position(world_pos: Vector2i) -> Vector2i:
 	"""Convert world tile position to chunk position"""
