@@ -3,13 +3,11 @@ extends Control
 func _ready():
 	print("Simple title scene loading...")
 	
-	# Create simple background
 	var background = ColorRect.new()
 	background.color = Color(0.2, 0.15, 0.3, 1.0)
 	background.anchors_preset = Control.PRESET_FULL_RECT
 	add_child(background)
 	
-	# Create simple title
 	var title_label = Label.new()
 	title_label.text = "Pirate Adventure"
 	title_label.add_theme_font_size_override("font_size", 32)
@@ -20,7 +18,6 @@ func _ready():
 	title_label.offset_bottom = 150
 	add_child(title_label)
 	
-	# Create simple buttons
 	var button_container = VBoxContainer.new()
 	button_container.anchors_preset = Control.PRESET_CENTER
 	button_container.add_theme_constant_override("separation", 10)

@@ -1,13 +1,11 @@
 @tool
 extends EditorScript
 
-# URLs and paths
 const ITEMDB_URL = "https://kbve.com/api/itemdb.json"
 const BASE_IMAGE_URL = "https://kbve.com"
 const LOCAL_ASSETS_PATH = "res://assets/items/"
 const LOCAL_JSON_PATH = "res://data/itemdb.json"
 
-# Download tracking
 var download_queue: Array[Dictionary] = []
 var current_downloads: int = 0
 var max_concurrent_downloads: int = 5
@@ -18,21 +16,17 @@ func _run():
 	print("=== ItemDB Asset Downloader ===")
 	print("Starting download process...")
 	
-	# Create directories
 	ensure_directories_exist()
 	
-	# Download the JSON first
 	download_json_file()
 
 func ensure_directories_exist():
 	var dir = DirAccess.open("res://")
 	
-	# Create data directory for JSON
 	if not dir.dir_exists("data"):
 		dir.make_dir("data")
 		print("Created data directory")
 	
-	# Create assets/items directory
 	if not dir.dir_exists("assets"):
 		dir.make_dir("assets")
 	if not dir.dir_exists("assets/items"):
@@ -58,14 +52,12 @@ func _on_json_downloaded(result: int, response_code: int, headers: PackedStringA
 	if response_code == 200:
 		print("JSON downloaded successfully")
 		
-		# Save JSON file locally
 		var file = FileAccess.open(LOCAL_JSON_PATH, FileAccess.WRITE)
 		if file:
 			file.store_string(body.get_string_from_utf8())
 			file.close()
 			print("Saved itemdb.json to: ", LOCAL_JSON_PATH)
 			
-			# Parse JSON and start image downloads
 			parse_and_download_images(body.get_string_from_utf8())
 		else:
 			print("Failed to save JSON file")
@@ -89,7 +81,6 @@ func parse_and_download_images(json_string: String):
 		print("JSON is not a dictionary")
 		return
 	
-	# Extract all image paths
 	var image_paths: Array[String] = []
 	
 	for item_key in data:
@@ -101,7 +92,6 @@ func parse_and_download_images(json_string: String):
 	
 	print("Found ", image_paths.size(), " images to download")
 	
-	# Prepare download queue
 	total_files = image_paths.size()
 	completed_files = 0
 	
@@ -113,14 +103,12 @@ func parse_and_download_images(json_string: String):
 		}
 		download_queue.append(download_info)
 	
-	# Start downloading images
 	start_image_downloads()
 
 func start_image_downloads():
 	print("Starting image downloads...")
 	print("Queue size: ", download_queue.size())
 	
-	# Start initial batch of downloads
 	while current_downloads < max_concurrent_downloads and download_queue.size() > 0:
 		start_next_download()
 
@@ -131,7 +119,6 @@ func start_next_download():
 	var download_info = download_queue.pop_front()
 	current_downloads += 1
 	
-	# Create directory for the image if it doesn't exist
 	var local_dir = download_info["local_path"].get_base_dir()
 	ensure_directory_path(local_dir)
 	
@@ -145,7 +132,6 @@ func start_next_download():
 		print("Failed to start download for: ", download_info["url"])
 		http_request.queue_free()
 		current_downloads -= 1
-		# Try next download
 		if download_queue.size() > 0:
 			start_next_download()
 
@@ -154,7 +140,6 @@ func _on_image_downloaded(download_info: Dictionary, http_request: HTTPRequest, 
 	completed_files += 1
 	
 	if response_code == 200:
-		# Save the image file
 		var file = FileAccess.open(download_info["local_path"], FileAccess.WRITE)
 		if file:
 			file.store_buffer(body)
@@ -167,11 +152,9 @@ func _on_image_downloaded(download_info: Dictionary, http_request: HTTPRequest, 
 	
 	http_request.queue_free()
 	
-	# Start next download if queue not empty
 	if download_queue.size() > 0:
 		start_next_download()
 	elif current_downloads == 0:
-		# All downloads completed
 		download_complete()
 
 func download_complete():
@@ -181,7 +164,6 @@ func download_complete():
 	print("Images saved to: ", LOCAL_ASSETS_PATH)
 	print("You can now refresh the FileSystem dock to see the new assets")
 	
-	# Refresh the filesystem
 	EditorInterface.get_resource_filesystem().scan()
 
 func ensure_directory_path(dir_path: String):
@@ -200,8 +182,6 @@ func ensure_directory_path(dir_path: String):
 			dir.make_dir(current_path)
 
 func get_sender_from_signal() -> HTTPRequest:
-	# This is a workaround to get the HTTPRequest that emitted the signal
-	# In newer Godot versions, you might need to use different approaches
 	var children = EditorInterface.get_editor_main_screen().get_children()
 	for child in children:
 		if child is HTTPRequest:

@@ -1,14 +1,11 @@
 class_name ItemDatabase
 extends RefCounted
 
-# Singleton instance
 static var instance: ItemDatabase
 
-# Database storage
 var items_data: Dictionary = {}
 var is_loaded: bool = false
 
-# Item database URL
 const ITEMDB_URL = "https://kbve.com/api/itemdb.json"
 
 func _init():
@@ -21,7 +18,6 @@ static func get_instance() -> ItemDatabase:
 	return instance
 
 func load_items_async() -> void:
-	# Try to load from local file first
 	if load_from_local_file():
 		return
 	
@@ -49,10 +45,8 @@ func load_from_local_file() -> bool:
 		print("Local itemdb.json is not a dictionary")
 		return false
 	
-	# Check if JSON has "items" array structure
 	if data.has("items") and data["items"] is Array:
 		var items_array = data["items"]
-		# Convert array to dictionary for easier lookup
 		items_data = {}
 		for item in items_array:
 			if item is Dictionary and item.has("id"):
@@ -66,7 +60,6 @@ func load_from_local_file() -> bool:
 		return false
 
 func load_fallback_data():
-	# Hardcoded fallback data based on the JSON structure
 	items_data = {
 		"coffee": {
 			"name": "Coffee",
@@ -316,7 +309,6 @@ func create_inventory_item(item_id: String) -> Inventory.InventoryItem:
 		item_data.get("description", "")
 	)
 	
-	# Map type from database to inventory category
 	var item_type = item_data.get("type", "")
 	match item_type:
 		"Food", "Drink", "Potion":
@@ -334,29 +326,25 @@ func create_inventory_item(item_id: String) -> Inventory.InventoryItem:
 		_:
 			item.category = Inventory.ItemCategory.MISC
 	
-	# Set other properties
-	item.icon_path = item_data.get("img", "")  # JSON uses "img" not "image"
+	item.icon_path = item_data.get("img", "")
 	item.value = item_data.get("price", 0)
 	
-	# Set stack size based on consumable status
 	if item_data.get("consumable", false):
 		if item_data.get("stackable", false):
-			item.max_stack = 10  # Stackable consumables
+			item.max_stack = 10
 		else:
-			item.max_stack = 1   # Non-stackable consumables
+			item.max_stack = 1
 	elif item_data.get("stackable", false):
-		item.max_stack = 99      # Stackable materials
+		item.max_stack = 99
 	else:
-		item.max_stack = 1       # Equipment doesn't stack
+		item.max_stack = 1
 	
-	# Set stats from bonuses
 	var bonuses = item_data.get("bonuses", {})
 	for stat_name in bonuses:
 		item.stats[stat_name] = bonuses[stat_name]
 	
 	return item
 
-# Helper function to get item by name (useful for searches)
 func find_item_by_name(name: String) -> String:
 	if not is_loaded:
 		load_fallback_data()
