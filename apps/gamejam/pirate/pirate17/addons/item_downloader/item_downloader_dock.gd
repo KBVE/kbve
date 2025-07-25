@@ -153,7 +153,6 @@ func _on_json_downloaded(result: int, response_code: int, headers: PackedStringA
 	if response_code == 200:
 		log_message("JSON downloaded successfully")
 		
-		# Save JSON file locally
 		var file = FileAccess.open(LOCAL_JSON_PATH, FileAccess.WRITE)
 		if file:
 			file.store_string(body.get_string_from_utf8())
