@@ -3,7 +3,7 @@ extends Node
 signal tile_changed(x: int, y: int, color: String)
 
 var tiles: Dictionary = {}
-var map_size: Vector2i = Vector2i(100, 100)
+var map_size: Vector2i = Vector2i(200, 200)
 
 var tile_colors = {
 	"lake": "#4A90E2",
@@ -21,23 +21,17 @@ func _ready():
 	generate_initial_map()
 
 func generate_initial_map():
-	# Step 1: Create ocean border
 	generate_ocean_border()
 	
-	# Step 2: Create base terrain (lakes vs land)
 	generate_base_terrain()
 	
-	# Step 3: Add mountain ranges
 	generate_mountains()
 	
-	# Step 4: Add beaches/sand near water
 	generate_beaches()
 	
-	# Step 5: Add forests to grasslands
 	generate_forests()
 
 func generate_ocean_border():
-	# Create realistic coastline using noise
 	var coastline_noise = FastNoiseLite.new()
 	coastline_noise.seed = randi()
 	coastline_noise.frequency = 0.08
@@ -47,18 +41,16 @@ func generate_ocean_border():
 			var distance_to_edge = min(min(x, map_size.x - 1 - x), min(y, map_size.y - 1 - y))
 			var noise_value = coastline_noise.get_noise_2d(x, y)
 			
-			# Create varying coastline depth based on distance from edge + noise
-			var coastline_depth = 8 + int(noise_value * 6)  # 2-14 tiles deep coastline
+			var coastline_depth = 8 + int(noise_value * 6)
 			
 			if distance_to_edge < coastline_depth:
-				# Additional noise to make coastline irregular
 				var coast_noise = coastline_noise.get_noise_2d(x * 2, y * 2)
 				if distance_to_edge < coastline_depth - 3 or coast_noise < 0.2:
 					set_tile(x, y, tile_colors["ocean"])
 				else:
-					set_tile(x, y, tile_colors["grass"])  # Land near coast
+					set_tile(x, y, tile_colors["grass"])
 			else:
-				set_tile(x, y, tile_colors["grass"])  # Interior land
+				set_tile(x, y, tile_colors["grass"])
 
 func generate_base_terrain():
 	var noise = FastNoiseLite.new()
@@ -67,12 +59,9 @@ func generate_base_terrain():
 	
 	for x in range(map_size.x):
 		for y in range(map_size.y):
-			# Only modify land tiles (not ocean)
 			if get_tile(x, y) != tile_colors["ocean"]:
 				var noise_value = noise.get_noise_2d(x, y)
 				
-				# Use noise to determine land vs lakes (inland water)
-				# Values < -0.2 = lake, >= -0.2 = grassland
 				if noise_value < -0.2:
 					set_tile(x, y, tile_colors["lake"])
 				else:
@@ -85,7 +74,6 @@ func generate_mountains():
 	
 	for x in range(map_size.x):
 		for y in range(map_size.y):
-			# Only place mountains on grassland
 			if get_tile(x, y) == tile_colors["grass"]:
 				var mountain_value = mountain_noise.get_noise_2d(x, y)
 				if mountain_value > 0.4:
@@ -94,9 +82,7 @@ func generate_mountains():
 func generate_beaches():
 	for x in range(map_size.x):
 		for y in range(map_size.y):
-			# Only process grassland tiles
 			if get_tile(x, y) == tile_colors["grass"]:
-				# Check if adjacent to water (lake or ocean)
 				var neighbors = get_neighbors(x, y)
 				var near_water = false
 				
@@ -106,7 +92,6 @@ func generate_beaches():
 						near_water = true
 						break
 				
-				# Convert grassland near water to sand
 				if near_water:
 					set_tile(x, y, tile_colors["sand"])
 
@@ -117,7 +102,6 @@ func generate_forests():
 	
 	for x in range(map_size.x):
 		for y in range(map_size.y):
-			# Only add forests to grassland
 			if get_tile(x, y) == tile_colors["grass"]:
 				var forest_value = forest_noise.get_noise_2d(x, y)
 				if forest_value > 0.3:

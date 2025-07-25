@@ -29,37 +29,33 @@ func _ready():
 	setup_regeneration()
 
 func setup_dragon_properties():
-	movement_interval = 2.0  # Faster movement (reduced from 3.0)
-	movement_range = 18  # Increased movement range (from 12)
-	detection_range = 12  # Increased detection range (from 8)
-	chase_threshold = 15  # Increased chase threshold (from 10)
-	reset_distance = 20  # Increased reset distance (from 15)
-	follow_distance = 4  # Slightly closer follow distance (from 5)
-	aggression_check_interval = 1.0  # More frequent aggression checks (from 1.5)
+	movement_interval = 2.0
+	movement_range = 18
+	detection_range = 12
+	chase_threshold = 15
+	reset_distance = 20
+	follow_distance = 4
+	aggression_check_interval = 1.0
 	max_health = 20
 	current_health = 20
 	max_mana = 20
 	current_mana = 20
-	attack_range = 10  # Increased attack range (from 8)
-	attack_cooldown = 2.5  # Slightly faster attacks (from 3.0)
+	attack_range = 10
+	attack_cooldown = 2.5
 	dragon_attack_texture = load("res://assets/dragon/DragonAttack.png")
 	
 
 func create_visual():
-	# Check if we have scene-based visual components
 	if dragon_visual_container and dragon_sprite:
-		# Use scene-based components
 		visual_container = dragon_visual_container
 		npc_sprite = dragon_sprite
 		
-		# Add shadow to existing visual container
 		var ship_shadow = preload("res://scripts/ship_shadow.gd").new()
 		ship_shadow.shadow_offset = Vector2(16, 20)
 		ship_shadow.shadow_scale = 0.9
 		visual_container.add_child(ship_shadow)
 		call_deferred("_adjust_shadow_z_index", ship_shadow)
 		
-		# Create fantasy state badge for scene-based dragons
 		state_badge = FantasyStateBadge.new()
 		state_badge.state_text = "Patrolling..."
 		state_badge.z_index = 25
@@ -68,7 +64,6 @@ func create_visual():
 		
 		return
 	
-	# Fallback: Create script-based visual components for legacy dragons
 	var script_visual_container = Node2D.new()
 	script_visual_container.z_index = 15
 	
@@ -126,7 +121,6 @@ func setup_projectile_container():
 			main_scene.add_child(projectile_container)
 
 func _on_movement_timer_timeout():
-	# Check if any target is in attack range
 	var target = find_nearest_target()
 	if target:
 		var dragon_world_pos = Movement.get_world_position(grid_position)
@@ -139,7 +133,6 @@ func _on_movement_timer_timeout():
 	super._on_movement_timer_timeout()
 
 func _on_aggression_check_timeout():
-	# Check if any target is in attack range
 	var target = find_nearest_target()
 	if target:
 		var dragon_world_pos = Movement.get_world_position(grid_position)
@@ -192,17 +185,14 @@ func perform_fireball_attack(target_pos: Vector2, target_entity: Node2D = null):
 	attack_timer.start()
 
 func launch_fireball(target_pos: Vector2, target_entity: Node2D = null):
-	# Check if dragon has enough mana
 	if current_mana < 1:
 		print("Dragon has no mana for fireball! Mana: ", current_mana, "/", max_mana)
 		dragon_state = DragonState.IDLE
 		is_attacking = false
 		return
 	
-	# Get fireball pool reference
 	var fireball_pool = get_node_or_null("/root/Main/FireballPool")
 	if not fireball_pool:
-		# Try alternative path
 		fireball_pool = get_tree().current_scene.get_node_or_null("FireballPool")
 	if not fireball_pool:
 		print("FireballPool not found for dragon attack!")
@@ -210,33 +200,28 @@ func launch_fireball(target_pos: Vector2, target_entity: Node2D = null):
 		is_attacking = false
 		return
 	
-	# Calculate spawn position in front of dragon
 	var direction_to_target = (target_pos - position).normalized()
-	var spawn_offset = 25.0  # Distance from dragon center
+	var spawn_offset = 25.0
 	var fireball_spawn_pos = position + direction_to_target * spawn_offset
 	
-	# Launch fireball from pool
 	var success = fireball_pool.launch_fireball(
 		fireball_spawn_pos,
 		target_pos,
 		fireball_speed,
-		1,  # Dragons deal 1 damage with fireballs
+		1,
 		self
 	)
 	
 	if success:
-		# Consume 1 MP
 		current_mana -= 1
 		current_mana = max(0, current_mana)
 		
-		# Update mana UI
 		update_mana_display()
 		
 		print("Dragon fired fireball at ", target_entity.name if target_entity else "position", " (Mana: ", current_mana, "/", max_mana, ")")
 	else:
 		print("No fireballs available in pool!")
 	
-	# Start recovery animation
 	var recovery_timer = Timer.new()
 	recovery_timer.wait_time = 0.3
 	recovery_timer.one_shot = true
@@ -256,7 +241,6 @@ func find_nearest_target() -> Node2D:
 	var dragon_world_pos = Movement.get_world_position(grid_position)
 	var max_attack_distance = attack_range * World.TILE_SIZE
 	
-	# Use World singleton directly
 	var npcs = World.get_npcs()
 	for npc in npcs:
 		if npc and is_instance_valid(npc) and npc != self:
@@ -265,7 +249,6 @@ func find_nearest_target() -> Node2D:
 				nearest_target = npc
 				nearest_distance = distance
 	
-	# Check for player target (prioritize player over NPCs)
 	var main_scene = get_tree().current_scene
 	if main_scene:
 		var player = main_scene.get_node_or_null("Player")
@@ -286,9 +269,7 @@ func find_nearest_target() -> Node2D:
 	return nearest_target
 
 func _on_attack_cooldown_finished():
-	# Call parent implementation
 	super._on_attack_cooldown_finished()
-	# Add dragon-specific behavior
 	dragon_state = DragonState.IDLE
 	update_state_label()
 
@@ -343,14 +324,12 @@ func update_npc_rotation(from: Vector2i, to: Vector2i):
 	rotation_tween.tween_property(npc_sprite, "rotation", target_angle, 0.3)
 
 func die():
-	# Unregister from regeneration manager
 	var regen_manager = get_node_or_null("/root/Main/RegenerationManager")
 	if not regen_manager:
 		regen_manager = get_tree().current_scene.get_node_or_null("RegenerationManager")
 	if regen_manager:
 		regen_manager.unregister_entity(self)
 	
-	# Clean up local regeneration timer if it exists
 	if regen_timer and is_instance_valid(regen_timer):
 		regen_timer.queue_free()
 	
@@ -359,7 +338,6 @@ func die():
 
 func update_mana_display():
 	"""Update mana UI elements"""
-	# Update mana bar if scene-based
 	if scene_mana_bar:
 		scene_mana_bar.value = current_mana
 	if scene_mana_label:
@@ -369,14 +347,12 @@ func setup_regeneration():
 	"""Register with the regeneration manager"""
 	var regen_manager = get_node_or_null("/root/Main/RegenerationManager")
 	if not regen_manager:
-		# Try alternative path
 		regen_manager = get_tree().current_scene.get_node_or_null("RegenerationManager")
 	if regen_manager:
 		regen_manager.register_entity(self)
 		print("Dragon registered with RegenerationManager: ", hp_regen_rate, " HP and ", mp_regen_rate, " MP per ", regen_interval, " seconds")
 	else:
 		print("RegenerationManager not found - using local timer fallback")
-		# Fallback to local timer if manager not found
 		setup_local_regen_timer()
 
 func setup_local_regen_timer():
@@ -392,13 +368,11 @@ func regenerate():
 	var hp_regenerated = false
 	var mp_regenerated = false
 	
-	# Regenerate HP if not at max
 	if current_health < max_health:
 		var old_hp = current_health
 		current_health = min(current_health + hp_regen_rate, max_health)
 		hp_regenerated = true
 		
-		# Update health display
 		if health_bar:
 			health_bar.value = current_health
 		if scene_health_bar:
@@ -408,18 +382,15 @@ func regenerate():
 		
 		print("Dragon regenerated HP: ", old_hp, " -> ", current_health, "/", max_health)
 	
-	# Regenerate MP if not at max
 	if current_mana < max_mana:
 		var old_mp = current_mana
 		current_mana = min(current_mana + mp_regen_rate, max_mana)
 		mp_regenerated = true
 		
-		# Update mana display
 		update_mana_display()
 		
 		print("Dragon regenerated MP: ", old_mp, " -> ", current_mana, "/", max_mana)
 	
-	# Visual feedback for regeneration (optional)
 	if hp_regenerated or mp_regenerated:
 		create_regen_effect()
 
@@ -432,12 +403,10 @@ func create_regen_effect():
 	if not npc_sprite:
 		return
 	
-	# Create a brief glow effect
 	var regen_tween = create_tween()
 	regen_tween.set_ease(Tween.EASE_IN_OUT)
 	regen_tween.set_trans(Tween.TRANS_SINE)
 	
-	# Pulse the dragon with a green/blue tint
-	var regen_color = Color(0.8, 1.2, 1.2, 1.0)  # Slight green-blue tint
+	var regen_color = Color(0.8, 1.2, 1.2, 1.0)
 	regen_tween.tween_property(npc_sprite, "modulate", regen_color, 0.3)
 	regen_tween.tween_property(npc_sprite, "modulate", Color.WHITE, 0.3)

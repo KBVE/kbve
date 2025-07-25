@@ -153,7 +153,7 @@ signal structure_entered(structure: Structure, player: Node)
 signal structure_exited(structure: Structure, player: Node)
 
 # Pool configuration
-@export var max_structures: int = 12
+@export var max_structures: int = 30
 @export var min_structure_distance: int = 10
 @export var player_safe_zone_radius: int = 15
 
@@ -192,6 +192,13 @@ func spawn_structure_pool():
 	
 	print("Spawning structure pool (max: ", max_structures, ")...")
 	
+	# First, ensure we have 4 docks at cardinal directions
+	spawn_cardinal_docks()
+	
+	# Then ensure at least one of each structure type
+	ensure_minimum_structure_types()
+	
+	# Fill the rest with weighted random structures
 	while active_structures.size() < max_structures and spawn_attempts < max_spawn_attempts:
 		spawn_attempts += 1
 		
@@ -209,6 +216,80 @@ func spawn_structure_pool():
 		if spawn_attempts >= max_spawn_attempts:
 			print("Reached max spawn attempts (", max_spawn_attempts, "), stopping with ", active_structures.size(), " structures")
 			break
+
+func spawn_cardinal_docks():
+	"""Spawn 4 docks at North, East, South, West edges of the map"""
+	print("Spawning cardinal docks...")
+	
+	var map_center = Vector2i(World.MAP_WIDTH / 2, World.MAP_HEIGHT / 2)
+	var dock_distance = min(World.MAP_WIDTH, World.MAP_HEIGHT) / 2 - 20  # Distance from center
+	
+	# North dock
+	spawn_dock_near_position(Vector2i(map_center.x, 20), "North Port")
+	
+	# East dock  
+	spawn_dock_near_position(Vector2i(World.MAP_WIDTH - 20, map_center.y), "East Harbor")
+	
+	# South dock
+	spawn_dock_near_position(Vector2i(map_center.x, World.MAP_HEIGHT - 20), "South Wharf")
+	
+	# West dock
+	spawn_dock_near_position(Vector2i(20, map_center.y), "West Marina")
+
+func spawn_dock_near_position(target_pos: Vector2i, dock_name: String):
+	"""Spawn a dock near the target position"""
+	var attempts = 0
+	var max_attempts = 50
+	var search_radius = 15
+	
+	while attempts < max_attempts:
+		attempts += 1
+		
+		# Search in expanding circles around target position
+		var offset_x = randi_range(-search_radius, search_radius)
+		var offset_y = randi_range(-search_radius, search_radius)
+		var spawn_pos = Vector2i(
+			clamp(target_pos.x + offset_x, 10, World.MAP_WIDTH - 10),
+			clamp(target_pos.y + offset_y, 10, World.MAP_HEIGHT - 10)
+		)
+		
+		# Create temporary structure to check validity
+		var temp_structure = Structure.new("dock_temp", dock_name, StructureType.PORT)
+		temp_structure.grid_position = spawn_pos
+		
+		if is_valid_spawn_location(spawn_pos, temp_structure):
+			var dock = create_structure(spawn_pos, StructureType.PORT)
+			if dock:
+				dock.name = dock_name
+				add_structure_to_pool(dock)
+				print("Spawned ", dock_name, " at ", spawn_pos)
+				return
+		
+		# Increase search radius if needed
+		if attempts % 10 == 0:
+			search_radius += 5
+	
+	print("Failed to spawn ", dock_name, " after ", max_attempts, " attempts")
+
+func ensure_minimum_structure_types():
+	"""Ensure at least one of each structure type exists"""
+	print("Ensuring minimum structure types...")
+	
+	# Check which types are missing
+	var existing_types = {}
+	for structure in active_structures:
+		existing_types[structure.type] = true
+	
+	# Spawn missing types
+	for structure_type in StructureType.values():
+		if not existing_types.has(structure_type):
+			print("Missing structure type: ", StructureType.keys()[structure_type])
+			var spawn_location = find_valid_spawn_location(structure_type)
+			if spawn_location != Vector2i(-1, -1):
+				var structure = create_structure(spawn_location, structure_type)
+				if structure:
+					add_structure_to_pool(structure)
+					print("Added required ", StructureType.keys()[structure_type])
 
 func pick_weighted_structure_type() -> StructureType:
 	"""Select a structure type based on weighted probabilities"""

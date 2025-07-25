@@ -8,13 +8,12 @@ static var is_loaded: bool = false
 const BORDER_ASSET_PATH = "res://assets/ui/border.png"
 const GRID_WIDTH = 10
 const GRID_HEIGHT = 8
-const TILE_SIZE = 64  # Assuming 64x64 per border tile
+const TILE_SIZE = 64
 
 static func load_and_slice_borders():
 	if is_loaded:
 		return
 	
-	# Load the main border texture first, then get the image
 	var border_texture = load(BORDER_ASSET_PATH) as Texture2D
 	if border_texture == null:
 		push_error("Failed to load border texture from: " + BORDER_ASSET_PATH)
@@ -27,13 +26,11 @@ static func load_and_slice_borders():
 	
 	print("Border image loaded: ", border_image.get_width(), "x", border_image.get_height())
 	
-	# Calculate actual tile size based on image dimensions
 	var actual_tile_width = border_image.get_width() / GRID_WIDTH
 	var actual_tile_height = border_image.get_height() / GRID_HEIGHT
 	
 	print("Calculated tile size: ", actual_tile_width, "x", actual_tile_height)
 	
-	# Slice the image into individual border textures
 	border_textures.clear()
 	border_textures.resize(GRID_WIDTH * GRID_HEIGHT)
 	
@@ -47,19 +44,15 @@ static func load_and_slice_borders():
 				actual_tile_height
 			)
 			
-			# Create a new image for this slice with transparency
 			var slice_image = Image.create(actual_tile_width, actual_tile_height, true, Image.FORMAT_RGBA8)
 			slice_image.blit_rect(border_image, slice_rect, Vector2i.ZERO)
 			
-			# Make black/dark pixels transparent (assuming black centers should be transparent)
 			for px in range(actual_tile_width):
 				for py in range(actual_tile_height):
 					var pixel_color = slice_image.get_pixel(px, py)
-					# If pixel is dark (more aggressive threshold), make it transparent
 					if pixel_color.r < 0.3 and pixel_color.g < 0.3 and pixel_color.b < 0.3:
-						slice_image.set_pixel(px, py, Color(0, 0, 0, 0))  # Fully transparent
+						slice_image.set_pixel(px, py, Color(0, 0, 0, 0))
 			
-			# Convert to texture
 			var texture = ImageTexture.new()
 			texture.set_image(slice_image)
 			border_textures[index] = texture
@@ -81,15 +74,14 @@ static func get_border_texture_by_position(x: int, y: int) -> ImageTexture:
 	var index = y * GRID_WIDTH + x
 	return get_border_texture(index)
 
-# Predefined border styles for easy access
 static func get_simple_border() -> ImageTexture:
-	return get_border_texture_by_position(0, 0)  # Top-left border
+	return get_border_texture_by_position(0, 0)
 
 static func get_thick_border() -> ImageTexture:
-	return get_border_texture_by_position(1, 0)  # Second border in top row
+	return get_border_texture_by_position(1, 0)
 
 static func get_dotted_border() -> ImageTexture:
-	return get_border_texture_by_position(2, 0)  # Third border in top row
+	return get_border_texture_by_position(2, 0)
 
 static func get_fancy_border() -> ImageTexture:
-	return get_border_texture_by_position(7, 6)  # Bottom-right decorative border
+	return get_border_texture_by_position(7, 6)
