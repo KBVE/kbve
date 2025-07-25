@@ -6,15 +6,12 @@ signal item_removed(item: InventoryItem, quantity: int)
 signal item_used(item: InventoryItem, quantity: int)
 signal inventory_changed()
 
-# Inventory configuration
 const MAX_SLOTS = 20
 const MAX_STACK_SIZE = 99
 
-# Inventory storage
-var items: Dictionary = {}  # item_id -> InventorySlot
-var equipped_items: Dictionary = {}  # slot_type -> InventoryItem
+var items: Dictionary = {}
+var equipped_items: Dictionary = {}
 
-# Item categories for organization
 enum ItemCategory {
 	WEAPON,
 	ARMOR,
@@ -25,7 +22,6 @@ enum ItemCategory {
 	MISC
 }
 
-# Equipment slots
 enum EquipmentSlot {
 	WEAPON,
 	HELMET,
@@ -45,7 +41,7 @@ class InventoryItem:
 	var max_stack: int = 1
 	var is_equipable: bool = false
 	var equipment_slot: EquipmentSlot
-	var stats: Dictionary = {}  # stat_name -> value
+	var stats: Dictionary = {}
 	
 	func _init(item_id: String, item_name: String = "", item_desc: String = ""):
 		id = item_id
@@ -75,7 +71,6 @@ class InventorySlot:
 		return amount_to_remove
 
 func _ready():
-	# Initialize ItemDatabase (tries local file first, then fallback)
 	ItemDatabase.get_instance().load_items_async()
 	print("Inventory initialized with ItemDatabase")
 
@@ -99,12 +94,10 @@ func add_item(item: InventoryItem, quantity: int = 1) -> bool:
 	
 	var remaining_quantity = quantity
 	
-	# Try to add to existing stacks first
 	if items.has(item.id):
 		var slot = items[item.id]
 		remaining_quantity = slot.add(remaining_quantity)
 	
-	# If there's still quantity left, create new slot
 	if remaining_quantity > 0:
 		if get_used_slots() >= MAX_SLOTS:
 			print("Inventory full! Cannot add ", item.name)
@@ -158,7 +151,6 @@ func use_item(item_id: String, quantity: int = 1) -> bool:
 	var slot = items[item_id]
 	var item = slot.item
 	
-	# Apply item effects based on category
 	match item.category:
 		ItemCategory.CONSUMABLE:
 			apply_consumable_effects(item, quantity)
@@ -167,7 +159,6 @@ func use_item(item_id: String, quantity: int = 1) -> bool:
 				equip_item(item)
 				return true
 	
-	# Remove consumed items
 	if item.category == ItemCategory.CONSUMABLE:
 		remove_item(item_id, quantity)
 	
@@ -175,13 +166,11 @@ func use_item(item_id: String, quantity: int = 1) -> bool:
 	return true
 
 func apply_consumable_effects(item: InventoryItem, quantity: int):
-	# Apply healing, buffs, etc. based on item stats
 	if not Global.player or not Global.player.stats:
 		return
 	
 	var player_stats = Global.player.stats
 	
-	# Apply various stat effects
 	for stat_name in item.stats:
 		var effect_value = item.stats[stat_name] * quantity
 		
@@ -196,7 +185,6 @@ func apply_consumable_effects(item: InventoryItem, quantity: int):
 				player_stats.restore_energy(effect_value)
 				print("Used ", item.name, " - restored ", effect_value, " energy")
 			"hunger":
-				# Could add hunger system later
 				print("Used ", item.name, " - satisfied hunger by ", effect_value)
 			_:
 				print("Used ", item.name, " - applied ", stat_name, " effect: ", effect_value)
@@ -207,11 +195,9 @@ func equip_item(item: InventoryItem) -> bool:
 	
 	var slot_type = item.equipment_slot
 	
-	# Unequip current item if any
 	if equipped_items.has(slot_type):
 		unequip_item(slot_type)
 	
-	# Equip new item
 	equipped_items[slot_type] = item
 	apply_equipment_stats(item, true)
 	print("Equipped ", item.name)
@@ -230,7 +216,6 @@ func unequip_item(slot_type: EquipmentSlot) -> bool:
 	return true
 
 func apply_equipment_stats(item: InventoryItem, is_equipping: bool):
-	# Apply or remove stat bonuses from equipment
 	if not Global.player or not Global.player.stats:
 		return
 	
@@ -283,7 +268,6 @@ func is_equipped(item_id: String) -> bool:
 func get_equipped_item(slot_type: EquipmentSlot) -> InventoryItem:
 	return equipped_items.get(slot_type, null)
 
-# Debug and utility functions
 func print_inventory():
 	print("=== INVENTORY ===")
 	print("Used slots: ", get_used_slots(), "/", MAX_SLOTS)
@@ -298,7 +282,6 @@ func print_inventory():
 		var item = equipped_items[slot_type]
 		print("- ", EquipmentSlot.keys()[slot_type], ": ", item.name)
 
-# Save/Load functions for persistence
 func get_save_data() -> Dictionary:
 	var save_data = {
 		"items": {},
@@ -320,11 +303,9 @@ func load_save_data(save_data: Dictionary):
 	items.clear()
 	equipped_items.clear()
 	
-	# Load items (would need item registry in real implementation)
 	if save_data.has("items"):
 		for item_id in save_data.items:
 			var item_data = save_data.items[item_id]
-			# Would need to recreate items from registry
 			print("Loading item: ", item_id, " qty: ", item_data.quantity)
 	
 	inventory_changed.emit()

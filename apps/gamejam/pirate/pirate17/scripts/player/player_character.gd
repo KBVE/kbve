@@ -1,7 +1,6 @@
 extends CharacterBody2D
 
 func _ready():
-	# Connect HitBox signals for damage
 	var hitbox = get_node_or_null("HitBox")
 	if hitbox:
 		hitbox.area_entered.connect(_on_hitbox_area_entered)
@@ -11,7 +10,6 @@ func _on_hitbox_area_entered(area: Area2D):
 	"""Called when projectiles hit the player's hitbox"""
 	print("🎯 PLAYER CHARACTER HITBOX HIT by area: ", area.name)
 	
-	# Check if it's a damaging projectile
 	var projectile = area.get_parent()
 	if projectile and projectile.has_method("hit_entity"):
 		print("🎯 Projectile found: ", projectile.name, " calling hit_entity")

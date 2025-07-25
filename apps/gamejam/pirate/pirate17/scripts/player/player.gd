@@ -7,16 +7,14 @@ var player_ulid: String = ""
 var player_name: String = ""
 var stats: Stats
 var inventory: Inventory
-var current_position: Vector2i = Vector2i(50, 50)  # Player's grid position
-var play_time: float = 0.0  # Total play time in seconds
-var created_at: float = 0.0  # When the player was created
+var current_position: Vector2i = Vector2i(50, 50)
+var play_time: float = 0.0
+var created_at: float = 0.0
 
 func _ready():
-	# Try to load existing save data first
 	if PlayerSaving.save_exists():
 		load_player_data()
 	else:
-		# Initialize new player
 		initialize_new_player()
 
 func initialize_new_player():
@@ -35,16 +33,13 @@ func initialize_new_player():
 	play_time = 0.0
 	current_position = Vector2i(50, 50)
 	
-	# Give player some starting items
 	give_starting_items()
 	
-	# Save the new player
 	save_player_data()
 	
 	print("New player initialized: ", player_name, " (", player_ulid, ")")
 
 func give_starting_items():
-	# Add starting items using the ItemDatabase
 	inventory.add_item_by_id("gold_coin", 25)
 	inventory.add_item_by_id("health_potion", 5) 
 	inventory.add_item_by_id("mana_potion", 3)
@@ -55,7 +50,6 @@ func give_starting_items():
 	print("Player received starting items from ItemDatabase!")
 	inventory.print_inventory()
 
-## Save player data to persistent storage
 func save_player_data() -> bool:
 	"""Save current player state to JSON file"""
 	var player_data = serialize_player_data()
@@ -68,7 +62,6 @@ func save_player_data() -> bool:
 		print("Failed to save player data: ", PlayerSaving.SaveResult.keys()[result])
 		return false
 
-## Load player data from persistent storage
 func load_player_data() -> bool:
 	"""Load player state from JSON file"""
 	var player_data = PlayerSaving.load_player_data()
@@ -82,7 +75,6 @@ func load_player_data() -> bool:
 	print("Player data loaded successfully: ", player_name, " (", player_ulid, ")")
 	return true
 
-## Convert player state to saveable dictionary
 func serialize_player_data() -> Dictionary:
 	"""Convert current player state to dictionary for saving"""
 	var data = {
@@ -106,13 +98,11 @@ func serialize_player_data() -> Dictionary:
 		"created_at": created_at
 	}
 	
-	# Add inventory data if available
 	if inventory and inventory.has_method("serialize"):
 		data.inventory = inventory.serialize()
 	
 	return data
 
-## Restore player state from dictionary
 func deserialize_player_data(data: Dictionary):
 	"""Restore player state from loaded dictionary"""
 	player_name = data.get("player_name", "Unknown Captain")
@@ -120,12 +110,10 @@ func deserialize_player_data(data: Dictionary):
 	play_time = data.get("play_time", 0.0)
 	created_at = data.get("created_at", Time.get_unix_time_from_system())
 	
-	# Restore position
 	if data.has("position"):
 		var pos_data = data.position
 		current_position = Vector2i(pos_data.get("x", 50), pos_data.get("y", 50))
 	
-	# Initialize or restore stats
 	if not stats:
 		stats = Stats.new()
 	
@@ -140,7 +128,6 @@ func deserialize_player_data(data: Dictionary):
 		stats.base_attack = stats_data.get("base_attack", 10)
 		stats.base_defense = stats_data.get("base_defense", 5)
 	
-	# Initialize or restore inventory
 	if not inventory:
 		inventory = Inventory.new()
 		add_child(inventory)
@@ -148,19 +135,15 @@ func deserialize_player_data(data: Dictionary):
 	if data.has("inventory") and inventory.has_method("deserialize"):
 		inventory.deserialize(data.inventory)
 
-## Update player position (called from movement system)
 func update_position(new_position: Vector2i):
 	"""Update player position and trigger auto-save"""
 	current_position = new_position
-	# Auto-save on position change (could be throttled)
 	save_player_data()
 
-## Update play time (called from main game loop)
 func update_play_time(delta: float):
 	"""Update total play time"""
 	play_time += delta
 
-## Delete save data (for new game)
 func delete_save_data() -> bool:
 	"""Delete save files and reset player"""
 	var success = PlayerSaving.delete_save_files()
@@ -168,7 +151,6 @@ func delete_save_data() -> bool:
 		initialize_new_player()
 	return success
 
-## Change captain name and auto-save
 func change_captain_name(new_name: String) -> bool:
 	"""Change the captain's name and save immediately"""
 	if new_name.strip_edges().is_empty():
@@ -186,18 +168,15 @@ func change_captain_name(new_name: String) -> bool:
 		print("Failed to save captain name change")
 		return false
 
-## Semi auto-save for interaction windows
 func auto_save_on_interaction() -> bool:
 	"""Triggered when opening interaction windows"""
 	print("Auto-saving on interaction...")
 	return save_player_data()
 
-## Get save file information for debugging
 func get_save_info() -> Dictionary:
 	"""Get information about save files"""
 	return PlayerSaving.get_save_info()
 
-## Handle damage from projectiles and enemies
 func take_damage(damage: int):
 	"""Take damage and update health"""
 	print("🔥 PLAYER TAKE_DAMAGE CALLED! Damage: ", damage)
@@ -211,25 +190,19 @@ func take_damage(damage: int):
 	print("DEBUG: Player taking ", damage, " damage")
 	print("DEBUG: Health before: ", stats.health, "/", stats.max_health)
 	
-	# Apply damage to health (this will emit the health_changed signal)
 	stats.health = stats.health - damage
 	
 	print("DEBUG: Health after: ", stats.health, "/", stats.max_health)
 	
-	# Check if player died
 	if stats.health <= 0:
 		print("Player died!")
-		# TODO: Handle player death (respawn, game over, etc.)
 	
-	# Auto-save after taking damage
 	save_player_data()
 
-## Handle incoming projectile damage
 func _on_hitbox_area_entered(area: Area2D):
 	"""Called when projectiles hit the player's hitbox"""
 	print("🎯 PLAYER HITBOX HIT by area: ", area.name)
 	
-	# Check if it's a damaging projectile
 	var projectile = area.get_parent()
 	if projectile and projectile.has_method("hit_entity"):
 		print("🎯 Projectile found: ", projectile.name, " calling hit_entity")

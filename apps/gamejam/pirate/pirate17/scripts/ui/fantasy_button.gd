@@ -17,23 +17,18 @@ var button_area: Control
 var button_label: Label
 
 func _ready():
-	# Set container properties - better sized to reduce pixelation
 	var window_scale = get_window_scale()
-	# Use sizes closer to original texture dimensions for better quality
 	custom_minimum_size = Vector2(180 * window_scale, 50 * window_scale)
 	
-	# Make container background truly transparent
 	modulate = Color.WHITE
-	# Override any theme backgrounds
 	add_theme_color_override("bg_color", Color.TRANSPARENT)
 	
-	# Create layered button structure
+
 	create_background_panel()
 	create_nine_patch_border()
 	create_button_area()
 	create_button_label()
 	
-	# Set default textures
 	set_default_textures()
 
 func create_background_panel():
@@ -41,7 +36,6 @@ func create_background_panel():
 	background_panel.add_theme_color_override("bg_color", Color(0.45, 0.32, 0.22, 1.0))
 	background_panel.anchors_preset = Control.PRESET_FULL_RECT
 	background_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
-	# Make sure panel background is transparent around the edges
 	background_panel.self_modulate = Color.WHITE
 	add_child(background_panel)
 
@@ -50,7 +44,6 @@ func create_nine_patch_border():
 	border_nine_patch.anchors_preset = Control.PRESET_FULL_RECT
 	border_nine_patch.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	
-	# Set proper nine-patch margins for the corner decorations
 	border_nine_patch.patch_margin_left = 10
 	border_nine_patch.patch_margin_right = 10
 	border_nine_patch.patch_margin_top = 7
@@ -63,7 +56,6 @@ func create_button_area():
 	button_area.anchors_preset = Control.PRESET_FULL_RECT
 	button_area.mouse_filter = Control.MOUSE_FILTER_PASS
 	
-	# Connect input signals
 	button_area.gui_input.connect(_on_gui_input)
 	button_area.mouse_entered.connect(_on_mouse_entered)
 	button_area.mouse_exited.connect(_on_mouse_exited)
@@ -98,7 +90,6 @@ func create_button_label():
 	button_label.add_theme_constant_override("shadow_offset_x", int(3 * window_scale))
 	button_label.add_theme_constant_override("shadow_offset_y", int(3 * window_scale))
 	
-	# Ensure label is on top
 	button_label.z_index = 10
 	
 	add_child(button_label)
@@ -114,36 +105,29 @@ func get_window_scale() -> float:
 
 
 func _on_mouse_entered():
-	# Scale up the entire button on hover (expansion effect)
 	var tween = create_tween()
 	tween.tween_property(self, "scale", Vector2(1.1, 1.1), 0.15)
 	
-	# Switch to highlight border texture
 	if border_nine_patch:
 		border_nine_patch.texture = load(highlight_texture_path)
 	
-	# Optional: Brighten background slightly on hover
 	if background_panel:
 		background_panel.add_theme_color_override("bg_color", Color(0.52, 0.38, 0.26, 1.0))
 
 func _on_mouse_exited():
-	# Scale back to normal
 	var tween = create_tween()
 	tween.tween_property(self, "scale", Vector2.ONE, 0.15)
 	
-	# Switch back to normal border texture
 	if border_nine_patch:
 		border_nine_patch.texture = load(normal_texture_path)
 	
-	# Restore normal background color
 	if background_panel:
 		background_panel.add_theme_color_override("bg_color", Color(0.45, 0.32, 0.22, 1.0))
 
-# Predefined button styles
 func set_large_button_style():
 	font_size = 20
 	if background_panel:
-		background_panel.add_theme_color_override("bg_color", Color(0.52, 0.38, 0.26, 1.0))  # Brighter brown for large buttons
+		background_panel.add_theme_color_override("bg_color", Color(0.52, 0.38, 0.26, 1.0))
 	if button_label:
 		var window_scale = get_window_scale()
 		button_label.add_theme_font_size_override("font_size", int(font_size * window_scale))

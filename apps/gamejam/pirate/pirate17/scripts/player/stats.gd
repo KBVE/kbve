@@ -13,7 +13,6 @@ var _health: int = 100
 var _mana: int = 50
 var _energy: int = 75
 
-# Equipment stats
 var base_attack: int = 10
 var base_defense: int = 5
 

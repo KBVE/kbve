@@ -3,7 +3,6 @@ extends Node2D
 
 const Movement = preload("res://scripts/world/movement.gd")
 
-# Signals for navy ship communication
 signal calling_for_help(caller: NPC, position: Vector2i)
 signal help_requested(caller: NPC)
 

@@ -1,8 +1,8 @@
 extends Node
 
 const TILE_SIZE = 32
-const MAP_WIDTH = 64
-const MAP_HEIGHT = 64
+const MAP_WIDTH = 200
+const MAP_HEIGHT = 200
 
 var map: Node
 var npcs: Array[NPC] = []
@@ -13,7 +13,6 @@ var structure_pool: StructurePool
 func _ready():
 	map = Map
 	
-	# Initialize structure pool
 	structure_pool = StructurePool.new()
 	structure_pool.name = "StructurePool"
 	add_child(structure_pool)
@@ -34,16 +33,12 @@ func get_map_size() -> Vector2i:
 	return map.map_size
 
 func spawn_npcs(count: int = 30):
-	# Clear existing NPCs and dragons
 	clear_npcs()
 	
-	# Spawn 3 dragons
 	spawn_initial_dragons()
 	
-	# Try to spawn enemy ships from structures first
 	spawn_npcs_from_structures(count)
 	
-	# Fill remaining count with random spawns if needed
 	if npcs.size() < count:
 		spawn_remaining_npcs_randomly(count)
 
@@ -57,11 +52,9 @@ func spawn_npcs_from_structures(target_count: int):
 	print("Spawning enemy ships from ", structures.size(), " structures (", ships_per_structure, " per structure)")
 	
 	for structure in structures:
-		# Skip ruins and temples (peaceful structures)
 		if structure.type in [StructurePool.StructureType.RUINS, StructurePool.StructureType.TEMPLE]:
 			continue
 		
-		# Spawn ships around this structure
 		for i in range(ships_per_structure):
 			if npcs.size() >= target_count:
 				break
@@ -77,7 +70,6 @@ func find_spawn_near_structure(structure: StructurePool.Structure) -> Vector2i:
 	while attempts < max_attempts:
 		attempts += 1
 		
-		# Spawn within 3-8 tiles of the structure
 		var distance = randi_range(3, 8)
 		var angle = randf() * 2 * PI
 		var offset_x = int(cos(angle) * distance)
@@ -102,44 +94,36 @@ func spawn_remaining_npcs_randomly(target_count: int):
 	while npcs.size() < target_count and spawn_attempts < max_attempts:
 		spawn_attempts += 1
 		
-		# Random position
 		var spawn_x = randi_range(5, MAP_WIDTH - 5)
 		var spawn_y = randi_range(5, MAP_HEIGHT - 5)
 		var spawn_pos = Vector2i(spawn_x, spawn_y)
 		
-		# Check if position is valid for NPC spawn
 		if is_valid_npc_spawn(spawn_pos):
 			create_npc_at(spawn_pos)
 
 func is_valid_npc_spawn(pos: Vector2i) -> bool:
-	# Check if tile is passable
 	if not is_valid_position(pos.x, pos.y):
 		return false
 	
-	# Check if position is occupied by a structure
 	if structure_pool and structure_pool.get_structure_at_position(pos):
 		return false
 	
-	# Check distance from player spawn (center)
 	var center = Vector2i(MAP_WIDTH / 2, MAP_HEIGHT / 2)
 	var distance = abs(pos.x - center.x) + abs(pos.y - center.y)
-	if distance < 10:  # Don't spawn too close to player start
+	if distance < 10:
 		return false
 	
-	# Check if another NPC is nearby
 	for npc in npcs:
 		var npc_distance = abs(pos.x - npc.grid_position.x) + abs(pos.y - npc.grid_position.y)
-		if npc_distance < 5:  # NPCs should be spread out
+		if npc_distance < 5:
 			return false
 	
 	return true
 
 func create_npc_at(pos: Vector2i):
-	# Load the navy airship scene instead of creating script-based NPC
 	var navy_airship_scene = preload("res://scenes/entities/ships/navy/navy_airship.tscn")
 	var npc = navy_airship_scene.instantiate()
 	npc.initialize(pos)
-	# Connect death signal to handle respawning
 	npc.connect("tree_exiting", _on_npc_died.bind(npc))
 	npcs.append(npc)
 	print("Created Navy Airship at position: ", pos, " - Total NPCs: ", npcs.size())
@@ -162,18 +146,17 @@ func spawn_single_dragon():
 			break
 
 func get_dragon_spawn_position() -> Vector2i:
-	# Spawn from map edges for respawning dragons
 	var edge_choice = randi() % 4
 	var spawn_pos: Vector2i
 	
 	match edge_choice:
-		0:  # Top edge
+		0:
 			spawn_pos = Vector2i(randi_range(10, MAP_WIDTH - 10), randi_range(0, 5))
-		1:  # Right edge
+		1:
 			spawn_pos = Vector2i(randi_range(MAP_WIDTH - 5, MAP_WIDTH - 1), randi_range(10, MAP_HEIGHT - 10))
-		2:  # Bottom edge
+		2:
 			spawn_pos = Vector2i(randi_range(10, MAP_WIDTH - 10), randi_range(MAP_HEIGHT - 5, MAP_HEIGHT - 1))
-		3:  # Left edge
+		3:
 			spawn_pos = Vector2i(randi_range(0, 5), randi_range(10, MAP_HEIGHT - 10))
 	
 	return spawn_pos
@@ -182,17 +165,15 @@ func is_valid_dragon_spawn(pos: Vector2i) -> bool:
 	if pos.x < 0 or pos.x >= MAP_WIDTH or pos.y < 0 or pos.y >= MAP_HEIGHT:
 		return false
 	
-	# Check distance from other dragons
 	for existing_dragon in dragons:
 		if existing_dragon and is_instance_valid(existing_dragon):
 			var distance = abs(pos.x - existing_dragon.grid_position.x) + abs(pos.y - existing_dragon.grid_position.y)
-			if distance < 15:  # Keep dragons spread out
+			if distance < 15:
 				return false
 	
 	return true
 
 func create_dragon_at(pos: Vector2i):
-	# Load the red dragon scene instead of creating script-based dragon
 	var red_dragon_scene = preload("res://scenes/entities/dragons/red_dragon.tscn")
 	var new_dragon = red_dragon_scene.instantiate()
 	new_dragon.initialize(pos)
@@ -201,13 +182,10 @@ func create_dragon_at(pos: Vector2i):
 	print("Created Red Dragon at position: ", pos, " - Total dragons: ", dragons.size())
 
 func _on_dragon_died(dead_dragon: DragonNPC):
-	# Remove dead dragon from array
 	dragons.erase(dead_dragon)
 	print("Dragon died, remaining: ", dragons.size())
 	
-	# Spawn a new dragon if below max
 	if dragons.size() < max_dragons:
-		# Delay respawn slightly
 		var respawn_timer = Timer.new()
 		respawn_timer.wait_time = 3.0
 		respawn_timer.one_shot = true
@@ -225,7 +203,6 @@ func clear_npcs():
 			npc.queue_free()
 	npcs.clear()
 	
-	# Clear all dragons
 	for dragon in dragons:
 		if dragon and is_instance_valid(dragon):
 			dragon.queue_free()
@@ -244,47 +221,38 @@ func get_all_entities() -> Array[NPC]:
 		all_entities.append(dragon)
 	return all_entities
 
-# Structure system integration
 func initialize_world():
-	"""Initialize the complete world system - call this after map generation"""
 	if structure_pool:
 		structure_pool.initialize_structures()
 	
 	print("World initialization complete")
 
 func get_structure_at(pos: Vector2i):
-	"""Get structure at position, if any"""
 	if structure_pool:
 		return structure_pool.get_structure_at_position(pos)
 	return null
 
 func get_player_structure_interactions(player_pos: Vector2i) -> Array:
-	"""Get structures the player can interact with"""
 	if structure_pool:
 		return structure_pool.check_player_interactions(player_pos)
 	return []
 
 func interact_with_structure_at(pos: Vector2i, player: Node):
-	"""Interact with structure at position"""
 	if structure_pool:
 		var structure = structure_pool.get_structure_at_position(pos)
 		if structure:
 			structure_pool.interact_with_structure(structure, player)
 
 func get_all_structures() -> Array:
-	"""Get all active structures"""
 	if structure_pool:
 		return structure_pool.get_all_structures()
 	return []
 
 func _on_npc_died(dead_npc: NPC):
-	# Remove dead NPC from array
 	npcs.erase(dead_npc)
 	print("Enemy ship died, remaining: ", npcs.size())
 	
-	# Maintain pool of 30 ships by spawning a replacement
 	if npcs.size() < 30:
-		# Delay respawn slightly
 		var respawn_timer = Timer.new()
 		respawn_timer.wait_time = 2.0
 		respawn_timer.one_shot = true
@@ -297,13 +265,11 @@ func _on_npc_died(dead_npc: NPC):
 		print("New enemy ship will respawn in 2 seconds")
 
 func respawn_single_npc():
-	# Try to spawn from structures first
 	if structure_pool:
 		var structures = structure_pool.get_all_structures()
 		structures.shuffle()
 		
 		for structure in structures:
-			# Skip peaceful structures
 			if structure.type in [StructurePool.StructureType.RUINS, StructurePool.StructureType.TEMPLE]:
 				continue
 			
@@ -312,7 +278,6 @@ func respawn_single_npc():
 				create_npc_at(spawn_pos)
 				return
 	
-	# Fallback to random spawn
 	var attempts = 0
 	while attempts < 50:
 		attempts += 1
@@ -325,7 +290,6 @@ func respawn_single_npc():
 			return
 
 func get_structure_pool_stats() -> Dictionary:
-	"""Get statistics about the structure pool"""
 	if structure_pool:
 		return structure_pool.get_pool_statistics()
 	return {}
