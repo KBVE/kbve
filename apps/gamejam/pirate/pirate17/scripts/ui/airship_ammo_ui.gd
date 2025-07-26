@@ -45,14 +45,14 @@ func set_references(player: Node2D, main_scene: Node):
 	main_scene_ref = main_scene
 
 func _process(delta):
-	# Update cooldown progress bar
+	# Update cooldown progress bar - only adjust during cooldown
 	if is_on_cooldown and fire_cooldown_timer:
 		var time_left = fire_cooldown_timer.time_left
 		var progress = (spear_cooldown_duration - time_left) / spear_cooldown_duration
 		
-		# Update progress bar width using offset_right
-		var full_width = 184.0  # Distance from offset_left (12) to offset_right (-12) = 200 - 12 - 12
-		var offset_right = -12.0 - (full_width * (1.0 - progress))
+		# Calculate right offset to show the percentage of the bar
+		# -6.0 is full width (from .tscn), so we interpolate between -170.0 (empty) and -6.0 (full)
+		var offset_right = -6.0 - (164.0 * (1.0 - progress))  # 164 = 170 - 6 (frame width - right padding)
 		cooldown_progress.offset_right = offset_right
 		
 		# Update text
@@ -60,7 +60,8 @@ func _process(delta):
 			var time_remaining = int(ceil(time_left))
 			cooldown_text.text = str(time_remaining) + "s"
 	else:
-		cooldown_progress.offset_right = -12.0  # Full width
+		# Keep the .tscn value when ready (don't modify offset_right)
+		# cooldown_progress.offset_right = -6.0  # Let .tscn handle this
 		if cooldown_text:
 			cooldown_text.text = "READY"
 	
@@ -86,6 +87,7 @@ func _on_cooldown_finished():
 
 func fire_spear():
 	if is_on_cooldown or current_ammo <= 0:
+		print("Cannot fire: on cooldown or no ammo")
 		return
 	
 	if not main_scene_ref:
@@ -94,6 +96,12 @@ func fire_spear():
 	
 	# Get target position (either enemy or mouse direction)
 	var target_pos = get_target_position()
+	print("Firing spear at position: ", target_pos, " (auto-fire: ", is_auto_fire_enabled, ")")
+	
+	# Don't fire if we get a zero position in manual mode
+	if not is_auto_fire_enabled and target_pos == Vector2.ZERO:
+		print("Invalid target position for manual fire")
+		return
 	
 	# Fire the spear using main scene's spear system
 	if main_scene_ref.has_method("fire_player_spear_at_position"):
@@ -147,8 +155,12 @@ func get_target_position() -> Vector2:
 			return Vector2.ZERO
 	else:
 		# Manual mode - fire toward mouse
-		var mouse_pos = get_global_mouse_position()
-		return mouse_pos
+		# Need to get mouse position in world coordinates
+		if main_scene_ref:
+			var mouse_pos = main_scene_ref.get_global_mouse_position()
+			return mouse_pos
+		else:
+			return Vector2.ZERO
 	
 	return Vector2.ZERO
 
@@ -205,7 +217,11 @@ func is_ready_to_fire() -> bool:
 func try_manual_fire() -> bool:
 	# Public method for manual firing (e.g., spacebar) that respects the same cooldown
 	if not is_on_cooldown and current_ammo > 0:
+		# For manual fire (spacebar), always fire at cursor regardless of auto-fire setting
+		var was_auto_fire = is_auto_fire_enabled
+		is_auto_fire_enabled = false  # Temporarily disable to force cursor targeting
 		fire_spear()
+		is_auto_fire_enabled = was_auto_fire  # Restore auto-fire setting
 		return true
 	return false
 
