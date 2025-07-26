@@ -114,17 +114,18 @@ stretch_mode = 5
 
 [node name="HealthBar" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/HealthSection/HealthBarFrame"]
 layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = 12.0
-offset_top = -6.0
+offset_top = 4.0
 offset_right = -12.0
-offset_bottom = 6.0
+offset_bottom = -4.0
+grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_health_val")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 1
 
 [node name="HealthText" type="Label" parent="MainContainer/ContentVBox/StatsSection/HealthSection/HealthBarFrame"]
 layout_mode = 1
@@ -179,17 +180,18 @@ stretch_mode = 5
 
 [node name="ManaBar" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/ManaSection/ManaBarFrame"]
 layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = 12.0
-offset_top = -6.0
+offset_top = 4.0
 offset_right = -12.0
-offset_bottom = 6.0
+offset_bottom = -4.0
+grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("4_mana_val")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 1
 
 [node name="ManaText" type="Label" parent="MainContainer/ContentVBox/StatsSection/ManaSection/ManaBarFrame"]
 layout_mode = 1
@@ -244,17 +246,18 @@ stretch_mode = 5
 
 [node name="EnergyBar" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/EnergySection/EnergyBarFrame"]
 layout_mode = 1
-anchors_preset = 4
-anchor_top = 0.5
-anchor_bottom = 0.5
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
 offset_left = 12.0
-offset_top = -6.0
+offset_top = 4.0
 offset_right = -12.0
-offset_bottom = 6.0
+offset_bottom = -4.0
+grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("5_energy_val")
 expand_mode = 1
-stretch_mode = 5
+stretch_mode = 1
 
 [node name="EnergyText" type="Label" parent="MainContainer/ContentVBox/StatsSection/EnergySection/EnergyBarFrame"]
 layout_mode = 1
