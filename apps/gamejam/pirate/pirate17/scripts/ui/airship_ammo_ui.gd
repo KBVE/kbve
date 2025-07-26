@@ -6,7 +6,8 @@ signal auto_fire_toggled(enabled: bool)
 
 @onready var fire_button: Button = $MainContainer/ContentContainer/FireButton
 @onready var auto_fire_toggle: CheckBox = $MainContainer/ContentContainer/AutoFireContainer/AutoFireToggle
-@onready var cooldown_progress: ProgressBar = $MainContainer/ContentContainer/CooldownProgress
+@onready var cooldown_progress: TextureRect = $MainContainer/ContentContainer/CooldownSection/CooldownBarFrame/CooldownProgress
+@onready var cooldown_text: Label = $MainContainer/ContentContainer/CooldownSection/CooldownBarFrame/CooldownText
 @onready var ammo_count_label: Label = $MainContainer/ContentContainer/InfoContainer/AmmoContainer/AmmoCountLabel
 @onready var fire_mode_label: Label = $MainContainer/ContentContainer/InfoContainer/FireModeLabel
 
@@ -14,8 +15,8 @@ var is_auto_fire_enabled: bool = false
 var fire_cooldown_timer: Timer
 var is_on_cooldown: bool = false
 var spear_cooldown_duration: float = 3.0
-var current_ammo: int = 20
-var max_ammo: int = 20
+var current_ammo: int = 200
+var max_ammo: int = 200
 
 var player_ref: Node2D = null
 var main_scene_ref: Node = null
@@ -47,10 +48,21 @@ func _process(delta):
 	# Update cooldown progress bar
 	if is_on_cooldown and fire_cooldown_timer:
 		var time_left = fire_cooldown_timer.time_left
-		var progress = ((spear_cooldown_duration - time_left) / spear_cooldown_duration) * 100
-		cooldown_progress.value = progress
+		var progress = (spear_cooldown_duration - time_left) / spear_cooldown_duration
+		
+		# Update progress bar width using offset_right
+		var full_width = 184.0  # Distance from offset_left (12) to offset_right (-12) = 200 - 12 - 12
+		var offset_right = -12.0 - (full_width * (1.0 - progress))
+		cooldown_progress.offset_right = offset_right
+		
+		# Update text
+		if cooldown_text:
+			var time_remaining = int(ceil(time_left))
+			cooldown_text.text = str(time_remaining) + "s"
 	else:
-		cooldown_progress.value = 100
+		cooldown_progress.offset_right = -12.0  # Full width
+		if cooldown_text:
+			cooldown_text.text = "READY"
 	
 	# Handle auto-fire
 	if is_auto_fire_enabled and not is_on_cooldown and current_ammo > 0:
@@ -211,9 +223,16 @@ func play_reload_ready_shimmer():
 	tween.tween_property(fire_button, "modulate", Color(1.5, 1.5, 1.0, 1.0), 0.2)
 	tween.tween_property(fire_button, "modulate", original_modulate, 0.2)
 	
-	# Also flash the progress bar
+	# Also flash the progress bar and text
 	if cooldown_progress:
 		var progress_tween = create_tween()
 		progress_tween.set_loops(2)
 		progress_tween.tween_property(cooldown_progress, "modulate", Color(1.0, 1.5, 1.5, 1.0), 0.2)
 		progress_tween.tween_property(cooldown_progress, "modulate", Color.WHITE, 0.2)
+		
+	# Flash the "READY" text too
+	if cooldown_text:
+		var text_tween = create_tween()
+		text_tween.set_loops(2)
+		text_tween.tween_property(cooldown_text, "modulate", Color(1.5, 1.5, 1.0, 1.0), 0.2)
+		text_tween.tween_property(cooldown_text, "modulate", Color.WHITE, 0.2)

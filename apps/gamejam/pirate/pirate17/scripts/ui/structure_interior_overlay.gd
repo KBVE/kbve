@@ -157,8 +157,8 @@ func show_for_structure(structure):
 	# Set description with error handling
 	description_label.text = get_structure_description(structure)
 	
-	# Recharge player energy with error handling
-	recharge_player_energy(structure)
+	# Recharge player energy and ammo with error handling
+	recharge_player_resources(structure)
 	
 	# Ensure proper sizing and positioning before showing
 	var viewport_size = get_viewport().get_visible_rect().size if get_viewport() else Vector2(1280, 720)
@@ -262,7 +262,7 @@ func get_structure_description(structure) -> String:
 	
 	return base_desc
 
-func recharge_player_energy(structure):
+func recharge_player_resources(structure):
 	# Comprehensive null checks for player and stats
 	if not Global:
 		print("WARNING: Global singleton not found")
@@ -281,6 +281,13 @@ func recharge_player_energy(structure):
 	
 	var player_stats = Global.player.stats
 	var energy_restored = 0
+	var spears_restored = 0
+	
+	# Get main scene to access ammo UI
+	var main_scene = get_tree().get_nodes_in_group("main_scene")[0] if get_tree().get_nodes_in_group("main_scene").size() > 0 else null
+	var ammo_ui = null
+	if main_scene and main_scene.get("airship_ammo_ui"):
+		ammo_ui = main_scene.airship_ammo_ui
 	
 	# Structure class always has type property
 	var structure_type = structure.type if structure else null
@@ -294,33 +301,78 @@ func recharge_player_energy(structure):
 				player_stats.energy = player_stats.max_energy
 				var health_restored = min(20, player_stats.max_health - player_stats.health)
 				player_stats.health += health_restored
-				energy_recharge_label.text = "Divine energy fully restores you! +" + str(energy_restored) + " energy, +" + str(health_restored) + " health"
+				
+				# Temples also restore significant spears
+				if ammo_ui:
+					spears_restored = min(100, ammo_ui.max_ammo - ammo_ui.current_ammo)
+					ammo_ui.reload_ammo(spears_restored)
+				
+				var restore_text = "Divine energy fully restores you! +" + str(energy_restored) + " energy, +" + str(health_restored) + " health"
+				if spears_restored > 0:
+					restore_text += ", +" + str(spears_restored) + " spears"
+				energy_recharge_label.text = restore_text
 			
 			StructurePool.StructureType.CITY, StructurePool.StructureType.VILLAGE:
 				# Cities and villages restore good amount of energy
 				energy_restored = min(30, player_stats.max_energy - player_stats.energy)
 				player_stats.energy += energy_restored
-				energy_recharge_label.text = "Rest in the settlement restores your energy! +" + str(energy_restored) + " energy"
+				
+				# Cities and villages also restore moderate spears
+				if ammo_ui:
+					spears_restored = min(50, ammo_ui.max_ammo - ammo_ui.current_ammo)
+					ammo_ui.reload_ammo(spears_restored)
+				
+				var restore_text = "Rest in the settlement restores your energy! +" + str(energy_restored) + " energy"
+				if spears_restored > 0:
+					restore_text += ", +" + str(spears_restored) + " spears"
+				energy_recharge_label.text = restore_text
 			
 			StructurePool.StructureType.PORT:
 				# Ports restore moderate energy
 				energy_restored = min(20, player_stats.max_energy - player_stats.energy)
 				player_stats.energy += energy_restored
-				energy_recharge_label.text = "The sea breeze refreshes you! +" + str(energy_restored) + " energy"
+				
+				# Ports provide good spear supplies from weapon merchants
+				if ammo_ui:
+					spears_restored = min(75, ammo_ui.max_ammo - ammo_ui.current_ammo)
+					ammo_ui.reload_ammo(spears_restored)
+				
+				var restore_text = "The sea breeze refreshes you! +" + str(energy_restored) + " energy"
+				if spears_restored > 0:
+					restore_text += ", +" + str(spears_restored) + " spears"
+				energy_recharge_label.text = restore_text
 			
 			_:
 				# Other structures restore some energy
 				energy_restored = min(15, player_stats.max_energy - player_stats.energy)
 				player_stats.energy += energy_restored
-				energy_recharge_label.text = "Taking shelter restores some energy! +" + str(energy_restored) + " energy"
+				
+				# Other structures provide small spear supplies
+				if ammo_ui:
+					spears_restored = min(25, ammo_ui.max_ammo - ammo_ui.current_ammo)
+					ammo_ui.reload_ammo(spears_restored)
+				
+				var restore_text = "Taking shelter restores some energy! +" + str(energy_restored) + " energy"
+				if spears_restored > 0:
+					restore_text += ", +" + str(spears_restored) + " spears"
+				energy_recharge_label.text = restore_text
 	else:
 		# No structure type - still restore some energy
 		energy_restored = min(10, player_stats.max_energy - player_stats.energy)
 		player_stats.energy += energy_restored
-		energy_recharge_label.text = "Resting restores some energy! +" + str(energy_restored) + " energy"
+		
+		# Even unknown structures provide minimal spears
+		if ammo_ui:
+			spears_restored = min(10, ammo_ui.max_ammo - ammo_ui.current_ammo)
+			ammo_ui.reload_ammo(spears_restored)
+		
+		var restore_text = "Resting restores some energy! +" + str(energy_restored) + " energy"
+		if spears_restored > 0:
+			restore_text += ", +" + str(spears_restored) + " spears"
+		energy_recharge_label.text = restore_text
 	
-	if energy_restored == 0:
-		energy_recharge_label.text = "You are already fully energized!"
+	if energy_restored == 0 and spears_restored == 0:
+		energy_recharge_label.text = "You are already fully energized and armed!"
 
 func hide_overlay():
 	visible = false
