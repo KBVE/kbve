@@ -27,28 +27,68 @@ func _ready():
 	update_fire_mode_display()
 
 func setup_ui_elements():
-	# Create the main container
-	var main_container = VBoxContainer.new()
+	# Create the main container with proper sizing
+	var main_container = Control.new()
 	main_container.set_anchors_and_offsets_preset(Control.PRESET_BOTTOM_RIGHT)
-	main_container.position = Vector2(-220, -140)
-	main_container.size = Vector2(200, 120)
+	main_container.position = Vector2(-240, -160)
+	main_container.size = Vector2(220, 140)
 	add_child(main_container)
 	
-	# Background using fantasy UI pattern
-	var background = TextureRect.new()
-	background.texture = load("res://assets/ui/fantasy/PatternMiddleBottomBG_199x48.png")
-	background.size = Vector2(200, 120)
-	background.stretch_mode = TextureRect.STRETCH_TILE
-	background.modulate = Color(1.0, 1.0, 1.0, 0.9)
-	main_container.add_child(background)
+	# Panel background using fantasy rectangle box
+	var panel_bg = NinePatchRect.new()
+	panel_bg.texture = load("res://assets/ui/fantasy/RectangleBox_96x96.png")
+	panel_bg.size = Vector2(220, 140)
+	panel_bg.patch_margin_left = 16
+	panel_bg.patch_margin_right = 16
+	panel_bg.patch_margin_top = 16
+	panel_bg.patch_margin_bottom = 16
+	main_container.add_child(panel_bg)
 	
-	# Move main container on top of background
-	main_container.move_to_front()
+	# Inner pattern background for decoration
+	var inner_bg = TextureRect.new()
+	inner_bg.texture = load("res://assets/ui/fantasy/PatternMiddleBottomBG_199x48.png")
+	inner_bg.position = Vector2(10, 10)
+	inner_bg.size = Vector2(200, 120)
+	inner_bg.stretch_mode = TextureRect.STRETCH_TILE
+	inner_bg.modulate = Color(1.0, 1.0, 1.0, 0.3)
+	main_container.add_child(inner_bg)
 	
+	# Add corner knots for decoration
+	var corner_knot_texture = load("res://assets/ui/fantasy/CornerKnot_14x14.png")
+	
+	# Top-left corner
+	var tl_knot = TextureRect.new()
+	tl_knot.texture = corner_knot_texture
+	tl_knot.position = Vector2(5, 5)
+	main_container.add_child(tl_knot)
+	
+	# Top-right corner
+	var tr_knot = TextureRect.new()
+	tr_knot.texture = corner_knot_texture
+	tr_knot.position = Vector2(201, 5)
+	tr_knot.flip_h = true
+	main_container.add_child(tr_knot)
+	
+	# Bottom-left corner
+	var bl_knot = TextureRect.new()
+	bl_knot.texture = corner_knot_texture
+	bl_knot.position = Vector2(5, 121)
+	bl_knot.flip_v = true
+	main_container.add_child(bl_knot)
+	
+	# Bottom-right corner
+	var br_knot = TextureRect.new()
+	br_knot.texture = corner_knot_texture
+	br_knot.position = Vector2(201, 121)
+	br_knot.flip_h = true
+	br_knot.flip_v = true
+	main_container.add_child(br_knot)
+	
+	# Content container with proper margins
 	var content_container = VBoxContainer.new()
-	content_container.position = Vector2(15, 15)
-	content_container.size = Vector2(170, 90)
-	content_container.add_theme_constant_override("separation", 8)
+	content_container.position = Vector2(20, 20)
+	content_container.size = Vector2(180, 100)
+	content_container.add_theme_constant_override("separation", 6)
 	main_container.add_child(content_container)
 	
 	# Title with fantasy styling
@@ -76,7 +116,7 @@ func setup_ui_elements():
 	# Fire button using fantasy UI
 	fire_button = Button.new()
 	fire_button.text = "🏹 FIRE SPEAR"
-	fire_button.custom_minimum_size = Vector2(150, 23)
+	fire_button.custom_minimum_size = Vector2(170, 20)
 	
 	# Use fantasy button texture
 	var button_texture = load("res://assets/ui/fantasy/Button_52x14.png")
@@ -129,7 +169,7 @@ func setup_ui_elements():
 	
 	# Cooldown progress bar using fantasy UI
 	cooldown_progress = ProgressBar.new()
-	cooldown_progress.custom_minimum_size = Vector2(150, 16)
+	cooldown_progress.custom_minimum_size = Vector2(170, 12)
 	cooldown_progress.min_value = 0
 	cooldown_progress.max_value = 100
 	cooldown_progress.value = 0
