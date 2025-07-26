@@ -9,6 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://cdncb6aee65y3" path="res://assets/ui/fantasy/stats-icons/heart-icon.png" id="7_health_icon"]
 [ext_resource type="Texture2D" uid="uid://drrg1nfor8cu3" path="res://assets/ui/fantasy/stats-icons/halo-icon.png" id="8_mana_icon"]
 [ext_resource type="Texture2D" uid="uid://bst7unwxebl3i" path="res://assets/ui/fantasy/stats-icons/boots-icon.png" id="9_energy_icon"]
+[ext_resource type="Texture2D" path="res://assets/ui/fantasy/CornerKnot_14x14.png" id="10_corner_knot"]
 
 [node name="AirshipStats" type="Control"]
 z_index = 100
@@ -101,10 +102,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 4.0
-offset_top = 2.0
-offset_right = -4.0
-offset_bottom = -2.0
+offset_left = 12.0
+offset_top = 4.0
+offset_right = -12.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_health_val")
@@ -115,10 +116,10 @@ stretch_mode = 5
 layout_mode = 0
 anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = 4.0
-offset_top = -8.0
-offset_right = 200.0
-offset_bottom = 8.0
+offset_left = 12.0
+offset_top = -6.0
+offset_right = 188.0
+offset_bottom = 6.0
 texture = ExtResource("3_health_val")
 expand_mode = 1
 stretch_mode = 5
@@ -138,7 +139,6 @@ theme_override_font_sizes/font_size = 11
 text = "100/100"
 horizontal_alignment = 1
 vertical_alignment = 1
-
 [node name="ManaSection" type="HBoxContainer" parent="MainContainer/ContentVBox/StatsSection"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -164,10 +164,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 4.0
-offset_top = 2.0
-offset_right = -4.0
-offset_bottom = -2.0
+offset_left = 12.0
+offset_top = 4.0
+offset_right = -12.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("4_mana_val")
@@ -178,10 +178,10 @@ stretch_mode = 5
 layout_mode = 0
 anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = 4.0
-offset_top = -8.0
-offset_right = 200.0
-offset_bottom = 8.0
+offset_left = 12.0
+offset_top = -6.0
+offset_right = 188.0
+offset_bottom = 6.0
 texture = ExtResource("4_mana_val")
 expand_mode = 1
 stretch_mode = 5
@@ -201,7 +201,6 @@ theme_override_font_sizes/font_size = 11
 text = "50/50"
 horizontal_alignment = 1
 vertical_alignment = 1
-
 [node name="EnergySection" type="HBoxContainer" parent="MainContainer/ContentVBox/StatsSection"]
 layout_mode = 2
 theme_override_constants/separation = 8
@@ -227,10 +226,10 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 4.0
-offset_top = 2.0
-offset_right = -4.0
-offset_bottom = -2.0
+offset_left = 12.0
+offset_top = 4.0
+offset_right = -12.0
+offset_bottom = -4.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("5_energy_val")
@@ -241,10 +240,10 @@ stretch_mode = 5
 layout_mode = 0
 anchor_top = 0.5
 anchor_bottom = 0.5
-offset_left = 4.0
-offset_top = -8.0
-offset_right = 200.0
-offset_bottom = 8.0
+offset_left = 12.0
+offset_top = -6.0
+offset_right = 188.0
+offset_bottom = 6.0
 texture = ExtResource("5_energy_val")
 expand_mode = 1
 stretch_mode = 5
@@ -264,3 +263,63 @@ theme_override_font_sizes/font_size = 11
 text = "100/100"
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="TopLeftCorner" type="TextureRect" parent="."]
+layout_mode = 0
+anchors_preset = 1
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+offset_left = -7.0
+offset_top = -7.0
+offset_right = 7.0
+offset_bottom = 7.0
+texture = ExtResource("10_corner_knot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TopRightCorner" type="TextureRect" parent="."]
+layout_mode = 0
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -7.0
+offset_top = -7.0
+offset_right = 7.0
+offset_bottom = 7.0
+texture = ExtResource("10_corner_knot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BottomLeftCorner" type="TextureRect" parent="."]
+layout_mode = 0
+anchors_preset = 2
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_right = 0.0
+anchor_bottom = 1.0
+offset_left = -7.0
+offset_top = -7.0
+offset_right = 7.0
+offset_bottom = 7.0
+texture = ExtResource("10_corner_knot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="BottomRightCorner" type="TextureRect" parent="."]
+layout_mode = 0
+anchors_preset = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -7.0
+offset_top = -7.0
+offset_right = 7.0
+offset_bottom = 7.0
+texture = ExtResource("10_corner_knot")
+expand_mode = 1
+stretch_mode = 5

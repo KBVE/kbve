@@ -17,7 +17,7 @@ var current_energy: int = 100
 var max_energy: int = 100
 
 # Store the full width of bars (accounting for frame padding)
-var bar_full_width: float = 180.0  # Reduced to stay within ValueBar frame
+var bar_full_width: float = 176.0  # 200 - 12 - 12 padding from frame
 
 func _ready():
 	call_deferred("initialize_ui")
@@ -97,7 +97,7 @@ func _update_health_bar(current: int, maximum: int):
 	if health_bar:
 		var percentage = float(current) / float(maximum) if maximum > 0 else 0.0
 		var new_width = 4.0 + (bar_full_width * percentage)  # 4.0 is the left offset
-		health_bar.position.x = 4.0
+		health_bar.position.x = 12.0
 		health_bar.size.x = bar_full_width * percentage
 		
 	if health_text:
@@ -109,7 +109,7 @@ func _update_mana_bar(current: int, maximum: int):
 	
 	if mana_bar:
 		var percentage = float(current) / float(maximum) if maximum > 0 else 0.0
-		mana_bar.position.x = 4.0
+		mana_bar.position.x = 12.0
 		mana_bar.size.x = bar_full_width * percentage
 		
 	if mana_text:
@@ -121,7 +121,7 @@ func _update_energy_bar(current: int, maximum: int):
 	
 	if energy_bar:
 		var percentage = float(current) / float(maximum) if maximum > 0 else 0.0
-		energy_bar.position.x = 4.0
+		energy_bar.position.x = 12.0
 		energy_bar.size.x = bar_full_width * percentage
 		
 	if energy_text:
