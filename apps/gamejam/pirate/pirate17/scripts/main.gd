@@ -34,6 +34,7 @@ var aim_cursor: Node2D
 var aim_line: Line2D
 var navy_fleet_manager: NavyFleetManager
 var web_performance_manager: WebPerformanceManager
+var airship_ammo_ui: AirshipAmmoUI
 
 var chunk_manager: ChunkManager
 
@@ -110,6 +111,7 @@ func finalize_initialization():
 	setup_cloud_manager()
 	setup_structure_interior_overlay()
 	setup_settings_button()
+	setup_airship_ammo_ui()
 	setup_web_performance_manager()
 	print("Main scene initialization complete!")
 
@@ -981,6 +983,40 @@ func fire_player_spear():
 		else:
 			print("No spears available in pool!")
 
+func fire_player_spear_at_position(target_pos: Vector2) -> bool:
+	"""Fire a spear at a specific position - called by ammo UI"""
+	if not spear_pool:
+		print("SpearPool not available!")
+		return false
+	
+	var player_world_pos = player.position
+	var direction_to_target = (target_pos - player_world_pos).normalized()
+	var spawn_offset = 30.0
+	var spear_spawn_pos = player_world_pos + direction_to_target * spawn_offset
+	
+	# Calculate actual target position (limit to max range)
+	var max_range = 400.0
+	var distance_to_target = player_world_pos.distance_to(target_pos)
+	var actual_target_pos = target_pos
+	
+	if distance_to_target > max_range:
+		actual_target_pos = player_world_pos + direction_to_target * max_range
+	
+	var success = spear_pool.launch_spear(
+		spear_spawn_pos,
+		actual_target_pos,
+		400.0,
+		2,
+		player
+	)
+	
+	if success:
+		print("Player fired spear via ammo UI")
+	else:
+		print("No spears available in pool!")
+	
+	return success
+
 func find_nearest_enemy_target(from_pos: Vector2) -> Node2D:
 	var nearest_target: Node2D = null
 	var nearest_distance: float = INF
@@ -1094,6 +1130,35 @@ func setup_settings_button():
 	ui_layer.add_child(settings_button)
 	
 	print("Settings button created in top-right corner")
+
+func setup_airship_ammo_ui():
+	"""Initialize the airship ammo UI for spear firing"""
+	var ammo_ui_scene = preload("res://scenes/entities/airship/airship_ammo.tscn")
+	airship_ammo_ui = ammo_ui_scene.instantiate()
+	
+	# Create a dedicated UI layer for the ammo UI
+	var ammo_ui_layer = CanvasLayer.new()
+	ammo_ui_layer.name = "AmmoUI"
+	ammo_ui_layer.layer = 50  # Below settings (100) but above game elements
+	add_child(ammo_ui_layer)
+	ammo_ui_layer.add_child(airship_ammo_ui)
+	
+	# Set references so the ammo UI can interact with the game
+	airship_ammo_ui.set_references(player, self)
+	
+	# Connect signals
+	airship_ammo_ui.spear_fired.connect(_on_ammo_ui_spear_fired)
+	airship_ammo_ui.auto_fire_toggled.connect(_on_ammo_ui_auto_fire_toggled)
+	
+	print("Airship ammo UI initialized")
+
+func _on_ammo_ui_spear_fired(target_position: Vector2):
+	"""Called when the ammo UI fires a spear"""
+	print("Spear fired via ammo UI at position: ", target_position)
+
+func _on_ammo_ui_auto_fire_toggled(enabled: bool):
+	"""Called when auto-fire mode is toggled"""
+	print("Auto-fire mode ", "enabled" if enabled else "disabled")
 
 func _on_settings_button_pressed():
 	open_settings_dialogue()
