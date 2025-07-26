@@ -908,7 +908,7 @@ func fire_player_spear():
 	if target:
 		# Fire at the nearest enemy
 		var direction_to_target = (target.position - player_world_pos).normalized()
-		var spawn_offset = 30.0
+		var spawn_offset = 50.0
 		var spear_spawn_pos = player_world_pos + direction_to_target * spawn_offset
 		
 		var success = spear_pool.launch_spear(
@@ -927,7 +927,7 @@ func fire_player_spear():
 		# No target found - fire in direction of mouse cursor
 		var mouse_world_pos = get_global_mouse_position()
 		var direction_to_mouse = (mouse_world_pos - player_world_pos).normalized()
-		var spawn_offset = 30.0
+		var spawn_offset = 50.0
 		var spear_spawn_pos = player_world_pos + direction_to_mouse * spawn_offset
 		
 		# Calculate target position at maximum range (400 pixels from spawn)
@@ -955,7 +955,7 @@ func fire_player_spear_at_position(target_pos: Vector2) -> bool:
 	
 	var player_world_pos = player.position
 	var direction_to_target = (target_pos - player_world_pos).normalized()
-	var spawn_offset = 30.0
+	var spawn_offset = 50.0
 	var spear_spawn_pos = player_world_pos + direction_to_target * spawn_offset
 	
 	# Calculate actual target position (limit to max range)

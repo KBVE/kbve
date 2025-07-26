@@ -6,6 +6,7 @@ var damage: int = 2
 var owner_entity: Node2D
 var target_entity: Node2D
 var lifetime: float = 4.0
+var grace_period: float = 0.3  # Grace period before spear can hit its owner
 var has_hit: bool = false
 var is_active: bool = false
 
@@ -48,6 +49,7 @@ func reset_spear():
 	has_hit = false
 	velocity = Vector2.ZERO
 	lifetime = 4.0
+	grace_period = 0.3
 	collision_timer = 0.0
 	owner_entity = null
 	target_entity = null
@@ -87,6 +89,7 @@ func _process(delta):
 		var direction = velocity.normalized()
 		hit_area.position = direction * tip_offset
 	lifetime -= delta
+	grace_period -= delta
 	if lifetime <= 0:
 		deactivate_spear()
 		return
@@ -102,7 +105,7 @@ func check_collisions():
 	if not main_scene:
 		return
 	var player = main_scene.get_node_or_null("Player")
-	if player and owner_entity != player:
+	if player and (owner_entity != player or grace_period <= 0):
 		var distance_to_player = tip_position.distance_to(player.position)
 		if distance_to_player <= collision_radius + 16:
 			hit_entity(player)
@@ -158,13 +161,27 @@ func hit_entity(entity: Node2D):
 	deactivate_spear()
 
 func deactivate_spear():
+	if not is_active:
+		return  # Prevent double deactivation
+		
 	reset_spear()
 	
+	# Find spear pool more reliably
 	var spear_pool = get_node_or_null("/root/Main/SpearPool")
 	if not spear_pool:
 		spear_pool = get_tree().current_scene.get_node_or_null("SpearPool")
-	if spear_pool:
+	if not spear_pool:
+		# Search through all nodes in scene for SpearPool
+		var main_scene = get_tree().current_scene
+		if main_scene:
+			var pools = main_scene.find_children("*", "SpearPool", true, false)
+			if pools.size() > 0:
+				spear_pool = pools[0]
+	
+	if spear_pool and spear_pool.has_method("return_spear"):
 		spear_pool.return_spear(self)
+	else:
+		print("WARNING: Could not find SpearPool to return spear to!")
 
 func _on_hit_area_entered(area: Area2D):
 	if has_hit or not is_active:
@@ -173,7 +190,8 @@ func _on_hit_area_entered(area: Area2D):
 	print("🎯 Area collision layer: ", area.collision_layer, " mask: ", area.collision_mask)
 	print("🎯 Spear collision layer: ", hit_area.collision_layer, " mask: ", hit_area.collision_mask)
 	var entity = area.get_parent()
-	if entity and entity != owner_entity:
+	# Respect grace period for owner
+	if entity and (entity != owner_entity or grace_period <= 0):
 		print("DEBUG: Spear hit area collision with: ", entity.name)
 		print("🎯 Entity class: ", entity.get_class())
 		print("🎯 Has take_damage method: ", entity.has_method("take_damage"))
@@ -185,7 +203,8 @@ func _on_hit_area_entered(area: Area2D):
 func _on_hit_body_entered(body: Node2D):
 	if has_hit or not is_active:
 		return
-	if body and body != owner_entity:
+	# Respect grace period for owner
+	if body and (body != owner_entity or grace_period <= 0):
 		print("DEBUG: Spear hit body collision with: ", body.name)
 		if body.has_method("take_damage"):
 			hit_entity(body)
