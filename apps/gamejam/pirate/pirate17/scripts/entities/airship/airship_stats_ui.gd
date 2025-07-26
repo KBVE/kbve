@@ -16,8 +16,7 @@ var max_mana: int = 50
 var current_energy: int = 100
 var max_energy: int = 100
 
-# Store the full width of bars (accounting for frame padding)
-var bar_full_width: float = 178.0  # 200 - 12 - 10 padding from frame
+# Progress bars use anchor-based layout with offset_right manipulation
 
 func _ready():
 	call_deferred("initialize_ui")
@@ -96,9 +95,10 @@ func _update_health_bar(current: int, maximum: int):
 	
 	if health_bar:
 		var percentage = float(current) / float(maximum) if maximum > 0 else 0.0
-		var new_width = 4.0 + (bar_full_width * percentage)  # 4.0 is the left offset
-		health_bar.position.x = 12.0
-		health_bar.size.x = bar_full_width * percentage
+		# Calculate right offset to show the percentage of the bar
+		# -12.0 is full width, so we interpolate between -200.0 (empty) and -12.0 (full)
+		var offset_right = -12.0 - (188.0 * (1.0 - percentage))
+		health_bar.offset_right = offset_right
 		
 	if health_text:
 		health_text.text = str(current) + "/" + str(maximum)
@@ -109,8 +109,9 @@ func _update_mana_bar(current: int, maximum: int):
 	
 	if mana_bar:
 		var percentage = float(current) / float(maximum) if maximum > 0 else 0.0
-		mana_bar.position.x = 12.0
-		mana_bar.size.x = bar_full_width * percentage
+		# Calculate right offset to show the percentage of the bar
+		var offset_right = -12.0 - (188.0 * (1.0 - percentage))
+		mana_bar.offset_right = offset_right
 		
 	if mana_text:
 		mana_text.text = str(current) + "/" + str(maximum)
@@ -121,8 +122,9 @@ func _update_energy_bar(current: int, maximum: int):
 	
 	if energy_bar:
 		var percentage = float(current) / float(maximum) if maximum > 0 else 0.0
-		energy_bar.position.x = 12.0
-		energy_bar.size.x = bar_full_width * percentage
+		# Calculate right offset to show the percentage of the bar
+		var offset_right = -12.0 - (188.0 * (1.0 - percentage))
+		energy_bar.offset_right = offset_right
 		
 	if energy_text:
 		energy_text.text = str(current) + "/" + str(maximum)
