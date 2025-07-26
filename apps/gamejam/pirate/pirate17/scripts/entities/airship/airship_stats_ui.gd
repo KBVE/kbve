@@ -17,7 +17,7 @@ var current_energy: int = 100
 var max_energy: int = 100
 
 # Store the full width of bars (accounting for frame padding)
-var bar_full_width: float = 176.0  # 200 - 12 - 12 padding from frame
+var bar_full_width: float = 178.0  # 200 - 12 - 10 padding from frame
 
 func _ready():
 	call_deferred("initialize_ui")
