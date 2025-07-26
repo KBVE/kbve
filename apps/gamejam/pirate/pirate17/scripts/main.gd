@@ -11,7 +11,7 @@ const ChunkManager = preload("res://scripts/world/chunk.gd")
 @onready var path_line = $PathVisualizer/PathLine
 @onready var path_visualizer = $PathVisualizer
 @onready var target_highlight = $PathVisualizer/TargetHighlight
-@onready var player_info_ui: PlayerInfoUI = $UI/PlayerInfo
+@onready var player_info_ui: AirshipStatsUI = $UI/AirshipStats
 
 const TILE_SIZE = 32
 var tile_sprites = {}
@@ -42,41 +42,23 @@ func _ready():
 	add_to_group("main_scene")
 	set_process_unhandled_input(true)
 	
-	# Only do basic setup here, rest will be handled by loading screen
-	print("Main scene ready, waiting for loading screen to initialize systems")
-
-# Async initialization functions called by loading screen
 func init_basic_systems():
-	"""Initialize basic systems that don't require heavy processing"""
-	print("Main: Initializing basic systems")
-	
-	# Apply web rendering optimizations early
 	var WebRendererOptimizer = preload("res://scripts/performance/web_renderer_optimizer.gd")
 	WebRendererOptimizer.apply_web_rendering_optimizations()
 
 func init_chunk_manager():
-	"""Initialize chunk manager for map rendering"""
-	print("Main: Setting up chunk manager")
 	setup_chunk_manager()
 
 func init_structures():
-	"""Initialize and render world structures"""
-	print("Main: Placing structures")
 	render_structures()
 
 func init_npcs():
-	"""Initialize NPCs and navy fleet"""
-	print("Main: Spawning navy fleet")
 	setup_npc_container()
-	
-	# Optimized NPC count for browser performance
-	var npc_count = 15  # Browser-optimized count for smooth gameplay
+	var npc_count = 15
 	print("Main: Using ", npc_count, " NPCs for optimal browser performance")
-	
 	spawn_npcs_with_count(npc_count)
 
 func spawn_npcs_with_count(count: int):
-	"""Spawn NPCs with specified count"""
 	World.spawn_npcs(count)
 	
 	var npc_list = World.get_npcs()

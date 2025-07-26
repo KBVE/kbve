@@ -1,0 +1,266 @@
+[gd_scene load_steps=10 format=3 uid="uid://cda5r4k8x7j2m"]
+
+[ext_resource type="Script" uid="uid://0eqap8yul6ov" path="res://scripts/entities/airship/airship_stats_ui.gd" id="1_airship_stats"]
+[ext_resource type="Texture2D" uid="uid://cqwkrupultmbp" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://b01ri4w51x8rd" path="res://assets/ui/fantasy/ValueRed_120x8.png" id="3_health_val"]
+[ext_resource type="Texture2D" uid="uid://ux350mxypu37" path="res://assets/ui/fantasy/ValueBlue_120x8.png" id="4_mana_val"]
+[ext_resource type="Texture2D" uid="uid://dmof726jaja2" path="res://assets/ui/fantasy/ValueYellow_120x8.png" id="5_energy_val"]
+[ext_resource type="Texture2D" uid="uid://ctwtqf7rqpr0a" path="res://assets/ui/fantasy/ValueBar_128x16.png" id="6_bar_frame"]
+[ext_resource type="Texture2D" uid="uid://cdncb6aee65y3" path="res://assets/ui/fantasy/stats-icons/heart-icon.png" id="7_health_icon"]
+[ext_resource type="Texture2D" uid="uid://drrg1nfor8cu3" path="res://assets/ui/fantasy/stats-icons/halo-icon.png" id="8_mana_icon"]
+[ext_resource type="Texture2D" uid="uid://bst7unwxebl3i" path="res://assets/ui/fantasy/stats-icons/boots-icon.png" id="9_energy_icon"]
+
+[node name="AirshipStats" type="Control"]
+z_index = 100
+custom_minimum_size = Vector2(280, 170)
+layout_mode = 3
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 10.0
+offset_top = -180.0
+offset_right = 290.0
+offset_bottom = -10.0
+grow_vertical = 0
+script = ExtResource("1_airship_stats")
+
+[node name="Background" type="NinePatchRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_bg")
+patch_margin_left = 24
+patch_margin_top = 24
+patch_margin_right = 24
+patch_margin_bottom = 24
+
+[node name="MainContainer" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="ContentVBox" type="VBoxContainer" parent="MainContainer"]
+layout_mode = 2
+theme_override_constants/separation = 15
+
+[node name="PlayerNameSection" type="MarginContainer" parent="MainContainer/ContentVBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 10
+theme_override_constants/margin_top = 5
+theme_override_constants/margin_right = 10
+theme_override_constants/margin_bottom = 5
+
+[node name="NameBG" type="ColorRect" parent="MainContainer/ContentVBox/PlayerNameSection"]
+layout_mode = 2
+color = Color(0, 0, 0, 0.3)
+
+[node name="PlayerName" type="RichTextLabel" parent="MainContainer/ContentVBox/PlayerNameSection"]
+custom_minimum_size = Vector2(0, 25)
+layout_mode = 2
+bbcode_enabled = true
+text = "[center][color=yellow][font_size=16]Captain Placeholder[/font_size][/color][/center]"
+fit_content = true
+
+[node name="StatsSection" type="VBoxContainer" parent="MainContainer/ContentVBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 15
+
+[node name="HealthSection" type="HBoxContainer" parent="MainContainer/ContentVBox/StatsSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HealthIcon" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/HealthSection"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("7_health_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HealthBarFrame" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/HealthSection"]
+custom_minimum_size = Vector2(200, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("6_bar_frame")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HealthBarBG" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/HealthSection/HealthBarFrame"]
+modulate = Color(0.2, 0.05, 0.05, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 2.0
+offset_right = -4.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_health_val")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HealthBar" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/HealthSection/HealthBarFrame"]
+layout_mode = 0
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 4.0
+offset_top = -8.0
+offset_right = 200.0
+offset_bottom = 8.0
+texture = ExtResource("3_health_val")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="HealthText" type="Label" parent="MainContainer/ContentVBox/StatsSection/HealthSection/HealthBarFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+text = "100/100"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ManaSection" type="HBoxContainer" parent="MainContainer/ContentVBox/StatsSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ManaIcon" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/ManaSection"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("8_mana_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ManaBarFrame" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/ManaSection"]
+custom_minimum_size = Vector2(200, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("6_bar_frame")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ManaBarBG" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/ManaSection/ManaBarFrame"]
+modulate = Color(0.05, 0.05, 0.2, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 2.0
+offset_right = -4.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_mana_val")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ManaBar" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/ManaSection/ManaBarFrame"]
+layout_mode = 0
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 4.0
+offset_top = -8.0
+offset_right = 200.0
+offset_bottom = 8.0
+texture = ExtResource("4_mana_val")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="ManaText" type="Label" parent="MainContainer/ContentVBox/StatsSection/ManaSection/ManaBarFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+text = "50/50"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="EnergySection" type="HBoxContainer" parent="MainContainer/ContentVBox/StatsSection"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="EnergyIcon" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/EnergySection"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("9_energy_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnergyBarFrame" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/EnergySection"]
+custom_minimum_size = Vector2(200, 24)
+layout_mode = 2
+size_flags_horizontal = 3
+texture = ExtResource("6_bar_frame")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnergyBarBG" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/EnergySection/EnergyBarFrame"]
+modulate = Color(0.2, 0.15, 0.05, 1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 4.0
+offset_top = 2.0
+offset_right = -4.0
+offset_bottom = -2.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_energy_val")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnergyBar" type="TextureRect" parent="MainContainer/ContentVBox/StatsSection/EnergySection/EnergyBarFrame"]
+layout_mode = 0
+anchor_top = 0.5
+anchor_bottom = 0.5
+offset_left = 4.0
+offset_top = -8.0
+offset_right = 200.0
+offset_bottom = 8.0
+texture = ExtResource("5_energy_val")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="EnergyText" type="Label" parent="MainContainer/ContentVBox/StatsSection/EnergySection/EnergyBarFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.8)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 11
+text = "100/100"
+horizontal_alignment = 1
+vertical_alignment = 1

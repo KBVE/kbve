@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" path="res://scripts/main.gd" id="1_1k2mh"]
 [ext_resource type="PackedScene" uid="uid://bxm8v3n7k2qip" path="res://scenes/entities/airship/airship.tscn" id="2_airship"]
-[ext_resource type="PackedScene" uid="uid://b2m3g0p8r4q1v" path="res://scenes/player_info.tscn" id="3_player_info"]
+[ext_resource type="PackedScene" uid="uid://cda5r4k8x7j2m" path="res://scenes/entities/airship/airship_stats.tscn" id="3_airship_stats"]
 
 [node name="Main" type="Node2D"]
 script = ExtResource("1_1k2mh")
@@ -41,4 +41,4 @@ position = Vector2(400, 300)
 
 [node name="UI" type="CanvasLayer" parent="."]
 
-[node name="PlayerInfo" parent="UI" instance=ExtResource("3_player_info")]
+[node name="AirshipStats" parent="UI" instance=ExtResource("3_airship_stats")]
