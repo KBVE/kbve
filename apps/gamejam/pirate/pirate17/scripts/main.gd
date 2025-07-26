@@ -66,7 +66,6 @@ func spawn_npcs_with_count(count: int):
 	
 	setup_navy_fleet_manager()
 	
-	# Apply browser optimizations to all NPCs
 	for npc in npc_list:
 		if npc and is_instance_valid(npc) and npc.has_method("enable_web_optimizations"):
 			npc.enable_web_optimizations()
@@ -77,7 +76,6 @@ func spawn_npcs_with_count(count: int):
 
 func init_player_systems():
 	"""Initialize player movement and related systems"""
-	print("Main: Setting up player systems")
 	setup_player_movement()
 	setup_spear_pool()
 	setup_aim_cursor()
@@ -85,8 +83,6 @@ func init_player_systems():
 	connect_ship_signals()
 
 func finalize_initialization():
-	"""Finalize scene setup with UI and background systems"""
-	print("Main: Finalizing scene")
 	setup_target_highlight()
 	setup_interaction_system()
 	setup_parallax_background()
@@ -95,29 +91,18 @@ func finalize_initialization():
 	setup_settings_button()
 	setup_airship_ammo_ui()
 	setup_web_performance_manager()
-	print("Main scene initialization complete!")
 
 func setup_web_performance_manager():
-	"""Initialize web performance manager for browser optimization"""
 	web_performance_manager = preload("res://scripts/performance/web_performance_manager.gd").new()
 	web_performance_manager.name = "WebPerformanceManager"
 	add_child(web_performance_manager)
-	
-	# Connect performance change signals
 	web_performance_manager.performance_changed.connect(_on_performance_changed)
-	
-	print("Web Performance Manager initialized")
 
 func _on_performance_changed(performance_level: String):
-	print("Performance level changed to: ", performance_level)
-	
-	# Show performance notification to user
 	if performance_level == "LOW":
 		show_performance_notification("Performance optimized for smoother gameplay")
 
 func show_performance_notification(message: String):
-	"""Show a brief notification about performance changes"""
-	# Create a temporary notification label
 	var notification = Label.new()
 	notification.text = message
 	notification.add_theme_font_size_override("font_size", 14)
@@ -136,7 +121,6 @@ func show_performance_notification(message: String):
 	tween.tween_property(notification, "modulate:a", 0.0, 1.0)
 	tween.tween_callback(notification.queue_free)
 
-# Methods for performance manager integration
 func set_chunk_view_distance(distance: int):
 	"""Set chunk view distance for performance scaling"""
 	if chunk_manager:
@@ -146,7 +130,6 @@ func set_max_npcs(max_count: int):
 	"""Limit NPC count for performance"""
 	var current_npcs = World.get_npcs()
 	if current_npcs.size() > max_count:
-		# Remove excess NPCs (starting from the end)
 		for i in range(max_count, current_npcs.size()):
 			if current_npcs[i] and is_instance_valid(current_npcs[i]):
 				current_npcs[i].queue_free()
@@ -253,7 +236,11 @@ func _input(event):
 			show_aim_cursor()
 		elif not event.pressed:
 			hide_aim_cursor()
-			fire_player_spear()
+			# Use ammo UI's debounce system for consistent cooldown
+			if airship_ammo_ui:
+				airship_ammo_ui.try_manual_fire()
+			else:
+				fire_player_spear()  # Fallback if ammo UI not available
 		return
 	
 	if event is InputEventKey and event.pressed:
@@ -363,7 +350,6 @@ func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bo
 		player_ship.update_direction_from_movement(from, to)
 
 func _process(delta):
-	# Only process if systems are initialized
 	if player_movement:
 		player_movement.process_movement(delta)
 		camera.position = player.position
@@ -376,7 +362,6 @@ func _process(delta):
 		update_movement_path()
 		track_movement_distance()
 	
-	# These can run even without player movement initialized
 	check_structure_interactions()
 	update_parallax_effects()
 	if Player:
@@ -497,17 +482,14 @@ func setup_npc_container():
 func setup_spear_pool():
 	spear_pool = preload("res://scripts/entities/spear_pool.gd").new()
 	add_child(spear_pool)
-	print("SpearPool initialized")
 	
 	var fireball_pool = preload("res://scripts/entities/fireball_pool.gd").new()
 	fireball_pool.name = "FireballPool"
 	add_child(fireball_pool)
-	print("FireballPool initialized")
 	
 	var regen_manager = preload("res://scripts/entities/regeneration_manager.gd").new()
 	regen_manager.name = "RegenerationManager"
 	add_child(regen_manager)
-	print("RegenerationManager initialized")
 
 func setup_aim_cursor():
 	aim_cursor = Node2D.new()
