@@ -11,7 +11,7 @@ const ChunkManager = preload("res://scripts/world/chunk.gd")
 @onready var path_line = $PathVisualizer/PathLine
 @onready var path_visualizer = $PathVisualizer
 @onready var target_highlight = $PathVisualizer/TargetHighlight
-@onready var player_info_ui: PlayerInfoUI = $UI/PlayerInfo
+@onready var player_info_ui: AirshipStatsUI = $UI/AirshipStats
 
 const TILE_SIZE = 32
 var tile_sprites = {}
@@ -34,6 +34,7 @@ var aim_cursor: Node2D
 var aim_line: Line2D
 var navy_fleet_manager: NavyFleetManager
 var web_performance_manager: WebPerformanceManager
+var airship_ammo_ui: AirshipAmmoUI
 
 var chunk_manager: ChunkManager
 
@@ -41,41 +42,23 @@ func _ready():
 	add_to_group("main_scene")
 	set_process_unhandled_input(true)
 	
-	# Only do basic setup here, rest will be handled by loading screen
-	print("Main scene ready, waiting for loading screen to initialize systems")
-
-# Async initialization functions called by loading screen
 func init_basic_systems():
-	"""Initialize basic systems that don't require heavy processing"""
-	print("Main: Initializing basic systems")
-	
-	# Apply web rendering optimizations early
 	var WebRendererOptimizer = preload("res://scripts/performance/web_renderer_optimizer.gd")
 	WebRendererOptimizer.apply_web_rendering_optimizations()
 
 func init_chunk_manager():
-	"""Initialize chunk manager for map rendering"""
-	print("Main: Setting up chunk manager")
 	setup_chunk_manager()
 
 func init_structures():
-	"""Initialize and render world structures"""
-	print("Main: Placing structures")
 	render_structures()
 
 func init_npcs():
-	"""Initialize NPCs and navy fleet"""
-	print("Main: Spawning navy fleet")
 	setup_npc_container()
-	
-	# Optimized NPC count for browser performance
-	var npc_count = 15  # Browser-optimized count for smooth gameplay
+	var npc_count = 15
 	print("Main: Using ", npc_count, " NPCs for optimal browser performance")
-	
 	spawn_npcs_with_count(npc_count)
 
 func spawn_npcs_with_count(count: int):
-	"""Spawn NPCs with specified count"""
 	World.spawn_npcs(count)
 	
 	var npc_list = World.get_npcs()
@@ -83,7 +66,6 @@ func spawn_npcs_with_count(count: int):
 	
 	setup_navy_fleet_manager()
 	
-	# Apply browser optimizations to all NPCs
 	for npc in npc_list:
 		if npc and is_instance_valid(npc) and npc.has_method("enable_web_optimizations"):
 			npc.enable_web_optimizations()
@@ -94,7 +76,6 @@ func spawn_npcs_with_count(count: int):
 
 func init_player_systems():
 	"""Initialize player movement and related systems"""
-	print("Main: Setting up player systems")
 	setup_player_movement()
 	setup_spear_pool()
 	setup_aim_cursor()
@@ -102,38 +83,26 @@ func init_player_systems():
 	connect_ship_signals()
 
 func finalize_initialization():
-	"""Finalize scene setup with UI and background systems"""
-	print("Main: Finalizing scene")
 	setup_target_highlight()
 	setup_interaction_system()
 	setup_parallax_background()
 	setup_cloud_manager()
 	setup_structure_interior_overlay()
 	setup_settings_button()
+	setup_airship_ammo_ui()
 	setup_web_performance_manager()
-	print("Main scene initialization complete!")
 
 func setup_web_performance_manager():
-	"""Initialize web performance manager for browser optimization"""
 	web_performance_manager = preload("res://scripts/performance/web_performance_manager.gd").new()
 	web_performance_manager.name = "WebPerformanceManager"
 	add_child(web_performance_manager)
-	
-	# Connect performance change signals
 	web_performance_manager.performance_changed.connect(_on_performance_changed)
-	
-	print("Web Performance Manager initialized")
 
 func _on_performance_changed(performance_level: String):
-	print("Performance level changed to: ", performance_level)
-	
-	# Show performance notification to user
 	if performance_level == "LOW":
 		show_performance_notification("Performance optimized for smoother gameplay")
 
 func show_performance_notification(message: String):
-	"""Show a brief notification about performance changes"""
-	# Create a temporary notification label
 	var notification = Label.new()
 	notification.text = message
 	notification.add_theme_font_size_override("font_size", 14)
@@ -152,7 +121,6 @@ func show_performance_notification(message: String):
 	tween.tween_property(notification, "modulate:a", 0.0, 1.0)
 	tween.tween_callback(notification.queue_free)
 
-# Methods for performance manager integration
 func set_chunk_view_distance(distance: int):
 	"""Set chunk view distance for performance scaling"""
 	if chunk_manager:
@@ -162,7 +130,6 @@ func set_max_npcs(max_count: int):
 	"""Limit NPC count for performance"""
 	var current_npcs = World.get_npcs()
 	if current_npcs.size() > max_count:
-		# Remove excess NPCs (starting from the end)
 		for i in range(max_count, current_npcs.size()):
 			if current_npcs[i] and is_instance_valid(current_npcs[i]):
 				current_npcs[i].queue_free()
@@ -269,7 +236,11 @@ func _input(event):
 			show_aim_cursor()
 		elif not event.pressed:
 			hide_aim_cursor()
-			fire_player_spear()
+			# Use ammo UI's debounce system for consistent cooldown
+			if airship_ammo_ui:
+				airship_ammo_ui.try_manual_fire()
+			else:
+				fire_player_spear()  # Fallback if ammo UI not available
 		return
 	
 	if event is InputEventKey and event.pressed:
@@ -379,7 +350,6 @@ func initiate_movement_with_rotation(from: Vector2i, to: Vector2i, immediate: bo
 		player_ship.update_direction_from_movement(from, to)
 
 func _process(delta):
-	# Only process if systems are initialized
 	if player_movement:
 		player_movement.process_movement(delta)
 		camera.position = player.position
@@ -392,7 +362,6 @@ func _process(delta):
 		update_movement_path()
 		track_movement_distance()
 	
-	# These can run even without player movement initialized
 	check_structure_interactions()
 	update_parallax_effects()
 	if Player:
@@ -513,17 +482,14 @@ func setup_npc_container():
 func setup_spear_pool():
 	spear_pool = preload("res://scripts/entities/spear_pool.gd").new()
 	add_child(spear_pool)
-	print("SpearPool initialized")
 	
 	var fireball_pool = preload("res://scripts/entities/fireball_pool.gd").new()
 	fireball_pool.name = "FireballPool"
 	add_child(fireball_pool)
-	print("FireballPool initialized")
 	
 	var regen_manager = preload("res://scripts/entities/regeneration_manager.gd").new()
 	regen_manager.name = "RegenerationManager"
 	add_child(regen_manager)
-	print("RegenerationManager initialized")
 
 func setup_aim_cursor():
 	aim_cursor = Node2D.new()
@@ -981,6 +947,40 @@ func fire_player_spear():
 		else:
 			print("No spears available in pool!")
 
+func fire_player_spear_at_position(target_pos: Vector2) -> bool:
+	"""Fire a spear at a specific position - called by ammo UI"""
+	if not spear_pool:
+		print("SpearPool not available!")
+		return false
+	
+	var player_world_pos = player.position
+	var direction_to_target = (target_pos - player_world_pos).normalized()
+	var spawn_offset = 30.0
+	var spear_spawn_pos = player_world_pos + direction_to_target * spawn_offset
+	
+	# Calculate actual target position (limit to max range)
+	var max_range = 400.0
+	var distance_to_target = player_world_pos.distance_to(target_pos)
+	var actual_target_pos = target_pos
+	
+	if distance_to_target > max_range:
+		actual_target_pos = player_world_pos + direction_to_target * max_range
+	
+	var success = spear_pool.launch_spear(
+		spear_spawn_pos,
+		actual_target_pos,
+		400.0,
+		2,
+		player
+	)
+	
+	if success:
+		print("Player fired spear via ammo UI")
+	else:
+		print("No spears available in pool!")
+	
+	return success
+
 func find_nearest_enemy_target(from_pos: Vector2) -> Node2D:
 	var nearest_target: Node2D = null
 	var nearest_distance: float = INF
@@ -1094,6 +1094,35 @@ func setup_settings_button():
 	ui_layer.add_child(settings_button)
 	
 	print("Settings button created in top-right corner")
+
+func setup_airship_ammo_ui():
+	"""Initialize the airship ammo UI for spear firing"""
+	var ammo_ui_scene = preload("res://scenes/entities/airship/airship_ammo.tscn")
+	airship_ammo_ui = ammo_ui_scene.instantiate()
+	
+	# Create a dedicated UI layer for the ammo UI
+	var ammo_ui_layer = CanvasLayer.new()
+	ammo_ui_layer.name = "AmmoUI"
+	ammo_ui_layer.layer = 50  # Below settings (100) but above game elements
+	add_child(ammo_ui_layer)
+	ammo_ui_layer.add_child(airship_ammo_ui)
+	
+	# Set references so the ammo UI can interact with the game
+	airship_ammo_ui.set_references(player, self)
+	
+	# Connect signals
+	airship_ammo_ui.spear_fired.connect(_on_ammo_ui_spear_fired)
+	airship_ammo_ui.auto_fire_toggled.connect(_on_ammo_ui_auto_fire_toggled)
+	
+	print("Airship ammo UI initialized")
+
+func _on_ammo_ui_spear_fired(target_position: Vector2):
+	"""Called when the ammo UI fires a spear"""
+	print("Spear fired via ammo UI at position: ", target_position)
+
+func _on_ammo_ui_auto_fire_toggled(enabled: bool):
+	"""Called when auto-fire mode is toggled"""
+	print("Auto-fire mode ", "enabled" if enabled else "disabled")
 
 func _on_settings_button_pressed():
 	open_settings_dialogue()
