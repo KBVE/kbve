@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cpceyc204yktb"
+path="res://.godot/imported/Morning Walk.ogg-903ad1d6887dd6d4ef8d3f4dd1dbc4dd.oggvorbisstr"
+
+[deps]
+
+source_file="res://scenes/ui/music/Morning Walk.ogg"
+dest_files=["res://.godot/imported/Morning Walk.ogg-903ad1d6887dd6d4ef8d3f4dd1dbc4dd.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

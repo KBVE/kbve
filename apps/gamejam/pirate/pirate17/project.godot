@@ -23,6 +23,7 @@ Map="*res://scripts/world/map.gd"
 World="*res://scripts/world/world.gd"
 CloudManager="*res://scripts/effects/cloud_manager.gd"
 DialogueSystem="*res://scripts/dialogue_system.gd"
+MusicPlayerAutoload="*res://scenes/ui/music/music_player_autoload.tscn"
 
 [display]
 
