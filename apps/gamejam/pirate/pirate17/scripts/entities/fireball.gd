@@ -134,7 +134,7 @@ func reset_fireball():
 	if trail_particles:
 		trail_particles.emitting = false
 
-func launch(start_pos: Vector2, target_pos: Vector2, speed: float, damage_amount: int = 1, owner: Node2D = null):
+func launch(start_pos: Vector2, target_pos: Vector2, speed: float, damage_amount: int = 1, fireball_owner: Node2D = null):
 	"""Launch fireball from start to target position"""
 	if is_active:
 		return false  # Fireball already in use
@@ -144,7 +144,7 @@ func launch(start_pos: Vector2, target_pos: Vector2, speed: float, damage_amount
 	visible = true
 	position = start_pos
 	damage = damage_amount
-	owner_entity = owner
+	owner_entity = fireball_owner
 	
 	# Calculate direction and velocity
 	var direction = (target_pos - start_pos).normalized()

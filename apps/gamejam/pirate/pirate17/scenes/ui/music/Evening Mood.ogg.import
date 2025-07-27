@@ -1,0 +1,19 @@
+[remap]
+
+importer="oggvorbisstr"
+type="AudioStreamOggVorbis"
+uid="uid://cfhhbmfh8fq6d"
+path="res://.godot/imported/Evening Mood.ogg-98b7cefbb8b56f37b2f11198a5fe6871.oggvorbisstr"
+
+[deps]
+
+source_file="res://scenes/ui/music/Evening Mood.ogg"
+dest_files=["res://.godot/imported/Evening Mood.ogg-98b7cefbb8b56f37b2f11198a5fe6871.oggvorbisstr"]
+
+[params]
+
+loop=false
+loop_offset=0
+bpm=0
+beat_count=0
+bar_beats=4

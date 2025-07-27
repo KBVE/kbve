@@ -1,0 +1,10 @@
+[gd_scene load_steps=2 format=3 uid="uid://cemwp2x8n7fyr"]
+
+[ext_resource type="Script" path="res://scenes/ui/music/music_player.gd" id="1_music_player"]
+
+[node name="MusicPlayerAutoload" type="Node"]
+script = ExtResource("1_music_player")
+current_track = 0
+master_volume = 0.7
+auto_play = true
+crossfade_duration = 2.0

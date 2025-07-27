@@ -17,3 +17,5 @@ Dragon Sprite is from https://opengameart.org/content/red-dragon-top-down-style
 Dragon Fireball is from https://opengameart.org/content/high-res-fire-ball
 
 Ocean tiles from https://gif-superretroworld.itch.io
+
+Paladin VFX Pixel Art from https://frostwindz.itch.io/pixel-art-animations-paladin

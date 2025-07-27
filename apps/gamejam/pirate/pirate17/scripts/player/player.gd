@@ -11,6 +11,13 @@ var current_position: Vector2i = Vector2i(50, 50)
 var play_time: float = 0.0
 var created_at: float = 0.0
 
+# Audio settings
+var audio_settings: Dictionary = {
+	"master_volume": 0.2,  # Default 20%
+	"music_volume": 1.0,   # Default 100%
+	"sfx_volume": 1.0      # Default 100%
+}
+
 func _ready():
 	if PlayerSaving.save_exists():
 		load_player_data()
@@ -34,6 +41,9 @@ func initialize_new_player():
 	current_position = Vector2i(50, 50)
 	
 	give_starting_items()
+	
+	# Apply default audio settings
+	apply_audio_settings()
 	
 	save_player_data()
 	
@@ -95,7 +105,8 @@ func serialize_player_data() -> Dictionary:
 			"y": current_position.y
 		},
 		"play_time": play_time,
-		"created_at": created_at
+		"created_at": created_at,
+		"audio_settings": audio_settings
 	}
 	
 	if inventory and inventory.has_method("serialize"):
@@ -134,6 +145,17 @@ func deserialize_player_data(data: Dictionary):
 	
 	if data.has("inventory") and inventory.has_method("deserialize"):
 		inventory.deserialize(data.inventory)
+	
+	# Load audio settings
+	if data.has("audio_settings"):
+		audio_settings = data.audio_settings
+		# Ensure defaults for any missing keys
+		audio_settings.master_volume = audio_settings.get("master_volume", 0.2)
+		audio_settings.music_volume = audio_settings.get("music_volume", 1.0)
+		audio_settings.sfx_volume = audio_settings.get("sfx_volume", 1.0)
+	
+	# Apply audio settings to audio buses
+	apply_audio_settings()
 
 func update_position(new_position: Vector2i):
 	"""Update player position and trigger auto-save"""
@@ -150,6 +172,56 @@ func delete_save_data() -> bool:
 	if success:
 		initialize_new_player()
 	return success
+
+func apply_audio_settings():
+	"""Apply current audio settings to audio buses"""
+	var master_bus = AudioServer.get_bus_index("Master")
+	var music_bus = AudioServer.get_bus_index("Music")
+	var sfx_bus = AudioServer.get_bus_index("SFX")
+	
+	if master_bus != -1:
+		AudioServer.set_bus_volume_db(master_bus, linear_to_db(audio_settings.master_volume))
+	
+	if music_bus != -1:
+		AudioServer.set_bus_volume_db(music_bus, linear_to_db(audio_settings.music_volume))
+	
+	if sfx_bus != -1:
+		AudioServer.set_bus_volume_db(sfx_bus, linear_to_db(audio_settings.sfx_volume))
+	
+	print("Applied audio settings: Master=", int(audio_settings.master_volume * 100), "%, Music=", int(audio_settings.music_volume * 100), "%, SFX=", int(audio_settings.sfx_volume * 100), "%")
+
+func update_volume(bus_name: String, volume: float):
+	"""Update a specific volume setting and save"""
+	bus_name = bus_name.to_lower()
+	
+	match bus_name:
+		"master":
+			audio_settings.master_volume = clamp(volume, 0.0, 1.0)
+		"music":
+			audio_settings.music_volume = clamp(volume, 0.0, 1.0)
+		"sfx":
+			audio_settings.sfx_volume = clamp(volume, 0.0, 1.0)
+		_:
+			print("Unknown audio bus: ", bus_name)
+			return
+	
+	apply_audio_settings()
+	save_player_data()
+
+func get_volume(bus_name: String) -> float:
+	"""Get current volume for a specific bus"""
+	bus_name = bus_name.to_lower()
+	
+	match bus_name:
+		"master":
+			return audio_settings.master_volume
+		"music":
+			return audio_settings.music_volume
+		"sfx":
+			return audio_settings.sfx_volume
+		_:
+			print("Unknown audio bus: ", bus_name)
+			return 1.0
 
 func change_captain_name(new_name: String) -> bool:
 	"""Change the captain's name and save immediately"""

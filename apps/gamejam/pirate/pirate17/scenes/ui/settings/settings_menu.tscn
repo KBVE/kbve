@@ -1,0 +1,178 @@
+[gd_scene load_steps=6 format=3 uid="uid://bqxvdp8kf2nxx"]
+
+[ext_resource type="Script" path="res://scenes/ui/settings/settings_menu.gd" id="1_clean"]
+[ext_resource type="Texture2D" uid="uid://br7ixb8r6k7qn" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
+[ext_resource type="Texture2D" uid="uid://dxqvh3x8jl7qn" path="res://assets/ui/fantasy/TitleBox_64x16.png" id="3_title"]
+[ext_resource type="Texture2D" uid="uid://a8qvh3x8jl7qn" path="res://assets/ui/fantasy/QuitIcon.png" id="4_quit"]
+[ext_resource type="Texture2D" uid="uid://bnncojbugqu6e" path="res://assets/ui/fantasy/TopPatternBG_116x67.png" id="5_pattern"]
+[ext_resource type="Texture2D" uid="uid://cvijkjxv6tgx2" path="res://assets/ui/fantasy/CornerKnot_14x14.png" id="6_corner"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1"]
+texture = ExtResource("2_panel")
+texture_margin_left = 16.0
+texture_margin_right = 16.0
+texture_margin_top = 16.0
+texture_margin_bottom = 16.0
+
+[node name="SettingsMenu" type="Control"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+z_index = 1000
+script = ExtResource("1_clean")
+
+[node name="Background" type="ColorRect" parent="."]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 0
+color = Color(0, 0, 0, 0.8)
+
+[node name="Panel" type="Panel" parent="."]
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_1")
+
+[node name="TopPatternDecoration" type="NinePatchRect" parent="Panel"]
+z_index = 1
+modulate = Color(1, 1, 1, 0.5)
+layout_mode = 0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -8.0
+offset_top = -8.0
+offset_right = 8.0
+offset_bottom = 8.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("5_pattern")
+patch_margin_left = 58
+patch_margin_top = 33
+patch_margin_right = 58
+patch_margin_bottom = 33
+
+[node name="CornerKnot1" type="TextureRect" parent="Panel"]
+z_index = 1
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 0.0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 19.0
+offset_bottom = 19.0
+texture = ExtResource("6_corner")
+
+[node name="CornerKnot2" type="TextureRect" parent="Panel"]
+z_index = 1
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+offset_left = -19.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = 19.0
+texture = ExtResource("6_corner")
+
+[node name="CornerKnot3" type="TextureRect" parent="Panel"]
+z_index = 1
+layout_mode = 0
+anchor_left = 0.0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = -19.0
+offset_right = 19.0
+offset_bottom = -5.0
+texture = ExtResource("6_corner")
+
+[node name="CornerKnot4" type="TextureRect" parent="Panel"]
+z_index = 1
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -19.0
+offset_top = -19.0
+offset_right = -5.0
+offset_bottom = -5.0
+texture = ExtResource("6_corner")
+
+[node name="TitleContainer" type="Control" parent="Panel"]
+z_index = 2
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_left = 20.0
+offset_top = 20.0
+offset_right = -20.0
+offset_bottom = 60.0
+
+[node name="TitleBackground" type="NinePatchRect" parent="Panel/TitleContainer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -100.0
+offset_top = -15.0
+offset_right = 100.0
+offset_bottom = 15.0
+texture = ExtResource("3_title")
+patch_margin_left = 16
+patch_margin_top = 4
+patch_margin_right = 16
+patch_margin_bottom = 4
+
+[node name="TitleLabel" type="Label" parent="Panel/TitleContainer/TitleBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+text = "Settings"
+theme_override_font_sizes/font_size = 24
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ContentContainer" type="VBoxContainer" parent="Panel"]
+z_index = 2
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 20.0
+offset_top = 70.0
+offset_right = -20.0
+offset_bottom = -20.0
+theme_override_constants/separation = 10
+
+[node name="CloseButton" type="TextureButton" parent="Panel"]
+z_index = 3
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -40.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 40.0
+texture_normal = ExtResource("4_quit")
+stretch_mode = 3

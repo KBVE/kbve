@@ -77,8 +77,8 @@ func _ready():
 func create_item_from_database(item_id: String) -> InventoryItem:
 	return ItemDatabase.get_instance().create_inventory_item(item_id)
 
-func create_item(id: String, name: String, description: String) -> InventoryItem:
-	return InventoryItem.new(id, name, description)
+func create_item(id: String, item_name: String, description: String) -> InventoryItem:
+	return InventoryItem.new(id, item_name, description)
 
 func add_item_by_id(item_id: String, quantity: int = 1) -> bool:
 	var item = create_item_from_database(item_id)
