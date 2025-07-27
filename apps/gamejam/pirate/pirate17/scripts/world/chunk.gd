@@ -241,13 +241,25 @@ func update_npc_activation(player_chunk_pos: Vector2i):
 					if not npc in active_npcs:
 						active_npcs.append(npc)
 	
-	# Deactivate NPCs out of range (but keep dragons always active)
+	# Deactivate NPCs out of range (but keep special NPCs active)
 	var npcs_to_deactivate = []
 	for npc in active_npcs:
 		if is_instance_valid(npc) and not npc.chunk_position in chunks_in_range:
 			# Don't deactivate dragons - they should always stay active
-			if not npc is DragonNPC:
-				npcs_to_deactivate.append(npc)
+			if npc is DragonNPC:
+				continue
+			
+			# Don't deactivate NPCs that are retreating to dock (they need to pathfind)
+			if npc.has_method("get_current_state") and npc.get_current_state() == npc.NPCState.RETREATING:
+				print("Keeping retreating NPC active for dock pathfinding: ", npc.name)
+				continue
+				
+			# Don't deactivate NPCs that are calling for help (they need to stay active for signals)
+			if npc.has_method("get_current_state") and npc.get_current_state() == npc.NPCState.CALLING_HELP:
+				print("Keeping help-calling NPC active for signaling: ", npc.name)
+				continue
+				
+			npcs_to_deactivate.append(npc)
 	
 	for npc in npcs_to_deactivate:
 		npc.deactivate()

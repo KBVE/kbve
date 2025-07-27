@@ -1482,6 +1482,10 @@ func update_chunk_position():
 		int(floor(float(grid_position.y) / ChunkManager.CHUNK_SIZE))
 	)
 
+func get_current_state() -> NPCState:
+	"""Get the current AI state - used by chunk manager to determine if NPC should stay active"""
+	return current_state
+
 func _exit_tree():
 	"""Clean up when NPC is removed from scene"""
 	# Unregister from chunk manager
