@@ -43,11 +43,15 @@ var tracks: Array[Dictionary] = [
 ]
 
 func _ready():
+	# Set process mode to always so music continues when game is paused
+	process_mode = Node.PROCESS_MODE_ALWAYS
+	
 	# Create main audio player
 	audio_player = AudioStreamPlayer.new()
 	audio_player.name = "MainAudioPlayer"
 	audio_player.bus = "Music"
 	audio_player.volume_db = linear_to_db(master_volume)
+	audio_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(audio_player)
 	
 	# Create fade audio player for crossfading
@@ -55,6 +59,7 @@ func _ready():
 	fade_player.name = "FadeAudioPlayer"
 	fade_player.bus = "Music"
 	fade_player.volume_db = linear_to_db(0.0)
+	fade_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(fade_player)
 	
 	# Connect finished signal for looping
@@ -70,7 +75,7 @@ func set_current_track(value: int):
 		push_warning("Invalid track index: " + str(value))
 		return
 		
-	if current_track == value and audio_player.playing:
+	if current_track == value and audio_player and audio_player.playing:
 		return  # Already playing this track
 		
 	current_track = value
@@ -97,14 +102,15 @@ func play_track(index: int):
 		return
 	
 	# If a track is already playing, crossfade to the new one
-	if audio_player.playing and crossfade_duration > 0:
+	if audio_player and audio_player.playing and crossfade_duration > 0:
 		_crossfade_to_track(stream, track_data)
 	else:
 		# Direct play
-		audio_player.stream = stream
-		audio_player.play()
-		track_changed.emit(index, track_data["name"])
-		print("Now playing: " + track_data["name"])
+		if audio_player:
+			audio_player.stream = stream
+			audio_player.play()
+			track_changed.emit(index, track_data["name"])
+			print("Now playing: " + track_data["name"])
 
 func _crossfade_to_track(new_stream: AudioStream, track_data: Dictionary):
 	if is_crossfading:
