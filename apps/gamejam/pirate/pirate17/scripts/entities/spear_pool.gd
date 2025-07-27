@@ -2,7 +2,7 @@ class_name SpearPool
 extends Node2D
 
 # Pool configuration
-@export var pool_size: int = 15
+@export var pool_size: int = 50
 var available_spears: Array[Spear] = []
 var active_spears: Array[Spear] = []
 

@@ -33,6 +33,10 @@ var world_ref: Node
 var ocean_tiles: Array[Node2D] = []
 var ocean_animation_timer: float = 0.0
 
+# NPC management
+var npcs_by_chunk: Dictionary = {}  # chunk_pos -> Array[NPC]
+var active_npcs: Array = []
+
 func _init():
 	print("ChunkManager initialized")
 
@@ -168,4 +172,106 @@ func get_total_sprite_count() -> int:
 	var count = 0
 	for chunk in loaded_chunks.values():
 		count += chunk.sprites.size()
+	return count
+
+func register_npc(npc: NPC):
+	"""Register an NPC with the chunk system"""
+	if not npc:
+		return
+		
+	npc.update_chunk_position()
+	var chunk_pos = npc.chunk_position
+	
+	if not npcs_by_chunk.has(chunk_pos):
+		npcs_by_chunk[chunk_pos] = []
+	
+	if not npc in npcs_by_chunk[chunk_pos]:
+		npcs_by_chunk[chunk_pos].append(npc)
+
+func unregister_npc(npc: NPC):
+	"""Remove an NPC from the chunk system"""
+	if not npc:
+		return
+		
+	var chunk_pos = npc.chunk_position
+	if npcs_by_chunk.has(chunk_pos):
+		npcs_by_chunk[chunk_pos].erase(npc)
+		if npcs_by_chunk[chunk_pos].is_empty():
+			npcs_by_chunk.erase(chunk_pos)
+	
+	active_npcs.erase(npc)
+
+func update_npc_chunk(npc: NPC, old_chunk: Vector2i):
+	"""Update NPC's chunk when it moves"""
+	if not npc:
+		return
+		
+	# Remove from old chunk
+	if npcs_by_chunk.has(old_chunk):
+		npcs_by_chunk[old_chunk].erase(npc)
+		if npcs_by_chunk[old_chunk].is_empty():
+			npcs_by_chunk.erase(old_chunk)
+	
+	# Add to new chunk
+	npc.update_chunk_position()
+	var new_chunk = npc.chunk_position
+	
+	if not npcs_by_chunk.has(new_chunk):
+		npcs_by_chunk[new_chunk] = []
+	
+	if not npc in npcs_by_chunk[new_chunk]:
+		npcs_by_chunk[new_chunk].append(npc)
+
+func update_npc_activation(player_chunk_pos: Vector2i):
+	"""Activate/deactivate NPCs based on player position"""
+	var chunks_in_range = []
+	
+	# Get all chunks that should have active NPCs
+	for x in range(-VIEW_DISTANCE, VIEW_DISTANCE + 1):
+		for y in range(-VIEW_DISTANCE, VIEW_DISTANCE + 1):
+			var chunk_pos = player_chunk_pos + Vector2i(x, y)
+			chunks_in_range.append(chunk_pos)
+	
+	# Activate NPCs in range
+	for chunk_pos in chunks_in_range:
+		if npcs_by_chunk.has(chunk_pos):
+			for npc in npcs_by_chunk[chunk_pos]:
+				if is_instance_valid(npc) and not npc.is_active:
+					npc.activate()
+					if not npc in active_npcs:
+						active_npcs.append(npc)
+	
+	# Deactivate NPCs out of range (but keep special NPCs active)
+	var npcs_to_deactivate = []
+	for npc in active_npcs:
+		if is_instance_valid(npc) and not npc.chunk_position in chunks_in_range:
+			# Don't deactivate dragons - they should always stay active
+			if npc is DragonNPC:
+				continue
+			
+			# Don't deactivate NPCs that are retreating to dock (they need to pathfind)
+			if npc.has_method("get_current_state") and npc.get_current_state() == npc.NPCState.RETREATING:
+				print("Keeping retreating NPC active for dock pathfinding: ", npc.name)
+				continue
+				
+			# Don't deactivate NPCs that are calling for help (they need to stay active for signals)
+			if npc.has_method("get_current_state") and npc.get_current_state() == npc.NPCState.CALLING_HELP:
+				print("Keeping help-calling NPC active for signaling: ", npc.name)
+				continue
+				
+			npcs_to_deactivate.append(npc)
+	
+	for npc in npcs_to_deactivate:
+		npc.deactivate()
+		active_npcs.erase(npc)
+
+func get_active_npc_count() -> int:
+	"""Get number of currently active NPCs"""
+	return active_npcs.size()
+
+func get_total_npc_count() -> int:
+	"""Get total number of NPCs in all chunks"""
+	var count = 0
+	for chunk_npcs in npcs_by_chunk.values():
+		count += chunk_npcs.size()
 	return count

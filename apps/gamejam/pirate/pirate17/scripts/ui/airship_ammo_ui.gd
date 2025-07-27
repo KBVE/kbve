@@ -6,7 +6,8 @@ signal auto_fire_toggled(enabled: bool)
 
 @onready var fire_button: Button = $MainContainer/ContentContainer/FireButton
 @onready var auto_fire_toggle: CheckBox = $MainContainer/ContentContainer/AutoFireContainer/AutoFireToggle
-@onready var cooldown_progress: ProgressBar = $MainContainer/ContentContainer/CooldownProgress
+@onready var cooldown_progress: TextureRect = $MainContainer/ContentContainer/CooldownSection/CooldownBarFrame/CooldownProgress
+@onready var cooldown_text: Label = $MainContainer/ContentContainer/CooldownSection/CooldownBarFrame/CooldownText
 @onready var ammo_count_label: Label = $MainContainer/ContentContainer/InfoContainer/AmmoContainer/AmmoCountLabel
 @onready var fire_mode_label: Label = $MainContainer/ContentContainer/InfoContainer/FireModeLabel
 
@@ -14,8 +15,8 @@ var is_auto_fire_enabled: bool = false
 var fire_cooldown_timer: Timer
 var is_on_cooldown: bool = false
 var spear_cooldown_duration: float = 3.0
-var current_ammo: int = 20
-var max_ammo: int = 20
+var current_ammo: int = 200
+var max_ammo: int = 200
 
 var player_ref: Node2D = null
 var main_scene_ref: Node = null
@@ -44,13 +45,25 @@ func set_references(player: Node2D, main_scene: Node):
 	main_scene_ref = main_scene
 
 func _process(delta):
-	# Update cooldown progress bar
+	# Update cooldown progress bar - only adjust during cooldown
 	if is_on_cooldown and fire_cooldown_timer:
 		var time_left = fire_cooldown_timer.time_left
-		var progress = ((spear_cooldown_duration - time_left) / spear_cooldown_duration) * 100
-		cooldown_progress.value = progress
+		var progress = (spear_cooldown_duration - time_left) / spear_cooldown_duration
+		
+		# Calculate right offset to show the percentage of the bar
+		# -6.0 is full width (from .tscn), so we interpolate between -170.0 (empty) and -6.0 (full)
+		var offset_right = -6.0 - (164.0 * (1.0 - progress))  # 164 = 170 - 6 (frame width - right padding)
+		cooldown_progress.offset_right = offset_right
+		
+		# Update text
+		if cooldown_text:
+			var time_remaining = int(ceil(time_left))
+			cooldown_text.text = str(time_remaining) + "s"
 	else:
-		cooldown_progress.value = 100
+		# Keep the .tscn value when ready (don't modify offset_right)
+		# cooldown_progress.offset_right = -6.0  # Let .tscn handle this
+		if cooldown_text:
+			cooldown_text.text = "READY"
 	
 	# Handle auto-fire
 	if is_auto_fire_enabled and not is_on_cooldown and current_ammo > 0:
@@ -74,6 +87,7 @@ func _on_cooldown_finished():
 
 func fire_spear():
 	if is_on_cooldown or current_ammo <= 0:
+		print("Cannot fire: on cooldown or no ammo")
 		return
 	
 	if not main_scene_ref:
@@ -82,6 +96,12 @@ func fire_spear():
 	
 	# Get target position (either enemy or mouse direction)
 	var target_pos = get_target_position()
+	print("Firing spear at position: ", target_pos, " (auto-fire: ", is_auto_fire_enabled, ")")
+	
+	# Don't fire if we get a zero position in manual mode
+	if not is_auto_fire_enabled and target_pos == Vector2.ZERO:
+		print("Invalid target position for manual fire")
+		return
 	
 	# Fire the spear using main scene's spear system
 	if main_scene_ref.has_method("fire_player_spear_at_position"):
@@ -135,8 +155,12 @@ func get_target_position() -> Vector2:
 			return Vector2.ZERO
 	else:
 		# Manual mode - fire toward mouse
-		var mouse_pos = get_global_mouse_position()
-		return mouse_pos
+		# Need to get mouse position in world coordinates
+		if main_scene_ref:
+			var mouse_pos = main_scene_ref.get_global_mouse_position()
+			return mouse_pos
+		else:
+			return Vector2.ZERO
 	
 	return Vector2.ZERO
 
@@ -193,9 +217,50 @@ func is_ready_to_fire() -> bool:
 func try_manual_fire() -> bool:
 	# Public method for manual firing (e.g., spacebar) that respects the same cooldown
 	if not is_on_cooldown and current_ammo > 0:
-		fire_spear()
+		# Fire at cursor position without changing auto-fire state
+		fire_manual_spear()
 		return true
 	return false
+
+func fire_manual_spear():
+	# Fire a spear at cursor position (for spacebar/manual fire)
+	if is_on_cooldown or current_ammo <= 0:
+		print("Cannot fire: on cooldown or no ammo")
+		return
+	
+	if not main_scene_ref:
+		print("Main scene reference not set!")
+		return
+	
+	# Get mouse position in world coordinates
+	var target_pos = Vector2.ZERO
+	if main_scene_ref:
+		var mouse_pos = main_scene_ref.get_global_mouse_position()
+		target_pos = mouse_pos
+	
+	print("Manual firing spear at position: ", target_pos)
+	
+	# Don't fire if we get a zero position
+	if target_pos == Vector2.ZERO:
+		print("Invalid target position for manual fire")
+		return
+	
+	# Fire the spear using main scene's spear system
+	if main_scene_ref.has_method("fire_player_spear_at_position"):
+		var success = main_scene_ref.fire_player_spear_at_position(target_pos)
+		if success:
+			start_cooldown()
+			consume_ammo()
+			spear_fired.emit(target_pos)
+		else:
+			print("Failed to fire spear - no spears available!")
+	else:
+		# Fallback to the original firing method
+		if main_scene_ref.has_method("fire_player_spear"):
+			main_scene_ref.fire_player_spear()
+			start_cooldown()
+			consume_ammo()
+			spear_fired.emit(target_pos)
 
 func play_reload_ready_shimmer():
 	# Create a shimmer effect on the fire button and progress bar
@@ -211,9 +276,16 @@ func play_reload_ready_shimmer():
 	tween.tween_property(fire_button, "modulate", Color(1.5, 1.5, 1.0, 1.0), 0.2)
 	tween.tween_property(fire_button, "modulate", original_modulate, 0.2)
 	
-	# Also flash the progress bar
+	# Also flash the progress bar and text
 	if cooldown_progress:
 		var progress_tween = create_tween()
 		progress_tween.set_loops(2)
 		progress_tween.tween_property(cooldown_progress, "modulate", Color(1.0, 1.5, 1.5, 1.0), 0.2)
 		progress_tween.tween_property(cooldown_progress, "modulate", Color.WHITE, 0.2)
+		
+	# Flash the "READY" text too
+	if cooldown_text:
+		var text_tween = create_tween()
+		text_tween.set_loops(2)
+		text_tween.tween_property(cooldown_text, "modulate", Color(1.5, 1.5, 1.0, 1.0), 0.2)
+		text_tween.tween_property(cooldown_text, "modulate", Color.WHITE, 0.2)
