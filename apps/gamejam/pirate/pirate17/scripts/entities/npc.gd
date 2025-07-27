@@ -74,6 +74,10 @@ var path_index: int = 0
 var aggression_check_timer: Timer
 var aggression_check_interval: float = 2.0  # Check aggression less frequently (increased from 1.0)
 
+# Chunk-based activation
+var is_active: bool = true
+var chunk_position: Vector2i = Vector2i.ZERO
+
 # Combat system
 var attack_range: int = 6
 var attack_cooldown: float = 4.0
@@ -1054,10 +1058,22 @@ func move_to(new_pos: Vector2i):
 	# Show movement path
 	show_movement_path(grid_position, new_pos)
 	
+	# Update chunk position if it changed
+	var old_chunk = chunk_position
+	
 	grid_position = new_pos
 	
 	# Use move component for smooth movement
 	move_component.move_to(new_pos, false)
+	
+	# Check if chunk changed after movement
+	update_chunk_position()
+	if old_chunk != chunk_position and get_tree():
+		var main_scene_nodes = get_tree().get_nodes_in_group("main_scene")
+		if main_scene_nodes.size() > 0:
+			var main_scene = main_scene_nodes[0]
+			if main_scene and main_scene.chunk_manager:
+				main_scene.chunk_manager.update_npc_chunk(self, old_chunk)
 
 func create_path_visualizer():
 	path_visualizer = Node2D.new()
@@ -1410,3 +1426,68 @@ func enable_web_optimizations():
 		clear_dash_lines()  # Disable movement paths for performance
 	
 	print("NPC web optimizations enabled for ", name)
+
+func deactivate():
+	"""Deactivate NPC when outside active chunks"""
+	if not is_active:
+		return
+		
+	is_active = false
+	set_physics_process(false)
+	set_process(false)
+	
+	# Stop all timers
+	if movement_timer:
+		movement_timer.stop()
+	if aggression_check_timer:
+		aggression_check_timer.stop()
+	if attack_timer:
+		attack_timer.stop()
+	if dock_healing_timer:
+		dock_healing_timer.stop()
+	if help_call_timer:
+		help_call_timer.stop()
+	
+	# Hide visuals
+	visible = false
+	
+	# Clear any active paths
+	clear_dash_lines()
+
+func activate():
+	"""Activate NPC when inside active chunks"""
+	if is_active:
+		return
+		
+	is_active = true
+	set_physics_process(true)
+	set_process(true)
+	
+	# Restart timers
+	if movement_timer:
+		movement_timer.start()
+	if aggression_check_timer:
+		aggression_check_timer.start()
+	
+	# Show visuals
+	visible = true
+	
+	# Update visual state
+	update_visual_state()
+
+func update_chunk_position():
+	"""Update which chunk this NPC belongs to"""
+	chunk_position = Vector2i(
+		int(floor(float(grid_position.x) / ChunkManager.CHUNK_SIZE)),
+		int(floor(float(grid_position.y) / ChunkManager.CHUNK_SIZE))
+	)
+
+func _exit_tree():
+	"""Clean up when NPC is removed from scene"""
+	# Unregister from chunk manager
+	if get_tree():
+		var main_scene_nodes = get_tree().get_nodes_in_group("main_scene")
+		if main_scene_nodes.size() > 0:
+			var main_scene = main_scene_nodes[0]
+			if main_scene and main_scene.chunk_manager:
+				main_scene.chunk_manager.unregister_npc(self)

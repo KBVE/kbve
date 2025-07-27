@@ -37,6 +37,7 @@ var web_performance_manager: WebPerformanceManager
 var airship_ammo_ui: AirshipAmmoUI
 
 var chunk_manager: ChunkManager
+var debug_label: Label
 
 func _ready():
 	add_to_group("main_scene")
@@ -54,25 +55,54 @@ func init_structures():
 
 func init_npcs():
 	setup_npc_container()
-	var npc_count = 15
-	print("Main: Using ", npc_count, " NPCs for optimal browser performance")
+	# Increase NPC count since we now have chunk-based activation
+	var npc_count = 60  # 4x more NPCs, but only nearby ones are active
+	print("Main: Spawning ", npc_count, " NPCs with chunk-based activation")
 	spawn_npcs_with_count(npc_count)
 
 func spawn_npcs_with_count(count: int):
 	World.spawn_npcs(count)
 	
 	var npc_list = World.get_npcs()
-	print("Retrieved ", npc_list.size(), " NPCs from World")
+	var dragon_list = World.get_dragons()
+	print("Retrieved ", npc_list.size(), " NPCs and ", dragon_list.size(), " dragons from World")
 	
 	setup_navy_fleet_manager()
 	
+	# Setup regular NPCs
 	for npc in npc_list:
 		if npc and is_instance_valid(npc) and npc.has_method("enable_web_optimizations"):
 			npc.enable_web_optimizations()
+		
+		# Register NPC with chunk manager
+		if chunk_manager:
+			chunk_manager.register_npc(npc)
 	
+	# Setup dragons
+	for dragon in dragon_list:
+		if dragon and is_instance_valid(dragon) and dragon.has_method("enable_web_optimizations"):
+			dragon.enable_web_optimizations()
+		
+		# Register dragon with chunk manager
+		if chunk_manager:
+			chunk_manager.register_npc(dragon)
+	
+	# Add all entities to scene
 	for npc in npc_list:
 		npc_container.add_child(npc)
 		npc.update_position_after_scene_ready()
+		
+		# Initially deactivate all NPCs (they'll be activated based on player position)
+		if npc and is_instance_valid(npc):
+			npc.deactivate()
+	
+	for dragon in dragon_list:
+		npc_container.add_child(dragon)
+		dragon.update_position_after_scene_ready()
+		
+		# Initially deactivate all dragons (they'll be activated based on player position)
+		if dragon and is_instance_valid(dragon):
+			dragon.deactivate()
 
 func init_player_systems():
 	"""Initialize player movement and related systems"""
@@ -232,8 +262,13 @@ func create_animated_ocean_tile() -> AnimatedSprite2D:
 
 func _input(event):
 	if event is InputEventKey and event.keycode == KEY_SPACE:
+		# Check if any UI elements have focus that should block spacebar
+		if is_ui_blocking_input():
+			return
+			
 		if event.pressed and not event.echo:
 			show_aim_cursor()
+			get_viewport().set_input_as_handled()  # Consume the event
 		elif not event.pressed:
 			hide_aim_cursor()
 			# Use ammo UI's debounce system for consistent cooldown
@@ -241,6 +276,7 @@ func _input(event):
 				airship_ammo_ui.try_manual_fire()
 			else:
 				fire_player_spear()  # Fallback if ammo UI not available
+			get_viewport().set_input_as_handled()  # Consume the event
 		return
 	
 	if event is InputEventKey and event.pressed:
@@ -358,6 +394,13 @@ func _process(delta):
 			var player_grid_pos = Movement.get_grid_position(player.position)
 			chunk_manager.update_chunks_around_player(player_grid_pos)
 			chunk_manager.update_ocean_animation(delta)
+			
+			# Update NPC activation based on player position
+			var player_chunk_pos = chunk_manager.world_to_chunk_position(player_grid_pos)
+			chunk_manager.update_npc_activation(player_chunk_pos)
+			
+			# Update debug info
+			update_debug_info()
 		
 		update_movement_path()
 		track_movement_distance()
@@ -490,6 +533,60 @@ func setup_spear_pool():
 	var regen_manager = preload("res://scripts/entities/regeneration_manager.gd").new()
 	regen_manager.name = "RegenerationManager"
 	add_child(regen_manager)
+	
+	# Setup debug label after pools
+	setup_debug_label()
+
+func setup_debug_label():
+	"""Create a debug label to show NPC stats"""
+	debug_label = Label.new()
+	debug_label.name = "DebugLabel"
+	debug_label.position = Vector2(10, 10)
+	debug_label.add_theme_font_size_override("font_size", 14)
+	debug_label.modulate = Color(1, 1, 1, 0.8)
+	
+	# Add shadow for better readability
+	debug_label.add_theme_color_override("font_shadow_color", Color(0, 0, 0, 0.8))
+	debug_label.add_theme_constant_override("shadow_offset_x", 1)
+	debug_label.add_theme_constant_override("shadow_offset_y", 1)
+	
+	# Add to UI layer
+	if has_node("UI"):
+		$UI.add_child(debug_label)
+	else:
+		add_child(debug_label)
+
+func update_debug_info():
+	"""Update debug display with NPC stats"""
+	if debug_label and chunk_manager:
+		var active_npcs = chunk_manager.get_active_npc_count()
+		var total_npcs = chunk_manager.get_total_npc_count()
+		var chunks_loaded = chunk_manager.get_loaded_chunk_count()
+		var fps = Engine.get_frames_per_second()
+		
+		# Include both NPCs and dragons in the count
+		var world_npcs = World.get_npcs().size()
+		var world_dragons = World.get_dragons().size()
+		
+		debug_label.text = "Active: %d/%d\nNPCs: %d Dragons: %d\nChunks: %d FPS: %d" % [active_npcs, total_npcs, world_npcs, world_dragons, chunks_loaded, fps]
+
+func is_ui_blocking_input() -> bool:
+	"""Check if any UI elements should block spacebar input"""
+	# Check if settings menu is open
+	var settings_layer = get_node_or_null("SettingsLayer")
+	if settings_layer and settings_layer.visible:
+		return true
+	
+	# Check if any UI control has focus
+	var focused_control = get_viewport().gui_get_focus_owner()
+	if focused_control:
+		# Allow spacebar if it's just the ammo UI checkbox (auto-fire toggle)
+		if airship_ammo_ui and focused_control == airship_ammo_ui.auto_fire_toggle:
+			return false
+		# Block for other UI controls
+		return true
+	
+	return false
 
 func setup_aim_cursor():
 	aim_cursor = Node2D.new()

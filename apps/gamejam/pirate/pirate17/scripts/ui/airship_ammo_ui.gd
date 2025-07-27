@@ -217,13 +217,50 @@ func is_ready_to_fire() -> bool:
 func try_manual_fire() -> bool:
 	# Public method for manual firing (e.g., spacebar) that respects the same cooldown
 	if not is_on_cooldown and current_ammo > 0:
-		# For manual fire (spacebar), always fire at cursor regardless of auto-fire setting
-		var was_auto_fire = is_auto_fire_enabled
-		is_auto_fire_enabled = false  # Temporarily disable to force cursor targeting
-		fire_spear()
-		is_auto_fire_enabled = was_auto_fire  # Restore auto-fire setting
+		# Fire at cursor position without changing auto-fire state
+		fire_manual_spear()
 		return true
 	return false
+
+func fire_manual_spear():
+	# Fire a spear at cursor position (for spacebar/manual fire)
+	if is_on_cooldown or current_ammo <= 0:
+		print("Cannot fire: on cooldown or no ammo")
+		return
+	
+	if not main_scene_ref:
+		print("Main scene reference not set!")
+		return
+	
+	# Get mouse position in world coordinates
+	var target_pos = Vector2.ZERO
+	if main_scene_ref:
+		var mouse_pos = main_scene_ref.get_global_mouse_position()
+		target_pos = mouse_pos
+	
+	print("Manual firing spear at position: ", target_pos)
+	
+	# Don't fire if we get a zero position
+	if target_pos == Vector2.ZERO:
+		print("Invalid target position for manual fire")
+		return
+	
+	# Fire the spear using main scene's spear system
+	if main_scene_ref.has_method("fire_player_spear_at_position"):
+		var success = main_scene_ref.fire_player_spear_at_position(target_pos)
+		if success:
+			start_cooldown()
+			consume_ammo()
+			spear_fired.emit(target_pos)
+		else:
+			print("Failed to fire spear - no spears available!")
+	else:
+		# Fallback to the original firing method
+		if main_scene_ref.has_method("fire_player_spear"):
+			main_scene_ref.fire_player_spear()
+			start_cooldown()
+			consume_ammo()
+			spear_fired.emit(target_pos)
 
 func play_reload_ready_shimmer():
 	# Create a shimmer effect on the fire button and progress bar
