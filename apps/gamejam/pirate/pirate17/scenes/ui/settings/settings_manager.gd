@@ -17,8 +17,8 @@ static func open_settings(parent_node: Node) -> Control:
 		push_error("SettingsManager: Parent node is null")
 		return null
 	
-	# Load the settings menu scene
-	var settings_scene = load("res://scenes/ui/settings/settings_menu.tscn")
+	# Load the enhanced settings menu scene
+	var settings_scene = load("res://scenes/ui/settings/enhanced_settings_menu.tscn")
 	if not settings_scene:
 		push_error("SettingsManager: Could not load settings menu scene")
 		return null
@@ -26,21 +26,23 @@ static func open_settings(parent_node: Node) -> Control:
 	# Instantiate the settings menu
 	var settings_menu = settings_scene.instantiate()
 	
-	# Always use a CanvasLayer for proper layering
-	var ui_layer = parent_node.get_node_or_null("SettingsLayer")
-	if not ui_layer:
-		# Try to find existing UI layer
-		ui_layer = parent_node.get_node_or_null("UI")
-		if not ui_layer or not ui_layer is CanvasLayer:
-			# Create dedicated settings layer with very high priority
-			ui_layer = CanvasLayer.new()
-			ui_layer.name = "SettingsLayer"
-			ui_layer.layer = 100  # Very high layer for settings
-			parent_node.add_child(ui_layer)
-	parent_node = ui_layer
+	# Always create a new dedicated CanvasLayer for settings to ensure proper input handling
+	var ui_layer = CanvasLayer.new()
+	ui_layer.name = "SettingsLayer_" + str(randi())  # Unique name to avoid conflicts
+	ui_layer.layer = 100  # Very high layer for settings
+	ui_layer.process_mode = Node.PROCESS_MODE_WHEN_PAUSED
 	
-	# Add the settings menu to the parent
-	parent_node.add_child(settings_menu)
+	# Add to the scene tree root to ensure it's above everything
+	parent_node.get_tree().root.add_child(ui_layer)
+	print("SettingsManager: Created new SettingsLayer with unique name")
+	
+	# Add the settings menu to the canvas layer
+	ui_layer.add_child(settings_menu)
+	
+	# Ensure the settings menu is cleaned up properly
+	settings_menu.tree_exiting.connect(func(): ui_layer.queue_free())
+	
+	print("SettingsManager: Added settings menu to dedicated layer")
 	
 	return settings_menu
 
