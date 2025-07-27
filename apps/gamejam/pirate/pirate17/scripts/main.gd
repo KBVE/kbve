@@ -100,9 +100,12 @@ func spawn_npcs_with_count(count: int):
 		npc_container.add_child(dragon)
 		dragon.update_position_after_scene_ready()
 		
-		# Initially deactivate all dragons (they'll be activated based on player position)
+		# Keep dragons always active (they're special boss enemies)
 		if dragon and is_instance_valid(dragon):
-			dragon.deactivate()
+			dragon.activate()  # Make sure dragons stay active
+			# Add dragons to active list manually since they bypass chunk activation
+			if chunk_manager and not dragon in chunk_manager.active_npcs:
+				chunk_manager.active_npcs.append(dragon)
 
 func init_player_systems():
 	"""Initialize player movement and related systems"""
@@ -567,8 +570,12 @@ func update_debug_info():
 		# Include both NPCs and dragons in the count
 		var world_npcs = World.get_npcs().size()
 		var world_dragons = World.get_dragons().size()
+		var active_dragons = 0
+		for dragon in World.get_dragons():
+			if dragon and is_instance_valid(dragon) and dragon.is_active and dragon.visible:
+				active_dragons += 1
 		
-		debug_label.text = "Active: %d/%d\nNPCs: %d Dragons: %d\nChunks: %d FPS: %d" % [active_npcs, total_npcs, world_npcs, world_dragons, chunks_loaded, fps]
+		debug_label.text = "Active: %d/%d\nNPCs: %d Dragons: %d/%d\nChunks: %d FPS: %d" % [active_npcs, total_npcs, world_npcs, active_dragons, world_dragons, chunks_loaded, fps]
 
 func is_ui_blocking_input() -> bool:
 	"""Check if any UI elements should block spacebar input"""
@@ -1083,21 +1090,41 @@ func find_nearest_enemy_target(from_pos: Vector2) -> Node2D:
 	var nearest_distance: float = INF
 	var max_range: float = 300.0
 	
-	var npcs = World.get_npcs()
-	for npc in npcs:
-		if npc and is_instance_valid(npc):
-			var distance = from_pos.distance_to(npc.position)
-			if distance <= max_range and distance < nearest_distance:
-				nearest_target = npc
-				nearest_distance = distance
-	
-	var dragons = World.get_dragons()
-	for dragon in dragons:
-		if dragon and is_instance_valid(dragon):
-			var distance = from_pos.distance_to(dragon.position)
-			if distance <= max_range and distance < nearest_distance:
-				nearest_target = dragon
-				nearest_distance = distance
+	# Only consider active NPCs (chunk-based activation) + always-active dragons
+	if chunk_manager:
+		var active_npcs = chunk_manager.active_npcs
+		for npc in active_npcs:
+			if npc and is_instance_valid(npc) and npc.is_active and npc.visible:
+				var distance = from_pos.distance_to(npc.position)
+				if distance <= max_range and distance < nearest_distance:
+					nearest_target = npc
+					nearest_distance = distance
+		
+		# Also check all dragons since they're always active
+		var dragons = World.get_dragons()
+		for dragon in dragons:
+			if dragon and is_instance_valid(dragon) and dragon.is_active and dragon.visible:
+				var distance = from_pos.distance_to(dragon.position)
+				if distance <= max_range and distance < nearest_distance:
+					nearest_target = dragon
+					nearest_distance = distance
+	else:
+		# Fallback to all NPCs if chunk manager isn't available
+		var npcs = World.get_npcs()
+		for npc in npcs:
+			if npc and is_instance_valid(npc):
+				var distance = from_pos.distance_to(npc.position)
+				if distance <= max_range and distance < nearest_distance:
+					nearest_target = npc
+					nearest_distance = distance
+		
+		var dragons = World.get_dragons()
+		for dragon in dragons:
+			if dragon and is_instance_valid(dragon):
+				var distance = from_pos.distance_to(dragon.position)
+				if distance <= max_range and distance < nearest_distance:
+					nearest_target = dragon
+					nearest_distance = distance
 	
 	return nearest_target
 

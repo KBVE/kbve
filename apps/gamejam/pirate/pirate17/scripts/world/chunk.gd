@@ -241,11 +241,13 @@ func update_npc_activation(player_chunk_pos: Vector2i):
 					if not npc in active_npcs:
 						active_npcs.append(npc)
 	
-	# Deactivate NPCs out of range
+	# Deactivate NPCs out of range (but keep dragons always active)
 	var npcs_to_deactivate = []
 	for npc in active_npcs:
 		if is_instance_valid(npc) and not npc.chunk_position in chunks_in_range:
-			npcs_to_deactivate.append(npc)
+			# Don't deactivate dragons - they should always stay active
+			if not npc is DragonNPC:
+				npcs_to_deactivate.append(npc)
 	
 	for npc in npcs_to_deactivate:
 		npc.deactivate()
