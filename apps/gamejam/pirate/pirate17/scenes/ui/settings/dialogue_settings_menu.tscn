@@ -1,52 +1,51 @@
-[gd_scene load_steps=10 format=3 uid="uid://g7p7hdqeomtx"]
+[gd_scene load_steps=10 format=3 uid="uid://cqn8dliehh7g7"]
 
-[ext_resource type="Script" path="res://scenes/ui/settings/dialogue_settings_menu.gd" id="1_qvxj8"]
-[ext_resource type="Texture2D" uid="uid://br7ixb8r6k7qn" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
-[ext_resource type="Texture2D" uid="uid://dxqvh3x8jl7qn" path="res://assets/ui/fantasy/TitleBox_64x16.png" id="3_title"]
-[ext_resource type="Texture2D" uid="uid://c8qvh3x8jl7qn" path="res://assets/ui/fantasy/TopPatternBG_116x67.png" id="4_pattern"]
-[ext_resource type="Texture2D" uid="uid://b8qvh3x8jl7qn" path="res://assets/ui/fantasy/Button_52x14.png" id="5_button"]
-[ext_resource type="Texture2D" uid="uid://a8qvh3x8jl7qn" path="res://assets/ui/fantasy/QuitIcon.png" id="6_quit"]
+[ext_resource type="Script" uid="uid://dxs1pdf7s6gap" path="res://scenes/ui/settings/dialogue_settings_menu.gd" id="1_qvxj8"]
+[ext_resource type="Texture2D" uid="uid://cqwkrupultmbp" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
+[ext_resource type="Texture2D" uid="uid://ber4kudryiwpt" path="res://assets/ui/fantasy/TitleBox_64x16.png" id="3_title"]
+[ext_resource type="Texture2D" uid="uid://bnncojbugqu6e" path="res://assets/ui/fantasy/TopPatternBG_116x67.png" id="4_pattern"]
+[ext_resource type="Texture2D" uid="uid://cvke3abe7b7by" path="res://assets/ui/fantasy/Button_52x14.png" id="5_button"]
+[ext_resource type="Texture2D" uid="uid://cogtjvldlod8" path="res://assets/ui/fantasy/QuitIcon.png" id="6_quit"]
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1"]
 texture = ExtResource("5_button")
 texture_margin_left = 8.0
-texture_margin_right = 8.0
 texture_margin_top = 4.0
+texture_margin_right = 8.0
 texture_margin_bottom = 4.0
 
 [sub_resource type="Theme" id="Theme_1"]
-Button/styles/normal = SubResource("StyleBoxTexture_1")
-Button/styles/hover = SubResource("StyleBoxTexture_1")
-Button/styles/pressed = SubResource("StyleBoxTexture_1")
-Button/font_sizes/font_size = 14
 Button/colors/font_color = Color(0.9, 0.85, 0.7, 1)
 Button/colors/font_hover_color = Color(1, 1, 0.8, 1)
 Button/colors/font_pressed_color = Color(0.8, 0.75, 0.6, 1)
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_1"]
+Button/font_sizes/font_size = 14
+Button/styles/hover = SubResource("StyleBoxTexture_1")
+Button/styles/normal = SubResource("StyleBoxTexture_1")
+Button/styles/pressed = SubResource("StyleBoxTexture_1")
 
 [node name="SettingsMenu" type="Control"]
+z_index = 1000
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
-z_index = 1000
 script = ExtResource("1_qvxj8")
 
 [node name="Background" type="ColorRect" parent="."]
-anchors_preset = 15
+z_index = -1
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
 color = Color(0, 0, 0, 0.8)
-z_index = -1
 
 [node name="Panel" type="Panel" parent="."]
-anchors_preset = 8
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -61,26 +60,26 @@ theme_override_styles/panel = SubResource("StyleBoxEmpty_1")
 
 [node name="PanelShadow" type="ColorRect" parent="Panel"]
 show_behind_parent = true
-anchors_preset = 15
+z_index = -1
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -5
-offset_top = -5
-offset_right = 5
-offset_bottom = 5
+offset_left = -5.0
+offset_top = -5.0
+offset_right = 5.0
+offset_bottom = 5.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.5)
-z_index = -1
 
 [node name="BackgroundPattern" type="NinePatchRect" parent="Panel"]
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = -20
-offset_top = -20
-offset_right = 20
-offset_bottom = 20
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_panel")
@@ -90,7 +89,8 @@ patch_margin_right = 48
 patch_margin_bottom = 48
 
 [node name="TopPatternDecoration" type="NinePatchRect" parent="Panel"]
-anchors_preset = 15
+modulate = Color(1, 1, 1, 0.8)
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 offset_left = -15.0
@@ -104,16 +104,15 @@ patch_margin_left = 58
 patch_margin_top = 33
 patch_margin_right = 58
 patch_margin_bottom = 33
-modulate = Color(1, 1, 1, 0.8)
 
 [node name="TitleContainer" type="Control" parent="Panel"]
-anchors_preset = 10
+anchors_preset = 0
 anchor_right = 1.0
 offset_bottom = 80.0
 grow_horizontal = 2
 
 [node name="TitleBackground" type="NinePatchRect" parent="Panel/TitleContainer"]
-anchors_preset = 8
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -126,12 +125,12 @@ grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("3_title")
 patch_margin_left = 16
-patch_margin_right = 16
 patch_margin_top = 4
+patch_margin_right = 16
 patch_margin_bottom = 4
 
 [node name="SpeakerName" type="Label" parent="Panel/TitleContainer"]
-anchors_preset = 8
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -142,42 +141,42 @@ offset_right = 200.0
 offset_bottom = 15.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_font_sizes/font_size = 22
 theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
 theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 1)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 22
 text = "Settings"
 horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ContentContainer" type="Control" parent="Panel"]
-anchors_preset = 15
+anchors_preset = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 80.0
 offset_left = 40.0
+offset_top = 80.0
 offset_right = -40.0
 offset_bottom = -40.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="DialogueText" type="RichTextLabel" parent="Panel/ContentContainer"]
-anchors_preset = 10
+layout_mode = 0
 anchor_right = 1.0
 offset_bottom = 120.0
 grow_horizontal = 2
-theme_override_font_sizes/normal_font_size = 16
 theme_override_colors/default_color = Color(0.95, 0.9, 0.8, 1)
 theme_override_colors/font_shadow_color = Color(0.1, 0.05, 0, 0.8)
-theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
+theme_override_constants/shadow_offset_x = 1
+theme_override_font_sizes/normal_font_size = 16
 bbcode_enabled = true
 text = "[center]Welcome to the Settings Panel, Captain![/center]
 [center]What would you like to configure?[/center]"
 
 [node name="ChoiceContainer" type="VBoxContainer" parent="Panel/ContentContainer"]
-anchors_preset = 8
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
@@ -193,7 +192,7 @@ theme_override_constants/separation = 15
 alignment = 1
 
 [node name="CloseButton" type="TextureButton" parent="Panel"]
-anchors_preset = 1
+layout_mode = 0
 anchor_left = 1.0
 anchor_right = 1.0
 offset_left = -50.0
@@ -202,7 +201,7 @@ offset_right = -10.0
 offset_bottom = 50.0
 grow_horizontal = 0
 pivot_offset = Vector2(27.5, 27.5)
+tooltip_text = "Close Settings (ESC)"
 texture_normal = ExtResource("6_quit")
 ignore_texture_size = true
 stretch_mode = 5
-tooltip_text = "Close Settings (ESC)"

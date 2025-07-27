@@ -1,47 +1,44 @@
-[gd_scene load_steps=7 format=3 uid="uid://cepxqv8x2n7fy"]
+[gd_scene load_steps=5 format=3 uid="uid://6g8j5t31yq8b"]
 
-[ext_resource type="Script" path="res://scenes/ui/settings/enhanced_settings_menu.gd" id="1_enhanced"]
-[ext_resource type="Texture2D" uid="uid://br7ixb8r6k7qn" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
-[ext_resource type="Texture2D" uid="uid://dxqvh3x8jl7qn" path="res://assets/ui/fantasy/TitleBox_64x16.png" id="3_title"]
-[ext_resource type="Texture2D" uid="uid://b8qvh3x8jl7qn" path="res://assets/ui/fantasy/Button_52x14.png" id="4_button"]
-[ext_resource type="Texture2D" uid="uid://a8qvh3x8jl7qn" path="res://assets/ui/fantasy/QuitIcon.png" id="5_quit"]
+[ext_resource type="Script" uid="uid://dxugclre8fkfb" path="res://scenes/ui/settings/enhanced_settings_menu.gd" id="1_enhanced"]
+[ext_resource type="Texture2D" uid="uid://cqwkrupultmbp" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
+[ext_resource type="Texture2D" uid="uid://cogtjvldlod8" path="res://assets/ui/fantasy/QuitIcon.png" id="5_quit"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1"]
 texture = ExtResource("2_panel")
 texture_margin_left = 20.0
-texture_margin_right = 20.0
 texture_margin_top = 20.0
+texture_margin_right = 20.0
 texture_margin_bottom = 20.0
 
 [node name="EnhancedSettingsMenu" type="Control"]
+z_index = 1000
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
-z_index = 1000
 script = ExtResource("1_enhanced")
 
 [node name="Background" type="ColorRect" parent="."]
-anchors_preset = 15
+layout_mode = 0
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-mouse_filter = 0
 color = Color(0, 0, 0, 0.85)
 
 [node name="Panel" type="Panel" parent="."]
-anchors_preset = 8
+layout_mode = 0
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -300.0
-offset_top = -200.0
-offset_right = 300.0
-offset_bottom = 200.0
+offset_left = -320.0
+offset_top = -220.0
+offset_right = 320.0
+offset_bottom = 220.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_1")
 
 [node name="TitleBar" type="HBoxContainer" parent="Panel"]
@@ -52,12 +49,13 @@ offset_left = 20.0
 offset_top = 15.0
 offset_right = -20.0
 offset_bottom = 55.0
+grow_horizontal = 2
 
 [node name="TitleLabel" type="Label" parent="Panel/TitleBar"]
 layout_mode = 2
 size_flags_horizontal = 3
-text = "Game Settings"
 theme_override_font_sizes/font_size = 28
+text = "Game Settings"
 horizontal_alignment = 1
 
 [node name="CloseButton" type="TextureButton" parent="Panel"]
@@ -65,12 +63,13 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -50.0
-offset_top = 15.0
-offset_right = -15.0
-offset_bottom = 50.0
+offset_left = -60.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = 60.0
+grow_horizontal = 0
 texture_normal = ExtResource("5_quit")
-stretch_mode = 3
+stretch_mode = 4
 
 [node name="TabContainer" type="TabContainer" parent="Panel"]
 layout_mode = 1
@@ -81,9 +80,13 @@ offset_left = 20.0
 offset_top = 65.0
 offset_right = -20.0
 offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+current_tab = 0
 
 [node name="Audio" type="ScrollContainer" parent="Panel/TabContainer"]
 layout_mode = 2
+metadata/_tab_index = 0
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel/TabContainer/Audio"]
 layout_mode = 2
@@ -93,8 +96,8 @@ theme_override_constants/separation = 15
 
 [node name="AudioTitle" type="Label" parent="Panel/TabContainer/Audio/VBoxContainer"]
 layout_mode = 2
-text = "Audio Settings"
 theme_override_font_sizes/font_size = 20
+text = "Audio Settings"
 
 [node name="HSeparator" type="HSeparator" parent="Panel/TabContainer/Audio/VBoxContainer"]
 layout_mode = 2
@@ -110,27 +113,26 @@ text = "Master Volume"
 layout_mode = 2
 
 [node name="DecreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/MasterVolume/HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 text = "-"
-custom_minimum_size = Vector2(40, 40)
 
 [node name="VolumeSlider" type="HSlider" parent="Panel/TabContainer/Audio/VBoxContainer/MasterVolume/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 0.7
 
 [node name="IncreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/MasterVolume/HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 text = "+"
-custom_minimum_size = Vector2(40, 40)
 
 [node name="VolumeLabel" type="Label" parent="Panel/TabContainer/Audio/VBoxContainer/MasterVolume/HBoxContainer"]
+custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 text = "70%"
-custom_minimum_size = Vector2(50, 0)
 
 [node name="MusicVolume" type="VBoxContainer" parent="Panel/TabContainer/Audio/VBoxContainer"]
 layout_mode = 2
@@ -143,27 +145,26 @@ text = "Music Volume"
 layout_mode = 2
 
 [node name="DecreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/MusicVolume/HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 text = "-"
-custom_minimum_size = Vector2(40, 40)
 
 [node name="VolumeSlider" type="HSlider" parent="Panel/TabContainer/Audio/VBoxContainer/MusicVolume/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 0.7
 
 [node name="IncreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/MusicVolume/HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 text = "+"
-custom_minimum_size = Vector2(40, 40)
 
 [node name="VolumeLabel" type="Label" parent="Panel/TabContainer/Audio/VBoxContainer/MusicVolume/HBoxContainer"]
+custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 text = "70%"
-custom_minimum_size = Vector2(50, 0)
 
 [node name="SFXVolume" type="VBoxContainer" parent="Panel/TabContainer/Audio/VBoxContainer"]
 layout_mode = 2
@@ -176,31 +177,31 @@ text = "Sound Effects Volume"
 layout_mode = 2
 
 [node name="DecreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/SFXVolume/HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 text = "-"
-custom_minimum_size = Vector2(40, 40)
 
 [node name="VolumeSlider" type="HSlider" parent="Panel/TabContainer/Audio/VBoxContainer/SFXVolume/HBoxContainer"]
 layout_mode = 2
 size_flags_horizontal = 3
-min_value = 0.0
 max_value = 1.0
 step = 0.05
 value = 0.7
 
 [node name="IncreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/SFXVolume/HBoxContainer"]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 text = "+"
-custom_minimum_size = Vector2(40, 40)
 
 [node name="VolumeLabel" type="Label" parent="Panel/TabContainer/Audio/VBoxContainer/SFXVolume/HBoxContainer"]
+custom_minimum_size = Vector2(50, 0)
 layout_mode = 2
 text = "70%"
-custom_minimum_size = Vector2(50, 0)
 
 [node name="Game" type="ScrollContainer" parent="Panel/TabContainer"]
 visible = false
 layout_mode = 2
+metadata/_tab_index = 1
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel/TabContainer/Game"]
 layout_mode = 2
@@ -210,8 +211,8 @@ theme_override_constants/separation = 15
 
 [node name="GameTitle" type="Label" parent="Panel/TabContainer/Game/VBoxContainer"]
 layout_mode = 2
-text = "Game Settings"
 theme_override_font_sizes/font_size = 20
+text = "Game Settings"
 
 [node name="HSeparator" type="HSeparator" parent="Panel/TabContainer/Game/VBoxContainer"]
 layout_mode = 2
@@ -224,14 +225,14 @@ layout_mode = 2
 text = "Save & Load"
 
 [node name="SaveButton" type="Button" parent="Panel/TabContainer/Game/VBoxContainer/SaveLoadSection"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Save Game"
-custom_minimum_size = Vector2(0, 40)
 
 [node name="LoadButton" type="Button" parent="Panel/TabContainer/Game/VBoxContainer/SaveLoadSection"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Load Game"
-custom_minimum_size = Vector2(0, 40)
 
 [node name="HSeparator2" type="HSeparator" parent="Panel/TabContainer/Game/VBoxContainer"]
 layout_mode = 2
@@ -244,24 +245,25 @@ layout_mode = 2
 text = "Data Management"
 
 [node name="BackupButton" type="Button" parent="Panel/TabContainer/Game/VBoxContainer/DataSection"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Backup Save Data"
-custom_minimum_size = Vector2(0, 40)
 
 [node name="RestoreButton" type="Button" parent="Panel/TabContainer/Game/VBoxContainer/DataSection"]
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Restore from Backup"
-custom_minimum_size = Vector2(0, 40)
 
 [node name="ClearDataButton" type="Button" parent="Panel/TabContainer/Game/VBoxContainer/DataSection"]
+modulate = Color(1, 0.5, 0.5, 1)
+custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Clear All Data"
-custom_minimum_size = Vector2(0, 40)
-modulate = Color(1, 0.5, 0.5, 1)
 
 [node name="Display" type="ScrollContainer" parent="Panel/TabContainer"]
 visible = false
 layout_mode = 2
+metadata/_tab_index = 2
 
 [node name="VBoxContainer" type="VBoxContainer" parent="Panel/TabContainer/Display"]
 layout_mode = 2
@@ -271,8 +273,8 @@ theme_override_constants/separation = 15
 
 [node name="DisplayTitle" type="Label" parent="Panel/TabContainer/Display/VBoxContainer"]
 layout_mode = 2
-text = "Display Settings"
 theme_override_font_sizes/font_size = 20
+text = "Display Settings"
 
 [node name="HSeparator" type="HSeparator" parent="Panel/TabContainer/Display/VBoxContainer"]
 layout_mode = 2

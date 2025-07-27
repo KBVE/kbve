@@ -55,14 +55,26 @@ func _ready():
 		var bg = $Background
 		bg.mouse_filter = Control.MOUSE_FILTER_STOP
 		bg.gui_input.connect(_on_background_input)
+	
+	# Add opening animation
+	_animate_opening()
 
 func _setup_ui():
-	# Connect close button
+	# Connect close button with better responsiveness
 	if close_button:
 		close_button.pressed.connect(_on_close_pressed)
 		close_button.mouse_entered.connect(_on_close_button_hover)
 		close_button.mouse_exited.connect(_on_close_button_exit)
+		close_button.button_down.connect(_on_close_button_down)
+		close_button.button_up.connect(_on_close_button_up)
+		
+		# Make the close button more user-friendly
 		close_button.pivot_offset = close_button.size / 2
+		close_button.mouse_filter = Control.MOUSE_FILTER_STOP
+		close_button.action_mode = BaseButton.ACTION_MODE_BUTTON_PRESS
+		
+		# Add larger hit area by creating an invisible background
+		_enhance_close_button_hitarea()
 	
 	# Connect audio sliders
 	if master_slider:
@@ -106,6 +118,9 @@ func _setup_ui():
 	
 	# Add display options
 	_setup_display_options()
+	
+	# Style the tabs
+	_setup_tab_styling()
 
 func _setup_display_options():
 	var display_tab = $Panel/TabContainer/Display/VBoxContainer
@@ -123,6 +138,185 @@ func _setup_display_options():
 	if vsync_check:
 		vsync_check.button_pressed = DisplayServer.window_get_vsync_mode() != DisplayServer.VSYNC_DISABLED
 		vsync_check.toggled.connect(_on_vsync_toggled)
+
+func _setup_tab_styling():
+	# Style the tab container and individual tabs
+	if not tab_container:
+		return
+	
+	# Connect to tab changed signal for dynamic styling
+	tab_container.tab_changed.connect(_on_tab_changed)
+	
+	# Set initial tab styling
+	_style_audio_tab()
+	_style_game_tab()
+	_style_display_tab()
+	
+	# Set custom tab names with icons
+	tab_container.set_tab_title(0, "🔊 Audio")
+	tab_container.set_tab_title(1, "💾 Game") 
+	tab_container.set_tab_title(2, "🖥️ Display")
+
+func _style_audio_tab():
+	# Add visual enhancements to audio controls
+	var audio_tab = $Panel/TabContainer/Audio/VBoxContainer
+	if not audio_tab:
+		return
+	
+	# Style volume sliders
+	for child in audio_tab.get_children():
+		if child.name.ends_with("Volume") and child is VBoxContainer:
+			_style_volume_control(child)
+
+func _style_volume_control(volume_control: VBoxContainer):
+	# Add visual feedback to volume controls
+	var hbox = volume_control.get_node_or_null("HBoxContainer")
+	if not hbox:
+		return
+	
+	var slider = hbox.get_node_or_null("VolumeSlider")
+	var dec_button = hbox.get_node_or_null("DecreaseButton")
+	var inc_button = hbox.get_node_or_null("IncreaseButton")
+	
+	# Style buttons
+	if dec_button:
+		_style_volume_button(dec_button, Color.ORANGE_RED)
+	if inc_button:
+		_style_volume_button(inc_button, Color.GREEN)
+	
+	# Add hover effects to slider
+	if slider:
+		slider.mouse_entered.connect(func(): _animate_slider_hover(slider, true))
+		slider.mouse_exited.connect(func(): _animate_slider_hover(slider, false))
+
+func _style_volume_button(button: Button, color: Color):
+	# Style volume adjustment buttons
+	button.add_theme_color_override("font_color", Color.WHITE)
+	button.add_theme_color_override("font_hover_color", color)
+	button.add_theme_font_size_override("font_size", 20)
+	button.mouse_entered.connect(func(): _animate_button_hover(button, true))
+	button.mouse_exited.connect(func(): _animate_button_hover(button, false))
+
+func _style_game_tab():
+	# Style game management buttons
+	var game_tab = $Panel/TabContainer/Game/VBoxContainer
+	if not game_tab:
+		return
+	
+	# Style save/load buttons with green theme
+	if save_button:
+		_style_action_button(save_button, Color.GREEN, "💾")
+	if load_button:
+		_style_action_button(load_button, Color.BLUE, "📁")
+	
+	# Style data management buttons
+	if backup_button:
+		_style_action_button(backup_button, Color.ORANGE, "🔒")
+	if restore_button:
+		_style_action_button(restore_button, Color.PURPLE, "🔓")
+	if clear_data_button:
+		_style_action_button(clear_data_button, Color.RED, "🗑️")
+
+func _style_display_tab():
+	# Style display options
+	var display_tab = $Panel/TabContainer/Display/VBoxContainer
+	if not display_tab:
+		return
+	
+	var fullscreen_check = display_tab.get_node_or_null("FullscreenCheck")
+	var vsync_check = display_tab.get_node_or_null("VSyncCheck")
+	
+	if fullscreen_check:
+		_style_checkbox(fullscreen_check, "🖥️")
+	if vsync_check:
+		_style_checkbox(vsync_check, "⚡")
+
+func _style_action_button(button: Button, color: Color, icon: String):
+	# Style action buttons with icons and colors
+	button.text = icon + " " + button.text
+	button.add_theme_color_override("font_hover_color", color)
+	button.mouse_entered.connect(func(): _animate_button_hover(button, true))
+	button.mouse_exited.connect(func(): _animate_button_hover(button, false))
+
+func _style_checkbox(checkbox: CheckBox, icon: String):
+	# Style checkboxes with icons
+	checkbox.text = icon + " " + checkbox.text
+
+func _animate_slider_hover(slider: HSlider, hovering: bool):
+	var tween = create_tween()
+	var target_modulate = Color(1.2, 1.2, 1.0, 1.0) if hovering else Color.WHITE
+	tween.tween_property(slider, "modulate", target_modulate, 0.2)
+
+func _animate_button_hover(button: Button, hovering: bool):
+	var tween = create_tween()
+	var target_scale = Vector2(1.05, 1.05) if hovering else Vector2(1.0, 1.0)
+	tween.tween_property(button, "scale", target_scale, 0.1)
+
+func _on_tab_changed(tab: int):
+	# Add visual feedback when tabs change
+	if not tab_container:
+		return
+	
+	# Animate tab transition
+	var current_tab_control = tab_container.get_tab_control(tab)
+	if current_tab_control:
+		current_tab_control.modulate.a = 0.0
+		var tween = create_tween()
+		tween.tween_property(current_tab_control, "modulate:a", 1.0, 0.3)
+
+func _animate_opening():
+	# Smooth opening animation
+	if panel:
+		panel.scale = Vector2(0.8, 0.8)
+		panel.modulate.a = 0.0
+		
+		var tween = create_tween()
+		tween.set_parallel(true)
+		tween.set_ease(Tween.EASE_OUT)
+		tween.set_trans(Tween.TRANS_BACK)
+		
+		tween.tween_property(panel, "scale", Vector2(1.0, 1.0), 0.4)
+		tween.tween_property(panel, "modulate:a", 1.0, 0.3)
+	
+	# Animate background fade
+	var bg = get_node_or_null("Background")
+	if bg:
+		bg.modulate.a = 0.0
+		var bg_tween = create_tween()
+		bg_tween.tween_property(bg, "modulate:a", 0.85, 0.3)
+
+func _enhance_close_button_hitarea():
+	# Create a larger invisible hit area for the close button
+	if not close_button:
+		return
+	
+	# Create an invisible button that covers a larger area
+	var hit_area = Button.new()
+	hit_area.name = "CloseButtonHitArea"
+	hit_area.flat = true
+	hit_area.modulate.a = 0.0  # Make it invisible
+	hit_area.mouse_filter = Control.MOUSE_FILTER_STOP
+	
+	# Position it to cover a larger area around the close button
+	hit_area.anchor_left = close_button.anchor_left
+	hit_area.anchor_right = close_button.anchor_right
+	hit_area.anchor_top = close_button.anchor_top
+	hit_area.anchor_bottom = close_button.anchor_bottom
+	hit_area.offset_left = close_button.offset_left - 10  # Extend 10 pixels in each direction
+	hit_area.offset_top = close_button.offset_top - 10
+	hit_area.offset_right = close_button.offset_right + 10
+	hit_area.offset_bottom = close_button.offset_bottom + 10
+	
+	# Insert it before the close button so it doesn't block the visual
+	close_button.get_parent().add_child(hit_area)
+	close_button.get_parent().move_child(hit_area, close_button.get_index())
+	
+	# Connect the larger hit area to trigger close button events
+	hit_area.pressed.connect(_on_close_pressed)
+	hit_area.mouse_entered.connect(_on_close_button_hover)
+	hit_area.mouse_exited.connect(_on_close_button_exit)
+	hit_area.button_down.connect(_on_close_button_down)
+	hit_area.button_up.connect(_on_close_button_up)
 
 func _load_settings():
 	# Load audio settings from player data
@@ -296,14 +490,35 @@ func _on_background_input(event):
 
 func _on_close_button_hover():
 	if close_button:
+		# Add a slight glow effect by modulating the color
+		close_button.modulate = Color(1.3, 1.3, 1.3, 1.0)
+		
 		var tween = create_tween()
 		tween.set_ease(Tween.EASE_OUT)
 		tween.set_trans(Tween.TRANS_ELASTIC)
-		tween.tween_property(close_button, "scale", Vector2(1.2, 1.2), 0.2)
+		tween.tween_property(close_button, "scale", Vector2(1.3, 1.3), 0.3)
 
 func _on_close_button_exit():
 	if close_button:
+		# Reset the glow effect
+		close_button.modulate = Color.WHITE
+		
 		var tween = create_tween()
+		tween.set_parallel(true)
 		tween.set_ease(Tween.EASE_OUT)
 		tween.set_trans(Tween.TRANS_CUBIC)
-		tween.tween_property(close_button, "scale", Vector2(1.0, 1.0), 0.15)
+		tween.tween_property(close_button, "scale", Vector2(1.0, 1.0), 0.2)
+
+func _on_close_button_down():
+	if close_button:
+		var tween = create_tween()
+		tween.set_ease(Tween.EASE_OUT)
+		tween.set_trans(Tween.TRANS_SINE)
+		tween.tween_property(close_button, "scale", Vector2(0.9, 0.9), 0.1)
+
+func _on_close_button_up():
+	if close_button:
+		var tween = create_tween()
+		tween.set_ease(Tween.EASE_OUT)
+		tween.set_trans(Tween.TRANS_BACK)
+		tween.tween_property(close_button, "scale", Vector2(1.2, 1.2), 0.15)
