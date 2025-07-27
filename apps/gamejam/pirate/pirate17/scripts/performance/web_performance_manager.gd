@@ -21,7 +21,8 @@ var min_acceptable_fps: int = 30
 var performance_settings = {
 	PerformanceLevel.HIGH: {
 		"chunk_view_distance": 2,      # Reduced from 3 for browser
-		"max_npcs": 18,                # Reduced from 25 for browser
+		"max_active_npcs": 18,         # Max NPCs active at once (was max_npcs)
+		"total_npcs": 60,              # Total NPCs in world (chunk-based)
 		"particle_density": 0.9,       # Reduced from 1.0 for browser
 		"shadow_quality": false,       # Disabled for browser performance
 		"animation_quality": 1.0,
@@ -30,7 +31,8 @@ var performance_settings = {
 	},
 	PerformanceLevel.MEDIUM: {
 		"chunk_view_distance": 2,      # Browser-optimized baseline
-		"max_npcs": 15,                # Browser-optimized baseline
+		"max_active_npcs": 15,         # Max NPCs active at once
+		"total_npcs": 50,              # Total NPCs in world (chunk-based)
 		"particle_density": 0.7,
 		"shadow_quality": false,       # Always disabled for browser
 		"animation_quality": 0.8,
@@ -39,7 +41,8 @@ var performance_settings = {
 	},
 	PerformanceLevel.LOW: {
 		"chunk_view_distance": 1,      # Minimum for smooth gameplay
-		"max_npcs": 10,                # Minimum for gameplay interest
+		"max_active_npcs": 10,         # Max NPCs active at once
+		"total_npcs": 30,              # Total NPCs in world (chunk-based)
 		"particle_density": 0.5,
 		"shadow_quality": false,       # Always disabled for browser
 		"animation_quality": 0.6,
@@ -147,7 +150,7 @@ func apply_performance_settings():
 	
 	# Apply NPC limits
 	if main_scene and main_scene.has_method("set_max_npcs"):
-		main_scene.set_max_npcs(settings.max_npcs)
+		main_scene.set_max_npcs(settings.max_active_npcs)
 	
 	# Apply animation quality
 	apply_animation_quality(settings.animation_quality)

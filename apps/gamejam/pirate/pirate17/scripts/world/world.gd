@@ -114,9 +114,10 @@ func is_valid_npc_spawn(pos: Vector2i) -> bool:
 		return false
 	
 	for npc in npcs:
-		var npc_distance = abs(pos.x - npc.grid_position.x) + abs(pos.y - npc.grid_position.y)
-		if npc_distance < 5:
-			return false
+		if npc and is_instance_valid(npc):
+			var npc_distance = abs(pos.x - npc.grid_position.x) + abs(pos.y - npc.grid_position.y)
+			if npc_distance < 5:
+				return false
 	
 	return true
 
