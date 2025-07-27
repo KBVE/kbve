@@ -24,6 +24,7 @@ signal settings_closed
 
 var original_pause_state: bool = false
 var save_manager: Node
+var player_ref: Node
 
 func _ready():
 	# Ensure high priority for input
@@ -35,11 +36,14 @@ func _ready():
 	original_pause_state = get_tree().paused
 	get_tree().paused = true
 	
-	# Get save manager reference
+	# Get references
 	save_manager = get_node_or_null("/root/SaveManager")
+	player_ref = get_node_or_null("/root/Player")
 	
 	# Setup UI
 	_setup_ui()
+	
+	# Load settings from player data
 	_load_settings()
 	
 	# Ensure we can receive input
@@ -121,22 +125,28 @@ func _setup_display_options():
 		vsync_check.toggled.connect(_on_vsync_toggled)
 
 func _load_settings():
-	# Load saved volume settings
-	var master_bus = AudioServer.get_bus_index("Master")
-	var music_bus = AudioServer.get_bus_index("Music") 
-	var sfx_bus = AudioServer.get_bus_index("SFX")
+	# Load audio settings from player data
+	if not player_ref:
+		print("Settings: Player reference not found")
+		return
 	
-	if master_slider and master_bus != -1:
-		master_slider.value = db_to_linear(AudioServer.get_bus_volume_db(master_bus))
-		_update_volume_label(master_label, master_slider.value)
+	# Get volumes from player data
+	var master_volume = player_ref.get_volume("master")
+	var music_volume = player_ref.get_volume("music")
+	var sfx_volume = player_ref.get_volume("sfx")
 	
-	if music_slider and music_bus != -1:
-		music_slider.value = db_to_linear(AudioServer.get_bus_volume_db(music_bus))
-		_update_volume_label(music_label, music_slider.value)
+	# Update UI sliders
+	if master_slider:
+		master_slider.value = master_volume
+		_update_volume_label(master_label, master_volume)
 	
-	if sfx_slider and sfx_bus != -1:
-		sfx_slider.value = db_to_linear(AudioServer.get_bus_volume_db(sfx_bus))
-		_update_volume_label(sfx_label, sfx_slider.value)
+	if music_slider:
+		music_slider.value = music_volume
+		_update_volume_label(music_label, music_volume)
+	
+	if sfx_slider:
+		sfx_slider.value = sfx_volume
+		_update_volume_label(sfx_label, sfx_volume)
 
 func _adjust_volume(slider: HSlider, delta: float):
 	if slider:
@@ -147,33 +157,19 @@ func _update_volume_label(label: Label, value: float):
 		label.text = str(int(value * 100)) + "%"
 
 func _on_master_volume_changed(value: float):
-	var bus_idx = AudioServer.get_bus_index("Master")
-	if bus_idx != -1:
-		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(value))
+	if player_ref:
+		player_ref.update_volume("master", value)
 		_update_volume_label(master_label, value)
-		_save_audio_settings()
 
 func _on_music_volume_changed(value: float):
-	var bus_idx = AudioServer.get_bus_index("Music")
-	if bus_idx != -1:
-		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(value))
+	if player_ref:
+		player_ref.update_volume("music", value)
 		_update_volume_label(music_label, value)
-		_save_audio_settings()
 
 func _on_sfx_volume_changed(value: float):
-	var bus_idx = AudioServer.get_bus_index("SFX")
-	if bus_idx != -1:
-		AudioServer.set_bus_volume_db(bus_idx, linear_to_db(value))
+	if player_ref:
+		player_ref.update_volume("sfx", value)
 		_update_volume_label(sfx_label, value)
-		_save_audio_settings()
-
-func _save_audio_settings():
-	# Save audio settings to user preferences
-	var config = ConfigFile.new()
-	config.set_value("audio", "master_volume", master_slider.value if master_slider else 1.0)
-	config.set_value("audio", "music_volume", music_slider.value if music_slider else 1.0)
-	config.set_value("audio", "sfx_volume", sfx_slider.value if sfx_slider else 1.0)
-	config.save("user://settings.cfg")
 
 func _on_save_game():
 	if save_manager and save_manager.has_method("save_game"):
@@ -275,9 +271,6 @@ func _on_close_pressed():
 	close_settings()
 
 func close_settings():
-	# Save settings before closing
-	_save_audio_settings()
-	
 	# Restore pause state
 	get_tree().paused = original_pause_state
 	
