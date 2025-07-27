@@ -93,24 +93,7 @@ body {
 		$GODOT_HEAD_INCLUDE
 	</head>
 
-    <!-- Supabase Integration -->
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-        const supabase = createClient(
-            'https://qmpdruitzlownnnnjmpk.supabase.co',
-            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY',
-            {
-            auth: {
-                autoRefreshToken: true,
-                persistSession: true,
-                detectSessionInUrl: true,
-            },
-            }
-        );
-
-        window.supabase = supabase;
-    </script>
+    
 
 
 	<body>
@@ -234,5 +217,27 @@ const engine = new Engine(GODOT_CONFIG);
 	}
 }());
 		</script>
+
+
+<!-- Supabase Integration -->
+    <script type="module">
+        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+        const supabase = createClient(
+            'https://qmpdruitzlownnnnjmpk.supabase.co',
+            'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY',
+            {
+            auth: {
+                autoRefreshToken: true,
+                persistSession: true,
+                detectSessionInUrl: true,
+            },
+            }
+        );
+
+        window.supabase = supabase;
+        document.dispatchEvent(new CustomEvent('supabase:ready', { detail: { supabase } }));
+
+    </script>
 	</body>
 </html>

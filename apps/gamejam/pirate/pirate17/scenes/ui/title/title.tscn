@@ -1,0 +1,169 @@
+[gd_scene load_steps=5 format=3 uid="uid://bg8k5t21yq7b"]
+
+[ext_resource type="Texture2D" uid="uid://bsjua817w6217" path="res://assets/ui/logo_airship.png" id="1_logo"]
+[ext_resource type="Texture2D" uid="uid://cqwkrupultmbp" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
+[ext_resource type="Texture2D" uid="uid://bnncojbugqu6e" path="res://assets/ui/fantasy/TopPatternBG_116x67.png" id="3_pattern"]
+[ext_resource type="Texture2D" uid="uid://c50fj1o2sm84o" path="res://assets/ui/fantasy/CornerKnot_14x14.png" id="4_corner"]
+
+[node name="TitleScene" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackgroundLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="BackgroundGradient" type="ColorRect" parent="BackgroundLayer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.05, 0.1, 0.15, 1)
+
+[node name="PatternOverlay" type="NinePatchRect" parent="BackgroundLayer"]
+modulate = Color(1, 1, 1, 0.1)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_pattern")
+patch_margin_left = 58
+patch_margin_top = 33
+patch_margin_right = 58
+patch_margin_bottom = 33
+
+[node name="LogoLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LogoContainer" type="Control" parent="LogoLayer"]
+layout_mode = 1
+anchor_left = 0.5
+anchor_top = 0.3
+anchor_right = 0.5
+anchor_bottom = 0.3
+offset_left = -200.0
+offset_top = -50.0
+offset_right = 200.0
+offset_bottom = 50.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LogoBackground" type="NinePatchRect" parent="LogoLayer/LogoContainer"]
+modulate = Color(1, 1, 1, 0.8)
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -20.0
+offset_top = -20.0
+offset_right = 20.0
+offset_bottom = 20.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_panel")
+patch_margin_left = 48
+patch_margin_top = 48
+patch_margin_right = 48
+patch_margin_bottom = 48
+
+[node name="Logo" type="TextureRect" parent="LogoLayer/LogoContainer"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -40.0
+offset_right = 150.0
+offset_bottom = 40.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("1_logo")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CornerKnot1" type="TextureRect" parent="LogoLayer/LogoContainer"]
+layout_mode = 1
+offset_left = -15.0
+offset_top = -15.0
+offset_right = -1.0
+offset_bottom = -1.0
+texture = ExtResource("4_corner")
+
+[node name="CornerKnot2" type="TextureRect" parent="LogoLayer/LogoContainer"]
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = 1.0
+offset_top = -15.0
+offset_right = 15.0
+offset_bottom = -1.0
+texture = ExtResource("4_corner")
+
+[node name="CornerKnot3" type="TextureRect" parent="LogoLayer/LogoContainer"]
+layout_mode = 1
+anchors_preset = 2
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = -15.0
+offset_top = 1.0
+offset_right = -1.0
+offset_bottom = 15.0
+texture = ExtResource("4_corner")
+
+[node name="CornerKnot4" type="TextureRect" parent="LogoLayer/LogoContainer"]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 1.0
+offset_top = 1.0
+offset_right = 15.0
+offset_bottom = 15.0
+texture = ExtResource("4_corner")
+
+[node name="MenuLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="SocialLayer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="OverlayLayer" type="Control" parent="."]
+z_index = 100
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
