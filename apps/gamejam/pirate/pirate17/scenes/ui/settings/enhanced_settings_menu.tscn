@@ -1,8 +1,12 @@
-[gd_scene load_steps=5 format=3 uid="uid://6g8j5t31yq8b"]
+[gd_scene load_steps=10 format=3 uid="uid://6g8j5t31yq8b"]
 
 [ext_resource type="Script" uid="uid://dxugclre8fkfb" path="res://scenes/ui/settings/enhanced_settings_menu.gd" id="1_enhanced"]
 [ext_resource type="Texture2D" uid="uid://cqwkrupultmbp" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
+[ext_resource type="Texture2D" uid="uid://ber4kudryiwpt" path="res://assets/ui/fantasy/TitleBox_64x16.png" id="3_title"]
+[ext_resource type="Texture2D" uid="uid://bnncojbugqu6e" path="res://assets/ui/fantasy/TopPatternBG_116x67.png" id="4_pattern"]
 [ext_resource type="Texture2D" uid="uid://cogtjvldlod8" path="res://assets/ui/fantasy/QuitIcon.png" id="5_quit"]
+[ext_resource type="Texture2D" uid="uid://cvke3abe7b7by" path="res://assets/ui/fantasy/Button_52x14.png" id="6_button"]
+[ext_resource type="Texture2D" uid="uid://c50fj1o2sm84o" path="res://assets/ui/fantasy/CornerKnot_14x14.png" id="7_corner"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1"]
 texture = ExtResource("2_panel")
@@ -10,6 +14,13 @@ texture_margin_left = 20.0
 texture_margin_top = 20.0
 texture_margin_right = 20.0
 texture_margin_bottom = 20.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_3"]
+texture = ExtResource("6_button")
+texture_margin_left = 8.0
+texture_margin_top = 4.0
+texture_margin_right = 8.0
+texture_margin_bottom = 4.0
 
 [node name="EnhancedSettingsMenu" type="Control"]
 z_index = 1000
@@ -22,9 +33,14 @@ grow_vertical = 2
 script = ExtResource("1_enhanced")
 
 [node name="Background" type="ColorRect" parent="."]
-layout_mode = 0
+layout_mode = 1
+anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = -4.0
+offset_top = -33.0
+offset_right = -4.0
+offset_bottom = -33.0
 grow_horizontal = 2
 grow_vertical = 2
 color = Color(0, 0, 0, 0.85)
@@ -41,7 +57,71 @@ offset_right = 320.0
 offset_bottom = 220.0
 theme_override_styles/panel = SubResource("StyleBoxTexture_1")
 
-[node name="TitleBar" type="HBoxContainer" parent="Panel"]
+[node name="TopPatternDecoration" type="NinePatchRect" parent="Panel"]
+modulate = Color(1, 1, 1, 0.6)
+z_index = 1
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 9.0
+offset_top = 8.0
+offset_right = -9.0
+offset_bottom = -11.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("4_pattern")
+patch_margin_left = 58
+patch_margin_top = 33
+patch_margin_right = 58
+patch_margin_bottom = 33
+
+[node name="CornerKnot1" type="TextureRect" parent="Panel"]
+z_index = 1
+layout_mode = 0
+offset_left = 5.0
+offset_top = 5.0
+offset_right = 19.0
+offset_bottom = 19.0
+texture = ExtResource("7_corner")
+
+[node name="CornerKnot2" type="TextureRect" parent="Panel"]
+z_index = 1
+layout_mode = 0
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -19.0
+offset_top = 5.0
+offset_right = -5.0
+offset_bottom = 19.0
+texture = ExtResource("7_corner")
+
+[node name="CornerKnot3" type="TextureRect" parent="Panel"]
+z_index = 1
+layout_mode = 0
+anchor_top = 1.0
+anchor_bottom = 1.0
+offset_left = 5.0
+offset_top = -19.0
+offset_right = 19.0
+offset_bottom = -5.0
+texture = ExtResource("7_corner")
+
+[node name="CornerKnot4" type="TextureRect" parent="Panel"]
+z_index = 1
+layout_mode = 0
+anchor_left = 1.0
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = -19.0
+offset_top = -19.0
+offset_right = -5.0
+offset_bottom = -5.0
+texture = ExtResource("7_corner")
+
+[node name="TitleBar" type="Control" parent="Panel"]
+z_index = 2
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
@@ -51,14 +131,43 @@ offset_right = -20.0
 offset_bottom = 55.0
 grow_horizontal = 2
 
-[node name="TitleLabel" type="Label" parent="Panel/TitleBar"]
-layout_mode = 2
-size_flags_horizontal = 3
+[node name="TitleBackground" type="NinePatchRect" parent="Panel/TitleBar"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -150.0
+offset_top = -15.0
+offset_right = 150.0
+offset_bottom = 15.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("3_title")
+patch_margin_left = 16
+patch_margin_top = 4
+patch_margin_right = 16
+patch_margin_bottom = 4
+
+[node name="TitleLabel" type="Label" parent="Panel/TitleBar/TitleBackground"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
 theme_override_font_sizes/font_size = 28
 text = "Game Settings"
 horizontal_alignment = 1
+vertical_alignment = 1
 
 [node name="CloseButton" type="TextureButton" parent="Panel"]
+z_index = 3
 layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
@@ -72,6 +181,7 @@ texture_normal = ExtResource("5_quit")
 stretch_mode = 4
 
 [node name="TabContainer" type="TabContainer" parent="Panel"]
+z_index = 2
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -115,6 +225,10 @@ layout_mode = 2
 [node name="DecreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/MasterVolume/HBoxContainer"]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_styles/hover = SubResource("StyleBoxTexture_3")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_3")
 text = "-"
 
 [node name="VolumeSlider" type="HSlider" parent="Panel/TabContainer/Audio/VBoxContainer/MasterVolume/HBoxContainer"]
@@ -127,6 +241,10 @@ value = 0.7
 [node name="IncreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/MasterVolume/HBoxContainer"]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_styles/hover = SubResource("StyleBoxTexture_3")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_3")
 text = "+"
 
 [node name="VolumeLabel" type="Label" parent="Panel/TabContainer/Audio/VBoxContainer/MasterVolume/HBoxContainer"]
@@ -147,6 +265,10 @@ layout_mode = 2
 [node name="DecreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/MusicVolume/HBoxContainer"]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_styles/hover = SubResource("StyleBoxTexture_3")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_3")
 text = "-"
 
 [node name="VolumeSlider" type="HSlider" parent="Panel/TabContainer/Audio/VBoxContainer/MusicVolume/HBoxContainer"]
@@ -159,6 +281,10 @@ value = 0.7
 [node name="IncreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/MusicVolume/HBoxContainer"]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_styles/hover = SubResource("StyleBoxTexture_3")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_3")
 text = "+"
 
 [node name="VolumeLabel" type="Label" parent="Panel/TabContainer/Audio/VBoxContainer/MusicVolume/HBoxContainer"]
@@ -179,6 +305,10 @@ layout_mode = 2
 [node name="DecreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/SFXVolume/HBoxContainer"]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_styles/hover = SubResource("StyleBoxTexture_3")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_3")
 text = "-"
 
 [node name="VolumeSlider" type="HSlider" parent="Panel/TabContainer/Audio/VBoxContainer/SFXVolume/HBoxContainer"]
@@ -191,6 +321,10 @@ value = 0.7
 [node name="IncreaseButton" type="Button" parent="Panel/TabContainer/Audio/VBoxContainer/SFXVolume/HBoxContainer"]
 custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_styles/hover = SubResource("StyleBoxTexture_3")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_3")
 text = "+"
 
 [node name="VolumeLabel" type="Label" parent="Panel/TabContainer/Audio/VBoxContainer/SFXVolume/HBoxContainer"]
@@ -227,11 +361,19 @@ text = "Save & Load"
 [node name="SaveButton" type="Button" parent="Panel/TabContainer/Game/VBoxContainer/SaveLoadSection"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_styles/hover = SubResource("StyleBoxTexture_3")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_3")
 text = "Save Game"
 
 [node name="LoadButton" type="Button" parent="Panel/TabContainer/Game/VBoxContainer/SaveLoadSection"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_styles/hover = SubResource("StyleBoxTexture_3")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_3")
 text = "Load Game"
 
 [node name="HSeparator2" type="HSeparator" parent="Panel/TabContainer/Game/VBoxContainer"]
@@ -247,11 +389,19 @@ text = "Data Management"
 [node name="BackupButton" type="Button" parent="Panel/TabContainer/Game/VBoxContainer/DataSection"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_styles/hover = SubResource("StyleBoxTexture_3")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_3")
 text = "Backup Save Data"
 
 [node name="RestoreButton" type="Button" parent="Panel/TabContainer/Game/VBoxContainer/DataSection"]
 custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 1)
+theme_override_styles/hover = SubResource("StyleBoxTexture_3")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_3")
+theme_override_styles/normal = SubResource("StyleBoxTexture_3")
 text = "Restore from Backup"
 
 [node name="ClearDataButton" type="Button" parent="Panel/TabContainer/Game/VBoxContainer/DataSection"]
