@@ -15,6 +15,6 @@ static func generate() -> String:
 	
 	for i in range(10):
 		time_part = chars[time_val % 32] + time_part
-		time_val = int(time_val / 32)
+		time_val /= 32
 	
 	return time_part + random_part
