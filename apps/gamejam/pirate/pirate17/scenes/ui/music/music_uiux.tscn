@@ -1,0 +1,106 @@
+[gd_scene load_steps=4 format=3 uid="uid://bkpqv8x2n7fyq"]
+
+[ext_resource type="Script" path="res://scenes/ui/music/music_ui_controller.gd" id="1_music"]
+[ext_resource type="Texture2D" uid="uid://br7ixb8r6k7qn" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
+[ext_resource type="Texture2D" uid="uid://b8qvh3x8jl7qn" path="res://assets/ui/fantasy/Button_52x14.png" id="3_button"]
+
+[node name="MusicUIUX" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+script = ExtResource("1_music")
+
+[node name="MusicPlayerPanel" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 3
+anchor_left = 1.0
+anchor_top = 0.0
+anchor_right = 1.0
+anchor_bottom = 0.0
+offset_left = -220.0
+offset_top = 10.0
+offset_right = -10.0
+offset_bottom = 120.0
+custom_minimum_size = Vector2(210, 110)
+
+[node name="MainContainer" type="VBoxContainer" parent="MusicPlayerPanel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = 8.0
+offset_right = -8.0
+offset_bottom = -8.0
+
+[node name="TitleContainer" type="HBoxContainer" parent="MusicPlayerPanel/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 0
+
+[node name="MusicIcon" type="Label" parent="MusicPlayerPanel/MainContainer/TitleContainer"]
+layout_mode = 2
+text = "♫"
+horizontal_alignment = 1
+
+[node name="TitleLabel" type="Label" parent="MusicPlayerPanel/MainContainer/TitleContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Music Player"
+horizontal_alignment = 1
+
+[node name="TrackInfo" type="VBoxContainer" parent="MusicPlayerPanel/MainContainer"]
+layout_mode = 2
+size_flags_vertical = 3
+
+[node name="TrackNameLabel" type="Label" parent="MusicPlayerPanel/MainContainer/TrackInfo"]
+layout_mode = 2
+text = "Morning Walk"
+horizontal_alignment = 1
+clip_contents = true
+
+[node name="TrackIndexLabel" type="Label" parent="MusicPlayerPanel/MainContainer/TrackInfo"]
+layout_mode = 2
+text = "Track 1 of 5"
+horizontal_alignment = 1
+
+[node name="Controls" type="HBoxContainer" parent="MusicPlayerPanel/MainContainer"]
+layout_mode = 2
+alignment = 1
+
+[node name="PrevButton" type="Button" parent="MusicPlayerPanel/MainContainer/Controls"]
+layout_mode = 2
+text = "◀"
+flat = true
+
+[node name="PlayPauseButton" type="Button" parent="MusicPlayerPanel/MainContainer/Controls"]
+layout_mode = 2
+text = "⏸"
+flat = true
+
+[node name="NextButton" type="Button" parent="MusicPlayerPanel/MainContainer/Controls"]
+layout_mode = 2
+text = "▶"
+flat = true
+
+[node name="VolumeContainer" type="HBoxContainer" parent="MusicPlayerPanel/MainContainer"]
+layout_mode = 2
+
+[node name="VolumeLabel" type="Label" parent="MusicPlayerPanel/MainContainer/VolumeContainer"]
+layout_mode = 2
+text = "Vol:"
+
+[node name="VolumeSlider" type="HSlider" parent="MusicPlayerPanel/MainContainer/VolumeContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+min_value = 0.0
+max_value = 1.0
+step = 0.05
+value = 0.7
+
+[node name="VolumePercent" type="Label" parent="MusicPlayerPanel/MainContainer/VolumeContainer"]
+layout_mode = 2
+text = "70%"
