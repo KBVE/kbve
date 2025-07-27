@@ -1,11 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://cg7j4t31yq8c"]
+[gd_scene load_steps=7 format=3 uid="uid://cg7j4t31yq8c"]
 
-[ext_resource type="Texture2D" uid="uid://cvke3abe7b7by" path="res://assets/ui/fantasy/Button_52x14.png" id="1_button"]
+[ext_resource type="Script" path="res://scenes/ui/title/title_menu.gd" id="1_script"]
+[ext_resource type="Texture2D" uid="uid://cvke3abe7b7by" path="res://assets/ui/fantasy/Button_52x14.png" id="2_button"]
 [ext_resource type="Texture2D" uid="uid://cqwkrupultmbp" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
 [ext_resource type="Texture2D" uid="uid://ber4kudryiwpt" path="res://assets/ui/fantasy/TitleBox_64x16.png" id="3_title"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1"]
-texture = ExtResource("1_button")
+texture = ExtResource("2_button")
 texture_margin_left = 8.0
 texture_margin_top = 4.0
 texture_margin_right = 8.0
@@ -32,6 +33,7 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+script = ExtResource("1_script")
 
 [node name="MenuContainer" type="Control" parent="."]
 layout_mode = 1

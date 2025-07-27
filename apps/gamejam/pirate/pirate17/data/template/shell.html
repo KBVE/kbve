@@ -3,6 +3,7 @@
 	<head>
 		<meta charset="utf-8">
 		<meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0">
+		<meta name="hcaptcha-sitekey" content="your-key">
 		<title>$GODOT_PROJECT_NAME</title>
 		<style>
 html, body, #canvas {
@@ -239,5 +240,32 @@ const engine = new Engine(GODOT_CONFIG);
         document.dispatchEvent(new CustomEvent('supabase:ready', { detail: { supabase } }));
 
     </script>
+
+ 	<!-- HCaptcha Integration -->
+	<script type="module">
+		const loadHCaptcha = () => {
+			return new Promise((resolve, reject) => {
+				const script = document.createElement('script');
+				script.src = 'https://hcaptcha.com/1/api.js?render=explicit';
+				script.async = true;
+				script.defer = true;
+				script.onload = () => {
+					if (typeof hcaptcha !== 'undefined') {
+						window.hcaptcha = hcaptcha;
+						document.dispatchEvent(new CustomEvent('hcaptcha:ready', { detail: { hcaptcha } }));
+						resolve(hcaptcha);
+					} else {
+						reject(new Error('hCaptcha failed to load'));
+					}
+				};
+				script.onerror = () => reject(new Error('hCaptcha script failed to load'));
+				document.head.appendChild(script);
+			});
+		};
+
+		window.hcaptchaReady = loadHCaptcha();
+	</script>
+
+
 	</body>
 </html>
