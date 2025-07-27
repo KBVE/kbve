@@ -18,7 +18,7 @@ static func open_settings(parent_node: Node) -> Control:
 		return null
 	
 	# Load the settings menu scene
-	var settings_scene = load("res://scenes/ui/settings_menu.tscn")
+	var settings_scene = load("res://scenes/ui/settings/settings_menu.tscn")
 	if not settings_scene:
 		push_error("SettingsManager: Could not load settings menu scene")
 		return null

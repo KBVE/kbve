@@ -1,6 +1,6 @@
 [gd_scene load_steps=10 format=3 uid="uid://bxqvdp8kf2nxy"]
 
-[ext_resource type="Script" path="res://scripts/ui/settings_menu.gd" id="1_qvxj8"]
+[ext_resource type="Script" path="res://scenes/ui/settings/settings_menu.gd" id="1_qvxj8"]
 [ext_resource type="Texture2D" uid="uid://br7ixb8r6k7qn" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
 [ext_resource type="Texture2D" uid="uid://dxqvh3x8jl7qn" path="res://assets/ui/fantasy/TitleBox_64x16.png" id="3_title"]
 [ext_resource type="Texture2D" uid="uid://c8qvh3x8jl7qn" path="res://assets/ui/fantasy/TopPatternBG_116x67.png" id="4_pattern"]
