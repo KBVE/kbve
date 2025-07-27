@@ -1,4 +1,4 @@
-[gd_scene load_steps=8 format=3 uid="uid://bg8k5t21yq7b"]
+[gd_scene load_steps=12 format=3 uid="uid://bg8k5t21yq7b"]
 
 [ext_resource type="Script" uid="uid://cbkkejwawclmm" path="res://scripts/title.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bsjua817w6217" path="res://assets/ui/logo_airship.png" id="2_logo"]
@@ -7,6 +7,10 @@
 [ext_resource type="Texture2D" uid="uid://c50fj1o2sm84o" path="res://assets/ui/fantasy/CornerKnot_14x14.png" id="5_corner"]
 [ext_resource type="PackedScene" uid="uid://cg7j4t31yq8c" path="res://scenes/ui/title/title_menu.tscn" id="6_title_menu"]
 [ext_resource type="PackedScene" uid="uid://dh8k6t410rad" path="res://scenes/ui/title/title_social.tscn" id="7_title_social"]
+[ext_resource type="Texture2D" uid="uid://d1y1k6s548fb3" path="res://assets/background/sky.png" id="8_sky"]
+[ext_resource type="Texture2D" uid="uid://2wa78o8742uw" path="res://assets/background/stars.png" id="9_stars"]
+[ext_resource type="Texture2D" uid="uid://bthdcg8gupyod" path="res://assets/background/clouds.png" id="10_clouds"]
+[ext_resource type="Script" uid="uid://b3xgq2qnub6bx" path="res://scenes/ui/title/stars_shimmer.gd" id="11_shimmer"]
 
 [node name="TitleScene" type="Control"]
 layout_mode = 3
@@ -28,7 +32,29 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
+[node name="SkySprite" type="Sprite2D" parent="BackgroundLayer"]
+z_index = -3
+position = Vector2(640, 360)
+scale = Vector2(2, 2)
+texture = ExtResource("8_sky")
+
+[node name="StarsSprite" type="Sprite2D" parent="BackgroundLayer"]
+modulate = Color(1, 1, 1, 0.9)
+z_index = -2
+position = Vector2(640, 360)
+scale = Vector2(2, 2)
+texture = ExtResource("9_stars")
+script = ExtResource("11_shimmer")
+
+[node name="CloudsSprite" type="Sprite2D" parent="BackgroundLayer"]
+modulate = Color(1, 1, 1, 0.6)
+z_index = -1
+position = Vector2(640, 360)
+scale = Vector2(2, 2)
+texture = ExtResource("10_clouds")
+
 [node name="BackgroundGradient" type="ColorRect" parent="BackgroundLayer"]
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
