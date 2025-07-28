@@ -1,7 +1,13 @@
-[gd_scene load_steps=5 format=3 uid="uid://dh8k6t41zq9d"]
+[gd_scene load_steps=11 format=3 uid="uid://dh8k6t41zq9d"]
 
+[ext_resource type="Script" path="res://scenes/ui/title/title_social.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://ccqvk2pultmbp" path="res://assets/ui/fantasy/BlackSmallCircleBox_19x19.png" id="1_social_bg"]
 [ext_resource type="Texture2D" uid="uid://ber4kudryiwpt" path="res://assets/ui/fantasy/TitleBox_64x16.png" id="2_title"]
+[ext_resource type="Texture2D" path="res://scenes/ui/title/icons/youtube.png" id="3_youtube"]
+[ext_resource type="Texture2D" path="res://scenes/ui/title/icons/discord.png" id="4_discord"]
+[ext_resource type="Texture2D" path="res://scenes/ui/title/icons/github.png" id="5_github"]
+[ext_resource type="Texture2D" path="res://scenes/ui/title/icons/website.png" id="6_website"]
+[ext_resource type="Texture2D" path="res://scenes/ui/title/icons/twitch.png" id="7_twitch"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1"]
 texture = ExtResource("1_social_bg")
@@ -31,6 +37,7 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+script = ExtResource("1_script")
 
 [node name="SocialContainer" type="Control" parent="."]
 layout_mode = 1
@@ -80,26 +87,47 @@ theme = SubResource("Theme_1")
 theme_override_constants/separation = 10
 alignment = 1
 
-[node name="TwitterButton" type="Button" parent="SocialContainer/SocialButtons"]
+[node name="YouTubeButton" type="Button" parent="SocialContainer/SocialButtons"]
 custom_minimum_size = Vector2(40, 30)
 layout_mode = 2
-tooltip_text = "Follow on Twitter"
-text = "X"
+tooltip_text = "Watch on YouTube"
+text = ""
+icon = ExtResource("3_youtube")
+icon_alignment = 1
+expand_icon = true
+
+[node name="TwitchButton" type="Button" parent="SocialContainer/SocialButtons"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+tooltip_text = "Follow on Twitch"
+text = ""
+icon = ExtResource("7_twitch")
+icon_alignment = 1
+expand_icon = true
 
 [node name="DiscordButton" type="Button" parent="SocialContainer/SocialButtons"]
 custom_minimum_size = Vector2(40, 30)
 layout_mode = 2
 tooltip_text = "Join Discord Server"
-text = "DC"
+text = ""
+icon = ExtResource("4_discord")
+icon_alignment = 1
+expand_icon = true
 
 [node name="GitHubButton" type="Button" parent="SocialContainer/SocialButtons"]
 custom_minimum_size = Vector2(40, 30)
 layout_mode = 2
 tooltip_text = "View on GitHub"
-text = "GH"
+text = ""
+icon = ExtResource("5_github")
+icon_alignment = 1
+expand_icon = true
 
 [node name="WebsiteButton" type="Button" parent="SocialContainer/SocialButtons"]
 custom_minimum_size = Vector2(40, 30)
 layout_mode = 2
-tooltip_text = "Visit Website"
-text = "WEB"
+tooltip_text = "Visit KBVE Website"
+text = ""
+icon = ExtResource("6_website")
+icon_alignment = 1
+expand_icon = true
