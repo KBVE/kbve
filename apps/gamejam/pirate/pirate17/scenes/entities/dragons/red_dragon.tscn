@@ -1,7 +1,7 @@
 [gd_scene load_steps=7 format=3 uid="uid://c5y3d6x8n4vko"]
 
-[ext_resource type="Script" uid="uid://by4p5fgvpwdqx" path="res://scripts/entities/dragon_npc.gd" id="1_dragon_script"]
-[ext_resource type="Texture2D" uid="uid://dgyxo1qovxtwn" path="res://assets/dragon/Dragon.png" id="2_dragon_texture"]
+[ext_resource type="Script" uid="uid://mebotovrn4f1" path="res://scenes/entities/dragons/dragon_npc.gd" id="1_dragon_script"]
+[ext_resource type="Texture2D" path="res://scenes/entities/dragons/Dragon.png" id="2_dragon_texture"]
 [ext_resource type="Texture2D" uid="uid://ctwtqf7rqpr0a" path="res://assets/ui/fantasy/ValueBar_128x16.png" id="3_health_bg"]
 [ext_resource type="Texture2D" uid="uid://b01ri4w51x8rd" path="res://assets/ui/fantasy/ValueRed_120x8.png" id="4_health_fill"]
 [ext_resource type="Texture2D" uid="uid://ux350mxypu37" path="res://assets/ui/fantasy/ValueBlue_120x8.png" id="5_mana_fill"]

@@ -42,7 +42,7 @@ func setup_dragon_properties():
 	current_mana = 20
 	attack_range = 10
 	attack_cooldown = 2.5
-	dragon_attack_texture = load("res://assets/dragon/DragonAttack.png")
+	dragon_attack_texture = load("res://scenes/entities/dragons/DragonAttack.png")
 	
 
 func create_visual():
@@ -68,7 +68,7 @@ func create_visual():
 	script_visual_container.z_index = 15
 	
 	npc_sprite = Sprite2D.new()
-	npc_sprite.texture = load("res://assets/dragon/Dragon.png")
+	npc_sprite.texture = load("res://scenes/entities/dragons/Dragon.png")
 	npc_sprite.position = Vector2.ZERO
 	npc_sprite.z_index = 1
 	npc_sprite.scale = Vector2(0.6, 0.6)
@@ -227,7 +227,7 @@ func launch_fireball(target_pos: Vector2, target_entity: Node2D = null):
 	recovery_timer.one_shot = true
 	recovery_timer.timeout.connect(func():
 		if npc_sprite and is_instance_valid(npc_sprite):
-			npc_sprite.texture = load("res://assets/dragon/Dragon.png")
+			npc_sprite.texture = load("res://scenes/entities/dragons/Dragon.png")
 		dragon_state = DragonState.RECOVERING
 		update_state_label()
 		recovery_timer.queue_free()
