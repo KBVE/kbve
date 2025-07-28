@@ -1,0 +1,105 @@
+[gd_scene load_steps=5 format=3 uid="uid://dh8k6t41zq9d"]
+
+[ext_resource type="Texture2D" uid="uid://ccqvk2pultmbp" path="res://assets/ui/fantasy/BlackSmallCircleBox_19x19.png" id="1_social_bg"]
+[ext_resource type="Texture2D" uid="uid://ber4kudryiwpt" path="res://assets/ui/fantasy/TitleBox_64x16.png" id="2_title"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1"]
+texture = ExtResource("1_social_bg")
+texture_margin_left = 4.0
+texture_margin_top = 4.0
+texture_margin_right = 4.0
+texture_margin_bottom = 4.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_2"]
+texture = ExtResource("2_title")
+texture_margin_left = 16.0
+texture_margin_top = 4.0
+texture_margin_right = 16.0
+texture_margin_bottom = 4.0
+
+[sub_resource type="Theme" id="Theme_1"]
+Button/colors/font_color = Color(0.9, 0.85, 0.7, 1)
+Button/colors/font_hover_color = Color(1, 1, 0.8, 1)
+Button/colors/font_pressed_color = Color(0.8, 0.75, 0.6, 1)
+Button/font_sizes/font_size = 14
+Button/styles/hover = SubResource("StyleBoxTexture_1")
+Button/styles/normal = SubResource("StyleBoxTexture_1")
+Button/styles/pressed = SubResource("StyleBoxTexture_1")
+
+[node name="TitleSocial" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+
+[node name="SocialContainer" type="Control" parent="."]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -120.0
+offset_top = -80.0
+offset_right = 120.0
+offset_bottom = -20.0
+
+[node name="SocialBackground" type="Panel" parent="SocialContainer"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+theme_override_styles/panel = SubResource("StyleBoxTexture_2")
+
+[node name="SocialLabel" type="Label" parent="SocialContainer"]
+layout_mode = 1
+anchors_preset = 10
+anchor_right = 1.0
+offset_top = 5.0
+offset_bottom = 25.0
+theme_override_colors/font_color = Color(1, 0.95, 0.8, 1)
+theme_override_colors/font_shadow_color = Color(0.2, 0.1, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+text = "Follow the Adventure"
+horizontal_alignment = 1
+
+[node name="SocialButtons" type="HBoxContainer" parent="SocialContainer"]
+layout_mode = 1
+anchors_preset = 7
+anchor_left = 0.5
+anchor_top = 1.0
+anchor_right = 0.5
+anchor_bottom = 1.0
+offset_left = -100.0
+offset_top = -35.0
+offset_right = 100.0
+offset_bottom = -5.0
+theme = SubResource("Theme_1")
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="TwitterButton" type="Button" parent="SocialContainer/SocialButtons"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+tooltip_text = "Follow on Twitter"
+text = "X"
+
+[node name="DiscordButton" type="Button" parent="SocialContainer/SocialButtons"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+tooltip_text = "Join Discord Server"
+text = "DC"
+
+[node name="GitHubButton" type="Button" parent="SocialContainer/SocialButtons"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+tooltip_text = "View on GitHub"
+text = "GH"
+
+[node name="WebsiteButton" type="Button" parent="SocialContainer/SocialButtons"]
+custom_minimum_size = Vector2(40, 30)
+layout_mode = 2
+tooltip_text = "Visit Website"
+text = "WEB"
