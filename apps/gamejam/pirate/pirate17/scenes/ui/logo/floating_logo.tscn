@@ -1,0 +1,22 @@
+[gd_scene load_steps=3 format=3 uid="uid://b8k5t21yq7bx"]
+
+[ext_resource type="Script" path="res://scenes/ui/logo/logo_floating.gd" id="1_floating_script"]
+[ext_resource type="Texture2D" uid="uid://bsjua817w6217" path="res://assets/ui/logo_airship.png" id="2_logo"]
+
+[node name="FloatingLogo" type="TextureRect"]
+layout_mode = 3
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -75.0
+offset_top = -25.0
+offset_right = 75.0
+offset_bottom = 25.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_logo")
+expand_mode = 1
+stretch_mode = 5
+script = ExtResource("1_floating_script")

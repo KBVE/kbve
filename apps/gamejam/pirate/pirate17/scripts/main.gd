@@ -172,6 +172,10 @@ func get_web_performance_manager() -> WebPerformanceManager:
 	"""Get the web performance manager instance"""
 	return web_performance_manager
 
+func get_chunk_manager():
+	"""Get the chunk manager instance for loading screen info"""
+	return chunk_manager
+
 func setup_target_highlight():
 	var border_texture = BorderSlicer.get_border_texture_by_position(2, 0)
 	if border_texture:
