@@ -19,10 +19,8 @@ func start_floating_animation():
 	tween.set_ease(Tween.EASE_IN_OUT)
 	tween.set_process_mode(Tween.TWEEN_PROCESS_IDLE)
 
-	# Floating Y animation
 	tween.tween_property(self, "position:y", original_position.y - float_distance, float_duration)
 	tween.tween_property(self, "position:y", original_position.y, float_duration)
 
-	# Rotation animation (optional)
 	tween.parallel().tween_property(self, "rotation", deg_to_rad(-rotate_angle_deg), rotate_duration)
 	tween.parallel().tween_property(self, "rotation", deg_to_rad(rotate_angle_deg), rotate_duration)
