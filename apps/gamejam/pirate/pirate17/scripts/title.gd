@@ -51,8 +51,16 @@ func setup_menu_connections():
 		print("Error: Could not find title menu")
 		return
 	
+	print("Connecting to title menu signal...")
+	print("Title menu node: ", title_menu)
+	print("Title menu has menu_action signal: ", title_menu.has_signal("menu_action"))
+	
 	# Connect to menu signal
-	title_menu.menu_action.connect(_on_menu_action)
+	if title_menu.has_signal("menu_action"):
+		title_menu.menu_action.connect(_on_menu_action)
+		print("Menu signal connected successfully")
+	else:
+		print("ERROR: menu_action signal not found on title_menu")
 
 func setup_social_connections():
 	"""Connect social media buttons"""
@@ -87,6 +95,7 @@ func update_menu_for_save_state():
 	title_menu.update_for_save_state(has_save_file, saved_player_data)
 
 func _on_menu_action(action: String, data: Dictionary):
+	print("Menu action received: ", action)
 	match action:
 		"play":
 			if has_save_file:

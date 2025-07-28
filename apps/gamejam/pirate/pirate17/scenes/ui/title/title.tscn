@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://bg8k5t21yq7b"]
+[gd_scene load_steps=13 format=3 uid="uid://bg8k5t21yq7b"]
 
 [ext_resource type="Script" uid="uid://cbkkejwawclmm" path="res://scripts/title.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://bsjua817w6217" path="res://assets/ui/logo_airship.png" id="2_logo"]
@@ -11,6 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://2wa78o8742uw" path="res://assets/background/stars.png" id="9_stars"]
 [ext_resource type="Texture2D" uid="uid://bthdcg8gupyod" path="res://assets/background/clouds.png" id="10_clouds"]
 [ext_resource type="Script" uid="uid://b3xgq2qnub6bx" path="res://scenes/ui/title/stars_shimmer.gd" id="11_shimmer"]
+[ext_resource type="Script" uid="uid://brq12dj4y7ij2" path="res://scenes/ui/title/logo_floating.gd" id="12_logo_float"]
 
 [node name="TitleScene" type="Control"]
 layout_mode = 3
@@ -31,18 +32,19 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="SkySprite" type="Sprite2D" parent="BackgroundLayer"]
 z_index = -3
 position = Vector2(640, 360)
-scale = Vector2(2, 2)
+scale = Vector2(2.35, 2.35)
 texture = ExtResource("8_sky")
 
 [node name="StarsSprite" type="Sprite2D" parent="BackgroundLayer"]
 modulate = Color(1, 1, 1, 0.9)
 z_index = -2
 position = Vector2(640, 360)
-scale = Vector2(2, 2)
+scale = Vector2(2.35, 2.35)
 texture = ExtResource("9_stars")
 script = ExtResource("11_shimmer")
 
@@ -50,7 +52,7 @@ script = ExtResource("11_shimmer")
 modulate = Color(1, 1, 1, 0.6)
 z_index = -1
 position = Vector2(640, 360)
-scale = Vector2(2, 2)
+scale = Vector2(2.35, 2.35)
 texture = ExtResource("10_clouds")
 
 [node name="BackgroundGradient" type="ColorRect" parent="BackgroundLayer"]
@@ -82,8 +84,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 417.0
+offset_top = 117.0
+offset_right = -408.0
+offset_bottom = -456.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="LogoContainer" type="Control" parent="LogoLayer"]
 layout_mode = 1
@@ -132,6 +139,7 @@ grow_vertical = 2
 texture = ExtResource("2_logo")
 expand_mode = 1
 stretch_mode = 5
+script = ExtResource("12_logo_float")
 
 [node name="CornerKnot1" type="TextureRect" parent="LogoLayer/LogoContainer"]
 layout_mode = 1
@@ -185,21 +193,25 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_left = 3.0
+offset_top = 251.0
+offset_right = 3.0
+offset_bottom = -93.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="TitleMenu" parent="MenuLayer" instance=ExtResource("6_title_menu")]
 layout_mode = 1
-grow_horizontal = 2
-grow_vertical = 2
 
 [node name="SocialLayer" type="Control" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_top = 624.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
 [node name="TitleSocial" parent="SocialLayer" instance=ExtResource("7_title_social")]
 layout_mode = 1
@@ -214,3 +226,4 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
