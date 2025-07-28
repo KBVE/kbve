@@ -19,3 +19,5 @@ Dragon Fireball is from https://opengameart.org/content/high-res-fire-ball
 Ocean tiles from https://gif-superretroworld.itch.io
 
 Paladin VFX Pixel Art from https://frostwindz.itch.io/pixel-art-animations-paladin
+
+SFX Audio from https://obsydianx.itch.io/interface-sfx-pack-1
