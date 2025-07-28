@@ -98,7 +98,7 @@ func show_loading_screen_then_main():
 		return
 	
 	# Create and add loading screen BEFORE changing scenes
-	var loading_screen_scene = preload("res://scenes/loading_screen.tscn")
+	var loading_screen_scene = preload("res://scenes/ui/loading/loading_screen.tscn")
 	var loading_screen = loading_screen_scene.instantiate()
 	
 	# Create a CanvasLayer to ensure loading screen stays on top during scene change
@@ -134,7 +134,7 @@ static func transition_to_scene(scene_path: String):
 		print("ERROR: Cannot transition - no scene tree or current scene available")
 		return
 	
-	var transition_scene = preload("res://scenes/transition.tscn")
+	var transition_scene = preload("res://scenes/ui/loading/transition.tscn")
 	var transition_instance = transition_scene.instantiate()
 	transition_instance.target_scene = scene_path
 	

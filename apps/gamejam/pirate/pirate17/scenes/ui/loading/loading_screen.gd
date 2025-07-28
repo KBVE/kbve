@@ -47,9 +47,12 @@ func setup_background():
 func setup_ui_elements():
 	var screen_size = get_viewport().get_visible_rect().size
 	
+	# Add logo above the loading container
+	setup_logo(screen_size)
+	
 	var loading_container = VBoxContainer.new()
 	loading_container.anchors_preset = Control.PRESET_CENTER
-	loading_container.position = Vector2(screen_size.x / 2 - 200, screen_size.y / 2 - 50)
+	loading_container.position = Vector2(screen_size.x / 2 - 200, screen_size.y / 2 + 20)
 	loading_container.size = Vector2(400, 100)
 	loading_container.add_theme_constant_override("separation", 20)
 	add_child(loading_container)
@@ -112,6 +115,16 @@ func setup_ui_elements():
 	# Add loading tips below main container
 	setup_loading_tips()
 
+func setup_logo(screen_size: Vector2):
+	"""Add the floating logo scene above the loading text"""
+	var floating_logo_scene = preload("res://scenes/ui/logo/floating_logo.tscn")
+	if not floating_logo_scene:
+		return
+	
+	var logo_instance = floating_logo_scene.instantiate()
+	logo_instance.position = Vector2(screen_size.x / 2, screen_size.y / 2 - 100)
+	add_child(logo_instance)
+
 func setup_loading_tips():
 	var screen_size = get_viewport().get_visible_rect().size
 	
@@ -164,42 +177,89 @@ func setup_loading_steps():
 		{
 			"name": "Initializing Systems",
 			"function": "init_systems",
-			"weight": 5.0
+			"weight": 5.0,
+			"sub_steps": [
+				"Applying web rendering optimizations...",
+				"Setting up basic game systems..."
+			]
 		},
 		{
 			"name": "Loading UI Resources", 
 			"function": "load_ui_resources",
-			"weight": 10.0
+			"weight": 10.0,
+			"sub_steps": [
+				"Loading border slice textures...",
+				"Preparing UI element cache...",
+				"Setting up theme resources..."
+			]
 		},
 		{
 			"name": "Generating World",
 			"function": "generate_world",
-			"weight": 25.0
+			"weight": 25.0,
+			"sub_steps": [
+				"Generating terrain heightmap...",
+				"Creating biome boundaries...",
+				"Placing ocean and land tiles...",
+				"Calculating structure spawn points..."
+			]
 		},
 		{
 			"name": "Creating Map Chunks",
 			"function": "setup_chunks",
-			"weight": 20.0
+			"weight": 20.0,
+			"sub_steps": [
+				"Initializing chunk manager...",
+				"Loading starting chunks around player...",
+				"Setting up chunk activation system...",
+				"Registering chunk update callbacks..."
+			]
 		},
 		{
 			"name": "Placing Structures",
 			"function": "place_structures", 
-			"weight": 15.0
+			"weight": 15.0,
+			"sub_steps": [
+				"Spawning ports and docks...",
+				"Placing villages and towns...",
+				"Creating castle fortifications...",
+				"Setting up structure interactions..."
+			]
 		},
 		{
 			"name": "Spawning Navy Fleet",
 			"function": "spawn_navy",
-			"weight": 15.0
+			"weight": 15.0,
+			"sub_steps": [
+				"Creating navy fleet manager...",
+				"Spawning 60 naval units...",
+				"Setting up dragons (boss enemies)...",
+				"Configuring chunk-based NPC activation...",
+				"Registering NPCs with performance manager..."
+			]
 		},
 		{
 			"name": "Setting up Player",
 			"function": "setup_player",
-			"weight": 5.0
+			"weight": 5.0,
+			"sub_steps": [
+				"Initializing airship movement system...",
+				"Setting up spear attack mechanics...",
+				"Creating aim cursor and targeting...",
+				"Connecting ship status signals..."
+			]
 		},
 		{
 			"name": "Finalizing Scene",
 			"function": "finalize_scene",
-			"weight": 5.0
+			"weight": 5.0,
+			"sub_steps": [
+				"Setting up interaction tooltips...",
+				"Initializing parallax background...",
+				"Starting cloud animation system...",
+				"Configuring web performance monitoring...",
+				"Ready to sail!"
+			]
 		}
 	]
 
@@ -229,6 +289,11 @@ func process_next_step():
 func execute_loading_step(step: Dictionary):
 	var step_function = step.function
 	var step_weight = step.weight
+	var sub_steps = step.get("sub_steps", [])
+	
+	# Show sub-steps if available
+	if sub_steps.size() > 0:
+		await show_sub_steps(sub_steps, step_weight)
 	
 	match step_function:
 		"init_systems":
@@ -257,6 +322,24 @@ func execute_loading_step(step: Dictionary):
 	
 	process_next_step()
 
+func show_sub_steps(sub_steps: Array, total_weight: float):
+	"""Display each sub-step with incremental progress"""
+	var sub_step_weight = total_weight / sub_steps.size()
+	
+	for i in range(sub_steps.size()):
+		var sub_step_text = sub_steps[i]
+		status_label.text = sub_step_text
+		
+		# Add small progress increment for each sub-step
+		target_progress += sub_step_weight
+		await animate_progress_to_target()
+		
+		# Wait a bit to show the sub-step
+		await get_tree().create_timer(0.2).timeout
+	
+	# Subtract the weight we already added
+	target_progress -= total_weight
+
 func animate_progress_to_target():
 	var tween = create_tween()
 	tween.tween_method(update_progress_display, current_progress, target_progress, 0.3)
@@ -281,14 +364,26 @@ func load_ui_resources():
 	await get_tree().create_timer(0.2).timeout
 
 func generate_world():
+	status_label.text = "Generating world terrain..."
 	World.initialize_world()
+	
+	# Show world generation details
+	status_label.text = "World generated: " + str(World.get_all_structures().size()) + " structures placed"
 	
 	await get_tree().create_timer(0.3).timeout
 
 func setup_chunks():
 	var main_scene = get_tree().current_scene
 	if main_scene and main_scene.has_method("init_chunk_manager"):
+		status_label.text = "Creating chunk management system..."
 		main_scene.init_chunk_manager()
+		
+		# Show chunk details if available
+		if main_scene.has_method("get_chunk_manager"):
+			var chunk_manager = main_scene.get_chunk_manager()
+			if chunk_manager and chunk_manager.has_method("get_loaded_chunk_count"):
+				var chunk_count = chunk_manager.get_loaded_chunk_count()
+				status_label.text = "Loaded " + str(chunk_count) + " map chunks around player"
 	
 	await get_tree().create_timer(0.4).timeout
 
@@ -302,7 +397,13 @@ func place_structures():
 func spawn_navy():
 	var main_scene = get_tree().current_scene
 	if main_scene and main_scene.has_method("init_npcs"):
+		status_label.text = "Spawning navy fleet and dragons..."
 		main_scene.init_npcs()
+		
+		# Show NPC spawn details
+		var npc_count = World.get_npcs().size()
+		var dragon_count = World.get_dragons().size()
+		status_label.text = "Spawned " + str(npc_count) + " navy ships and " + str(dragon_count) + " dragons"
 	
 	await get_tree().create_timer(0.5).timeout
 
@@ -336,26 +437,24 @@ func complete_loading():
 func start_background_animations():
 	"""Add subtle animations to make loading screen more engaging"""
 	if background_sprite:
-		# Subtle sky color animation
+		# Enhanced sky color animation with smooth transitions
 		var sky_tween = create_tween()
 		sky_tween.set_loops()
-		sky_tween.set_parallel(true)
+		sky_tween.set_ease(Tween.EASE_IN_OUT)
+		sky_tween.set_trans(Tween.TRANS_SINE)
 		
-		# Gentle color shift
-		sky_tween.tween_method(
-			func(color_shift: float):
-				var base_color = Color(0.7, 0.7, 0.7, 1.0)
-				var warm_tint = Color(0.8, 0.75, 0.65, 1.0)
-				background_sprite.modulate = base_color.lerp(warm_tint, color_shift),
-			0.0, 1.0, 3.0
-		)
-		sky_tween.tween_method(
-			func(color_shift: float):
-				var base_color = Color(0.7, 0.7, 0.7, 1.0)
-				var warm_tint = Color(0.8, 0.75, 0.65, 1.0)
-				background_sprite.modulate = warm_tint.lerp(base_color, color_shift),
-			0.0, 1.0, 3.0
-		)
+		# Define color palette for smooth transitions
+		var colors = [
+			Color(0.7, 0.7, 0.7, 1.0),      # Base gray
+			Color(0.8, 0.75, 0.65, 1.0),   # Warm tint
+			Color(0.65, 0.7, 0.8, 1.0),    # Cool tint
+			Color(0.75, 0.7, 0.75, 1.0),   # Purple tint
+			Color(0.7, 0.7, 0.7, 1.0)      # Back to base
+		]
+		
+		# Create smooth color cycling
+		for i in range(colors.size() - 1):
+			sky_tween.tween_property(background_sprite, "modulate", colors[i + 1], 2.5)
 
 func _process(delta):
 	if is_loading and current_progress < target_progress:
