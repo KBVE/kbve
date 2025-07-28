@@ -11,7 +11,7 @@
 [ext_resource type="Texture2D" uid="uid://2wa78o8742uw" path="res://assets/background/stars.png" id="9_stars"]
 [ext_resource type="Texture2D" uid="uid://bthdcg8gupyod" path="res://assets/background/clouds.png" id="10_clouds"]
 [ext_resource type="Script" uid="uid://b3xgq2qnub6bx" path="res://scenes/ui/title/stars_shimmer.gd" id="11_shimmer"]
-[ext_resource type="Script" uid="uid://brq12dj4y7ij2" path="res://scenes/ui/logo/logo_floating.gd" id="12_logo_float"]
+[ext_resource type="Script" uid="uid://s7av6da8rkwq" path="res://scenes/ui/logo/logo_floating.gd" id="12_logo_float"]
 
 [node name="TitleScene" type="Control"]
 layout_mode = 3
