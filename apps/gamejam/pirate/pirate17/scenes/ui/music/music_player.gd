@@ -3,14 +3,17 @@ extends Node
 
 signal track_changed(track_index: int, track_name: String)
 signal volume_changed(volume: float)
+signal sfx_played(sfx_name: String)
 
 @export var current_track: int = 0 : set = set_current_track
 @export_range(0.0, 1.0) var master_volume: float = 0.7 : set = set_master_volume
+@export_range(0.0, 1.0) var sfx_volume: float = 0.8 : set = set_sfx_volume
 @export var auto_play: bool = true
 @export var crossfade_duration: float = 2.0
 
 var audio_player: AudioStreamPlayer
 var fade_player: AudioStreamPlayer  # For crossfading
+var sfx_player: AudioStreamPlayer   # For sound effects
 var is_crossfading: bool = false
 
 # Track list with their file paths
@@ -42,6 +45,11 @@ var tracks: Array[Dictionary] = [
 	}
 ]
 
+# SFX dictionary for quick access
+var sfx_sounds: Dictionary = {
+	"confirm": "res://scenes/ui/music/confirm.ogg"
+}
+
 func _ready():
 	# Set process mode to always so music continues when game is paused
 	process_mode = Node.PROCESS_MODE_ALWAYS
@@ -61,6 +69,14 @@ func _ready():
 	fade_player.volume_db = linear_to_db(0.0)
 	fade_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	add_child(fade_player)
+	
+	# Create SFX audio player
+	sfx_player = AudioStreamPlayer.new()
+	sfx_player.name = "SFXPlayer"
+	sfx_player.bus = "SFX"
+	sfx_player.volume_db = linear_to_db(sfx_volume)
+	sfx_player.process_mode = Node.PROCESS_MODE_ALWAYS
+	add_child(sfx_player)
 	
 	# Connect finished signal for looping
 	audio_player.finished.connect(_on_track_finished)
@@ -88,6 +104,11 @@ func set_master_volume(value: float):
 	if fade_player and not is_crossfading:
 		fade_player.volume_db = linear_to_db(0.0)
 	volume_changed.emit(master_volume)
+
+func set_sfx_volume(value: float):
+	sfx_volume = clamp(value, 0.0, 1.0)
+	if sfx_player:
+		sfx_player.volume_db = linear_to_db(sfx_volume)
 
 func play_track(index: int):
 	if index < 0 or index >= tracks.size():
@@ -217,6 +238,38 @@ func get_track_length() -> float:
 	if audio_player and audio_player.stream:
 		return audio_player.stream.get_length()
 	return 0.0
+
+# SFX Functions
+func play_sfx(sfx_name: String):
+	"""Play a sound effect by name"""
+	if not sfx_sounds.has(sfx_name):
+		push_warning("SFX not found: " + sfx_name)
+		return
+	
+	var sfx_path = sfx_sounds[sfx_name]
+	var stream = load(sfx_path)
+	
+	if not stream:
+		push_error("Failed to load SFX: " + sfx_path)
+		return
+	
+	if sfx_player:
+		sfx_player.stream = stream
+		sfx_player.play()
+		sfx_played.emit(sfx_name)
+
+func play_sfx_from_path(sfx_path: String):
+	"""Play a sound effect from a file path"""
+	var stream = load(sfx_path)
+	
+	if not stream:
+		push_error("Failed to load SFX from path: " + sfx_path)
+		return
+	
+	if sfx_player:
+		sfx_player.stream = stream
+		sfx_player.play()
+		sfx_played.emit(sfx_path)
 
 # Global helper functions for easy access from anywhere
 func change_music_by_state(state: int):

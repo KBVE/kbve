@@ -22,19 +22,29 @@ func _ready():
 
 
 
+func play_confirm_sfx():
+	var music_player = get_node_or_null("/root/MusicPlayerAutoload")
+	if music_player:
+		music_player.play_sfx("confirm")
+
 func _on_play_pressed():
+	play_confirm_sfx()
 	menu_action.emit("play", {})
 
 func _on_continue_pressed():
+	play_confirm_sfx()
 	menu_action.emit("continue", {})
 
 func _on_settings_pressed():
+	play_confirm_sfx()
 	menu_action.emit("settings", {})
 
 func _on_credits_pressed():
+	play_confirm_sfx()
 	menu_action.emit("credits", {})
 
 func _on_quit_pressed():
+	play_confirm_sfx()
 	menu_action.emit("quit", {})
 
 func update_for_save_state(has_save: bool, player_data: Dictionary = {}):
