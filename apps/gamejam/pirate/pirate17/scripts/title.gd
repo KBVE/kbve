@@ -89,7 +89,7 @@ func smooth_transition_to_scene(scene_path: String):
 	get_tree().set_meta("transition_target", scene_path)
 	
 	# Use the dedicated transition scene
-	get_tree().change_scene_to_file("res://scenes/transition.tscn")
+	get_tree().change_scene_to_file("res://scenes/ui/loading/transition.tscn")
 
 func open_settings_dialogue():
 	"""Open the settings menu using SettingsManager"""

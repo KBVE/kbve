@@ -221,10 +221,11 @@ const engine = new Engine(GODOT_CONFIG);
 
 
 <!-- Supabase Integration -->
-    <script type="module">
-        import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+    <script src="supabase/supabase.min.js"></script>
 
-        const supabase = createClient(
+    <script>
+
+        const _supabase = window.supabase.createClient(
             'https://qmpdruitzlownnnnjmpk.supabase.co',
             'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY',
             {
@@ -236,8 +237,11 @@ const engine = new Engine(GODOT_CONFIG);
             }
         );
 
-        window.supabase = supabase;
-        document.dispatchEvent(new CustomEvent('supabase:ready', { detail: { supabase } }));
+        window.sb = _supabase;
+
+        document.dispatchEvent(
+            new CustomEvent('supabase:ready', { detail: { supabase: _supabase } })
+        );
 
     </script>
 
