@@ -2,16 +2,16 @@
 
 importer="texture"
 type="CompressedTexture2D"
-uid="uid://cpsu8cnc0dfhj"
-path="res://.godot/imported/Dragon.png-b6c6fb63c3c90edcf9a0efa3d8d8ca51.ctex"
+uid="uid://bt8ffophhyhqr"
+path="res://.godot/imported/DragonAttack.png-a92238b7a18d6a522419babe497a3e4c.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/dragon/Dragon.png"
-dest_files=["res://.godot/imported/Dragon.png-b6c6fb63c3c90edcf9a0efa3d8d8ca51.ctex"]
+source_file="res://scenes/entities/dragons/DragonAttack.png"
+dest_files=["res://.godot/imported/DragonAttack.png-a92238b7a18d6a522419babe497a3e4c.ctex"]
 
 [params]
 
