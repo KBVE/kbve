@@ -27,6 +27,16 @@ var chase_threshold: int = 10
 var reset_distance: int = 15
 var follow_distance: int = 3
 var aggression_check_interval: float = 1.0
+var attack_range: int = 8
+var spawn_position: Vector2i = Vector2i(0, 0)
+var is_attacking: bool = false
+var attack_timer: Timer = null
+
+# Visual components
+var visual_container: Node2D = null
+var npc_sprite: Sprite2D = null
+var health_bar: Control = null
+var is_active: bool = true
 
 # UI references that may exist
 var scene_health_bar: Control = null
@@ -42,6 +52,7 @@ enum NPCState {
 	PATROL,
 	AGGRESSIVE,
 	RETREATING,
+	RETURNING,
 	DOCKED
 }
 
@@ -50,6 +61,7 @@ var current_state: NPCState = NPCState.IDLE
 func _ready():
 	current_health = max_health
 	current_mana = max_mana
+	spawn_position = grid_position
 	
 	# Set up movement timer if it doesn't exist
 	if not movement_timer:
@@ -58,6 +70,18 @@ func _ready():
 		movement_timer.timeout.connect(_on_movement_timer_timeout)
 		add_child(movement_timer)
 		movement_timer.start()
+	
+	# Set up attack timer
+	if not attack_timer:
+		attack_timer = Timer.new()
+		attack_timer.wait_time = attack_cooldown
+		attack_timer.one_shot = true
+		attack_timer.timeout.connect(_on_attack_cooldown_finished)
+		add_child(attack_timer)
+	
+	# Create default state badge if needed
+	if not state_badge:
+		create_default_state_badge()
 
 func take_damage(damage: int):
 	current_health = max(0, current_health - damage)
@@ -141,3 +165,74 @@ func attempt_move_to_help_target():
 func _on_movement_timer_timeout():
 	# Basic AI behavior - subclasses should override
 	pass
+
+func _on_attack_cooldown_finished():
+	# Called when attack cooldown finishes
+	is_attacking = false
+
+func _on_aggression_check_timeout():
+	# Called for aggression checks - subclasses should override
+	pass
+
+func find_nearest_target() -> Node2D:
+	# Basic target finding - subclasses should override
+	return null
+
+func update_visual_state():
+	# Update visual appearance based on state
+	if npc_sprite and is_instance_valid(npc_sprite):
+		match current_state:
+			NPCState.AGGRESSIVE:
+				npc_sprite.modulate = Color(1.0, 0.7, 0.7, 1.0)
+			NPCState.RETREATING:
+				npc_sprite.modulate = Color(0.7, 0.7, 1.0, 1.0)
+			_:
+				npc_sprite.modulate = Color.WHITE
+
+func create_visual():
+	# Create visual representation - subclasses should override
+	pass
+
+func position_state_badge():
+	# Position the state badge - subclasses can override
+	if state_badge:
+		state_badge.position = Vector2(0, -40)
+
+func update_state(new_state_text: String):
+	# Update the state badge text
+	if state_badge and state_badge.has_method("set_text"):
+		state_badge.text = new_state_text
+	elif state_badge and state_badge.has_method("update_state"):
+		state_badge.update_state(new_state_text)
+
+func _adjust_shadow_z_index(shadow):
+	# Adjust shadow z-index
+	if shadow:
+		shadow.z_index = -1
+
+func activate():
+	# Activate the NPC
+	is_active = true
+	visible = true
+	set_process(true)
+
+func deactivate():
+	# Deactivate the NPC
+	is_active = false
+	visible = false
+	set_process(false)
+
+func update_position_after_scene_ready():
+	# Update position after being added to scene
+	if has_method("update_world_position"):
+		call("update_world_position")
+
+func enable_web_optimizations():
+	# Enable web-specific optimizations
+	pass
+
+func create_default_state_badge():
+	# Create a proper FantasyStateBadge
+	state_badge = FantasyStateBadge.new()
+	state_badge.state_text = "NPC"
+	state_badge.z_index = 25
