@@ -2,15 +2,26 @@
 extends EditorPlugin
 
 var export_plugin
+var dock
 
 func _enter_tree():
 	export_plugin = WebCDNExportPlugin.new()
 	add_export_plugin(export_plugin)
+	
+	# Add dock
+	dock = preload("res://addons/web_cdn_integrator/web_cdn_dock.gd").new()
+	add_control_to_dock(DOCK_SLOT_LEFT_UL, dock)
+	
 	print("Web CDN Integrator plugin loaded")
 
 func _exit_tree():
 	remove_export_plugin(export_plugin)
 	export_plugin = null
+	
+	# Remove dock
+	if dock:
+		remove_control_from_docks(dock)
+		dock = null
 
 class WebCDNExportPlugin extends EditorExportPlugin:
 	const CONFIG_PATH = "res://addons/web_cdn_integrator/cdn_config.json"
