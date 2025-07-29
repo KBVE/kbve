@@ -34,7 +34,7 @@ window/stretch/mode="canvas_items"
 
 [editor_plugins]
 
-enabled=PackedStringArray("res://addons/item_downloader/plugin.cfg")
+enabled=PackedStringArray("res://addons/item_downloader/plugin.cfg", "res://addons/web_cdn_integrator/plugin.cfg")
 
 [rendering]
 
