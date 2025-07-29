@@ -1,8 +1,9 @@
-[gd_scene load_steps=7 format=3 uid="uid://cg7j4t31yq8c"]
+[gd_scene load_steps=8 format=3 uid="uid://cg7j4t31yq8c"]
 
 [ext_resource type="Script" uid="uid://u8wvfejot16j" path="res://scenes/ui/title/title_menu.gd" id="1_script"]
 [ext_resource type="Texture2D" uid="uid://cvke3abe7b7by" path="res://assets/ui/fantasy/Button_52x14.png" id="2_button"]
 [ext_resource type="Texture2D" uid="uid://cqwkrupultmbp" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
+[ext_resource type="PackedScene" uid="uid://b2sf8x4qk1rm4" path="res://scenes/ui/supabase/SupabaseAuth.tscn" id="4_auth"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_2"]
 texture = ExtResource("2_panel")
@@ -82,6 +83,11 @@ custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
 text = "Continue Journey"
 
+[node name="AccountButton" type="Button" parent="MenuContainer/MenuButtons"]
+custom_minimum_size = Vector2(0, 45)
+layout_mode = 2
+text = "Account"
+
 [node name="SettingsButton" type="Button" parent="MenuContainer/MenuButtons"]
 custom_minimum_size = Vector2(0, 45)
 layout_mode = 2
@@ -115,3 +121,30 @@ theme_override_colors/font_color = Color(0.7, 0.7, 0.7, 0.8)
 theme_override_font_sizes/font_size = 12
 text = "Pirate17 v1.0"
 horizontal_alignment = 2
+
+[node name="AuthPopup" type="Control" parent="."]
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 1
+
+[node name="DarkBackground" type="ColorRect" parent="AuthPopup"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+color = Color(0, 0, 0, 0.7)
+
+[node name="SupabaseAuth" parent="AuthPopup" instance=ExtResource("4_auth")]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = -150.0
+offset_right = 200.0
+offset_bottom = 150.0

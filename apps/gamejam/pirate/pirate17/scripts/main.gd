@@ -225,7 +225,7 @@ func create_tile_sprite(x: int, y: int, color_hex: String):
 		return
 	
 	var tile = ColorRect.new()
-	tile.size = Vector2(TILE_SIZE, TILE_SIZE)
+	tile.size = Vector2(TILE_SIZE + 1, TILE_SIZE + 1)  # Slightly larger to eliminate gaps
 	tile.position = tile_position
 	tile.color = Color(color_hex)
 	
