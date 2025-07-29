@@ -192,7 +192,7 @@ func _download_library(lib_name: String, lib_config: Dictionary):
 		pending_downloads -= 1
 		_check_downloads_complete()
 
-func _on_download_completed(lib_name: String, filename: String, result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray):
+func _on_download_completed(result: int, response_code: int, headers: PackedStringArray, body: PackedByteArray, lib_name: String, filename: String):
 	# Find and clean up the corresponding HTTP request
 	for i in range(http_requests.size() - 1, -1, -1):
 		var http = http_requests[i]

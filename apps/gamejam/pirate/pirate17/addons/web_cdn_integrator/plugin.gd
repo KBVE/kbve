@@ -39,20 +39,27 @@ class WebCDNExportPlugin extends EditorExportPlugin:
 		if not "web" in features:
 			return
 		
-		if path == "res://data/template/shell.html":
-			print("Processing shell.html template")
+		print("Export file: ", path)  # Debug: show all files being processed
+		
+		# Try to catch any HTML template files
+		if path.ends_with(".html") or path == "res://data/template/shell.html":
+			print("Processing HTML template: ", path)
 			var file = FileAccess.open(path, FileAccess.READ)
 			if not file:
-				push_warning("Could not read shell.html template")
+				push_warning("Could not read template file: " + path)
 				return
 			
 			var content = file.get_as_text()
 			file.close()
 			
+			print("Template content length: ", content.length())
+			print("Contains $SUPABASE: ", "$SUPABASE" in content)
+			
 			# Process all enabled libraries from config
 			for lib_name in config_data:
 				var lib_config = config_data[lib_name]
 				if lib_config.get("enabled", false):
+					print("Processing library: ", lib_name)
 					content = _process_library_replacement(content, lib_name, lib_config)
 			
 			skip()
@@ -106,4 +113,60 @@ class WebCDNExportPlugin extends EditorExportPlugin:
 		return content
 	
 	func _export_end():
+		print("Web CDN Integrator: Post-processing HTML file...")
+		# Give export time to complete
+		call_deferred("_post_process_html")
+	
+	func _post_process_html():
+		# Try common HTML file locations
+		var html_paths = [
+			"test/pirate17.html",
+			"build/pirate17.html", 
+			"export/pirate17.html",
+			"pirate17.html"
+		]
+		
+		for html_path in html_paths:
+			if FileAccess.file_exists(html_path):
+				print("Found HTML file at: ", html_path)
+				_process_html_file(html_path)
+				return
+		
+		print("Web CDN Integrator: No HTML file found to process")
+	
+	func _process_html_file(html_path: String):
+		var file = FileAccess.open(html_path, FileAccess.READ)
+		if not file:
+			print("Could not read HTML file: ", html_path)
+			return
+		
+		var content = file.get_as_text()
+		file.close()
+		
+		print("HTML file size: ", content.length())
+		print("Contains $SUPABASE: ", "$SUPABASE" in content)
+		
+		var modified = false
+		
+		# Process all enabled libraries from config
+		for lib_name in config_data:
+			var lib_config = config_data[lib_name]
+			if lib_config.get("enabled", false):
+				var old_content = content
+				content = _process_library_replacement(content, lib_name, lib_config)
+				if content != old_content:
+					modified = true
+		
+		if modified:
+			# Write back the modified content
+			file = FileAccess.open(html_path, FileAccess.WRITE)
+			if file:
+				file.store_string(content)
+				file.close()
+				print("Successfully updated HTML file with inlined JS")
+			else:
+				print("Could not write to HTML file")
+		else:
+			print("No modifications made to HTML file")
+		
 		print("Web CDN Integrator: Export completed")
