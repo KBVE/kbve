@@ -121,6 +121,7 @@ class WebCDNExportPlugin extends EditorExportPlugin:
 		# Try common HTML file locations
 		var html_paths = [
 			"test/pirate17.html",
+			"build/web/index.html",
 			"build/pirate17.html", 
 			"export/pirate17.html",
 			"pirate17.html"
