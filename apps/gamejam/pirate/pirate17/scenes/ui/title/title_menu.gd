@@ -37,6 +37,9 @@ func _ready():
 	# Close popup when clicking outside
 	if auth_popup:
 		auth_popup.gui_input.connect(_on_auth_popup_input)
+	
+	# Check for existing session on title load
+	_check_for_existing_session()
 
 
 
@@ -118,6 +121,54 @@ func _update_account_button():
 func _on_auth_close_requested():
 	if auth_popup:
 		auth_popup.visible = false
+
+func _check_for_existing_session():
+	# Wait a moment for the page to fully load, then check for existing session
+	await get_tree().create_timer(1.0).timeout
+	
+	var js_code = """
+	if (typeof window.sb !== 'undefined' && window.sb && window.sb.auth) {
+		async function checkTitleSession() {
+			try {
+				const { data: { session } } = await window.sb.auth.getSession();
+				
+				if (session) {
+					const { data: { user } } = await window.sb.auth.getUser();
+					console.log('Title menu: Existing session found for user:', user);
+					window.titleSessionUser = user;
+					window.titleHasSession = true;
+				} else {
+					console.log('Title menu: No existing session found');
+					window.titleSessionUser = null;
+					window.titleHasSession = false;
+				}
+			} catch (error) {
+				console.error('Title menu: Error checking session:', error);
+				window.titleSessionUser = null;
+				window.titleHasSession = false;
+			}
+		}
+		checkTitleSession();
+	} else {
+		console.log('Title menu: Supabase not available');
+		window.titleSessionUser = null;
+		window.titleHasSession = false;
+	}
+	"""
+	JavaScriptBridge.eval(js_code)
+	
+	# Wait a moment for the async check to complete
+	await get_tree().create_timer(0.5).timeout
+	
+	# Check if we found an existing session
+	var has_session = JavaScriptBridge.eval("window.titleHasSession", true)
+	var user_data = JavaScriptBridge.eval("window.titleSessionUser", true)
+	
+	if has_session and user_data:
+		print("Title menu: Processing existing session for user")
+		current_user = user_data
+		_update_account_button()
+		# Don't show auth popup, just update the button
 
 func _on_auth_popup_input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
