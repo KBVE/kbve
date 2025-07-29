@@ -2,11 +2,13 @@ extends Control
 
 signal auth_state_changed(user)
 signal auth_error(error_message)
+signal close_requested
 
 @onready var discord_button: Button = $VBoxContainer/DiscordButton
 @onready var guest_button: Button = $VBoxContainer/GuestButton
 @onready var status_label: Label = $VBoxContainer/StatusLabel
 @onready var user_info: Label = $VBoxContainer/UserInfo
+@onready var close_button: Button = $AuthPanel/CloseButton
 
 var current_user = null
 var is_in_iframe = false
@@ -14,6 +16,7 @@ var is_in_iframe = false
 func _ready():
 	discord_button.pressed.connect(_on_discord_login)
 	guest_button.pressed.connect(_on_guest_login)
+	close_button.pressed.connect(_on_close_pressed)
 	
 	# Check if Supabase is available first
 	_check_supabase_availability()
@@ -114,16 +117,19 @@ func _check_existing_session():
 				console.log('User:', user);
 				window.currentUser = user;
 				window.authEvent = 'signed_in';
+				window.hasExistingSession = true;
 				console.log('Existing session found:', user);
 			} else {
 				console.log('No session, probably not logged in.');
 				window.currentUser = null;
 				window.authEvent = 'signed_out';
+				window.hasExistingSession = false;
 			}
 		} catch (error) {
 			console.error('Error checking session:', error);
 			window.currentUser = null;
 			window.authEvent = 'signed_out';
+			window.hasExistingSession = false;
 		}
 	}
 	
@@ -143,15 +149,26 @@ func _poll_auth_state():
 	var user_data = JavaScriptBridge.eval("window.currentUser", true)
 	
 	if auth_event == "signed_in" and user_data != null and current_user == null:
+		print("Processing auth event: signed_in with user data")
 		current_user = user_data
 		_on_auth_success(user_data)
 		# Clear the event
 		JavaScriptBridge.eval("window.authEvent = null")
 	elif auth_event == "signed_out" and current_user != null:
+		print("Processing auth event: signed_out")
 		current_user = null
 		_on_auth_signout()
 		# Clear the event
 		JavaScriptBridge.eval("window.authEvent = null")
+	
+	# Also check if we have an existing session that wasn't processed
+	if current_user == null and user_data != null:
+		var has_session = JavaScriptBridge.eval("window.hasExistingSession", true)
+		if has_session:
+			print("Processing existing session with user data")
+			current_user = user_data
+			_on_auth_success(user_data)
+			JavaScriptBridge.eval("window.hasExistingSession = false")
 
 func _on_discord_login():
 	status_label.text = "Connecting to Discord..."
@@ -206,8 +223,10 @@ func _on_guest_login():
 	guest_button.disabled = true
 	
 	# Create a guest session
+	var timestamp = Time.get_unix_time_from_system()
+	var random_id = randi() % 100000
 	current_user = {
-		"id": "guest_" + str(Time.get_unix_time_from_system()),
+		"id": "guest_" + str(timestamp) + "_" + str(random_id),
 		"email": "guest@pirate-game.local",
 		"user_metadata": {
 			"full_name": "Guest Player",
@@ -228,10 +247,18 @@ func _on_auth_success(user_data):
 		display_name = user_data.email
 	
 	user_info.text = "Welcome, " + display_name + "!"
-	status_label.text = "Authenticated successfully"
 	
-	discord_button.hide()
-	guest_button.hide()
+	# Only hide buttons for non-guest users
+	if user_data.get("is_guest", false):
+		status_label.text = "Guest mode - You can still sign in with Discord"
+		guest_button.hide()
+		discord_button.show()
+		discord_button.disabled = false
+		discord_button.text = "Upgrade to Discord Account"
+	else:
+		status_label.text = "Authenticated successfully"
+		discord_button.hide()
+		guest_button.hide()
 	
 	auth_state_changed.emit(user_data)
 	print("Authentication successful: ", display_name)
@@ -268,3 +295,6 @@ func get_current_user():
 
 func is_authenticated() -> bool:
 	return current_user != null
+
+func _on_close_pressed():
+	close_requested.emit()

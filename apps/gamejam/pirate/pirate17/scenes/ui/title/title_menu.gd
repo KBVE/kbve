@@ -32,6 +32,7 @@ func _ready():
 	if auth_scene:
 		auth_scene.auth_state_changed.connect(_on_auth_state_changed)
 		auth_scene.auth_error.connect(_on_auth_error)
+		auth_scene.close_requested.connect(_on_auth_close_requested)
 	
 	# Close popup when clicking outside
 	if auth_popup:
@@ -113,6 +114,10 @@ func _update_account_button():
 	else:
 		account_button.text = "Account"
 		account_button.modulate = Color.WHITE
+
+func _on_auth_close_requested():
+	if auth_popup:
+		auth_popup.visible = false
 
 func _on_auth_popup_input(event):
 	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
