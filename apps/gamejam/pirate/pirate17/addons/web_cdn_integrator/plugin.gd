@@ -8,11 +8,12 @@ func _enter_tree():
 	export_plugin = WebCDNExportPlugin.new()
 	add_export_plugin(export_plugin)
 	
-	# Add dock
-	dock = preload("res://addons/web_cdn_integrator/web_cdn_dock.gd").new()
-	add_control_to_dock(DOCK_SLOT_LEFT_UL, dock)
+	# Add dock only if not in headless mode
+	if not OS.has_feature("headless"):
+		dock = preload("res://addons/web_cdn_integrator/web_cdn_dock.gd").new()
+		add_control_to_dock(DOCK_SLOT_LEFT_UL, dock)
 	
-	print("Web CDN Integrator plugin loaded")
+	print("Web CDN Integrator plugin loaded (headless: ", OS.has_feature("headless"), ")")
 
 func _exit_tree():
 	remove_export_plugin(export_plugin)
@@ -30,40 +31,77 @@ class WebCDNExportPlugin extends EditorExportPlugin:
 	func _get_name() -> String:
 		return "WebCDNIntegrator"
 	
+	var processed_template_content = ""
+	
 	func _export_begin(features: PackedStringArray, is_debug: bool, path: String, flags: int):
 		if "web" in features:
 			print("Web CDN Integrator: Starting web export with JS inlining")
 			_load_config()
+			
+			# Load and process the template content in memory
+			var template_path = "res://data/template/shell.html"
+			if FileAccess.file_exists(template_path):
+				print("CDN Integrator: Loading template for processing")
+				var file = FileAccess.open(template_path, FileAccess.READ)
+				if file:
+					processed_template_content = file.get_as_text()
+					file.close()
+					
+					# Process the content in memory
+					for lib_name in config_data:
+						var lib_config = config_data[lib_name]
+						if lib_config.get("enabled", false):
+							processed_template_content = _process_library_replacement(processed_template_content, lib_name, lib_config)
+					
+					print("CDN Integrator: Template processed in memory")
 	
 	func _export_file(path: String, type: String, features: PackedStringArray):
 		if not "web" in features:
 			return
 		
-		print("Export file: ", path)  # Debug: show all files being processed
+		# In headless mode, we need to be more aggressive about finding the template
+		var is_template = false
 		
-		# Try to catch any HTML template files
-		if path.ends_with(".html") or path == "res://data/template/shell.html":
-			print("Processing HTML template: ", path)
-			var file = FileAccess.open(path, FileAccess.READ)
-			if not file:
-				push_warning("Could not read template file: " + path)
-				return
+		# Check various conditions for template files
+		if path == "res://data/template/shell.html":
+			is_template = true
+		elif path.ends_with("shell.html"):
+			is_template = true
+		elif path.ends_with(".html") and path.contains("template"):
+			is_template = true
+		
+		if is_template:
+			print("CDN Integrator: Intercepting template: ", path)
 			
-			var content = file.get_as_text()
-			file.close()
-			
-			print("Template content length: ", content.length())
-			print("Contains $SUPABASE: ", "$SUPABASE" in content)
-			
-			# Process all enabled libraries from config
-			for lib_name in config_data:
-				var lib_config = config_data[lib_name]
-				if lib_config.get("enabled", false):
-					print("Processing library: ", lib_name)
-					content = _process_library_replacement(content, lib_name, lib_config)
-			
-			skip()
-			add_file(path, content.to_utf8_buffer(), false)
+			# Use our pre-processed content if available
+			if processed_template_content != "":
+				print("CDN Integrator: Using pre-processed template content")
+				skip()
+				add_file(path, processed_template_content.to_utf8_buffer(), false)
+				print("CDN Integrator: Pre-processed template added to export")
+			else:
+				# Fallback to processing on the fly
+				var file = FileAccess.open(path, FileAccess.READ)
+				if not file:
+					push_warning("CDN Integrator: Could not read template file: " + path)
+					return
+				
+				var content = file.get_as_text()
+				file.close()
+				
+				if "$SUPABASE" in content:
+					print("CDN Integrator: Found $SUPABASE placeholder, processing...")
+					
+					# Process all enabled libraries from config
+					for lib_name in config_data:
+						var lib_config = config_data[lib_name]
+						if lib_config.get("enabled", false):
+							print("CDN Integrator: Processing library: ", lib_name)
+							content = _process_library_replacement(content, lib_name, lib_config)
+					
+					skip()
+					add_file(path, content.to_utf8_buffer(), false)
+					print("CDN Integrator: Template processed and added to export")
 	
 	func _load_config():
 		var file = FileAccess.open(CONFIG_PATH, FileAccess.READ)
