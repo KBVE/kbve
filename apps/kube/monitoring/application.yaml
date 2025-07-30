@@ -7,7 +7,7 @@ spec:
   project: default
   sources:
     - repoURL: https://prometheus-community.github.io/helm-charts
-      targetRevision: 65.1.1
+      targetRevision: 75.15.1
       chart: kube-prometheus-stack
       helm:
         releaseName: monitoring
@@ -19,8 +19,6 @@ spec:
     - repoURL: https://github.com/kbve/kbve
       targetRevision: main
       path: apps/kube/monitoring/manifests
-      directory:
-        include: "grafana-admin-sealedsecret.yaml"
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
