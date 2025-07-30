@@ -4,4 +4,4 @@ resources:
   - ingress/application.yaml
   - cert-manager/application.yaml
   - sealed-secrets/application.yaml
-  # - monitoring/application.yaml
+  - monitoring/application.yaml
