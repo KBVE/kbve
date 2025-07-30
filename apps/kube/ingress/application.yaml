@@ -18,3 +18,10 @@ spec:
       prune: true
     syncOptions:
       - CreateNamespace=true
+  ignoreDifferences:
+    - group: batch
+      kind: Job
+      name: ingress-nginx-admission-create
+    - group: batch
+      kind: Job
+      name: ingress-nginx-admission-patch
