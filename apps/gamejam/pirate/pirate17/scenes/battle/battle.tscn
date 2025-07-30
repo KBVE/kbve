@@ -1,5 +1,6 @@
-[gd_scene load_steps=12 format=3 uid="uid://cckt3e1jve8p8"]
+[gd_scene load_steps=13 format=3 uid="uid://cckt3e1jve8p8"]
 
+[ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_battle"]
 [ext_resource type="Script" uid="uid://bdygx4ky4uus4" path="res://scripts/ui/g_BattleMenuPanel.gd" id="2_66ngm"]
 [ext_resource type="Texture2D" uid="uid://duju8agd03780" path="res://assets/ui/fantasy/BottomPatternBG_128x112.png" id="7_mpb26"]
 [ext_resource type="Script" uid="uid://bgx8rslcah6d6" path="res://scripts/ui/fantasy_health_bar.gd" id="7_v7i3o"]
@@ -25,6 +26,7 @@ texture_margin_right = 5.0
 texture_margin_bottom = 5.0
 
 [node name="Battle" type="Node2D"]
+script = ExtResource("1_battle")
 
 [node name="CanvasLayer" type="CanvasLayer" parent="."]
 scale = Vector2(1.5, 1.5)

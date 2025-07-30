@@ -6,3 +6,4 @@ resources:
   - sealed-secrets/application.yaml
   - monitoring/application.yaml
   - redis/application.yaml
+  - storage/application.yaml
