@@ -3,10 +3,11 @@ extends Control
 
 signal loading_complete
 
-@onready var progress_bar: ProgressBar
-@onready var progress_label: Label
-@onready var status_label: Label
-@onready var background_sprite: Sprite2D
+@onready var progress_bar: ProgressBar = $LoadingContainer/ProgressBar
+@onready var progress_label: Label = $LoadingContainer/ProgressLabel
+@onready var status_label: Label = $LoadingContainer/StatusLabel
+@onready var background_sprite: Sprite2D = $BackgroundSprite
+@onready var tip_label: Label = $TipsContainer/TipLabel
 
 var current_progress: float = 0.0
 var target_progress: float = 0.0
@@ -15,136 +16,11 @@ var current_step_index: int = 0
 var is_loading: bool = false
 
 func _ready():
-	setup_loading_screen()
 	setup_loading_steps()
+	setup_random_tip()
 	start_background_animations()
 
-func setup_loading_screen():
-	set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
-	
-	setup_background()
-	setup_ui_elements()
-
-func setup_background():
-	var sky_texture = load("res://assets/background/sky.png")
-	if sky_texture:
-		background_sprite = Sprite2D.new()
-		background_sprite.texture = sky_texture
-		background_sprite.z_index = -10
-		
-		var screen_size = get_viewport().get_visible_rect().size
-		var texture_size = sky_texture.get_size()
-		
-		var scale_x = screen_size.x / texture_size.x
-		var scale_y = screen_size.y / texture_size.y
-		
-		background_sprite.position = screen_size / 2
-		background_sprite.scale = Vector2(scale_x, scale_y)
-		background_sprite.modulate = Color(0.7, 0.7, 0.7, 1.0)
-		
-		add_child(background_sprite)
-
-func setup_ui_elements():
-	var screen_size = get_viewport().get_visible_rect().size
-	
-	# Add logo above the loading container
-	setup_logo(screen_size)
-	
-	var loading_container = VBoxContainer.new()
-	loading_container.anchors_preset = Control.PRESET_CENTER
-	loading_container.position = Vector2(screen_size.x / 2 - 200, screen_size.y / 2 + 20)
-	loading_container.size = Vector2(400, 100)
-	loading_container.add_theme_constant_override("separation", 20)
-	add_child(loading_container)
-	
-	var title_label = Label.new()
-	title_label.text = "Setting Sail..."
-	title_label.add_theme_font_size_override("font_size", 32)
-	title_label.add_theme_color_override("font_color", Color.WHITE)
-	title_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	title_label.add_theme_constant_override("shadow_offset_x", 2)
-	title_label.add_theme_constant_override("shadow_offset_y", 2)
-	title_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	loading_container.add_child(title_label)
-	
-	progress_bar = ProgressBar.new()
-	progress_bar.size = Vector2(400, 20)
-	progress_bar.min_value = 0
-	progress_bar.max_value = 100
-	progress_bar.value = 0
-	progress_bar.show_percentage = false
-	
-	var progress_style_bg = StyleBoxFlat.new()
-	progress_style_bg.bg_color = Color(0.2, 0.2, 0.2, 0.8)
-	progress_style_bg.corner_radius_top_left = 10
-	progress_style_bg.corner_radius_top_right = 10
-	progress_style_bg.corner_radius_bottom_left = 10
-	progress_style_bg.corner_radius_bottom_right = 10
-	
-	var progress_style_fg = StyleBoxFlat.new()
-	progress_style_fg.bg_color = Color(0.3, 0.7, 1.0, 1.0)
-	progress_style_fg.corner_radius_top_left = 10
-	progress_style_fg.corner_radius_top_right = 10
-	progress_style_fg.corner_radius_bottom_left = 10
-	progress_style_fg.corner_radius_bottom_right = 10
-	
-	progress_bar.add_theme_stylebox_override("background", progress_style_bg)
-	progress_bar.add_theme_stylebox_override("fill", progress_style_fg)
-	loading_container.add_child(progress_bar)
-	
-	progress_label = Label.new()
-	progress_label.text = "0%"
-	progress_label.add_theme_font_size_override("font_size", 16)
-	progress_label.add_theme_color_override("font_color", Color.WHITE)
-	progress_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	progress_label.add_theme_constant_override("shadow_offset_x", 1)
-	progress_label.add_theme_constant_override("shadow_offset_y", 1)
-	progress_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	loading_container.add_child(progress_label)
-	
-	status_label = Label.new()
-	status_label.text = "Preparing to load..."
-	status_label.add_theme_font_size_override("font_size", 14)
-	status_label.add_theme_color_override("font_color", Color.LIGHT_GRAY)
-	status_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	status_label.add_theme_constant_override("shadow_offset_x", 1)
-	status_label.add_theme_constant_override("shadow_offset_y", 1)
-	status_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	loading_container.add_child(status_label)
-	
-	# Add loading tips below main container
-	setup_loading_tips()
-
-func setup_logo(screen_size: Vector2):
-	"""Add the floating logo scene above the loading text"""
-	var floating_logo_scene = preload("res://scenes/ui/logo/floating_logo.tscn")
-	if not floating_logo_scene:
-		return
-	
-	var logo_instance = floating_logo_scene.instantiate()
-	logo_instance.position = Vector2(screen_size.x / 2, screen_size.y / 2 - 100)
-	add_child(logo_instance)
-
-func setup_loading_tips():
-	var screen_size = get_viewport().get_visible_rect().size
-	
-	var tips_container = VBoxContainer.new()
-	tips_container.anchors_preset = Control.PRESET_CENTER
-	tips_container.position = Vector2(screen_size.x / 2 - 300, screen_size.y / 2 + 120)
-	tips_container.size = Vector2(600, 100)
-	tips_container.add_theme_constant_override("separation", 8)
-	add_child(tips_container)
-	
-	var tip_title = Label.new()
-	tip_title.text = "⚓ Captain's Tips ⚓"
-	tip_title.add_theme_font_size_override("font_size", 18)
-	tip_title.add_theme_color_override("font_color", Color.GOLD)
-	tip_title.add_theme_color_override("font_shadow_color", Color.BLACK)
-	tip_title.add_theme_constant_override("shadow_offset_x", 1)
-	tip_title.add_theme_constant_override("shadow_offset_y", 1)
-	tip_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tips_container.add_child(tip_title)
-	
+func setup_random_tip():
 	var loading_tips = [
 		"🔥 Use spears to attack enemies and defend your ship!",
 		"⚔️ Navy ships work together - they'll call for reinforcements!",
@@ -159,18 +35,7 @@ func setup_loading_tips():
 	]
 	
 	var random_tip = loading_tips[randi() % loading_tips.size()]
-	
-	var tip_label = Label.new()
 	tip_label.text = random_tip
-	tip_label.add_theme_font_size_override("font_size", 14)
-	tip_label.add_theme_color_override("font_color", Color.LIGHT_BLUE)
-	tip_label.add_theme_color_override("font_shadow_color", Color.BLACK)
-	tip_label.add_theme_constant_override("shadow_offset_x", 1)
-	tip_label.add_theme_constant_override("shadow_offset_y", 1)
-	tip_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	tip_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	tip_label.custom_minimum_size = Vector2(600, 0)
-	tips_container.add_child(tip_label)
 
 func setup_loading_steps():
 	loading_steps = [

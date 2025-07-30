@@ -1,10 +1,142 @@
-[gd_scene load_steps=2 format=3 uid="uid://bxbj8n0dj5o4i"]
+[gd_scene load_steps=7 format=3 uid="uid://bxbj8n0dj5o4i"]
 
-[ext_resource type="Script" path="res://scenes/ui/loading/loading_screen.gd" id="1_loading_script"]
+[ext_resource type="Script" uid="uid://d4fcfg2y1edkx" path="res://scenes/ui/loading/loading_screen.gd" id="1_loading_script"]
+[ext_resource type="Texture2D" uid="uid://d1y1k6s548fb3" path="res://assets/background/sky.png" id="2_sky"]
+[ext_resource type="PackedScene" uid="uid://b8k5t21yq7bx" path="res://scenes/ui/logo/floating_logo.tscn" id="3_floating_logo"]
+[ext_resource type="Texture2D" uid="uid://sqbtm6bvlkrf" path="res://scenes/ui/icons/anchor/anchor.svg" id="4_anchor"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_bg"]
+bg_color = Color(0.2, 0.2, 0.2, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_progress_fg"]
+bg_color = Color(0.3, 0.7, 1, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [node name="LoadingScreen" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_loading_script")
+
+[node name="BackgroundSprite" type="Sprite2D" parent="."]
+modulate = Color(0.7, 0.7, 0.7, 1)
+z_index = -10
+position = Vector2(640, 360)
+scale = Vector2(2.35, 2.35)
+texture = ExtResource("2_sky")
+
+[node name="FloatingLogo" parent="." instance=ExtResource("3_floating_logo")]
+layout_mode = 1
+offset_left = -78.0
+offset_top = -23.0
+offset_right = 72.0
+offset_bottom = 27.0
+
+[node name="LoadingContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -200.0
+offset_top = 20.0
+offset_right = 200.0
+offset_bottom = 120.0
+theme_override_constants/separation = 20
+
+[node name="TitleLabel" type="Label" parent="LoadingContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_font_sizes/font_size = 32
+text = "Setting Sail..."
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="LoadingContainer"]
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_progress_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_progress_fg")
+show_percentage = false
+
+[node name="ProgressLabel" type="Label" parent="LoadingContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 16
+text = "0%"
+horizontal_alignment = 1
+
+[node name="StatusLabel" type="Label" parent="LoadingContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.75, 0.75, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+text = "Preparing to load..."
+horizontal_alignment = 1
+
+[node name="TipsContainer" type="VBoxContainer" parent="."]
+layout_mode = 0
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -300.0
+offset_top = 120.0
+offset_right = 300.0
+offset_bottom = 220.0
+theme_override_constants/separation = 8
+
+[node name="TitleContainer" type="HBoxContainer" parent="TipsContainer"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="LeftAnchor" type="TextureRect" parent="TipsContainer/TitleContainer"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("4_anchor")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TipTitle" type="Label" parent="TipsContainer/TitleContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.84, 0, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 18
+text = "Captain's Tips"
+
+[node name="RightAnchor" type="TextureRect" parent="TipsContainer/TitleContainer"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+texture = ExtResource("4_anchor")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="TipLabel" type="Label" parent="TipsContainer"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.68, 0.85, 1, 1)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 1)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_font_sizes/font_size = 14
+text = "🔥 Use spears to attack enemies and defend your ship!"
+horizontal_alignment = 1
+autowrap_mode = 3

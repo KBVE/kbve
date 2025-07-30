@@ -719,14 +719,27 @@ func create_structure_visual(structure):
 			tile_bg.color.a = 0.8
 			structure_visual.add_child(tile_bg)
 	
-	var icon_label = Label.new()
-	icon_label.text = structure.visual_data.get("symbol", "🏗")
-	icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-	icon_label.add_theme_font_size_override("font_size", 20)
-	icon_label.position = Vector2(-16, -16)
-	icon_label.size = Vector2(32, 32)
-	structure_visual.add_child(icon_label)
+	# Check if structure has a custom icon
+	var icon_path = StructurePool.get_structure_icon_path(structure.type)
+	if icon_path != "":
+		# Use TextureRect for custom icons
+		var icon_texture = TextureRect.new()
+		icon_texture.texture = load(icon_path)
+		icon_texture.expand_mode = TextureRect.EXPAND_FIT_WIDTH_PROPORTIONAL
+		icon_texture.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		icon_texture.position = Vector2(-16, -16)
+		icon_texture.size = Vector2(32, 32)
+		structure_visual.add_child(icon_texture)
+	else:
+		# Use Label for emoji symbols
+		var icon_label = Label.new()
+		icon_label.text = structure.visual_data.get("symbol", "🏗")
+		icon_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		icon_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		icon_label.add_theme_font_size_override("font_size", 20)
+		icon_label.position = Vector2(-16, -16)
+		icon_label.size = Vector2(32, 32)
+		structure_visual.add_child(icon_label)
 	
 	var structure_badge = FantasyStructureBadge.new()
 	structure_badge.structure_name = structure.name

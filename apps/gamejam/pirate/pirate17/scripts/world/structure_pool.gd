@@ -478,8 +478,13 @@ func get_structure_symbol(structure_type: StructureType) -> String:
 		StructureType.RUINS: return "🏛"
 		StructureType.TEMPLE: return "⛪"
 		StructureType.FORTRESS: return "🏯"
-		StructureType.PORT: return "⚓"
+		StructureType.PORT: return "PORT"  # Use text identifier instead of emoji
 		_: return "🏗"
+
+static func get_structure_icon_path(structure_type: StructureType) -> String:
+	match structure_type:
+		StructureType.PORT: return "res://scenes/ui/icons/anchor/anchor.svg"
+		_: return ""  # Return empty string for structures without custom icons
 
 func get_structure_render_priority(structure_type: StructureType) -> int:
 	match structure_type:
