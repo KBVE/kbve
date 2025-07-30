@@ -19,7 +19,7 @@ grafana:
               secretName: grafana-tls
 
     admin:
-        existingSecret: grafana-admin # ← match the name of the unsealed Secret
+        existingSecret: grafana-admin
         userKey: admin-user
         passwordKey: admin-password
 
