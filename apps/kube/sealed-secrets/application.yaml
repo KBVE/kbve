@@ -10,9 +10,8 @@ spec:
     chart: sealed-secrets
     targetRevision: 2.17.3
     helm:
-      values: |
-        fullnameOverride: sealed-secrets-controller
-        secretName: sealed-secrets-key
+      valueFiles:
+        - values/production.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
