@@ -9,6 +9,8 @@ spec:
     repoURL: https://github.com/kbve/kbve
     targetRevision: main
     path: apps/kube/monitoring/manifests
+    kustomize:
+      buildOptions: --enable-helm
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
