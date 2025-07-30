@@ -3,3 +3,4 @@ kind: Kustomization
 
 resources:
   - grafana-admin-sealedsecret.yaml
+  - grafana-dashboards-configmap.yaml
