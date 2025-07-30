@@ -37,10 +37,10 @@ texture = ExtResource("2_sky")
 
 [node name="FloatingLogo" parent="." instance=ExtResource("3_floating_logo")]
 layout_mode = 1
-offset_left = 640.0
-offset_top = 260.0
-offset_right = 790.0
-offset_bottom = 310.0
+offset_left = -78.0
+offset_top = -23.0
+offset_right = 72.0
+offset_bottom = 27.0
 
 [node name="LoadingContainer" type="VBoxContainer" parent="."]
 layout_mode = 0
