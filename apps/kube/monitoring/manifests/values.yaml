@@ -1,9 +1,3 @@
-# Disable Prometheus ingress
-prometheus:
-    ingress:
-        enabled: false
-
-# Grafana config
 grafana:
     ingress:
         enabled: true
@@ -22,9 +16,6 @@ grafana:
         existingSecret: grafana-admin
         userKey: admin-user
         passwordKey: admin-password
-
-    # The kube-prometheus-stack already provisions the Prometheus datasource
-    # No need to define it again
 
     dashboardProviders:
         dashboardproviders.yaml:
