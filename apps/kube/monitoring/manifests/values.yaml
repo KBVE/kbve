@@ -32,3 +32,19 @@ grafana:
                   access: proxy
                   url: http://prometheus-operated.monitoring.svc.cluster.local:9090
                   isDefault: true
+
+    dashboardProviders:
+        dashboardproviders.yaml:
+            apiVersion: 1
+            providers:
+                - name: 'default'
+                  orgId: 1
+                  folder: ''
+                  type: file
+                  disableDeletion: false
+                  editable: true
+                  options:
+                      path: /var/lib/grafana/dashboards/default
+
+    dashboardsConfigMaps:
+        default: "grafana-dashboards"
