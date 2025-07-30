@@ -1,9 +1,3 @@
-# Disable Prometheus ingress
-prometheus:
-    ingress:
-        enabled: false
-
-# Grafana config
 grafana:
     ingress:
         enabled: true
@@ -22,16 +16,6 @@ grafana:
         existingSecret: grafana-admin
         userKey: admin-user
         passwordKey: admin-password
-
-    datasources:
-        datasources.yaml:
-            apiVersion: 1
-            datasources:
-                - name: Prometheus
-                  type: prometheus
-                  access: proxy
-                  url: http://prometheus-operated.monitoring.svc.cluster.local:9090
-                  isDefault: true
 
     dashboardProviders:
         dashboardproviders.yaml:
