@@ -28,7 +28,7 @@ data:
       "links": [],
       "panels": [
         {
-          "datasource": "Prometheus",
+          "datasource": "${datasource}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -108,7 +108,7 @@ data:
           "type": "timeseries"
         },
         {
-          "datasource": "Prometheus",
+          "datasource": "${datasource}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -188,7 +188,7 @@ data:
           "type": "timeseries"
         },
         {
-          "datasource": "Prometheus",
+          "datasource": "${datasource}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -245,7 +245,7 @@ data:
           "type": "stat"
         },
         {
-          "datasource": "Prometheus",
+          "datasource": "${datasource}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -298,7 +298,7 @@ data:
           "type": "stat"
         },
         {
-          "datasource": "Prometheus",
+          "datasource": "${datasource}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -384,7 +384,7 @@ data:
           "type": "timeseries"
         },
         {
-          "datasource": "Prometheus",
+          "datasource": "${datasource}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -464,7 +464,7 @@ data:
           "type": "timeseries"
         },
         {
-          "datasource": "Prometheus",
+          "datasource": "${datasource}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -525,7 +525,7 @@ data:
           "type": "stat"
         },
         {
-          "datasource": "Prometheus",
+          "datasource": "${datasource}",
           "fieldConfig": {
             "defaults": {
               "color": {
@@ -591,7 +591,26 @@ data:
       "style": "dark",
       "tags": ["kubernetes", "cluster"],
       "templating": {
-        "list": []
+        "list": [
+          {
+            "current": {
+              "selected": false,
+              "text": "Prometheus",
+              "value": "Prometheus"
+            },
+            "hide": 0,
+            "includeAll": false,
+            "label": null,
+            "multi": false,
+            "name": "datasource",
+            "options": [],
+            "query": "prometheus",
+            "refresh": 1,
+            "regex": "",
+            "skipUrlSync": false,
+            "type": "datasource"
+          }
+        ]
       },
       "time": {
         "from": "now-6h",

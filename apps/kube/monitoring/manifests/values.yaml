@@ -23,15 +23,8 @@ grafana:
         userKey: admin-user
         passwordKey: admin-password
 
-    datasources:
-        datasources.yaml:
-            apiVersion: 1
-            datasources:
-                - name: Prometheus
-                  type: prometheus
-                  access: proxy
-                  url: http://prometheus-operated.monitoring.svc.cluster.local:9090
-                  isDefault: true
+    # The kube-prometheus-stack already provisions the Prometheus datasource
+    # No need to define it again
 
     dashboardProviders:
         dashboardproviders.yaml:
