@@ -1,10 +1,10 @@
-[gd_scene load_steps=10 format=3 uid="uid://b2sf8x4qk1rm4"]
+[gd_scene load_steps=9 format=3 uid="uid://b2sf8x4qk1rm4"]
 
-[ext_resource type="Script" path="res://scenes/ui/supabase/SupabaseAuth.gd" id="1_0m4gx"]
+[ext_resource type="Script" uid="uid://dn868dbunlets" path="res://scenes/ui/supabase/SupabaseAuth.gd" id="1_0m4gx"]
 [ext_resource type="Texture2D" uid="uid://cqwkrupultmbp" path="res://assets/ui/fantasy/RectangleBox_96x96.png" id="2_panel"]
 [ext_resource type="Texture2D" uid="uid://cvke3abe7b7by" path="res://assets/ui/fantasy/Button_52x14.png" id="3_button"]
-[ext_resource type="Texture2D" path="res://scenes/ui/title/icons/discord.png" id="4_discord"]
-[ext_resource type="Texture2D" path="res://assets/ui/fantasy/QuitIcon.png" id="5_quit"]
+[ext_resource type="Texture2D" uid="uid://djdqi5gfwregn" path="res://scenes/ui/title/icons/discord.png" id="4_discord"]
+[ext_resource type="Texture2D" uid="uid://cogtjvldlod8" path="res://assets/ui/fantasy/QuitIcon.png" id="5_quit"]
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_panel"]
 texture = ExtResource("2_panel")
@@ -19,7 +19,6 @@ texture_margin_left = 8.0
 texture_margin_top = 4.0
 texture_margin_right = 8.0
 texture_margin_bottom = 4.0
-
 
 [sub_resource type="Theme" id="Theme_auth"]
 Button/colors/font_color = Color(0.9, 0.85, 0.7, 1)
@@ -37,6 +36,8 @@ layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 script = ExtResource("1_0m4gx")
 
 [node name="AuthPanel" type="Panel" parent="."]
@@ -50,6 +51,8 @@ offset_left = -180.0
 offset_top = -140.0
 offset_right = 180.0
 offset_bottom = 140.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxTexture_panel")
 
 [node name="CloseButton" type="Button" parent="AuthPanel"]
@@ -57,17 +60,18 @@ layout_mode = 1
 anchors_preset = 1
 anchor_left = 1.0
 anchor_right = 1.0
-offset_left = -30.0
+offset_left = -54.0
 offset_top = 5.0
 offset_right = -5.0
-offset_bottom = 30.0
-icon = ExtResource("5_quit")
-flat = true
-theme_override_colors/icon_normal_color = Color(0.8, 0.4, 0.4, 1)
+offset_bottom = 51.0
+grow_horizontal = 0
 theme_override_colors/icon_hover_color = Color(1, 0.2, 0.2, 1)
 theme_override_colors/icon_pressed_color = Color(0.6, 0.2, 0.2, 1)
-expand_icon = true
+theme_override_colors/icon_normal_color = Color(0.8, 0.4, 0.4, 1)
+icon = ExtResource("5_quit")
+flat = true
 icon_alignment = 1
+expand_icon = true
 
 [node name="VBoxContainer" type="VBoxContainer" parent="."]
 layout_mode = 1
@@ -80,6 +84,8 @@ offset_left = -150.0
 offset_top = -110.0
 offset_right = 150.0
 offset_bottom = 110.0
+grow_horizontal = 2
+grow_vertical = 2
 theme = SubResource("Theme_auth")
 theme_override_constants/separation = 12
 
@@ -105,7 +111,6 @@ custom_minimum_size = Vector2(0, 40)
 layout_mode = 2
 text = "Login with Discord"
 icon = ExtResource("4_discord")
-icon_alignment = 0
 
 [node name="GuestButton" type="Button" parent="VBoxContainer"]
 custom_minimum_size = Vector2(0, 40)
