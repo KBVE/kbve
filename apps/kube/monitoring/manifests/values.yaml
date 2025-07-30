@@ -1,0 +1,34 @@
+# Disable Prometheus ingress
+prometheus:
+  ingress:
+    enabled: false
+
+# Grafana config
+grafana:
+  ingress:
+    enabled: true
+    ingressClassName: nginx
+    annotations:
+      cert-manager.io/cluster-issuer: letsencrypt-http
+      nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    hosts:
+      - grafana.kbve.com
+    tls:
+      - hosts:
+          - grafana.kbve.com
+        secretName: grafana-tls
+
+  admin:
+    existingSecret: grafana-sealed-secret
+    userKey: admin-user
+    passwordKey: admin-password
+
+  datasources:
+    datasources.yaml:
+      apiVersion: 1
+      datasources:
+        - name: Prometheus
+          type: prometheus
+          access: proxy
+          url: http://prometheus-operated.monitoring.svc.cluster.local:9090
+          isDefault: true
