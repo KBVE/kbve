@@ -2,3 +2,4 @@ resources:
   - argocd/application.yaml
   - metallb/application.yaml
   - ingress/application.yaml
+  - cert-manager/application.yaml
