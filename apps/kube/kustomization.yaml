@@ -5,3 +5,4 @@ resources:
   - cert-manager/application.yaml
   - sealed-secrets/application.yaml
   - monitoring/application.yaml
+  - redis/application.yaml
