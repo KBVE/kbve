@@ -5,10 +5,22 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    repoURL: https://github.com/kbve/kbve
-    targetRevision: main
-    path: apps/kube/monitoring/manifests
+  sources:
+    - repoURL: https://prometheus-community.github.io/helm-charts
+      targetRevision: 65.1.1
+      chart: kube-prometheus-stack
+      helm:
+        releaseName: monitoring
+        valueFiles:
+          - $values/apps/kube/monitoring/manifests/values.yaml
+    - repoURL: https://github.com/kbve/kbve
+      targetRevision: main
+      ref: values
+    - repoURL: https://github.com/kbve/kbve
+      targetRevision: main
+      path: apps/kube/monitoring/manifests
+      directory:
+        include: "grafana-admin-sealedsecret.yaml"
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
@@ -18,3 +30,4 @@ spec:
       prune: true
     syncOptions:
       - CreateNamespace=true
+      - ServerSideApply=true
