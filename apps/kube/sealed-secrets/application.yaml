@@ -12,6 +12,7 @@ spec:
     helm:
       values: |
         fullnameOverride: sealed-secrets-controller
+        secretName: sealed-secrets-key
   destination:
     server: https://kubernetes.default.svc
     namespace: kube-system
