@@ -1,0 +1,2 @@
+resources:
+  - https://github.com/kubernetes/ingress-nginx/deploy/static/provider/cloud?ref=controller-v1.13.0
