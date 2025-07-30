@@ -1,0 +1,37 @@
+# Redis configuration for cluster-wide usage
+architecture: standalone
+
+auth:
+  enabled: true
+  existingSecret: redis-auth
+  existingSecretPasswordKey: redis-password
+
+master:
+  service:
+    type: ClusterIP
+    ports:
+      redis: 6379
+  persistence:
+    enabled: true
+    size: 8Gi
+    storageClass: "local-path"
+  resources:
+    requests:
+      memory: "256Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: true
+    namespace: redis
+
+# Network policy to allow cluster-wide access
+networkPolicy:
+  enabled: true
+  allowExternal: true
+  ingressNSMatchLabels: {}
+  ingressNSPodMatchLabels: {}
