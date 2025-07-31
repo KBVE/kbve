@@ -7,3 +7,4 @@ resources:
 patchesStrategicMerge:
     - admission-create-job-patch.yaml
     - admission-patch-job-patch.yaml
+    - admission-webhook-patch.yaml
