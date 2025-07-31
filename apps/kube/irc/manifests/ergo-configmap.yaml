@@ -1,99 +1,127 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-    name: ergo-config
-    namespace: irc
+  name: ergo-config
+  namespace: irc
 data:
-    ircd.yaml: |
-        # Ergo IRC Server Configuration
-
-        network:
-          name: "KBVE Network"
-
-        server:
-          name: irc.kbve.com
-          enforce-utf8: true
-          listeners:
-            ":6667": {}
-            ":8080":
-              websocket: true
-
-        # Data storage
-        datastore:
-          path: /ircd/db/ircd.db
-          mysql:
-            enabled: false
-
-        # Accounts and registration
-        accounts:
-          authentication-enabled: true
-          registration:
-            enabled: true
-            allow-before-connect: true
-            throttling:
-              enabled: true
-              duration: 10m
-              max-attempts: 30
-            bcrypt-cost: 4
-            verify-timeout: "120h"
-            enabled-callbacks:
-              - none
-          nick-reservation:
-            enabled: true
-            additional-nick-limit: 2
-            method: strict
-            allow-custom-enforcement: true
-            rename-timeout: 30s
-            rename-prefix: "Guest-"
-          multiclient:
-            enabled: true
-            allowed-by-default: true
-            always-on: "opt-in"
-            auto-away: "opt-in"
-            always-on-expiration: "720h"
-
-        # Channels
-        channels:
-          default-modes: +ntC
-          max-channels-per-client: 100
-          registration:
-            enabled: true
-            max-channels-per-account: 15
-
-        # Operator configuration
-        opers:
-          admin:
-            class: "server-admin"
-            whois-line: "is a server administrator"
-            password: "$2a$04$LiytCxaY0lI.guDj2pBN4eSRcunHZskZn0t6wF1sJCqzx9HNKbONu"
-
-        # Limits
-        limits:
-          nicklen: 32
-          channellen: 64
-          awaylen: 390
-          kicklen: 390
-          topiclen: 390
-          monitor-entries: 100
-          whowas-entries: 100
-          registration-messages: 1024
-
-        # History
-        history:
+  ircd.yaml: |
+    # Ergo IRC Server Configuration
+    
+    network:
+      name: "KBVE Network"
+    
+    server:
+      name: irc.kbve.com
+      enforce-utf8: true
+      max-sendq: "1MB"
+      connection-limits:
+        enabled: true
+        cidr-len-ipv4: 32
+        cidr-len-ipv6: 64
+        connections-per-cidr: 12
+        throttle-duration: "10m"
+        exempted:
+          - "localhost"
+          - "127.0.0.1"
+      listeners:
+        ":6667": {}
+        ":8080":
+          websocket: true
+    
+    # Data storage
+    datastore:
+      path: /ircd/db/ircd.db
+      autoupgrade: true
+      mysql:
+        enabled: false
+    
+    # Accounts and registration
+    accounts:
+      authentication-enabled: true
+      registration:
+        enabled: true
+        allow-before-connect: true
+        throttling:
           enabled: true
-          channel-length: 2048
-          client-length: 256
-          autoresize-window: 3d
-          autoreplay-on-join: 0
-          chathistory-maxmessages: 100
-          znc-maxmessages: 2048
-          restrictions:
-            expire-time: 168h
-            query-cutoff: 720h
-            grace-period: 1h
-
-        # Debug and logging
-        logging:
-          - method: stderr
-            type: "*"
-            level: info
+          duration: 10m
+          max-attempts: 30
+        bcrypt-cost: 4
+        verify-timeout: "120h"
+        enabled-callbacks:
+          - none
+      nick-reservation:
+        enabled: true
+        additional-nick-limit: 2
+        method: strict
+        allow-custom-enforcement: true
+        rename-timeout: 30s
+        rename-prefix: "Guest-"
+        force-nick-equals-account: true
+      multiclient:
+        enabled: true
+        allowed-by-default: true
+        always-on: "opt-in"
+        auto-away: "opt-in"
+        always-on-expiration: "720h"
+    
+    # Channels
+    channels:
+      default-modes: +ntC
+      max-channels-per-client: 100
+      registration:
+        enabled: true
+        max-channels-per-account: 15
+    
+    # Operator configuration
+    opers:
+      admin:
+        class: "server-admin"
+        whois-line: "is a server administrator"
+        password: "$2a$04$LiytCxaY0lI.guDj2pBN4eSRcunHZskZn0t6wF1sJCqzx9HNKbONu"
+    
+    # Operator classes
+    oper-classes:
+      "server-admin":
+        title: Server Admin
+        capabilities:
+          - "rehash"
+          - "die"
+          - "accreg"
+          - "sajoin"
+          - "samode"
+          - "vhosts"
+          - "chanreg"
+          - "history"
+          - "defcon"
+          - "ban"
+    
+    # Limits
+    limits:
+      nicklen: 32
+      channellen: 64
+      awaylen: 390
+      kicklen: 390
+      topiclen: 390
+      monitor-entries: 100
+      whowas-entries: 100
+      registration-messages: 1024
+    
+    # History
+    history:
+      enabled: true
+      channel-length: 2048
+      client-length: 256
+      autoresize-window: 3d
+      autoreplay-on-join: 0
+      chathistory-maxmessages: 100
+      znc-maxmessages: 2048
+      restrictions:
+        expire-time: 168h
+        query-cutoff: 720h
+        grace-period: 1h
+    
+    # Debug and logging
+    logging:
+      - method: stderr
+        type: "*"
+        level: info
