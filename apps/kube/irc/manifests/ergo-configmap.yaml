@@ -27,6 +27,8 @@ data:
         ":6667": {}
         ":8080":
           websocket: true
+        ":6060":
+          http: true
     
     # Data storage
     datastore:
