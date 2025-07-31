@@ -12,6 +12,7 @@ data:
 
         server:
           name: irc.kbve.com
+          enforce-utf8: true
           listeners:
             ":6667": {}
             ":8080":
