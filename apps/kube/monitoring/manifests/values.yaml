@@ -38,10 +38,30 @@ prometheus-node-exporter:
         - key: node-role.kubernetes.io/control-plane
           operator: Exists
           effect: NoSchedule
+        - operator: Exists
+          effect: NoSchedule
+        - operator: Exists 
+          effect: NoExecute
     podAnnotations:
         pod-security.kubernetes.io/enforce: privileged
         pod-security.kubernetes.io/audit: privileged
         pod-security.kubernetes.io/warn: privileged
+    
+    hostNetwork: true
+    hostPID: true
+    
+    securityContext:
+        fsGroup: 65534
+        runAsGroup: 65534
+        runAsNonRoot: true
+        runAsUser: 65534
+    
+    containerSecurityContext:
+        allowPrivilegeEscalation: false
+        capabilities:
+            drop:
+                - ALL
+        readOnlyRootFilesystem: true
 
 prometheusOperator:
     admissionWebhooks:
