@@ -1,0 +1,34 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: ingress-nginx
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/kbve/kbve
+    targetRevision: main
+    path: apps/kube/ingress/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: ingress-nginx
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - Replace=true
+  ignoreDifferences:
+    - group: batch
+      kind: Job
+      name: ingress-nginx-admission-create
+      jsonPointers:
+        - /spec
+        - /status
+    - group: batch
+      kind: Job
+      name: ingress-nginx-admission-patch
+      jsonPointers:
+        - /spec
+        - /status
