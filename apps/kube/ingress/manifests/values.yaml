@@ -1,40 +1,48 @@
 controller:
-  ingressClass: nginx
-  ingressClassResource:
-    name: nginx
-    enabled: true
-    default: true
+    ingressClass: nginx
+    ingressClassResource:
+        name: nginx
+        enabled: true
+        default: true
 
-  replicaCount: 2
+    replicaCount: 2
 
-  service:
-    enabled: true
-    type: LoadBalancer
+    service:
+        enabled: true
+        type: LoadBalancer
+        enablePorts:
+            tcp:
+                6667: 6667
+                6697: 6697
 
-  metrics:
-    enabled: true
-    serviceMonitor:
-      enabled: false
-      namespace: monitoring
-      additionalLabels:
-        release: prometheus
+    tcp:
+        6667: 'irc/ergo-irc-service:6667'
+        6697: 'irc/ergo-irc-service:6667'
 
-  admissionWebhooks:
-    enabled: true
-    patch:
-      enabled: true
+    metrics:
+        enabled: true
+        serviceMonitor:
+            enabled: false
+            namespace: monitoring
+            additionalLabels:
+                release: prometheus
 
-  resources:
-    requests:
-      cpu: 100m
-      memory: 128Mi
-    limits:
-      cpu: 250m
-      memory: 256Mi
+    admissionWebhooks:
+        enabled: true
+        patch:
+            enabled: true
 
-  nodeSelector: {}
-  affinity: {}
-  tolerations: []
+    resources:
+        requests:
+            cpu: 100m
+            memory: 128Mi
+        limits:
+            cpu: 250m
+            memory: 256Mi
+
+    nodeSelector: {}
+    affinity: {}
+    tolerations: []
 
 defaultBackend:
-  enabled: false
+    enabled: false

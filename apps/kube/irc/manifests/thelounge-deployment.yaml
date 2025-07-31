@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: thelounge
+    namespace: irc
+    labels:
+        app: thelounge
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: thelounge
+    template:
+        metadata:
+            labels:
+                app: thelounge
+        spec:
+            containers:
+                - name: thelounge
+                  image: thelounge/thelounge:latest
+                  ports:
+                      - containerPort: 9000
+                        name: http
+                  volumeMounts:
+                      - name: thelounge-data
+                        mountPath: /var/opt/thelounge
+                  env:
+                      - name: THELOUNGE_HOME
+                        value: '/var/opt/thelounge'
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      httpGet:
+                          path: /
+                          port: 9000
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                  readinessProbe:
+                      httpGet:
+                          path: /
+                          port: 9000
+                      initialDelaySeconds: 5
+                      periodSeconds: 5
+            volumes:
+                - name: thelounge-data
+                  persistentVolumeClaim:
+                      claimName: thelounge-data-pvc
