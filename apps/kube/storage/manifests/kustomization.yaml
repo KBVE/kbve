@@ -2,7 +2,7 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 resources:
-  - ingress.yaml
+  # - ingress.yaml  # Commented out for now
 
 configMapGenerator:
   - name: longhorn-values
