@@ -5,6 +5,8 @@ metadata:
     namespace: irc
     labels:
         app: ergo-irc
+    annotations:
+        fluentd.alpha.kubernetes.io/exclude: 'false'
 spec:
     replicas: 1
     selector:
@@ -14,6 +16,8 @@ spec:
         metadata:
             labels:
                 app: ergo-irc
+            annotations:
+                logging.coreos.com/local-retention-days: '30'
         spec:
             containers:
                 - name: ergo
@@ -23,6 +27,8 @@ spec:
                         name: irc
                       - containerPort: 8080
                         name: websocket
+                      - containerPort: 6060
+                        name: metrics
                   volumeMounts:
                       - name: ergo-config
                         mountPath: /ircd/ircd.yaml
