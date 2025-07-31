@@ -5,13 +5,17 @@ metadata:
   namespace: argocd
 spec:
   project: default
-  source:
-    chart: ingress-nginx
-    repoURL: https://kubernetes.github.io/ingress-nginx
-    targetRevision: 4.13.0
-    helm:
-      valueFiles:
-        - values.yaml
+  sources:
+    - repoURL: https://kubernetes.github.io/ingress-nginx
+      targetRevision: 4.13.0
+      chart: ingress-nginx
+      helm:
+        releaseName: ingress-nginx
+        valueFiles:
+          - $values/apps/kube/ingress/manifests/values.yaml
+    - repoURL: https://github.com/kbve/kbve
+      targetRevision: main
+      ref: values
   destination:
     server: https://kubernetes.default.svc
     namespace: ingress-nginx
