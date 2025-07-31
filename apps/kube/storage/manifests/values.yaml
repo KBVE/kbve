@@ -5,6 +5,10 @@ persistence:
 csi:
   kubeletRootDir: /var/lib/kubelet
 
+# Add this section to disable the pre-upgrade hook
+preUpgradeChecker:
+  jobEnabled: false
+
 defaultSettings:
   defaultDataPath: "/var/lib/longhorn"
   replicaSoftAntiAffinity: false
