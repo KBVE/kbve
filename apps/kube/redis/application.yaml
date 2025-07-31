@@ -16,6 +16,9 @@ spec:
     - repoURL: https://github.com/kbve/kbve
       targetRevision: main
       ref: values
+    - repoURL: https://github.com/kbve/kbve
+      targetRevision: main
+      path: apps/kube/redis/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: redis
