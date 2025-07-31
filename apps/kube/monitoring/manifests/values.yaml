@@ -32,3 +32,17 @@ grafana:
 
     dashboardsConfigMaps:
         default: "grafana-dashboards"
+
+prometheus-node-exporter:
+    tolerations:
+        - key: node-role.kubernetes.io/control-plane
+          operator: Exists
+          effect: NoSchedule
+    podAnnotations:
+        pod-security.kubernetes.io/enforce: privileged
+        pod-security.kubernetes.io/audit: privileged
+        pod-security.kubernetes.io/warn: privileged
+
+prometheusOperator:
+    admissionWebhooks:
+        enabled: false
