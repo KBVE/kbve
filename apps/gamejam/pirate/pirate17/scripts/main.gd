@@ -38,6 +38,12 @@ var airship_ammo_ui: AirshipAmmoUI
 
 var chunk_manager: ChunkManager
 var debug_label: Label
+var battle_scene: Node2D
+var battle_check_timer: Timer
+var battle_cooldown: float = 5.0
+var last_battle_time: float = 0.0
+var battle_check_accumulator: float = 0.0
+var battle_check_interval: float = 1.0  # Check every 1 second for web performance
 
 func _ready():
 	add_to_group("main_scene")
@@ -124,6 +130,7 @@ func finalize_initialization():
 	setup_settings_button()
 	setup_airship_ammo_ui()
 	setup_web_performance_manager()
+	setup_battle_system()
 
 func setup_web_performance_manager():
 	web_performance_manager = preload("res://scripts/performance/web_performance_manager.gd").new()
@@ -134,6 +141,12 @@ func setup_web_performance_manager():
 func _on_performance_changed(performance_level: String):
 	if performance_level == "LOW":
 		show_performance_notification("Performance optimized for smoother gameplay")
+		# Increase battle check interval for low-end devices
+		battle_check_interval = 1.5
+	elif performance_level == "MEDIUM":
+		battle_check_interval = 1.0
+	else:  # HIGH
+		battle_check_interval = 0.75
 
 func show_performance_notification(message: String):
 	var notification = Label.new()
@@ -310,6 +323,10 @@ func _input(event):
 			KEY_ESCAPE:
 				open_settings_dialogue()
 				return
+			KEY_B:
+				# Debug: Force battle with nearest NPC
+				_force_battle_with_nearest_npc()
+				return
 		
 		if new_pos != current_pos:
 			initiate_movement_with_rotation(current_pos, new_pos, true)
@@ -411,6 +428,13 @@ func _process(delta):
 		
 		update_movement_path()
 		track_movement_distance()
+	
+	# Web-optimized battle proximity checking using accumulator pattern
+	if battle_scene and not battle_scene.visible:
+		battle_check_accumulator += delta
+		if battle_check_accumulator >= battle_check_interval:
+			battle_check_accumulator = 0.0
+			_check_npc_proximity_for_battle()
 	
 	check_structure_interactions()
 	update_parallax_effects()
@@ -1267,6 +1291,168 @@ func _on_ammo_ui_auto_fire_toggled(enabled: bool):
 
 func _on_settings_button_pressed():
 	open_settings_dialogue()
+
+func setup_battle_system():
+	# Load and instantiate the battle scene
+	var battle_scene_resource = load("res://scenes/battle/battle.tscn")
+	battle_scene = battle_scene_resource.instantiate()
+	battle_scene.visible = false
+	
+	# Add to a canvas layer above the game
+	var battle_layer = CanvasLayer.new()
+	battle_layer.name = "BattleLayer"
+	battle_layer.layer = 200  # Above everything else
+	add_child(battle_layer)
+	battle_layer.add_child(battle_scene)
+	
+	# Connect battle signals
+	if battle_scene.has_signal("battle_ended"):
+		battle_scene.battle_ended.connect(_on_battle_ended)
+	
+	# For web performance, we'll use frame-based checking instead of timer
+	# This is handled in _process() with accumulator pattern
+	
+	print("Battle system initialized with web-optimized proximity checking")
+
+func _check_npc_proximity_for_battle():
+	# Don't check if battle is already active or in cooldown
+	if battle_scene and battle_scene.visible:
+		return
+	
+	# Check cooldown
+	var current_time = Time.get_ticks_msec() / 1000.0
+	if current_time - last_battle_time < battle_cooldown:
+		return
+	
+	# Get player position
+	if not player_movement:
+		return
+	
+	var player_pos = player_movement.get_current_position()
+	
+	# Web optimization: Early exit if no active NPCs
+	if not chunk_manager or not chunk_manager.active_npcs or chunk_manager.active_npcs.is_empty():
+		return
+	
+	# Check only active NPCs for proximity (much faster for web)
+	var nearby_npc = null
+	
+	for npc in chunk_manager.active_npcs:
+		# Skip invalid NPCs quickly
+		if not npc or not is_instance_valid(npc) or not npc.is_active or not npc.visible:
+			continue
+		
+		# Manhattan distance is faster than Euclidean
+		var distance = abs(player_pos.x - npc.grid_position.x) + abs(player_pos.y - npc.grid_position.y)
+		if distance <= 2:  # Within 1-2 tiles
+			nearby_npc = npc
+			break  # Stop checking once we find one
+	
+	# Start battle if NPC is nearby
+	if nearby_npc:
+		start_battle_with_npc(nearby_npc)
+
+func start_battle_with_npc(npc: Node2D):
+	if not battle_scene:
+		print("Battle scene not initialized!")
+		return
+	
+	print("Starting battle with NPC at position: ", npc.grid_position)
+	
+	# Prepare battle data
+	var player_data = {
+		"health": Global.player.stats.health if Global.player and Global.player.stats else 100,
+		"max_health": Global.player.stats.max_health if Global.player and Global.player.stats else 100,
+		"energy": Global.player.stats.energy if Global.player and Global.player.stats else 100,
+		"max_energy": Global.player.stats.max_energy if Global.player and Global.player.stats else 100,
+		"mana": Global.player.stats.mana if Global.player and Global.player.stats else 50,
+		"max_mana": Global.player.stats.max_mana if Global.player and Global.player.stats else 50
+	}
+	
+	var enemy_data = {
+		"health": npc.current_health if npc.has("current_health") else 80,
+		"max_health": npc.max_health if npc.has("max_health") else 80,
+		"energy": 60,
+		"max_energy": 60,
+		"name": npc.name if npc.has("name") else "Enemy Ship"
+	}
+	
+	# Hide game world elements during battle
+	if map_container:
+		map_container.visible = false
+	if npc_container:
+		npc_container.visible = false
+	if structure_container:
+		structure_container.visible = false
+	if parallax_bg:
+		parallax_bg.visible = false
+	
+	# Start the battle
+	battle_scene.start_battle(player_data, enemy_data)
+	
+	# Store the NPC reference for post-battle handling
+	battle_scene.set_meta("battle_npc", npc)
+	
+	# Update last battle time
+	last_battle_time = Time.get_ticks_msec() / 1000.0
+
+func _on_battle_ended(won: bool):
+	print("Battle ended! Player won: ", won)
+	
+	# Show game world elements again
+	if map_container:
+		map_container.visible = true
+	if npc_container:
+		npc_container.visible = true
+	if structure_container:
+		structure_container.visible = true
+	if parallax_bg:
+		parallax_bg.visible = true
+	
+	# Handle battle result
+	if won:
+		# Remove the defeated NPC
+		var defeated_npc = battle_scene.get_meta("battle_npc", null)
+		if defeated_npc and is_instance_valid(defeated_npc):
+			print("Removing defeated NPC")
+			if chunk_manager:
+				chunk_manager.unregister_npc(defeated_npc)
+			defeated_npc.queue_free()
+		
+		# Update player stats if needed
+		if Global.player and Global.player.stats:
+			# You could add experience, loot, etc. here
+			print("Victory! Player gains experience")
+	else:
+		# Player lost - handle defeat
+		if Global.player and Global.player.stats:
+			# Reset player health or respawn
+			Global.player.stats.health = max(10, Global.player.stats.health)
+			print("Defeat... Player respawns with minimal health")
+
+func _force_battle_with_nearest_npc():
+	"""Debug function to force a battle with the nearest NPC"""
+	if not player_movement:
+		return
+	
+	var player_pos = player_movement.get_current_position()
+	var nearest_npc = null
+	var min_distance = INF
+	
+	# Check all NPCs (not just active ones for debugging)
+	var all_npcs = World.get_npcs()
+	for npc in all_npcs:
+		if npc and is_instance_valid(npc):
+			var distance = abs(player_pos.x - npc.grid_position.x) + abs(player_pos.y - npc.grid_position.y)
+			if distance < min_distance:
+				min_distance = distance
+				nearest_npc = npc
+	
+	if nearest_npc:
+		print("DEBUG: Forcing battle with NPC at distance ", min_distance)
+		start_battle_with_npc(nearest_npc)
+	else:
+		print("DEBUG: No NPCs found for battle")
 
 func _unhandled_input(event):
 	pass
