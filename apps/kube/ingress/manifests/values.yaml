@@ -10,14 +10,6 @@ controller:
     service:
         enabled: true
         type: LoadBalancer
-        enablePorts:
-            tcp:
-                6667: 6667
-                6697: 6697
-
-    tcp:
-        6667: 'irc/ergo-irc-service:6667'
-        6697: 'irc/ergo-irc-service:6667'
 
     metrics:
         enabled: true
@@ -46,3 +38,7 @@ controller:
 
 defaultBackend:
     enabled: false
+
+tcp:
+    "6667": "irc/ergo-irc-service:6667"
+    "6697": "irc/ergo-irc-service:6667"
