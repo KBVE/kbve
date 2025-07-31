@@ -8,7 +8,7 @@ data:
     # Ergo IRC Server Configuration
     
     network:
-      name: "KBVE Network"
+      name: "KBVE-Network"
     
     server:
       name: irc.kbve.com
