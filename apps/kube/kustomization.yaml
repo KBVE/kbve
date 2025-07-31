@@ -19,3 +19,4 @@ resources:
   - monitoring/application.yaml
   - redis/application.yaml
   - storage/application.yaml
+  - irc/application.yaml
