@@ -115,7 +115,7 @@ data:
       autoreplay-on-join: 0
       chathistory-maxmessages: 100
       znc-maxmessages: 2048
-      restrictions:
+      query-restrictions:
         expire-time: 168h
         query-cutoff: 720h
         grace-period: 1h
