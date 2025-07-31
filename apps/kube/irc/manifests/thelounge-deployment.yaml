@@ -24,6 +24,10 @@ spec:
                   volumeMounts:
                       - name: thelounge-data
                         mountPath: /var/opt/thelounge
+                      - name: thelounge-config
+                        mountPath: /var/opt/thelounge/config.js
+                        subPath: config.js
+                        readOnly: true
                   env:
                       - name: THELOUNGE_HOME
                         value: '/var/opt/thelounge'
@@ -50,3 +54,6 @@ spec:
                 - name: thelounge-data
                   persistentVolumeClaim:
                       claimName: thelounge-data-pvc
+                - name: thelounge-config
+                  configMap:
+                      name: thelounge-config
