@@ -13,17 +13,17 @@ data:
         server:
           name: irc.kbve.com
           listeners:
-            ":6667":
-              tls: false
+            ":6667": {}
             ":8080":
               websocket: true
-              tls: false
 
+        # Data storage
         datastore:
           path: /ircd/db/ircd.db
           mysql:
             enabled: false
 
+        # Accounts and registration
         accounts:
           authentication-enabled: true
           registration:
@@ -51,6 +51,7 @@ data:
             auto-away: "opt-in"
             always-on-expiration: "720h"
 
+        # Channels
         channels:
           default-modes: +ntC
           max-channels-per-client: 100
@@ -58,16 +59,14 @@ data:
             enabled: true
             max-channels-per-account: 15
 
+        # Operator configuration
         opers:
           admin:
             class: "server-admin"
             whois-line: "is a server administrator"
-            password: "$2a$04$LiytCxaY0lI.guDj2pBN4eSRcunHZskZn0t6wF1sJCqzx9HNKbONu"  # Change this password!
+            password: "$2a$04$LiytCxaY0lI.guDj2pBN4eSRcunHZskZn0t6wF1sJCqzx9HNKbONu"
 
-        channels:
-          registration:
-            enabled: true
-
+        # Limits
         limits:
           nicklen: 32
           channellen: 64
@@ -78,6 +77,7 @@ data:
           whowas-entries: 100
           registration-messages: 1024
 
+        # History
         history:
           enabled: true
           channel-length: 2048
@@ -91,6 +91,7 @@ data:
             query-cutoff: 720h
             grace-period: 1h
 
+        # Debug and logging
         logging:
           - method: stderr
             type: "*"
