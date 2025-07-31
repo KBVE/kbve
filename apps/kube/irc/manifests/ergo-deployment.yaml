@@ -1,0 +1,59 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ergo-irc
+    namespace: irc
+    labels:
+        app: ergo-irc
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ergo-irc
+    template:
+        metadata:
+            labels:
+                app: ergo-irc
+        spec:
+            containers:
+                - name: ergo
+                  image: ghcr.io/ergochat/ergo:stable
+                  ports:
+                      - containerPort: 6667
+                        name: irc
+                      - containerPort: 8080
+                        name: websocket
+                  volumeMounts:
+                      - name: ergo-config
+                        mountPath: /ircd/ircd.yaml
+                        subPath: ircd.yaml
+                        readOnly: true
+                      - name: ergo-data
+                        mountPath: /ircd/db
+                  env:
+                      - name: ERGO_CONFIG
+                        value: '/ircd/ircd.yaml'
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      tcpSocket:
+                          port: 6667
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                  readinessProbe:
+                      tcpSocket:
+                          port: 6667
+                      initialDelaySeconds: 5
+                      periodSeconds: 5
+            volumes:
+                - name: ergo-config
+                  configMap:
+                      name: ergo-config
+                - name: ergo-data
+                  persistentVolumeClaim:
+                      claimName: ergo-data-pvc
