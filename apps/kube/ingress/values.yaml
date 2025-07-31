@@ -1,0 +1,40 @@
+controller:
+  ingressClass: nginx
+  ingressClassResource:
+    name: nginx
+    enabled: true
+    default: true
+
+  replicaCount: 2
+
+  service:
+    enabled: true
+    type: LoadBalancer
+
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true
+      namespace: monitoring
+      additionalLabels:
+        release: prometheus
+
+  admissionWebhooks:
+    enabled: true
+    patch:
+      enabled: true
+
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 250m
+      memory: 256Mi
+
+  nodeSelector: {}
+  affinity: {}
+  tolerations: []
+
+defaultBackend:
+  enabled: false

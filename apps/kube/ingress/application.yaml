@@ -6,9 +6,12 @@ metadata:
 spec:
   project: default
   source:
-    repoURL: https://github.com/kbve/kbve
-    targetRevision: main
-    path: apps/kube/ingress/manifests
+    chart: ingress-nginx
+    repoURL: https://kubernetes.github.io/ingress-nginx
+    targetRevision: 4.13.0
+    helm:
+      valueFiles:
+        - values.yaml
   destination:
     server: https://kubernetes.default.svc
     namespace: ingress-nginx
@@ -18,17 +21,4 @@ spec:
       prune: true
     syncOptions:
       - CreateNamespace=true
-      - Replace=true
-  ignoreDifferences:
-    - group: batch
-      kind: Job
-      name: ingress-nginx-admission-create
-      jsonPointers:
-        - /spec
-        - /status
-    - group: batch
-      kind: Job
-      name: ingress-nginx-admission-patch
-      jsonPointers:
-        - /spec
-        - /status
+      - ServerSideApply=true
