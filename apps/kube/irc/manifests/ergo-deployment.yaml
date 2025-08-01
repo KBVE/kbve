@@ -25,6 +25,8 @@ spec:
                   ports:
                       - containerPort: 6667
                         name: irc
+                      - containerPort: 6697
+                        name: ircs
                       - containerPort: 8080
                         name: websocket
                       - containerPort: 6060
@@ -36,6 +38,9 @@ spec:
                         readOnly: true
                       - name: ergo-data
                         mountPath: /ircd/db
+                      - name: tls-certs
+                        mountPath: /etc/ssl/certs
+                        readOnly: true
                   env:
                       - name: ERGO_CONFIG
                         value: '/ircd/ircd.yaml'
@@ -63,3 +68,6 @@ spec:
                 - name: ergo-data
                   persistentVolumeClaim:
                       claimName: ergo-data-pvc
+                - name: tls-certs
+                  secret:
+                      secretName: ergo-irc-tls-secret
