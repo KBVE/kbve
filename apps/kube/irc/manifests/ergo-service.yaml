@@ -12,6 +12,10 @@ spec:
           port: 6667
           targetPort: 6667
           protocol: TCP
+        - name: ircs
+          port: 6697
+          targetPort: 6697
+          protocol: TCP
         - name: websocket
           port: 8080
           targetPort: 8080
