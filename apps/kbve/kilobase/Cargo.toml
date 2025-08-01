@@ -13,7 +13,7 @@ path = "./src/bin/pgrx_embed.rs"
 [features]
 default = ["cshim","pg17"]
 cshim = ["pgrx/cshim"]
-pg15 = ["pgrx/pg17", "pgrx-tests/pg17" ]
+pg17 = ["pgrx/pg17", "pgrx-tests/pg17" ]
 pg_test = []
 
 [dependencies]
