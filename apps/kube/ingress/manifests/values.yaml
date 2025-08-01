@@ -21,8 +21,13 @@ controller:
 
     admissionWebhooks:
         enabled: true
-        patch:
+        certManager:
             enabled: true
+            issuerRef:
+                name: internal-ca-issuer
+                kind: ClusterIssuer
+        patch:
+            enabled: false
 
     resources:
         requests:
