@@ -41,4 +41,4 @@ defaultBackend:
 
 tcp:
     6667: 'irc/ergo-irc-service:6667'
-    6697: 'irc/ergo-irc-service:6667'
+    6697: 'irc/ergo-irc-service:6697'
