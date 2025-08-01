@@ -5,45 +5,17 @@ metadata:
     namespace: argocd
 spec:
     project: default
-    source:
-        repoURL: https://kubernetes.github.io/ingress-nginx
-        targetRevision: 4.13.0
-        chart: ingress-nginx
-        helm:
-            releaseName: ingress-nginx
-            values: |
-                controller:
-                    ingressClass: nginx
-                    ingressClassResource:
-                        name: nginx
-                        enabled: true
-                        default: true
-                    replicaCount: 2
-                    service:
-                        enabled: true
-                        type: LoadBalancer
-                    metrics:
-                        enabled: true
-                        serviceMonitor:
-                            enabled: false
-                            namespace: monitoring
-                            additionalLabels:
-                                release: prometheus
-                    admissionWebhooks:
-                        enabled: false  # Simplified for now
-                        certManager:
-                            enabled: false
-                        patch:
-                            enabled: false
-                    resources:
-                        requests:
-                            cpu: 100m
-                            memory: 128Mi
-                        limits:
-                            cpu: 250m
-                            memory: 256Mi
-                defaultBackend:
-                    enabled: false
+    sources:
+        - repoURL: https://kubernetes.github.io/ingress-nginx
+          targetRevision: 4.13.0
+          chart: ingress-nginx
+          helm:
+              releaseName: ingress-nginx
+              valueFiles:
+                  - $values/apps/kube/ingress/manifests/values.yaml
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
     destination:
         server: https://kubernetes.default.svc
         namespace: ingress-nginx
