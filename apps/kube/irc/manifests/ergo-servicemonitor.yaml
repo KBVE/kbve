@@ -5,7 +5,7 @@ metadata:
   namespace: irc
   labels:
     app: ergo-irc
-    release: prometheus
+    release: monitoring
 spec:
   selector:
     matchLabels:
