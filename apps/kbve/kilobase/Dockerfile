@@ -39,7 +39,7 @@ RUN cargo install cargo-pgrx --version 0.15.0 --locked
 RUN cargo pgrx init --pg17 /usr/lib/postgresql/17/bin/pg_config
 
 # Set up Kilobase extension source code
-WORKDIR /app/kilobase
+WORKDIR /app/kbve/kilobase
 COPY . .
 
 # Build the Kilobase PostgreSQL extension
