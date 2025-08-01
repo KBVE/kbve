@@ -21,7 +21,7 @@ spec:
         spec:
             containers:
                 - name: ergo
-                  image: ghcr.io/ergochat/ergo:stable
+                  image: ghcr.io/kbve/ergo:stable
                   ports:
                       - containerPort: 6667
                         name: irc
