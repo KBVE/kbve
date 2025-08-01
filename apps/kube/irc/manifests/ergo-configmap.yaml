@@ -25,6 +25,10 @@ data:
           - "127.0.0.1"
       listeners:
         ":6667": {}
+        ":6697":
+          tls:
+            cert: /etc/ssl/certs/tls.crt
+            key: /etc/ssl/certs/tls.key        
         ":8080":
           websocket: true
         ":6060":
