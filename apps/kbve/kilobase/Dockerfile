@@ -1,20 +1,20 @@
 ####################
-# Stage 1 - Setup Postgres PPA (Use Focal Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
+# Stage 1 - Setup Postgres PPA (Use Noble Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
 ####################
-FROM supabase/postgres:15.8.1.044 AS kilobase
+FROM supabase/postgres:17.4.1.068 AS kilobase
 
 # Add PostgreSQL PPA and install PostgreSQL development files
 RUN apt-get update && apt-get install -y --no-install-recommends \
     gnupg \
     wget \
-    ca-certificates && \
-    sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
-    apt-get update && apt-get install -y \
-    postgresql-server-dev-15 \
+    ca-certificates \
+    && echo "deb http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
+    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
+    && apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-server-dev-17 \
     build-essential \
-    clang-10 \
-    libclang-10-dev \
+    clang \
+    libclang-dev \
     libreadline-dev \
     zlib1g-dev \
     flex \
@@ -27,30 +27,29 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     ccache \
     pkg-config \
     curl \
-    ca-certificates \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
 # Install Rust and PGRX
 RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
 ENV PATH="/root/.cargo/bin:${PATH}"
-RUN cargo install cargo-pgrx --version 0.12.9 --locked
+RUN cargo install cargo-pgrx --version 0.15.0 --locked
 
-# Initialize PGRX for PostgreSQL 15
-RUN cargo pgrx init --pg15 /usr/lib/postgresql/15/bin/pg_config
+# Initialize PGRX for PostgreSQL 17
+RUN cargo pgrx init --pg17 /usr/lib/postgresql/17/bin/pg_config
 
 # Set up Kilobase extension source code
 WORKDIR /app/kilobase
 COPY . .
 
 # Build the Kilobase PostgreSQL extension
-RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --features pg15 --out-dir='./dist'
+RUN cargo pgrx package --pg-config /usr/lib/postgresql/17/bin/pg_config --features pg17 --out-dir='./dist'
 
 ####################
 # Stage 2 - Setup Postgres PPA
 ####################
-FROM ubuntu:focal AS ppa
-ARG postgresql_major=15
+FROM ubuntu:noble AS ppa
+ARG postgresql_major=17
 ENV DEBIAN_FRONTEND=noninteractive
 ENV TZ=Etc/UTC
 # Install required dependencies
@@ -60,8 +59,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     wget \
     && rm -rf /var/lib/apt/lists/*
 
-# Add the official PostgreSQL PPA
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
+# Add the official PostgreSQL PPA for Ubuntu 24.04 ("noble")
+RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 # Update and install pg_failover_slots from the PPA
@@ -73,18 +72,18 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 ####################
 # Stage 3: Copy the pg_failover_slots to the final image (Supabase Postgres)
 ####################
-FROM supabase/postgres:15.8.1.044 AS supabase
+FROM supabase/postgres:17.4.1.068 AS supabase
 
-ARG postgresql_major=15
+ARG postgresql_major=17
 
 LABEL name="CloudNative Supabase Container Images" \
       vendor="KBVE" \
-      version="15" \
+      version="17" \
       release="1" \
       summary="PostgreSQL Container images." \
-      description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 15.1.Supabase with CloudNativePG"
+      description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 17.x + Supabase with CloudNativePG"
 
-LABEL org.opencontainers.image.description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 15.1.Supabase"
+LABEL org.opencontainers.image.description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 17.x.Supabase"
 
 # Ensure custom extension directory exists
 RUN mkdir -p /usr/local/postgres_extensions/
@@ -124,7 +123,8 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     rm -rf /var/lib/apt/lists/*
 
 # Add the PostgreSQL PPA and import the key
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
+
+RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
 
 # Update and install barman-cli-cloud from the PostgreSQL PPA
