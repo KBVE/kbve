@@ -85,13 +85,13 @@ fn run_worker_loop(check_interval_secs: i32) {
 
 fn process_refresh_cycle() -> Result<(), pgrx::spi::Error> {
     BackgroundWorker::transaction(|| {
-        Spi::connect(|client| {
-            let due_jobs = crate::jobs::get_due_refresh_jobs(client)?;
+        Spi::connect(|mut client| {
+            let due_jobs = crate::jobs::get_due_refresh_jobs(&mut client)?;
             let mut jobs_processed = 0;
 
             for job in due_jobs {
                 let job_info = crate::jobs::JobInfo::from_tuple(&job)?;
-                job_info.process(client)?;
+                job_info.process(&mut client)?;
                 jobs_processed += 1;
             }
 
@@ -103,6 +103,7 @@ fn process_refresh_cycle() -> Result<(), pgrx::spi::Error> {
 
 fn get_due_refresh_jobs<'a>(client: &'a pgrx::spi::SpiClient<'a>) -> Result<pgrx::spi::SpiTupleTable<'a>, pgrx::spi::Error> {
     client.select(
+        
         "SELECT id, schema_name, view_name, refresh_interval_seconds
          FROM matview_refresh_jobs 
          WHERE is_active = true 
@@ -121,9 +122,10 @@ fn get_due_refresh_jobs<'a>(client: &'a pgrx::spi::SpiClient<'a>) -> Result<pgrx
 // =============================================================================
 
 fn refresh_materialized_view(
-    client: &pgrx::SpiClient,
-    job: &JobInfo,
+    client: &mut pgrx::spi::SpiClient,
+    job: &jobs::JobInfo,
 ) -> Result<i32, String> {
+
     let start_time = std::time::Instant::now();
     
     let is_populated = check_if_view_populated(client, &job.schema, &job.view_name)?;
@@ -136,6 +138,7 @@ fn check_if_view_populated(
     client: &pgrx::SpiClient,
     schema: &str,
     view_name: &str,
+    
 ) -> Result<bool, String> {
     let result = client.select(
         "SELECT ispopulated FROM pg_matviews WHERE schemaname = $1 AND matviewname = $2",

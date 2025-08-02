@@ -63,7 +63,7 @@ pub fn get_due_refresh_jobs<'a>(client: &'a mut pgrx::spi::SpiClient<'a>) -> Res
          FROM matview_refresh_jobs 
          WHERE is_active = true 
            AND (next_refresh IS NULL OR next_refresh <= NOW())
-         ORDER BY next_refresh NULLS FIRST
+         ORDER BY next_refresh NULLS FIRST 
          LIMIT 10",
         None,
         &[]
