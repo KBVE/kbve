@@ -1,9 +1,11 @@
 use pgrx::bgworkers::*;
 use pgrx::prelude::*;
+use pgrx::spi::{SpiClient, SpiError};
+use pgrx::datum::{DatumWithOid, IntoDatum};
 use std::time::Duration;
-
 mod sql;
 mod jobs;
+use crate::jobs::JobInfo;
 
 pgrx::pg_module_magic!();
 
@@ -64,10 +66,8 @@ pub extern "C-unwind" fn smart_matview_worker_main(arg: pg_sys::Datum) {
 
 fn setup_notification_listener() -> Result<(), pgrx::spi::Error> {
     BackgroundWorker::transaction(|| {
-        Spi::connect(|client| {
-            client.select("LISTEN matview_refresh_config_changed", None, &[])?;
-            Ok(())
-        })
+        Spi::run("LISTEN matview_refresh_config_changed")?;
+        Ok(())
     })
 }
 
@@ -85,45 +85,148 @@ fn run_worker_loop(check_interval_secs: i32) {
 
 fn process_refresh_cycle() -> Result<(), pgrx::spi::Error> {
     BackgroundWorker::transaction(|| {
-        Spi::connect(|mut client| {
-            let due_jobs = crate::jobs::get_due_refresh_jobs(&mut client)?;
-            let mut jobs_processed = 0;
-
-            for job in due_jobs {
-                let job_info = crate::jobs::JobInfo::from_tuple(&job)?;
-                job_info.process(&mut client)?;
-                jobs_processed += 1;
+        // Get due jobs and extract data
+        let job_infos: Vec<JobInfo> = Spi::connect(|client| {
+            let result = client.select(
+                "SELECT id, schema_name, view_name, refresh_interval_seconds
+                 FROM matview_refresh_jobs 
+                 WHERE is_active = true 
+                   AND (next_refresh IS NULL OR next_refresh <= NOW())
+                 ORDER BY next_refresh NULLS FIRST 
+                 LIMIT 10",
+                None,
+                &[]
+            )?;
+            
+            let mut jobs = Vec::new();
+            for job_row in result {
+                let job_info = crate::jobs::JobInfo::from_tuple(&job_row)?;
+                jobs.push(job_info);
             }
+            Ok::<Vec<JobInfo>, pgrx::spi::Error>(jobs)
+        })?;
+        
+        let mut jobs_processed = 0;
+        
+        // Process each job
+        for job_info in job_infos {
+            // Process the job (refresh view and update timestamps)
+            process_single_job(&job_info)?;
+            jobs_processed += 1;
+        }
 
-            crate::jobs::log_cycle_completion(jobs_processed);
-            Ok(())
-        })
+        crate::jobs::log_cycle_completion(jobs_processed);
+        Ok(())
     })
 }
 
-fn get_due_refresh_jobs<'a>(client: &'a pgrx::spi::SpiClient<'a>) -> Result<pgrx::spi::SpiTupleTable<'a>, pgrx::spi::Error> {
-    client.select(
-        
-        "SELECT id, schema_name, view_name, refresh_interval_seconds
-         FROM matview_refresh_jobs 
-         WHERE is_active = true 
-           AND (next_refresh IS NULL OR next_refresh <= NOW())
-         ORDER BY next_refresh NULLS FIRST
-         LIMIT 10",
-        None,
-        &[]
-    )
+fn process_single_job(job: &JobInfo) -> Result<(), pgrx::spi::Error> {
+    log!("Processing refresh for {}.{} (job_id: {})", 
+         job.schema, job.view_name, job.id);
+
+    let refresh_result = refresh_materialized_view_standalone(job);
+    update_next_refresh_standalone(job)?;
+
+    match refresh_result {
+        Ok(duration_ms) => {
+            log!("SUCCESS: Refreshed {}.{} in {}ms", 
+                 job.schema, job.view_name, duration_ms);
+            log_refresh_success_standalone(job.id, duration_ms)?;
+        }
+        Err(error_msg) => {
+            log!("ERROR: Failed to refresh {}.{}: {}", 
+                 job.schema, job.view_name, error_msg);
+            log_refresh_failure_standalone(job.id, &error_msg)?;
+        }
+    }
+
+    Ok(())
 }
 
+fn refresh_materialized_view_standalone(job: &JobInfo) -> Result<i32, String> {
+    let start_time = std::time::Instant::now();
+    
+    // Check if view is populated
+    let is_populated = Spi::connect(|client| {
+        let result = client.select(
+            "SELECT ispopulated FROM pg_matviews WHERE schemaname = $1 AND matviewname = $2",
+            None,
+            &[
+                unsafe { DatumWithOid::new(job.schema.clone().into_datum().unwrap(), pg_sys::TEXTOID) },
+                unsafe { DatumWithOid::new(job.view_name.clone().into_datum().unwrap(), pg_sys::TEXTOID) },
+            ]
+        )?;
 
+        for row in result {
+            return Ok(row.get_by_name::<bool, _>("ispopulated").unwrap_or(Some(false)).unwrap_or(false));
+        }
+        Ok(false)
+    }).map_err(|e: SpiError| e.to_string())?;
+    
+    let refresh_strategies = get_refresh_strategies(&job.schema, &job.view_name, is_populated);
+    
+    // Try refresh strategies
+    let mut last_error = String::new();
+    
+    for (attempt, refresh_sql) in refresh_strategies.iter().enumerate() {
+        let result = Spi::run(refresh_sql);
+        match result {
+            Ok(_) => {
+                let duration_ms = start_time.elapsed().as_millis() as i32;
+                return Ok(duration_ms);
+            }
+            Err(e) => {
+                last_error = e.to_string();
+                if attempt == 0 && refresh_strategies.len() > 1 {
+                    pgrx::log!("WARNING: Concurrent refresh failed for {}.{}, trying regular refresh", 
+                              job.schema, job.view_name);
+                }
+            }
+        }
+    }
+
+    Err(last_error)
+}
+
+fn update_next_refresh_standalone(job: &JobInfo) -> Result<(), pgrx::spi::Error> {
+    let next_refresh_sql = format!(
+        "UPDATE matview_refresh_jobs 
+        SET last_refresh = NOW(), 
+            next_refresh = NOW() + INTERVAL '{} seconds'
+        WHERE id = {}",
+        job.interval_secs, job.id
+    );
+    
+    Spi::run(&next_refresh_sql)?;
+    Ok(())
+}
+
+fn log_refresh_success_standalone(job_id: i32, duration_ms: i32) -> Result<(), pgrx::spi::Error> {
+    let sql = format!(
+        "INSERT INTO matview_refresh_log (job_id, status, duration_ms) VALUES ({}, 'Success', {})",
+        job_id, duration_ms
+    );
+    Spi::run(&sql)?;
+    Ok(())
+}
+
+fn log_refresh_failure_standalone(job_id: i32, error_message: &str) -> Result<(), pgrx::spi::Error> {
+    let escaped_error = error_message.replace("'", "''");
+    let sql = format!(
+        "INSERT INTO matview_refresh_log (job_id, status, error_message) VALUES ({}, 'Failed', '{}')",
+        job_id, escaped_error
+    );
+    Spi::run(&sql)?;
+    Ok(())
+}
 
 // =============================================================================
 // MATERIALIZED VIEW REFRESH LOGIC
 // =============================================================================
 
 fn refresh_materialized_view(
-    client: &mut pgrx::spi::SpiClient,
-    job: &jobs::JobInfo,
+    client: &mut SpiClient,
+    job: &JobInfo,
 ) -> Result<i32, String> {
 
     let start_time = std::time::Instant::now();
@@ -135,22 +238,23 @@ fn refresh_materialized_view(
 }
 
 fn check_if_view_populated(
-    client: &pgrx::SpiClient,
+    client: &mut SpiClient,
     schema: &str,
     view_name: &str,
-    
 ) -> Result<bool, String> {
     let result = client.select(
         "SELECT ispopulated FROM pg_matviews WHERE schemaname = $1 AND matviewname = $2",
         None,
-        Some(vec![schema.into_datum(), view_name.into_datum()])
+        &[
+            unsafe { DatumWithOid::new(schema.into_datum().unwrap(), pg_sys::TEXTOID) },
+            unsafe { DatumWithOid::new(view_name.into_datum().unwrap(), pg_sys::TEXTOID) },
+        ]
     ).map_err(|e| e.to_string())?;
 
-    if let Some(row) = result.first() {
-        Ok(row.get_by_name::<bool, _>("ispopulated").unwrap_or(Some(false)).unwrap_or(false))
-    } else {
-        Ok(false)
+    for row in result {
+        return Ok(row.get_by_name::<bool, _>("ispopulated").unwrap_or(Some(false)).unwrap_or(false));
     }
+    Ok(false)
 }
 
 fn get_refresh_strategies(schema: &str, view_name: &str, is_populated: bool) -> Vec<String> {
@@ -165,7 +269,7 @@ fn get_refresh_strategies(schema: &str, view_name: &str, is_populated: bool) -> 
 }
 
 fn execute_refresh_with_fallback(
-    client: &pgrx::SpiClient,
+    client: &mut SpiClient,
     job: &JobInfo,
     refresh_strategies: &[String],
     start_time: std::time::Instant,
@@ -173,7 +277,7 @@ fn execute_refresh_with_fallback(
     let mut last_error = String::new();
     
     for (attempt, refresh_sql) in refresh_strategies.iter().enumerate() {
-        match client.update(refresh_sql, None, None) {
+        match client.update(refresh_sql, None, &[]) {
             Ok(_) => {
                 let duration_ms = start_time.elapsed().as_millis() as i32;
                 log_refresh_success(client, job.id, duration_ms);
@@ -193,27 +297,27 @@ fn execute_refresh_with_fallback(
     Err(last_error)
 }
 
-fn log_refresh_success(client: &pgrx::SpiClient, job_id: i32, duration_ms: i32) {
+fn log_refresh_success(client: &mut SpiClient, job_id: i32, duration_ms: i32) {
     let _ = client.update(
         "INSERT INTO matview_refresh_log (job_id, status, duration_ms) VALUES ($1, $2, $3)",
         None,
-        Some(vec![
-            job_id.into_datum(),
-            "Success".into_datum(),
-            duration_ms.into_datum()
-        ])
+        &[
+            unsafe { DatumWithOid::new(job_id.into_datum().unwrap(), pg_sys::INT4OID) },
+            unsafe { DatumWithOid::new("Success".into_datum().unwrap(), pg_sys::TEXTOID) },
+            unsafe { DatumWithOid::new(duration_ms.into_datum().unwrap(), pg_sys::INT4OID) },
+        ]
     );
 }
 
-fn log_refresh_failure(client: &pgrx::SpiClient, job_id: i32, error_message: &str) {
+fn log_refresh_failure(client: &mut SpiClient, job_id: i32, error_message: &str) {
     let _ = client.update(
         "INSERT INTO matview_refresh_log (job_id, status, error_message) VALUES ($1, $2, $3)",
         None,
-        Some(vec![
-            job_id.into_datum(),
-            "Failed".into_datum(),
-            error_message.into_datum()
-        ])
+        &[
+            unsafe { DatumWithOid::new(job_id.into_datum().unwrap(), pg_sys::INT4OID) },
+            unsafe { DatumWithOid::new("Failed".into_datum().unwrap(), pg_sys::TEXTOID) },
+            unsafe { DatumWithOid::new(error_message.into_datum().unwrap(), pg_sys::TEXTOID) },
+        ]
     );
 }
 
@@ -244,22 +348,22 @@ fn register_matview_internal(
     schema_name: &str,
     view_name: &str,
     interval_seconds: i32,
-) -> Result<i32, pgrx::SpiError> {
+) -> Result<i32, SpiError> {
     Spi::connect(|client| {
         let result = client.select(
             "SELECT register_matview_refresh($1, $2, $3)",
             None,
-            Some(vec![
-                schema_name.into_datum(),
-                view_name.into_datum(),
-                interval_seconds.into_datum()
-            ])
+            &[
+                unsafe { DatumWithOid::new(schema_name.into_datum().unwrap(), pg_sys::TEXTOID) },
+                unsafe { DatumWithOid::new(view_name.into_datum().unwrap(), pg_sys::TEXTOID) },
+                unsafe { DatumWithOid::new(interval_seconds.into_datum().unwrap(), pg_sys::INT4OID) },
+            ]
         )?;
         
-        Ok(result
-            .first()
-            .and_then(|row| row.get::<i32>(1).unwrap_or(Some(0)))
-            .unwrap_or(0))
+        for row in result {
+            return Ok(row.get::<i32>(1).unwrap_or(Some(0)).unwrap_or(0));
+        }
+        Ok(0)
     })
 }
 
@@ -286,15 +390,15 @@ fn unregister_matview_refresh(schema_name: &str, view_name: &str) -> bool {
 fn unregister_matview_internal(
     schema_name: &str,
     view_name: &str,
-) -> Result<bool, pgrx::SpiError> {
+) -> Result<bool, SpiError> {
     Spi::connect(|client| {
         let result = client.select(
             "SELECT unregister_matview_refresh($1, $2)",
             None,
-            Some(vec![
-                schema_name.into_datum(),
-                view_name.into_datum()
-            ])
+            &[
+                unsafe { DatumWithOid::new(schema_name.into_datum().unwrap(), pg_sys::TEXTOID) },
+                unsafe { DatumWithOid::new(view_name.into_datum().unwrap(), pg_sys::TEXTOID) },
+            ]
         )?;
         Ok(result.len() > 0)
     })
