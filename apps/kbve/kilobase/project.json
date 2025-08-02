@@ -24,7 +24,7 @@
       "options": {
         "cwd": "apps/kbve/kilobase",
         "commands": [
-          "cargo pgrx package --features pg15 --out-dir='../../../dist/target/kilobase'"
+          "cargo pgrx package --features pg17 --out-dir='../../../dist/target/kilobase'"
         ],
         "parallel": false
       }
@@ -34,7 +34,7 @@
       "options": {
         "cwd": "apps/kbve/kilobase",
         "commands": [
-          "cargo pgrx package --pg-config $PG_CONFIG_PATH --features pg15 --out-dir='../../../dist/target/kilobase'"
+          "cargo pgrx package --pg-config $PG_CONFIG_PATH --features pg17--out-dir='../../../dist/target/kilobase'"
         ],
         "parallel": false
       }
@@ -131,22 +131,22 @@
           ],
           "load": true,
           "tags": [
-            "15.1.10",
-            "15.1"
+            "17.1.10",
+            "17.1"
           ]
         },
         "configurations": {
           "local": {
             "tags": [
-              "15.1.10",
-              "15.1"
+              "17.1.10",
+              "17.1"
             ],
             "push": false
           },
           "production": {
             "tags": [
-              "15.1.10",
-              "15.1"
+              "17.1.10",
+              "17.1"
             ],
             "push": true,
             "customBuildOptions": "--push",
