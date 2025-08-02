@@ -86,7 +86,7 @@ fn run_worker_loop(check_interval_secs: i32) {
 fn process_refresh_cycle() -> Result<(), pgrx::spi::Error> {
     BackgroundWorker::transaction(|| {
         Spi::connect(|client| {
-            let due_jobs = get_due_refresh_jobs(client)?;
+            let due_jobs = crate::jobs::get_due_refresh_jobs(client)?;
             let mut jobs_processed = 0;
 
             for job in due_jobs {
