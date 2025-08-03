@@ -1,0 +1,55 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: kilobase-postgres-rw
+  namespace: kilobase
+  labels:
+    app: kilobase
+    service: postgres
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
+  selector:
+    cnpg.io/cluster: kilobase-postgres
+    role: primary
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kilobase-postgres-ro
+  namespace: kilobase
+  labels:
+    app: kilobase
+    service: postgres-replica
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
+  selector:
+    cnpg.io/cluster: kilobase-postgres
+    role: replica
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kilobase-postgres-r
+  namespace: kilobase
+  labels:
+    app: kilobase
+    service: postgres-any
+spec:
+  type: ClusterIP
+  ports:
+    - port: 5432
+      targetPort: 5432
+      protocol: TCP
+      name: postgres
+  selector:
+    cnpg.io/cluster: kilobase-postgres

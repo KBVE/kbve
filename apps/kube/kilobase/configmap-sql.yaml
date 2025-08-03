@@ -1,0 +1,23 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: kilobase-additional-sql
+  namespace: kilobase
+data:
+  01-kilobase-init.sql: |
+    -- Create extensions if they don't exist
+    CREATE EXTENSION IF NOT EXISTS pg_stat_statements;
+    CREATE EXTENSION IF NOT EXISTS pg_cron;
+    CREATE EXTENSION IF NOT EXISTS pg_net;
+    CREATE EXTENSION IF NOT EXISTS timescaledb CASCADE;
+    CREATE EXTENSION IF NOT EXISTS kilobase;
+    
+    -- Create kilobase schema
+    CREATE SCHEMA IF NOT EXISTS kilobase;
+    
+    -- Grant permissions
+    GRANT USAGE ON SCHEMA kilobase TO postgres;
+    GRANT CREATE ON SCHEMA kilobase TO postgres;
+    
+    -- Initialize kilobase functions
+    SELECT kilobase.hello_kilobase();

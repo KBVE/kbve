@@ -1,0 +1,75 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Cluster
+metadata:
+  name: kilobase-postgres
+  namespace: kilobase
+spec:
+  instances: 3
+  primaryUpdateStrategy: unsupervised
+  imageName: "kbve/kilobase:17.1"
+  imagePullPolicy: Always
+  postgresUID: 101
+  postgresGID: 102
+  
+  storage:
+    size: 20Gi
+    storageClass: longhorn-uno
+  
+  monitoring:
+    enablePodMonitor: true
+  
+  enableSuperuserAccess: true
+  superuserSecret:
+    name: kilobase-superuser-secret
+  
+  postgresql:
+    parameters:
+      row_security: "on"
+      extra_float_digits: "0"
+      effective_cache_size: "256MB"
+      shared_buffers: "256MB"
+      auto_explain.log_min_duration: "10s"
+      pg_stat_statements.max: "10000"
+      pg_stat_statements.track: all
+      max_connections: "200"
+      log_statement: "all"
+      log_duration: "on"
+    
+    shared_preload_libraries:
+      - pg_stat_statements
+      - pg_stat_monitor
+      - pgaudit
+      - plpgsql
+      - plpgsql_check
+      - pg_cron
+      - pg_net
+      - timescaledb
+      - auto_explain
+      - pg_tle
+      - plan_filter
+      - pg_failover_slots
+      - kilobase
+  
+  env:
+    - name: JWT_SECRET
+      valueFrom:
+        secretKeyRef:
+          name: kilobase-jwt-secret
+          key: secret
+    - name: JWT_EXP
+      value: "3600"
+  
+  backup:
+    barmanObjectStore:
+      destinationPath: s3://kilobase/barman/backup
+      serverName: kilobase-postgres-backup
+      s3Credentials:
+        accessKeyId:
+          name: kilobase-s3-secret
+          key: keyId
+        secretAccessKey:
+          name: kilobase-s3-secret
+          key: accessKey
+      wal:
+        compression: gzip
+    retentionPolicy: "30d"
