@@ -1,0 +1,17 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: kilobase
+
+resources:
+  - namespace.yaml
+  - secrets.yaml
+  - configmap-sql.yaml
+  - postgres-cluster.yaml
+  - service.yaml
+
+commonLabels:
+  app.kubernetes.io/name: kilobase
+  app.kubernetes.io/instance: production
+  app.kubernetes.io/component: database
+  app.kubernetes.io/managed-by: kustomize
