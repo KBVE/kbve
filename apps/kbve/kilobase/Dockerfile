@@ -109,9 +109,16 @@ COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_
 COPY --from=kilobase /app/kbve/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/lib/postgresql/${postgresql_major}/lib/
 COPY --from=kilobase /app/kbve/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/${postgresql_major}/extension/
 
-# Verify kilobase extension files exist
-RUN ls -la /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so && \
+# Verify kilobase extension files exist and are accessible
+RUN echo "=== Kilobase Extension Verification ===" && \
+    ls -la /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so && \
     ls -la /usr/share/postgresql/${postgresql_major}/extension/kilobase* && \
+    echo "=== PostgreSQL Extension Search Paths ===" && \
+    find /usr -name "*.so" -path "*postgresql*" -name "*kilobase*" 2>/dev/null || true && \
+    echo "=== Library Path Contents ===" && \
+    ls -la /usr/lib/postgresql/${postgresql_major}/lib/ | grep -E "(kilobase|pg_fail)" && \
+    echo "=== Extension Directory Contents ===" && \
+    ls -la /usr/share/postgresql/${postgresql_major}/extension/ | grep -E "(kilobase|pg_fail)" && \
     echo "Kilobase extension files verified"
 
 ####################
