@@ -24,7 +24,7 @@ metadata:
 spec:
     instances: 3
     #primaryUpdateStrategy: unsupervised
-    imageName: 'kbve/kilobase:17.1'
+    imageName: 'kbve/kilobase:17.4'
     imagePullPolicy: Always
     superuserSecret:
         name: supabase-postgres
