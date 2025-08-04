@@ -1,0 +1,16 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: supabase-pgsodium
+  namespace: kilobase
+spec:
+  encryptedData:
+    pgsodium_root.key: AgCdyFIRv4RmRyplpqpnoV5clcT1LmouMt5qe4HFxLDoW51F28bs6cKylQ5edlgbtldCcjlv++tByoDFPMEDdo4RlTQ5lkkaTuvRQ66m7KBiUOOg2rnyjYUkHV/S1XqqdI1CTMurmhFp2h6bStSDypXtTyLSVnGn/aqBna7GbRYaW7jesvnBdhrZfLuEzL52wgYJpeFfW1UNFMcbBMzlZzngvPO+759imLA5K6QlHK70HsPIZMn6GeoBq7JaJXBnP5GbeStJ6iRXcqnezDE2Cou+RL9p7SPqAODc+75iYFmX4cZwJFA80aMDyF7JdcLaPkj04y1jDqwpCtivAnLotFrOPAI80cKtiEaBidFW7AyE+wZ7wrXzcHBCOXuomFozl45DH586jXsgBAMYzXA1mKD2GhnkgamLr7eAZkM4bVx7Ht7wiDNBb5SVlLzDZMLEe5xZxilwDPXDMhk0R2zDHzKVRuTV6DMlDppdD9HMAFGZV5oRBY1Vj8cG1XYMgwsF7QzF8V/Yil3vHRwcKOlaDnWMcnMKm3qatVV0/BOdskwMErJAXKyVu9NrNgt0JltrV1d3XcIAgYv+rOT8lZLZUBn/UoaqLSBSqD8iQ6g5fT0QeVZd8U4ERGov+kPpyEmoAWsvkq6rIUwV1fsyjY48EKi6JghLDG1QtY/vlgZk83oCNoYnr7JzUVh8FRL7/qCC1GlDm9egTDD5Ixh17mCKLlTKbKdkGaCCIAYzgPIOrCSSTSxCAilCh0HmasFqZ+CCp5Fxxj7E0lYVQMXsfxtjLQ+L6w==
+  template:
+    metadata:
+      creationTimestamp: null
+      name: supabase-pgsodium
+      namespace: kilobase
+    type: Opaque
