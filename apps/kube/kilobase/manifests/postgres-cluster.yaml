@@ -126,8 +126,8 @@ spec:
             supabase_vault,
             plan_filter,
             # Kilobase
-            # kilobase,
-            # pg_failover_slots,
+            kilobase,
+            pg_failover_slots,
             pgmq
           ]
 
