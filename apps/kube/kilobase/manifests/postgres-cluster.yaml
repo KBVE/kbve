@@ -125,8 +125,8 @@ spec:
             pgsodium,
             supabase_vault,
             plan_filter,
-            # Kilobase
-            kilobase,
+            # Kilobase - temporarily disabled for debugging
+            # kilobase,
             pg_failover_slots,
             pgmq
           ]
