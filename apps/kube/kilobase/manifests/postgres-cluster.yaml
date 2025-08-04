@@ -28,8 +28,8 @@ spec:
     imagePullPolicy: Always
     superuserSecret:
         name: supabase-postgres
-    postgresUID: 101
-    postgresGID: 102
+    #postgresUID: 101
+    #postgresGID: 102
 
     storage:
         size: 20Gi
