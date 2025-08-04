@@ -38,3 +38,7 @@ Dry run for devs:
 ./kbve.sh -nx jedi:dry --no-cloud
 
 ```
+
+### v0.2.x
+
+Preparing the next build of the jedi crate.
