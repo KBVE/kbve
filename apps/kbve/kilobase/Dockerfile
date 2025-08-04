@@ -45,6 +45,11 @@ COPY . .
 # Build the Kilobase PostgreSQL extension
 RUN cargo pgrx package --pg-config /usr/lib/postgresql/17/bin/pg_config --features pg17 --out-dir='./dist'
 
+# Verify the build output
+RUN ls -la ./dist/ && \
+    find ./dist/ -name "*.so" -o -name "*.control" -o -name "*.sql" | head -20 && \
+    echo "Build verification complete"
+
 ####################
 # Stage 2 - Setup Postgres PPA
 ####################
@@ -78,7 +83,7 @@ ARG postgresql_major=17
 
 LABEL name="CloudNative Supabase Container Images" \
       vendor="KBVE" \
-      version="17" \
+      version="17.4" \
       release="1" \
       summary="PostgreSQL Container images." \
       description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 17.x + Supabase with CloudNativePG"
@@ -96,20 +101,25 @@ RUN chown -R postgres:postgres /usr/local/postgres_extensions/ && \
     chmod -R 755 /usr/local/postgres_extensions/
 
 
+# Copy pg_failover_slots extension files to STANDARD locations
+COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/lib/postgresql/${postgresql_major}/lib/
+COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/share/postgresql/${postgresql_major}/extension/
 
-# COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/lib/postgresql/${postgresql_major}/lib/
-# COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/share/postgresql/${postgresql_major}/extension/
-# COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
-# COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
+# Copy kilobase extension files to STANDARD locations  
+COPY --from=kilobase /app/kbve/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/lib/postgresql/${postgresql_major}/lib/
+COPY --from=kilobase /app/kbve/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/${postgresql_major}/extension/
 
-# Copy pg_failover_slots extension files
-COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/local/postgres_extensions/
-COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/local/postgres_extensions/
-
-# Copy kilobase extension files
-COPY --from=kilobase /app/kbve/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/local/postgres_extensions/
-COPY --from=kilobase /app/kbve/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/local/postgres_extensions/
-COPY --from=kilobase /app/kbve/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/extension/
+# Verify kilobase extension files exist and are accessible
+RUN echo "=== Kilobase Extension Verification ===" && \
+    ls -la /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so && \
+    ls -la /usr/share/postgresql/${postgresql_major}/extension/kilobase* && \
+    echo "=== PostgreSQL Extension Search Paths ===" && \
+    find /usr -name "*.so" -path "*postgresql*" -name "*kilobase*" 2>/dev/null || true && \
+    echo "=== Library Path Contents ===" && \
+    ls -la /usr/lib/postgresql/${postgresql_major}/lib/ | grep -E "(kilobase|pg_fail)" && \
+    echo "=== Extension Directory Contents ===" && \
+    ls -la /usr/share/postgresql/${postgresql_major}/extension/ | grep -E "(kilobase|pg_fail)" && \
+    echo "Kilobase extension files verified"
 
 ####################
 # Stage Nani:
@@ -143,78 +153,9 @@ RUN sed -i \
     -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, pg_failover_slots, kilobase'|g" \
     /etc/postgresql/postgresql.conf
 
-####################
-# Stage 4: Setup Python 3.11
-####################
-# Add the deadsnakes PPA for Python 3.11
-# RUN apt-get update && apt-get install -y software-properties-common curl && \
-#     add-apt-repository ppa:deadsnakes/ppa && apt-get update
+# Verify the postgres user UID/GID from base image
+RUN echo "Postgres user info:" && \
+    id postgres && \
+    echo "Postgres UID/GID verified"
 
-# # Install Python 3.11 and pip
-# RUN apt-get install -y python3.11 python3.11-distutils python3.11-venv
-
-# # Install pip for Python 3.11
-# RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
-
-# # Set Python 3.11 as the default
-# RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
-
-####################
-# Stage 5: OpenSSL
-####################
-
-# Install OpenSSL libraries
-# RUN apt-get update && apt-get install -y \
-#     libssl3 \
-#     libssl-dev \
-#     && apt-get clean && \
-#     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-####################
-# Stage 6: libc6
-####################
-
-# Install libc6
-# RUN apt-get update && apt-get install -y libc6
-
-# Create symlink if necessary
-# RUN ln -sf /lib/x86_64-linux-gnu/libc.so.6 /lib64/ld-linux-x86-64.so.2
-
-####################
-# Stage 7: Install Barman Cloud
-####################
-
-# Install Barman Cloud dependencies and Barman itself
-# COPY /requirements.txt /
-
-# Execute Barman requirements.txt + OpenSSL
-# RUN set -xe; \
-# 	apt-get update; \
-# 	apt-get install -y --no-install-recommends \
-# 		build-essential \
-# 		libsnappy-dev \
-# 		python3-psycopg2 \
-# 		python3-setuptools; \
-# 	# Upgrade pip and install requirements
-#     python3.11 -m pip install --upgrade pip; \
-# 	# We require barman-cloud, install the package with no dependencies
-# 	python3.11 -m pip install --no-deps -r requirements.txt; \
-#     #python3.11 -m pip install -r requirements.txt; \
-# 	# Remove build dependencies to reduce the image size
-# 	apt-get remove -y --purge --autoremove \
-# 		build-essential \
-# 		python3.11-dev \
-# 		libsnappy-dev; \
-# 	rm -rf /var/lib/apt/lists/*
-
-####################
-# Stage Final: Swith User to Postgres UID: 101
-####################
-
-## Postgres / Supabase is UID 105/106 now 03/12/2025
-
-# # RUN usermod -u 101 postgres
-# # USER 101
-
-# RUN [ "$(id -u postgres)" != "101" ] && usermod -u 101 postgres || echo "UID is already 101"
-# USER 101
+USER postgres

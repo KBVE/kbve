@@ -21,3 +21,4 @@ resources:
   - redis/application.yaml
   - storage/application.yaml
   - irc/application.yaml
+  - kilobase/application.yaml

@@ -1,0 +1,162 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: migrate-script
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: migration
+data:
+    migrate.sh: |
+        #!/usr/bin/env sh
+        echo "--------------------"
+        echo "Beginning migrations"
+
+        set -e
+
+        DB_VERSION="${1:-17.4.1.014}"
+
+        apk upgrade
+        apk add gettext moreutils git curl jq grep
+
+        mkdir -p /supasql/db/base
+        mkdir -p /supasql/db/final
+
+        git clone --depth 1 https://github.com/supabase/postgres.git /supasql/postgres && cd /supasql/postgres
+        git checkout -b ${DB_VERSION}
+        cp -a /supasql/postgres/migrations/db/init-scripts/*.sql /supasql/db/base/
+        cp -a /supasql/postgres/migrations/db/migrations/*.sql /supasql/db/base/
+
+        cp /supasql/postgres/ansible/files/pgbouncer_config/pgbouncer_auth_schema.sql /supasql/db/00-schema.sql
+        cp /supasql/postgres/ansible/files/stat_extension.sql /supasql/db/00-extension.sql
+
+        # not possible with cnpg?
+        rm /supasql/db/base/10000000000000_demote-postgres.sql
+
+        # profiles with rls
+        # curl https://raw.githubusercontent.com/supabase/supabase/refs/heads/master/docker/dev/data.sql > migrations/99-z_00-data.sql
+
+        # git clone --depth 1 git@github.com:supabase/postgres.git
+        for afile in $(curl -s https://api.github.com/repositories/214587193/contents/docker/volumes/db | jq -r '.[] | .download_url' - | grep -E '\.sql$')
+        do
+          curl -s $afile > /supasql/db/final/$(basename $afile)
+        done
+
+        # build from parts, as the CNPG superuser targets "*" database.
+        # Superuser credentials, and the App DB
+        db_uri="postgresql://${SUPERUSER_USER}:${SUPERUSER_PASSWORD}@${SUPERUSER_HOST}:${SUPERUSER_PORT}/${POSTGRES_DB}"
+
+        echo "Running base migrations"
+        echo
+        echo "-----------"
+        echo
+        echo "Basic pgbouncer & other setup"
+        psql -d $db_uri -f "/supasql/db/00-schema.sql"
+        psql -d $db_uri -f "/supasql/db/00-extension.sql"
+
+        # MIGRATION_SCHEMA as first search_path so the dbmate migrations table gets created in a seperate schema
+        # (not polluting the public schema, and not interfering with Realtime's schema_migrations table)
+        dbmate_uri="${db_uri}?search_path=${MIGRATION_SCHEMA},public"
+        dbmate --wait-timeout=300s --url $dbmate_uri --migrations-dir "/supasql/db/base" --wait --no-dump-schema up
+
+        echo "Running final migrations"
+        echo "_supabase.sql"
+        psql -d $db_uri -f "/supasql/db/final/_supabase.sql"
+        echo "webhooks.sql"
+        psql -d $db_uri -f "/supasql/db/final/webhooks.sql"
+        echo "realtime.sql"
+        psql -d $db_uri -f "/supasql/db/final/realtime.sql"
+        echo "roles.sql"
+        psql -d $db_uri -f "/supasql/db/final/roles.sql"
+        echo "logs.sql"
+        psql -d $db_uri -f "/supasql/db/final/logs.sql"
+        echo "pooler.sql"
+        psql -d $db_uri -f "/supasql/db/final/pooler.sql"
+
+        echo "FIXME: temp personalise database name in jwt.sql"
+        # psql -d $db_uri -f "./db/final/jwt.sql"
+        psql -d $db_uri -c "ALTER DATABASE ${POSTGRES_DB} SET "app.settings.jwt_secret" TO '${JWT_SECRET}';" \
+          "ALTER DATABASE ${POSTGRES_DB} SET "app.settings.jwt_exp" TO '${JWT_EXP}';"
+
+        echo "     Complete"
+        echo "--------------------"
+---
+apiVersion: batch/v1
+kind: Job
+metadata:
+    name: supabase-migration
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: migration
+        job-name: supabase-migration
+spec:
+    backoffLimit: 0
+    template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: kilobase
+            app.kubernetes.io/component: migration
+            job-name: supabase-migration
+        spec:
+            volumes:
+                - name: migrate-script
+                  configMap:
+                      name: migrate-script
+                      defaultMode: 0500
+
+            containers:
+                - name: supabase-migration
+                  image: ghcr.io/amacneil/dbmate:2.26.0@sha256:a01a59fe617277caf1cb69249c4e51965521eb9181824161d1f80176c465e52f
+                  command: ['/script/migrate.sh', '17.4.1.014']
+                  volumeMounts:
+                      - name: migrate-script
+                        mountPath: '/script'
+                  env:
+                      # Schema where dbmate will store base migration details, so it doesnt pollute the `public` schema
+                      - name: MIGRATION_SCHEMA
+                        value: dbmate
+
+                      - name: SUPERUSER_HOST
+                        value: supabase-cluster-rw
+                      - name: SUPERUSER_PORT
+                        value: '5432'
+                      # - name: SUPERUSER_USER
+                      #   valueFrom:
+                      #     secretKeyRef:
+                      #       name: supabase-superuser
+                      #       key: username
+                      - name: SUPERUSER_USER
+                        value: 'supabase_admin'
+                      - name: SUPERUSER_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-superuser
+                                key: password
+
+                      - name: POSTGRES_DB
+                        value: supabase
+
+                      - name: POSTGRES_USER
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-postgres
+                                key: username
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-postgres
+                                key: password
+
+                      - name: JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-jwt
+                                key: secret
+                      - name: JWT_EXP
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-jwt
+                                key: expiry
+
+            restartPolicy: Never

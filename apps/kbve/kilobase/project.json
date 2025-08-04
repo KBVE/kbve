@@ -131,22 +131,22 @@
           ],
           "load": true,
           "tags": [
-            "17.1.10",
-            "17.1"
+            "17.4.12",
+            "17.4"
           ]
         },
         "configurations": {
           "local": {
             "tags": [
-              "17.1.10",
-              "17.1"
+              "17.4.12",
+              "17.4"
             ],
             "push": false
           },
           "production": {
             "tags": [
-              "17.1.10",
-              "17.1"
+              "17.4.12",
+              "17.4"
             ],
             "push": true,
             "customBuildOptions": "--push",
