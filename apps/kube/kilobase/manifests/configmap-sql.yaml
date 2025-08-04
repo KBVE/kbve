@@ -160,4 +160,3 @@ spec:
                                 key: expiry
 
             restartPolicy: Never
-    backoffLimit: 0
