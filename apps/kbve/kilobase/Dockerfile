@@ -1,187 +1,103 @@
 ####################
-# Stage 1 - Setup Postgres PPA (Use Noble Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
+# Stage 1: Build extensions in matching Nix environment
 ####################
-FROM supabase/postgres:17.4.1.068 AS kilobase
+FROM nixos/nix:latest AS extension-builder
 
-# Add PostgreSQL PPA and install PostgreSQL development files
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gnupg \
-    wget \
-    ca-certificates \
-    && echo "deb http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list \
-    && wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - \
-    && apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-server-dev-17 \
-    build-essential \
-    clang \
-    libclang-dev \
-    libreadline-dev \
-    zlib1g-dev \
-    flex \
-    bison \
-    libxml2-dev \
-    libxslt-dev \
-    libssl-dev \
-    libxml2-utils \
-    xsltproc \
-    ccache \
-    pkg-config \
-    curl \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+# Enable flakes and experimental features
+RUN echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
 
-# Install Rust and PGRX
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-RUN cargo install cargo-pgrx --version 0.15.0 --locked
+# Add unstable channel for latest packages
+RUN nix-channel --add https://nixos.org/channels/nixos-unstable nixpkgs
+RUN nix-channel --update
 
-# Initialize PGRX for PostgreSQL 17
-RUN cargo pgrx init --pg17 /usr/lib/postgresql/17/bin/pg_config
+# Copy source code
+COPY . /app
+WORKDIR /app
 
-# Set up Kilobase extension source code
-WORKDIR /app/kbve/kilobase
-COPY . .
-
-# Build the Kilobase PostgreSQL extension
-RUN cargo pgrx package --pg-config /usr/lib/postgresql/17/bin/pg_config --features pg17 --out-dir='./dist'
-
-# Verify the build output
-RUN ls -la ./dist/ && \
-    find ./dist/ -name "*.so" -o -name "*.control" -o -name "*.sql" | head -20 && \
-    echo "Build verification complete"
+# Build kilobase extension using the same PostgreSQL version as Supabase
+RUN nix-shell -p postgresql_17.dev rustc cargo pkg-config openssl --run " \
+  echo '=== Building kilobase extension in Nix environment ===' && \
+  pg_config --version && \
+  echo 'Library dir:' \$(pg_config --pkglibdir) && \
+  echo 'Share dir:' \$(pg_config --sharedir) && \
+  cargo pgrx init --pg17 \$(which pg_config) && \
+  cargo pgrx package --pg-config \$(which pg_config) --features pg17 --out-dir=./dist && \
+  echo '=== Build verification ===' && \
+  ls -la ./dist/ && \
+  find ./dist/ -name '*.so' -o -name '*.control' -o -name '*.sql' \
+"
 
 ####################
-# Stage 2 - Setup Postgres PPA
+# Stage 2: Get pg_failover_slots from official PostgreSQL
 ####################
-FROM ubuntu:noble AS ppa
-ARG postgresql_major=17
+FROM ubuntu:noble AS pg-extensions
+
 ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Etc/UTC
-# Install required dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gnupg \
-    ca-certificates \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
 
-# Add the official PostgreSQL PPA for Ubuntu 24.04 ("noble")
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-
-# Update and install pg_failover_slots from the PPA
+# Add PostgreSQL APT repository
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-${postgresql_major}-pg-failover-slots \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+    gnupg ca-certificates wget && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
+    apt-get update
+
+# Install pg_failover_slots
+RUN apt-get install -y --no-install-recommends \
+    postgresql-17-pg-failover-slots && \
+    apt-get clean && rm -rf /var/lib/apt/lists/*
 
 ####################
-# Stage 3: Copy the pg_failover_slots to the final image (Supabase Postgres)
+# Stage 3: Final Supabase image with extensions
 ####################
-FROM supabase/postgres:17.4.1.068 AS supabase
+FROM supabase/postgres:17.4.1.068
 
-ARG postgresql_major=17
-
-LABEL name="CloudNative Supabase Container Images" \
-      vendor="KBVE" \
-      version="17.4" \
-      release="1" \
-      summary="PostgreSQL Container images." \
-      description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 17.x + Supabase with CloudNativePG"
-
-LABEL org.opencontainers.image.description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 17.x.Supabase"
-
-# Ensure custom extension directory exists
-RUN mkdir -p /usr/local/postgres_extensions/
-RUN mkdir -p /usr/share/postgresql/extension/
-RUN chown -R postgres:postgres /usr/share/postgresql/extension/
-RUN chmod 755 /usr/share/postgresql/extension/
-
-# Ensure proper permissions for PostgreSQL
-RUN chown -R postgres:postgres /usr/local/postgres_extensions/ && \
-    chmod -R 755 /usr/local/postgres_extensions/
-
-
-# Debug PostgreSQL paths and copy extensions
-RUN echo "=== PostgreSQL Configuration Debug ===" && \
-    which pg_config && \
-    pg_config --version && \
-    echo "BINDIR: $(pg_config --bindir)" && \
-    echo "LIBDIR: $(pg_config --libdir)" && \
-    echo "PKGLIBDIR: $(pg_config --pkglibdir)" && \
-    echo "SHAREDIR: $(pg_config --sharedir)" && \
-    echo "SYSCONFDIR: $(pg_config --sysconfdir)" && \
-    echo "=== Current PostgreSQL library paths ===" && \
-    ls -la /nix/store/*/lib/postgresql/ 2>/dev/null || echo "No /nix/store PostgreSQL libs found" && \
-    ls -la /usr/lib/postgresql/*/lib/ 2>/dev/null || echo "No /usr/lib PostgreSQL libs found" && \
-    echo "=== Preparing directories ===" && \
-    PG_LIBDIR=$(pg_config --pkglibdir) && \
-    PG_SHAREDIR=$(pg_config --sharedir) && \
-    mkdir -p "$PG_LIBDIR" && \
-    mkdir -p "$PG_SHAREDIR/extension"
-
-# Copy pg_failover_slots extension files to CORRECT locations
-COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /tmp/pg_failover_slots.so
-COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /tmp/
+# Get PostgreSQL paths dynamically and create directories if needed
 RUN PG_LIBDIR=$(pg_config --pkglibdir) && \
     PG_SHAREDIR=$(pg_config --sharedir) && \
-    cp /tmp/pg_failover_slots.so "$PG_LIBDIR/" && \
-    cp /tmp/pg_failover_slots.control /tmp/pg_failover_slots*.sql "$PG_SHAREDIR/extension/" 2>/dev/null || true && \
-    chown postgres:postgres "$PG_LIBDIR/pg_failover_slots.so" && \
-    chown postgres:postgres "$PG_SHAREDIR/extension/pg_failover_slots"* && \
-    chmod 755 "$PG_LIBDIR/pg_failover_slots.so" && \
-    chmod 644 "$PG_SHAREDIR/extension/pg_failover_slots"*
+    echo "=== PostgreSQL Configuration ===" && \
+    echo "Library directory: $PG_LIBDIR" && \
+    echo "Share directory: $PG_SHAREDIR" && \
+    mkdir -p "$PG_LIBDIR" "$PG_SHAREDIR/extension"
 
-# Copy kilobase extension files to CORRECT locations  
-COPY --from=kilobase /app/kbve/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /tmp/kilobase.so
-COPY --from=kilobase /app/kbve/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /tmp/
+# Copy kilobase extension from Nix builder
+COPY --from=extension-builder /app/dist/usr/lib/postgresql/17/lib/kilobase.so /tmp/kilobase.so
+COPY --from=extension-builder /app/dist/usr/share/postgresql/17/extension/kilobase* /tmp/
+
+# Copy pg_failover_slots from APT installation
+COPY --from=pg-extensions /usr/lib/postgresql/17/lib/pg_failover_slots.so /tmp/pg_failover_slots.so
+COPY --from=pg-extensions /usr/share/postgresql/17/extension/pg_failover_slots* /tmp/
+
+# Install extensions to correct PostgreSQL paths
 RUN PG_LIBDIR=$(pg_config --pkglibdir) && \
     PG_SHAREDIR=$(pg_config --sharedir) && \
+    echo "=== Installing extensions ===" && \
+    \
+    # Install kilobase
     cp /tmp/kilobase.so "$PG_LIBDIR/" && \
-    cp /tmp/kilobase.control /tmp/kilobase*.sql "$PG_SHAREDIR/extension/" 2>/dev/null || true && \
-    chown postgres:postgres "$PG_LIBDIR/kilobase.so" && \
-    chown postgres:postgres "$PG_SHAREDIR/extension/kilobase"* && \
-    chmod 755 "$PG_LIBDIR/kilobase.so" && \
-    chmod 644 "$PG_SHAREDIR/extension/kilobase"*
+    cp /tmp/kilobase*.control /tmp/kilobase*.sql "$PG_SHAREDIR/extension/" 2>/dev/null || \
+    cp /tmp/kilobase* "$PG_SHAREDIR/extension/" && \
+    \
+    # Install pg_failover_slots
+    cp /tmp/pg_failover_slots.so "$PG_LIBDIR/" && \
+    cp /tmp/pg_failover_slots*.control /tmp/pg_failover_slots*.sql "$PG_SHAREDIR/extension/" 2>/dev/null || \
+    cp /tmp/pg_failover_slots* "$PG_SHAREDIR/extension/" && \
+    \
+    # Set proper ownership and permissions
+    chown postgres:postgres "$PG_LIBDIR"/*.so "$PG_SHAREDIR/extension"/* && \
+    chmod 755 "$PG_LIBDIR"/*.so && \
+    chmod 644 "$PG_SHAREDIR/extension"/* && \
+    \
+    # Clean up temp files
+    rm -rf /tmp/*.so /tmp/*.control /tmp/*.sql
 
-# Verify extensions are in the correct locations
-RUN echo "=== Verifying extension locations ===" && \
-    PG_LIBDIR=$(pg_config --pkglibdir) && \
+# Verify extensions are properly installed
+RUN PG_LIBDIR=$(pg_config --pkglibdir) && \
     PG_SHAREDIR=$(pg_config --sharedir) && \
-    echo "Checking $PG_LIBDIR:" && \
-    ls -la "$PG_LIBDIR/kilobase.so" "$PG_LIBDIR/pg_failover_slots.so" && \
-    echo "Checking $PG_SHAREDIR/extension:" && \
-    ls -la "$PG_SHAREDIR/extension/kilobase"* "$PG_SHAREDIR/extension/pg_failover_slots"* && \
-    echo "Extensions verified in correct locations"
-
-####################
-# Stage Nani:
-####################
-
-# Install necessary utilities like wget and gnupg before adding the PostgreSQL PPA
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gnupg \
-    wget \
-    ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
-
-# Add the PostgreSQL PPA and import the key
-
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ noble-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-
-# Update and install barman-cli-cloud from the PostgreSQL PPA
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    barman-cli-cloud
-
-# Clean up unnecessary files to reduce image size
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-# Configuration is handled by CNPG cluster spec, not base postgresql.conf
-
-# Verify the postgres user UID/GID from base image
-RUN echo "Postgres user info:" && \
-    id postgres && \
-    echo "Postgres UID/GID verified"
+    echo "=== Extension verification ===" && \
+    echo "Library files:" && \
+    ls -la "$PG_LIBDIR" | grep -E "(kilobase|pg_failover)" && \
+    echo "Extension files:" && \
+    ls -la "$PG_SHAREDIR/extension" | grep -E "(kilobase|pg_failover)" && \
+    echo "Extensions successfully installed!"
 
 USER postgres
