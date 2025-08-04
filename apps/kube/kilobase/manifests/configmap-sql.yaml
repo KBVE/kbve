@@ -89,8 +89,15 @@ metadata:
     labels:
         app.kubernetes.io/name: kilobase
         app.kubernetes.io/component: migration
+        job-name: supabase-migration
 spec:
+    backoffLimit: 0
     template:
+        metadata:
+          labels:
+            app.kubernetes.io/name: kilobase
+            app.kubernetes.io/component: migration
+            job-name: supabase-migration
         spec:
             volumes:
                 - name: migrate-script
