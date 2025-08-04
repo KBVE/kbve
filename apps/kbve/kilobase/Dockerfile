@@ -101,33 +101,48 @@ RUN chown -R postgres:postgres /usr/local/postgres_extensions/ && \
     chmod -R 755 /usr/local/postgres_extensions/
 
 
-# Copy pg_failover_slots extension files to STANDARD locations
-COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/lib/postgresql/${postgresql_major}/lib/
-COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/share/postgresql/${postgresql_major}/extension/
+# Copy extensions to the CORRECT PostgreSQL paths
+RUN echo "=== Copying extensions to correct PostgreSQL paths ===" && \
+    PG_LIBDIR=$(pg_config --pkglibdir) && \
+    PG_SHAREDIR=$(pg_config --sharedir) && \
+    echo "PostgreSQL lib directory: $PG_LIBDIR" && \
+    echo "PostgreSQL share directory: $PG_SHAREDIR" && \
+    mkdir -p "$PG_LIBDIR" && \
+    mkdir -p "$PG_SHAREDIR/extension"
 
-# Copy kilobase extension files to STANDARD locations  
-COPY --from=kilobase /app/kbve/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/lib/postgresql/${postgresql_major}/lib/
-COPY --from=kilobase /app/kbve/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/${postgresql_major}/extension/
+# Copy pg_failover_slots extension files to CORRECT locations
+COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /tmp/pg_failover_slots.so
+COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /tmp/
+RUN PG_LIBDIR=$(pg_config --pkglibdir) && \
+    PG_SHAREDIR=$(pg_config --sharedir) && \
+    cp /tmp/pg_failover_slots.so "$PG_LIBDIR/" && \
+    cp /tmp/pg_failover_slots* "$PG_SHAREDIR/extension/" && \
+    chown postgres:postgres "$PG_LIBDIR/pg_failover_slots.so" && \
+    chown postgres:postgres "$PG_SHAREDIR/extension/pg_failover_slots"* && \
+    chmod 755 "$PG_LIBDIR/pg_failover_slots.so" && \
+    chmod 644 "$PG_SHAREDIR/extension/pg_failover_slots"*
 
-# Fix ownership and permissions for extension files
-RUN echo "Setting ownership and permissions for extension files..." && \
-    id postgres && \
-    chown postgres:postgres /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so && \
-    chown postgres:postgres /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so && \
-    find /usr/share/postgresql/${postgresql_major}/extension/ -name "kilobase*" -exec chown postgres:postgres {} \; && \
-    find /usr/share/postgresql/${postgresql_major}/extension/ -name "pg_failover_slots*" -exec chown postgres:postgres {} \; && \
-    chmod 755 /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so && \
-    chmod 755 /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so && \
-    find /usr/share/postgresql/${postgresql_major}/extension/ -name "kilobase*" -exec chmod 644 {} \; && \
-    find /usr/share/postgresql/${postgresql_major}/extension/ -name "pg_failover_slots*" -exec chmod 644 {} \;
+# Copy kilobase extension files to CORRECT locations  
+COPY --from=kilobase /app/kbve/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /tmp/kilobase.so
+COPY --from=kilobase /app/kbve/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /tmp/
+RUN PG_LIBDIR=$(pg_config --pkglibdir) && \
+    PG_SHAREDIR=$(pg_config --sharedir) && \
+    cp /tmp/kilobase.so "$PG_LIBDIR/" && \
+    cp /tmp/kilobase* "$PG_SHAREDIR/extension/" && \
+    chown postgres:postgres "$PG_LIBDIR/kilobase.so" && \
+    chown postgres:postgres "$PG_SHAREDIR/extension/kilobase"* && \
+    chmod 755 "$PG_LIBDIR/kilobase.so" && \
+    chmod 644 "$PG_SHAREDIR/extension/kilobase"*
 
-# Verify kilobase extension files exist and are accessible
-RUN echo "=== Extension Files Ownership and Permissions ===" && \
-    ls -la /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so && \
-    ls -la /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so && \
-    find /usr/share/postgresql/${postgresql_major}/extension/ -name "kilobase*" -ls && \
-    find /usr/share/postgresql/${postgresql_major}/extension/ -name "pg_failover_slots*" -ls && \
-    echo "Extension files verified"
+# Verify extensions are in the correct locations
+RUN echo "=== Verifying extension locations ===" && \
+    PG_LIBDIR=$(pg_config --pkglibdir) && \
+    PG_SHAREDIR=$(pg_config --sharedir) && \
+    echo "Checking $PG_LIBDIR:" && \
+    ls -la "$PG_LIBDIR/kilobase.so" "$PG_LIBDIR/pg_failover_slots.so" && \
+    echo "Checking $PG_SHAREDIR/extension:" && \
+    ls -la "$PG_SHAREDIR/extension/kilobase"* "$PG_SHAREDIR/extension/pg_failover_slots"* && \
+    echo "Extensions verified in correct locations"
 
 ####################
 # Stage Nani:
@@ -153,13 +168,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN sed -i \
-    -e "s|^#dynamic_library_path = .*|dynamic_library_path = '/usr/local/lib/postgresql:/usr/local/postgres_extensions:\$libdir'|g" \
-    /etc/postgresql/postgresql.conf
-
-RUN sed -i \
-    -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, pg_failover_slots, kilobase'|g" \
-    /etc/postgresql/postgresql.conf
+# Configuration is handled by CNPG cluster spec, not base postgresql.conf
 
 # Verify the postgres user UID/GID from base image
 RUN echo "Postgres user info:" && \
