@@ -3,6 +3,9 @@ kind: Application
 metadata:
     name: kilobase
     namespace: argocd
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: database
 spec:
     project: default
     source:
@@ -18,4 +21,35 @@ spec:
             prune: true
         syncOptions:
             - CreateNamespace=true
-            - ServerSideApply=true 
+            - ServerSideApply=true
+            - RespectIgnoreDifferences=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 10s
+                factor: 2
+                maxDuration: 5m
+    ignoreDifferences:
+        - group: postgresql.cnpg.io
+          kind: Cluster
+          jsonPointers:
+              - /status
+              - /metadata/generation
+        - group: ''
+          kind: Pod
+          jsonPointers:
+              - /spec/containers/*/resources
+              - /metadata/labels/role
+              - /metadata/annotations
+        - group: ''
+          kind: Secret
+          jsonPointers:
+              - /data
+        - group: ''
+          kind: Service
+          jsonPointers:
+              - /spec/selector
+        - group: ''
+          kind: PersistentVolumeClaim
+          jsonPointers:
+              - /status
