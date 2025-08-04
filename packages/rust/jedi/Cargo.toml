@@ -2,7 +2,7 @@
 name = "jedi"
 authors = ["kbve", "h0lybyte"]
 version = "0.2.0"
-edition = "2024"
+edition = "2021"
 license = "MIT"
 description = "Jedi is the Juggernaut Electronic Data Interchange package. This library provides a data exchange layer extended through the holy crate."
 homepage = "https://kbve.com/application/rust/#jedi"
