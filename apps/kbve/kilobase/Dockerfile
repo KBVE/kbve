@@ -153,13 +153,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 RUN apt-get clean && \
     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 
-RUN sed -i \
-    -e "s|^#dynamic_library_path = .*|dynamic_library_path = '/usr/local/lib/postgresql:/usr/local/postgres_extensions:\$libdir'|g" \
-    /etc/postgresql/postgresql.conf
-
-RUN sed -i \
-    -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, pg_failover_slots, kilobase'|g" \
-    /etc/postgresql/postgresql.conf
+# Configuration is handled by CNPG cluster spec, not base postgresql.conf
 
 # Verify the postgres user UID/GID from base image
 RUN echo "Postgres user info:" && \
