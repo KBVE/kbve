@@ -2,7 +2,7 @@
 name = "q"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.1"
-edition = "2024"
+edition = "2021"
 license = "MIT"
 description = "Q is a Rust GDExtension crate for Godot, offering a Game Manager, Music Manager, Bevy ECS, and Tokio-powered multi-threading. It simplifies and enhances game development with efficient tools and scalable performance."
 homepage = "https://kbve.com/application/rust/"
