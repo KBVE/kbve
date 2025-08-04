@@ -109,17 +109,25 @@ COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_
 COPY --from=kilobase /app/kbve/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/lib/postgresql/${postgresql_major}/lib/
 COPY --from=kilobase /app/kbve/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/${postgresql_major}/extension/
 
+# Fix ownership and permissions for extension files
+RUN echo "Setting ownership and permissions for extension files..." && \
+    id postgres && \
+    chown postgres:postgres /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so && \
+    chown postgres:postgres /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so && \
+    find /usr/share/postgresql/${postgresql_major}/extension/ -name "kilobase*" -exec chown postgres:postgres {} \; && \
+    find /usr/share/postgresql/${postgresql_major}/extension/ -name "pg_failover_slots*" -exec chown postgres:postgres {} \; && \
+    chmod 755 /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so && \
+    chmod 755 /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so && \
+    find /usr/share/postgresql/${postgresql_major}/extension/ -name "kilobase*" -exec chmod 644 {} \; && \
+    find /usr/share/postgresql/${postgresql_major}/extension/ -name "pg_failover_slots*" -exec chmod 644 {} \;
+
 # Verify kilobase extension files exist and are accessible
-RUN echo "=== Kilobase Extension Verification ===" && \
+RUN echo "=== Extension Files Ownership and Permissions ===" && \
     ls -la /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so && \
-    ls -la /usr/share/postgresql/${postgresql_major}/extension/kilobase* && \
-    echo "=== PostgreSQL Extension Search Paths ===" && \
-    find /usr -name "*.so" -path "*postgresql*" -name "*kilobase*" 2>/dev/null || true && \
-    echo "=== Library Path Contents ===" && \
-    ls -la /usr/lib/postgresql/${postgresql_major}/lib/ | grep -E "(kilobase|pg_fail)" && \
-    echo "=== Extension Directory Contents ===" && \
-    ls -la /usr/share/postgresql/${postgresql_major}/extension/ | grep -E "(kilobase|pg_fail)" && \
-    echo "Kilobase extension files verified"
+    ls -la /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so && \
+    find /usr/share/postgresql/${postgresql_major}/extension/ -name "kilobase*" -ls && \
+    find /usr/share/postgresql/${postgresql_major}/extension/ -name "pg_failover_slots*" -ls && \
+    echo "Extension files verified"
 
 ####################
 # Stage Nani:
