@@ -24,7 +24,7 @@ metadata:
 spec:
     instances: 3
     #primaryUpdateStrategy: unsupervised
-    imageName: 'kbve/kilobase:17.4.13'
+    imageName: 'kbve/kilobase:17.4.14'
     imagePullPolicy: Always
     superuserSecret:
         name: supabase-postgres
@@ -127,7 +127,7 @@ spec:
             plan_filter,
             # Kilobase - temporarily disabled for debugging
             # kilobase,
-            pg_failover_slots,
+            # pg_failover_slots,
             pgmq
           ]
 
