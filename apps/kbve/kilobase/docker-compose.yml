@@ -16,7 +16,7 @@ services:
 
     kilobase:
         container_name: kilobase-postgres
-        image: kbve/kilobase:17.4.12
+        image: kbve/kilobase:17.4.15
         restart: unless-stopped
         ports:
             - '5432:5432'
