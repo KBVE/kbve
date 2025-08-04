@@ -45,6 +45,11 @@ COPY . .
 # Build the Kilobase PostgreSQL extension
 RUN cargo pgrx package --pg-config /usr/lib/postgresql/17/bin/pg_config --features pg17 --out-dir='./dist'
 
+# Verify the build output
+RUN ls -la ./dist/ && \
+    find ./dist/ -name "*.so" -o -name "*.control" -o -name "*.sql" | head -20 && \
+    echo "Build verification complete"
+
 ####################
 # Stage 2 - Setup Postgres PPA
 ####################
@@ -104,6 +109,11 @@ COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_
 COPY --from=kilobase /app/kbve/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/lib/postgresql/${postgresql_major}/lib/
 COPY --from=kilobase /app/kbve/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/${postgresql_major}/extension/
 
+# Verify kilobase extension files exist
+RUN ls -la /usr/lib/postgresql/${postgresql_major}/lib/kilobase.so && \
+    ls -la /usr/share/postgresql/${postgresql_major}/extension/kilobase* && \
+    echo "Kilobase extension files verified"
+
 ####################
 # Stage Nani:
 ####################
@@ -136,21 +146,9 @@ RUN sed -i \
     -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, pg_failover_slots, kilobase'|g" \
     /etc/postgresql/postgresql.conf
 
-RUN if id 26 >/dev/null 2>&1; then \
-        existing_user=$(id -nu 26); \
-        echo "UID 26 is used by: $existing_user"; \
-        if [ "$existing_user" != "postgres" ]; then \
-            usermod -u 2026 "$existing_user" || true; \
-        fi; \
-    fi && \
-    if getent group 26 >/dev/null 2>&1; then \
-        existing_group=$(getent group 26 | cut -d: -f1); \
-        echo "GID 26 is used by: $existing_group"; \
-        if [ "$existing_group" != "postgres" ]; then \
-            groupmod -g 2026 "$existing_group" || true; \
-        fi; \
-    fi && \
-    usermod -u 26 postgres && \
-    groupmod -g 26 postgres
+# Verify the postgres user UID/GID from base image
+RUN echo "Postgres user info:" && \
+    id postgres && \
+    echo "Postgres UID/GID verified"
 
-USER 26
+USER postgres
