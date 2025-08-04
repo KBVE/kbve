@@ -131,21 +131,21 @@
           ],
           "load": true,
           "tags": [
-            "17.4.14",
+            "17.4.15",
             "17.4"
           ]
         },
         "configurations": {
           "local": {
             "tags": [
-              "17.4.14",
+              "17.4.15",
               "17.4"
             ],
             "push": false
           },
           "production": {
             "tags": [
-              "17.4.14",
+              "17.4.15",
               "17.4"
             ],
             "push": true,
