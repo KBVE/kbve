@@ -101,12 +101,21 @@ RUN chown -R postgres:postgres /usr/local/postgres_extensions/ && \
     chmod -R 755 /usr/local/postgres_extensions/
 
 
-# Copy extensions to the CORRECT PostgreSQL paths
-RUN echo "=== Copying extensions to correct PostgreSQL paths ===" && \
+# Debug PostgreSQL paths and copy extensions
+RUN echo "=== PostgreSQL Configuration Debug ===" && \
+    which pg_config && \
+    pg_config --version && \
+    echo "BINDIR: $(pg_config --bindir)" && \
+    echo "LIBDIR: $(pg_config --libdir)" && \
+    echo "PKGLIBDIR: $(pg_config --pkglibdir)" && \
+    echo "SHAREDIR: $(pg_config --sharedir)" && \
+    echo "SYSCONFDIR: $(pg_config --sysconfdir)" && \
+    echo "=== Current PostgreSQL library paths ===" && \
+    ls -la /nix/store/*/lib/postgresql/ 2>/dev/null || echo "No /nix/store PostgreSQL libs found" && \
+    ls -la /usr/lib/postgresql/*/lib/ 2>/dev/null || echo "No /usr/lib PostgreSQL libs found" && \
+    echo "=== Preparing directories ===" && \
     PG_LIBDIR=$(pg_config --pkglibdir) && \
     PG_SHAREDIR=$(pg_config --sharedir) && \
-    echo "PostgreSQL lib directory: $PG_LIBDIR" && \
-    echo "PostgreSQL share directory: $PG_SHAREDIR" && \
     mkdir -p "$PG_LIBDIR" && \
     mkdir -p "$PG_SHAREDIR/extension"
 
@@ -116,7 +125,7 @@ COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_
 RUN PG_LIBDIR=$(pg_config --pkglibdir) && \
     PG_SHAREDIR=$(pg_config --sharedir) && \
     cp /tmp/pg_failover_slots.so "$PG_LIBDIR/" && \
-    cp /tmp/pg_failover_slots* "$PG_SHAREDIR/extension/" && \
+    cp /tmp/pg_failover_slots.control /tmp/pg_failover_slots*.sql "$PG_SHAREDIR/extension/" 2>/dev/null || true && \
     chown postgres:postgres "$PG_LIBDIR/pg_failover_slots.so" && \
     chown postgres:postgres "$PG_SHAREDIR/extension/pg_failover_slots"* && \
     chmod 755 "$PG_LIBDIR/pg_failover_slots.so" && \
@@ -128,7 +137,7 @@ COPY --from=kilobase /app/kbve/kilobase/dist/usr/share/postgresql/${postgresql_m
 RUN PG_LIBDIR=$(pg_config --pkglibdir) && \
     PG_SHAREDIR=$(pg_config --sharedir) && \
     cp /tmp/kilobase.so "$PG_LIBDIR/" && \
-    cp /tmp/kilobase* "$PG_SHAREDIR/extension/" && \
+    cp /tmp/kilobase.control /tmp/kilobase*.sql "$PG_SHAREDIR/extension/" 2>/dev/null || true && \
     chown postgres:postgres "$PG_LIBDIR/kilobase.so" && \
     chown postgres:postgres "$PG_SHAREDIR/extension/kilobase"* && \
     chmod 755 "$PG_LIBDIR/kilobase.so" && \
