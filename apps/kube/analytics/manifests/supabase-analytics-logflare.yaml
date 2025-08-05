@@ -126,16 +126,27 @@ spec:
             memory: "1Gi"
             cpu: "1000m"
             
+        volumeMounts:
+        - name: tzdata-cache
+          mountPath: /opt/app/rel/logflare/lib/tzdata-1.1.2/priv
+        
         securityContext:
           runAsNonRoot: true
           runAsUser: 1000
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
+          readOnlyRootFilesystem: true
           capabilities:
             drop:
             - ALL
           seccompProfile:
             type: RuntimeDefault
+      
+      volumes:
+      - name: tzdata-cache
+        emptyDir: {}
+      
+      securityContext:
+        fsGroup: 1000
 
 ---
 apiVersion: v1
