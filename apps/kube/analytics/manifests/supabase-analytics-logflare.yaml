@@ -54,6 +54,16 @@ spec:
         - name: LOGFLARE_FEATURE_FLAG_OVERRIDE
           value: "multibackend=true"
         
+        # Disable BigQuery backend - use PostgreSQL only
+        - name: LOGFLARE_GOOGLE_PROJECT_ID
+          value: ""
+        - name: LOGFLARE_GOOGLE_PROJECT_NUMBER
+          value: ""
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: ""
+        - name: LOGFLARE_BACKEND
+          value: "postgres"
+        
         # Required encryption key for sensitive data
         - name: LOGFLARE_DB_ENCRYPTION_KEY
           valueFrom:
