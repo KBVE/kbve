@@ -26,6 +26,11 @@ env:
   
   # Logging
   log_level: "info"
+
+# Map secret keys to environment variables Kong expects
+extraEnvFrom:
+- secretRef:
+    name: supabase-jwt
   
 # Service configuration  
 proxy:
