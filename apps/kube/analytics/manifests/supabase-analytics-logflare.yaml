@@ -99,7 +99,7 @@ spec:
         args:
         - |
           export POSTGRES_BACKEND_URL=$(cat /shared/postgres_backend_url)
-          exec /app/bin/logflare start
+          exec /opt/app/rel/logflare/bin/logflare start
               
         # Health check
         livenessProbe:
