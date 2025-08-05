@@ -17,32 +17,6 @@ spec:
         app: supabase-analytics
         component: analytics
     spec:
-      initContainers:
-      - name: url-builder
-        image: busybox:1.36
-        command: ["sh", "-c"]
-        args:
-        - |
-          echo "postgresql://supabase_admin:$DB_PASSWORD@supabase-cluster-rw:5432/_supabase" > /shared/postgres_backend_url
-        env:
-        - name: DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: supabase-postgres
-              key: password
-        volumeMounts:
-        - name: shared-data
-          mountPath: /shared
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 1000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          capabilities:
-            drop:
-            - ALL
-          seccompProfile:
-            type: RuntimeDefault
       containers:
       - name: logflare
         image: supabase/logflare:1.14.2
@@ -91,15 +65,14 @@ spec:
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: supabase-postgres
+              name: supabase-superuser
               key: password
         
-        # PostgreSQL backend URL will be loaded from file by entrypoint script
         command: ["/bin/sh", "-c"]
         args:
         - |
-          export POSTGRES_BACKEND_URL=$(cat /shared/postgres_backend_url)
-          exec /opt/app/rel/logflare/bin/logflare start
+          export POSTGRES_BACKEND_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOSTNAME}:${DB_PORT}/${DB_DATABASE}"
+          /opt/app/rel/logflare/bin/logflare start
               
         # Health check
         livenessProbe:
@@ -120,11 +93,6 @@ spec:
           timeoutSeconds: 5
           failureThreshold: 3
           
-        volumeMounts:
-        - name: shared-data
-          mountPath: /shared
-          readOnly: true
-        
         resources:
           requests:
             memory: "256Mi"
@@ -143,10 +111,6 @@ spec:
             - ALL
           seccompProfile:
             type: RuntimeDefault
-      
-      volumes:
-      - name: shared-data
-        emptyDir: {}
 
 ---
 apiVersion: v1
