@@ -128,8 +128,7 @@ spec:
             plan_filter,
             # Kilobase
             kilobase,
-            pg_failover_slots,
-            pgmq
+            pg_failover_slots
           ]
 
 
