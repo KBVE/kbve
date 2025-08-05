@@ -13,6 +13,7 @@ resources:
   - argocd/application.yaml
   - namespace/application.yaml
   - cnpg/application.yaml
+  - cnpg/plugins-application.yaml
   - metallb/application.yaml
   - ingress/application.yaml
   - cert-manager/application.yaml

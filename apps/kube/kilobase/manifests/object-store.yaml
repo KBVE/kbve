@@ -1,0 +1,18 @@
+apiVersion: barmancloud.cnpg.io/v1
+kind: ObjectStore
+metadata:
+  name: kilobase-backup-store
+  namespace: kilobase
+spec:
+  retentionPolicy: '30d'
+  configuration:
+    destinationPath: s3://kilobase/barman/backup
+    s3Credentials:
+      accessKeyId:
+        name: kilobase-s3-secret
+        key: keyId
+      secretAccessKey:
+        name: kilobase-s3-secret
+        key: accessKey
+    wal:
+      compression: gzip
