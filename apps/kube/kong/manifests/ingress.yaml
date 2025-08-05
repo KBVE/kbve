@@ -19,7 +19,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: kong-proxy
+            name: kong-kong-proxy
             port:
               number: 80
   - host: supabase.kbve.com
@@ -29,7 +29,7 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: kong-proxy
+            name: kong-kong-proxy
             port:
               number: 80
   tls:
