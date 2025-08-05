@@ -38,7 +38,7 @@ spec:
         - name: SUPABASE_URL
           value: "http://kong:8000"
         - name: SUPABASE_PUBLIC_URL
-          value: "https://api.kbve.com"
+          value: "https://supabase.kbve.com"
         
         # Analytics configuration
         - name: LOGFLARE_URL
@@ -72,8 +72,8 @@ spec:
         - name: LOGFLARE_PRIVATE_ACCESS_TOKEN
           valueFrom:
             secretKeyRef:
-              name: supabase-jwt
-              key: secret  # Using JWT secret as placeholder
+              name: logflare-config
+              key: private-access-token
               
         # Health check
         livenessProbe:

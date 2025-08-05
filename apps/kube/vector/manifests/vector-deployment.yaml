@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supabase-vector
+  namespace: kilobase
+  labels:
+    app: supabase-vector
+    component: vector
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: supabase-vector
+  template:
+    metadata:
+      labels:
+        app: supabase-vector
+        component: vector
+    spec:
+      containers:
+      - name: vector
+        image: timberio/vector:0.28.1-alpine
+        ports:
+        - containerPort: 9001
+          name: api
+        env:
+        - name: LOGFLARE_PUBLIC_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logflare-config
+              key: public-access-token
+        command: ["--config", "/etc/vector/vector.yml"]
+        volumeMounts:
+        - name: vector-config
+          mountPath: /etc/vector
+          readOnly: true
+        - name: var-log
+          mountPath: /var/log
+          readOnly: true
+        - name: var-lib-docker-containers
+          mountPath: /var/lib/docker/containers
+          readOnly: true
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 9001
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 9001
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        restartPolicy: Always
+      
+      volumes:
+      - name: vector-config
+        configMap:
+          name: vector-config
+      - name: var-log
+        hostPath:
+          path: /var/log
+      - name: var-lib-docker-containers
+        hostPath:
+          path: /var/lib/docker/containers
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vector
+  namespace: kilobase
+  labels:
+    app: supabase-vector
+    component: vector
+spec:
+  type: ClusterIP
+  ports:
+  - port: 9001
+    targetPort: 9001
+    protocol: TCP
+    name: api
+  selector:
+    app: supabase-vector
