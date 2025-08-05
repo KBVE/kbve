@@ -106,13 +106,9 @@ securityContext:
   runAsGroup: 1000
 
 # Volume mounts for Kong configuration
-secretVolumes:
-- kong-config
-
 extraConfigMaps:
 - name: kong-config
   mountPath: /kong
-  subPath: kong.yml
 
 # Monitoring
 serviceMonitor:
