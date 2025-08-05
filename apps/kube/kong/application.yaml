@@ -1,0 +1,37 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: kong
+    namespace: argocd
+spec:
+    project: default
+    sources:
+        - repoURL: https://charts.konghq.com
+          targetRevision: 2.44.0
+          chart: kong
+          helm:
+              releaseName: kong
+              valueFiles:
+                  - $values/apps/kube/kong/manifests/values.yaml
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: kilobase
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - Replace=true
+            - Force=true
+            - RespectIgnoreDifferences=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m
