@@ -15,10 +15,10 @@ data:
       - username: DASHBOARD
       - username: anon
         keyauth_credentials:
-          - key: $SUPABASE_ANON_KEY
+          - key: ${anon-key}
       - username: service_role
         keyauth_credentials:
-          - key: $SUPABASE_SERVICE_KEY
+          - key: ${service-key}
 
     ###
     ### Access Control List
@@ -30,12 +30,12 @@ data:
         group: admin
 
     ###
-    ### Dashboard credentials
+    ### Dashboard credentials  
     ###
     basicauth_credentials:
       - consumer: DASHBOARD
-        username: $DASHBOARD_USERNAME
-        password: $DASHBOARD_PASSWORD
+        username: dashboard
+        password: ${secret}
 
     ###
     ### API Routes
