@@ -14,6 +14,8 @@ spec:
       creationTimestamp: null
       name: supabase-postgres
       namespace: kilobase
+      labels:
+        cnpg.io/reload: "true"
     type: kubernetes.io/basic-auth
 ---
 apiVersion: bitnami.com/v1alpha1
@@ -30,4 +32,6 @@ spec:
       creationTimestamp: null
       name: supabase-superuser
       namespace: kilobase
+      labels:
+        cnpg.io/reload: "true"
     type: Opaque
