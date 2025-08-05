@@ -19,7 +19,7 @@ spec:
     spec:
       containers:
       - name: logflare
-        image: supabase/logflare:1.14.2
+        image: supabase/logflare:1.15.3
         ports:
         - containerPort: 4000
           name: http
@@ -61,6 +61,18 @@ spec:
               name: logflare-config
               key: encryption-key
         
+        # Access tokens for single-tenant mode
+        - name: LOGFLARE_PUBLIC_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logflare-config
+              key: public-access-token
+        - name: LOGFLARE_PRIVATE_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logflare-config
+              key: private-access-token
+        
         # Password from secret
         - name: DB_PASSWORD
           valueFrom:
@@ -68,11 +80,7 @@ spec:
               name: supabase-superuser
               key: password
         
-        command: ["/bin/sh", "-c"]
-        args:
-        - |
-          export POSTGRES_BACKEND_URL="postgresql://${DB_USERNAME}:${DB_PASSWORD}@${DB_HOSTNAME}:${DB_PORT}/${DB_DATABASE}"
-          /opt/app/rel/logflare/bin/logflare start
+        # Remove POSTGRES_BACKEND_URL and let Logflare use DB_* variables
               
         # Health check
         livenessProbe:
