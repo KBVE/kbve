@@ -105,9 +105,47 @@ securityContext:
   runAsUser: 1000
   runAsGroup: 1000
 
+# Init containers for config templating
+initContainers:
+- name: config-templater
+  image: busybox:1.36
+  command: ["sh", "-c"]
+  args:
+  - |
+    envsubst < /kong-template/kong.yml > /kong/kong.yml
+  env:
+  - name: anon_key
+    valueFrom:
+      secretKeyRef:
+        name: supabase-jwt
+        key: anon-key
+  - name: service_key
+    valueFrom:
+      secretKeyRef:
+        name: supabase-jwt
+        key: service-key
+  - name: secret
+    valueFrom:
+      secretKeyRef:
+        name: supabase-jwt
+        key: secret
+  volumeMounts:
+  - name: kong-config-template
+    mountPath: /kong-template
+  - name: kong-config-processed
+    mountPath: /kong
+
 # Volume mounts for Kong configuration
 extraConfigMaps:
 - name: kong-config
+  mountPath: /kong-template
+
+extraVolumes:
+- name: kong-config-processed
+  emptyDir: {}
+
+extraVolumeMounts:
+- name: kong-config-processed
   mountPath: /kong
 
 # Monitoring
