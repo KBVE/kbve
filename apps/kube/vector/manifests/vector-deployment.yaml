@@ -73,8 +73,8 @@ spec:
             - ALL
           seccompProfile:
             type: RuntimeDefault
-        restartPolicy: Always
       
+      restartPolicy: Always
       volumes:
       - name: vector-config
         configMap:
