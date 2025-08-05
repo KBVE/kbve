@@ -17,6 +17,22 @@ spec:
         app: supabase-analytics
         component: analytics
     spec:
+      initContainers:
+      - name: url-builder
+        image: busybox:1.36
+        command: ["sh", "-c"]
+        args:
+        - |
+          echo "postgresql://supabase_admin:$DB_PASSWORD@supabase-cluster-rw:5432/_supabase" > /shared/postgres_backend_url
+        env:
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: supabase-postgres
+              key: password
+        volumeMounts:
+        - name: shared-data
+          mountPath: /shared
       containers:
       - name: logflare
         image: supabase/logflare:1.14.2
@@ -46,15 +62,20 @@ spec:
         - name: LOGFLARE_SUPABASE_MODE
           value: "true"
         - name: LOGFLARE_MIN_CLUSTER_SIZE
-          value: "3"
+          value: "1"
         
         # PostgreSQL backend for analytics data
-        - name: POSTGRES_BACKEND_URL
-          value: "postgresql://supabase_admin:$(DB_PASSWORD)@supabase-cluster-rw:5432/_supabase"
         - name: POSTGRES_BACKEND_SCHEMA
           value: "_analytics"
         - name: LOGFLARE_FEATURE_FLAG_OVERRIDE
           value: "multibackend=true"
+        
+        # Required encryption key for sensitive data
+        - name: LOGFLARE_DB_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: logflare-config
+              key: encryption-key
         
         # Password from secret
         - name: DB_PASSWORD
@@ -62,6 +83,13 @@ spec:
             secretKeyRef:
               name: supabase-postgres
               key: password
+        
+        # PostgreSQL backend URL will be loaded from file by entrypoint script
+        command: ["/bin/sh", "-c"]
+        args:
+        - |
+          export POSTGRES_BACKEND_URL=$(cat /shared/postgres_backend_url)
+          exec /app/bin/logflare start
               
         # Health check
         livenessProbe:
@@ -82,6 +110,11 @@ spec:
           timeoutSeconds: 5
           failureThreshold: 3
           
+        volumeMounts:
+        - name: shared-data
+          mountPath: /shared
+          readOnly: true
+        
         resources:
           requests:
             memory: "256Mi"
@@ -94,10 +127,14 @@ spec:
           runAsNonRoot: true
           runAsUser: 1000
           allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
+          readOnlyRootFilesystem: false
           capabilities:
             drop:
             - ALL
+      
+      volumes:
+      - name: shared-data
+        emptyDir: {}
 
 ---
 apiVersion: v1
