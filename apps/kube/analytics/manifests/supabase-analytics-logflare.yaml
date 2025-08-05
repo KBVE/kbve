@@ -33,6 +33,16 @@ spec:
         volumeMounts:
         - name: shared-data
           mountPath: /shared
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
       containers:
       - name: logflare
         image: supabase/logflare:1.14.2
@@ -131,6 +141,8 @@ spec:
           capabilities:
             drop:
             - ALL
+          seccompProfile:
+            type: RuntimeDefault
       
       volumes:
       - name: shared-data
