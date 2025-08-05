@@ -19,24 +19,15 @@ spec:
     spec:
       initContainers:
       - name: tzdata-init
-        image: busybox:1.36
+        image: supabase/logflare:1.15.3
         command:
         - sh
         - -c
         - |
-          echo "Downloading tzdata..."
-          wget -O /tmp/tzdata.tar.gz https://github.com/evansiroky/timezone-boundary-builder/releases/download/2023c/timezones-with-oceans.geojson.zip || \
-          wget -O /tmp/tzdata.tar.gz https://data.iana.org/time-zones/releases/tzdata2023c.tar.gz || \
-          (echo "Using fallback method..." && \
-           mkdir -p /tzdata-cache && \
-           echo '{"version":"2023c"}' > /tzdata-cache/latest_remote_poll.json && \
-           echo "Timezone data initialized")
-          if [ -f /tmp/tzdata.tar.gz ]; then
-            mkdir -p /tzdata-cache
-            cd /tzdata-cache
-            tar -xzf /tmp/tzdata.tar.gz 2>/dev/null || echo "Extracted tzdata"
-          fi
+          echo "Copying tzdata from base image..."
+          cp -r /opt/app/rel/logflare/lib/tzdata-1.1.2/priv/* /tzdata-cache/
           echo "Tzdata init completed"
+          ls -la /tzdata-cache/
         volumeMounts:
         - name: tzdata-cache
           mountPath: /tzdata-cache
