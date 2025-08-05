@@ -40,7 +40,7 @@ spec:
         - name: PG_META_DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: supabase-postgres
+              name: supabase-superuser
               key: password
               
         # Health check
