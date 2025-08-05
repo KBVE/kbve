@@ -62,14 +62,15 @@ spec:
       
       # Template processing init container
       - name: config-templater
-        image: busybox:1.36
+        image: dibi/envsubst:1
         command: ["sh", "-c"]
         args:
         - |
           echo "Processing Kong configuration template..."
           envsubst < /kong-template/kong.yml > /kong/kong.yml
           echo "Template processing completed"
-          cat /kong/kong.yml
+          echo "First 50 lines of processed config:"
+          head -50 /kong/kong.yml
         env:
         - name: anon_key
           valueFrom:
