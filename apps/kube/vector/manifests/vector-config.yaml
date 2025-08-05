@@ -13,10 +13,9 @@ data:
     sources:
       kubernetes_logs:
         type: kubernetes_logs
+        self_node_name: "${VECTOR_SELF_NODE_NAME}"
         namespace_include_regex: "^kilobase$"
-        exclude:
-          pod_labels:
-            "app": "supabase-vector"
+        extra_label_selector: "app!=supabase-vector"
 
     transforms:
       project_logs:
@@ -40,13 +39,16 @@ data:
         inputs:
           - project_logs
         route:
-          kong: '.appname == "supabase-kong"'
-          auth: '.appname == "supabase-auth"'
-          rest: '.appname == "supabase-rest"'
+          kong: '.appname == "supabase-kong" || .appname == "kong-kong"'
+          auth: '.appname == "supabase-auth" || .appname == "gotrue"'
+          rest: '.appname == "supabase-rest" || .appname == "postgrest"'
           realtime: '.appname == "supabase-realtime"'
           storage: '.appname == "supabase-storage"'
           functions: '.appname == "supabase-functions"'
-          db: '.appname == "supabase-db"'
+          db: '.appname == "supabase-db" || .appname == "postgres"'
+          analytics: '.appname == "logflare" || .appname == "supabase-analytics"'
+          meta: '.appname == "postgres-meta" || .appname == "supabase-meta"'
+          studio: '.appname == "studio" || .appname == "supabase-studio"'
       kong_logs:
         type: remap
         inputs:
@@ -157,6 +159,36 @@ data:
               .metadata.parsed.error_severity = "log"
           }
           .metadata.parsed.error_severity = upcase!(.metadata.parsed.error_severity)
+      
+      analytics_logs:
+        type: remap
+        inputs:
+          - router.analytics
+        source: |-
+          .metadata.service = "analytics"
+          parsed, err = parse_json(.event_message)
+          if err == null {
+              .metadata = merge!(.metadata, parsed)
+          }
+      
+      meta_logs:
+        type: remap
+        inputs:
+          - router.meta
+        source: |-
+          .metadata.service = "meta"
+          parsed, err = parse_json(.event_message)
+          if err == null {
+              .metadata = merge!(.metadata, parsed)
+          }
+      
+      studio_logs:
+        type: remap
+        inputs:
+          - router.studio
+        source: |-
+          .metadata.service = "studio"
+          .metadata.host = .project
 
     sinks:
       logflare_auth:
@@ -244,3 +276,42 @@ data:
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
         uri: 'http://analytics:4000/api/logs?source_name=cloudflare.logs.prod'
+      
+      logflare_analytics:
+        type: 'http'
+        inputs:
+          - analytics_logs
+        encoding:
+          codec: 'json'
+        method: 'post'
+        request:
+          retry_max_duration_secs: 10
+          headers:
+            x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
+        uri: 'http://analytics:4000/api/logs?source_name=analytics.logs.prod'
+      
+      logflare_meta:
+        type: 'http'
+        inputs:
+          - meta_logs
+        encoding:
+          codec: 'json'
+        method: 'post'
+        request:
+          retry_max_duration_secs: 10
+          headers:
+            x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
+        uri: 'http://analytics:4000/api/logs?source_name=meta.logs.prod'
+      
+      logflare_studio:
+        type: 'http'
+        inputs:
+          - studio_logs
+        encoding:
+          codec: 'json'
+        method: 'post'
+        request:
+          retry_max_duration_secs: 10
+          headers:
+            x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
+        uri: 'http://analytics:4000/api/logs?source_name=studio.logs.prod'
