@@ -55,14 +55,21 @@ spec:
           value: "multibackend=true"
         
         # Disable BigQuery backend - use PostgreSQL only
-        - name: LOGFLARE_GOOGLE_PROJECT_ID
-          value: ""
-        - name: LOGFLARE_GOOGLE_PROJECT_NUMBER
-          value: ""
-        - name: GOOGLE_APPLICATION_CREDENTIALS
-          value: ""
+        # - name: LOGFLARE_GOOGLE_PROJECT_ID
+        #   value: ""
+        # - name: LOGFLARE_GOOGLE_PROJECT_NUMBER
+        #   value: ""
+        # - name: GOOGLE_APPLICATION_CREDENTIALS
+        #   value: ""
         - name: LOGFLARE_BACKEND
           value: "postgres"
+        
+        # PostgreSQL backend URL from sealed secret
+        - name: POSTGRES_BACKEND_URL
+          valueFrom:
+            secretKeyRef:
+              name: logflare-postgres
+              key: postgres-backend-url
         
         # Required encryption key for sensitive data
         - name: LOGFLARE_DB_ENCRYPTION_KEY

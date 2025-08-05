@@ -1,0 +1,16 @@
+---
+apiVersion: bitnami.com/v1alpha1
+kind: SealedSecret
+metadata:
+  creationTimestamp: null
+  name: logflare-postgres
+  namespace: kilobase
+spec:
+  encryptedData:
+    postgres-backend-url: AgA64z0tpE38oEw65ZbT0gGszmLKoV4ChOtcypj8C9Jy97wp4+cMYTcs/qwwvKS8MpN+1bvE6i23FntgoKhf4/YrqAmvqhb6D/O0KqUranTUH1tvL+ob8Yo7xx2ufWejO4ceqZMChO+xbSCR8qCGNXLcTsjFmDIifv6KG5x753G6uK3pWJiH2gc+sUxaMNd4CByU2XDptW8jxxjzi4Doj87/AIn8+i8S0vVCI3b+SEzfoUZuTV1c8OyV7Kr+ZcsAi7mlOaTtmkt56AQEzY6jqMfR8ijIbkdYR8pajF/HE3j/WgYYzupH0jT1rNQsOS0XXkRs+sklojgyzPHri5hsQUyR4ys4q9TDPKzJn86UVU5dldQTls2y3cX16vYnJhtdB98oxbAWmj9wWT2EYE3FvVeljP6AtL6TYpuwZ6g02HQj/ICHbHmEuPxktlUI/mT0J55euPjJL1RqMFa3uWCvH+SXVIcRJC3wd4PyJik+PIi1aOIEsKoZaqpNqqyn4Tr9aeU+6rNh1PuFsDOwBETJrxdzfeav2XsBZwyPduXZq7pVptWbjAQBVYrz+j61SC55Up+6FBEYMB1eZdhMPjm328c6GHnTzcLN/MErNfss8Nl8mq1b87g6Sj+AO6uzmNSkEK3YO1GwyTybJxyoRCZymJhWunniyzSMvauibQXa/9ndIFCAxD6UTEdOkSJj/TRgFYi5kXpwVyoeKxyqv+cNlcUjSMxmIlEDdundaP+tQswxDwNoW5TW+G4gRikoATZp70K0kMkHaly9MznHcWClVaYUVgi7Mwo4qu075+bJYIHFZ1lWpLriOzQCl7KTCXE=
+  template:
+    metadata:
+      creationTimestamp: null
+      name: logflare-postgres
+      namespace: kilobase
+    type: Opaque
