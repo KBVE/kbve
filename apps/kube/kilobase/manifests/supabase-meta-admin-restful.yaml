@@ -1,0 +1,99 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supabase-meta
+  namespace: kilobase
+  labels:
+    app: supabase-meta
+    component: meta
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: supabase-meta
+  template:
+    metadata:
+      labels:
+        app: supabase-meta
+        component: meta
+    spec:
+      containers:
+      - name: postgres-meta
+        image: supabase/postgres-meta:v0.91.0
+        ports:
+        - containerPort: 8080
+          name: http
+        env:
+        # Basic configuration
+        - name: PG_META_PORT
+          value: "8080"
+        - name: PG_META_DB_HOST
+          value: "supabase-cluster-rw"
+        - name: PG_META_DB_PORT
+          value: "5432"
+        - name: PG_META_DB_NAME
+          value: "supabase"
+        - name: PG_META_DB_USER
+          value: "supabase_admin"
+        
+        # Password from secret
+        - name: PG_META_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: supabase-postgres
+              key: password
+              
+        # Health check
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+          
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8080
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+            
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: meta
+  namespace: kilobase
+  labels:
+    app: supabase-meta
+    component: meta
+spec:
+  type: ClusterIP
+  ports:
+  - port: 8080
+    targetPort: 8080
+    protocol: TCP
+    name: http
+  selector:
+    app: supabase-meta

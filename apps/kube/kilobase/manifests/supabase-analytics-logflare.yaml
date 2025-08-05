@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supabase-analytics
+  namespace: kilobase
+  labels:
+    app: supabase-analytics
+    component: analytics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: supabase-analytics
+  template:
+    metadata:
+      labels:
+        app: supabase-analytics
+        component: analytics
+    spec:
+      containers:
+      - name: logflare
+        image: supabase/logflare:1.14.2
+        ports:
+        - containerPort: 4000
+          name: http
+        env:
+        # Basic Logflare configuration
+        - name: LOGFLARE_NODE_HOST
+          value: "127.0.0.1"
+        
+        # Database configuration for metadata
+        - name: DB_USERNAME
+          value: "supabase_admin"
+        - name: DB_DATABASE
+          value: "_supabase"
+        - name: DB_HOSTNAME
+          value: "supabase-cluster-rw"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_SCHEMA
+          value: "_analytics"
+        
+        # Supabase mode configuration
+        - name: LOGFLARE_SINGLE_TENANT
+          value: "true"
+        - name: LOGFLARE_SUPABASE_MODE
+          value: "true"
+        - name: LOGFLARE_MIN_CLUSTER_SIZE
+          value: "3"
+        
+        # PostgreSQL backend for analytics data
+        - name: POSTGRES_BACKEND_URL
+          value: "postgresql://supabase_admin:$(DB_PASSWORD)@supabase-cluster-rw:5432/_supabase"
+        - name: POSTGRES_BACKEND_SCHEMA
+          value: "_analytics"
+        - name: LOGFLARE_FEATURE_FLAG_OVERRIDE
+          value: "multibackend=true"
+        
+        # Password from secret
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: supabase-postgres
+              key: password
+              
+        # Health check
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+          
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+            
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics
+  namespace: kilobase
+  labels:
+    app: supabase-analytics
+    component: analytics
+spec:
+  type: ClusterIP
+  ports:
+  - port: 4000
+    targetPort: 4000
+    protocol: TCP
+    name: http
+  selector:
+    app: supabase-analytics
