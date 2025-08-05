@@ -3035,7 +3035,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.6.0",
  "hyper-util",
- "jedi 0.2.0 (git+https://github.com/KBVE/kbve.git?rev=c13ad2e83ba5910bf2d36759049e7b9740d6edce)",
+ "jedi 0.2.0",
  "papaya 0.2.3",
  "prost",
  "prost-build",
@@ -5342,53 +5342,6 @@ dependencies = [
 [[package]]
 name = "jedi"
 version = "0.2.0"
-dependencies = [
- "ammonia 4.1.1",
- "async-trait",
- "axum 0.8.4",
- "axum-extra 0.10.1",
- "bb8",
- "bb8-postgres",
- "bitflags 2.9.1",
- "bytes",
- "bytes-utils",
- "chrono",
- "crossbeam",
- "dashmap 6.1.0",
- "flexbuffers",
- "fred",
- "futures-util",
- "http-body-util",
- "hyper 1.6.0",
- "hyper-util",
- "once_cell",
- "papaya 0.2.3",
- "prost",
- "prost-types",
- "regex",
- "reqwest 0.12.22",
- "rustc-hash 2.1.1",
- "serde",
- "serde_json",
- "thiserror 2.0.12",
- "tokio",
- "tokio-postgres",
- "tonic",
- "tonic-build",
- "tonic-health",
- "tonic-reflection",
- "tower 0.5.2",
- "tower-http 0.6.6",
- "tracing",
- "tracing-subscriber",
- "twitch-irc",
- "ulid",
-]
-
-[[package]]
-name = "jedi"
-version = "0.2.0"
-source = "git+https://github.com/KBVE/kbve.git?rev=c13ad2e83ba5910bf2d36759049e7b9740d6edce#c13ad2e83ba5910bf2d36759049e7b9740d6edce"
 dependencies = [
  "ammonia 4.1.1",
  "async-trait",
