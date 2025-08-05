@@ -1,5 +1,5 @@
 apiVersion: apps/v1
-kind: Deployment
+kind: DaemonSet
 metadata:
   name: supabase-vector
   namespace: kilobase
@@ -7,7 +7,6 @@ metadata:
     app: supabase-vector
     component: vector
 spec:
-  replicas: 1
   selector:
     matchLabels:
       app: supabase-vector
@@ -17,25 +16,30 @@ spec:
         app: supabase-vector
         component: vector
     spec:
+      serviceAccountName: vector
       containers:
       - name: vector
-        image: timberio/vector:0.28.1-alpine
+        image: timberio/vector:0.48.0-alpine
         ports:
         - containerPort: 9001
           name: api
         env:
+        - name: VECTOR_SELF_NODE_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: spec.nodeName
         - name: LOGFLARE_PUBLIC_ACCESS_TOKEN
           valueFrom:
             secretKeyRef:
               name: logflare-config
               key: public-access-token
-        command: ["--config", "/etc/vector/vector.yml"]
+        command: ["/usr/local/bin/vector", "--config", "/etc/vector/vector.yml"]
         volumeMounts:
         - name: vector-config
           mountPath: /etc/vector
           readOnly: true
-        - name: var-log
-          mountPath: /var/log
+        - name: var-log-pods
+          mountPath: /var/log/pods
           readOnly: true
         - name: var-lib-docker-containers
           mountPath: /var/lib/docker/containers
@@ -58,11 +62,11 @@ spec:
           failureThreshold: 3
         resources:
           requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
+            memory: "64Mi"
             cpu: "500m"
+          limits:
+            memory: "1024Mi"
+            cpu: "6000m"
         securityContext:
           runAsNonRoot: true
           runAsUser: 1000
@@ -79,9 +83,9 @@ spec:
       - name: vector-config
         configMap:
           name: vector-config
-      - name: var-log
+      - name: var-log-pods
         hostPath:
-          path: /var/log
+          path: /var/log/pods
       - name: var-lib-docker-containers
         hostPath:
           path: /var/lib/docker/containers
