@@ -61,6 +61,8 @@ spec:
               comment: 'Supabase Admin'
               login: true
               superuser: true
+              connectionLimit: -1
+              inherit: true
               passwordSecret:
                   name: supabase-superuser
               inRoles:
@@ -143,6 +145,7 @@ spec:
 
     plugins:
         - name: barman-cloud.cloudnative-pg.io
+          enabled: true
           isWALArchiver: true
           parameters:
               barmanObjectName: kilobase-backup-store
