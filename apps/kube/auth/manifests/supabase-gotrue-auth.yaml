@@ -36,7 +36,10 @@ spec:
         - name: GOTRUE_DB_DRIVER
           value: "postgres"
         - name: GOTRUE_DB_DATABASE_URL
-          value: "postgres://supabase_auth_admin:$(POSTGRES_PASSWORD)@supabase-cluster-rw:5432/supabase"
+          valueFrom:
+            secretKeyRef:
+              name: gotrue-database
+              key: database-url
         
         # Site configuration - hardcoded for now
         - name: GOTRUE_SITE_URL
