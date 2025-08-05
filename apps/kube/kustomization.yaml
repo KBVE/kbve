@@ -28,3 +28,4 @@ resources:
   - meta/application.yaml
   - analytics/application.yaml
   - studio/application.yaml
+  - vector/application.yaml
