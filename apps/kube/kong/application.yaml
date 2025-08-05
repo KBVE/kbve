@@ -5,20 +5,10 @@ metadata:
     namespace: argocd
 spec:
     project: default
-    sources:
-        - repoURL: https://charts.konghq.com
-          targetRevision: 2.44.0
-          chart: kong
-          helm:
-              releaseName: kong
-              valueFiles:
-                  - $values/apps/kube/kong/manifests/values.yaml
-        - repoURL: https://github.com/kbve/kbve
-          targetRevision: main
-          ref: values
-        - repoURL: https://github.com/kbve/kbve
-          targetRevision: main
-          path: apps/kube/kong/manifests
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: main
+        path: apps/kube/kong/manifests
     destination:
         server: https://kubernetes.default.svc
         namespace: kilobase
