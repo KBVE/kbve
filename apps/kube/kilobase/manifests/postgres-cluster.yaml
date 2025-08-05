@@ -141,20 +141,12 @@ spec:
         - name: JWT_EXP
           value: '3600'
 
-    backup:
-        barmanObjectStore:
-            destinationPath: s3://kilobase/barman/backup
-            serverName: kilobase-postgres-backup
-            s3Credentials:
-                accessKeyId:
-                    name: kilobase-s3-secret
-                    key: keyId
-                secretAccessKey:
-                    name: kilobase-s3-secret
-                    key: accessKey
-            wal:
-                compression: gzip
-        retentionPolicy: '30d'
+    plugins:
+        - name: barman-cloud.cloudnative-pg.io
+          isWALArchiver: true
+          parameters:
+              barmanObjectName: kilobase-backup-store
+              serverName: kilobase-postgres-backup
 
     bootstrap:
       initdb:
