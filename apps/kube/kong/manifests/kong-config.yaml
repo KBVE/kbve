@@ -15,10 +15,10 @@ data:
       - username: DASHBOARD
       - username: anon
         keyauth_credentials:
-          - key: ${anon-key}
+          - key: ${anon_key}
       - username: service_role
         keyauth_credentials:
-          - key: ${service-key}
+          - key: ${service_key}
 
     ###
     ### Access Control List
