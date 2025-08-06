@@ -3035,7 +3035,7 @@ dependencies = [
  "http-body-util",
  "hyper 1.6.0",
  "hyper-util",
- "jedi 0.2.0",
+ "jedi 0.2.0 (registry+https://github.com/rust-lang/crates.io-index)",
  "papaya 0.2.3",
  "prost",
  "prost-build",
@@ -5342,6 +5342,54 @@ dependencies = [
 [[package]]
 name = "jedi"
 version = "0.2.0"
+dependencies = [
+ "ammonia 4.1.1",
+ "async-trait",
+ "axum 0.8.4",
+ "axum-extra 0.10.1",
+ "bb8",
+ "bb8-postgres",
+ "bitflags 2.9.1",
+ "bytes",
+ "bytes-utils",
+ "chrono",
+ "crossbeam",
+ "dashmap 6.1.0",
+ "flexbuffers",
+ "fred",
+ "futures-util",
+ "http-body-util",
+ "hyper 1.6.0",
+ "hyper-util",
+ "once_cell",
+ "papaya 0.2.3",
+ "prost",
+ "prost-types",
+ "regex",
+ "reqwest 0.12.22",
+ "rustc-hash 2.1.1",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tokio-postgres",
+ "tonic",
+ "tonic-build",
+ "tonic-health",
+ "tonic-reflection",
+ "tower 0.5.2",
+ "tower-http 0.6.6",
+ "tracing",
+ "tracing-subscriber",
+ "twitch-irc",
+ "ulid",
+]
+
+[[package]]
+name = "jedi"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "2deda9f99546f4a6034b325077c0c4aaec90030dd05d693fef94f01bad13b084"
 dependencies = [
  "ammonia 4.1.1",
  "async-trait",
