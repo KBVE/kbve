@@ -18,7 +18,8 @@ import {
 	AlertCircle,
 	CheckCircle,
 	ArrowDown,
-	Infinity
+	Infinity,
+	ArrowUp
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 
@@ -79,7 +80,7 @@ const generateMockLog = (index: number): LogEntry => {
 
 const fetchLogs = async (page: number): Promise<LogEntry[]> => {
 	// Simulate API call with mock data - reduced delay for smoother feel
-	await new Promise(resolve => setTimeout(resolve, 200));
+	await new Promise(resolve => setTimeout(resolve, 150));
 	return Array.from({ length: 15 }, (_, i) => generateMockLog(page * 15 + i));
 };
 
@@ -101,8 +102,15 @@ export default function ReactFooter() {
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	const [hasMore, setHasMore] = useState(true);
 	const [isPreloading, setIsPreloading] = useState(false);
+	const [scrollControlActive, setScrollControlActive] = useState(false);
+	const [showBackToTop, setShowBackToTop] = useState(false);
+	const [virtualScrollOffset, setVirtualScrollOffset] = useState(0);
+	
 	const listRef = useRef<List>(null);
 	const preloadTriggered = useRef(false);
+	const footerRef = useRef<HTMLDivElement>(null);
+	const originalScrollY = useRef(0);
+	const scrollControlEnabled = useRef(false);
 
 	// Load initial stats
 	useEffect(() => {
@@ -147,6 +155,85 @@ export default function ReactFooter() {
 		loadMore();
 	}, []);
 
+	// Global scroll hijacking logic
+	useEffect(() => {
+		const handleGlobalScroll = (e: WheelEvent) => {
+			if (!scrollControlEnabled.current || !footerRef.current) return;
+
+			// Check if we're at the bottom of the page and trying to scroll down
+			const isAtBottom = (window.innerHeight + window.scrollY) >= document.body.offsetHeight - 10; // 10px threshold
+			const isScrollingDown = e.deltaY > 0;
+			
+			if (isAtBottom && isScrollingDown && !scrollControlActive) {
+				// Reached bottom and trying to scroll down - activate scroll control
+				originalScrollY.current = window.scrollY;
+				setScrollControlActive(true);
+				setShowBackToTop(true);
+				scrollControlEnabled.current = true;
+				
+				// Lock body scroll
+				document.body.style.overflow = 'hidden';
+			}
+
+			// Prevent default scroll behavior when footer controls are active
+			if (scrollControlActive) {
+				e.preventDefault();
+				e.stopPropagation();
+
+				// Convert wheel delta to virtual scroll
+				const delta = e.deltaY;
+				setVirtualScrollOffset(prev => {
+					const newOffset = Math.max(0, prev + delta);
+					
+					// Forward scroll to react-window list
+					if (listRef.current) {
+						listRef.current.scrollTo(newOffset);
+					}
+					
+					return newOffset;
+				});
+			}
+		};
+
+		const handlePageScroll = () => {
+			// If user scrolls up significantly while footer control is active, deactivate it
+			if (scrollControlActive && window.scrollY < originalScrollY.current - 100) {
+				setScrollControlActive(false);
+				scrollControlEnabled.current = false;
+				setShowBackToTop(false);
+				
+				// Restore body scroll
+				document.body.style.overflow = '';
+			}
+		};
+
+		// Add wheel event listener for scroll hijacking
+		document.addEventListener('wheel', handleGlobalScroll, { passive: false });
+		
+		// Add scroll listener for deactivation
+		document.addEventListener('scroll', handlePageScroll, { passive: true });
+
+		return () => {
+			document.removeEventListener('wheel', handleGlobalScroll);
+			document.removeEventListener('scroll', handlePageScroll);
+			document.body.style.overflow = ''; // Cleanup
+		};
+	}, [scrollControlActive]);
+
+	// Back to top functionality
+	const scrollToTop = useCallback(() => {
+		setScrollControlActive(false);
+		setShowBackToTop(false);
+		scrollControlEnabled.current = false;
+		document.body.style.overflow = '';
+		
+		// Smooth scroll to top
+		window.scrollTo({
+			top: 0,
+			behavior: 'smooth'
+		});
+	}, []);
+
 	const getLevelIcon = (level: LogEntry['level']) => {
 		switch (level) {
 			case 'error':
@@ -161,10 +248,12 @@ export default function ReactFooter() {
 	};
 
 	// Enhanced scroll handling with look-ahead
-	const handleScroll = useCallback(({ scrollOffset, scrollUpdateWasRequested }: { scrollOffset: number; scrollUpdateWasRequested: boolean }) => {
+	const handleListScroll = useCallback(({ scrollOffset, scrollUpdateWasRequested }: { scrollOffset: number; scrollUpdateWasRequested: boolean }) => {
+		setVirtualScrollOffset(scrollOffset);
+		
 		if (scrollUpdateWasRequested) return;
 		
-		const listHeight = 320; // h-80 = 20rem = 320px
+		const listHeight = 480; // h-[30rem] = 30rem = 480px
 		const rowHeight = 80;
 		const totalHeight = logs.length * rowHeight;
 		const scrollBottom = scrollOffset + listHeight;
@@ -194,8 +283,14 @@ export default function ReactFooter() {
 			// Show skeleton loader for items being preloaded
 			return (
 				<div 
-					style={style} 
-					className="flex items-start gap-3 p-3 mx-2 my-1 rounded-lg bg-gradient-to-r from-[#2b2740]/50 to-[#312d4b]/50 border border-purple-500/5 animate-pulse"
+					style={{
+						...style,
+						height: (style?.height as number) - 8,
+						top: (style?.top as number) + 4,
+						width: (style?.width as number) - 24,
+						left: 12,
+					}}
+					className="flex items-start gap-3 p-4 rounded-lg bg-gradient-to-r from-[#2b2740]/50 to-[#312d4b]/50 border border-purple-500/5 animate-pulse w-full"
 				>
 					<div className="w-3 h-3 bg-purple-500/20 rounded-full mt-0.5" />
 					<div className="flex-1">
@@ -210,39 +305,50 @@ export default function ReactFooter() {
 		
 		return (
 			<div
-				style={style}
+				style={{
+					...style,
+					height: (style?.height as number) - 8, // Reduce height to add padding
+					top: (style?.top as number) + 4, // Offset for top padding
+					width: (style?.width as number) - 24, // Account for margins
+					left: 12, // Center with margin offset
+				}}
 				className={cn(
-					"flex items-start gap-3 p-3 mx-2 my-1 rounded-lg",
+					"flex items-start gap-3 p-4 rounded-lg w-full",
 					"bg-gradient-to-r from-[#2b2740] to-[#312d4b]",
 					"border border-purple-500/10 hover:border-purple-500/30",
-					"transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
+					"transition-all duration-300 hover:shadow-lg hover:scale-[1.01]",
 					"text-sm group"
 				)}
 			>
 				<div className="flex-shrink-0 mt-0.5 transition-transform group-hover:scale-110">
 					{getLevelIcon(log.level)}
 				</div>
-				<div className="flex-1 min-w-0">
-					<div className="flex items-center gap-2 text-purple-300">
-						<span className="font-medium truncate">{log.message}</span>
-					</div>
-					<div className="flex items-center gap-4 mt-1 text-xs text-gray-500">
-						<span className="flex items-center gap-1">
+				<div className="flex-1 min-w-0 overflow-hidden pr-2">
+					<div className="flex items-center justify-between gap-2 mb-1">
+						<span className="font-medium text-purple-300 truncate flex-1">{log.message}</span>
+						<span className="text-xs text-gray-500 shrink-0 flex items-center gap-1">
 							<Clock className="w-3 h-3" />
 							{time}
 						</span>
-						{log.user && (
-							<span className="flex items-center gap-1">
-								<Users className="w-3 h-3" />
-								{log.user}
-							</span>
-						)}
-						{log.server && (
-							<span className="flex items-center gap-1">
-								<Server className="w-3 h-3" />
-								{log.server}
-							</span>
-						)}
+					</div>
+					<div className="flex items-center justify-between gap-2 text-xs text-gray-500">
+						<div className="flex items-center gap-3">
+							{log.user && (
+								<span className="flex items-center gap-1">
+									<Users className="w-3 h-3" />
+									<span className="truncate max-w-24">{log.user}</span>
+								</span>
+							)}
+							{log.server && (
+								<span className="flex items-center gap-1">
+									<Server className="w-3 h-3" />
+									<span className="truncate max-w-32">{log.server}</span>
+								</span>
+							)}
+						</div>
+						<div className="text-xs text-purple-400/60 capitalize shrink-0">
+							{log.level}
+						</div>
 					</div>
 				</div>
 			</div>
@@ -252,7 +358,35 @@ export default function ReactFooter() {
 	Row.displayName = 'LogRow';
 
 	return (
-		<div className="w-full">
+		<div ref={footerRef} className="w-full">
+			{/* Back to Top Button */}
+			{showBackToTop && (
+				<button
+					onClick={scrollToTop}
+					className={cn(
+						"fixed top-8 right-8 z-50 p-3 rounded-full",
+						"bg-gradient-to-r from-purple-600 to-purple-500",
+						"text-white shadow-lg hover:shadow-xl",
+						"transition-all duration-300 hover:scale-110",
+						"border border-purple-400/20",
+						scrollControlActive 
+							? "animate-pulse ring-2 ring-purple-400/50" 
+							: "hover:from-purple-500 hover:to-purple-400"
+					)}
+					title="Back to top"
+				>
+					<ArrowUp className="w-5 h-5" />
+				</button>
+			)}
+
+			{/* Scroll Control Indicator */}
+			{scrollControlActive && (
+				<div className="fixed top-8 left-8 z-40 flex items-center gap-2 px-4 py-2 bg-purple-900/80 backdrop-blur-sm rounded-full border border-purple-500/30">
+					<Infinity className="w-4 h-4 text-purple-300 animate-pulse" />
+					<span className="text-sm text-purple-200">Infinite scroll mode active</span>
+				</div>
+			)}
+
 			{/* Stats Bar */}
 			<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
 				<div className="text-center group">
@@ -298,6 +432,12 @@ export default function ReactFooter() {
 				<h3 className="text-sm text-purple-400 mb-3 flex items-center gap-2">
 					<Activity className="w-4 h-4" /> 
 					Live Activity Feed
+					{scrollControlActive && (
+						<div className="ml-2 flex items-center gap-1 text-xs text-purple-300">
+							<div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" />
+							Global scroll active
+						</div>
+					)}
 					{isPreloading && (
 						<div className="ml-2 flex items-center gap-1 text-xs text-purple-500">
 							<div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
@@ -306,18 +446,18 @@ export default function ReactFooter() {
 					)}
 				</h3>
 
-				<div className="relative h-80 rounded-lg border border-purple-500/20 bg-[#1a1825] overflow-hidden">
+				<div className="relative h-[30rem] rounded-lg border border-purple-500/20 bg-[#1a1825] overflow-hidden">
 					<AutoSizer>
 						{({ height, width }) => (
 							<List
 								ref={listRef}
 								height={height}
 								width={width}
-								itemCount={logs.length + (isPreloading ? 5 : 0)} // Show skeleton items during preload
+								itemCount={logs.length + (isPreloading ? 5 : 0)}
 								itemSize={80}
-								onScroll={handleScroll}
+								onScroll={handleListScroll}
 								className="scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-transparent"
-								overscanCount={5} // Render extra items for smoother scrolling
+								overscanCount={5}
 							>
 								{Row}
 							</List>
