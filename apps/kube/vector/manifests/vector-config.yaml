@@ -43,12 +43,12 @@ data:
         inputs:
           - project_logs
         route:
-          kong: '.appname == "supabase-kong" || .appname == "kong-kong"'
+          kong: '.appname == "supabase-kong" || .appname == "kong-kong" || .appname == "proxy"'
           auth: '.appname == "supabase-auth" || .appname == "gotrue"'
           rest: '.appname == "supabase-rest" || .appname == "postgrest"'
-          realtime: '.appname == "supabase-realtime"'
-          storage: '.appname == "supabase-storage"'
-          functions: '.appname == "supabase-functions"'
+          realtime: '.appname == "supabase-realtime" || .appname == "realtime"'
+          storage: '.appname == "supabase-storage" || .appname == "storage"'
+          functions: '.appname == "supabase-functions" || .appname == "functions"'
           db: '.appname == "supabase-db" || .appname == "postgres"'
           analytics: '.appname == "logflare" || .appname == "supabase-analytics"'
           meta: '.appname == "postgres-meta" || .appname == "supabase-meta"'
