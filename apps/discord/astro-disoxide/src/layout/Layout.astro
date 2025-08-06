@@ -1,8 +1,6 @@
 ---
 /** @jsxImportSource astro */
 
-
-import SveltePanels from './svelte/panel/SveltePanels.astro';
 import Header from './Header.astro';
 
 export interface Props {
@@ -41,64 +39,15 @@ import 'src/styles/global.css';
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={image ?? '/default-image.jpg'} />
-
-
-
-
 	</head>
 	<body
 		role="document"
 		class="h-full bg-[#28243d] bg-[url('/assets/media/bg/pattern.svg')] text-gray-100 relative perspective-[2000px] perspective-distant">
-		<SveltePanels />
-
-		<!-- Glowing Progress Bar -->
-		<!-- <div
-			x-data="{ show: false, dimmed: false }"
-			x-init="
-				show = true;
-				setTimeout(() => {
-					dimmed = true;
-					setTimeout(() => show = false, 500);
-				}, 100)
-			"
-			x-show="show"
-			:class="dimmed ? 'bg-purple-500/50' : 'bg-purple-500 animate-pulse'"
-			id="loading"
-			class="fixed top-0 left-0 h-1 w-full z-[99999] transition-all duration-700 ease-in-out opacity-100 flex items-center justify-end pr-2 overflow-visible">
-			
-		</div> -->
-
 		<Header />
 		<div
 			id="main-content"
 			class="bg-[#28243d] relative z-10 flex flex-col min-h-screen transition-all duration-500 ease-in-out will-change-transform origin-center transform-3d">
 			<slot role="main" />
 		</div>
-		<script is:inline>		
-			if (typeof window !== 'undefined') {
-				function updateMainPerspective() {
-					const mainContent = document.getElementById('main-content');
-					if (!mainContent) return;
-
-					const panels = window.kbve?.uiux?.state.get().panelManager ?? {};
-
-					Object.values(panels).some(p => p?.open)
-						? mainContent.classList.add('scale-95', 'rotate-x-51', 'rotate-z-43', 'blur-sm')
-						: mainContent.classList.remove('scale-95', 'rotate-x-51', 'rotate-z-43', 'blur-sm');
-				}
-
-				async function setupPerspectiveWatcher() {
-					while (!window.kbve?.uiux?.state)
-						await new Promise((r) => setTimeout(r, 50));
-
-					window.kbve.uiux.state.subscribe(updateMainPerspective);
-					updateMainPerspective();
-				}
-		
-				setupPerspectiveWatcher();
-			}
-		</script>
-		
-		
 	</body>
 </html>
