@@ -82,6 +82,22 @@ spec:
               name: hcaptcha-config
               key: secret-key
 
+        # Discord OAuth configuration
+        - name: GOTRUE_EXTERNAL_DISCORD_ENABLED
+          value: "true"
+        - name: GOTRUE_EXTERNAL_DISCORD_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: discord-oauth-config
+              key: client-id
+        - name: GOTRUE_EXTERNAL_DISCORD_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: discord-oauth-config
+              key: client-secret
+        - name: GOTRUE_EXTERNAL_DISCORD_REDIRECT_URI
+          value: "https://localhost:9999/callback"
+
         # Secrets from Kubernetes
         - name: GOTRUE_JWT_EXP
           valueFrom:
