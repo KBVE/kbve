@@ -82,3 +82,55 @@ data:
         </main>
     </body>
     </html>
+
+  "500.html": |
+    <!DOCTYPE html>
+    <html data-theme="light">
+    <head>
+        <title>500 - Internal Server Error</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+        <style>
+            main { text-align: center; padding: 2rem; }
+            .error-code { color: var(--pico-color-red-600); font-size: 4rem; margin: 0; }
+            .error-message { color: var(--pico-color-slate-600); font-size: 1.25rem; margin: 1rem 0; }
+            .error-details { color: var(--pico-color-slate-400); font-size: 0.875rem; margin-top: 2rem; }
+        </style>
+    </head>
+    <body>
+        <main class="container">
+            <article>
+                <h1 class="error-code">500</h1>
+                <p class="error-message">Something went wrong on our end. We're working to fix it.</p>
+                <small class="error-details">Error Code: 500 Internal Server Error</small>
+            </article>
+        </main>
+    </body>
+    </html>
+
+  "403.html": |
+    <!DOCTYPE html>
+    <html data-theme="light">
+    <head>
+        <title>403 - Forbidden</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+        <style>
+            main { text-align: center; padding: 2rem; }
+            .error-code { color: var(--pico-color-orange-500); font-size: 4rem; margin: 0; }
+            .error-message { color: var(--pico-color-slate-600); font-size: 1.25rem; margin: 1rem 0; }
+            .error-details { color: var(--pico-color-slate-400); font-size: 0.875rem; margin-top: 2rem; }
+        </style>
+    </head>
+    <body>
+        <main class="container">
+            <article>
+                <h1 class="error-code">403</h1>
+                <p class="error-message">You don't have permission to access this resource.</p>
+                <small class="error-details">Error Code: 403 Forbidden</small>
+            </article>
+        </main>
+    </body>
+    </html>
