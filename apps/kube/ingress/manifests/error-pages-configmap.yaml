@@ -1,0 +1,78 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-error-pages
+  namespace: ingress-nginx
+data:
+  "404.html": |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>404 - Page Not Found</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 50px; text-align: center; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #e74c3c; font-size: 48px; margin: 0; }
+            p { color: #666; font-size: 18px; }
+            .code { color: #999; font-size: 14px; margin-top: 30px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>404</h1>
+            <p>The page you're looking for could not be found.</p>
+            <div class="code">Error Code: 404 Not Found</div>
+        </div>
+    </body>
+    </html>
+
+  "502.html": |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>502 - Bad Gateway</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 50px; text-align: center; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #f39c12; font-size: 48px; margin: 0; }
+            p { color: #666; font-size: 18px; }
+            .code { color: #999; font-size: 14px; margin-top: 30px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>502</h1>
+            <p>The service is temporarily unavailable. Please try again later.</p>
+            <div class="code">Error Code: 502 Bad Gateway</div>
+        </div>
+    </body>
+    </html>
+
+  "503.html": |
+    <!DOCTYPE html>
+    <html>
+    <head>
+        <title>503 - Service Unavailable</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <style>
+            body { font-family: Arial, sans-serif; background: #f4f4f4; margin: 0; padding: 50px; text-align: center; }
+            .container { max-width: 600px; margin: 0 auto; background: white; padding: 40px; border-radius: 8px; box-shadow: 0 2px 10px rgba(0,0,0,0.1); }
+            h1 { color: #9b59b6; font-size: 48px; margin: 0; }
+            p { color: #666; font-size: 18px; }
+            .code { color: #999; font-size: 14px; margin-top: 30px; }
+        </style>
+    </head>
+    <body>
+        <div class="container">
+            <h1>503</h1>
+            <p>The service is currently undergoing maintenance. Please check back soon.</p>
+            <div class="code">Error Code: 503 Service Unavailable</div>
+        </div>
+    </body>
+    </html>

@@ -10,6 +10,22 @@ controller:
     service:
         enabled: true
         type: LoadBalancer
+        externalTrafficPolicy: Local
+
+    config:
+        use-proxy-protocol: "true"
+        real-ip-header: "proxy_protocol"
+        enable-real-ip: "true"
+        custom-http-errors: "404,502,503"
+
+    extraVolumes:
+        - name: custom-error-pages
+          configMap:
+            name: custom-error-pages
+
+    extraVolumeMounts:
+        - name: custom-error-pages
+          mountPath: /etc/nginx/errorpages
 
     metrics:
         enabled: true
