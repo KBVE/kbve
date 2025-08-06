@@ -1,7 +1,6 @@
 /** @jsxImportSource react */
 import React, {
 	useEffect,
-	useRef,
 	useState,
 	useCallback,
 	memo,
@@ -86,10 +85,8 @@ export default function ReactFooter() {
 	const [logs, setLogs] = useState<LogEntry[]>([]);
 	const [stats, setStats] = useState<Stats | null>(null);
 	const [page, setPage] = useState(0);
-	const [isLoading, setIsLoading] = useState(false);
+	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	const [hasMore, setHasMore] = useState(true);
-	const observerRef = useRef<IntersectionObserver | null>(null);
-	const loadMoreRef = useRef<HTMLDivElement | null>(null);
 
 	// Load initial stats
 	useEffect(() => {
@@ -102,9 +99,9 @@ export default function ReactFooter() {
 	}, []);
 
 	const loadMore = useCallback(async () => {
-		if (isLoading || !hasMore) return;
+		if (isLoadingMore || !hasMore) return;
 		
-		setIsLoading(true);
+		setIsLoadingMore(true);
 		try {
 			const newLogs = await fetchLogs(page);
 			if (newLogs.length === 0) {
@@ -116,44 +113,14 @@ export default function ReactFooter() {
 		} catch (error) {
 			console.error('Failed to load logs:', error);
 		} finally {
-			setIsLoading(false);
+			setIsLoadingMore(false);
 		}
-	}, [page, isLoading, hasMore]);
+	}, [page, isLoadingMore, hasMore]);
 
 	// Initial load
 	useEffect(() => {
 		loadMore();
 	}, []);
-
-	// Set up intersection observer
-	useEffect(() => {
-		if (observerRef.current) {
-			observerRef.current.disconnect();
-		}
-
-		observerRef.current = new IntersectionObserver(
-			(entries) => {
-				if (entries[0].isIntersecting && hasMore && !isLoading) {
-					loadMore();
-				}
-			},
-			{
-				root: null,
-				rootMargin: '100px',
-				threshold: 0.1,
-			}
-		);
-
-		if (loadMoreRef.current) {
-			observerRef.current.observe(loadMoreRef.current);
-		}
-
-		return () => {
-			if (observerRef.current) {
-				observerRef.current.disconnect();
-			}
-		};
-	}, [loadMore, hasMore, isLoading]);
 
 	const getLevelIcon = (level: LogEntry['level']) => {
 		switch (level) {
@@ -168,8 +135,36 @@ export default function ReactFooter() {
 		}
 	};
 
+	// Handle scroll to load more items
+	const handleScroll = useCallback(({ scrollOffset, scrollUpdateWasRequested }: { scrollOffset: number; scrollUpdateWasRequested: boolean }) => {
+		if (scrollUpdateWasRequested) return;
+		
+		// Calculate if we're near the bottom (within 100px)
+		const listHeight = 320; // h-80 = 20rem = 320px
+		const rowHeight = 80;
+		const totalHeight = logs.length * rowHeight;
+		const scrollBottom = scrollOffset + listHeight;
+		
+		if (scrollBottom >= totalHeight - 100 && hasMore && !isLoadingMore) {
+			loadMore();
+		}
+	}, [logs.length, hasMore, isLoadingMore, loadMore]);
+
 	const Row = memo(({ index, style }: ListChildComponentProps) => {
 		const log = logs[index];
+		
+		// Show loading state for last item if loading more
+		if (index === logs.length - 1 && isLoadingMore) {
+			return (
+				<div style={style} className="flex items-center justify-center">
+					<div className="flex items-center gap-2 text-xs text-purple-400">
+						<div className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
+						Loading more activity...
+					</div>
+				</div>
+			);
+		}
+		
 		if (!log) return <div style={style} />;
 
 		const time = new Date(log.timestamp).toLocaleTimeString();
@@ -272,29 +267,21 @@ export default function ReactFooter() {
 							<List
 								height={height}
 								width={width}
-								itemCount={logs.length}
+								itemCount={logs.length + (isLoadingMore ? 1 : 0)}
 								itemSize={80}
+								onScroll={handleScroll}
 								className="scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-transparent"
 							>
 								{Row}
 							</List>
 						)}
 					</AutoSizer>
-				</div>
-
-				{/* Load More Trigger */}
-				<div 
-					ref={loadMoreRef} 
-					className="h-8 flex items-center justify-center"
-				>
-					{isLoading && (
-						<div className="flex items-center gap-2 text-xs text-purple-400">
-							<div className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-							Loading more activity...
-						</div>
-					)}
+					
+					{/* End of feed indicator */}
 					{!hasMore && logs.length > 0 && (
-						<p className="text-xs text-gray-500">No more activity to load</p>
+						<div className="absolute bottom-0 left-0 right-0 py-2 text-center bg-gradient-to-t from-[#1a1825] to-transparent">
+							<p className="text-xs text-gray-500">End of activity feed</p>
+						</div>
 					)}
 				</div>
 			</div>
