@@ -14,7 +14,7 @@ data:
       kubernetes_logs:
         type: kubernetes_logs
         self_node_name: "${VECTOR_SELF_NODE_NAME}"
-        namespace_labels: ["kilobase"]
+        extra_namespace_label_selector: "kubernetes.io/metadata.name=kilobase"
         exclude_paths_glob_patterns:
           - "**/supabase-vector-*/**"
           - "**/vector/**"
