@@ -13,9 +13,9 @@ controller:
         externalTrafficPolicy: Local
 
     config:
-        use-proxy-protocol: "true"
-        real-ip-header: "proxy_protocol"
         enable-real-ip: "true"
+        real-ip-header: "X-Forwarded-For"
+        real-ip-recursive: "on"
         custom-http-errors: "404,502,503"
 
     extraVolumes:
