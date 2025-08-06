@@ -16,7 +16,7 @@ controller:
         enable-real-ip: "true"
         real-ip-header: "X-Forwarded-For"
         real-ip-recursive: "on"
-        custom-http-errors: "404,502,503"
+        custom-http-errors: "403,404,500,502,503"
 
     extraVolumes:
         - name: custom-error-pages
