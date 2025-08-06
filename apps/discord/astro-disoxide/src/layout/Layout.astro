@@ -1,9 +1,7 @@
 ---
 /** @jsxImportSource astro */
 
-import { pwaInfo } from 'virtual:pwa-info';
 
-// import Panel from 'src/layout/ui/Panel.astro';
 import SveltePanels from './svelte/panel/SveltePanels.astro';
 import Header from './Header.astro';
 
@@ -19,7 +17,6 @@ const { title, description, image, url } = Astro.props as Props;
 const canonicalURL = new URL(Astro.url.pathname, Astro.site);
 
 import 'src/styles/global.css';
-import { ClientRouter } from 'astro:transitions';
 ---
 
 <!doctype html>
@@ -44,26 +41,10 @@ import { ClientRouter } from 'astro:transitions';
 		<meta name="twitter:title" content={title} />
 		<meta name="twitter:description" content={description} />
 		<meta name="twitter:image" content={image ?? '/default-image.jpg'} />
-		<script src="/src/pwa.ts"></script>
-		<script src="/src/client/droid.ts"></script>
 
 
-		<script is:inline>
-			document.addEventListener('astro:before-preparation', () => {
-				//document.querySelector("#loading").classList.add("show");
-			});
-			document.addEventListener('astro:after-swap', () => {
-				window.kbve?.uiux?.closeAllPanels();
-				//document.querySelector("#loading").classList.remove("show");
-			});
-			// document.addEventListener("DOMContentLoaded", () => {
-			// 						window.kbve?.uiux?.closeAllPanels();
-			// });
-		</script>
 
-		{pwaInfo && <Fragment set:html={pwaInfo.webManifest.linkTag} />}
 
-		<ClientRouter fallback="swap" />
 	</head>
 	<body
 		role="document"
