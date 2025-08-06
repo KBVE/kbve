@@ -5,6 +5,26 @@ import Layout from 'src/layout/Layout.astro';
 import { ReactLogin } from 'src/layout/template/login/ReactLogin';
 ---
 
+<style>
+	@keyframes shimmer {
+		0% {
+			background-position: -200% 0;
+		}
+		100% {
+			background-position: 200% 0;
+		}
+	}
+
+	.skeleton-loader {
+		transition: opacity 0.3s ease-out;
+	}
+
+	.skeleton-loader.hide {
+		opacity: 0;
+		pointer-events: none;
+	}
+</style>
+
 <Layout title="Login" description="DiscordSH Login">
 	<div class="flex flex-col min-h-screen overflow-y-auto">
 		<div
@@ -13,24 +33,25 @@ import { ReactLogin } from 'src/layout/template/login/ReactLogin';
 				<div class="max-w-7xl mx-auto w-full">
 					<div class="bento-grid-3">
 						<div
-							class="md:col-span-3 md:row-span-3 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
-							<!-- Login Skeleton - Higher z-index -->
+							class="relative md:col-span-3 md:row-span-3 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
+							<!-- Login Skeleton -->
 							<div
-								class="relative z-20 max-w-md mx-auto min-h-[1200px]"
-								data-skeleton="login">
+								class="skeleton-loader max-w-md mx-auto min-h-[600px] p-4"
+								data-skeleton="login"
+								id="login-skeleton">
 								<!-- OAuth Buttons Skeleton -->
 								<div class="flex flex-col gap-3 mb-8">
 									<div
-										class="h-12 rounded-xl animate-[shimmer_2s_infinite]"
-										style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%;">
+										class="h-12 bg-gray-700/50 rounded-xl animate-[shimmer_2s_infinite]"
+										style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%;">
 									</div>
 									<div
-										class="h-12 rounded-xl animate-[shimmer_2s_infinite]"
-										style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%; animation-delay: 0.3s;">
+										class="h-12 bg-gray-700/50 rounded-xl animate-[shimmer_2s_infinite]"
+										style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%; animation-delay: 0.3s;">
 									</div>
 									<div
-										class="h-12 rounded-xl animate-[shimmer_2s_infinite]"
-										style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%; animation-delay: 0.6s;">
+										class="h-12 bg-gray-700/50 rounded-xl animate-[shimmer_2s_infinite]"
+										style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%; animation-delay: 0.6s;">
 									</div>
 								</div>
 
@@ -38,15 +59,15 @@ import { ReactLogin } from 'src/layout/template/login/ReactLogin';
 								<div class="flex items-center my-6">
 									<div
 										class="flex-1 h-px animate-[shimmer_2s_infinite]"
-										style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%;">
+										style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%;">
 									</div>
 									<div
 										class="px-4 w-8 h-4 rounded animate-[shimmer_2s_infinite]"
-										style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%; animation-delay: 0.2s;">
+										style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%; animation-delay: 0.2s;">
 									</div>
 									<div
 										class="flex-1 h-px animate-[shimmer_2s_infinite]"
-										style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%; animation-delay: 0.4s;">
+										style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%; animation-delay: 0.4s;">
 									</div>
 								</div>
 
@@ -54,11 +75,11 @@ import { ReactLogin } from 'src/layout/template/login/ReactLogin';
 								<div class="text-center mb-6">
 									<div
 										class="h-8 rounded w-40 mx-auto mb-2 animate-[shimmer_2s_infinite]"
-										style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%;">
+										style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%;">
 									</div>
 									<div
 										class="h-4 rounded w-48 mx-auto animate-[shimmer_2s_infinite]"
-										style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%; animation-delay: 0.3s;">
+										style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%; animation-delay: 0.3s;">
 									</div>
 								</div>
 
@@ -70,11 +91,11 @@ import { ReactLogin } from 'src/layout/template/login/ReactLogin';
 												<div class="space-y-2">
 													<div
 														class="h-4 rounded w-24 animate-[shimmer_2s_infinite]"
-														style={`background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%; animation-delay: ${i * 0.1}s;`}
+														style={`background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%; animation-delay: ${i * 0.1}s;`}
 													/>
 													<div
 														class="h-12 rounded-xl animate-[shimmer_2s_infinite]"
-														style={`background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%; animation-delay: ${i * 0.15}s;`}
+														style={`background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%; animation-delay: ${i * 0.15}s;`}
 													/>
 												</div>
 											)
@@ -85,25 +106,25 @@ import { ReactLogin } from 'src/layout/template/login/ReactLogin';
 								<!-- Submit Button Skeleton -->
 								<div
 									class="h-12 rounded-xl mt-6 animate-[shimmer_2s_infinite]"
-									style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%; animation-delay: 0.5s;">
+									style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%; animation-delay: 0.5s;">
 								</div>
 
 								<!-- Footer Links Skeleton -->
 								<div class="flex justify-between mt-4">
 									<div
 										class="h-4 rounded w-32 animate-[shimmer_2s_infinite]"
-										style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%; animation-delay: 0.7s;">
+										style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%; animation-delay: 0.7s;">
 									</div>
 									<div
 										class="h-4 rounded w-28 animate-[shimmer_2s_infinite]"
-										style="background: linear-gradient(90deg, color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent), color-mix(in srgb, var(--sl-color-gray-4) 60%, transparent), color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent)); background-size: 200% 100%; animation-delay: 0.9s;">
+										style="background: linear-gradient(90deg, #312d4b 0%, #4a4568 50%, #312d4b 100%); background-size: 200% 100%; animation-delay: 0.9s;">
 									</div>
 								</div>
 							</div>
 
-							<div class="min-h-[1200px]">
-							<ReactLogin client:only="react" />
-							</div>
+							<div class="min-h-[600px]">
+								<ReactLogin client:only="react" />
+							</div> 
 						</div>
 					</div>
 				</div>
