@@ -4,6 +4,7 @@ import React, {
 	useState,
 	useCallback,
 	memo,
+	useRef,
 } from 'react';
 import { FixedSizeList as List, type ListChildComponentProps } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
@@ -15,7 +16,9 @@ import {
 	Clock,
 	TrendingUp,
 	AlertCircle,
-	CheckCircle
+	CheckCircle,
+	ArrowDown,
+	Infinity
 } from 'lucide-react';
 import { cn } from '../../../utils/cn';
 
@@ -48,11 +51,21 @@ const generateMockLog = (index: number): LogEntry => {
 		'Webhook triggered',
 		'API rate limit warning',
 		'Database connection established',
-		'Cache cleared successfully'
+		'Cache cleared successfully',
+		'Voice channel created',
+		'Message pinned in channel',
+		'Role assigned to user',
+		'Emoji reaction added',
+		'Stream started',
+		'Game activity detected',
+		'Server boost received',
+		'Invite link created',
+		'Channel permissions updated',
+		'Auto-moderation triggered'
 	];
 	
-	const users = ['Alice', 'Bob', 'Charlie', 'David', 'Eve'];
-	const servers = ['Gaming Hub', 'Dev Community', 'Music Lounge', 'Art Gallery'];
+	const users = ['Alice', 'Bob', 'Charlie', 'David', 'Eve', 'Frank', 'Grace', 'Henry', 'Ivy', 'Jack'];
+	const servers = ['Gaming Hub', 'Dev Community', 'Music Lounge', 'Art Gallery', 'Study Group', 'Movie Night'];
 	
 	return {
 		id: `log-${index}`,
@@ -65,14 +78,14 @@ const generateMockLog = (index: number): LogEntry => {
 };
 
 const fetchLogs = async (page: number): Promise<LogEntry[]> => {
-	// Simulate API call with mock data
-	await new Promise(resolve => setTimeout(resolve, 500));
-	return Array.from({ length: 10 }, (_, i) => generateMockLog(page * 10 + i));
+	// Simulate API call with mock data - reduced delay for smoother feel
+	await new Promise(resolve => setTimeout(resolve, 200));
+	return Array.from({ length: 15 }, (_, i) => generateMockLog(page * 15 + i));
 };
 
 const fetchStats = async (): Promise<Stats> => {
 	// Simulate API call
-	await new Promise(resolve => setTimeout(resolve, 300));
+	await new Promise(resolve => setTimeout(resolve, 100));
 	return {
 		activeUsers: Math.floor(Math.random() * 1000) + 200,
 		totalServers: Math.floor(Math.random() * 50) + 10,
@@ -87,6 +100,9 @@ export default function ReactFooter() {
 	const [page, setPage] = useState(0);
 	const [isLoadingMore, setIsLoadingMore] = useState(false);
 	const [hasMore, setHasMore] = useState(true);
+	const [isPreloading, setIsPreloading] = useState(false);
+	const listRef = useRef<List>(null);
+	const preloadTriggered = useRef(false);
 
 	// Load initial stats
 	useEffect(() => {
@@ -98,10 +114,15 @@ export default function ReactFooter() {
 		return () => clearInterval(interval);
 	}, []);
 
-	const loadMore = useCallback(async () => {
-		if (isLoadingMore || !hasMore) return;
+	const loadMore = useCallback(async (isPreload = false) => {
+		if (isLoadingMore || (!hasMore && !isPreload)) return;
 		
-		setIsLoadingMore(true);
+		if (isPreload) {
+			setIsPreloading(true);
+		} else {
+			setIsLoadingMore(true);
+		}
+		
 		try {
 			const newLogs = await fetchLogs(page);
 			if (newLogs.length === 0) {
@@ -113,7 +134,11 @@ export default function ReactFooter() {
 		} catch (error) {
 			console.error('Failed to load logs:', error);
 		} finally {
-			setIsLoadingMore(false);
+			if (isPreload) {
+				setIsPreloading(false);
+			} else {
+				setIsLoadingMore(false);
+			}
 		}
 	}, [page, isLoadingMore, hasMore]);
 
@@ -135,37 +160,51 @@ export default function ReactFooter() {
 		}
 	};
 
-	// Handle scroll to load more items
+	// Enhanced scroll handling with look-ahead
 	const handleScroll = useCallback(({ scrollOffset, scrollUpdateWasRequested }: { scrollOffset: number; scrollUpdateWasRequested: boolean }) => {
 		if (scrollUpdateWasRequested) return;
 		
-		// Calculate if we're near the bottom (within 100px)
 		const listHeight = 320; // h-80 = 20rem = 320px
 		const rowHeight = 80;
 		const totalHeight = logs.length * rowHeight;
 		const scrollBottom = scrollOffset + listHeight;
 		
-		if (scrollBottom >= totalHeight - 100 && hasMore && !isLoadingMore) {
+		// Look-ahead preloading - trigger when 70% through content
+		const preloadThreshold = totalHeight * 0.7;
+		if (scrollOffset >= preloadThreshold && hasMore && !isPreloading && !preloadTriggered.current) {
+			preloadTriggered.current = true;
+			loadMore(true);
+			
+			// Reset preload trigger after a delay
+			setTimeout(() => {
+				preloadTriggered.current = false;
+			}, 2000);
+		}
+		
+		// Main loading trigger - when near bottom
+		if (scrollBottom >= totalHeight - 160 && hasMore && !isLoadingMore) {
 			loadMore();
 		}
-	}, [logs.length, hasMore, isLoadingMore, loadMore]);
+	}, [logs.length, hasMore, isLoadingMore, isPreloading, loadMore]);
 
 	const Row = memo(({ index, style }: ListChildComponentProps) => {
 		const log = logs[index];
 		
-		// Show loading state for last item if loading more
-		if (index === logs.length - 1 && isLoadingMore) {
+		if (!log) {
+			// Show skeleton loader for items being preloaded
 			return (
-				<div style={style} className="flex items-center justify-center">
-					<div className="flex items-center gap-2 text-xs text-purple-400">
-						<div className="w-3 h-3 border-2 border-purple-400 border-t-transparent rounded-full animate-spin" />
-						Loading more activity...
+				<div 
+					style={style} 
+					className="flex items-start gap-3 p-3 mx-2 my-1 rounded-lg bg-gradient-to-r from-[#2b2740]/50 to-[#312d4b]/50 border border-purple-500/5 animate-pulse"
+				>
+					<div className="w-3 h-3 bg-purple-500/20 rounded-full mt-0.5" />
+					<div className="flex-1">
+						<div className="h-4 bg-purple-500/20 rounded w-3/4 mb-2" />
+						<div className="h-3 bg-purple-500/10 rounded w-1/2" />
 					</div>
 				</div>
 			);
 		}
-		
-		if (!log) return <div style={style} />;
 
 		const time = new Date(log.timestamp).toLocaleTimeString();
 		
@@ -176,11 +215,11 @@ export default function ReactFooter() {
 					"flex items-start gap-3 p-3 mx-2 my-1 rounded-lg",
 					"bg-gradient-to-r from-[#2b2740] to-[#312d4b]",
 					"border border-purple-500/10 hover:border-purple-500/30",
-					"transition-all duration-200 hover:shadow-md",
-					"text-sm"
+					"transition-all duration-300 hover:shadow-lg hover:scale-[1.02]",
+					"text-sm group"
 				)}
 			>
-				<div className="flex-shrink-0 mt-0.5">
+				<div className="flex-shrink-0 mt-0.5 transition-transform group-hover:scale-110">
 					{getLevelIcon(log.level)}
 				</div>
 				<div className="flex-1 min-w-0">
@@ -216,39 +255,39 @@ export default function ReactFooter() {
 		<div className="w-full">
 			{/* Stats Bar */}
 			<div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-				<div className="text-center">
-					<div className="flex items-center justify-center gap-2 text-purple-400 mb-1">
+				<div className="text-center group">
+					<div className="flex items-center justify-center gap-2 text-purple-400 mb-1 transition-colors group-hover:text-purple-300">
 						<Users className="w-4 h-4" />
 						<span className="text-xs uppercase tracking-wide">Active Users</span>
 					</div>
-					<p className="text-2xl font-bold text-purple-100">
+					<p className="text-2xl font-bold text-purple-100 transition-all group-hover:scale-105">
 						{stats?.activeUsers.toLocaleString() || '---'}
 					</p>
 				</div>
-				<div className="text-center">
-					<div className="flex items-center justify-center gap-2 text-purple-400 mb-1">
+				<div className="text-center group">
+					<div className="flex items-center justify-center gap-2 text-purple-400 mb-1 transition-colors group-hover:text-purple-300">
 						<Server className="w-4 h-4" />
 						<span className="text-xs uppercase tracking-wide">Servers</span>
 					</div>
-					<p className="text-2xl font-bold text-purple-100">
+					<p className="text-2xl font-bold text-purple-100 transition-all group-hover:scale-105">
 						{stats?.totalServers || '---'}
 					</p>
 				</div>
-				<div className="text-center">
-					<div className="flex items-center justify-center gap-2 text-purple-400 mb-1">
+				<div className="text-center group">
+					<div className="flex items-center justify-center gap-2 text-purple-400 mb-1 transition-colors group-hover:text-purple-300">
 						<TrendingUp className="w-4 h-4" />
 						<span className="text-xs uppercase tracking-wide">Uptime</span>
 					</div>
-					<p className="text-2xl font-bold text-purple-100">
+					<p className="text-2xl font-bold text-purple-100 transition-all group-hover:scale-105">
 						{stats?.uptime || '---'}
 					</p>
 				</div>
-				<div className="text-center">
-					<div className="flex items-center justify-center gap-2 text-purple-400 mb-1">
+				<div className="text-center group">
+					<div className="flex items-center justify-center gap-2 text-purple-400 mb-1 transition-colors group-hover:text-purple-300">
 						<Zap className="w-4 h-4" />
 						<span className="text-xs uppercase tracking-wide">Requests/min</span>
 					</div>
-					<p className="text-2xl font-bold text-purple-100">
+					<p className="text-2xl font-bold text-purple-100 transition-all group-hover:scale-105">
 						{stats?.requestsPerMinute || '---'}
 					</p>
 				</div>
@@ -259,41 +298,66 @@ export default function ReactFooter() {
 				<h3 className="text-sm text-purple-400 mb-3 flex items-center gap-2">
 					<Activity className="w-4 h-4" /> 
 					Live Activity Feed
+					{isPreloading && (
+						<div className="ml-2 flex items-center gap-1 text-xs text-purple-500">
+							<div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" />
+							Preloading...
+						</div>
+					)}
 				</h3>
 
 				<div className="relative h-80 rounded-lg border border-purple-500/20 bg-[#1a1825] overflow-hidden">
 					<AutoSizer>
 						{({ height, width }) => (
 							<List
+								ref={listRef}
 								height={height}
 								width={width}
-								itemCount={logs.length + (isLoadingMore ? 1 : 0)}
+								itemCount={logs.length + (isPreloading ? 5 : 0)} // Show skeleton items during preload
 								itemSize={80}
 								onScroll={handleScroll}
 								className="scrollbar-thin scrollbar-thumb-purple-600 scrollbar-track-transparent"
+								overscanCount={5} // Render extra items for smoother scrolling
 							>
 								{Row}
 							</List>
 						)}
 					</AutoSizer>
 					
-					{/* End of feed indicator */}
-					{!hasMore && logs.length > 0 && (
-						<div className="absolute bottom-0 left-0 right-0 py-2 text-center bg-gradient-to-t from-[#1a1825] to-transparent">
-							<p className="text-xs text-gray-500">End of activity feed</p>
+					{/* Infinite experience indicator */}
+					<div className="absolute bottom-0 left-0 right-0 py-3 text-center bg-gradient-to-t from-[#1a1825] via-[#1a1825]/80 to-transparent">
+						<div className="flex items-center justify-center gap-2 text-xs text-purple-400 animate-pulse">
+							<Infinity className="w-4 h-4" />
+							<span>Infinite activity stream</span>
+							<ArrowDown className="w-3 h-3 animate-bounce" />
 						</div>
-					)}
+					</div>
 				</div>
 			</div>
 
-			{/* Footer Info */}
+			{/* Infinite Site Experience */}
+			<div className="mt-8 text-center">
+				<div className="inline-flex items-center gap-2 px-4 py-2 bg-gradient-to-r from-purple-600/10 to-purple-400/10 rounded-full border border-purple-500/20">
+					<Infinity className="w-4 h-4 text-purple-400" />
+					<span className="text-sm text-purple-300">Keep exploring - there's always more</span>
+				</div>
+			</div>
+
+			{/* Footer Info - but not the end */}
 			<div className="mt-6 pt-4 border-t border-purple-500/10 flex flex-col md:flex-row justify-between items-center text-xs text-gray-500">
-				<p>© 2024 DiscordSH. All rights reserved.</p>
+				<div className="flex items-center gap-2">
+					<p>© 2024 DiscordSH</p>
+					<div className="w-1 h-1 bg-gray-500 rounded-full" />
+					<p className="flex items-center gap-1">
+						<Activity className="w-3 h-3" />
+						Live since launch
+					</p>
+				</div>
 				<div className="flex gap-4 mt-2 md:mt-0">
-					<a href="#" className="hover:text-purple-400 transition-colors">Terms</a>
-					<a href="#" className="hover:text-purple-400 transition-colors">Privacy</a>
-					<a href="#" className="hover:text-purple-400 transition-colors">Status</a>
-					<a href="#" className="hover:text-purple-400 transition-colors">API</a>
+					<a href="#" className="hover:text-purple-400 transition-colors">API Status</a>
+					<a href="#" className="hover:text-purple-400 transition-colors">Docs</a>
+					<a href="#" className="hover:text-purple-400 transition-colors">Community</a>
+					<a href="#" className="hover:text-purple-400 transition-colors">Discord</a>
 				</div>
 			</div>
 		</div>
