@@ -30,7 +30,7 @@ spec:
         - name: GOTRUE_API_PORT
           value: "9999"
         - name: API_EXTERNAL_URL
-          value: "https://api.kbve.com"
+          value: "https://supabase.kbve.com"
         
         # Database configuration
         - name: GOTRUE_DB_DRIVER
@@ -51,7 +51,7 @@ spec:
         
         # JWT configuration - hardcoded basic values
         - name: GOTRUE_JWT_ADMIN_ROLES
-          value: "service_role"
+          value: "supabase_admin, service_role"
         - name: GOTRUE_JWT_AUD
           value: "authenticated"
         - name: GOTRUE_JWT_DEFAULT_GROUP_NAME
@@ -65,6 +65,23 @@ spec:
         - name: GOTRUE_MAILER_AUTOCONFIRM
           value: "true"
         
+        # Phone
+        - name: GOTRUE_SMS_AUTOCONFIRM
+          value: "false"
+
+        # Captcha configuration
+        - name: GOTRUE_SECURITY_CAPTCHA_ENABLED
+          value: "true"
+        - name: GOTRUE_SECURITY_CAPTCHA_PROVIDER
+          value: "hcaptcha"
+        - name: GOTRUE_SECURITY_CAPTCHA_TIMEOUT
+          value: "10s"
+        - name: GOTRUE_SECURITY_CAPTCHA_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: hcaptcha-config
+              key: secret-key
+
         # Secrets from Kubernetes
         - name: GOTRUE_JWT_EXP
           valueFrom:
