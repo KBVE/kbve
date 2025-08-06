@@ -1,6 +1,6 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-//import svelte, { vitePreprocess } from '@astrojs/svelte';
+import svelte, { vitePreprocess } from '@astrojs/svelte';
 import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
 //import tailwind from '@astrojs/tailwind';
@@ -137,7 +137,10 @@ export default defineConfig({
 				},
 			},
 		}),
-		react(),
+		react({
+            experimentalReactChildren: true,
+            experimentalDisableStreaming: true,
+        }),
 		// react({
 		// 	include: ['**/react/*'],
 		// }),
