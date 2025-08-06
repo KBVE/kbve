@@ -98,6 +98,22 @@ spec:
         - name: GOTRUE_EXTERNAL_DISCORD_REDIRECT_URI
           value: "https://localhost:9999/callback"
 
+        # GitHub OAuth configuration
+        - name: GOTRUE_EXTERNAL_GITHUB_ENABLED
+          value: "true"
+        - name: GOTRUE_EXTERNAL_GITHUB_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: github-oauth-config
+              key: client-id
+        - name: GOTRUE_EXTERNAL_GITHUB_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: github-oauth-config
+              key: client-secret
+        - name: GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI
+          value: "http://localhost:9999/callback"
+
         # Secrets from Kubernetes
         - name: GOTRUE_JWT_EXP
           valueFrom:
