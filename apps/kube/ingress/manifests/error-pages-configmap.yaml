@@ -1,0 +1,84 @@
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: custom-error-pages
+  namespace: ingress-nginx
+data:
+  "404.html": |
+    <!DOCTYPE html>
+    <html data-theme="light">
+    <head>
+        <title>404 - Page Not Found</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+        <style>
+            main { text-align: center; padding: 2rem; }
+            .error-code { color: var(--pico-color-red-500); font-size: 4rem; margin: 0; }
+            .error-message { color: var(--pico-color-slate-600); font-size: 1.25rem; margin: 1rem 0; }
+            .error-details { color: var(--pico-color-slate-400); font-size: 0.875rem; margin-top: 2rem; }
+        </style>
+    </head>
+    <body>
+        <main class="container">
+            <article>
+                <h1 class="error-code">404</h1>
+                <p class="error-message">The page you're looking for could not be found.</p>
+                <small class="error-details">Error Code: 404 Not Found</small>
+            </article>
+        </main>
+    </body>
+    </html>
+
+  "502.html": |
+    <!DOCTYPE html>
+    <html data-theme="light">
+    <head>
+        <title>502 - Bad Gateway</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+        <style>
+            main { text-align: center; padding: 2rem; }
+            .error-code { color: var(--pico-color-amber-500); font-size: 4rem; margin: 0; }
+            .error-message { color: var(--pico-color-slate-600); font-size: 1.25rem; margin: 1rem 0; }
+            .error-details { color: var(--pico-color-slate-400); font-size: 0.875rem; margin-top: 2rem; }
+        </style>
+    </head>
+    <body>
+        <main class="container">
+            <article>
+                <h1 class="error-code">502</h1>
+                <p class="error-message">The service is temporarily unavailable. Please try again later.</p>
+                <small class="error-details">Error Code: 502 Bad Gateway</small>
+            </article>
+        </main>
+    </body>
+    </html>
+
+  "503.html": |
+    <!DOCTYPE html>
+    <html data-theme="light">
+    <head>
+        <title>503 - Service Unavailable</title>
+        <meta charset="utf-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@picocss/pico@2/css/pico.min.css">
+        <style>
+            main { text-align: center; padding: 2rem; }
+            .error-code { color: var(--pico-color-violet-500); font-size: 4rem; margin: 0; }
+            .error-message { color: var(--pico-color-slate-600); font-size: 1.25rem; margin: 1rem 0; }
+            .error-details { color: var(--pico-color-slate-400); font-size: 0.875rem; margin-top: 2rem; }
+        </style>
+    </head>
+    <body>
+        <main class="container">
+            <article>
+                <h1 class="error-code">503</h1>
+                <p class="error-message">The service is currently undergoing maintenance. Please check back soon.</p>
+                <small class="error-details">Error Code: 503 Service Unavailable</small>
+            </article>
+        </main>
+    </body>
+    </html>
