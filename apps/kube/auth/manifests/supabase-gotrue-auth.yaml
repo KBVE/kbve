@@ -96,7 +96,7 @@ spec:
               name: discord-oauth-config
               key: client-secret
         - name: GOTRUE_EXTERNAL_DISCORD_REDIRECT_URI
-          value: "https://kbve.com/callback"
+          value: "https://supabase.kbve.com/auth/v1/callback"
 
         # GitHub OAuth configuration
         - name: GOTRUE_EXTERNAL_GITHUB_ENABLED
@@ -112,7 +112,7 @@ spec:
               name: github-oauth-config
               key: client-secret
         - name: GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI
-          value: "http://kbve.com/callback"
+          value: "https://supabase.kbve.com/auth/v1/callback"
 
         # Secrets from Kubernetes
         - name: GOTRUE_JWT_EXP
