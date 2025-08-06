@@ -67,17 +67,30 @@ class UserClientService {
     this.userErrorAtom.set("");
 
     try {
-      const { data, error } = await supabase.auth.getUser();
+      // First get the session to ensure we have a valid session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
-      if (error) {
-        throw error;
+      if (sessionError) {
+        throw sessionError;
       }
 
-      if (data?.user) {
-        this.userAtom.set(data.user);
-        this.userIdAtom.set(data.user.id ?? undefined);
-        this.userEmailAtom.set(data.user.email ?? undefined);
+      // If we have a session, get the user data
+      if (sessionData?.session) {
+        const { data, error } = await supabase.auth.getUser();
+        
+        if (error) {
+          throw error;
+        }
+
+        if (data?.user) {
+          this.userAtom.set(data.user);
+          this.userIdAtom.set(data.user.id ?? undefined);
+          this.userEmailAtom.set(data.user.email ?? undefined);
+        } else {
+          this.clearUserState();
+        }
       } else {
+        // No session, clear user state
         this.clearUserState();
       }
     } catch (error: any) {
