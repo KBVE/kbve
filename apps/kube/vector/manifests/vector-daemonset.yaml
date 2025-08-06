@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: DaemonSet
 metadata:
   name: supabase-vector
-  namespace: kilobase
+  namespace: vector
   labels:
     app: supabase-vector
     component: vector
@@ -28,22 +28,54 @@ spec:
           valueFrom:
             fieldRef:
               fieldPath: spec.nodeName
+        - name: VECTOR_SELF_POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+        - name: VECTOR_SELF_POD_NAMESPACE
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.namespace
+        - name: PROCFS_ROOT
+          value: "/host/proc"
+        - name: SYSFS_ROOT
+          value: "/host/sys"
         - name: LOGFLARE_PUBLIC_ACCESS_TOKEN
           valueFrom:
             secretKeyRef:
               name: logflare-config
               key: public-access-token
-        command: ["/usr/local/bin/vector", "--config", "/etc/vector/vector.yml"]
+        args:
+        - --config-dir
+        - /etc/vector/
         volumeMounts:
         - name: vector-config
-          mountPath: /etc/vector
+          mountPath: /etc/vector/
           readOnly: true
-        - name: var-log-pods
-          mountPath: /var/log/pods
+        - name: data
+          mountPath: /vector-data-dir
+        - name: var-log
+          mountPath: /var/log/
           readOnly: true
-        - name: var-lib-docker-containers
-          mountPath: /var/lib/docker/containers
+        - name: var-lib
+          mountPath: /var/lib
           readOnly: true
+        - name: procfs
+          mountPath: /host/proc
+          readOnly: true
+        - name: sysfs
+          mountPath: /host/sys
+          readOnly: true
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "500m"
+          limits:
+            memory: "1024Mi"
+            cpu: "6000m"
+        securityContext:
+          runAsUser: 0
+          privileged: true
         livenessProbe:
           httpGet:
             path: /health
@@ -60,42 +92,35 @@ spec:
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
-        resources:
-          requests:
-            memory: "64Mi"
-            cpu: "500m"
-          limits:
-            memory: "1024Mi"
-            cpu: "6000m"
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 1000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
-          seccompProfile:
-            type: RuntimeDefault
-      
-      restartPolicy: Always
       volumes:
       - name: vector-config
-        configMap:
-          name: vector-config
-      - name: var-log-pods
+        projected:
+          sources:
+          - configMap:
+              name: vector-config
+      - name: data
         hostPath:
-          path: /var/log/pods
-      - name: var-lib-docker-containers
+          path: /var/lib/vector
+          type: DirectoryOrCreate
+      - name: var-log
         hostPath:
-          path: /var/lib/docker/containers
+          path: /var/log/
+      - name: var-lib
+        hostPath:
+          path: /var/lib/
+      - name: procfs
+        hostPath:
+          path: /proc
+      - name: sysfs
+        hostPath:
+          path: /sys
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
   name: vector
-  namespace: kilobase
+  namespace: vector
   labels:
     app: supabase-vector
     component: vector

@@ -3,7 +3,7 @@ apiVersion: v1
 kind: ConfigMap
 metadata:
   name: vector-config
-  namespace: kilobase
+  namespace: vector
 data:
   vector.yml: |
     api:
@@ -14,8 +14,12 @@ data:
       kubernetes_logs:
         type: kubernetes_logs
         self_node_name: "${VECTOR_SELF_NODE_NAME}"
-        namespace_include_regex: "^kilobase$"
-        extra_label_selector: "app!=supabase-vector"
+        namespace_labels: ["kilobase"]
+        exclude_paths_glob_patterns:
+          - "**/supabase-vector-*/**"
+          - "**/vector/**"
+        auto_partial_merge: true
+        data_dir: "/vector-data-dir"
 
     transforms:
       project_logs:
@@ -202,7 +206,7 @@ data:
           retry_max_duration_secs: 10
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-        uri: 'http://analytics:4000/api/logs?source_name=gotrue.logs.prod'
+        uri: 'http://analytics.kilobase.svc.cluster.local:4000/api/logs?source_name=gotrue.logs.prod'
       logflare_realtime:
         type: 'http'
         inputs:
@@ -214,7 +218,7 @@ data:
           retry_max_duration_secs: 10
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-        uri: 'http://analytics:4000/api/logs?source_name=realtime.logs.prod'
+        uri: 'http://analytics.kilobase.svc.cluster.local:4000/api/logs?source_name=realtime.logs.prod'
       logflare_rest:
         type: 'http'
         inputs:
@@ -226,7 +230,7 @@ data:
           retry_max_duration_secs: 10
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-        uri: 'http://analytics:4000/api/logs?source_name=postgREST.logs.prod'
+        uri: 'http://analytics.kilobase.svc.cluster.local:4000/api/logs?source_name=postgREST.logs.prod'
       logflare_db:
         type: 'http'
         inputs:
@@ -238,7 +242,7 @@ data:
           retry_max_duration_secs: 10
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-        uri: 'http://kong:8000/analytics/v1/api/logs?source_name=postgres.logs'
+        uri: 'http://kong.kilobase.svc.cluster.local:8000/analytics/v1/api/logs?source_name=postgres.logs'
       logflare_functions:
         type: 'http'
         inputs:
@@ -250,7 +254,7 @@ data:
           retry_max_duration_secs: 10
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-        uri: 'http://analytics:4000/api/logs?source_name=deno-relay-logs'
+        uri: 'http://analytics.kilobase.svc.cluster.local:4000/api/logs?source_name=deno-relay-logs'
       logflare_storage:
         type: 'http'
         inputs:
@@ -262,7 +266,7 @@ data:
           retry_max_duration_secs: 10
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-        uri: 'http://analytics:4000/api/logs?source_name=storage.logs.prod.2'
+        uri: 'http://analytics.kilobase.svc.cluster.local:4000/api/logs?source_name=storage.logs.prod.2'
       logflare_kong:
         type: 'http'
         inputs:
@@ -275,7 +279,7 @@ data:
           retry_max_duration_secs: 10
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-        uri: 'http://analytics:4000/api/logs?source_name=cloudflare.logs.prod'
+        uri: 'http://analytics.kilobase.svc.cluster.local:4000/api/logs?source_name=cloudflare.logs.prod'
       
       logflare_analytics:
         type: 'http'
@@ -288,7 +292,7 @@ data:
           retry_max_duration_secs: 10
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-        uri: 'http://analytics:4000/api/logs?source_name=analytics.logs.prod'
+        uri: 'http://analytics.kilobase.svc.cluster.local:4000/api/logs?source_name=analytics.logs.prod'
       
       logflare_meta:
         type: 'http'
@@ -301,7 +305,7 @@ data:
           retry_max_duration_secs: 10
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-        uri: 'http://analytics:4000/api/logs?source_name=meta.logs.prod'
+        uri: 'http://analytics.kilobase.svc.cluster.local:4000/api/logs?source_name=meta.logs.prod'
       
       logflare_studio:
         type: 'http'
@@ -314,4 +318,4 @@ data:
           retry_max_duration_secs: 10
           headers:
             x-api-key: ${LOGFLARE_PUBLIC_ACCESS_TOKEN?LOGFLARE_PUBLIC_ACCESS_TOKEN is required}
-        uri: 'http://analytics:4000/api/logs?source_name=studio.logs.prod'
+        uri: 'http://analytics.kilobase.svc.cluster.local:4000/api/logs?source_name=studio.logs.prod'
