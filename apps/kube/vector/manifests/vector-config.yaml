@@ -113,7 +113,7 @@ data:
           parsed, err = parse_regex(.event_message, r'^(?P<time>.*): (?P<msg>.*)')
           if err == null {
               .event_message = parsed.msg
-              .timestamp = to_timestamp!(parsed.time)
+              .timestamp = parse_timestamp!(parsed.time, "%+")
               .metadata.host = .project
           }
       realtime_logs:
