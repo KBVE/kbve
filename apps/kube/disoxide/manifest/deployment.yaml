@@ -24,7 +24,7 @@ spec:
         imagePullPolicy: Always
         ports:
         - name: http
-          containerPort: 4321
+          containerPort: 3000
           protocol: TCP
         envFrom:
         - configMapRef:
@@ -35,7 +35,7 @@ spec:
         - name: NODE_ENV
           value: "production"
         - name: PORT
-          value: "4321"
+          value: "3000"
         - name: HOST
           value: "0.0.0.0"
         - name: REDIS_HOST

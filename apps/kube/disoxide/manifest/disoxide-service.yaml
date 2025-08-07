@@ -14,4 +14,4 @@ spec:
     - name: http
       protocol: TCP
       port: 80
-      targetPort: 4321
+      targetPort: 3000
