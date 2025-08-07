@@ -1,32 +1,11 @@
 import { defineConfig } from 'astro/config';
 import react from '@astrojs/react';
-import svelte, { vitePreprocess } from '@astrojs/svelte';
-import partytown from '@astrojs/partytown';
 import sitemap from '@astrojs/sitemap';
-//import tailwind from '@astrojs/tailwind';
 import tailwindcss from "@tailwindcss/vite";
 import mdx from '@astrojs/mdx';
-import rehypeMermaid from 'rehype-mermaid';
 import starlight from '@astrojs/starlight';
-// import alpine from '@astrojs/alpinejs';
-import { fileURLToPath } from 'node:url';
-import markdownConfig from './markdown.config';
-// import starlightSiteGraph from 'starlight-site-graph';
-import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
-// import topLevelAwait from 'vite-plugin-top-level-await';
-import { resolve } from 'path';
 
-// Compression Optimizations - 04-22-2025
-// import compressor from "astro-compressor";
-// import { shield } from '@kindspells/astro-shield'
-
-
-// Workers - 04-23-2025
-// import AstroPWA from '@vite-pwa/astro'
-
-
-// https://astro.build/config
 export default defineConfig({
 	site: 'https://discord.sh/',
 	output: 'static',
@@ -38,45 +17,22 @@ export default defineConfig({
 	i18n: {
 		defaultLocale: 'en',
 		locales: ['en'],
-		// fallback: {
-		// 	fr: 'en',
-		// },
 		routing: {
 			prefixDefaultLocale: false,
 		},
 	},
-	// experimental: {
-	// 	contentCollectionCache: true,
-	// },
 	integrations: [
 		starlight({
 			plugins: [
-				// starlightSiteGraph({
-				// 	graphConfig: {
-				// 		renderArrows: true,
-				// 	},
-				// }),
+
 			],
 			title: 'Disoxide Docs',
 			editLink: {
 				baseUrl: 'https://github.com/kbve/kbve/edit/dev/apps/discord/astro-disoxide',
 			},
 			tableOfContents: { minHeadingLevel: 2, maxHeadingLevel: 5 },
-			expressiveCode: true, // Disabled Expressive Code
+			expressiveCode: false,
 			defaultLocale: 'root',
-			// locales: {
-			// 	root: {
-			// 		label: 'English',
-			// 		lang: 'en',
-			// 	},
-			// 	// de: { label: 'Deutsch', lang: 'de' },
-			// 	// es: { label: 'Español', lang: 'es' },
-			// 	// fa: { label: 'Persian', lang: 'fa', dir: 'rtl' },
-			// 	// fr: { label: 'Français', lang: 'fr' },
-			// 	// ja: { label: '日本語', lang: 'ja' },
-			// 	// 'zh-cn': { label: '简体中文', lang: 'zh-CN' },
-			// },
-			// https://starlight.astro.build/guides/sidebar/
 			sidebar: [
 				{
 					label: 'Guides',
@@ -103,13 +59,7 @@ export default defineConfig({
 			disable404Route: true,
 			customCss: ['./src/styles/starlight.css'],
 			favicon: '/favicon.ico',
-			components: {
-				// SiteTitle: './src/components/ui/starlight/SiteTitle.astro',
-				// Head: './src/components/ui/starlight/Head.astro',
-				// Footer: './src/components/ui/starlight/Footer.astro',
-				// TableOfContents:
-				// 	'./src/components/ui/starlight/TableOfContents.astro',
-			},
+			components: {},
 			head: [
 				{
 					tag: 'meta',
@@ -133,159 +83,16 @@ export default defineConfig({
 				defaultLocale: 'en',
 				locales: {
 					en: 'en',
-					// fr: 'fr',
 				},
 			},
 		}),
 		react({
-            experimentalReactChildren: true,
-            experimentalDisableStreaming: true,
-        }),
-		// react({
-		// 	include: ['**/react/*'],
-		// }),
-		//alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
-		//partytown(),
-		//worker(),
-		//svelte(),
-
-		// AstroPWA({
-		// 	base: '/',
-		// 	scope: '/',
-		// 	registerType: 'autoUpdate',
-		// 	includeAssets: ['favicon.svg'],
-		// 	manifest: {
-		// 		name: 'Discord SH',
-		// 		short_name: 'DSH',
-		// 		theme_color: '#ffffff',
-		// 		icons: [
-		// 			{
-		// 				src: 'pwa-192x192.png',
-		// 				sizes: '192x192',
-		// 				type: 'image/png',
-		// 			},
-		// 			{
-		// 				src: 'pwa-512x512.png',
-		// 				sizes: '512x512',
-		// 				type: 'image/png',
-		// 			},
-		// 			{
-		// 				src: 'pwa-512x512.png',
-		// 				sizes: '512x512',
-		// 				type: 'image/png',
-		// 				purpose: 'any maskable',
-		// 			},
-		// 		],
-		// 	},
-		// 	workbox: {
-		// 		cleanupOutdatedCaches: true,
-		// 		inlineWorkboxRuntime: true,
-		// 		globPatterns: ['**/*.{html,css,js,svg,png,ico,txt,lottie}'],
-		// 		navigateFallback: null,
-		// 		navigationPreload: true,
-		// 		navigateFallbackDenylist: [
-		// 			/^\/sw\.js$/,
-		// 			/^\/workbox-[a-z0-9\-]+\.js$/,
-		// 			/^\/ws$/,
-		// 			/^\/api\/.*/,
-		// 		  ],
-						  
-		// 		runtimeCaching: [
-		// 			{
-		// 				urlPattern: ({ request }) => request.mode === 'navigate',
-		// 				handler: 'NetworkFirst',
-		// 				options: {
-		// 					cacheName: 'pages',
-		// 					networkTimeoutSeconds: 3,
-		// 					expiration: {
-		// 						maxEntries: 20,
-		// 						maxAgeSeconds: 60 * 60 * 24,
-		// 					},
-		// 				},
-		// 			},
-		// 			{
-		// 				urlPattern: /\/api\/.*/,
-		// 				handler: 'NetworkFirst',
-		// 				options: {
-		// 				  cacheName: 'api-json',
-		// 				  networkTimeoutSeconds: 1,
-		// 				  expiration: {
-		// 					maxEntries: 5,
-		// 					maxAgeSeconds: 60 * 5,
-		// 				  },
-		// 				},
-		// 			  },
-		// 			{
-		// 				urlPattern: ({ request }) =>
-		// 					['script', 'style', 'font', 'image'].includes(request.destination),
-		// 				handler: 'CacheFirst',
-		// 				options: {
-		// 					cacheName: 'static-assets',
-		// 					expiration: {
-		// 						maxEntries: 100,
-		// 						maxAgeSeconds: 60 * 60 * 24 * 30,
-		// 					},
-		// 				},
-		// 			},
-					
-		// 		],
-		// 	},
-		// 	experimental: {
-		// 		directoryAndTrailingSlashHandler: true,
-		// 	},
-		// 	devOptions: {
-		// 		enabled: true
-		// 		/* other options */
-		// 	}
-
-		// }),
-
-		// (await import("@playform/compress")).default({
-		// 	CSS: true,
-		// 	HTML: {
-		// 		"html-minifier-terser": {
-		// 			removeAttributeQuotes: false,
-		// 		},
-		// 	},
-		// 	Image: false,
-		// 	JavaScript: true,
-		// 	SVG: true,
-		// }),
-
-		// shield({
-		// 	sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
-		// }),
-
-		// compressor({
-		// 	gzip: true,
-		// 	brotli: false,
-		// 	fileExtensions: [
-		// 		".html",
-		// 		".js",
-		// 		".css",
-		// 		".mjs",
-		// 		".cjs",
-		// 		".svg",
-		// 		".xml",
-		// 		".txt",
-		// 		".json"
-		// 	]
-		// }),
-
-		// tailwind({
-		// 	configFile: fileURLToPath(
-		// 		new URL('./tailwind.config.cjs', import.meta.url),
-		// 	),
-		// }),
-		// mdx({
-		// 	...markdownConfig,
-		// 	//extendPlugins: "astroDefaults"
-		// }),
+			experimentalReactChildren: true,
+			experimentalDisableStreaming: true,
+		}),
+		mdx(),
 	],
-	// markdown: markdownConfig,
-	markdown: {
-		rehypePlugins: [[rehypeMermaid, { strategy: 'img-svg', dark: true }]],
-	},
+
 	vite: defineViteConfig({
 		ssr: {
 			noExternal: ['path-to-regexp'],
@@ -298,58 +105,19 @@ export default defineConfig({
 		build: {
 			rollupOptions: {
 				// maxConcurrency: 2,
-				output: {
-					manualChunks: (id) => {
-						if (id.includes('node_modules')) {
-							return id
-								.toString()
-								.split('node_modules/')[1]
-								.split('/')[0];
-						}
-					},
-				},
+				output: {},
 			},
 		},
 		resolve: {
 			alias: {
-				'three/examples/jsm/controls/DragControls.js':
-					'three/examples/jsm/controls/DragControls.js',
-				'three/examples/jsm/controls/OrbitControls.js':
-					'three/examples/jsm/controls/OrbitControls.js',
-				'three/examples/jsm/controls/TrackballControls.js':
-					'three/examples/jsm/controls/TrackballControls.js',
-				'three/examples/jsm/controls/FlyControls.js':
-					'three/examples/jsm/controls/FlyControls.js',
-				'three/examples/jsm/postprocessing/EffectComposer.js':
-					'three/examples/jsm/postprocessing/EffectComposer.js',
-				'three/examples/jsm/postprocessing/RenderPass.js':
-					'three/examples/jsm/postprocessing/RenderPass.js',
+
 			},
 		},
 		vite: {
 			plugins: [
 				tailwindcss(),
-				// {
-				// 	name: 'emit-sw',
-				// 	apply: 'build',
-				// 	enforce: 'post',
-				// 	async generateBundle(_, bundle) {
-				// 		this.emitFile({
-				// 			type: 'chunk',
-				// 			id: resolve('./src/layout/scripts/sw.ts'),
-				// 			fileName: 'sw.js',
-				// 		});
-				// 	}
-				// },
 			]
 			,
 		},
-		// Apply the top-level await plugin to our vite.config.js
-		// plugins: [
-		// 	topLevelAwait({
-		// 		promiseExportName: '__tla',
-		// 		promiseImportName: (i) => `__tla_${i}`,
-		// 	}),
-		// ],
 	}),
 });
