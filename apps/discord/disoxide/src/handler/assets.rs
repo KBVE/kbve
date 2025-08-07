@@ -43,7 +43,9 @@ pub fn static_router() -> Router<SharedState> {
         .route_service("/favicon.ico", ServeFile::new("dist/favicon.ico"))
         .route_service("/index.html", ServeFile::new("dist/index.html"))
         .route_service("/404.html", ServeFile::new("dist/404.html"))
-
+        .route_service("/login", ServeFile::new("dist/login"))
+        .route_service("/logout", ServeFile::new("dist/404"))
+        .route_service("/auth", ServeFile::new("dist/auth"))
         .fallback_service(ServeDir::new("dist").precompressed_gzip().not_found_service(get(custom_404)))
         .layer(cache_layer)
 }
