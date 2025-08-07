@@ -28,7 +28,7 @@ class OAuthService {
     // Build redirect URL robustly, handling any trailing slashes
     // Remove any trailing slash from origin and ensure clean path
     const origin = window.location.origin.replace(/\/$/, '');
-    const callbackPath = '/auth/callback';
+    const callbackPath = '/callback';
     
     // Ensure we always return a clean URL without double slashes
     return `${origin}${callbackPath}`;
