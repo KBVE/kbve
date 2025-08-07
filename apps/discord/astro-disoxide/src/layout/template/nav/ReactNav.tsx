@@ -59,7 +59,7 @@ export const ReactNav: React.FC<ReactNavProps> = ({
           mobileContent.classList.add('flex');
         }
       }
-    }, 100); // Small delay to allow component to mount
+    }, 100);
 
     // Cleanup on unmount
     return () => {
@@ -67,78 +67,91 @@ export const ReactNav: React.FC<ReactNavProps> = ({
     };
   }, [isMobile, visibleMenuItems]);
 
-  // Handle authentication state changes
+  // Handle authentication state changes and signal dot
   useEffect(() => {
-    // Skip if still loading auth
-    if (loadingAuth) return;
+    const signalDot = document.querySelector('[data-nav="signal"]') as HTMLElement;
+    const authLinks = document.querySelector('[data-nav="auth-links"]') as HTMLElement;
+    const userAvatarSection = document.querySelector('[data-nav="user-avatar-section"]') as HTMLElement;
 
-    const avatarSkeleton = document.querySelector('[data-skeleton="avatar"]') as HTMLElement;
-    const avatarGuest = document.querySelector('[data-nav="avatar-guest"]') as HTMLElement;
-    const avatarUser = document.querySelector('[data-nav="avatar-user"]') as HTMLElement;
-
-    // Hide skeleton now that we know the auth state
-    if (avatarSkeleton) avatarSkeleton.classList.add('hidden');
+    if (loadingAuth) {
+      // Loading state - gray dot
+      if (signalDot) {
+        signalDot.className = 'w-3 h-3 rounded-full bg-gray-500 transition-colors duration-300';
+        signalDot.title = 'Auth Status: Loading';
+      }
+      // Hide both auth options while loading
+      if (authLinks) authLinks.classList.add('hidden');
+      if (userAvatarSection) userAvatarSection.classList.add('hidden');
+      return;
+    }
 
     if (isAuthenticated && user) {
-      // Hide guest, show user
-      if (avatarGuest) avatarGuest.classList.add('hidden');
-      if (avatarUser) {
-        avatarUser.classList.remove('hidden');
-        if (!isMobile) avatarUser.classList.add('flex');
+      // Authenticated state - green dot
+      if (signalDot) {
+        signalDot.className = 'w-3 h-3 rounded-full bg-green-500 transition-colors duration-300';
+        signalDot.title = `Auth Status: Logged in as ${user.email}`;
+      }
+
+      // Show user avatar, hide auth links
+      if (authLinks) authLinks.classList.add('hidden');
+      if (userAvatarSection) {
+        userAvatarSection.classList.remove('hidden');
+        userAvatarSection.classList.add('flex');
       }
 
       // Update user info
-      const userEmails = document.querySelectorAll('[data-nav="user-email"], [data-nav="user-email-desktop"]');
-      userEmails.forEach(el => {
-        if (el) el.textContent = user.email || '';
-      });
+      const userEmail = document.querySelector('[data-nav="user-email"]') as HTMLElement;
+      if (userEmail) userEmail.textContent = user.email || '';
 
       // Update avatar
       const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
       const initials = user.email ? user.email.charAt(0).toUpperCase() : 'U';
       
-      // Update mobile avatar
       const userAvatar = document.querySelector('[data-nav="user-avatar"]') as HTMLImageElement;
       const userInitials = document.querySelector('[data-nav="user-initials"]') as HTMLElement;
-      
-      // Update desktop avatar
-      const userAvatarDesktop = document.querySelector('[data-nav="user-avatar-desktop"]') as HTMLImageElement;
-      const userInitialsDesktop = document.querySelector('[data-nav="user-initials-desktop"]') as HTMLElement;
 
       if (avatarUrl) {
-        // Show image avatars
+        // Show image avatar
         if (userAvatar) {
           userAvatar.src = avatarUrl;
           userAvatar.classList.remove('hidden');
         }
         if (userInitials) userInitials.classList.add('hidden');
-        if (userAvatarDesktop) {
-          userAvatarDesktop.src = avatarUrl;
-          userAvatarDesktop.classList.remove('hidden');
-        }
-        if (userInitialsDesktop) userInitialsDesktop.classList.add('hidden');
       } else {
-        // Show initial avatars
+        // Show initials avatar
         if (userAvatar) userAvatar.classList.add('hidden');
         if (userInitials) {
           userInitials.textContent = initials;
           userInitials.classList.remove('hidden');
         }
-        if (userAvatarDesktop) userAvatarDesktop.classList.add('hidden');
-        if (userInitialsDesktop) {
-          userInitialsDesktop.textContent = initials;
-          userInitialsDesktop.classList.remove('hidden');
-        }
       }
     } else {
-      // Hide user, show guest
-      if (avatarUser) avatarUser.classList.add('hidden');
-      if (avatarGuest) {
-        avatarGuest.classList.remove('hidden');
-        if (!isMobile) avatarGuest.classList.add('flex');
+      // Not authenticated - yellow dot
+      if (signalDot) {
+        signalDot.className = 'w-3 h-3 rounded-full bg-yellow-500 transition-colors duration-300';
+        signalDot.title = 'Auth Status: Not logged in';
+      }
+
+      // Show auth links, hide user avatar
+      if (userAvatarSection) userAvatarSection.classList.add('hidden');
+      if (authLinks) {
+        authLinks.classList.remove('hidden');
+        authLinks.classList.add('flex');
       }
     }
-  }, [isAuthenticated, user, loadingAuth, isMobile]);
+  }, [isAuthenticated, user, loadingAuth]);
+
+  // Handle dropdown state
+  useEffect(() => {
+    const dropdown = document.querySelector('[data-nav="user-dropdown"]') as HTMLElement;
+    if (dropdown) {
+      if (dropdownOpen) {
+        dropdown.classList.remove('hidden');
+      } else {
+        dropdown.classList.add('hidden');
+      }
+    }
+  }, [dropdownOpen]);
 
   // Handle mobile menu visibility
   useEffect(() => {
@@ -182,43 +195,16 @@ export const ReactNav: React.FC<ReactNavProps> = ({
           });
         });
       }
-
-      // Show appropriate auth section for mobile
-      if (isAuthenticated) {
-        if (avatarGuest) avatarGuest.classList.add('hidden');
-        if (avatarUser) avatarUser.classList.remove('hidden');
-      } else {
-        if (avatarUser) avatarUser.classList.add('hidden');
-        if (avatarGuest) avatarGuest.classList.remove('hidden');
-      }
     } else {
       if (mobileMenu) mobileMenu.classList.add('hidden');
-      
-      // Hide auth sections on mobile when menu is closed
-      if (isMobile) {
-        if (avatarGuest) avatarGuest.classList.add('hidden');
-        if (avatarUser) avatarUser.classList.add('hidden');
-      }
     }
-  }, [isOpen, isMobile, visibleMenuItems, isAuthenticated]);
-
-  // Handle dropdown state
-  useEffect(() => {
-    const dropdown = document.querySelector('[data-nav="user-dropdown"]') as HTMLElement;
-    if (dropdown) {
-      if (dropdownOpen) {
-        dropdown.classList.remove('hidden');
-      } else {
-        dropdown.classList.add('hidden');
-      }
-    }
-  }, [dropdownOpen]);
+  }, [isOpen, isMobile, visibleMenuItems]);
 
   // Set up event listeners
   useEffect(() => {
     const mobileButton = document.querySelector('[data-content="mobile-button"]') as HTMLElement;
     const userButton = document.querySelector('[data-nav="user-button"]') as HTMLElement;
-    const signOutButtons = document.querySelectorAll('[data-nav="signout-button"], [data-nav="signout-button-desktop"]');
+    const signOutButton = document.querySelector('[data-nav="signout-button"]') as HTMLElement;
 
     const handleMobileButtonClick = () => {
       navService.toggleMenu();
@@ -263,18 +249,14 @@ export const ReactNav: React.FC<ReactNavProps> = ({
     // Add event listeners
     if (mobileButton) mobileButton.addEventListener('click', handleMobileButtonClick);
     if (userButton) userButton.addEventListener('click', handleUserButtonClick);
-    signOutButtons.forEach(button => {
-      if (button) button.addEventListener('click', handleSignOut);
-    });
+    if (signOutButton) signOutButton.addEventListener('click', handleSignOut);
     document.addEventListener('mousedown', handleClickOutside);
 
     return () => {
       // Remove event listeners
       if (mobileButton) mobileButton.removeEventListener('click', handleMobileButtonClick);
       if (userButton) userButton.removeEventListener('click', handleUserButtonClick);
-      signOutButtons.forEach(button => {
-        if (button) button.removeEventListener('click', handleSignOut);
-      });
+      if (signOutButton) signOutButton.removeEventListener('click', handleSignOut);
       document.removeEventListener('mousedown', handleClickOutside);
     };
   }, [isOpen]);
