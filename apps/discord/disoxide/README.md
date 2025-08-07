@@ -10,3 +10,4 @@ v1.4.1 - Added Supabase.
 v1.4.2 - Cleaning up React Errors.
 v1.4.3 - Minor errors with the routes.
 v1.4.4 - Adding additional static routes.
+v1.4.5 - Added static categories via `/cat/$`.
