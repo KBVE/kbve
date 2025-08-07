@@ -1,0 +1,192 @@
+---
+/** @jsxImportSource astro */
+
+import Layout from 'src/layout/Layout.astro';
+---
+
+<Layout title="Categories" description="Discord Server Categories - Find the perfect server for your interests">
+	<div class="flex flex-col min-h-screen overflow-y-auto">
+		<div
+			class="flex-1 flex flex-col w-full min-h-full transition-all duration-200 ease-in-out">
+			<main class="p-6 flex-1 overflow-visible">
+				<div class="max-w-7xl mx-auto w-full">
+					<!-- Page Header -->
+					<div class="mb-8 text-center">
+						<h1 class="text-3xl font-bold text-purple-300 mb-2">Server Categories</h1>
+						<p class="text-gray-400">Explore Discord servers by category</p>
+					</div>
+
+					<div class="bento-grid-3">
+						<!-- Gaming -->
+						<a href="/cat/gaming" class="bg-[#312d4b] p-6 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 md:col-span-1 md:row-span-2 block transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+							<div class="text-center mb-4">
+								<div class="text-4xl mb-3">🎮</div>
+								<h3 class="text-xl font-bold text-white mb-2">Gaming</h3>
+								<p class="text-sm text-gray-400 mb-4">Connect with fellow gamers and find your gaming community</p>
+							</div>
+							<div class="space-y-2">
+								<p class="text-xs text-gray-500">Popular Games:</p>
+								<div class="flex flex-wrap gap-1">
+									<span class="px-2 py-1 text-xs bg-purple-600/20 text-purple-300 rounded">Valorant</span>
+									<span class="px-2 py-1 text-xs bg-purple-600/20 text-purple-300 rounded">Minecraft</span>
+									<span class="px-2 py-1 text-xs bg-purple-600/20 text-purple-300 rounded">League of Legends</span>
+								</div>
+							</div>
+							<div class="w-full bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600 transition text-center mt-4">
+								Explore Gaming Servers
+							</div>
+						</a>
+
+						<!-- Anime -->
+						<a href="/cat/anime" class="bg-[#312d4b] p-6 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 md:col-span-1 md:row-span-2 block transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+							<div class="text-center mb-4">
+								<div class="text-4xl mb-3">🌸</div>
+								<h3 class="text-xl font-bold text-white mb-2">Anime</h3>
+								<p class="text-sm text-gray-400 mb-4">Discuss your favorite anime, manga, and Japanese culture</p>
+							</div>
+							<div class="space-y-2">
+								<p class="text-xs text-gray-500">Popular Topics:</p>
+								<div class="flex flex-wrap gap-1">
+									<span class="px-2 py-1 text-xs bg-pink-600/20 text-pink-300 rounded">Manga</span>
+									<span class="px-2 py-1 text-xs bg-pink-600/20 text-pink-300 rounded">Cosplay</span>
+									<span class="px-2 py-1 text-xs bg-pink-600/20 text-pink-300 rounded">Light Novels</span>
+								</div>
+							</div>
+							<div class="w-full bg-pink-700 text-white px-4 py-2 rounded hover:bg-pink-600 transition text-center mt-4">
+								Explore Anime Servers
+							</div>
+						</a>
+
+						<!-- Art -->
+						<a href="/cat/art" class="bg-[#312d4b] p-6 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 md:col-span-1 md:row-span-2 block transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+							<div class="text-center mb-4">
+								<div class="text-4xl mb-3">🎨</div>
+								<h3 class="text-xl font-bold text-white mb-2">Art</h3>
+								<p class="text-sm text-gray-400 mb-4">Share your artwork and connect with creative minds</p>
+							</div>
+							<div class="space-y-2">
+								<p class="text-xs text-gray-500">Art Forms:</p>
+								<div class="flex flex-wrap gap-1">
+									<span class="px-2 py-1 text-xs bg-blue-600/20 text-blue-300 rounded">Digital Art</span>
+									<span class="px-2 py-1 text-xs bg-blue-600/20 text-blue-300 rounded">Traditional</span>
+									<span class="px-2 py-1 text-xs bg-blue-600/20 text-blue-300 rounded">Photography</span>
+								</div>
+							</div>
+							<div class="w-full bg-blue-700 text-white px-4 py-2 rounded hover:bg-blue-600 transition text-center mt-4">
+								Explore Art Servers
+							</div>
+						</a>
+
+						<!-- Technology -->
+						<a href="/cat/technology" class="bg-[#312d4b] p-6 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 md:col-span-1 md:row-span-2 block transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+							<div class="text-center mb-4">
+								<div class="text-4xl mb-3">💻</div>
+								<h3 class="text-xl font-bold text-white mb-2">Technology</h3>
+								<p class="text-sm text-gray-400 mb-4">Discuss coding, tech news, and innovation</p>
+							</div>
+							<div class="space-y-2">
+								<p class="text-xs text-gray-500">Topics:</p>
+								<div class="flex flex-wrap gap-1">
+									<span class="px-2 py-1 text-xs bg-green-600/20 text-green-300 rounded">Programming</span>
+									<span class="px-2 py-1 text-xs bg-green-600/20 text-green-300 rounded">AI/ML</span>
+									<span class="px-2 py-1 text-xs bg-green-600/20 text-green-300 rounded">Web Dev</span>
+								</div>
+							</div>
+							<div class="w-full bg-green-700 text-white px-4 py-2 rounded hover:bg-green-600 transition text-center mt-4">
+								Explore Tech Servers
+							</div>
+						</a>
+
+						<!-- Education -->
+						<a href="/cat/education" class="bg-[#312d4b] p-6 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 md:col-span-1 md:row-span-2 block transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+							<div class="text-center mb-4">
+								<div class="text-4xl mb-3">📚</div>
+								<h3 class="text-xl font-bold text-white mb-2">Education</h3>
+								<p class="text-sm text-gray-400 mb-4">Learn together and share knowledge with study groups</p>
+							</div>
+							<div class="space-y-2">
+								<p class="text-xs text-gray-500">Subjects:</p>
+								<div class="flex flex-wrap gap-1">
+									<span class="px-2 py-1 text-xs bg-indigo-600/20 text-indigo-300 rounded">Mathematics</span>
+									<span class="px-2 py-1 text-xs bg-indigo-600/20 text-indigo-300 rounded">Science</span>
+									<span class="px-2 py-1 text-xs bg-indigo-600/20 text-indigo-300 rounded">Languages</span>
+								</div>
+							</div>
+							<div class="w-full bg-indigo-700 text-white px-4 py-2 rounded hover:bg-indigo-600 transition text-center mt-4">
+								Explore Education Servers
+							</div>
+						</a>
+
+						<!-- Entertainment -->
+						<a href="/cat/entertainment" class="bg-[#312d4b] p-6 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 md:col-span-1 md:row-span-2 block transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+							<div class="text-center mb-4">
+								<div class="text-4xl mb-3">🎭</div>
+								<h3 class="text-xl font-bold text-white mb-2">Entertainment</h3>
+								<p class="text-sm text-gray-400 mb-4">Movies, TV shows, music, and general entertainment</p>
+							</div>
+							<div class="space-y-2">
+								<p class="text-xs text-gray-500">Categories:</p>
+								<div class="flex flex-wrap gap-1">
+									<span class="px-2 py-1 text-xs bg-yellow-600/20 text-yellow-300 rounded">Movies</span>
+									<span class="px-2 py-1 text-xs bg-yellow-600/20 text-yellow-300 rounded">Music</span>
+									<span class="px-2 py-1 text-xs bg-yellow-600/20 text-yellow-300 rounded">TV Shows</span>
+								</div>
+							</div>
+							<div class="w-full bg-yellow-700 text-white px-4 py-2 rounded hover:bg-yellow-600 transition text-center mt-4">
+								Explore Entertainment Servers
+							</div>
+						</a>
+
+						<!-- More Categories -->
+						<div
+							class="bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1 md:col-span-3 md:row-span-1">
+							<h3 class="text-lg font-semibold text-purple-300 mb-4">More Categories</h3>
+							<div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+								<a href="/cat/crypto" class="p-3 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-purple-500/50 transition text-center">
+									<div class="text-2xl mb-1">₿</div>
+									<h4 class="text-white font-medium text-sm">Crypto</h4>
+									<p class="text-xs text-gray-400">Trading & DeFi</p>
+								</a>
+								<a href="/cat/politics" class="p-3 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-purple-500/50 transition text-center">
+									<div class="text-2xl mb-1">🗳️</div>
+									<h4 class="text-white font-medium text-sm">Politics</h4>
+									<p class="text-xs text-gray-400">Current Events</p>
+								</a>
+								<a href="/cat/social" class="p-3 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-purple-500/50 transition text-center">
+									<div class="text-2xl mb-1">👥</div>
+									<h4 class="text-white font-medium text-sm">Social</h4>
+									<p class="text-xs text-gray-400">Meet People</p>
+								</a>
+								<a href="/cat/support" class="p-3 bg-gray-800/50 rounded-lg border border-gray-700 hover:border-purple-500/50 transition text-center">
+									<div class="text-2xl mb-1">🤝</div>
+									<h4 class="text-white font-medium text-sm">Support</h4>
+									<p class="text-xs text-gray-400">Mental Health</p>
+								</a>
+							</div>
+						</div>
+
+						<!-- NSFW Category -->
+						<a href="/cat/nsfw" class="bg-[#312d4b] p-4 rounded shadow-xl border-red-500/20 hover:border-red-500 border-1 md:col-span-3 md:row-span-1 block transition-all duration-200 hover:scale-[1.02] cursor-pointer">
+							<div class="flex items-center justify-between">
+								<div>
+									<h3 class="text-lg font-semibold text-red-300 mb-2">18+ Adult Content</h3>
+									<p class="text-sm text-gray-400">Age-restricted servers for mature audiences only</p>
+								</div>
+								<div class="hidden md:block">
+									<div class="bg-red-700 text-white px-6 py-2 rounded hover:bg-red-600 transition">
+										Enter (18+)
+									</div>
+								</div>
+							</div>
+							<div class="md:hidden mt-4">
+								<div class="w-full bg-red-700 text-white px-4 py-2 rounded hover:bg-red-600 transition text-center">
+									Enter (18+)
+								</div>
+							</div>
+						</a>
+					</div>
+				</div>
+			</main>
+		</div>
+	</div>
+</Layout>
