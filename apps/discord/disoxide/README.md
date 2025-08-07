@@ -7,3 +7,4 @@ v1.2 - Release and deployment to the kubernetes, trigger another build.
 v1.3 - Better compression and slight security improvements.
 v1.4 - Improved the PWA and removed the alpine.
 v1.4.1 - Added Supabase
+v1.4.2 - Cleaning up React Errors.

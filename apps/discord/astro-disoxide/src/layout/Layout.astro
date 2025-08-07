@@ -25,6 +25,11 @@ import 'src/styles/global.css';
 		<link rel="canonical" href={url ?? canonicalURL} />
 
 		<title>{title}</title>
+		<style>
+			@view-transition {
+				navigation: auto;
+			}
+		</style>
 
 		<meta charset="UTF-8" />
 		<meta name="description" content={description} />
