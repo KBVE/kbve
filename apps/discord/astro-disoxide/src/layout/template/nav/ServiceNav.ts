@@ -1,7 +1,7 @@
 import { atom, computed } from 'nanostores';
-import { userClientService } from '../userClient';
+import { $userAtom, $userLoadingAtom } from '../userClient';
 
-interface NavMenuItem {
+export interface NavMenuItem {
   id: string;
   label: string;
   href: string;
@@ -11,165 +11,126 @@ interface NavMenuItem {
   children?: NavMenuItem[];
 }
 
-class NavService {
-  private static instance: NavService;
-  
-  // State atoms
-  public readonly isOpenAtom = atom<boolean>(false);
-  public readonly isMobileAtom = atom<boolean>(false);
-  public readonly activePathAtom = atom<string>("");
-  public readonly dropdownOpenAtom = atom<boolean>(false);
-  
-  // Reference to UserClientService atoms
-  public readonly userAtom = userClientService.userAtom;
-  public readonly loadingAuthAtom = userClientService.userLoadingAtom;
-  
-  // Menu items configuration (excluding auth items which are handled separately)
-  public readonly menuItemsAtom = atom<NavMenuItem[]>([
-    {
-      id: 'home',
-      label: 'Home',
-      href: '/',
-    },
-    {
-      id: 'servers',
-      label: 'Servers',
-      href: '/servers',
-    },
-    {
-      id: 'features',
-      label: 'Features',
-      href: '/features',
-    },
-    {
-      id: 'pricing',
-      label: 'Pricing',
-      href: '/pricing',
-    },
-  ]);
+// Core navigation state atoms
+export const $isNavOpen = atom<boolean>(false);
+export const $isMobile = atom<boolean>(false);
+export const $activePath = atom<string>("");
+export const $dropdownOpen = atom<boolean>(false);
 
-  // Computed values
-  public readonly isAuthenticatedAtom = computed(
-    this.userAtom,
-    (user) => !!user
-  );
+// Menu items configuration
+export const $menuItems = atom<NavMenuItem[]>([
+  {
+    id: 'home',
+    label: 'Home',
+    href: '/',
+  },
+  {
+    id: 'servers',
+    label: 'Servers',
+    href: '/servers',
+  },
+  {
+    id: 'features',
+    label: 'Features',
+    href: '/features',
+  },
+  {
+    id: 'pricing',
+    label: 'Pricing',
+    href: '/pricing',
+  },
+]);
 
-  public readonly visibleMenuItemsAtom = computed(
-    [this.menuItemsAtom, this.isAuthenticatedAtom],
-    (menuItems, isAuthenticated) => {
-      return menuItems.filter(item => {
-        if (item.requiresAuth && !isAuthenticated) return false;
-        if (item.hideWhenAuth && isAuthenticated) return false;
-        return true;
-      });
-    }
-  );
+// Computed values
+export const $isAuthenticated = computed(
+  $userAtom,
+  (user) => !!user
+);
 
-  private constructor() {
-    this.initializeClientState();
+export const $visibleMenuItems = computed(
+  [$menuItems, $isAuthenticated],
+  (menuItems, isAuthenticated) => {
+    return menuItems.filter(item => {
+      if (item.requiresAuth && !isAuthenticated) return false;
+      if (item.hideWhenAuth && isAuthenticated) return false;
+      return true;
+    });
   }
+);
 
-  public static getInstance(): NavService {
-    // If running in browser and global already exists, use it
-    if (typeof window !== 'undefined') {
-      if ((window as any).serviceNav) {
-        NavService.instance = (window as any).serviceNav;
-      } else if (!NavService.instance) {
-        NavService.instance = new NavService();
-        (window as any).serviceNav = NavService.instance;
-      }
-    } else {
-      if (!NavService.instance) {
-        NavService.instance = new NavService();
-      }
-    }
-    return NavService.instance;
+// Navigation actions
+export const toggleMenu = () => {
+  $isNavOpen.set(!$isNavOpen.get());
+};
+
+export const closeMenu = () => {
+  $isNavOpen.set(false);
+};
+
+export const openMenu = () => {
+  $isNavOpen.set(true);
+};
+
+export const toggleDropdown = () => {
+  $dropdownOpen.set(!$dropdownOpen.get());
+};
+
+export const closeDropdown = () => {
+  $dropdownOpen.set(false);
+};
+
+export const setActivePath = (path: string) => {
+  $activePath.set(path);
+};
+
+export const isActiveRoute = (href: string): boolean => {
+  const currentPath = $activePath.get();
+  if (href === '/') {
+    return currentPath === href;
   }
+  return currentPath.startsWith(href);
+};
 
+export const updateMenuItems = (items: NavMenuItem[]) => {
+  $menuItems.set(items);
+};
 
-  private initializeClientState(): void {
-    if (typeof window !== 'undefined') {
-      // Set initial path
-      this.activePathAtom.set(window.location.pathname);
+export const addMenuItem = (item: NavMenuItem) => {
+  const currentItems = $menuItems.get();
+  $menuItems.set([...currentItems, item]);
+};
 
-      // Check if mobile
-      this.checkMobileView();
-      window.addEventListener('resize', () => this.checkMobileView());
+export const removeMenuItem = (id: string) => {
+  const currentItems = $menuItems.get();
+  $menuItems.set(currentItems.filter(item => item.id !== id));
+};
 
-    }
+export const signOut = async () => {
+  const { userClientService } = await import('../userClient');
+  try {
+    await userClientService.signOut();
+    window.location.href = '/';
+  } catch (error) {
+    console.error('[NavService] Sign out failed:', error);
   }
+};
 
-  private checkMobileView(): void {
+// Initialize client state
+if (typeof window !== 'undefined') {
+  // Set initial path
+  $activePath.set(window.location.pathname);
+
+  // Check if mobile and set up listener
+  const checkMobileView = () => {
     const isMobile = window.innerWidth < 768;
-    this.isMobileAtom.set(isMobile);
+    $isMobile.set(isMobile);
     
     // Close mobile menu when switching to desktop
-    if (!isMobile && this.isOpenAtom.get()) {
-      this.isOpenAtom.set(false);
+    if (!isMobile && $isNavOpen.get()) {
+      $isNavOpen.set(false);
     }
-  }
+  };
 
-
-  public toggleMenu(): void {
-    this.isOpenAtom.set(!this.isOpenAtom.get());
-  }
-
-  public closeMenu(): void {
-    this.isOpenAtom.set(false);
-  }
-
-  public openMenu(): void {
-    this.isOpenAtom.set(true);
-  }
-
-  public toggleDropdown(): void {
-    this.dropdownOpenAtom.set(!this.dropdownOpenAtom.get());
-  }
-
-  public closeDropdown(): void {
-    this.dropdownOpenAtom.set(false);
-  }
-
-  public setActivePath(path: string): void {
-    this.activePathAtom.set(path);
-  }
-
-  public isActiveRoute(href: string): boolean {
-    const currentPath = this.activePathAtom.get();
-    if (href === '/') {
-      return currentPath === href;
-    }
-    return currentPath.startsWith(href);
-  }
-
-  public async signOut(): Promise<void> {
-    try {
-      await userClientService.signOut();
-      window.location.href = '/';
-    } catch (error) {
-      console.error('[NavService] Sign out failed:', error);
-    }
-  }
-
-  public updateMenuItems(items: NavMenuItem[]): void {
-    this.menuItemsAtom.set(items);
-  }
-
-  public addMenuItem(item: NavMenuItem): void {
-    const currentItems = this.menuItemsAtom.get();
-    this.menuItemsAtom.set([...currentItems, item]);
-  }
-
-  public removeMenuItem(id: string): void {
-    const currentItems = this.menuItemsAtom.get();
-    this.menuItemsAtom.set(currentItems.filter(item => item.id !== id));
-  }
-
-  public cleanup(): void {
-    // NavService doesn't manage auth state anymore
-    // UserClientService handles its own cleanup
-  }
+  checkMobileView();
+  window.addEventListener('resize', checkMobileView);
 }
-
-export const navService = NavService.getInstance();
-export type { NavMenuItem };

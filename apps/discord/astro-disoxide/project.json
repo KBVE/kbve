@@ -33,7 +33,19 @@
         "executor": "@nxtensions/astro:dev",
         "options": {}
       },
+
       "preview": {
+        "executor": "nx:run-commands",
+        "options": {
+          "cwd": "apps/discord/astro-disoxide",
+          "commands": [
+            "nx exec -- astro build",
+            "nx exec -- astro preview --host"
+          ],
+          "parallel": false
+        }
+      },
+      "previewx": {
         "dependsOn": [
           {
             "target": "build",

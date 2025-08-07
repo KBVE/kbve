@@ -3,23 +3,21 @@ import { persistentAtom } from '@nanostores/persistent';
 import type { User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 
+// Core user state atoms
+export const $userClientServiceReady = atom<boolean>(false);
+export const $userAtom = atom<User | null>(null);
+export const $userLoadingAtom = atom<boolean>(true);
+export const $userErrorAtom = atom<string>("");
+
+// Persistent atoms for core user data
+export const $userIdAtom = persistentAtom<string | undefined>('user:id', undefined);
+export const $userEmailAtom = persistentAtom<string | undefined>('user:email', undefined);
+
 class UserClientService {
-  // Atom to track readiness of the service
-  public readonly userClientServiceReadyAtom = atom<boolean>(false);
-  
   private static instance: UserClientService;
   private isInitialized = false;
   private isInitializing = false;
   private initPromise: Promise<void> | null = null;
-
-  // Core user state atoms
-  public readonly userAtom = atom<User | null>(null);
-  public readonly userLoadingAtom = atom<boolean>(true);
-  public readonly userErrorAtom = atom<string>("");
-
-  // Persistent atoms for core user data
-  public readonly userIdAtom = persistentAtom<string | undefined>('user:id', undefined);
-  public readonly userEmailAtom = persistentAtom<string | undefined>('user:email', undefined);
 
   private constructor() {}
 
@@ -52,9 +50,9 @@ class UserClientService {
    * Clear all user state
    */
   private clearUserState(): void {
-    this.userAtom.set(null);
-    this.userIdAtom.set(undefined);
-    this.userEmailAtom.set(undefined);
+    $userAtom.set(null);
+    $userIdAtom.set(undefined);
+    $userEmailAtom.set(undefined);
   }
 
   /**
@@ -63,8 +61,8 @@ class UserClientService {
   public async syncSupabaseUser(): Promise<void> {
     console.log('[UserClientService] Syncing Supabase user...');
     
-    this.userLoadingAtom.set(true);
-    this.userErrorAtom.set("");
+    $userLoadingAtom.set(true);
+    $userErrorAtom.set("");
 
     try {
       // First get the session to ensure we have a valid session
@@ -91,9 +89,9 @@ class UserClientService {
 
         if (data?.user) {
           console.log('[UserClientService] Setting user:', data.user.email);
-          this.userAtom.set(data.user);
-          this.userIdAtom.set(data.user.id ?? undefined);
-          this.userEmailAtom.set(data.user.email ?? undefined);
+          $userAtom.set(data.user);
+          $userIdAtom.set(data.user.id ?? undefined);
+          $userEmailAtom.set(data.user.email ?? undefined);
         } else {
           console.log('[UserClientService] No user data, clearing state');
           this.clearUserState();
@@ -105,10 +103,10 @@ class UserClientService {
       }
     } catch (error: any) {
       console.log('[UserClientService] Error syncing user:', error);
-      this.userErrorAtom.set(error.message || 'Failed to sync user data');
+      $userErrorAtom.set(error.message || 'Failed to sync user data');
       this.clearUserState();
     } finally {
-      this.userLoadingAtom.set(false);
+      $userLoadingAtom.set(false);
       console.log('[UserClientService] Sync completed, loading set to false');
     }
   }
@@ -118,8 +116,8 @@ class UserClientService {
    */
   public resetState(): void {
     this.clearUserState();
-    this.userLoadingAtom.set(true);
-    this.userErrorAtom.set("");
+    $userLoadingAtom.set(true);
+    $userErrorAtom.set("");
   }
 
   /**
@@ -144,7 +142,7 @@ class UserClientService {
     try {
       await this.initPromise;
       this.isInitialized = true;
-      this.userClientServiceReadyAtom.set(true); // Set ready atom after init
+      $userClientServiceReady.set(true); // Set ready atom after init
     } catch (error) {
       console.error('[UserClientService] Initialization failed:', error);
       // Reset flags so initialization can be retried
@@ -192,23 +190,15 @@ class UserClientService {
    * Get current user (no Supabase call, from local atom)
    */
   public getCurrentUser(): User | null {
-    return this.userAtom.get();
+    return $userAtom.get();
   }
 
   /**
    * Check if user is authenticated
    */
   public isAuthenticated(): boolean {
-    return this.userAtom.get() !== null;
+    return $userAtom.get() !== null;
   }
 }
 
 export const userClientService = UserClientService.getInstance();
-
-export const {
-  userAtom,
-  userLoadingAtom,
-  userErrorAtom,
-  userIdAtom,
-  userEmailAtom
-} = userClientService;
