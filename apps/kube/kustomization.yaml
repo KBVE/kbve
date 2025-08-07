@@ -29,3 +29,4 @@ resources:
   - analytics/application.yaml
   - studio/application.yaml
   - vector/application.yaml
+  - disoxide/application.yaml
