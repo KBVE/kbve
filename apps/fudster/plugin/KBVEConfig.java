@@ -119,6 +119,7 @@ public interface KBVEConfig extends Config {
         description = "The Supabase API key for authentication",
         section = supabaseSection
     )
+    // Note: This is a public anonymous key for Supabase
     default String supabaseKey() {
         return "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InFtcGRydWl0emxvd25ubm5qbXBrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk2NjA0NTYsImV4cCI6MjA2NTIzNjQ1Nn0.OhD3qN4dq0TMA65qVGvry_QsZEeLKK7RbwYP3QzAvcY";
     }
