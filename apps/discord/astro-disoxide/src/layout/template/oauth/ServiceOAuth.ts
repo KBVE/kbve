@@ -25,7 +25,13 @@ class OAuthService {
   }
 
   private getRedirectUrl(): string {
-    return `${window.location.origin}/auth/callback`;
+    // Build redirect URL robustly, handling any trailing slashes
+    // Remove any trailing slash from origin and ensure clean path
+    const origin = window.location.origin.replace(/\/$/, '');
+    const callbackPath = '/auth/callback';
+    
+    // Ensure we always return a clean URL without double slashes
+    return `${origin}${callbackPath}`;
   }
 
   private clearMessages(): void {
@@ -39,7 +45,7 @@ class OAuthService {
     this.providerAtom.set(provider);
 
     try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
+      const { error } = await supabase.auth.signInWithOAuth({
         provider,
         options: {
           redirectTo: this.getRedirectUrl(),
