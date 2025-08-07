@@ -32,6 +32,7 @@ pub fn static_router() -> Router<SharedState> {
         .nest_service("/login", ServeDir::new("dist/login").not_found_service(get(custom_404)))
         .nest_service("/auth", ServeDir::new("dist/auth").not_found_service(get(custom_404)))
         .nest_service("/register", ServeDir::new("dist/register").not_found_service(get(custom_404)))
+        .nest_service("/logout", ServeDir::new("dist/logout").not_found_service(get(custom_404)))
         .route_service("/manifest.webmanifest", ServeFile::new("dist/manifest.webmanifest"))
         .route_service("/sw.js", ServeFile::new("dist/sw.js"))
         .route_service("/ads.txt", ServeFile::new("dist/ads.txt"))
