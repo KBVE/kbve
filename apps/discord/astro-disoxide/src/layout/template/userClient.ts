@@ -67,24 +67,49 @@ class UserClientService {
     this.userErrorAtom.set("");
 
     try {
-      const { data, error } = await supabase.auth.getUser();
+      // First get the session to ensure we have a valid session
+      const { data: sessionData, error: sessionError } = await supabase.auth.getSession();
       
-      if (error) {
-        throw error;
+      console.log('[UserClientService] Session data:', sessionData);
+      console.log('[UserClientService] Session error:', sessionError);
+      
+      if (sessionError) {
+        throw sessionError;
       }
 
-      if (data?.user) {
-        this.userAtom.set(data.user);
-        this.userIdAtom.set(data.user.id ?? undefined);
-        this.userEmailAtom.set(data.user.email ?? undefined);
+      // If we have a session, get the user data
+      if (sessionData?.session) {
+        console.log('[UserClientService] Valid session found, getting user...');
+        const { data, error } = await supabase.auth.getUser();
+        
+        console.log('[UserClientService] User data:', data);
+        console.log('[UserClientService] User error:', error);
+        
+        if (error) {
+          throw error;
+        }
+
+        if (data?.user) {
+          console.log('[UserClientService] Setting user:', data.user.email);
+          this.userAtom.set(data.user);
+          this.userIdAtom.set(data.user.id ?? undefined);
+          this.userEmailAtom.set(data.user.email ?? undefined);
+        } else {
+          console.log('[UserClientService] No user data, clearing state');
+          this.clearUserState();
+        }
       } else {
+        // No session, clear user state
+        console.log('[UserClientService] No session found, clearing state');
         this.clearUserState();
       }
     } catch (error: any) {
+      console.log('[UserClientService] Error syncing user:', error);
       this.userErrorAtom.set(error.message || 'Failed to sync user data');
       this.clearUserState();
     } finally {
       this.userLoadingAtom.set(false);
+      console.log('[UserClientService] Sync completed, loading set to false');
     }
   }
 
