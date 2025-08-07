@@ -10,10 +10,10 @@ import {
   BookOpen
 } from 'lucide-react';
 import { 
-  $isAuthenticated,
-  signOut
+  $isAuthenticated
 } from './ServiceNav';
 import { $userAtom, $userLoadingAtom } from '../userClient';
+import { useNavigationEvents } from '../eventBus';
 interface NavItem {
   id: string;
   href: string;
@@ -33,10 +33,10 @@ const ReactNav = () => {
   const isAuthenticated = useStore($isAuthenticated);
   const user = useStore($userAtom);
   const loadingAuth = useStore($userLoadingAtom);
+  const navEvents = useNavigationEvents();
 
   // Hide skeletons and show content
   const revealContent = useCallback(() => {
-    console.log('revealContent called', { isAuthenticated, user: !!user, loadingAuth });
     
     // Hide all skeletons
     document.querySelectorAll('[data-skeleton]').forEach(el => {
@@ -134,206 +134,34 @@ const ReactNav = () => {
     // For now, static text is fine since nav items are fixed
   }, []);
 
-  // Show off-canvas menu with dynamic content
-  const showOffCanvasMenu = useCallback((type: 'navigation' | 'profile') => {
-    const modal = document.querySelector('[data-modal="offcanvas"]') as HTMLElement;
-    const title = document.querySelector('[data-modal-title]') as HTMLElement;
-    const content = document.querySelector('[data-modal-content]') as HTMLElement;
+  // Navigation handlers - now just emit events!
+  const handleShowOffCanvas = useCallback((type: 'navigation' | 'profile') => {
+    navEvents.showOffCanvas(type, { user, isAuthenticated });
+  }, [user, isAuthenticated, navEvents]);
+
+  const handleCloseOffCanvas = useCallback((reason?: 'user' | 'outside-click' | 'route-change') => {
+    navEvents.closeOffCanvas(reason);
+  }, [navEvents]);
+
+
+  // Setup UI event listeners - much simpler now!
+  const setupEventListeners = useCallback(() => {
     
-    if (!modal || !title || !content) return;
-
-    // Set title and content based on type
-    if (type === 'navigation') {
-      title.textContent = 'Menu';
-      content.innerHTML = `
-        <div class="space-y-1">
-          <a href="/" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors duration-200">
-            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
-              <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
-            </svg>
-            <span>Home</span>
-          </a>
-          
-          <a href="/servers" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors duration-200">
-            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <rect width="20" height="8" x="2" y="14" rx="2"/>
-              <path d="M6 18h.01M10 18h.01M6 10h.01M10 10h.01M6 6h.01M10 6h.01"/>
-              <path d="M13 6v12M19 10v8"/>
-            </svg>
-            <span>Servers</span>
-          </a>
-          
-          <a href="/features" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors duration-200">
-            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-            </svg>
-            <span>Features</span>
-          </a>
-          
-          <a href="/pricing" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors duration-200">
-            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <circle cx="12" cy="12" r="10"/>
-              <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 18V6"/>
-            </svg>
-            <span>Pricing</span>
-          </a>
-          
-          <a href="/docs" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors duration-200">
-            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-              <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
-            </svg>
-            <span>Documentation</span>
-          </a>
-        </div>
-      `;
-    } else if (type === 'profile') {
-      title.textContent = 'Profile';
-      
-      if (!user) {
-        content.innerHTML = `
-          <div class="text-center text-gray-400">
-            <p>User not authenticated</p>
-            <p class="text-xs mt-2">Please sign in to view profile</p>
-          </div>
-        `;
-      } else {
-        const avatarUrl = user.user_metadata?.avatar_url || user.user_metadata?.picture;
-        const initials = user.email ? user.email.charAt(0).toUpperCase() : 'U';
-
-        content.innerHTML = `
-          <div class="flex items-center gap-3 mb-4 pb-4 border-b border-gray-700">
-            <div class="relative">
-              ${avatarUrl ? `
-                <img src="${avatarUrl}" alt="Profile" class="w-12 h-12 rounded-full ring-2 ring-purple-500/20" />
-              ` : `
-                <div class="w-12 h-12 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold">
-                  ${initials}
-                </div>
-              `}
-              <div class="absolute -bottom-0.5 -right-0.5 w-3 h-3 bg-green-500 border-2 border-gray-900 rounded-full"></div>
-            </div>
-            <div class="flex-1 min-w-0">
-              <h3 class="font-medium text-white truncate">${user.email}</h3>
-              <p class="text-xs text-gray-400">Online</p>
-            </div>
-          </div>
-          
-          <div class="space-y-1">
-            <button class="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-800 rounded-md transition-colors duration-200">
-              <svg class="w-4 h-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
-                <circle cx="12" cy="7" r="4"/>
-              </svg>
-              <span class="text-sm">Profile Settings</span>
-            </button>
-            
-            <button class="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-800 rounded-md transition-colors duration-200">
-              <svg class="w-4 h-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
-                <circle cx="12" cy="12" r="3"/>
-              </svg>
-              <span class="text-sm">Account Settings</span>
-            </button>
-
-            <button class="w-full flex items-center gap-3 px-3 py-2 text-left text-gray-300 hover:bg-gray-800 rounded-md transition-colors duration-200">
-              <svg class="w-4 h-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                <path d="M9 12l2 2 4-4"/>
-                <path d="M21 12c-1.4 0-2.8-.35-4-.99l-1.17 1.17c-.42.42-.98.42-1.4 0L12.26 10c-.42-.42-.42-.98 0-1.4L14.43 6.43c-.64-1.2-.99-2.6-.99-4C15.09 2.9 16.9 3.52 18 5c1.48 1.1 2.1 2.91 2.1 4.43"/>
-              </svg>
-              <span class="text-sm">Privacy Settings</span>
-            </button>
-            
-            <div class="border-t border-gray-700 pt-2 mt-2">
-              <button id="profile-signout" class="w-full flex items-center gap-3 px-3 py-2 text-left text-red-400 hover:bg-red-900/20 rounded-md transition-colors duration-200">
-                <svg class="w-4 h-4 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-                  <polyline points="16 17 21 12 16 7"/>
-                  <line x1="21" y1="12" x2="9" y2="12"/>
-                </svg>
-                <span class="text-sm">Sign Out</span>
-              </button>
-            </div>
-          </div>
-        `;
-
-        // Add signout handler
-        setTimeout(() => {
-          const signoutBtn = document.getElementById('profile-signout');
-          if (signoutBtn) {
-            signoutBtn.addEventListener('click', () => {
-              signOut();
-              closeOffCanvasMenu();
-            });
-          }
-        }, 10);
-      }
-    }
-
-    // Show off-canvas panel
-    modal.classList.remove('hidden');
-    const modalPanel = modal.querySelector('[data-modal-panel]') as HTMLElement;
-    if (modalPanel) {
-      setTimeout(() => {
-        modalPanel.classList.remove('translate-x-full');
-        modalPanel.classList.add('translate-x-0');
-      }, 10);
-    }
-  }, [user, isAuthenticated]);
-
-  // Close off-canvas menu
-  const closeOffCanvasMenu = useCallback(() => {
-    const modal = document.querySelector('[data-modal="offcanvas"]') as HTMLElement;
-    const panel = modal?.querySelector('[data-modal-panel]') as HTMLElement;
-
-    if (panel) {
-      panel.classList.remove('translate-x-0');
-      panel.classList.add('translate-x-full');
-      setTimeout(() => {
-        modal.classList.add('hidden');
-      }, 300);
-    }
-  }, []);
-
-  // Close all modals
-  const closeAllModals = useCallback(() => {
-    document.querySelectorAll('[data-modal]').forEach(modal => {
-      const panel = modal.querySelector('[data-modal-panel]') as HTMLElement;
-      if (panel) {
-        // Check modal type for appropriate animation
-        const modalType = modal.getAttribute('data-modal');
-        if (modalType === 'mobile-menu' || modalType === 'profile') {
-          panel.classList.remove('translate-x-0');
-          panel.classList.add('translate-x-full');
-        }
-        setTimeout(() => {
-          modal.classList.add('hidden');
-        }, 300);
-      }
+    // Remove any existing listeners to prevent duplicates
+    document.querySelectorAll('[data-content="user-avatar"], [data-content="mobile-user-avatar"], [data-nav="mobile-menu-toggle"], [data-nav="desktop-menu-toggle"]').forEach(el => {
+      el.replaceWith(el.cloneNode(true));
     });
 
-    // Reset menu icons
-    const menuIcon = document.querySelector('[data-content="mobile-menu-icon"]') as HTMLElement;
-    const closeIcon = document.querySelector('[data-content="mobile-close-icon"]') as HTMLElement;
-    if (menuIcon) menuIcon.classList.remove('hidden');
-    if (closeIcon) closeIcon.classList.add('hidden');
-  }, []);
-
-  // Setup modal controls
-  const setupModals = useCallback(() => {
-    // Profile modal triggers - need to set up after elements are revealed
+    // Profile triggers
     setTimeout(() => {
       const userAvatar = document.querySelector('[data-content="user-avatar"]');
       const mobileUserAvatar = document.querySelector('[data-content="mobile-user-avatar"]');
-
-      console.log('Setting up profile modal triggers', { userAvatar: !!userAvatar, mobileUserAvatar: !!mobileUserAvatar });
 
       if (userAvatar) {
         userAvatar.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log('User avatar clicked - showing profile modal');
-          showOffCanvasMenu('profile');
+          handleShowOffCanvas('profile');
         });
       }
 
@@ -341,60 +169,336 @@ const ReactNav = () => {
         mobileUserAvatar.addEventListener('click', (e) => {
           e.preventDefault();
           e.stopPropagation();
-          console.log('Mobile user avatar clicked - showing profile modal');
-          showOffCanvasMenu('profile');
+          handleShowOffCanvas('profile');
         });
       }
-    }, 100); // Small delay to ensure elements are visible
+    }, 50);
 
-    // Mobile menu toggle
+    // Menu toggles
     const mobileMenuToggle = document.querySelector('[data-nav="mobile-menu-toggle"]');
     if (mobileMenuToggle) {
-      mobileMenuToggle.addEventListener('click', () => {
-        showOffCanvasMenu('navigation');
+      mobileMenuToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleShowOffCanvas('navigation');
       });
     }
 
-    // Desktop menu toggle
     const desktopMenuToggle = document.querySelector('[data-nav="desktop-menu-toggle"]');
     if (desktopMenuToggle) {
-      desktopMenuToggle.addEventListener('click', () => {
-        showOffCanvasMenu('navigation');
+      desktopMenuToggle.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleShowOffCanvas('navigation');
       });
     }
 
-    // Modal close buttons
+    // Close buttons
     document.querySelectorAll('[data-modal-backdrop], [data-modal-close]').forEach(el => {
-      el.addEventListener('click', () => {
-        closeAllModals();
+      const newEl = el.cloneNode(true);
+      el.parentNode?.replaceChild(newEl, el);
+      newEl.addEventListener('click', (e) => {
+        e.preventDefault();
+        e.stopPropagation();
+        handleCloseOffCanvas('user');
       });
     });
 
-    // Close off-canvas menu when clicking outside
-    document.addEventListener('click', (e) => {
+    // Global outside click handler
+    const handleGlobalClick = (e: Event) => {
       const offcanvasModal = document.querySelector('[data-modal="offcanvas"]') as HTMLElement;
-      const userAvatar = document.querySelector('[data-content="user-avatar"]');
-      const mobileUserAvatar = document.querySelector('[data-content="mobile-user-avatar"]');
+      const target = e.target as HTMLElement;
       
       if (offcanvasModal && !offcanvasModal.classList.contains('hidden')) {
-        const target = e.target as HTMLElement;
         const isClickInsideModal = offcanvasModal.contains(target);
-        const isClickOnAvatar = userAvatar?.contains(target) || mobileUserAvatar?.contains(target);
+        const isClickOnTrigger = target.closest('[data-content="user-avatar"], [data-content="mobile-user-avatar"], [data-nav="mobile-menu-toggle"], [data-nav="desktop-menu-toggle"]');
         
-        if (!isClickInsideModal && !isClickOnAvatar) {
-          closeOffCanvasMenu();
+        if (!isClickInsideModal && !isClickOnTrigger) {
+          handleCloseOffCanvas('outside-click');
         }
       }
+    };
+
+    // Global escape key handler
+    const handleEscapeKey = (e: KeyboardEvent) => {
+      const offcanvasModal = document.querySelector('[data-modal="offcanvas"]') as HTMLElement;
+      
+      if (e.key === 'Escape' && offcanvasModal && !offcanvasModal.classList.contains('hidden')) {
+        handleCloseOffCanvas('user');
+      }
+    };
+
+    // Touch gesture handling for swipe-to-close
+    let touchStartX = 0;
+    let touchStartY = 0;
+    let touchStartTime = 0;
+
+    const handleTouchStart = (e: TouchEvent) => {
+      const offcanvasModal = document.querySelector('[data-modal="offcanvas"]') as HTMLElement;
+      const panel = offcanvasModal?.querySelector('[data-modal-panel]') as HTMLElement;
+      
+      if (offcanvasModal && !offcanvasModal.classList.contains('hidden') && panel?.contains(e.target as Node)) {
+        const touch = e.touches[0];
+        touchStartX = touch.clientX;
+        touchStartY = touch.clientY;
+        touchStartTime = Date.now();
+      }
+    };
+
+    const handleTouchEnd = (e: TouchEvent) => {
+      const offcanvasModal = document.querySelector('[data-modal="offcanvas"]') as HTMLElement;
+      const panel = offcanvasModal?.querySelector('[data-modal-panel]') as HTMLElement;
+      
+      if (offcanvasModal && !offcanvasModal.classList.contains('hidden') && panel?.contains(e.target as Node)) {
+        const touch = e.changedTouches[0];
+        const touchEndX = touch.clientX;
+        const touchEndY = touch.clientY;
+        const touchEndTime = Date.now();
+        
+        // Calculate swipe distance and time
+        const deltaX = touchEndX - touchStartX;
+        const deltaY = touchEndY - touchStartY;
+        const swipeTime = touchEndTime - touchStartTime;
+        
+        // Swipe right detection criteria
+        const minSwipeDistance = 50; // pixels
+        const maxSwipeTime = 500; // milliseconds
+        const maxVerticalDeviation = 100; // pixels
+        
+        const isHorizontalSwipe = Math.abs(deltaX) > Math.abs(deltaY);
+        const isSwipeRight = deltaX > minSwipeDistance;
+        const isQuickSwipe = swipeTime < maxSwipeTime;
+        const isVerticallyConstrained = Math.abs(deltaY) < maxVerticalDeviation;
+        
+        if (isHorizontalSwipe && isSwipeRight && isQuickSwipe && isVerticallyConstrained) {
+          handleCloseOffCanvas('user');
+        }
+      }
+    };
+
+    // Prevent default touch behavior on modal panel to enable custom swipe
+    const handleTouchMove = (e: TouchEvent) => {
+      const offcanvasModal = document.querySelector('[data-modal="offcanvas"]') as HTMLElement;
+      const panel = offcanvasModal?.querySelector('[data-modal-panel]') as HTMLElement;
+      
+      if (offcanvasModal && !offcanvasModal.classList.contains('hidden') && panel?.contains(e.target as Node)) {
+        const touch = e.touches[0];
+        const deltaX = touch.clientX - touchStartX;
+        
+        // Only prevent default if it's a horizontal swipe to avoid interfering with vertical scrolling
+        if (Math.abs(deltaX) > Math.abs(touch.clientY - touchStartY)) {
+          e.preventDefault();
+        }
+      }
+    };
+
+    document.addEventListener('click', handleGlobalClick);
+    document.addEventListener('keydown', handleEscapeKey);
+    document.addEventListener('touchstart', handleTouchStart, { passive: true });
+    document.addEventListener('touchend', handleTouchEnd, { passive: true });
+    document.addEventListener('touchmove', handleTouchMove, { passive: false });
+    
+    return () => {
+      document.removeEventListener('click', handleGlobalClick);
+      document.removeEventListener('keydown', handleEscapeKey);
+      document.removeEventListener('touchstart', handleTouchStart);
+      document.removeEventListener('touchend', handleTouchEnd);
+      document.removeEventListener('touchmove', handleTouchMove);
+    };
+  }, [handleShowOffCanvas, handleCloseOffCanvas]);
+
+  // Setup event listeners for the event bus
+  useEffect(() => {
+    // Listen to off-canvas events and handle the DOM manipulation
+    const handleShowOffCanvas = navEvents.on('nav:show-offcanvas', ({ type, data }) => {
+      
+      const modal = document.querySelector('[data-modal="offcanvas"]') as HTMLElement;
+      const title = document.querySelector('[data-modal-title]') as HTMLElement;
+      const content = document.querySelector('[data-modal-content]') as HTMLElement;
+      const panel = modal?.querySelector('[data-modal-panel]') as HTMLElement;
+      
+      if (!modal || !title || !content || !panel) {
+        return;
+      }
+
+      const isAlreadyOpen = !modal.classList.contains('hidden');
+      
+      // Set content based on type
+      if (type === 'navigation') {
+        title.textContent = 'Menu';
+        content.innerHTML = `
+          <div class="space-y-1">
+            ${navItems.map(item => `
+              <a href="${item.href}" class="flex items-center gap-3 px-3 py-2 text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors duration-200">
+                ${item.id === 'home' ? '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/><path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>' : ''}
+                ${item.id === 'servers' ? '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="20" height="8" x="2" y="14" rx="2"/><path d="M6 18h.01M10 18h.01M6 10h.01M10 10h.01M6 6h.01M10 6h.01"/><path d="M13 6v12M19 10v8"/></svg>' : ''}
+                ${item.id === 'features' ? '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/></svg>' : ''}
+                ${item.id === 'pricing' ? '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 18V6"/></svg>' : ''}
+                ${item.id === 'docs' ? '<svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/></svg>' : ''}
+                <span>${item.label}</span>
+              </a>
+            `).join('')}
+          </div>
+        `;
+      } else if (type === 'profile') {
+        title.textContent = 'Profile';
+        const { user: currentUser, isAuthenticated: authStatus } = data || {};
+        
+        if (!authStatus || !currentUser) {
+          content.innerHTML = `
+            <div class="text-center text-gray-400 py-8">
+              <svg class="w-16 h-16 mx-auto mb-4 text-gray-600" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+                <circle cx="12" cy="7" r="4"/>
+              </svg>
+              <p class="text-lg font-medium">Not signed in</p>
+              <p class="text-sm mt-1 mb-4">Please sign in to view your profile</p>
+              <a href="/login" class="inline-flex items-center px-4 py-2 bg-purple-600 hover:bg-purple-500 text-white text-sm font-medium rounded-lg transition-colors duration-200">
+                Sign In
+              </a>
+            </div>
+          `;
+        } else {
+          const avatarUrl = currentUser.user_metadata?.avatar_url || currentUser.user_metadata?.picture;
+          const initials = currentUser.email ? currentUser.email.charAt(0).toUpperCase() : 'U';
+          const displayName = currentUser.user_metadata?.full_name || currentUser.user_metadata?.name || currentUser.email?.split('@')[0] || 'User';
+
+          content.innerHTML = `
+            <!-- User Info Header -->
+            <div class="flex items-center gap-3 mb-6 pb-4 border-b border-gray-700">
+              <div class="relative">
+                ${avatarUrl ? `
+                  <img src="${avatarUrl}" alt="Profile" class="w-14 h-14 rounded-full ring-2 ring-purple-500/30" />
+                ` : `
+                  <div class="w-14 h-14 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 flex items-center justify-center text-white font-bold text-lg">
+                    ${initials}
+                  </div>
+                `}
+                <div class="absolute -bottom-1 -right-1 w-4 h-4 bg-green-500 border-2 border-gray-900 rounded-full"></div>
+              </div>
+              <div class="flex-1 min-w-0">
+                <h3 class="font-semibold text-white text-lg truncate">${displayName}</h3>
+                <p class="text-sm text-gray-400 truncate">${currentUser.email}</p>
+                <p class="text-xs text-green-400 flex items-center gap-1 mt-1">
+                  <span class="w-1.5 h-1.5 bg-green-500 rounded-full"></span>
+                  Online
+                </p>
+              </div>
+            </div>
+            
+            <!-- Profile Navigation -->
+            <div class="space-y-1">
+              <a href="/profile/settings" class="w-full flex items-center gap-3 px-3 py-2.5 text-left text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors duration-200 group">
+                <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-purple-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/>
+                  <circle cx="12" cy="12" r="3"/>
+                </svg>
+                <span class="font-medium">Settings</span>
+                <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </a>
+              
+              <a href="/profile/balance" class="w-full flex items-center gap-3 px-3 py-2.5 text-left text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors duration-200 group">
+                <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-green-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <rect width="20" height="14" x="2" y="5" rx="2"/>
+                  <line x1="2" y1="10" x2="22" y2="10"/>
+                </svg>
+                <span class="font-medium">Balance</span>
+                <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </a>
+
+              <a href="/support" class="w-full flex items-center gap-3 px-3 py-2.5 text-left text-gray-300 hover:text-white hover:bg-gray-800 rounded-lg transition-colors duration-200 group">
+                <svg class="w-5 h-5 flex-shrink-0 text-gray-400 group-hover:text-blue-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <circle cx="12" cy="12" r="10"/>
+                  <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/>
+                  <line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <span class="font-medium">Support</span>
+                <svg class="w-4 h-4 ml-auto text-gray-500 group-hover:text-gray-300" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="9 18 15 12 9 6"/>
+                </svg>
+              </a>
+              
+              <!-- Logout Section -->
+              <div class="border-t border-gray-700 pt-3 mt-4">
+                <button id="profile-signout" class="w-full flex items-center gap-3 px-3 py-2.5 text-left text-red-400 hover:text-red-300 hover:bg-red-900/20 rounded-lg transition-colors duration-200 group">
+                  <svg class="w-5 h-5 flex-shrink-0" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
+                    <polyline points="16 17 21 12 16 7"/>
+                    <line x1="21" y1="12" x2="9" y2="12"/>
+                  </svg>
+                  <span class="font-medium">Log out</span>
+                </button>
+              </div>
+            </div>
+          `;
+
+          // Add event handlers
+          setTimeout(() => {
+            // Signout button - navigate to logout page
+            const signoutBtn = document.getElementById('profile-signout');
+            if (signoutBtn) {
+              signoutBtn.addEventListener('click', () => {
+                window.location.href = '/logout';
+              });
+            }
+
+            // Profile navigation links - close modal when clicked
+            const profileLinks = content.querySelectorAll('a[href^="/profile"], a[href="/support"]');
+            profileLinks.forEach(link => {
+              link.addEventListener('click', () => {
+                handleCloseOffCanvas('user');
+              });
+            });
+          }, 10);
+        }
+      }
+
+      // Show modal if not already open
+      if (!isAlreadyOpen) {
+        modal.classList.remove('hidden');
+        setTimeout(() => {
+          panel.classList.remove('translate-x-full');
+          panel.classList.add('translate-x-0');
+        }, 10);
+      }
     });
-  }, [showOffCanvasMenu, closeAllModals, closeOffCanvasMenu]);
+
+    const handleCloseOffCanvasEvent = navEvents.on('nav:close-offcanvas', () => {
+      
+      const modal = document.querySelector('[data-modal="offcanvas"]') as HTMLElement;
+      const panel = modal?.querySelector('[data-modal-panel]') as HTMLElement;
+
+      if (panel) {
+        panel.classList.remove('translate-x-0');
+        panel.classList.add('translate-x-full');
+        setTimeout(() => {
+          modal.classList.add('hidden');
+        }, 300);
+      }
+    });
+
+    return () => {
+      handleShowOffCanvas();
+      handleCloseOffCanvasEvent();
+    };
+  }, [navEvents, handleCloseOffCanvas]);
 
   // Initialize on mount
   useEffect(() => {
-    // Small delay to ensure smooth skeleton to content transition
-    setTimeout(() => {
+    const initTimer = setTimeout(() => {
       revealContent();
       updateTooltips();
-      setupModals();
+      
+      // Setup event listeners with delay
+      const listenerTimer = setTimeout(() => {
+        setupEventListeners();
+      }, 100);
+
+      return () => clearTimeout(listenerTimer);
     }, 500);
 
     // Update active state on navigation
@@ -415,21 +519,23 @@ const ReactNav = () => {
       });
     };
 
-    // Set initial active state
     handleRouteChange();
-
     window.addEventListener('popstate', handleRouteChange);
-    return () => window.removeEventListener('popstate', handleRouteChange);
-  }, [revealContent, updateTooltips, setupModals]);
+    
+    return () => {
+      clearTimeout(initTimer);
+      window.removeEventListener('popstate', handleRouteChange);
+    };
+  }, []);
 
-  // Update content when auth state changes
+  // Update content when auth state changes and emit auth event
   useEffect(() => {
     if (!loadingAuth) {
       revealContent();
-      // Re-setup modals after auth state changes
-      setupModals();
+      // Emit auth change event
+      navEvents.authChanged(isAuthenticated, user);
     }
-  }, [isAuthenticated, user, loadingAuth, revealContent, setupModals]);
+  }, [isAuthenticated, user, loadingAuth, revealContent, navEvents]);
 
   // This component primarily controls the DOM, no JSX render needed
   return null;
