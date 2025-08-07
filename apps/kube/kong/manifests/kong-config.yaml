@@ -51,21 +51,6 @@ data:
               - /auth/v1/verify
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
       - name: auth-v1-open-callback
         url: http://auth:9999/callback
         routes:
@@ -75,21 +60,6 @@ data:
               - /auth/v1/callback
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
       - name: auth-v1-open-authorize
         url: http://auth:9999/authorize
         routes:
@@ -99,21 +69,6 @@ data:
               - /auth/v1/authorize
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
 
       ## Secure Auth routes
       - name: auth-v1
@@ -126,21 +81,6 @@ data:
               - /auth/v1/
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
           - name: key-auth
             config:
               hide_credentials: false
@@ -162,21 +102,6 @@ data:
               - /rest/v1/
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
           - name: key-auth
             config:
               hide_credentials: true
@@ -198,21 +123,6 @@ data:
               - /graphql/v1
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
           - name: key-auth
             config:
               hide_credentials: true
@@ -240,21 +150,6 @@ data:
               - /realtime/v1/
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
           - name: key-auth
             config:
               hide_credentials: false
@@ -275,21 +170,6 @@ data:
               - /realtime/v1/api
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
           - name: key-auth
             config:
               hide_credentials: false
@@ -311,21 +191,6 @@ data:
               - /storage/v1/
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
 
       ## Edge Functions routes
       - name: functions-v1
@@ -338,21 +203,6 @@ data:
               - /functions/v1/
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
 
       ## Analytics routes
       - name: analytics-v1
@@ -394,21 +244,6 @@ data:
               - /
         plugins:
           - name: cors
-            config:
-              origins:
-                - https://discord.sh
-              methods:
-                - GET
-                - POST
-                - PUT
-                - DELETE
-                - OPTIONS
-              headers:
-                - Accept
-                - Authorization
-                - Content-Type
-                - X-CSRF-Token
-              credentials: true
           - name: basic-auth
             config:
               hide_credentials: true
