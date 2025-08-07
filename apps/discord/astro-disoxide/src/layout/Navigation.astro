@@ -1,6 +1,6 @@
 ---
 /** @jsxImportSource astro */
-// Navigation.astro - Modern navigation with component-specific skeletons
+// Navigation.astro - Professional navigation with shimmer skeletons
 import ReactNav from './template/nav/ReactNav';
 
 export interface Props {
@@ -11,212 +11,340 @@ const { class: className = '' } = Astro.props;
 ---
 
 <!-- Navigation Container -->
-<div class={`flex items-center ${className}`}>
-  <!-- Logo (Static, not in React) -->
-  <a href="/" class="flex items-center gap-2 text-white hover:text-purple-400 transition-colors duration-200" aria-label="Logo" data-astro-prefetch>
-    <img 
-      src="/assets/media/logo/discordsh_logo.webp" 
-      alt="Discord.sh Logo" 
-      class="object-contain w-24 rounded-full"
-      data-logo="image"
-    />
-  </a>
-
-  <!-- React Navigation Content -->
-  <div id="react-navigation" class="flex-1 flex items-center justify-end gap-4">
-    
-    <!-- Home Menu Item -->
-    <div data-nav="menu-home" class="hidden">
-      <!-- Skeleton -->
-      <div data-skeleton="menu-home" class="flex flex-col items-center justify-center p-2 animate-pulse">
-        <div class="w-6 h-6 mb-1 bg-gray-600 rounded"></div>
-        <div class="w-8 h-2 bg-gray-600 rounded"></div>
-      </div>
-      <!-- Actual Content (hidden initially) -->
-      <a
-        data-content="menu-home"
-        href="/"
-        class="hidden flex-col items-center justify-center p-2 text-xs text-white hover:text-purple-400 transition-colors duration-200"
-        data-astro-prefetch
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mb-1">
-          <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"></path>
-          <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
-        </svg>
-        Home
-      </a>
-    </div>
-
-    <!-- Servers Menu Item -->
-    <div data-nav="menu-servers" class="hidden">
-      <!-- Skeleton -->
-      <div data-skeleton="menu-servers" class="flex flex-col items-center justify-center p-2 animate-pulse">
-        <div class="w-6 h-6 mb-1 bg-gray-600 rounded"></div>
-        <div class="w-12 h-2 bg-gray-600 rounded"></div>
-      </div>
-      <!-- Actual Content -->
-      <a
-        data-content="menu-servers"
-        href="/servers"
-        class="hidden flex-col items-center justify-center p-2 text-xs text-white hover:text-purple-400 transition-colors duration-200"
-        data-astro-prefetch
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mb-1">
-          <rect width="20" height="8" x="2" y="14" rx="2"></rect>
-          <path d="M6.01 18H6"></path>
-          <path d="M10.01 18H10"></path>
-          <path d="M15 10v4"></path>
-          <path d="M17.84 7.17a4 4 0 0 0-5.66 0"></path>
-          <path d="M20.66 4.34a8 8 0 0 0-11.31 0"></path>
-        </svg>
-        Servers
-      </a>
-    </div>
-
-    <!-- Features Menu Item -->
-    <div data-nav="menu-features" class="hidden">
-      <!-- Skeleton -->
-      <div data-skeleton="menu-features" class="flex flex-col items-center justify-center p-2 animate-pulse">
-        <div class="w-6 h-6 mb-1 bg-gray-600 rounded"></div>
-        <div class="w-14 h-2 bg-gray-600 rounded"></div>
-      </div>
-      <!-- Actual Content -->
-      <a
-        data-content="menu-features"
-        href="/features"
-        class="hidden flex-col items-center justify-center p-2 text-xs text-white hover:text-purple-400 transition-colors duration-200"
-        data-astro-prefetch
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mb-1">
-          <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-        </svg>
-        Features
-      </a>
-    </div>
-
-    <!-- Pricing Menu Item -->
-    <div data-nav="menu-pricing" class="hidden">
-      <!-- Skeleton -->
-      <div data-skeleton="menu-pricing" class="flex flex-col items-center justify-center p-2 animate-pulse">
-        <div class="w-6 h-6 mb-1 bg-gray-600 rounded"></div>
-        <div class="w-10 h-2 bg-gray-600 rounded"></div>
-      </div>
-      <!-- Actual Content -->
-      <a
-        data-content="menu-pricing"
-        href="/pricing"
-        class="hidden flex-col items-center justify-center p-2 text-xs text-white hover:text-purple-400 transition-colors duration-200"
-        data-astro-prefetch
-      >
-        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="w-6 h-6 mb-1">
-          <line x1="12" y1="2" x2="12" y2="22"></line>
-          <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-        </svg>
-        Pricing
-      </a>
-    </div>
-
-    <!-- Simple Status Indicator -->
-    <div class="ml-4 flex items-center gap-2">
-      <!-- Status Dot -->
-      <div 
-        data-nav="signal" 
-        class="w-3 h-3 rounded-full bg-gray-500 transition-colors duration-300"
-        title="Auth Status: Loading"
-      ></div>
+<nav class={`w-full bg-gray-900/95 backdrop-blur-md border-b border-gray-800 sticky top-0 z-50 ${className}`}>
+  <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+    <div class="flex items-center justify-between h-16">
       
-      <!-- Login/Register for guests (simplified) -->
-      <div data-nav="auth-links" class="hidden flex items-center gap-2">
-        <a
-          href="/login"
-          class="text-xs text-white hover:text-purple-400 transition-colors duration-200 px-2"
-          data-astro-prefetch
-        >
-          Login
-        </a>
-        <a
-          href="/register"
-          class="text-xs text-white hover:text-purple-400 transition-colors duration-200 px-2"
-          data-astro-prefetch
-        >
-          Register
-        </a>
-      </div>
-      
-      <!-- User Avatar for authenticated users -->
-      <div data-nav="user-avatar-section" class="hidden flex items-center gap-2 relative">
-        <button
-          data-nav="user-button"
-          class="flex items-center gap-1 p-1 rounded-full hover:bg-gray-700 transition-colors duration-200"
-          aria-label="User menu"
-        >
-          <img
-            data-nav="user-avatar"
-            class="w-6 h-6 rounded-full hidden"
-            alt="User avatar"
+      <!-- Logo (Static) -->
+      <div class="flex-shrink-0">
+        <a href="/" class="flex items-center gap-2 group" aria-label="Discord.sh Home" data-astro-prefetch>
+          <img 
+            src="/assets/media/logo/discordsh_logo.webp" 
+            alt="Discord.sh" 
+            class="h-12"
           />
-          <div data-nav="user-initials" class="w-6 h-6 rounded-full bg-purple-600 flex items-center justify-center text-white text-xs font-medium hidden">
-            U
+          <span class="hidden sm:block text-white font-semibold text-lg group-hover:text-purple-400 transition-colors duration-300">
+            Discord.sh
+          </span>
+        </a>
+      </div>
+
+      <!-- Desktop Navigation -->
+      <div class="hidden md:flex items-center gap-1">
+        <!-- Navigation Items with Skeletons -->
+        <div data-nav="desktop-menu" class="flex items-center gap-1">
+          
+          <!-- Home -->
+          <div data-nav-item="home" class="relative group">
+            <!-- Skeleton -->
+            <div data-skeleton="home" class="p-2 rounded-lg nav-skeleton">
+              <div class="w-5 h-5 bg-gray-700 rounded"></div>
+            </div>
+            <!-- Actual Content -->
+            <a 
+              href="/" 
+              data-content="home"
+              class="hidden flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all duration-200"
+              data-astro-prefetch
+            >
+              <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M15 21v-8a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v8"/>
+                <path d="M3 10a2 2 0 0 1 .709-1.528l7-5.999a2 2 0 0 1 2.582 0l7 5.999A2 2 0 0 1 21 10v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+              </svg>
+            </a>
+            <!-- Tooltip -->
+            <div data-tooltip="home" class="absolute left-1/2 -translate-x-1/2 top-full mt-1 px-2 py-1 text-xs font-medium text-white bg-gray-800 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
+              <span data-tooltip-text="home">Home</span>
+              <div class="absolute w-2 h-2 bg-gray-800 transform rotate-45 -top-1 left-1/2 -translate-x-1/2"></div>
+            </div>
           </div>
-        </button>
-        
-        <!-- User Dropdown -->
-        <div data-nav="user-dropdown" class="hidden absolute right-0 top-full mt-2 w-48 bg-gray-800 rounded-md shadow-lg py-1 z-50">
-          <div class="px-4 py-2 border-b border-gray-700">
-            <p data-nav="user-email" class="text-sm text-white truncate">user@example.com</p>
+
+          <!-- Servers -->
+          <div data-nav-item="servers" class="relative group">
+            <!-- Skeleton -->
+            <div data-skeleton="servers" class="p-2 rounded-lg nav-skeleton">
+              <div class="w-5 h-5 bg-gray-700 rounded"></div>
+            </div>
+            <!-- Actual Content -->
+            <a 
+              href="/servers" 
+              data-content="servers"
+              class="hidden flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all duration-200"
+              data-astro-prefetch
+            >
+              <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <rect width="20" height="8" x="2" y="14" rx="2"/>
+                <path d="M6 18h.01M10 18h.01M6 10h.01M10 10h.01M6 6h.01M10 6h.01"/>
+                <path d="M13 6v12M19 10v8"/>
+              </svg>
+            </a>
+            <!-- Tooltip -->
+            <div data-tooltip="servers" class="absolute left-1/2 -translate-x-1/2 top-full mt-1 px-2 py-1 text-xs font-medium text-white bg-gray-800 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
+              <span data-tooltip-text="servers">Servers</span>
+              <div class="absolute w-2 h-2 bg-gray-800 transform rotate-45 -top-1 left-1/2 -translate-x-1/2"></div>
+            </div>
           </div>
-          <a href="/profile" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white" data-astro-prefetch>
-            Profile
-          </a>
-          <a href="/settings" class="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white" data-astro-prefetch>
-            Settings
-          </a>
-          <button
-            data-nav="signout-button"
-            class="w-full text-left px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white border-t border-gray-700"
+
+          <!-- Features -->
+          <div data-nav-item="features" class="relative group">
+            <!-- Skeleton -->
+            <div data-skeleton="features" class="p-2 rounded-lg nav-skeleton">
+              <div class="w-5 h-5 bg-gray-700 rounded"></div>
+            </div>
+            <!-- Actual Content -->
+            <a 
+              href="/features" 
+              data-content="features"
+              class="hidden flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all duration-200"
+              data-astro-prefetch
+            >
+              <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
+              </svg>
+            </a>
+            <!-- Tooltip -->
+            <div data-tooltip="features" class="absolute left-1/2 -translate-x-1/2 top-full mt-1 px-2 py-1 text-xs font-medium text-white bg-gray-800 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
+              <span data-tooltip-text="features">Features</span>
+              <div class="absolute w-2 h-2 bg-gray-800 transform rotate-45 -top-1 left-1/2 -translate-x-1/2"></div>
+            </div>
+          </div>
+
+          <!-- Pricing -->
+          <div data-nav-item="pricing" class="relative group">
+            <!-- Skeleton -->
+            <div data-skeleton="pricing" class="p-2 rounded-lg nav-skeleton">
+              <div class="w-5 h-5 bg-gray-700 rounded"></div>
+            </div>
+            <!-- Actual Content -->
+            <a 
+              href="/pricing" 
+              data-content="pricing"
+              class="hidden flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all duration-200"
+              data-astro-prefetch
+            >
+              <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"/>
+                <path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8M12 18V6"/>
+              </svg>
+            </a>
+            <!-- Tooltip -->
+            <div data-tooltip="pricing" class="absolute left-1/2 -translate-x-1/2 top-full mt-1 px-2 py-1 text-xs font-medium text-white bg-gray-800 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
+              <span data-tooltip-text="pricing">Pricing</span>
+              <div class="absolute w-2 h-2 bg-gray-800 transform rotate-45 -top-1 left-1/2 -translate-x-1/2"></div>
+            </div>
+          </div>
+
+          <!-- Documentation -->
+          <div data-nav-item="docs" class="relative group">
+            <!-- Skeleton -->
+            <div data-skeleton="docs" class="p-2 rounded-lg nav-skeleton">
+              <div class="w-5 h-5 bg-gray-700 rounded"></div>
+            </div>
+            <!-- Actual Content -->
+            <a 
+              href="/docs" 
+              data-content="docs"
+              class="hidden flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all duration-200"
+              data-astro-prefetch
+            >
+              <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M4 19.5v-15A2.5 2.5 0 0 1 6.5 2H20v20H6.5a2.5 2.5 0 0 1 0-5H20"/>
+              </svg>
+            </a>
+            <!-- Tooltip -->
+            <div data-tooltip="docs" class="absolute left-1/2 -translate-x-1/2 top-full mt-1 px-2 py-1 text-xs font-medium text-white bg-gray-800 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
+              <span data-tooltip-text="docs">Documentation</span>
+              <div class="absolute w-2 h-2 bg-gray-800 transform rotate-45 -top-1 left-1/2 -translate-x-1/2"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Menu Button for Desktop -->
+        <div data-nav-item="menu" class="relative group">
+          <!-- Skeleton -->
+          <div data-skeleton="menu" class="p-2 rounded-lg nav-skeleton">
+            <div class="w-5 h-5 bg-gray-700 rounded"></div>
+          </div>
+          <!-- Actual Content -->
+          <button 
+            data-content="menu"
+            data-nav="desktop-menu-toggle"
+            class="hidden flex items-center justify-center p-2 rounded-lg text-gray-400 hover:text-white hover:bg-gray-800/50 transition-all duration-200"
           >
-            Sign Out
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"/>
+              <line x1="3" y1="6" x2="21" y2="6"/>
+              <line x1="3" y1="18" x2="21" y2="18"/>
+            </svg>
+          </button>
+          <!-- Tooltip -->
+          <div data-tooltip="menu" class="absolute left-1/2 -translate-x-1/2 top-full mt-1 px-2 py-1 text-xs font-medium text-white bg-gray-800 rounded shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition-all duration-200 whitespace-nowrap z-50">
+            <span data-tooltip-text="menu">Menu</span>
+            <div class="absolute w-2 h-2 bg-gray-800 transform rotate-45 -top-1 left-1/2 -translate-x-1/2"></div>
+          </div>
+        </div>
+
+        <!-- Divider -->
+        <div class="h-6 w-px bg-gray-700 mx-2"></div>
+
+        <!-- User Section -->
+        <div data-nav="user-section" class="flex items-center gap-3">
+          <!-- Avatar Skeleton -->
+          <div data-skeleton="avatar" class="p-2 rounded-lg nav-skeleton">
+            <div class="w-8 h-8 bg-gray-700 rounded-full"></div>
+          </div>
+          
+          <!-- Guest Links (hidden by default) -->
+          <div data-content="guest-links" class="hidden items-center gap-2">
+            <a 
+              href="/login"
+              class="px-4 py-1.5 text-sm font-medium text-gray-300 hover:text-white transition-colors duration-200"
+              data-astro-prefetch
+            >
+              Sign In
+            </a>
+            <a 
+              href="/register"
+              class="px-4 py-1.5 text-sm font-medium bg-purple-600 text-white rounded-full hover:bg-purple-500 transition-colors duration-200"
+              data-astro-prefetch
+            >
+              Register
+            </a>
+          </div>
+
+          <!-- User Avatar (hidden by default) -->
+          <button 
+            data-content="user-avatar"
+            class="hidden relative group"
+            aria-label="User menu"
+          >
+            <div class="flex items-center gap-2">
+              <div class="relative">
+                <img 
+                  data-user-image
+                  class="w-8 h-8 rounded-full ring-2 ring-gray-700 group-hover:ring-purple-500/50 transition-all duration-200 hidden"
+                  alt="User"
+                />
+                <div 
+                  data-user-initials
+                  class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 ring-2 ring-gray-700 group-hover:ring-purple-500/50 flex items-center justify-center text-white font-medium text-sm transition-all duration-200 hidden"
+                >
+                  U
+                </div>
+                <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-green-500 rounded-full ring-2 ring-gray-900"></span>
+              </div>
+            </div>
           </button>
         </div>
       </div>
-    </div>
 
-    <!-- Mobile Menu Button -->
-    <div data-nav="mobile-button" class="md:hidden">
-      <!-- Skeleton -->
-      <div data-skeleton="mobile-button" class="flex flex-col items-center justify-center p-2 animate-pulse">
-        <div class="w-6 h-6 mb-1 bg-gray-600 rounded"></div>
-        <div class="w-8 h-2 bg-gray-600 rounded"></div>
-      </div>
-      <!-- Actual Content -->
-      <button
-        data-content="mobile-button"
-        class="hidden flex-col items-center justify-center p-2 text-white hover:text-purple-400 transition-colors duration-200"
-        aria-label="Main menu"
-      >
-        <svg class="w-6 h-6 mb-1" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
-        </svg>
-        <span class="text-xs">Menu</span>
-      </button>
-    </div>
+      <!-- Mobile Menu Button -->
+      <div class="md:hidden flex items-center gap-2">
+        <!-- Mobile Avatar -->
+        <div data-nav="mobile-avatar">
+          <!-- Avatar Skeleton -->
+          <div data-skeleton="mobile-avatar" class="p-2 rounded-lg nav-skeleton">
+            <div class="w-8 h-8 bg-gray-700 rounded-full"></div>
+          </div>
+          
+          <!-- Guest Avatar -->
+          <a 
+            href="/login"
+            data-content="mobile-guest-avatar"
+            class="hidden p-1"
+            aria-label="Sign in"
+            data-astro-prefetch
+          >
+            <svg class="w-8 h-8 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/>
+              <circle cx="12" cy="7" r="4"/>
+            </svg>
+          </a>
 
-    <!-- Mobile Menu Items (shown when mobile menu is open) -->
-    <div data-nav="mobile-menu" class="hidden absolute top-full left-0 right-0 bg-gradient-to-r from-gray-800 via-gray-700 to-gray-600 border-t border-gray-600 shadow-lg md:hidden z-50">
-      <div class="px-2 pt-2 pb-3 space-y-1">
-        <ul class="flex flex-wrap gap-2" data-nav="mobile-menu-items">
-          <!-- Mobile menu items will be populated by React -->
-        </ul>
+          <!-- User Avatar -->
+          <button 
+            data-content="mobile-user-avatar"
+            class="hidden relative"
+            aria-label="User menu"
+          >
+            <img 
+              data-mobile-user-image
+              class="w-8 h-8 rounded-full ring-2 ring-gray-700 hidden"
+              alt="User"
+            />
+            <div 
+              data-mobile-user-initials
+              class="w-8 h-8 rounded-full bg-gradient-to-br from-purple-500 to-pink-500 ring-2 ring-gray-700 flex items-center justify-center text-white font-medium text-sm hidden"
+            >
+              U
+            </div>
+          </button>
+        </div>
+
+        <!-- Mobile Menu Toggle -->
+        <button 
+          data-nav="mobile-menu-toggle"
+          class="p-2 text-gray-400 hover:text-white transition-colors duration-200"
+          aria-label="Menu"
+        >
+          <!-- Skeleton -->
+          <div data-skeleton="mobile-menu" class="p-2 rounded-lg nav-skeleton">
+            <div class="w-6 h-6 bg-gray-700 rounded"></div>
+          </div>
+          <!-- Hamburger Icon -->
+          <svg data-content="mobile-menu-icon" class="w-6 h-6 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+          <!-- Close Icon -->
+          <svg data-content="mobile-close-icon" class="w-6 h-6 hidden" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"/>
+            <line x1="6" y1="6" x2="18" y2="18"/>
+          </svg>
+        </button>
       </div>
     </div>
-    
-    <!-- React component will mount here -->
-    <ReactNav client:only="react" />
   </div>
-</div>
+
+  <!-- Off-Canvas Modals -->
+  
+  <!-- Off-Canvas Menu -->
+  <div 
+    data-modal="offcanvas"
+    class="fixed inset-0 z-50 hidden"
+  >
+    <!-- Backdrop -->
+    <div data-modal-backdrop class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+    
+    <!-- Menu Panel -->
+    <div data-modal-panel class="absolute right-0 top-0 h-full w-80 bg-gray-900 shadow-2xl transform translate-x-full transition-transform duration-300">
+      <div class="flex flex-col h-full">
+        <!-- Header -->
+        <div class="flex items-center justify-between p-4 border-b border-gray-800">
+          <h2 data-modal-title class="text-lg font-semibold text-white">Menu</h2>
+          <button data-modal-close class="p-1 text-gray-400 hover:text-white">
+            <svg class="w-5 h-5" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18"/>
+              <line x1="6" y1="6" x2="18" y2="18"/>
+            </svg>
+          </button>
+        </div>
+        
+        <!-- Dynamic Content -->
+        <div class="flex-1 p-4 overflow-y-auto">
+          <div data-modal-content></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- React Navigation Controller -->
+  <ReactNav client:only="react" />
+</nav>
 
 <style>
-  /* Shimmer effect for skeleton loading */
+  /* Shimmer effect for skeletons */
   @keyframes shimmer {
     0% {
       background-position: -200% 0;
@@ -226,27 +354,14 @@ const { class: className = '' } = Astro.props;
     }
   }
 
-  .animate-pulse {
+  .nav-skeleton {
     background: linear-gradient(
       90deg,
-      #4b5563 25%,
-      #6b7280 50%,
-      #4b5563 75%
+      #374151 25%,
+      #4b5563 50%,
+      #374151 75%
     );
     background-size: 200% 100%;
     animation: shimmer 1.5s infinite ease-in-out;
-  }
-
-  /* Smooth transitions for component visibility changes */
-  [data-nav] {
-    transition: opacity 0.3s ease-out;
-  }
-
-  /* Ensure consistent spacing */
-  [data-nav="menu-home"],
-  [data-nav="menu-servers"],
-  [data-nav="menu-features"],
-  [data-nav="menu-pricing"] {
-    min-width: 64px;
   }
 </style>
