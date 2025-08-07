@@ -134,10 +134,37 @@ const ReactNav = () => {
     // For now, static text is fine since nav items are fixed
   }, []);
 
-  // Navigation handlers - now just emit events!
-  const handleShowOffCanvas = useCallback((type: 'navigation' | 'profile') => {
-    navEvents.showOffCanvas(type, { user, isAuthenticated });
-  }, [user, isAuthenticated, navEvents]);
+  // Navigation handlers - get fresh store values when triggered
+  const handleShowOffCanvas = useCallback(async (type: 'navigation' | 'profile') => {
+    // Get current store values directly instead of relying on React state
+    const { $isAuthenticated } = await import('./ServiceNav');
+    const { $userAtom, $userLoadingAtom } = await import('../userClient');
+    
+    const currentAuth = $isAuthenticated.get();
+    const currentUser = $userAtom.get();
+    const currentLoading = $userLoadingAtom.get();
+    
+    console.log('📤 Fresh store values:', {
+      type,
+      isAuthenticated: currentAuth,
+      hasUser: !!currentUser,
+      userEmail: currentUser?.email,
+      loadingAuth: currentLoading
+    });
+    
+    // Don't show profile if still loading auth
+    if (type === 'profile' && currentLoading) {
+      console.log('⏳ Still loading auth, not showing profile modal yet');
+      return;
+    }
+    
+    // Use fresh store values instead of potentially stale React state
+    navEvents.showOffCanvas(type, { 
+      user: currentUser, 
+      isAuthenticated: currentAuth, 
+      loadingAuth: currentLoading 
+    });
+  }, [navEvents]);
 
   const handleCloseOffCanvas = useCallback((reason?: 'user' | 'outside-click' | 'route-change') => {
     navEvents.closeOffCanvas(reason);
@@ -342,7 +369,32 @@ const ReactNav = () => {
         `;
       } else if (type === 'profile') {
         title.textContent = 'Profile';
-        const { user: currentUser, isAuthenticated: authStatus } = data || {};
+        const { user: currentUser, isAuthenticated: authStatus, loadingAuth } = data || {};
+        
+        // Debug the authentication state
+        console.log('🔍 Profile modal debug:', {
+          authStatus,
+          hasUser: !!currentUser,
+          loadingAuth,
+          userData: currentUser ? { email: currentUser.email, metadata: currentUser.user_metadata } : null,
+          dataReceived: data
+        });
+        
+        // Show loading state if auth is still loading
+        if (loadingAuth) {
+          content.innerHTML = `
+            <div class="text-center text-gray-400 py-8">
+              <div class="w-16 h-16 mx-auto mb-4 animate-spin">
+                <svg class="w-full h-full" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M21 12a9 9 0 11-6.219-8.56"/>
+                </svg>
+              </div>
+              <p class="text-lg font-medium">Loading...</p>
+              <p class="text-sm mt-1">Please wait</p>
+            </div>
+          `;
+          return;
+        }
         
         if (!authStatus || !currentUser) {
           content.innerHTML = `
