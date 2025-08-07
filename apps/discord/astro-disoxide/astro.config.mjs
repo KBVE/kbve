@@ -21,6 +21,7 @@ export default defineConfig({
 			prefixDefaultLocale: false,
 		},
 	},
+	trailingSlash: "never",
 	integrations: [
 		starlight({
 			plugins: [
