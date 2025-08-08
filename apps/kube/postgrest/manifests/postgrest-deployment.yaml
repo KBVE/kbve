@@ -25,15 +25,9 @@ spec:
         - containerPort: 3000
           name: http
         env:
-        # Database connection components (PostgREST will build the connection internally)
-        - name: PGRST_DB_HOST
-          value: "supabase-cluster-rw.kilobase.svc.cluster.local"
-        - name: PGRST_DB_PORT
-          value: "5432"
-        - name: PGRST_DB_NAME
-          value: "postgres"
-        - name: PGRST_DB_USER
-          value: "authenticator"
+        # PostgREST database connection using PGRST_ prefixed variables
+        - name: PGRST_DB_URI
+          value: "postgresql://authenticator@supabase-cluster-rw.kilobase.svc.cluster.local:5432/postgres"
         - name: PGRST_DB_PASSWORD
           valueFrom:
             secretKeyRef:
@@ -94,12 +88,3 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
-        
-        # Security context
-        securityContext:
-          runAsNonRoot: false
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: false
-          capabilities:
-            drop:
-            - ALL
