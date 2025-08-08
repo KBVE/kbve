@@ -1,0 +1,190 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: supabase-analytics
+  namespace: kilobase
+  labels:
+    app: supabase-analytics
+    component: analytics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: supabase-analytics
+  template:
+    metadata:
+      labels:
+        app: supabase-analytics
+        component: analytics
+    spec:
+      initContainers:
+      - name: tzdata-init
+        image: supabase/logflare:1.15.3
+        command:
+        - sh
+        - -c
+        - |
+          echo "Copying tzdata from base image..."
+          cp -r /opt/app/rel/logflare/lib/tzdata-1.1.2/priv/* /tzdata-cache/
+          echo "Tzdata init completed"
+          ls -la /tzdata-cache/
+        volumeMounts:
+        - name: tzdata-cache
+          mountPath: /tzdata-cache
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+      containers:
+      - name: logflare
+        image: supabase/logflare:1.15.3
+        ports:
+        - containerPort: 4000
+          name: http
+        env:
+        # Basic Logflare configuration
+        - name: LOGFLARE_NODE_HOST
+          value: "127.0.0.1"
+        
+        # Database configuration for metadata
+        - name: DB_USERNAME
+          value: "supabase_admin"
+        - name: DB_DATABASE
+          value: "_supabase"
+        - name: DB_HOSTNAME
+          value: "supabase-cluster-rw"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_SCHEMA
+          value: "_analytics"
+        
+        # Supabase mode configuration
+        - name: LOGFLARE_SINGLE_TENANT
+          value: "true"
+        - name: LOGFLARE_SUPABASE_MODE
+          value: "true"
+        - name: LOGFLARE_MIN_CLUSTER_SIZE
+          value: "1"
+        
+        # PostgreSQL backend for analytics data
+        - name: POSTGRES_BACKEND_SCHEMA
+          value: "_analytics"
+        - name: LOGFLARE_FEATURE_FLAG_OVERRIDE
+          value: "multibackend=true"
+        
+        # Disable BigQuery backend - use PostgreSQL only
+        # - name: LOGFLARE_GOOGLE_PROJECT_ID
+        #   value: ""
+        # - name: LOGFLARE_GOOGLE_PROJECT_NUMBER
+        #   value: ""
+        # - name: GOOGLE_APPLICATION_CREDENTIALS
+        #   value: ""
+        - name: LOGFLARE_BACKEND
+          value: "postgres"
+        
+        # PostgreSQL backend URL from sealed secret
+        - name: POSTGRES_BACKEND_URL
+          valueFrom:
+            secretKeyRef:
+              name: logflare-postgres
+              key: postgres-backend-url
+        
+        # Required encryption key for sensitive data
+        - name: LOGFLARE_DB_ENCRYPTION_KEY
+          valueFrom:
+            secretKeyRef:
+              name: logflare-config
+              key: encryption-key
+        
+        # Access tokens for single-tenant mode
+        - name: LOGFLARE_PUBLIC_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logflare-config
+              key: public-access-token
+        - name: LOGFLARE_PRIVATE_ACCESS_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: logflare-config
+              key: private-access-token
+        
+        # Password from secret
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: supabase-superuser
+              key: password
+        
+        # Remove POSTGRES_BACKEND_URL and let Logflare use DB_* variables
+              
+        # Health check
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+          
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 4000
+          initialDelaySeconds: 15
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+          
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+            
+        volumeMounts:
+        - name: tzdata-cache
+          mountPath: /opt/app/rel/logflare/lib/tzdata-1.1.2/priv
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+      
+      volumes:
+      - name: tzdata-cache
+        emptyDir: {}
+      
+      securityContext:
+        fsGroup: 1000
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: analytics
+  namespace: kilobase
+  labels:
+    app: supabase-analytics
+    component: analytics
+spec:
+  type: ClusterIP
+  ports:
+  - port: 4000
+    targetPort: 4000
+    protocol: TCP
+    name: http
+  selector:
+    app: supabase-analytics

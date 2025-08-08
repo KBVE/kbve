@@ -1,3 +1,5 @@
+cargo-features = ["edition2024"]
+
 [package]
 name = "jedi"
 authors = ["kbve", "h0lybyte"]

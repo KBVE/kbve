@@ -13,6 +13,7 @@ resources:
   - argocd/application.yaml
   - namespace/application.yaml
   - cnpg/application.yaml
+  - cnpg/plugins-application.yaml
   - metallb/application.yaml
   - ingress/application.yaml
   - cert-manager/application.yaml
@@ -22,3 +23,11 @@ resources:
   - storage/application.yaml
   - irc/application.yaml
   - kilobase/application.yaml
+  - kong/application.yaml
+  - auth/application.yaml
+  - postgrest/application.yaml
+  - meta/application.yaml
+  - analytics/application.yaml
+  - studio/application.yaml
+  - vector/application.yaml
+  - disoxide/application.yaml

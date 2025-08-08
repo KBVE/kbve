@@ -1,0 +1,297 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kong-kong
+  namespace: kilobase
+  labels:
+    app: kong-kong
+    app.kubernetes.io/component: app
+    app.kubernetes.io/instance: kong
+    app.kubernetes.io/name: kong
+    app.kubernetes.io/version: "3.9"
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: kong-kong
+      app.kubernetes.io/component: app
+      app.kubernetes.io/instance: kong
+      app.kubernetes.io/name: kong
+  template:
+    metadata:
+      labels:
+        app: kong-kong
+        app.kubernetes.io/component: app
+        app.kubernetes.io/instance: kong
+        app.kubernetes.io/name: kong
+        app.kubernetes.io/version: "3.9"
+        version: "3.9"
+      annotations:
+        kuma.io/gateway: enabled
+        traffic.sidecar.istio.io/includeInboundPorts: ""
+    spec:
+      serviceAccountName: kong-kong
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+        runAsGroup: 1000
+      
+      initContainers:
+      # Clear stale PID files
+      - name: clear-stale-pid
+        image: kong:3.9.1
+        command: ["rm", "-vrf", "$KONG_PREFIX/pids"]
+        env:
+        - name: KONG_PREFIX
+          value: /kong_prefix/
+        volumeMounts:
+        - name: kong-kong-prefix-dir
+          mountPath: /kong_prefix/
+        - name: kong-kong-tmp
+          mountPath: /tmp
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+      
+      # Template processing init container
+      - name: config-templater
+        image: dibi/envsubst:1
+        command: ["sh", "-c"]
+        args:
+        - |
+          echo "Processing Kong configuration template..."
+          envsubst < /kong-template/kong.yml > /kong/kong.yml
+          echo "Template processing completed"
+          echo "First 50 lines of processed config:"
+          head -50 /kong/kong.yml
+        env:
+        - name: anon_key
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: anon-key
+        - name: service_key
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: service-key
+        - name: secret
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: secret
+        volumeMounts:
+        - name: kong-config-template
+          mountPath: /kong-template
+        - name: kong-config-processed
+          mountPath: /kong
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          capabilities:
+            drop:
+            - ALL
+      
+      containers:
+      - name: proxy
+        image: kong:3.9.1
+        ports:
+        - name: admin
+          containerPort: 8001
+          protocol: TCP
+        - name: admin-tls
+          containerPort: 8444
+          protocol: TCP
+        - name: proxy
+          containerPort: 8000
+          protocol: TCP
+        - name: proxy-tls
+          containerPort: 8443
+          protocol: TCP
+        - name: status
+          containerPort: 8100
+          protocol: TCP
+        
+        env:
+        # Database mode - using DB-less mode
+        - name: KONG_DATABASE
+          value: "off"
+        
+        # Use declarative config
+        - name: KONG_DECLARATIVE_CONFIG
+          value: "/kong/kong.yml"
+        
+        # Admin API configuration
+        - name: KONG_ADMIN_API_URI
+          value: "http://kong-admin.kilobase.svc.cluster.local:8001"
+        - name: KONG_ADMIN_GUI_URL
+          value: "http://kong-manager.kilobase.svc.cluster.local:8002"
+        - name: KONG_ADMIN_LISTEN
+          value: "0.0.0.0:8001, [::]:8001, 0.0.0.0:8444 http2 ssl, [::]:8444 http2 ssl"
+        
+        # Proxy configuration
+        - name: KONG_PROXY_URL
+          value: "http://kong.kilobase.svc.cluster.local"
+        - name: KONG_PROXY_LISTEN
+          value: "0.0.0.0:8000, [::]:8000, 0.0.0.0:8443 http2 ssl, [::]:8443 http2 ssl"
+        - name: KONG_PORT_MAPS
+          value: "80:8000, 443:8443"
+        
+        # Plugins
+        - name: KONG_PLUGINS
+          value: "bundled,cors,rate-limiting,jwt,oauth2,acl,request-transformer,response-transformer"
+        
+        # Logging
+        - name: KONG_LOG_LEVEL
+          value: "info"
+        - name: KONG_PROXY_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_PROXY_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_ADMIN_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_ADMIN_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_ADMIN_GUI_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_ADMIN_GUI_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_PORTAL_API_ACCESS_LOG
+          value: "/dev/stdout"
+        - name: KONG_PORTAL_API_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_PROXY_STREAM_ACCESS_LOG
+          value: "/dev/stdout basic"
+        - name: KONG_PROXY_STREAM_ERROR_LOG
+          value: "/dev/stderr"
+        - name: KONG_STATUS_ACCESS_LOG
+          value: "off"
+        - name: KONG_STATUS_ERROR_LOG
+          value: "/dev/stderr"
+        
+        # Status API
+        - name: KONG_STATUS_LISTEN
+          value: "0.0.0.0:8100, [::]:8100"
+        
+        # Other settings
+        - name: KONG_CLUSTER_LISTEN
+          value: "off"
+        - name: KONG_STREAM_LISTEN
+          value: "off"
+        - name: KONG_PREFIX
+          value: "/kong_prefix/"
+        - name: KONG_NGINX_WORKER_PROCESSES
+          value: "2"
+        - name: KONG_NGINX_DAEMON
+          value: "off"
+        - name: KONG_ROUTER_FLAVOR
+          value: "traditional"
+        - name: KONG_LUA_PACKAGE_PATH
+          value: "/opt/?.lua;/opt/?/init.lua;;"
+        
+        volumeMounts:
+        - name: kong-kong-prefix-dir
+          mountPath: /kong_prefix/
+        - name: kong-kong-tmp
+          mountPath: /tmp
+        - name: kong-config-processed
+          mountPath: /kong
+        
+        resources:
+          limits:
+            cpu: 1000m
+            memory: 1Gi
+          requests:
+            cpu: 500m
+            memory: 512Mi
+        
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL
+          seccompProfile:
+            type: RuntimeDefault
+        
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: status
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /status/ready
+            port: status
+          initialDelaySeconds: 5
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        lifecycle:
+          preStop:
+            exec:
+              command: ["kong", "quit", "--wait=15"]
+      
+      volumes:
+      - name: kong-kong-prefix-dir
+        emptyDir:
+          sizeLimit: 256Mi
+      - name: kong-kong-tmp
+        emptyDir:
+          sizeLimit: 1Gi
+      - name: kong-config-template
+        configMap:
+          name: kong-config
+      - name: kong-config-processed
+        emptyDir: {}
+
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: kong-kong
+  namespace: kilobase
+  labels:
+    app.kubernetes.io/instance: kong
+    app.kubernetes.io/name: kong
+automountServiceAccountToken: false
+
+---
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: kong-kong
+  namespace: kilobase
+  labels:
+    app.kubernetes.io/instance: kong
+    app.kubernetes.io/name: kong
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: kong-kong
+  minReplicas: 2
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 80
