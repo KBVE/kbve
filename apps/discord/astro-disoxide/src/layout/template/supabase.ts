@@ -14,7 +14,7 @@ declare global {
 export const supabase = (() => {
   if (typeof window !== 'undefined') {
     if (!window.supabase) {
-      const isOAuthCallback = window.location.href.includes('/auth/callback');
+      const isOAuthCallback = window.location.href.includes('/callback');
       window.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
         auth: {
           autoRefreshToken: true,
