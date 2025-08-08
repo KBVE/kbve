@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgrest
+  namespace: kilobase
+  labels:
+    app: postgrest
+    component: rest
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: postgrest
+  template:
+    metadata:
+      labels:
+        app: postgrest
+        component: rest
+    spec:
+      serviceAccountName: postgrest-sa
+      containers:
+      - name: postgrest
+        image: postgrest/postgrest:v12.2.12
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        # Database connection
+        - name: PGRST_DB_URI
+          value: "postgres://authenticator@supabase-cluster-rw.kilobase.svc.cluster.local:5432/postgres?sslmode=disable"
+        
+        # Alternative DB connection params (if PGRST_DB_URI doesn't work)
+        - name: DB_HOST
+          value: "supabase-cluster-rw.kilobase.svc.cluster.local"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_NAME
+          value: "postgres"
+        - name: DB_USER
+          value: "authenticator"
+        - name: DB_SSL
+          value: "disable"
+        
+        # PostgREST configuration
+        - name: PGRST_DB_SCHEMAS
+          value: "public,storage,graphql_public"
+        - name: PGRST_DB_ANON_ROLE
+          value: "anon"
+        - name: PGRST_DB_USE_LEGACY_GUCS
+          value: "false"
+        - name: PGRST_SERVER_PORT
+          value: "3000"
+        
+        # JWT configuration from secret
+        - name: PGRST_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: secret
+        - name: PGRST_APP_SETTINGS_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: secret
+        - name: PGRST_APP_SETTINGS_JWT_EXP
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: expiry
+        
+        # Database password from secret
+        - name: PGRST_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: supabase-cluster-app
+              key: password
+        
+        # Health checks
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 10
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        # Resource limits
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        
+        # Security context
+        securityContext:
+          runAsNonRoot: true
+          runAsUser: 1000
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          capabilities:
+            drop:
+            - ALL

@@ -50,6 +50,7 @@ pub fn static_router() -> Router<SharedState> {
         .route_service("/sitemap-0.xml", ServeFile::new("dist/sitemap-0.xml"))
         .route_service("/sitemap-index.xml", ServeFile::new("dist/sitemap-index.xml"))
         .route_service("/robots.txt", ServeFile::new("dist/robots.txt"))
+        .route_service("/favicon.svg", ServeFile::new("dist/favicon.svg"))
         .route_service("/favicon.ico", ServeFile::new("dist/favicon.ico"))
         .route_service("/index.html", ServeFile::new("dist/index.html"))
         .route_service("/404.html", ServeFile::new("dist/404.html"))
