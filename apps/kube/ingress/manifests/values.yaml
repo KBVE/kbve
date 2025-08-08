@@ -18,6 +18,39 @@ controller:
         real-ip-recursive: "on"
         custom-http-errors: "403,404,500,502,503"
 
+        # Critical for handling large headers/tokens
+        proxy-buffer-size: "32k"
+        proxy-buffers: "8 32k"
+        proxy-busy-buffers-size: "64k"
+        large-client-header-buffers: "8 64k"
+        client-header-buffer-size: "32k"
+        client-body-buffer-size: "32k"
+        
+        # Increase timeouts
+        proxy-connect-timeout: "300"
+        proxy-send-timeout: "300"
+        proxy-read-timeout: "300"
+        client-body-timeout: "300"
+        client-header-timeout: "300"
+        
+        # Enable headers-more module for more_set_headers
+        # enable-modsecurity: "false"
+        # enable-owasp-modsecurity-crs: "false"
+        
+        # Global CORS settings as fallback
+        enable-cors: "true"
+        cors-allow-origin: "*"
+        cors-allow-credentials: "true"
+        cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
+        cors-allow-headers: "*"
+        
+        # Important for handling errors with CORS
+        # add-headers: "ingress-nginx/custom-headers"
+        
+        # Increase body size limit globally
+        proxy-body-size: "50m"
+
+
     extraVolumes:
         - name: custom-error-pages
           configMap:
