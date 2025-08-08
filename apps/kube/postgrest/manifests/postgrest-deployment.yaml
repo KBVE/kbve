@@ -18,6 +18,10 @@ spec:
         component: rest
     spec:
       serviceAccountName: postgrest-sa
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
       containers:
       - name: postgrest
         image: postgrest/postgrest:v12.2.12
