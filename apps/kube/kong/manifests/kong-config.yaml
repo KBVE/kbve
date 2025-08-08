@@ -17,6 +17,12 @@ data:
           origins:
             - https://discord.sh
             - https://*.discord.sh
+            - https://meme.sh
+            - https://*.meme.sh
+            - https://kbve.com
+            - https://*.kbve.com
+            - http://localhost:4321
+            - http://localhost:3000
           methods:
             - GET
             - POST
@@ -24,23 +30,32 @@ data:
             - DELETE
             - OPTIONS
             - PATCH
+            - HEAD
           headers:
             - Accept
             - Accept-Version
             - Authorization
+            - Content-Length
+            - Content-MD5
             - Content-Type
+            - Date
             - Origin
             - User-Agent
+            - X-Auth-Token
             - X-Requested-With
-            - apikey
             - x-client-info
             - x-supabase-api-version
+            - apikey
+            - DNT
+            - Cache-Control
+            - X-Mx-ReqToken
+            - Keep-Alive
+            - If-Modified-Since
           exposed_headers:
-            - X-RateLimit-Limit
-            - X-RateLimit-Remaining
-            - X-RateLimit-Reset
+            - "*"
           credentials: true
           max_age: 86400
+          preflight_continue: false
 
     ###
     ### Consumers / Users
