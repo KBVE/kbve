@@ -55,7 +55,7 @@ data:
             - "*"
           credentials: true
           max_age: 86400
-          preflight_continue: false
+          preflight_continue: true
 
     ###
     ### Consumers / Users
