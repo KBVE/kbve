@@ -15,6 +15,10 @@ metadata:
     nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, Accept, Origin, User-Agent, DNT, Cache-Control, X-Mx-ReqToken, Keep-Alive, X-Requested-With, If-Modified-Since, x-supabase-api-version, x-client-info, apikey"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
     nginx.ingress.kubernetes.io/cors-expose-headers: "*"
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
+    nginx.ingress.kubernetes.io/client-header-buffer-size: "16k"
+    nginx.ingress.kubernetes.io/large-client-header-buffers: "4 32k"
 spec:
   ingressClassName: nginx
   rules:
