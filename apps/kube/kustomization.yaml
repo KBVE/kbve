@@ -25,6 +25,7 @@ resources:
   - kilobase/application.yaml
   - kong/application.yaml
   - auth/application.yaml
+  - postgrest/application.yaml
   - meta/application.yaml
   - analytics/application.yaml
   - studio/application.yaml
