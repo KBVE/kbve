@@ -10,8 +10,8 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
     cert-manager.io/cluster-issuer: "letsencrypt-prod"
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://discord.sh"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://discord.sh,https://*.discord.sh,https://meme.sh,https://*.meme.sh,https://kbve.com,https://*.kbve.com"
+    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
     nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, Accept, Origin, User-Agent, DNT, Cache-Control, X-Mx-ReqToken, Keep-Alive, X-Requested-With, If-Modified-Since, x-supabase-api-version, x-client-info, apikey"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
     nginx.ingress.kubernetes.io/cors-expose-headers: "*"
@@ -19,6 +19,11 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
     nginx.ingress.kubernetes.io/client-header-buffer-size: "16k"
     nginx.ingress.kubernetes.io/large-client-header-buffers: "4 32k"
+    nginx.ingress.kubernetes.io/configuration-snippet: |
+      more_set_headers -s '500 502 503 504' "Access-Control-Allow-Origin: $http_origin" always;
+      more_set_headers -s '500 502 503 504' "Access-Control-Allow-Credentials: true" always;
+      more_set_headers -s '500 502 503 504' "Access-Control-Expose-Headers: *" always;
+
 spec:
   ingressClassName: nginx
   rules:
