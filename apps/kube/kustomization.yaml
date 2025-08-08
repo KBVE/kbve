@@ -18,6 +18,7 @@ resources:
   - ingress/application.yaml
   - cert-manager/application.yaml
   - sealed-secrets/application.yaml
+  - external-secrets/application.yaml
   - monitoring/application.yaml
   - redis/application.yaml
   - storage/application.yaml
