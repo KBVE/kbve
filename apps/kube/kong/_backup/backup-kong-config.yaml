@@ -9,55 +9,6 @@ data:
     _transform: true
 
     ###
-    ### Global Plugins
-    ###
-    plugins:
-      - name: cors
-        config:
-          origins:
-            - https://discord.sh
-            - https://*.discord.sh
-            - https://meme.sh
-            - https://*.meme.sh
-            - https://kbve.com
-            - https://*.kbve.com
-            - http://localhost:4321
-            - http://localhost:3000
-          methods:
-            - GET
-            - POST
-            - PUT
-            - DELETE
-            - OPTIONS
-            - PATCH
-            - HEAD
-          headers:
-            - Accept
-            - Accept-Version
-            - Authorization
-            - Content-Length
-            - Content-MD5
-            - Content-Type
-            - Date
-            - Origin
-            - User-Agent
-            - X-Auth-Token
-            - X-Requested-With
-            - x-client-info
-            - x-supabase-api-version
-            - apikey
-            - DNT
-            - Cache-Control
-            - X-Mx-ReqToken
-            - Keep-Alive
-            - If-Modified-Since
-          exposed_headers:
-            - "*"
-          credentials: true
-          max_age: 86400
-          preflight_continue: false
-
-    ###
     ### Consumers / Users
     ###
     consumers:
@@ -98,6 +49,8 @@ data:
             strip_path: true
             paths:
               - /auth/v1/verify
+        plugins:
+          - name: cors
       - name: auth-v1-open-callback
         url: http://auth:9999/callback
         routes:
@@ -105,6 +58,8 @@ data:
             strip_path: true
             paths:
               - /auth/v1/callback
+        plugins:
+          - name: cors
       - name: auth-v1-open-authorize
         url: http://auth:9999/authorize
         routes:
@@ -112,6 +67,8 @@ data:
             strip_path: true
             paths:
               - /auth/v1/authorize
+        plugins:
+          - name: cors
 
       ## Secure Auth routes
       - name: auth-v1
@@ -123,6 +80,7 @@ data:
             paths:
               - /auth/v1/
         plugins:
+          - name: cors
           - name: key-auth
             config:
               hide_credentials: false
@@ -143,6 +101,7 @@ data:
             paths:
               - /rest/v1/
         plugins:
+          - name: cors
           - name: key-auth
             config:
               hide_credentials: true
@@ -163,6 +122,7 @@ data:
             paths:
               - /graphql/v1
         plugins:
+          - name: cors
           - name: key-auth
             config:
               hide_credentials: true
@@ -189,6 +149,7 @@ data:
             paths:
               - /realtime/v1/
         plugins:
+          - name: cors
           - name: key-auth
             config:
               hide_credentials: false
@@ -208,6 +169,7 @@ data:
             paths:
               - /realtime/v1/api
         plugins:
+          - name: cors
           - name: key-auth
             config:
               hide_credentials: false
@@ -227,6 +189,8 @@ data:
             strip_path: true
             paths:
               - /storage/v1/
+        plugins:
+          - name: cors
 
       ## Edge Functions routes
       - name: functions-v1
@@ -237,6 +201,8 @@ data:
             strip_path: true
             paths:
               - /functions/v1/
+        plugins:
+          - name: cors
 
       ## Analytics routes
       - name: analytics-v1
@@ -277,6 +243,7 @@ data:
             paths:
               - /
         plugins:
+          - name: cors
           - name: basic-auth
             config:
               hide_credentials: true
