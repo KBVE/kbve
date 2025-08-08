@@ -15,14 +15,11 @@ metadata:
     nginx.ingress.kubernetes.io/cors-allow-headers: "Authorization, Content-Type, Accept, Origin, User-Agent, DNT, Cache-Control, X-Mx-ReqToken, Keep-Alive, X-Requested-With, If-Modified-Since, x-supabase-api-version, x-client-info, apikey"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
     nginx.ingress.kubernetes.io/cors-expose-headers: "*"
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "16k"
-    nginx.ingress.kubernetes.io/proxy-buffers-number: "8"
-    nginx.ingress.kubernetes.io/client-header-buffer-size: "16k"
-    nginx.ingress.kubernetes.io/large-client-header-buffers: "4 32k"
-    nginx.ingress.kubernetes.io/configuration-snippet: |
-      more_set_headers -s '500 502 503 504' "Access-Control-Allow-Origin: $http_origin" always;
-      more_set_headers -s '500 502 503 504' "Access-Control-Allow-Credentials: true" always;
-      more_set_headers -s '500 502 503 504' "Access-Control-Expose-Headers: *" always;
+    nginx.ingress.kubernetes.io/proxy-buffer-size: "32k"
+    nginx.ingress.kubernetes.io/proxy-buffers-number: "16"
+    nginx.ingress.kubernetes.io/client-header-buffer-size: "32k"
+    nginx.ingress.kubernetes.io/large-client-header-buffers: "8 64k"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: "32k"
 
 spec:
   ingressClassName: nginx
