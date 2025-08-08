@@ -25,21 +25,20 @@ spec:
         - containerPort: 3000
           name: http
         env:
-        # Database connection
-        - name: PGRST_DB_URI
-          value: "postgres://authenticator@supabase-cluster-rw.kilobase.svc.cluster.local:5432/postgres?sslmode=disable"
-        
-        # Alternative DB connection params (if PGRST_DB_URI doesn't work)
-        - name: DB_HOST
+        # Database connection components (PostgREST will build the connection internally)
+        - name: PGRST_DB_HOST
           value: "supabase-cluster-rw.kilobase.svc.cluster.local"
-        - name: DB_PORT
+        - name: PGRST_DB_PORT
           value: "5432"
-        - name: DB_NAME
+        - name: PGRST_DB_NAME
           value: "postgres"
-        - name: DB_USER
+        - name: PGRST_DB_USER
           value: "authenticator"
-        - name: DB_SSL
-          value: "disable"
+        - name: PGRST_DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: supabase-cluster-app
+              key: password
         
         # PostgREST configuration
         - name: PGRST_DB_SCHEMAS
@@ -67,13 +66,6 @@ spec:
             secretKeyRef:
               name: supabase-jwt
               key: expiry
-        
-        # Database password from secret
-        - name: PGRST_DB_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: supabase-cluster-app
-              key: password
         
         # Health checks
         livenessProbe:
