@@ -25,10 +25,16 @@ spec:
         - containerPort: 3000
           name: http
         env:
-        # PostgREST database connection using PGRST_ prefixed variables
-        - name: PGRST_DB_URI
-          value: "postgresql://authenticator@supabase-cluster-rw.kilobase.svc.cluster.local:5432/postgres"
-        - name: PGRST_DB_PASSWORD
+        # Use PGRST_ prefixed libpq environment variables
+        - name: PGRST_PGHOST
+          value: "supabase-cluster-rw.kilobase.svc.cluster.local"
+        - name: PGRST_PGPORT
+          value: "5432"
+        - name: PGRST_PGDATABASE
+          value: "postgres"
+        - name: PGRST_PGUSER
+          value: "authenticator"
+        - name: PGRST_PGPASSWORD
           valueFrom:
             secretKeyRef:
               name: supabase-cluster-app
