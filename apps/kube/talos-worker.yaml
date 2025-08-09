@@ -1,0 +1,104 @@
+apiVersion: v1alpha1
+kind: TalosConfig
+context: ""
+contexts: {}
+machine:
+  type: worker
+  token: ""  # Will be replaced with actual cluster token
+  ca:
+    crt: ""  # Will be replaced with actual cluster CA
+  certSANs: []
+  kubelet:
+    image: ghcr.io/siderolabs/kubelet:v1.32.1
+    clusterDNS:
+      - 10.96.0.10
+    extraArgs:
+      node-labels: "node.kbve.com/type=intel-nuc"
+  network:
+    hostname: ""  # Will be set per NUC
+    interfaces:
+      - interface: eth0
+        dhcp: true
+      - interface: wg0
+        wireguard:
+          privateKey: ""  # Will be generated per NUC
+          listenPort: 51820
+          peers:
+            - publicKey: ""  # Control plane WireGuard public key
+              endpoint: ""  # Hetzner control plane endpoint:51820
+              allowedIPs:
+                - 10.0.0.0/24  # WireGuard network CIDR
+              persistentKeepaliveInterval: 25s
+        addresses:
+          - 10.0.0.0/32  # Will be assigned per NUC (e.g., 10.0.0.10, 10.0.0.11, etc.)
+        routes:
+          - network: 10.96.0.0/12  # Kubernetes service CIDR
+            gateway: 10.0.0.1  # Control plane WireGuard IP
+          - network: 10.244.0.0/16  # Kubernetes pod CIDR
+            gateway: 10.0.0.1  # Control plane WireGuard IP
+  install:
+    disk: /dev/sda  # Adjust for NUC SSD
+    image: ghcr.io/siderolabs/installer:v1.8.0
+    bootloader: true
+    wipe: false
+  sysctls:
+    net.core.somaxconn: 65535
+    net.core.netdev_max_backlog: 4096
+  systemDiskEncryption:
+    ephemeral:
+      provider: encryption
+      keys:
+        - static:
+            passphrase: ""  # Will be set per deployment
+    state:
+      provider: encryption  
+      keys:
+        - static:
+            passphrase: ""  # Will be set per deployment
+  features:
+    rbac: true
+    stableHostname: true
+    apidCheckExtKeyUsage: true
+    diskQuotaSupport: true
+    kubePrism:
+      enabled: true
+      port: 7445
+  udev:
+    rules:
+      - SUBSYSTEM=="net", ACTION=="add", DRIVERS=="?*", ATTR{address}=="*", ATTR{dev_id}=="0x0", ATTR{type}=="1", NAME="eth0"
+  logging:
+    destinations:
+      - endpoint: udp://10.0.0.1:514  # Control plane syslog endpoint
+        format: json_lines
+cluster:
+  id: ""  # Will be replaced with actual cluster ID
+  secret: ""  # Will be replaced with actual cluster secret
+  controlPlane:
+    endpoint: https://10.0.0.1:6443  # Control plane API endpoint via WireGuard
+  clusterName: kbve-cluster
+  network:
+    dnsDomain: cluster.local
+    podSubnets:
+      - 10.244.0.0/16
+    serviceSubnets:
+      - 10.96.0.0/12
+  token: ""  # Will be replaced with actual cluster join token
+  discovery:
+    enabled: true
+    registries:
+      kubernetes:
+        endpoint: https://10.0.0.1:6443
+      service: {}
+  proxy:
+    disabled: false
+  etcd:
+    advertisedSubnets:
+      - 10.0.0.0/24  # WireGuard subnet for etcd communication
+customization:
+  systemExtensions:
+    officialExtensions:
+      - siderolabs/iscsi-tools
+      - siderolabs/util-linux-tools
+      - siderolabs/wireguard-tools
+  extraKernelArgs:
+    - net.ifnames=1
