@@ -1,1 +1,1 @@
-peanut butter
+creamy peanut butter
