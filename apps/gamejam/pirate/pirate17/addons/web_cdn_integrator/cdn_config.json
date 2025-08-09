@@ -1,16 +1,1 @@
-{
-	"supabase": {
-		"enabled": true,
-		"cdn_url": "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.53.0/dist/umd/supabase.min.js",
-		"filename": "supabase.min.js",
-		"template_tag": "$SUPABASE",
-		"init_script": "window.supabaseLoaded = true;\ndocument.dispatchEvent(new CustomEvent('supabase:loaded'));"
-	},
-	"hcaptcha": {
-		"enabled": false,
-		"cdn_url": "https://hcaptcha.com/1/api.js",
-		"filename": "hcaptcha.js",
-		"template_tag": "$HCAPTCHA",
-		"init_script": "window.hcaptchaLoaded = true;\ndocument.dispatchEvent(new CustomEvent('hcaptcha:loaded'));"
-	}
-}
+peanut butter

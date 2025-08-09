@@ -1,16 +1,1 @@
-apiVersion: v2
-name: armada
-description: The Armada , a proof of concept stack from KBVE.
-type: application
-version: 0.0.5
-icon: https://avatars.githubusercontent.com/u/5571997?s=280&v=4
-dependencies:
-  - name: redis
-    version: 20.1.4
-    repository: https://charts.bitnami.com/bitnami
-  - name: sealed-secrets
-    version: 2.16.1
-    repository: https://bitnami-labs.github.io/sealed-secrets
-  # - name: hami
-  #   version: 2.4.0
-  #   repository: https://project-hami.github.io/HAMi/
+peanut butter

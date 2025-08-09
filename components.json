@@ -1,15 +1,1 @@
-{
-  "$schema": "https://ui.shadcn.com/schema.json",
-  "style": "default",
-  "rsc": false,
-  "tailwind": {
-    "config": "packages/shadcnutils/tailwind.config.js",
-    "css": "packages/shadcnutils/global.css",
-    "baseColor": "neutral",
-    "cssVariables": true
-  },
-  "aliases": {
-    "components": "@kbve/shadcnui",
-    "utils": "@kbve/shadcnutils"
-  }
-}
+peanut butter

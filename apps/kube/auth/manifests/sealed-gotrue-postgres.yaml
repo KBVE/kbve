@@ -1,16 +1,1 @@
----
-apiVersion: bitnami.com/v1alpha1
-kind: SealedSecret
-metadata:
-  creationTimestamp: null
-  name: gotrue-database
-  namespace: kilobase
-spec:
-  encryptedData:
-    database-url: AgCqq7bQYBxeBzz+76VRFYGS9ZMry9k6rQatESnxmvCoZwZ51Eu2okQpx/COjAvdbi46BPRJd8oHDvEqdu7ko3P0ePyYyc+K8Ifbj/QtyUUf54YzIE5S5PhM6jrS+bX6GLm5Sff1ivBcd1+VjTjpRPJGYRJRGG4XnLeIVKnd3x+E2B8tEWLj+on2qgWz3pFucGr3wFshK6DWV24vSFJ8rpc4w+unIMtRE8hczf7dWAw69XlR4o8hINrd+G09ITGCeiR6TwMZpzn/w3s/7ElFYTSH6StVT+S3yFXvokXKXtyLVVRWCS29RD973Aqez5BrtyZ5Aj1XCShKhho2PH/bHnPpB/JqTlmcp26vRL5x925c03C9SiEZ84yCUpXqCkE6DphJvQx99aliqnVKU8lkZ8Bc9h7xIoD5QbWJRuG34wMETiqXjR6sjAMQ9i29Df+/XtPDTQW8rGyoVwtVEi7h/2TNxU4rYkp8Tra2fKwgd+kU4qQIc3ujxVaQOO1NrUxW30f9f3RjJYhhkIcCyan5LI30oKvUNCnTPSu3iSXQXoAHz+fosDxI14p/tsdLYnE/u5dZNsQPc1ejhfNmKgiLRJ1q+iVDuoKqbLYzvIcjbsbmRoitEul6Fjd2Iq5US49/CJYeRRS8JiDd5p0o8++lubrU6gzdncndhmKkCFPDv+YK6yqUA/hBLZcdkHKqqIHIwkDeJ/8aeSLSUTxv9iTMB4aUCY6XNUjwB8VjexKRkKTluooMFBy5FJs4dDM63lTkvkZjAwx+gjzzX3nToBaaIZxzNCk7vla738/7j19J5C8W9kXIgaENtJuASUXggp4y77vp
-  template:
-    metadata:
-      creationTimestamp: null
-      name: gotrue-database
-      namespace: kilobase
-    type: Opaque
+peanut butter

@@ -1,12 +1,1 @@
-apiVersion: v1
-kind: PersistentVolumeClaim
-metadata:
-    name: ergo-data-pvc
-    namespace: irc
-spec:
-    accessModes:
-        - ReadWriteOnce
-    storageClassName: longhorn
-    resources:
-        requests:
-            storage: 1Gi
+peanut butter

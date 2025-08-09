@@ -1,6 +1,1 @@
-defaultNamespace: discordsh
-helm:
-    chart: ./discord
-    releaseName: discord-release
-    valuesFiles:
-        - discord/values.yaml
+peanut butter

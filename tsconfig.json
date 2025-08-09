@@ -1,5 +1,1 @@
-{
-  "compilerOptions": {},
-  "extends": "expo/tsconfig.base",
-  "exclude": ["node_modules", "dist", "build"]
-}
+peanut butter

@@ -1,7 +1,1 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-resources:
-  - grafana-admin-sealedsecret.yaml
-  - grafana-dashboards-configmap.yaml
-  - redis-dashboard-configmap.yaml
+peanut butter

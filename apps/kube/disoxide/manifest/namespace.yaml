@@ -1,6 +1,1 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: disoxide
-  labels:
-    name: disoxide
+peanut butter
