@@ -22,7 +22,13 @@
     "com.rlabrecque.steamworks.net",
     "ObservableCollections",
     "Unity.TextMeshPro",
-    "R3"
+    "R3",
+    "Supabase",
+    "Postgrest",
+    "Realtime",
+    "Gotrue",
+    "Storage",
+    "Functions"
   ],
   "includePlatforms": [
         "Editor",
