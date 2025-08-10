@@ -20,6 +20,9 @@ namespace KBVE.MMExtensions.Ai
 
         public Weapon initialWeapon;
         private CharacterHandleWeapon handleWeapon;
+        private LayerMask dashCheckLayerMask;
+        private float dashObstacleCheckDistance;
+        private float dashTargetCheckDistance;
 
 #region Decisions
         private AIDecisionDetectTargetRadius2D detectPlayerDecision;
@@ -27,9 +30,11 @@ namespace KBVE.MMExtensions.Ai
         private AIDecisionDistanceToTarget distanceToTarget2fDecision;
         private AIDecisionDistanceToTarget distanceToTarget3fDecision;
         private AIDecisionDistanceToTarget distanceToTarget4fDecision;
+        private AIDecisionShouldDash shouldDashDecision;
         private AIDecisionTargetIsAlive targetIsAliveDecision;
         private AIDecisionTimeInState timeInStateDecision;
         private AIDecisionReloadNeeded reloadNeededDecision;
+        private AIDecisionDistanceToTarget distanceToTarget9fDecision;
 #endregion
 
 #region Actions
@@ -355,6 +360,15 @@ namespace KBVE.MMExtensions.Ai
             return detectDistanceToTarget;
         }
 
+        private AIDecisionShouldDash CreateShouldDashDecision()
+        {
+            AIDecisionShouldDash shouldDashDecision = gameObject.MMGetOrAddComponent<AIDecisionShouldDash>();
+            shouldDashDecision.DashCheckLayerMask = dashCheckLayerMask;
+            shouldDashDecision.ObstacleCheckDistance = dashObstacleCheckDistance;
+            shouldDashDecision.TargetCheckDistance = dashTargetCheckDistance;
+            return shouldDashDecision;
+        }
+
         private AIDecisionTargetIsAlive CreateTargetIsAliveDecision()
         {
             AIDecisionTargetIsAlive targetIsAlive = gameObject.AddComponent<AIDecisionTargetIsAlive>();
@@ -373,8 +387,6 @@ namespace KBVE.MMExtensions.Ai
         {
             return new PhysicsMaterial2D() { friction = 0 };
         }
-
-        private AIDecisionDistanceToTarget distanceToTarget9fDecision;
 
         protected virtual void SetupDecisionsHealer()
         {
