@@ -3,6 +3,7 @@ kind: Kustomization
 
 resources:
   - external-secrets-crds.yaml
+  - external-secrets-pushsecret-crd.yaml
   - external-secrets-operator.yaml
   - rbac.yaml
   - secret-store.yaml
