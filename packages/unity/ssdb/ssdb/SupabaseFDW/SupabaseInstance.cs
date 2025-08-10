@@ -15,7 +15,7 @@ using Client = Supabase.Client;
 namespace KBVE.SSDB.SupabaseFDW
 {
 
-    public class SupabaseInstance : IAsyncStartable, IDisposable
+    public class SupabaseInstance : IAsyncStartable, ISupabaseInstance, IDisposable
     {
 
         private readonly CompositeDisposable _disposables = new();
@@ -26,9 +26,9 @@ namespace KBVE.SSDB.SupabaseFDW
         // Create a Supabase objects object.
         SupabaseOptions options;
 
-        public ReactiveProperty<Supabase.Client?> _supabase { get; } = new(null);
+        //public ReactiveProperty<Supabase.Client?> _supabase { get; } = new(null);
 
-        //Supabase.Client _supabase;
+        Supabase.Client _supabase;
 
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
@@ -118,6 +118,16 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             _disposables.Dispose();
         }
+
+        private void DebugListener(string message, Exception? ex)
+        {
+            if (ex != null)
+                Debug.LogError($"[Supabase Auth] {message}\n{ex}");
+            else
+                Debug.Log($"[Supabase Auth] {message}");
+        }
+
+    
     }
 }
 
