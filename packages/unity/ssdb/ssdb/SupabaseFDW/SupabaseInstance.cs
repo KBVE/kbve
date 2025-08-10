@@ -1,4 +1,6 @@
 using KBVE.SSDB;
+using KBVE.SSDB.SupabaseFDW;
+using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
@@ -43,7 +45,7 @@ namespace KBVE.SSDB.SupabaseFDW
             // available in the Supabase dashboard. In addition, note that the public anon
             // key is not a security risk - in JavaScript projects, this key is visible
             // in the browser viewing source!
-            _supabase = new Client(KBVE.SSDB.Supabaseinfo.Url, KBVE.SSDB.Supabaseinfo.AnonKey, options);
+            _supabase = new Client(SupabaseInfo.Url, SupabaseInfo.AnonKey, options);
             // "_supabase = new Client("https://project URL", "supabase PUBLIC anon key", options);
 
             // This adds a listener for debug information, especially useful for dealing
