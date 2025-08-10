@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: ergo-irc-metrics
+  namespace: irc
+  labels:
+    app: ergo-irc
+    release: monitoring
+spec:
+  selector:
+    matchLabels:
+      app: ergo-irc
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics

@@ -1,0 +1,43 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+[application]
+
+config/name="pirate17"
+run/main_scene="res://scenes/ui/title/title.tscn"
+config/features=PackedStringArray("4.4", "GL Compatibility")
+config/icon="res://icon.svg"
+
+[autoload]
+
+Global="*res://scripts/global.gd"
+Player="*res://scripts/player/player.gd"
+Map="*res://scripts/world/map.gd"
+World="*res://scripts/world/world.gd"
+CloudManager="*res://scripts/effects/cloud_manager.gd"
+DialogueSystem="*res://scripts/dialogue_system.gd"
+MusicPlayerAutoload="*res://scenes/ui/music/music_player_autoload.tscn"
+
+[display]
+
+window/size/viewport_width=1280
+window/size/viewport_height=720
+window/size/mode=2
+window/stretch/mode="canvas_items"
+
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/item_downloader/plugin.cfg", "res://addons/web_cdn_integrator/plugin.cfg")
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"
+renderer/rendering_method.mobile="gl_compatibility"
+environment/default_clear_color=Color(0.5, 0.8, 0.9, 1)

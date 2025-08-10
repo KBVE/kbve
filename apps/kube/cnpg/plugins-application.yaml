@@ -1,0 +1,27 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: cnpg-plugins
+    namespace: argocd
+spec:
+    project: default
+    source:
+        repoURL: https://github.com/kbve/kbve
+        targetRevision: main
+        path: apps/kube/cnpg/plugins
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: cnpg-system
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m

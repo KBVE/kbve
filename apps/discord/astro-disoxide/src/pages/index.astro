@@ -2,18 +2,12 @@
 /** @jsxImportSource astro */
 
 import Layout from 'src/layout/Layout.astro';
-import ServerCarousel from 'src/layout/ui/ServerCarousel.astro';
-import SvelteDiscordServers from 'src/layout/svelte/carousel/SvelteDiscordServers.astro';
 ---
 
 <Layout title="Dashboard" description="DiscordSH Dashboard">
 	<div class="flex flex-col min-h-screen overflow-y-auto">
-		<!-- Main Content -->
 		<div
 			class="flex-1 flex flex-col w-full min-h-full transition-all duration-200 ease-in-out">
-
-
-			<!-- Page Content -->
 			<main class="p-6 flex-1 overflow-visible">
 				<div class="max-w-7xl mx-auto w-full">
 					<div class="bento-grid-3">
@@ -47,120 +41,78 @@ import SvelteDiscordServers from 'src/layout/svelte/carousel/SvelteDiscordServer
 							</p>
 						</div>
 
-						<!-- Server Carousel Demo -->
-						<!-- <ServerCarousel /> -->
-
-						<SvelteDiscordServers />
-						<!-- AlpineJS Start -->
-						<!-- Metrics Cube Card -->
-
 						<div
-							x-data="astro"
-							x-bind="refreshOnPageLoad"
 							class="md:col-span-2 md:row-span-2 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
-							<template x-if="pageLoaded">
+							<div class="space-y-4">
+								<!-- Toggle Button -->
+								<button
+									class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600 shadow transition w-full sm:w-auto">
+									Toggle Metrics
+								</button>
+
+								<!-- Metrics Grid -->
 								<div
-									x-data="metricsCube"
-									:class="{ 'cursor-progress': loading }"
-									class="space-y-4">
-									<!-- Toggle Button -->
-									<button
-										@click="open = !open"
-										class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600 shadow transition w-full sm:w-auto">
-										Toggle Metrics
-									</button>
-
-									<!-- Metrics Grid -->
+									class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 auto-rows-fr">
 									<div
-										x-show="open"
-										class="grid gap-4 sm:grid-cols-2 md:grid-cols-3 auto-rows-fr">
-										<template
-											x-for="(metric, index) in dataEntries"
-											:key="index">
-											<div
-												class="relative p-4 rounded-xl border border-purple-500/20 bg-gradient-to-br from-[#2b2740] to-[#312d4b] shadow-md hover:border-purple-400/50 transition transform hover:scale-[1.01]">
-												<!-- Header -->
-												<div
-													class="flex items-center justify-between mb-1">
-													<h4
-														class="text-xs uppercase text-purple-400 tracking-wide"
-														x-text="metric.key">
-													</h4>
-													<span
-														class="text-[10px] text-purple-300 opacity-60">
-														#
-														<span
-															x-text="index + 1">
-														</span>
-													</span>
-												</div>
+										class="relative p-4 rounded-xl border border-purple-500/20 bg-gradient-to-br from-[#2b2740] to-[#312d4b] shadow-md hover:border-purple-400/50 transition transform hover:scale-[1.01]">
+										<!-- Header -->
+										<div
+											class="flex items-center justify-between mb-1">
+											<h4
+												class="text-xs uppercase text-purple-400 tracking-wide">
+												Sample Metric
+											</h4>
+											<span
+												class="text-[10px] text-purple-300 opacity-60">
+												#1
+											</span>
+										</div>
 
-												<!-- Value -->
-												<p
-													class="text-2xl md:text-3xl font-semibold text-purple-100 leading-tight"
-													x-text="Number(metric.value).toFixed(2)">
-												</p>
-											</div>
-										</template>
+										<!-- Value -->
+										<p
+											class="text-2xl md:text-3xl font-semibold text-purple-100 leading-tight">
+											42.00
+										</p>
 									</div>
 								</div>
-							</template>
+							</div>
 						</div>
 						<!-- END -->
 
 						<div
-							x-data="astro"
-							x-bind="refreshOnPageLoad"
 							class="md:col-span-2 md:row-span-2 bg-[#312d4b] p-4 rounded shadow-xl border-purple-500/20 hover:border-purple-500 border-1">
-							<template x-if="pageLoaded">
-								<!-- New WebSocket Card -->
-								<div x-data="webSocketManager">
-									<h3 class="text-sm text-gray-400 mb-2">
-										WebSocket Control
-									</h3>
-									<div class="space-y-4">
-										<!-- Form to Send Messages -->
-										<form
-											@submit.prevent="sendMessage"
-											class="flex gap-2">
-											<input
-												x-model="message"
-												type="text"
-												placeholder="Type a message..."
-												class="flex-1 bg-gray-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
-											/>
-											<button
-												type="submit"
-												class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600 transition"
-												:disabled="!message">
-												Send
-											</button>
-										</form>
+							<!-- WebSocket Card -->
+							<div>
+								<h3 class="text-sm text-gray-400 mb-2">
+									WebSocket Control
+								</h3>
+								<div class="space-y-4">
+									<!-- Form to Send Messages -->
+									<form class="flex gap-2">
+										<input
+											type="text"
+											placeholder="Type a message..."
+											class="flex-1 bg-gray-700 text-white p-2 rounded focus:outline-none focus:ring-2 focus:ring-purple-500"
+										/>
+										<button
+											type="submit"
+											class="bg-purple-700 text-white px-4 py-2 rounded hover:bg-purple-600 transition">
+											Send
+										</button>
+									</form>
 
-										<!-- Message Log -->
-										<div
-											class="h-40 overflow-y-auto bg-gray-800 p-2 rounded">
-											<template
-												x-for="(msg, index) in messages"
-												:key="index">
-												<p
-													class="text-sm text-gray-300"
-													x-text="msg">
-												</p>
-											</template>
-											<p
-												x-show="messages.length === 0"
-												class="text-sm text-gray-500">
-												No messages yet...
-											</p>
-										</div>
+									<!-- Message Log -->
+									<div
+										class="h-40 overflow-y-auto bg-gray-800 p-2 rounded">
+										<p class="text-sm text-gray-500">
+											No messages yet...
+										</p>
 									</div>
 								</div>
-							</template>
+							</div>
 						</div>
 						<!-- END -->
 					</div>
-					<!-- AlpineJS END -->
 				</div>
 			</main>
 		</div>

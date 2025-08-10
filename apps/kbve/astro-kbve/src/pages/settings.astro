@@ -2,6 +2,7 @@
 import Layout from 'src/layouts/core/Layout.astro';
 import UserSettings from 'src/layouts/client/supabase/profile/settings/UserSettings';
 import MembersOnly from 'src/layouts/client/supabase/auth/MembersOnly';
+import DashLayout from 'src/layouts/components/dashboard/layout/DashLayout.astro';
 
 const pageTitle: string = `Settings | KBVE`;
 const title: string = `Account Settings`;
@@ -9,6 +10,7 @@ const subTitle: string = `Manage your KBVE account preferences and security`;
 ---
 
 <Layout title={pageTitle}>
+  <DashLayout>
   <section class="px-6 pt-12 sm:px-8 lg:px-12">
     <MembersOnly client:only="react" />
     <div class="mx-auto max-w-4xl">
@@ -20,4 +22,5 @@ const subTitle: string = `Manage your KBVE account preferences and security`;
     </div>
   </section>
   <div class="h-12 md:h-20 lg:h-24"></div> <!-- Spacer -->
+  </DashLayout>
 </Layout>

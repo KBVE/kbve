@@ -1,0 +1,328 @@
+[gd_scene load_steps=13 format=3 uid="uid://cckt3e1jve8p8"]
+
+[ext_resource type="Script" path="res://scenes/battle/battle.gd" id="1_battle"]
+[ext_resource type="Script" uid="uid://bdygx4ky4uus4" path="res://scripts/ui/g_BattleMenuPanel.gd" id="2_66ngm"]
+[ext_resource type="Texture2D" uid="uid://duju8agd03780" path="res://assets/ui/fantasy/BottomPatternBG_128x112.png" id="7_mpb26"]
+[ext_resource type="Script" uid="uid://bgx8rslcah6d6" path="res://scripts/ui/fantasy_health_bar.gd" id="7_v7i3o"]
+[ext_resource type="Texture2D" uid="uid://dkwda2vhbjfx0" path="res://assets/characters/PirateSample1.png" id="7_yahae"]
+[ext_resource type="Texture2D" uid="uid://d23ehemsrroal" path="res://assets/characters/PirateSample3.png" id="8_v7i3o"]
+[ext_resource type="Texture2D" uid="uid://cvke3abe7b7by" path="res://assets/ui/fantasy/Button_52x14.png" id="11_ikjs2"]
+[ext_resource type="Texture2D" uid="uid://bhn1ijh81g2xd" path="res://assets/ui/fantasy/ItemBox_24x24.png" id="23_h6x3a"]
+[ext_resource type="Theme" uid="uid://bokonqyaw1mfq" path="res://theme/fantasy_ui2.tres" id="35_ikjs2"]
+[ext_resource type="Script" uid="uid://b0uwcky1owbcm" path="res://scripts/ui/g_FightMenuPanel.gd" id="36_8a2ah"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_1rdfn"]
+texture = ExtResource("11_ikjs2")
+texture_margin_left = 7.0
+texture_margin_top = 7.0
+texture_margin_right = 7.0
+texture_margin_bottom = 7.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_ikjs2"]
+texture = ExtResource("23_h6x3a")
+texture_margin_left = 5.0
+texture_margin_top = 5.0
+texture_margin_right = 5.0
+texture_margin_bottom = 5.0
+
+[node name="Battle" type="Node2D"]
+script = ExtResource("1_battle")
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+scale = Vector2(1.5, 1.5)
+transform = Transform2D(1.5, 0, 0, 1.5, 0, 0)
+
+[node name="BattleMenuPanel" type="Panel" parent="CanvasLayer"]
+offset_left = 4.0
+offset_top = 275.0
+offset_right = 143.0
+offset_bottom = 477.0
+theme = ExtResource("35_ikjs2")
+script = ExtResource("2_66ngm")
+
+[node name="FightButton" type="Button" parent="CanvasLayer/BattleMenuPanel"]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 15.0
+offset_right = 122.0
+offset_bottom = 52.0
+theme = ExtResource("35_ikjs2")
+text = "Fight"
+
+[node name="CrewButton" type="Button" parent="CanvasLayer/BattleMenuPanel"]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 60.0
+offset_right = 122.0
+offset_bottom = 97.0
+theme = ExtResource("35_ikjs2")
+text = "Crew"
+
+[node name="ItemButton" type="Button" parent="CanvasLayer/BattleMenuPanel"]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 105.0
+offset_right = 122.0
+offset_bottom = 142.0
+theme = ExtResource("35_ikjs2")
+text = "Item"
+
+[node name="RunButton" type="Button" parent="CanvasLayer/BattleMenuPanel"]
+layout_mode = 0
+offset_left = 17.0
+offset_top = 150.0
+offset_right = 122.0
+offset_bottom = 187.0
+theme = ExtResource("35_ikjs2")
+text = "Run"
+
+[node name="FightMenuPanel" type="Panel" parent="CanvasLayer"]
+visible = false
+offset_left = 144.0
+offset_top = 275.0
+offset_right = 307.0
+offset_bottom = 478.0
+theme = ExtResource("35_ikjs2")
+script = ExtResource("36_8a2ah")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/FightMenuPanel"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 10.0
+offset_right = 152.0
+offset_bottom = 35.0
+text = "Fight"
+horizontal_alignment = 1
+
+[node name="MenuButton1" type="Button" parent="CanvasLayer/FightMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 35.0
+offset_right = 145.0
+offset_bottom = 72.0
+theme = ExtResource("35_ikjs2")
+theme_override_styles/normal = SubResource("StyleBoxTexture_1rdfn")
+text = "Attack 1"
+
+[node name="MenuButton2" type="Button" parent="CanvasLayer/FightMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 75.0
+offset_right = 145.0
+offset_bottom = 112.0
+theme = ExtResource("35_ikjs2")
+text = "Attack 2"
+
+[node name="MenuButton3" type="Button" parent="CanvasLayer/FightMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 115.0
+offset_right = 145.0
+offset_bottom = 152.0
+theme = ExtResource("35_ikjs2")
+text = "Attack 3"
+
+[node name="MenuButton4" type="Button" parent="CanvasLayer/FightMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 155.0
+offset_right = 145.0
+offset_bottom = 192.0
+theme = ExtResource("35_ikjs2")
+text = "Attack 4"
+
+[node name="CrewMenuPanel" type="Panel" parent="CanvasLayer"]
+visible = false
+offset_left = 144.0
+offset_top = 275.0
+offset_right = 307.0
+offset_bottom = 478.0
+theme = ExtResource("35_ikjs2")
+script = ExtResource("36_8a2ah")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/CrewMenuPanel"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 10.0
+offset_right = 152.0
+offset_bottom = 35.0
+text = "Crew"
+horizontal_alignment = 1
+
+[node name="MenuButton1" type="Button" parent="CanvasLayer/CrewMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 35.0
+offset_right = 145.0
+offset_bottom = 72.0
+theme = ExtResource("35_ikjs2")
+theme_override_styles/normal = SubResource("StyleBoxTexture_1rdfn")
+text = "Crew 1"
+
+[node name="MenuButton2" type="Button" parent="CanvasLayer/CrewMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 75.0
+offset_right = 145.0
+offset_bottom = 112.0
+theme = ExtResource("35_ikjs2")
+text = "Crew 2"
+
+[node name="MenuButton3" type="Button" parent="CanvasLayer/CrewMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 115.0
+offset_right = 145.0
+offset_bottom = 152.0
+theme = ExtResource("35_ikjs2")
+text = "Crew 3"
+
+[node name="MenuButton4" type="Button" parent="CanvasLayer/CrewMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 155.0
+offset_right = 145.0
+offset_bottom = 192.0
+theme = ExtResource("35_ikjs2")
+text = "Crew 4"
+
+[node name="ItemMenuPanel" type="Panel" parent="CanvasLayer"]
+visible = false
+offset_left = 144.0
+offset_top = 275.0
+offset_right = 307.0
+offset_bottom = 478.0
+theme = ExtResource("35_ikjs2")
+script = ExtResource("36_8a2ah")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/ItemMenuPanel"]
+layout_mode = 0
+offset_left = 2.0
+offset_top = 10.0
+offset_right = 152.0
+offset_bottom = 35.0
+text = "Item"
+horizontal_alignment = 1
+
+[node name="MenuButton1" type="Button" parent="CanvasLayer/ItemMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 35.0
+offset_right = 145.0
+offset_bottom = 72.0
+theme = ExtResource("35_ikjs2")
+theme_override_styles/normal = SubResource("StyleBoxTexture_1rdfn")
+text = "Item 1"
+
+[node name="MenuButton2" type="Button" parent="CanvasLayer/ItemMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 75.0
+offset_right = 145.0
+offset_bottom = 112.0
+theme = ExtResource("35_ikjs2")
+text = "Item 2"
+
+[node name="MenuButton3" type="Button" parent="CanvasLayer/ItemMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 115.0
+offset_right = 145.0
+offset_bottom = 152.0
+theme = ExtResource("35_ikjs2")
+text = "Item 3"
+
+[node name="MenuButton4" type="Button" parent="CanvasLayer/ItemMenuPanel"]
+layout_mode = 0
+offset_left = 15.0
+offset_top = 155.0
+offset_right = 145.0
+offset_bottom = 192.0
+theme = ExtResource("35_ikjs2")
+text = "Item 4"
+
+[node name="TextView" type="Panel" parent="CanvasLayer"]
+offset_left = 307.0
+offset_top = 304.0
+offset_right = 849.0
+offset_bottom = 479.0
+theme = ExtResource("35_ikjs2")
+theme_override_styles/panel = SubResource("StyleBoxTexture_ikjs2")
+
+[node name="RichTextLabel" type="RichTextLabel" parent="CanvasLayer/TextView"]
+layout_mode = 0
+offset_left = 6.0
+offset_top = 7.0
+offset_right = 536.0
+offset_bottom = 169.0
+text = "Battle Text
+Battle Text
+Battle Text
+Battle Text
+"
+
+[node name="PlayerBars" type="Node" parent="CanvasLayer"]
+
+[node name="HealthBar" type="Control" parent="CanvasLayer/PlayerBars"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 5.0
+offset_top = 15.0
+offset_right = 210.0
+offset_bottom = 87.0
+script = ExtResource("7_v7i3o")
+metadata/_custom_type_script = "uid://bgx8rslcah6d6"
+metadata/bar_type = "health"
+
+[node name="EnergyBar" type="Control" parent="CanvasLayer/PlayerBars"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 5.0
+offset_top = 50.0
+offset_right = 210.0
+offset_bottom = 122.0
+script = ExtResource("7_v7i3o")
+bar_type = "energy"
+metadata/_custom_type_script = "uid://bgx8rslcah6d6"
+metadata/bar_type = "energy"
+
+[node name="EnemyBars" type="Node" parent="CanvasLayer"]
+
+[node name="HealthBar" type="Control" parent="CanvasLayer/EnemyBars"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 650.0
+offset_top = 15.0
+offset_right = 855.0
+offset_bottom = 87.0
+script = ExtResource("7_v7i3o")
+metadata/_custom_type_script = "uid://bgx8rslcah6d6"
+metadata/bar_type = "health"
+
+[node name="EnergyBar" type="Control" parent="CanvasLayer/EnemyBars"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 650.0
+offset_top = 50.0
+offset_right = 855.0
+offset_bottom = 122.0
+script = ExtResource("7_v7i3o")
+bar_type = "energy"
+metadata/_custom_type_script = "uid://bgx8rslcah6d6"
+metadata/bar_type = "energy"
+
+[node name="Characters" type="Node" parent="."]
+
+[node name="PirateSample1" type="Sprite2D" parent="Characters"]
+z_index = -5
+position = Vector2(479, 341)
+texture = ExtResource("7_yahae")
+
+[node name="PirateSample3" type="Sprite2D" parent="Characters"]
+position = Vector2(856, 253)
+texture = ExtResource("8_v7i3o")
+
+[node name="BottomPatternBg128x112" type="Sprite2D" parent="."]
+position = Vector2(772, 565)
+scale = Vector2(4, 4)
+texture = ExtResource("7_mpb26")

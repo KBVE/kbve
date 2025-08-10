@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: ergo-irc
+    namespace: irc
+    labels:
+        app: ergo-irc
+    annotations:
+        fluentd.alpha.kubernetes.io/exclude: 'false'
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: ergo-irc
+    template:
+        metadata:
+            labels:
+                app: ergo-irc
+            annotations:
+                logging.coreos.com/local-retention-days: '30'
+        spec:
+            containers:
+                - name: ergo
+                  image: ghcr.io/kbve/ergo:stable
+                  ports:
+                      - containerPort: 6667
+                        name: irc
+                      - containerPort: 6697
+                        name: ircs
+                      - containerPort: 8080
+                        name: websocket
+                      - containerPort: 6060
+                        name: metrics
+                  volumeMounts:
+                      - name: ergo-config
+                        mountPath: /ircd/ircd.yaml
+                        subPath: ircd.yaml
+                        readOnly: true
+                      - name: ergo-data
+                        mountPath: /ircd/db
+                      - name: tls-certs
+                        mountPath: /etc/ssl/certs
+                        readOnly: true
+                  env:
+                      - name: ERGO_CONFIG
+                        value: '/ircd/ircd.yaml'
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      tcpSocket:
+                          port: 6667
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                  readinessProbe:
+                      tcpSocket:
+                          port: 6667
+                      initialDelaySeconds: 5
+                      periodSeconds: 5
+            volumes:
+                - name: ergo-config
+                  configMap:
+                      name: ergo-config
+                - name: ergo-data
+                  persistentVolumeClaim:
+                      claimName: ergo-data-pvc
+                - name: tls-certs
+                  secret:
+                      secretName: ergo-irc-tls-secret

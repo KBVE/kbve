@@ -2,12 +2,15 @@
 import Layout from 'src/layouts/core/Layout.astro';
 import UsernameBalance from 'src/layouts/client/supabase/profile/newbie/UsernameBalance';
 import MembersOnly from 'src/layouts/client/supabase/auth/MembersOnly';
+import DashLayout from 'src/layouts/components/dashboard/layout/DashLayout.astro';
+
 const pageTitle: string = `Onboarding | KBVE`;
 const title: string = `Welcome to KBVE!`;
 const subTitle: string = `Set up your username to get started`;
 ---
 
 <Layout title={pageTitle}>
+  <DashLayout>
   <section class="px-6 pt-12 sm:px-8 lg:px-12">
     <MembersOnly client:only="react" />
     <div class="mx-auto max-w-2xl flex flex-col items-center">
@@ -20,6 +23,7 @@ const subTitle: string = `Set up your username to get started`;
   <section>
       <UsernameBalance client:only="react" />
   </section>
+  </DashLayout>
 </Layout>
 
 <style>

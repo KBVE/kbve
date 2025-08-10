@@ -1,220 +1,159 @@
 ####################
-# Stage 1 - Setup Postgres PPA (Use Focal Ubuntu + Supabase Postgres as the base image, which includes PostgreSQL 15.1.x)
+# Stage 1: Use Supabase's own Nix build system
 ####################
-FROM supabase/postgres:15.8.1.044 AS kilobase
+FROM nixos/nix:latest AS supabase-nix-builder
 
-# Add PostgreSQL PPA and install PostgreSQL development files
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gnupg \
-    wget \
-    ca-certificates && \
-    sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
-    apt-get update && apt-get install -y \
-    postgresql-server-dev-15 \
-    build-essential \
-    clang-10 \
-    libclang-10-dev \
-    libreadline-dev \
-    zlib1g-dev \
-    flex \
-    bison \
-    libxml2-dev \
-    libxslt-dev \
-    libssl-dev \
-    libxml2-utils \
-    xsltproc \
-    ccache \
-    pkg-config \
-    curl \
-    ca-certificates \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+# Enable flakes and experimental features
+RUN echo "experimental-features = nix-command flakes" >> /etc/nix/nix.conf
 
-# Install Rust and PGRX
-RUN curl https://sh.rustup.rs -sSf | sh -s -- -y
-ENV PATH="/root/.cargo/bin:${PATH}"
-RUN cargo install cargo-pgrx --version 0.12.9 --locked
+# Clone Supabase's PostgreSQL repository
+WORKDIR /build
+RUN nix-shell -p git --run "git clone https://github.com/supabase/postgres.git supabase-postgres"
+WORKDIR /build/supabase-postgres
 
-# Initialize PGRX for PostgreSQL 15
-RUN cargo pgrx init --pg15 /usr/lib/postgresql/15/bin/pg_config
+# Show what build targets are available
+RUN nix flake show . | head -20
 
-# Set up Kilobase extension source code
-WORKDIR /app/kilobase
-COPY . .
+# Build PostgreSQL 17 with all Supabase extensions using their build system
+RUN echo "=== Building PostgreSQL 17 with Supabase's Nix system ===" && \
+    nix build .#psql_17/bin --out-link /supabase-postgresql && \
+    echo "=== Build completed ===" && \
+    ls -la /supabase-postgresql/ && \
+    echo "=== PostgreSQL version ===" && \
+    /supabase-postgresql/bin/pg_config --version && \
+    echo "=== Library directory ===" && \
+    echo $(/supabase-postgresql/bin/pg_config --pkglibdir) && \
+    echo "=== Share directory ===" && \
+    echo $(/supabase-postgresql/bin/pg_config --sharedir)
 
-# Build the Kilobase PostgreSQL extension
-RUN cargo pgrx package --pg-config /usr/lib/postgresql/15/bin/pg_config --features pg15 --out-dir='./dist'
+# Now let's add our kilobase extension to this build
+COPY . /build/kilobase-source
+
+# Install Rust in the Nix environment and build kilobase
+RUN nix-shell -p rustc cargo pkg-config openssl --run " \
+    cd /build/kilobase-source && \
+    echo '=== Building kilobase extension with Supabase PostgreSQL ===' && \
+    export PG_CONFIG=/supabase-postgresql/bin/pg_config && \
+    \$PG_CONFIG --version && \
+    cargo pgrx init --pg17 \$PG_CONFIG && \
+    cargo pgrx package --pg-config \$PG_CONFIG --features pg17 --out-dir=./dist && \
+    echo '=== Kilobase build verification ===' && \
+    find ./dist -name '*.so' -o -name '*.control' -o -name '*.sql' | head -10 \
+"
 
 ####################
-# Stage 2 - Setup Postgres PPA
+# Stage 2: Create custom Nix derivation that includes kilobase
 ####################
-FROM ubuntu:focal AS ppa
-ARG postgresql_major=15
-ENV DEBIAN_FRONTEND=noninteractive
-ENV TZ=Etc/UTC
-# Install required dependencies
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gnupg \
-    ca-certificates \
-    wget \
-    && rm -rf /var/lib/apt/lists/*
+FROM nixos/nix:latest AS custom-postgresql-builder
 
-# Add the official PostgreSQL PPA
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+# Copy the Supabase PostgreSQL build
+COPY --from=supabase-nix-builder /supabase-postgresql /supabase-postgresql
+COPY --from=supabase-nix-builder /build/kilobase-source/dist /kilobase-dist
 
-# Update and install pg_failover_slots from the PPA
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    postgresql-${postgresql_major}-pg-failover-slots \
-    && apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+# Create a new Nix derivation that extends the Supabase PostgreSQL
+RUN cat > /extend-supabase-postgresql.nix << 'EOF'
+let
+  pkgs = import <nixpkgs> {};
+  
+  # Reference the existing Supabase PostgreSQL build
+  supabasePostgreSQL = /supabase-postgresql;
+  
+  # Create an extended version with kilobase
+  extendedPostgreSQL = pkgs.stdenv.mkDerivation {
+    name = "supabase-postgresql-with-kilobase";
+    
+    unpackPhase = "true";
+    
+    installPhase = ''
+      # Start with the complete Supabase PostgreSQL installation
+      cp -r ${supabasePostgreSQL} $out
+      chmod -R +w $out
+      
+      # Add kilobase extension
+      KILOBASE_LIB=$(find /kilobase-dist -name "kilobase.so")
+      KILOBASE_CONTROL=$(find /kilobase-dist -name "kilobase.control")
+      KILOBASE_SQL=$(find /kilobase-dist -name "kilobase*.sql")
+      
+      if [ -n "$KILOBASE_LIB" ]; then
+        cp "$KILOBASE_LIB" $out/lib/
+        echo "Copied kilobase.so"
+      fi
+      
+      if [ -n "$KILOBASE_CONTROL" ]; then
+        mkdir -p $out/share/postgresql/extension
+        cp "$KILOBASE_CONTROL" $out/share/postgresql/extension/
+        echo "Copied kilobase.control"
+      fi
+      
+      if [ -n "$KILOBASE_SQL" ]; then
+        cp $KILOBASE_SQL $out/share/postgresql/extension/
+        echo "Copied kilobase SQL files"
+      fi
+      
+      # Set proper permissions
+      chmod 755 $out/lib/*.so 2>/dev/null || true
+      chmod 644 $out/share/postgresql/extension/* 2>/dev/null || true
+      
 
-####################
-# Stage 3: Copy the pg_failover_slots to the final image (Supabase Postgres)
-####################
-FROM supabase/postgres:15.8.1.044 AS supabase
+      echo "=== Extended PostgreSQL contents ==="
+      ls -la $out/lib/ | grep kilobase || echo "No kilobase.so found"
+      ls -la $out/share/postgresql/extension/ | grep kilobase || echo "No kilobase extension files found"
+    '';
+  };
 
-ARG postgresql_major=15
+in extendedPostgreSQL
+EOF
 
-LABEL name="CloudNative Supabase Container Images" \
-      vendor="KBVE" \
-      version="15" \
-      release="1" \
-      summary="PostgreSQL Container images." \
-      description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 15.1.Supabase with CloudNativePG"
-
-LABEL org.opencontainers.image.description="This Docker image contains PostgreSQL, Supabase and Barman Cloud based on Postgres 15.1.Supabase"
-
-# Ensure custom extension directory exists
-RUN mkdir -p /usr/local/postgres_extensions/
-RUN mkdir -p /usr/share/postgresql/extension/
-RUN chown -R postgres:postgres /usr/share/postgresql/extension/
-RUN chmod 755 /usr/share/postgresql/extension/
-
-# Ensure proper permissions for PostgreSQL
-RUN chown -R postgres:postgres /usr/local/postgres_extensions/ && \
-    chmod -R 755 /usr/local/postgres_extensions/
-
-
-
-# COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/lib/postgresql/${postgresql_major}/lib/
-# COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/share/postgresql/${postgresql_major}/extension/
-# COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/15/lib/kilobase.so /usr/lib/postgresql/15/lib/kilobase.so
-# COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/15/extension/kilobase* /usr/share/postgresql/15/extension/
-
-# Copy pg_failover_slots extension files
-COPY --from=ppa /usr/lib/postgresql/${postgresql_major}/lib/pg_failover_slots.so /usr/local/postgres_extensions/
-COPY --from=ppa /usr/share/postgresql/${postgresql_major}/extension/pg_failover_slots* /usr/local/postgres_extensions/
-
-# Copy kilobase extension files
-COPY --from=kilobase /app/kilobase/dist/usr/lib/postgresql/${postgresql_major}/lib/kilobase.so /usr/local/postgres_extensions/
-COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/local/postgres_extensions/
-COPY --from=kilobase /app/kilobase/dist/usr/share/postgresql/${postgresql_major}/extension/kilobase* /usr/share/postgresql/extension/
-
-####################
-# Stage Nani:
-####################
-
-# Install necessary utilities like wget and gnupg before adding the PostgreSQL PPA
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    gnupg \
-    wget \
-    ca-certificates && \
-    rm -rf /var/lib/apt/lists/*
-
-# Add the PostgreSQL PPA and import the key
-RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
-
-# Update and install barman-cli-cloud from the PostgreSQL PPA
-RUN apt-get update && apt-get install -y --no-install-recommends \
-    barman-cli-cloud
-
-# Clean up unnecessary files to reduce image size
-RUN apt-get clean && \
-    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-RUN sed -i \
-    -e "s|^#dynamic_library_path = .*|dynamic_library_path = '/usr/local/lib/postgresql:/usr/local/postgres_extensions:\$libdir'|g" \
-    /etc/postgresql/postgresql.conf
-
-RUN sed -i \
-    -e "s|^shared_preload_libraries = '\(.*\)'|shared_preload_libraries = '\1, pg_failover_slots, kilobase'|g" \
-    /etc/postgresql/postgresql.conf
+# Build the extended PostgreSQL
+RUN nix-build /extend-supabase-postgresql.nix --out-link /extended-postgresql && \
+    echo "=== Extended PostgreSQL built ===" && \
+    ls -la /extended-postgresql/ && \
+    echo "=== Verification ===" && \
+    ls -la /extended-postgresql/lib/ | grep kilobase || echo "kilobase.so not found" && \
+    ls -la /extended-postgresql/share/postgresql/extension/ | grep kilobase || echo "kilobase extension files not found"
 
 ####################
-# Stage 4: Setup Python 3.11
+# Stage 3: Final image based on Supabase but with our extensions
 ####################
-# Add the deadsnakes PPA for Python 3.11
-# RUN apt-get update && apt-get install -y software-properties-common curl && \
-#     add-apt-repository ppa:deadsnakes/ppa && apt-get update
+FROM supabase/postgres:17.4.1.068
 
-# # Install Python 3.11 and pip
-# RUN apt-get install -y python3.11 python3.11-distutils python3.11-venv
+# Copy our extended PostgreSQL over the existing one
+COPY --from=custom-postgresql-builder /extended-postgresql /nix/store/extended-postgresql
 
-# # Install pip for Python 3.11
-# RUN curl -sS https://bootstrap.pypa.io/get-pip.py | python3.11
+# Update the PATH to use our extended PostgreSQL
+ENV PATH="/nix/store/extended-postgresql/bin:$PATH"
 
-# # Set Python 3.11 as the default
-# RUN update-alternatives --install /usr/bin/python3 python3 /usr/bin/python3.11 1
+# Create symlinks to integrate with existing structure
+RUN CURRENT_PG_STORE=$(readlink -f $(which pg_config) | sed 's|/bin/pg_config||') && \
+    echo "=== Integrating extended PostgreSQL ===" && \
+    echo "Current PostgreSQL: $CURRENT_PG_STORE" && \
+    echo "Extended PostgreSQL: /nix/store/extended-postgresql" && \
+    \
+    # Backup current if needed and create links
+    if [ -d "$CURRENT_PG_STORE/lib" ]; then \
+        # Copy kilobase files to current location
+        cp /nix/store/extended-postgresql/lib/kilobase.so "$CURRENT_PG_STORE/lib/" 2>/dev/null || \
+        mkdir -p "$CURRENT_PG_STORE/lib" && cp /nix/store/extended-postgresql/lib/kilobase.so "$CURRENT_PG_STORE/lib/"; \
+    fi && \
+    \
+    if [ -d "$CURRENT_PG_STORE/share" ]; then \
+        # Copy kilobase extension files to current location
+        cp /nix/store/extended-postgresql/share/postgresql/extension/kilobase* "$CURRENT_PG_STORE/share/postgresql/extension/" 2>/dev/null || \
+        mkdir -p "$CURRENT_PG_STORE/share/postgresql/extension" && cp /nix/store/extended-postgresql/share/postgresql/extension/kilobase* "$CURRENT_PG_STORE/share/postgresql/extension/"; \
+    fi && \
+    \
+    # Set ownership
+    chown -R postgres:postgres "$CURRENT_PG_STORE/lib" "$CURRENT_PG_STORE/share" 2>/dev/null || true
 
-####################
-# Stage 5: OpenSSL
-####################
+# Final verification using the actual pg_config
+RUN echo "=== Final Verification with Integrated Extensions ===" && \
+    pg_config --version && \
+    PG_LIBDIR=$(pg_config --pkglibdir) && \
+    PG_SHAREDIR=$(pg_config --sharedir) && \
+    echo "Library directory: $PG_LIBDIR" && \
+    echo "Share directory: $PG_SHAREDIR" && \
+    echo "Extensions found:" && \
+    ls -la "$PG_LIBDIR" | grep kilobase || echo "kilobase.so not found in $PG_LIBDIR" && \
+    ls -la "$PG_SHAREDIR/extension" | grep kilobase || echo "kilobase extension files not found in $PG_SHAREDIR/extension"
 
-# Install OpenSSL libraries
-# RUN apt-get update && apt-get install -y \
-#     libssl3 \
-#     libssl-dev \
-#     && apt-get clean && \
-#     rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-####################
-# Stage 6: libc6
-####################
-
-# Install libc6
-# RUN apt-get update && apt-get install -y libc6
-
-# Create symlink if necessary
-# RUN ln -sf /lib/x86_64-linux-gnu/libc.so.6 /lib64/ld-linux-x86-64.so.2
-
-####################
-# Stage 7: Install Barman Cloud
-####################
-
-# Install Barman Cloud dependencies and Barman itself
-# COPY /requirements.txt /
-
-# Execute Barman requirements.txt + OpenSSL
-# RUN set -xe; \
-# 	apt-get update; \
-# 	apt-get install -y --no-install-recommends \
-# 		build-essential \
-# 		libsnappy-dev \
-# 		python3-psycopg2 \
-# 		python3-setuptools; \
-# 	# Upgrade pip and install requirements
-#     python3.11 -m pip install --upgrade pip; \
-# 	# We require barman-cloud, install the package with no dependencies
-# 	python3.11 -m pip install --no-deps -r requirements.txt; \
-#     #python3.11 -m pip install -r requirements.txt; \
-# 	# Remove build dependencies to reduce the image size
-# 	apt-get remove -y --purge --autoremove \
-# 		build-essential \
-# 		python3.11-dev \
-# 		libsnappy-dev; \
-# 	rm -rf /var/lib/apt/lists/*
-
-####################
-# Stage Final: Swith User to Postgres UID: 101
-####################
-
-## Postgres / Supabase is UID 105/106 now 03/12/2025
-
-# # RUN usermod -u 101 postgres
-# # USER 101
-
-# RUN [ "$(id -u postgres)" != "101" ] && usermod -u 101 postgres || echo "UID is already 101"
-# USER 101
+USER postgres

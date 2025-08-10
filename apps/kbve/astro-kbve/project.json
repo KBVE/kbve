@@ -10,7 +10,7 @@
         "options": {
           "cwd": "apps/kbve/astro-kbve",
           "commands": [
-            "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro dev --host"
+            "nx exec -- astro dev --host"
           ],
           "parallel": false
         }
@@ -20,7 +20,7 @@
         "options": {
           "cwd": "apps/kbve/astro-kbve",
           "commands": [
-            "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
+            "nx exec -- astro build"
           ],
           "parallel": false
         }
@@ -30,8 +30,8 @@
         "options": {
           "cwd": "apps/kbve/astro-kbve",
           "commands": [
-            "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build",
-            "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro preview --host"
+            "nx exec -- astro build",
+            "nx exec -- astro preview --host"
           ],
           "parallel": false
         }

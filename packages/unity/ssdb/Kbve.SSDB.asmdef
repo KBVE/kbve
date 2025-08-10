@@ -4,7 +4,8 @@
   "references": [
     "Kbve.MMExtensions",
     "UnityEngine",
-    "Unity.Addressables",    
+    "Unity.Addressables",
+    "Unity.ResourceManager",
     "KBVE.MMExtensions",
     "Heathen.Steamworks",
     "Heathen.SteamworksIntegration.API",
@@ -43,6 +44,12 @@
     "!UNITY_IOS",
     "!UNITY_ANDROID"
   ],
-  "versionDefines": [],
+  "versionDefines": [
+    {
+      "name": "com.rlabrecque.steamworks.net",
+      "expression": "",
+      "define": "STEAMWORKSNET"
+    }
+  ],
   "noEngineReferences": false
 }
