@@ -87,3 +87,9 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
+        
+        # Security context to fix user ID issues
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true
