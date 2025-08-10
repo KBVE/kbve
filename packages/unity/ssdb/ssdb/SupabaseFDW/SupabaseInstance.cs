@@ -15,7 +15,7 @@ using Client = Supabase.Client;
 namespace KBVE.SSDB.SupabaseFDW
 {
 
-    public class SupabaseInstance : IAsyncStartable, IDisposable
+    public class SupabaseInstance : IAsyncStartable, ISupabaseInstance, IDisposable
     {
 
         private readonly CompositeDisposable _disposables = new();

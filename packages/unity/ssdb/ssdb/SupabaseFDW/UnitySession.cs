@@ -15,9 +15,65 @@ using Client = Supabase.Client;
 
 namespace KBVE.SSDB.SupabaseFDW
 {
-    public class UnitySession : IGotrueSessionPersistence<Session>
+    public class UnitySession : IGotrueSessionPersistence<Session>, IAsyncStartable, IDisposable
     {
 
-    }
+        private CancellationTokenSource _cts;
 
+        private SupabaseInstance _supabaseInstance;
+
+        [Inject]
+        public void Construct(SupabaseInstance supabaseInstance)
+        {
+                _supabaseInstance = supabaseInstance;
+        }
+
+        public async UniTask StartAsync(CancellationToken cancellationToken)
+        {
+            _cts = new CancellationTokenSource();
+            var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken).Token;
+
+        
+
+        }
+
+
+
+        // private const string PlayerPrefsKey = "SupabaseSession";
+
+            // public Task<Session> LoadSession()
+            // {
+            //     if (PlayerPrefs.HasKey(PlayerPrefsKey))
+            //     {
+            //         string json = PlayerPrefs.GetString(PlayerPrefsKey);
+            //         var session = JsonUtility.FromJson<Session>(json);
+            //         return Task.FromResult(session);
+            //     }
+
+            //     return Task.FromResult<Session>(null);
+            // }
+
+            // public Task SaveSession(Session session)
+            // {
+            //     string json = JsonUtility.ToJson(session);
+            //     PlayerPrefs.SetString(PlayerPrefsKey, json);
+            //     PlayerPrefs.Save();
+            //     return Task.CompletedTask;
+            // }
+
+            // public Task DestroySession()
+            // {
+            //     PlayerPrefs.DeleteKey(PlayerPrefsKey);
+            //     PlayerPrefs.Save();
+            //     return Task.CompletedTask;
+            // }
+
+
+        public void Dispose()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _disposables.Dispose();
+        }
+    }
 }
