@@ -152,6 +152,20 @@ spec:
               serverName: kilobase-postgres-backup
 
     bootstrap:
-      initdb:
-        database: supabase
-        owner: supabase_admin
+      recovery:
+        source: kilobase-postgres-backup
+
+    externalClusters:
+      - name: kilobase-postgres-backup
+        barmanObjectStore:
+          destinationPath: s3://kilobase/barman/backup
+          serverName: kilobase-postgres-backup
+          s3Credentials:
+            accessKeyId:
+              name: kilobase-s3-secret
+              key: keyId
+            secretAccessKey:
+              name: kilobase-s3-secret
+              key: accessKey
+          wal:
+            compression: gzip

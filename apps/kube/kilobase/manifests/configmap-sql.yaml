@@ -81,82 +81,82 @@ data:
         echo "     Complete"
         echo "--------------------"
 ---
-apiVersion: batch/v1
-kind: Job
-metadata:
-    name: supabase-migration
-    namespace: kilobase
-    labels:
-        app.kubernetes.io/name: kilobase
-        app.kubernetes.io/component: migration
-        job-name: supabase-migration
-spec:
-    backoffLimit: 0
-    template:
-        metadata:
-          labels:
-            app.kubernetes.io/name: kilobase
-            app.kubernetes.io/component: migration
-            job-name: supabase-migration
-        spec:
-            volumes:
-                - name: migrate-script
-                  configMap:
-                      name: migrate-script
-                      defaultMode: 0500
+# apiVersion: batch/v1
+# kind: Job
+# metadata:
+#     name: supabase-migration
+#     namespace: kilobase
+#     labels:
+#         app.kubernetes.io/name: kilobase
+#         app.kubernetes.io/component: migration
+#         job-name: supabase-migration
+# spec:
+#     backoffLimit: 0
+#     template:
+#         metadata:
+#           labels:
+#             app.kubernetes.io/name: kilobase
+#             app.kubernetes.io/component: migration
+#             job-name: supabase-migration
+#         spec:
+#             volumes:
+#                 - name: migrate-script
+#                   configMap:
+#                       name: migrate-script
+#                       defaultMode: 0500
 
-            containers:
-                - name: supabase-migration
-                  image: ghcr.io/amacneil/dbmate:2.26.0@sha256:a01a59fe617277caf1cb69249c4e51965521eb9181824161d1f80176c465e52f
-                  command: ['/script/migrate.sh', '17.4.1.014']
-                  volumeMounts:
-                      - name: migrate-script
-                        mountPath: '/script'
-                  env:
-                      # Schema where dbmate will store base migration details, so it doesnt pollute the `public` schema
-                      - name: MIGRATION_SCHEMA
-                        value: dbmate
+#             containers:
+#                 - name: supabase-migration
+#                   image: ghcr.io/amacneil/dbmate:2.26.0@sha256:a01a59fe617277caf1cb69249c4e51965521eb9181824161d1f80176c465e52f
+#                   command: ['/script/migrate.sh', '17.4.1.014']
+#                   volumeMounts:
+#                       - name: migrate-script
+#                         mountPath: '/script'
+#                   env:
+#                       # Schema where dbmate will store base migration details, so it doesnt pollute the `public` schema
+#                       - name: MIGRATION_SCHEMA
+#                         value: dbmate
 
-                      - name: SUPERUSER_HOST
-                        value: supabase-cluster-rw
-                      - name: SUPERUSER_PORT
-                        value: '5432'
-                      # - name: SUPERUSER_USER
-                      #   valueFrom:
-                      #     secretKeyRef:
-                      #       name: supabase-superuser
-                      #       key: username
-                      - name: SUPERUSER_USER
-                        value: 'supabase_admin'
-                      - name: SUPERUSER_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: supabase-superuser
-                                key: password
+#                       - name: SUPERUSER_HOST
+#                         value: supabase-cluster-rw
+#                       - name: SUPERUSER_PORT
+#                         value: '5432'
+#                       # - name: SUPERUSER_USER
+#                       #   valueFrom:
+#                       #     secretKeyRef:
+#                       #       name: supabase-superuser
+#                       #       key: username
+#                       - name: SUPERUSER_USER
+#                         value: 'supabase_admin'
+#                       - name: SUPERUSER_PASSWORD
+#                         valueFrom:
+#                             secretKeyRef:
+#                                 name: supabase-superuser
+#                                 key: password
 
-                      - name: POSTGRES_DB
-                        value: supabase
+#                       - name: POSTGRES_DB
+#                         value: supabase
 
-                      - name: POSTGRES_USER
-                        valueFrom:
-                            secretKeyRef:
-                                name: supabase-postgres
-                                key: username
-                      - name: POSTGRES_PASSWORD
-                        valueFrom:
-                            secretKeyRef:
-                                name: supabase-postgres
-                                key: password
+#                       - name: POSTGRES_USER
+#                         valueFrom:
+#                             secretKeyRef:
+#                                 name: supabase-postgres
+#                                 key: username
+#                       - name: POSTGRES_PASSWORD
+#                         valueFrom:
+#                             secretKeyRef:
+#                                 name: supabase-postgres
+#                                 key: password
 
-                      - name: JWT_SECRET
-                        valueFrom:
-                            secretKeyRef:
-                                name: supabase-jwt
-                                key: secret
-                      - name: JWT_EXP
-                        valueFrom:
-                            secretKeyRef:
-                                name: supabase-jwt
-                                key: expiry
+#                       - name: JWT_SECRET
+#                         valueFrom:
+#                             secretKeyRef:
+#                                 name: supabase-jwt
+#                                 key: secret
+#                       - name: JWT_EXP
+#                         valueFrom:
+#                             secretKeyRef:
+#                                 name: supabase-jwt
+#                                 key: expiry
 
-            restartPolicy: Never
+#             restartPolicy: Never
