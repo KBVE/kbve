@@ -1,0 +1,105 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: realtime
+  namespace: kilobase
+  labels:
+    app: realtime
+    component: websocket
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: realtime
+  template:
+    metadata:
+      labels:
+        app: realtime
+        component: websocket
+    spec:
+      containers:
+      - name: realtime
+        image: supabase/realtime:v2.34.47
+        ports:
+        - containerPort: 4000
+          name: http
+        env:
+        - name: PORT
+          value: "4000"
+        - name: DB_HOST
+          value: "supabase-cluster-rw.kilobase.svc.cluster.local"
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: "supabase_admin"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: supabase-superuser
+              key: password
+        - name: DB_NAME
+          value: "supabase"
+        - name: DB_AFTER_CONNECT_QUERY
+          value: "SET search_path TO _realtime"
+        - name: DB_ENC_KEY
+          value: "supabaserealtime"
+        - name: API_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: secret
+        - name: SECRET_KEY_BASE
+          valueFrom:
+            secretKeyRef:
+              name: realtime-secret
+              key: secret-key-base
+        - name: ERL_AFLAGS
+          value: "-proto_dist inet_tcp"
+        - name: DNS_NODES
+          value: "''"
+        - name: RLIMIT_NOFILE
+          value: "10000"
+        - name: APP_NAME
+          value: "realtime"
+        - name: SEED_SELF_HOST
+          value: "true"
+        - name: RUN_JANITOR
+          value: "true"
+        
+        livenessProbe:
+          httpGet:
+            path: /api/tenants/realtime-dev/health
+            port: 4000
+            httpHeaders:
+            - name: Authorization
+              value: "Bearer $(ANON_KEY)"
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /api/tenants/realtime-dev/health
+            port: 4000
+            httpHeaders:
+            - name: Authorization
+              value: "Bearer $(ANON_KEY)"
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "200m"
+          limits:
+            memory: "1Gi"
+            cpu: "1000m"
+        
+        # Add ANON_KEY for health checks
+        envFrom:
+        - secretRef:
+            name: realtime-anon-key
+            optional: true
