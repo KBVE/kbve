@@ -22,6 +22,9 @@ namespace KBVE.SSDB.SupabaseFDW
 
         private SupabaseInstance _supabaseInstance;
 
+        private const string PlayerPrefsKey = "SupabaseSession";
+
+
         [Inject]
         public void Construct(SupabaseInstance supabaseInstance)
         {
@@ -37,36 +40,32 @@ namespace KBVE.SSDB.SupabaseFDW
 
         }
 
+        public Task<Session> LoadSession()
+        {
+            if (PlayerPrefs.HasKey(PlayerPrefsKey))
+            {
+                string json = PlayerPrefs.GetString(PlayerPrefsKey);
+                var session = JsonUtility.FromJson<Session>(json);
+                return Task.FromResult(session);
+            }
 
+            return Task.FromResult<Session>(null);
+        }
 
-        // private const string PlayerPrefsKey = "SupabaseSession";
+        public Task SaveSession(Session session)
+        {
+            string json = JsonUtility.ToJson(session);
+            PlayerPrefs.SetString(PlayerPrefsKey, json);
+            PlayerPrefs.Save();
+            return Task.CompletedTask;
+        }
 
-            // public Task<Session> LoadSession()
-            // {
-            //     if (PlayerPrefs.HasKey(PlayerPrefsKey))
-            //     {
-            //         string json = PlayerPrefs.GetString(PlayerPrefsKey);
-            //         var session = JsonUtility.FromJson<Session>(json);
-            //         return Task.FromResult(session);
-            //     }
-
-            //     return Task.FromResult<Session>(null);
-            // }
-
-            // public Task SaveSession(Session session)
-            // {
-            //     string json = JsonUtility.ToJson(session);
-            //     PlayerPrefs.SetString(PlayerPrefsKey, json);
-            //     PlayerPrefs.Save();
-            //     return Task.CompletedTask;
-            // }
-
-            // public Task DestroySession()
-            // {
-            //     PlayerPrefs.DeleteKey(PlayerPrefsKey);
-            //     PlayerPrefs.Save();
-            //     return Task.CompletedTask;
-            // }
+        public Task DestroySession()
+        {
+            PlayerPrefs.DeleteKey(PlayerPrefsKey);
+            PlayerPrefs.Save();
+            return Task.CompletedTask;
+        }
 
 
         public void Dispose()
