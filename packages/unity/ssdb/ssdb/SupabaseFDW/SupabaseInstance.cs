@@ -30,7 +30,10 @@ namespace KBVE.SSDB.SupabaseFDW
 
         Supabase.Client _supabase;
 
-        //ReactiveProperty<bool> Initialized { get; }
+        public ReactiveProperty<bool> Initialized { get; } = new(false);
+        public ReactiveProperty<Session?> CurrentSession { get; }; //currentsession 
+
+
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
