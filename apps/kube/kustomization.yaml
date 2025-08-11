@@ -27,6 +27,7 @@ resources:
   - kong/application.yaml
   - auth/application.yaml
   - postgrest/application.yaml
+  - realtime/application.yaml
   - meta/application.yaml
   - analytics/application.yaml
   - studio/application.yaml

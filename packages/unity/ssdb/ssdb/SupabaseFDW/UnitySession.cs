@@ -1,78 +1,64 @@
-using KBVE.SSDB;
-using KBVE.SSDB.SupabaseFDW;
 using System;
 using System.Threading;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using R3;
-using Supabase;
 using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
-using Client = Supabase.Client;
-
+using Newtonsoft.Json;
 
 namespace KBVE.SSDB.SupabaseFDW
 {
-    public class UnitySession : IGotrueSessionPersistence<Session>, IAsyncStartable, IDisposable
+    public class UnitySession : IGotrueSessionPersistence<Session>
     {
-
-        private CancellationTokenSource _cts;
-
-        private SupabaseInstance _supabaseInstance;
-
         private const string PlayerPrefsKey = "SupabaseSession";
 
-
-        [Inject]
-        public void Construct(SupabaseInstance supabaseInstance)
+        public void SaveSession(Session session)
         {
-                _supabaseInstance = supabaseInstance;
+            if (session != null)
+            {
+                string json = JsonConvert.SerializeObject(session);
+                PlayerPrefs.SetString(PlayerPrefsKey, json);
+                PlayerPrefs.Save();
+                Debug.Log("Session saved to PlayerPrefs");
+            }
         }
 
-        public async UniTask StartAsync(CancellationToken cancellationToken)
-        {
-            _cts = new CancellationTokenSource();
-            var linkedToken = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token, cancellationToken).Token;
-
-        
-
-        }
-
-        public Task<Session> LoadSession()
+        public Session LoadSession()
         {
             if (PlayerPrefs.HasKey(PlayerPrefsKey))
             {
                 string json = PlayerPrefs.GetString(PlayerPrefsKey);
-                var session = JsonUtility.FromJson<Session>(json);
-                return Task.FromResult(session);
+                if (!string.IsNullOrEmpty(json))
+                {
+                    try
+                    {
+                        var session = JsonConvert.DeserializeObject<Session>(json);
+                        Debug.Log("Session loaded from PlayerPrefs");
+                        return session;
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogError($"Failed to deserialize session: {e.Message}");
+                        return null;
+                    }
+                }
             }
-
-            return Task.FromResult<Session>(null);
+            Debug.Log("No saved session found");
+            return null;
         }
 
-        public Task SaveSession(Session session)
+        public void DestroySession()
         {
-            string json = JsonUtility.ToJson(session);
-            PlayerPrefs.SetString(PlayerPrefsKey, json);
-            PlayerPrefs.Save();
-            return Task.CompletedTask;
-        }
-
-        public Task DestroySession()
-        {
-            PlayerPrefs.DeleteKey(PlayerPrefsKey);
-            PlayerPrefs.Save();
-            return Task.CompletedTask;
-        }
-
-
-        public void Dispose()
-        {
-            _cts?.Cancel();
-            _cts?.Dispose();
-            _disposables.Dispose();
+            if (PlayerPrefs.HasKey(PlayerPrefsKey))
+            {
+                PlayerPrefs.DeleteKey(PlayerPrefsKey);
+                PlayerPrefs.Save();
+                Debug.Log("Session removed from PlayerPrefs");
+            }
         }
     }
 }
