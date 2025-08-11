@@ -267,6 +267,33 @@ data:
               allow:
                 - admin
 
+      ## Studio API routes
+      - name: studio-api-v1
+        _comment: 'Studio API v1: /api/v1/* -> http://meta:8080/*'
+        url: http://meta:8080/
+        routes:
+          - name: studio-api-v1-all
+            strip_path: false
+            paths:
+              - /api/v1/
+        plugins:
+          - name: basic-auth
+            config:
+              hide_credentials: true
+      
+      - name: studio-api-platform
+        _comment: 'Studio Platform API: /api/platform/* -> http://meta:8080/*'
+        url: http://meta:8080/
+        routes:
+          - name: studio-api-platform-all
+            strip_path: false
+            paths:
+              - /api/platform/
+        plugins:
+          - name: basic-auth
+            config:
+              hide_credentials: true
+
       ## Protected Dashboard - catch all remaining routes
       - name: dashboard
         _comment: 'Studio: /* -> http://studio:3000/*'
