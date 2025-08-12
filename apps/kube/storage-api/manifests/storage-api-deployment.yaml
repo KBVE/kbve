@@ -37,12 +37,12 @@ spec:
           valueFrom:
             secretKeyRef:
               name: supabase-jwt
-              key: anon_key
+              key: anon-key
         - name: SERVICE_KEY
           valueFrom:
             secretKeyRef:
               name: supabase-jwt
-              key: service_key
+              key: service-key
         - name: PGRST_JWT_SECRET
           valueFrom:
             secretKeyRef:
