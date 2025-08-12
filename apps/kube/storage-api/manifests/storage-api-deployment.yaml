@@ -27,12 +27,10 @@ spec:
         - name: PORT
           value: "5000"
         - name: DATABASE_URL
-          value: "postgresql://supabase_admin:$(DB_PASSWORD)@supabase-cluster-rw.kilobase.svc.cluster.local:5432/supabase"
-        - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: supabase-superuser
-              key: password
+              name: storage-api-db-config
+              key: DATABASE_URL
         - name: ANON_KEY
           valueFrom:
             secretKeyRef:
