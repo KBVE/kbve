@@ -74,22 +74,16 @@ spec:
               key: ANON_KEY
         
         livenessProbe:
-          exec:
-            command:
-            - /bin/sh
-            - -c
-            - 'curl -sSfL --head -o /dev/null -H "Authorization: Bearer $ANON_KEY" http://localhost:4000/api/tenants/realtime-dev/health'
+          tcpSocket:
+            port: 4000
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         
         readinessProbe:
-          exec:
-            command:
-            - /bin/sh
-            - -c
-            - 'curl -sSfL --head -o /dev/null -H "Authorization: Bearer $ANON_KEY" http://localhost:4000/api/tenants/realtime-dev/health'
+          tcpSocket:
+            port: 4000
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 5

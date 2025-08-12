@@ -19,7 +19,6 @@ spec:
       prune: true
       selfHeal: true
     syncOptions:
-      - CreateNamespace=true
-      - Validate=false
+      - CreateNamespace=false
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
