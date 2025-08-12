@@ -66,25 +66,30 @@ spec:
         - name: RUN_JANITOR
           value: "true"
         
+        # Add ANON_KEY as environment variable for health checks
+        - name: ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: realtime-anon-key
+              key: ANON_KEY
+        
         livenessProbe:
-          httpGet:
-            path: /api/tenants/realtime-dev/health
-            port: 4000
-            httpHeaders:
-            - name: Authorization
-              value: "Bearer $(ANON_KEY)"
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - 'curl -sSfL --head -o /dev/null -H "Authorization: Bearer $ANON_KEY" http://localhost:4000/api/tenants/realtime-dev/health'
           initialDelaySeconds: 30
           periodSeconds: 10
           timeoutSeconds: 5
           failureThreshold: 3
         
         readinessProbe:
-          httpGet:
-            path: /api/tenants/realtime-dev/health
-            port: 4000
-            httpHeaders:
-            - name: Authorization
-              value: "Bearer $(ANON_KEY)"
+          exec:
+            command:
+            - /bin/sh
+            - -c
+            - 'curl -sSfL --head -o /dev/null -H "Authorization: Bearer $ANON_KEY" http://localhost:4000/api/tenants/realtime-dev/health'
           initialDelaySeconds: 10
           periodSeconds: 5
           timeoutSeconds: 5
@@ -97,9 +102,3 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
-        
-        # Add ANON_KEY for health checks
-        envFrom:
-        - secretRef:
-            name: realtime-anon-key
-            optional: true
