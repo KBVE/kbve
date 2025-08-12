@@ -1,0 +1,92 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage-api
+  namespace: kilobase
+  labels:
+    app: storage-api
+    component: storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage-api
+  template:
+    metadata:
+      labels:
+        app: storage-api
+        component: storage
+    spec:
+      containers:
+      - name: storage-api
+        image: supabase/storage-api:v1.25.7
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: PORT
+          value: "5000"
+        - name: DATABASE_URL
+          value: "postgresql://supabase_admin:$(DB_PASSWORD)@supabase-cluster-rw.kilobase.svc.cluster.local:5432/supabase"
+        - name: DB_PASSWORD
+          valueFrom:
+            secretKeyRef:
+              name: supabase-superuser
+              key: password
+        - name: ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: anon_key
+        - name: SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: service_key
+        - name: PGRST_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: secret
+        - name: STORAGE_BACKEND
+          value: "file"
+        - name: FILE_STORAGE_BACKEND_PATH
+          value: "/var/lib/storage"
+        - name: TENANT_ID
+          value: "stub"
+        - name: REGION
+          value: "stub"
+        - name: GLOBAL_S3_BUCKET
+          value: "stub"
+        
+        livenessProbe:
+          tcpSocket:
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          tcpSocket:
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        volumeMounts:
+        - name: storage-data
+          mountPath: /var/lib/storage
+      
+      volumes:
+      - name: storage-data
+        emptyDir: {}

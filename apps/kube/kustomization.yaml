@@ -28,6 +28,7 @@ resources:
   - auth/application.yaml
   - postgrest/application.yaml
   - realtime/application.yaml
+  - storage-api/application.yaml
   - meta/application.yaml
   - analytics/application.yaml
   - studio/application.yaml
