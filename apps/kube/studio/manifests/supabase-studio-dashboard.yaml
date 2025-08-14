@@ -36,7 +36,7 @@ spec:
 
                       # Supabase API configuration
                       - name: SUPABASE_URL
-                        value: 'http://kong:8000'
+                        value: 'http://kong-kong-proxy:80'
                       - name: SUPABASE_PUBLIC_URL
                         value: 'https://supabase.kbve.com'
 
