@@ -41,11 +41,25 @@ spec:
             secretKeyRef:
               name: supabase-jwt
               key: service-key
+        - name: SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: service-key
+        - name: POSTGREST_URL
+          value: "http://postgrest:3000"
         - name: PGRST_JWT_SECRET
           valueFrom:
             secretKeyRef:
               name: supabase-jwt
               key: secret
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: secret
+        - name: FILE_SIZE_LIMIT
+          value: "52428800"
         - name: STORAGE_BACKEND
           value: "file"
         - name: FILE_STORAGE_BACKEND_PATH
@@ -56,9 +70,14 @@ spec:
           value: "stub"
         - name: GLOBAL_S3_BUCKET
           value: "stub"
+        - name: ENABLE_IMAGE_TRANSFORMATION
+          value: "false"
+        - name: IMGPROXY_URL
+          value: "http://imgproxy:5001"
         
         livenessProbe:
-          tcpSocket:
+          httpGet:
+            path: /status
             port: 5000
           initialDelaySeconds: 30
           periodSeconds: 10
@@ -66,7 +85,8 @@ spec:
           failureThreshold: 3
         
         readinessProbe:
-          tcpSocket:
+          httpGet:
+            path: /status
             port: 5000
           initialDelaySeconds: 10
           periodSeconds: 5
