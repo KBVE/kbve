@@ -356,6 +356,17 @@ export const RealtimeMessenger: React.FC<RealtimeMessengerProps> = ({
   );
 };
 
+// Default constants for ReactRealtime component
+const DEFAULT_CONFIG = {
+  topic: 'general',
+  showChannel: true,
+  showMessenger: true,
+  title: "Realtime Communication",
+  description: "Connect and chat in real-time with other users",
+  channelTitle: "General Chat",
+  messengerTitle: "Live Chat"
+} as const;
+
 export const ReactRealtime: React.FC<{
   topic?: string;
   showChannel?: boolean;
@@ -365,13 +376,13 @@ export const ReactRealtime: React.FC<{
   channelTitle?: string;
   messengerTitle?: string;
 }> = ({
-  topic = 'general',
-  showChannel = true,
-  showMessenger = true,
-  title = "Realtime Communication",
-  description = "Connect and communicate in real-time",
-  channelTitle,
-  messengerTitle
+  topic = DEFAULT_CONFIG.topic,
+  showChannel = DEFAULT_CONFIG.showChannel,
+  showMessenger = DEFAULT_CONFIG.showMessenger,
+  title = DEFAULT_CONFIG.title,
+  description = DEFAULT_CONFIG.description,
+  channelTitle = DEFAULT_CONFIG.channelTitle,
+  messengerTitle = DEFAULT_CONFIG.messengerTitle
 }) => {
   const error = useStore(realtimeService.errorAtom);
   const success = useStore(realtimeService.successAtom);
