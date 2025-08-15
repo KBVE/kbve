@@ -1,5 +1,6 @@
 import { atom } from 'nanostores';
 import { supabase } from '../supabase';
+import { eventBus } from '../eventBus';
 import type { RealtimeChannel, RealtimeChannelSendResponse } from '@supabase/supabase-js';
 
 interface RealtimeMessage {
@@ -73,19 +74,23 @@ class RealtimeService {
         .channel(topic)
         .on('broadcast', { event: 'message' }, (payload) => {
           console.log(`[RealtimeService] Message received on ${topic}:`, payload);
+          eventBus.messageReceived(topic, payload);
           callbacks.onMessage?.(payload);
         })
         .on('presence', { event: 'sync' }, () => {
           console.log(`[RealtimeService] Presence sync on ${topic}`);
           const state = channel.presenceState();
+          eventBus.presenceUpdated(topic, state);
           callbacks.onPresence?.(state);
         })
         .on('presence', { event: 'join' }, ({ key, newPresences }) => {
           console.log(`[RealtimeService] User joined ${topic}:`, key, newPresences);
+          eventBus.userJoined(topic, key, newPresences);
           callbacks.onJoin?.({ key, newPresences });
         })
         .on('presence', { event: 'leave' }, ({ key, leftPresences }) => {
           console.log(`[RealtimeService] User left ${topic}:`, key, leftPresences);
+          eventBus.userLeft(topic, key, leftPresences);
           callbacks.onLeave?.({ key, leftPresences });
         })
         .on('postgres_changes', 
@@ -97,6 +102,7 @@ class RealtimeService {
           }, 
           (payload) => {
             console.log(`[RealtimeService] Database change on ${topic}:`, payload);
+            eventBus.messageReceived(topic, payload);
             callbacks.onMessage?.(payload);
           }
         );
@@ -112,12 +118,17 @@ class RealtimeService {
           // Update active channels list
           const current = this.activeChannelsAtom.get();
           this.activeChannelsAtom.set([...current, topic]);
+          
+          // Emit eventBus event
+          eventBus.channelConnected(topic);
         } else if (status === 'CHANNEL_ERROR') {
           this.errorAtom.set(`Failed to connect to channel: ${topic}`);
           this.connectedAtom.set(false);
+          eventBus.connectionError(topic, 'Channel connection error');
         } else if (status === 'TIMED_OUT') {
           this.errorAtom.set(`Connection to channel ${topic} timed out`);
           this.connectedAtom.set(false);
+          eventBus.connectionError(topic, 'Connection timed out');
         }
       });
 
@@ -160,6 +171,9 @@ class RealtimeService {
       
       this.successAtom.set(`Unsubscribed from channel: ${topic}`);
       
+      // Emit eventBus event
+      eventBus.channelDisconnected(topic, 'user-requested');
+      
       // Check if any channels are still connected
       if (this.subscriptions.size === 0) {
         this.connectedAtom.set(false);
@@ -191,6 +205,7 @@ class RealtimeService {
 
       if (response === 'ok') {
         this.successAtom.set(`Message sent to ${topic}`);
+        eventBus.messageSent(topic, payload, response);
       } else {
         this.errorAtom.set(`Failed to send message to ${topic}: ${response}`);
       }
@@ -218,6 +233,7 @@ class RealtimeService {
 
       if (response === 'ok') {
         this.successAtom.set(`Presence updated for ${topic}`);
+        eventBus.presenceUpdated(topic, presenceData);
       } else {
         this.errorAtom.set(`Failed to update presence for ${topic}: ${response}`);
       }
@@ -297,6 +313,7 @@ class RealtimeService {
 
     try {
       const topics = Array.from(this.subscriptions.keys());
+      const channelCount = topics.length;
       
       for (const topic of topics) {
         await this.unsubscribeFromChannel(topic);
@@ -306,6 +323,9 @@ class RealtimeService {
       this.activeChannelsAtom.set([]);
       this.connectedAtom.set(false);
       this.successAtom.set('Disconnected from all channels');
+      
+      // Emit eventBus event
+      eventBus.allDisconnected(channelCount);
 
     } catch (err: any) {
       this.errorAtom.set(err.message || 'Failed to disconnect from all channels');
