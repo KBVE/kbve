@@ -73,6 +73,10 @@ spec:
               name: realtime-anon-key
               key: ANON_KEY
         
+        # Set the tenant name for self-hosted realtime
+        - name: SELF_HOST_TENANT_NAME
+          value: "realtime-dev.supabase-realtime"
+        
         livenessProbe:
           tcpSocket:
             port: 4000
