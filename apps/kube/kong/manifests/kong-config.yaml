@@ -190,7 +190,7 @@ data:
           - name: realtime-v1-ws
             strip_path: true
             paths:
-              - /realtime/v1/
+              - /realtime/v1/websocket
         plugins:
           - name: key-auth
             config:
