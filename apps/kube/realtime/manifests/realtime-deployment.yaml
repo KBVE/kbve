@@ -79,6 +79,10 @@ spec:
         - name: SELF_HOST_TENANT_NAME
           value: "supabase"
         
+        # Set TENANT_NAME for seeds script to create supabase tenant
+        - name: TENANT_NAME
+          value: "supabase"
+        
         volumeMounts:
         - name: realtime-seeds
           mountPath: /app/lib/realtime-2.41.24/priv/repo/seeds.exs
