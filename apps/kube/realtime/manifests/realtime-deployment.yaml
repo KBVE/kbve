@@ -75,9 +75,9 @@ spec:
               name: realtime-anon-key
               key: ANON_KEY
         
-        # Set the tenant name for realtime
+        # Set the tenant name for realtime - must match JWT issuer
         - name: SELF_HOST_TENANT_NAME
-          value: "realtime-dev"
+          value: "supabase"
         
         volumeMounts:
         - name: realtime-seeds
