@@ -76,8 +76,8 @@ spec:
               key: ANON_KEY
         
         # Set the tenant name for realtime
-        - name: TENANT_NAME
-          value: "realtime"
+        - name: SELF_HOST_TENANT_NAME
+          value: "realtime-dev"
         
         volumeMounts:
         - name: realtime-seeds
