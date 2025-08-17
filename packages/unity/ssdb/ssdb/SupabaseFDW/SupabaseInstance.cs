@@ -43,8 +43,8 @@ namespace KBVE.SSDB.SupabaseFDW
             _supabase.Auth.AddDebugListener(DebugListener);
             _networkStatus.Client = (Supabase.Gotrue.Client)_supabase.Auth;
             _supabase.Auth.SetPersistence(new UnitySession());
-            _supabase.Auth.AddStateChangedListener(UnityAuthListener);
-            await _supabase.Auth.LoadSession();
+            _supabase.Auth.AddStateChangedListener((sender, state, session) => UnityAuthListener(sender, state, session));
+            _supabase.Auth.LoadSession();
 
             _supabase.Auth.Options.AllowUnconfirmedUserSessions = true;
 
