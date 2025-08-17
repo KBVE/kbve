@@ -16,7 +16,6 @@ controller:
         enable-real-ip: "true"
         real-ip-header: "X-Forwarded-For"
         real-ip-recursive: "on"
-        custom-http-errors: "403,404,500,502,503"
 
         # Critical for handling large headers/tokens
         proxy-buffer-size: "32k"
@@ -51,14 +50,6 @@ controller:
         proxy-body-size: "50m"
 
 
-    extraVolumes:
-        - name: custom-error-pages
-          configMap:
-            name: custom-error-pages
-
-    extraVolumeMounts:
-        - name: custom-error-pages
-          mountPath: /etc/nginx/errorpages
 
     metrics:
         enabled: true
