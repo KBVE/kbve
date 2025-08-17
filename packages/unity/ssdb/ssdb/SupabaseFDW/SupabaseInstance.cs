@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using R3;
 using Supabase;
 using Supabase.Gotrue;
+using Supabase.Gotrue.Interfaces;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -27,23 +28,24 @@ namespace KBVE.SSDB.SupabaseFDW
         public Supabase.Client Client => _supabase;
 
         private readonly Subject<AuthStateChangedEvent> _authStateSubject = new();
-        public IObservable<AuthStateChangedEvent> AuthStateStream => _authStateSubject;
+        public Observable<AuthStateChangedEvent> AuthStateStream => _authStateSubject;
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
             _networkStatus = new NetworkStatus();
             _options = new SupabaseOptions
             {
-                AutoRefreshToken = true
+                AutoRefreshToken = true,
+                AutoConnectRealtime = false
             };
 
-            _supabase = new Client(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
+            _supabase = new Supabase.Client(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
 
             _supabase.Auth.AddDebugListener(DebugListener);
             _networkStatus.Client = (Supabase.Gotrue.Client)_supabase.Auth;
             _supabase.Auth.SetPersistence(new UnitySession());
-            _supabase.Auth.AddStateChangedListener(UnityAuthListener);
-            await _supabase.Auth.LoadSession();
+            _supabase.Auth.AddStateChangedListener((sender, state) => UnityAuthListener(state, sender.CurrentSession));
+            _supabase.Auth.LoadSession();
 
             _supabase.Auth.Options.AllowUnconfirmedUserSessions = true;
 
@@ -74,7 +76,7 @@ namespace KBVE.SSDB.SupabaseFDW
             Initialized.Value = true;
         }
 
-        private void UnityAuthListener(IGotrueClient<Session, User>.AuthState state, Session session)
+        private void UnityAuthListener(Constants.AuthState state, Session session)
         {
             CurrentSession.Value = session;
             CurrentUser.Value = session?.User;
