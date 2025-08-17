@@ -28,7 +28,7 @@ namespace KBVE.SSDB.SupabaseFDW
         public Supabase.Client Client => _supabase;
 
         private readonly Subject<AuthStateChangedEvent> _authStateSubject = new();
-        public IObservable<AuthStateChangedEvent> AuthStateStream => _authStateSubject;
+        public Observable<AuthStateChangedEvent> AuthStateStream => _authStateSubject;
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
