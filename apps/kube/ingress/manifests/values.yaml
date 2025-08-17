@@ -18,12 +18,12 @@ controller:
         real-ip-recursive: "on"
 
         # Critical for handling large headers/tokens
-        proxy-buffer-size: "32k"
-        proxy-buffers: "8 32k"
-        proxy-busy-buffers-size: "96k"
-        large-client-header-buffers: "8 64k"
-        client-header-buffer-size: "32k"
-        client-body-buffer-size: "32k"
+        proxy-buffer-size: "128k"
+        proxy-buffers: "32 128k"
+        proxy-busy-buffers-size: "256k"
+        large-client-header-buffers: "16 128k"
+        client-header-buffer-size: "128k"
+        client-body-buffer-size: "128k"
         
         # Increase timeouts
         proxy-connect-timeout: "300"
