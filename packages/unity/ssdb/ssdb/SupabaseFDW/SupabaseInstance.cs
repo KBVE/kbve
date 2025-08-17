@@ -75,7 +75,7 @@ namespace KBVE.SSDB.SupabaseFDW
             Initialized.Value = true;
         }
 
-        private void UnityAuthListener(IGotrueClient<User, Session>.AuthState state, Session session)
+        private void UnityAuthListener(Constants.AuthState state, Session session)
         {
             CurrentSession.Value = session;
             CurrentUser.Value = session?.User;
