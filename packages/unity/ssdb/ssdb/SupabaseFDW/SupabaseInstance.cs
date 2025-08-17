@@ -24,7 +24,7 @@ namespace KBVE.SSDB.SupabaseFDW
         public ReactiveProperty<User?> CurrentUser { get; } = new(null);
         public ReactiveProperty<bool> Online { get; } = new(false);
 
-        public Client Client => _supabase;
+        public Supabase.Client Client => _supabase;
 
         private readonly Subject<AuthStateChangedEvent> _authStateSubject = new();
         public IObservable<AuthStateChangedEvent> AuthStateStream => _authStateSubject;

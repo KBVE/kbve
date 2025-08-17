@@ -1,3 +1,4 @@
+using Supabase;
 using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
 
