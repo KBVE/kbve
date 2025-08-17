@@ -20,7 +20,7 @@ controller:
         # Critical for handling large headers/tokens
         proxy-buffer-size: "32k"
         proxy-buffers: "8 32k"
-        proxy-busy-buffers-size: "64k"
+        proxy-busy-buffers-size: "96k"
         large-client-header-buffers: "8 64k"
         client-header-buffer-size: "32k"
         client-body-buffer-size: "32k"
