@@ -35,6 +35,6 @@ namespace KBVE.SSDB.SupabaseFDW
         /// <summary>
         /// Emits an event whenever the authentication state changes.
         /// </summary>
-        IObservable<AuthStateChangedEvent> AuthStateStream { get; }
+        Observable<AuthStateChangedEvent> AuthStateStream { get; }
     }
 }
