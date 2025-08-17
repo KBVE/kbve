@@ -50,6 +50,17 @@ spec:
             secretKeyRef:
               name: supabase-jwt
               key: secret
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: secret
+        - name: JWT_EXPIRY
+          value: "3600"
+        - name: JWT_DEFAULT_GROUP_NAME
+          value: "authenticated"
+        - name: JWT_AUD
+          value: "authenticated"
         - name: SECRET_KEY_BASE
           valueFrom:
             secretKeyRef:

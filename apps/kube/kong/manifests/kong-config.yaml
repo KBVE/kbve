@@ -191,11 +191,17 @@ data:
             strip_path: true
             paths:
               - /realtime/v1/
+            protocols:
+              - ws
+              - wss
         plugins:
           - name: key-auth
             config:
               hide_credentials: false
               run_on_preflight: false
+              key_names:
+                - apikey
+                - x-api-key
           - name: acl
             config:
               hide_groups_header: true
