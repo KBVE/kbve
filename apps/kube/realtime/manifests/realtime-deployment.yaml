@@ -50,6 +50,13 @@ spec:
             secretKeyRef:
               name: realtime-jwt-secret
               key: API_JWT_SECRET
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: realtime-jwt-secret
+              key: API_JWT_SECRET
+        - name: JWT_CLAIM_VALIDATORS
+          value: '{"iss": "supabase", "iat": 1755403200}'
         - name: SECRET_KEY_BASE
           valueFrom:
             secretKeyRef:
