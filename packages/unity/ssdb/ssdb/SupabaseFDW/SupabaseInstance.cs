@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using R3;
 using Supabase;
 using Supabase.Gotrue;
+using Supabase.Gotrue.Interfaces;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -37,7 +38,7 @@ namespace KBVE.SSDB.SupabaseFDW
                 AutoRefreshToken = true
             };
 
-            _supabase = new Client(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
+            _supabase = new Supabase.Client(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
 
             _supabase.Auth.AddDebugListener(DebugListener);
             _networkStatus.Client = (Supabase.Gotrue.Client)_supabase.Auth;
@@ -74,7 +75,7 @@ namespace KBVE.SSDB.SupabaseFDW
             Initialized.Value = true;
         }
 
-        private void UnityAuthListener(IGotrueClient<Session, User>.AuthState state, Session session)
+        private void UnityAuthListener(IGotrueClient<User, Session>.AuthState state, Session session)
         {
             CurrentSession.Value = session;
             CurrentUser.Value = session?.User;
