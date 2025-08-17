@@ -30,7 +30,7 @@ namespace KBVE.SSDB.SupabaseFDW
         /// <summary>
         /// Exposes the underlying Supabase client.
         /// </summary>
-        Client Client { get; }
+        Supabase.Client Client { get; }
 
         /// <summary>
         /// Emits an event whenever the authentication state changes.
