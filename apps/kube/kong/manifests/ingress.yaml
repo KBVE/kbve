@@ -23,7 +23,6 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-set-headers: "Host $host;X-Real-IP $remote_addr;X-Forwarded-For $proxy_add_x_forwarded_for;X-Forwarded-Proto $scheme"
     nginx.ingress.kubernetes.io/upstream-hash-by: "$http_upgrade"
     nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
-    nginx.ingress.kubernetes.io/proxy-intercept-errors: "off"
 
 spec:
   ingressClassName: nginx
