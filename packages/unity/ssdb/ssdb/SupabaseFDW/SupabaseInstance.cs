@@ -36,7 +36,7 @@ namespace KBVE.SSDB.SupabaseFDW
             _options = new SupabaseOptions
             {
                 AutoRefreshToken = true,
-                AutoConnectRealtime = true
+                AutoConnectRealtime = false
             };
 
             _supabase = new Supabase.Client(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
