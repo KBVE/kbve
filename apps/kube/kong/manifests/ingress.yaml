@@ -22,6 +22,9 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
     nginx.ingress.kubernetes.io/proxy-set-headers: "Host $host;X-Real-IP $remote_addr;X-Forwarded-For $proxy_add_x_forwarded_for;X-Forwarded-Proto $scheme"
     nginx.ingress.kubernetes.io/upstream-hash-by: "$http_upgrade"
+    nginx.ingress.kubernetes.io/websocket-services: "kong-kong-proxy"
+    nginx.ingress.kubernetes.io/connection-proxy-header: "upgrade"
+    nginx.ingress.kubernetes.io/upgrade-websocket: "true"
 
 spec:
   ingressClassName: nginx
