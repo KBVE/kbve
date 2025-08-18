@@ -106,7 +106,7 @@ spec:
         
         # Restart trigger for JWT updates
         - name: RESTART_TRIGGER
-          value: "jwt-update-2025-08-18"
+          value: "jwt-update-2025-08-18-ALPHA"
         
         volumeMounts:
         - name: realtime-seeds
