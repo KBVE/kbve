@@ -34,6 +34,7 @@ data:
           headers:
             - Accept
             - Accept-Version
+            - Accept-Profile
             - Authorization
             - Content-Length
             - Content-MD5
@@ -51,6 +52,7 @@ data:
             - X-Mx-ReqToken
             - Keep-Alive
             - If-Modified-Since
+            - Range
           exposed_headers:
             - "*"
           credentials: true
