@@ -128,7 +128,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
-              run_on_preflight: true
+              run_on_preflight: false
           - name: acl
             config:
               hide_groups_header: true
@@ -149,7 +149,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: true
-              run_on_preflight: true
+              run_on_preflight: false
           - name: acl
             config:
               hide_groups_header: true
@@ -170,7 +170,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: true
-              run_on_preflight: true
+              run_on_preflight: false
           - name: request-transformer
             config:
               add:
@@ -197,7 +197,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
-              run_on_preflight: true
+              run_on_preflight: false
               
           - name: acl
             config:
@@ -218,7 +218,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
-              run_on_preflight: true
+              run_on_preflight: false
           - name: acl
             config:
               hide_groups_header: true
@@ -269,7 +269,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
-              run_on_preflight: true
+              run_on_preflight: false
           - name: acl
             config:
               hide_groups_header: true
