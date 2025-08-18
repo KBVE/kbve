@@ -184,7 +184,7 @@ data:
       ## Secure Realtime routes
       - name: realtime-v1-ws
         _comment: 'Realtime: /realtime/v1/* -> ws://realtime:4000/socket/*'
-        url: http://realtime:4000/socket/
+        url: http://realtime:4000/socket
         protocol: ws
         routes:
           - name: realtime-v1-ws
@@ -195,7 +195,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
-              run_on_preflight: false
+              
           - name: acl
             config:
               hide_groups_header: true
@@ -215,7 +215,6 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
-              run_on_preflight: false
           - name: acl
             config:
               hide_groups_header: true
