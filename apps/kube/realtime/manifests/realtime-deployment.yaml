@@ -84,11 +84,11 @@ spec:
         
         # Set the tenant name for realtime - URL compatible name for self-host
         - name: SELF_HOST_TENANT_NAME
-          value: "realtime-dev"
+          value: "realtime"
         
         # Set TENANT_NAME for seeds script to create realtime tenant
         - name: TENANT_NAME
-          value: "realtime-dev"
+          value: "realtime"
         
         volumeMounts:
         - name: realtime-seeds
