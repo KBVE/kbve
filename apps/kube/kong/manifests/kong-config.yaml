@@ -34,6 +34,7 @@ data:
           headers:
             - Accept
             - Accept-Version
+            - Accept-Profile
             - Authorization
             - Content-Length
             - Content-MD5
@@ -51,6 +52,7 @@ data:
             - X-Mx-ReqToken
             - Keep-Alive
             - If-Modified-Since
+            - Range
           exposed_headers:
             - "*"
           credentials: true
@@ -126,7 +128,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
-              run_on_preflight: false
+              run_on_preflight: true
           - name: acl
             config:
               hide_groups_header: true
@@ -147,7 +149,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: true
-              run_on_preflight: false
+              run_on_preflight: true
           - name: acl
             config:
               hide_groups_header: true
@@ -168,7 +170,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: true
-              run_on_preflight: false
+              run_on_preflight: true
           - name: request-transformer
             config:
               add:
@@ -195,7 +197,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
-              run_on_preflight: false
+              run_on_preflight: true
               
           - name: acl
             config:
@@ -216,7 +218,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
-              run_on_preflight: false
+              run_on_preflight: true
           - name: acl
             config:
               hide_groups_header: true
@@ -267,7 +269,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
-              run_on_preflight: false
+              run_on_preflight: true
           - name: acl
             config:
               hide_groups_header: true
