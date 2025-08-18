@@ -148,7 +148,7 @@ spec:
         
         # Plugins
         - name: KONG_PLUGINS
-          value: "bundled,cors,rate-limiting,jwt,oauth2,acl,request-transformer,response-transformer"
+          value: "bundled,cors,rate-limiting,jwt,oauth2,acl,key-auth,request-transformer,response-transformer"
         
         # Logging
         - name: KONG_LOG_LEVEL
@@ -181,6 +181,12 @@ spec:
         # Status API
         - name: KONG_STATUS_LISTEN
           value: "0.0.0.0:8100, [::]:8100"
+        
+        # Nginx buffer settings for WebSocket and large payloads
+        - name: KONG_NGINX_PROXY_PROXY_BUFFER_SIZE
+          value: "160k"
+        - name: KONG_NGINX_PROXY_PROXY_BUFFERS
+          value: "64 160k"
         
         # Other settings
         - name: KONG_CLUSTER_LISTEN
