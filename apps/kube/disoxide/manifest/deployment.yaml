@@ -20,7 +20,7 @@ spec:
       serviceAccountName: disoxide-sa
       containers:
       - name: disoxide
-        image: kbve/disoxide:1.4.6
+        image: kbve/disoxide:1.4.7
         imagePullPolicy: Always
         ports:
         - name: http
