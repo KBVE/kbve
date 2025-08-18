@@ -195,6 +195,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
+              run_on_preflight: false
               
           - name: acl
             config:
@@ -215,6 +216,7 @@ data:
           - name: key-auth
             config:
               hide_credentials: false
+              run_on_preflight: false
           - name: acl
             config:
               hide_groups_header: true

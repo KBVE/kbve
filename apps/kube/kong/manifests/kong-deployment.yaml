@@ -192,7 +192,7 @@ spec:
         - name: KONG_CLUSTER_LISTEN
           value: "off"
         - name: RESTART_TRIGGER
-          value: "jwt-update-2025-08-18"
+          value: "jwt-update-2025-08-18-ALPHA"
         - name: KONG_STREAM_LISTEN
           value: "off"
         - name: KONG_PREFIX
