@@ -65,9 +65,14 @@ class RealtimeService {
 
   public async initializeAuth(): Promise<void> {
     try {
-      // Set auth for realtime connection
+      // For realtime connections, we typically use the anon key
+      // The user context is handled by the session, not the JWT token
+      console.log('[RealtimeService] Initializing realtime auth...');
+      
+      // Just set auth without token to use the default client configuration
       await supabase.realtime.setAuth();
-      console.log('[RealtimeService] Authentication initialized');
+      
+      console.log('[RealtimeService] Authentication initialized with default config');
     } catch (err: any) {
       console.error('[RealtimeService] Failed to initialize auth:', err);
       this.errorAtom.set(`Auth initialization failed: ${err.message}`);
