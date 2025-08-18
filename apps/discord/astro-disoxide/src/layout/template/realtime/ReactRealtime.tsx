@@ -358,7 +358,7 @@ export const RealtimeMessenger: React.FC<RealtimeMessengerProps> = ({
 
 // Default constants for ReactRealtime component
 const DEFAULT_CONFIG = {
-  topic: 'general',
+  topic: 'demo',
   showChannel: true,
   showMessenger: true,
   title: "Realtime Communication",
