@@ -79,16 +79,30 @@ spec:
         - name: ANON_KEY
           valueFrom:
             secretKeyRef:
-              name: realtime-anon-key
+              name: realtime-jwt-secret
+              key: ANON_KEY
+        
+        # Add Supabase service role key
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: realtime-jwt-secret
+              key: SERVICE_KEY
+        
+        # Add Supabase anon key for public access
+        - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: realtime-jwt-secret
               key: ANON_KEY
         
         # Set the tenant name for realtime - URL compatible name for self-host
         - name: SELF_HOST_TENANT_NAME
-          value: "realtime-dev"
+          value: "realtime"
         
         # Set TENANT_NAME for seeds script to create realtime tenant
         - name: TENANT_NAME
-          value: "realtime-dev"
+          value: "realtime"
         
         volumeMounts:
         - name: realtime-seeds

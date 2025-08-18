@@ -3,12 +3,16 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
 using Supabase;
+using Supabase.Functions;
 using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
+using Client = Supabase.Client;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 using KBVE.SSDB;
+using KBVE.MMExtensions.Orchestrator.Core;
+using KBVE.MMExtensions.Orchestrator;
 
 namespace KBVE.SSDB.SupabaseFDW
 {
@@ -18,20 +22,21 @@ namespace KBVE.SSDB.SupabaseFDW
 
         private NetworkStatus _networkStatus;
         private SupabaseOptions _options;
-        private Supabase.Client _supabase;
+        private Client _supabase;
 
         public ReactiveProperty<bool> Initialized { get; } = new(false);
         public ReactiveProperty<Session?> CurrentSession { get; } = new(null);
         public ReactiveProperty<User?> CurrentUser { get; } = new(null);
         public ReactiveProperty<bool> Online { get; } = new(false);
 
-        public Supabase.Client Client => _supabase;
+        public Client Client => _supabase;
 
         private readonly Subject<AuthStateChangedEvent> _authStateSubject = new();
         public Observable<AuthStateChangedEvent> AuthStateStream => _authStateSubject;
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
+             await Operator.R();
             _networkStatus = new NetworkStatus();
             _options = new SupabaseOptions
             {
@@ -39,14 +44,13 @@ namespace KBVE.SSDB.SupabaseFDW
                 AutoConnectRealtime = false
             };
 
-            _supabase = new Supabase.Client(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
+            _supabase = new Client(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
 
             _supabase.Auth.AddDebugListener(DebugListener);
             _networkStatus.Client = (Supabase.Gotrue.Client)_supabase.Auth;
             _supabase.Auth.SetPersistence(new UnitySession());
             _supabase.Auth.AddStateChangedListener((sender, state) => UnityAuthListener(state, sender.CurrentSession));
             _supabase.Auth.LoadSession();
-
             _supabase.Auth.Options.AllowUnconfirmedUserSessions = true;
 
             string url = $"{SupabaseInfo.Url}/auth/v1/settings?apikey={SupabaseInfo.AnonKey}";
@@ -105,7 +109,5 @@ namespace KBVE.SSDB.SupabaseFDW
         }
     }
 }
-
-
 
 
