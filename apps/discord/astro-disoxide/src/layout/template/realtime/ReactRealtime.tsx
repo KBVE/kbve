@@ -3,8 +3,53 @@ import React, { useState, useEffect, useCallback, useRef, useMemo } from 'react'
 import { useStore } from '@nanostores/react';
 import { clsx } from 'clsx';
 import { twMerge } from 'tailwind-merge';
-import { realtimeService } from './ServiceRealtime';
+import { getRealtimeService } from './ServiceRealtime';
 import { useEventBus } from '../eventBus';
+
+// Create dummy atoms for consistent hook calls
+import { atom } from 'nanostores';
+const dummyLoadingAtom = atom<boolean>(false);
+const dummyErrorAtom = atom<string>("");
+const dummySuccessAtom = atom<string>("");
+const dummyActiveChannelsAtom = atom<string[]>([]);
+
+// Create a global service instance to avoid re-initialization
+let globalServicePromise: Promise<any> | null = null;
+let globalService: any = null;
+
+// Add a hook to manage the async service instance with consistent atoms
+const useRealtimeService = () => {
+  const [service, setService] = useState<any>(globalService);
+  const [loading, setLoading] = useState(!globalService);
+
+  useEffect(() => {
+    if (!globalService && !globalServicePromise) {
+      globalServicePromise = getRealtimeService().then((svc) => {
+        globalService = svc;
+        setService(svc);
+        setLoading(false);
+        return svc;
+      }).catch((error) => {
+        console.error('Failed to initialize realtime service:', error);
+        setLoading(false);
+        return null;
+      });
+    } else if (globalService && !service) {
+      setService(globalService);
+      setLoading(false);
+    }
+  }, [service]);
+
+  // Return atoms that are always available
+  return {
+    service,
+    loading,
+    loadingAtom: service?.loadingAtom || dummyLoadingAtom,
+    errorAtom: service?.errorAtom || dummyErrorAtom,
+    successAtom: service?.successAtom || dummySuccessAtom,
+    activeChannelsAtom: service?.activeChannelsAtom || dummyActiveChannelsAtom,
+  };
+};
 
 const cn = (...inputs: any[]) => {
   return twMerge(clsx(inputs));
@@ -28,9 +73,12 @@ export const RealtimeChannel: React.FC<RealtimeChannelProps> = ({
   onJoin,
   onLeave
 }) => {
-  const loading = useStore(realtimeService.loadingAtom);
-  const activeChannels = useStore(realtimeService.activeChannelsAtom);
+  const { service: realtimeService, loading: serviceLoading, loadingAtom, activeChannelsAtom } = useRealtimeService();
   const [isSubscribed, setIsSubscribed] = useState(false);
+  
+  // Always call hooks in the same order - atoms are always available
+  const loading = useStore(loadingAtom);
+  const activeChannels = useStore(activeChannelsAtom);
 
   const isActiveChannel = useMemo(() => {
     return activeChannels.includes(topic);
@@ -41,22 +89,36 @@ export const RealtimeChannel: React.FC<RealtimeChannelProps> = ({
   }, [isActiveChannel]);
 
   const handleSubscribe = useCallback(async () => {
-    const channel = await realtimeService.subscribeToChannel(topic, {
-      onMessage,
-      onPresence,
-      onJoin,
-      onLeave
-    });
-    
-    if (channel) {
-      setIsSubscribed(true);
+    if (realtimeService) {
+      const channel = await realtimeService.subscribeToChannel(topic, {
+        onMessage,
+        onPresence,
+        onJoin,
+        onLeave
+      });
+      
+      if (channel) {
+        setIsSubscribed(true);
+      }
     }
-  }, [topic, onMessage, onPresence, onJoin, onLeave]);
+  }, [realtimeService, topic, onMessage, onPresence, onJoin, onLeave]);
 
   const handleUnsubscribe = useCallback(async () => {
-    await realtimeService.unsubscribeFromChannel(topic);
-    setIsSubscribed(false);
-  }, [topic]);
+    if (realtimeService) {
+      await realtimeService.unsubscribeFromChannel(topic);
+      setIsSubscribed(false);
+    }
+  }, [realtimeService, topic]);
+
+  // Show loading if service is not ready (after all hooks are called)
+  if (serviceLoading || !realtimeService) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+        <span className="ml-2 text-sm">Loading realtime service...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="relative group">
@@ -126,16 +188,19 @@ export const RealtimeMessenger: React.FC<RealtimeMessengerProps> = ({
   placeholder = "Type your message...",
   maxMessages = 50
 }) => {
-  const loading = useStore(realtimeService.loadingAtom);
-  const error = useStore(realtimeService.errorAtom);
-  const success = useStore(realtimeService.successAtom);
-  const activeChannels = useStore(realtimeService.activeChannelsAtom);
+  const { service: realtimeService, loading: serviceLoading, loadingAtom, errorAtom, successAtom, activeChannelsAtom } = useRealtimeService();
   const eventBus = useEventBus();
   
   const [message, setMessage] = useState('');
   const [messages, setMessages] = useState<any[]>([]);
   const [connectionStatus, setConnectionStatus] = useState<string>('disconnected');
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  
+  // Always call hooks in the same order - atoms are always available
+  const loading = useStore(loadingAtom);
+  const error = useStore(errorAtom);
+  const success = useStore(successAtom);
+  const activeChannels = useStore(activeChannelsAtom);
 
   const isSubscribed = useMemo(() => {
     return activeChannels.includes(topic);
@@ -203,7 +268,7 @@ export const RealtimeMessenger: React.FC<RealtimeMessengerProps> = ({
   const handleSendMessage = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!message.trim() || !isSubscribed) return;
+    if (!message.trim() || !isSubscribed || !realtimeService) return;
 
     const messagePayload = {
       text: message.trim(),
@@ -221,22 +286,26 @@ export const RealtimeMessenger: React.FC<RealtimeMessengerProps> = ({
         event: 'message'
       }]);
     }
-  }, [message, topic, isSubscribed, maxMessages]);
+  }, [realtimeService, message, topic, isSubscribed, maxMessages]);
 
   const handleSubscribe = useCallback(async () => {
-    await realtimeService.subscribeToChannel(topic, {
-      onMessage: handleMessage
-    });
-  }, [topic, handleMessage]);
+    if (realtimeService) {
+      await realtimeService.subscribeToChannel(topic, {
+        onMessage: handleMessage
+      });
+    }
+  }, [realtimeService, topic, handleMessage]);
 
   const loadHistory = useCallback(async () => {
-    const history = await realtimeService.getMessages(topic, maxMessages);
-    setMessages(history.map(msg => ({
-      payload: msg.payload,
-      event: 'message',
-      created_at: msg.created_at
-    })));
-  }, [topic, maxMessages]);
+    if (realtimeService) {
+      const history = await realtimeService.getMessages(topic, maxMessages);
+      setMessages(history.map((msg: any) => ({
+        payload: msg.payload,
+        event: 'message',
+        created_at: msg.created_at
+      })));
+    }
+  }, [realtimeService, topic, maxMessages]);
 
   useEffect(() => {
     if (isSubscribed) {
@@ -245,6 +314,16 @@ export const RealtimeMessenger: React.FC<RealtimeMessengerProps> = ({
       setMessages([]);
     }
   }, [isSubscribed, loadHistory]);
+
+  // Show loading if service is not ready (after all hooks are called)
+  if (serviceLoading || !realtimeService) {
+    return (
+      <div className="flex items-center justify-center p-4">
+        <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+        <span className="ml-2 text-sm">Loading realtime service...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-2xl mx-auto">
@@ -384,12 +463,14 @@ export const ReactRealtime: React.FC<{
   channelTitle = DEFAULT_CONFIG.channelTitle,
   messengerTitle = DEFAULT_CONFIG.messengerTitle
 }) => {
-  const error = useStore(realtimeService.errorAtom);
-  const success = useStore(realtimeService.successAtom);
-  const activeChannels = useStore(realtimeService.activeChannelsAtom);
+  const { service: realtimeService, loading: serviceLoading, errorAtom, successAtom, activeChannelsAtom } = useRealtimeService();
   const eventBus = useEventBus();
-  
   const [globalEvents, setGlobalEvents] = useState<string[]>([]);
+  
+  // Always call hooks in the same order - atoms are always available
+  const error = useStore(errorAtom);
+  const success = useStore(successAtom);
+  const activeChannels = useStore(activeChannelsAtom);
 
   // Listen to global realtime events for debugging/monitoring
   useEffect(() => {
@@ -413,8 +494,20 @@ export const ReactRealtime: React.FC<{
   }, [eventBus]);
 
   const handleDisconnectAll = useCallback(async () => {
-    await realtimeService.disconnectAll();
-  }, []);
+    if (realtimeService) {
+      await realtimeService.disconnectAll();
+    }
+  }, [realtimeService]);
+
+  // Show loading if service is not ready (after all hooks are called)
+  if (serviceLoading || !realtimeService) {
+    return (
+      <div className="flex items-center justify-center p-8">
+        <div className="w-6 h-6 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+        <span className="ml-3 text-lg">Loading realtime service...</span>
+      </div>
+    );
+  }
 
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
@@ -486,11 +579,18 @@ export const ReactRealtime: React.FC<{
   );
 };
 
-export { realtimeService };
+// Export async helper functions
+export const subscribeToChannel = async (topic: string, callbacks?: any) => {
+  const service = await getRealtimeService();
+  return service.subscribeToChannel(topic, callbacks);
+};
 
-export const subscribeToChannel = (topic: string, callbacks?: any) => 
-  realtimeService.subscribeToChannel(topic, callbacks);
-export const unsubscribeFromChannel = (topic: string) => 
-  realtimeService.unsubscribeFromChannel(topic);
-export const sendMessage = (topic: string, payload: any) => 
-  realtimeService.sendMessage(topic, payload);
+export const unsubscribeFromChannel = async (topic: string) => {
+  const service = await getRealtimeService();
+  return service.unsubscribeFromChannel(topic);
+};
+
+export const sendMessage = async (topic: string, payload: any) => {
+  const service = await getRealtimeService();
+  return service.sendMessage(topic, payload);
+};
