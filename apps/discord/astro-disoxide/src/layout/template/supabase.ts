@@ -3,7 +3,7 @@ import { createClient } from '@supabase/supabase-js';
 type SupabaseClient = ReturnType<typeof createClient>;
 
 export const SUPABASE_URL = 'https://supabase.kbve.com';
-export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU0MTkzNjAwLCJleHAiOjE5MTE5NjAwMDB9.knszQD6J5e7ctv7TLskqykvOGa2iNVtDcC9liociKm4';
+export const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoiYW5vbiIsImlzcyI6InN1cGFiYXNlIiwiaWF0IjoxNzU1NDAzMjAwLCJleHAiOjE5MTMxNjk2MDB9.oietJI22ZytbghFywvdYMSJp7rcsBdBYbcciJxeGWrg';
 
 declare global {
   interface Window {

@@ -191,6 +191,8 @@ spec:
         # Other settings
         - name: KONG_CLUSTER_LISTEN
           value: "off"
+        - name: RESTART_TRIGGER
+          value: "jwt-update-2025-08-18"
         - name: KONG_STREAM_LISTEN
           value: "off"
         - name: KONG_PREFIX
