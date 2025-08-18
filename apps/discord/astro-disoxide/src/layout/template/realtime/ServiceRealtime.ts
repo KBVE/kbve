@@ -26,6 +26,7 @@ interface ChannelSubscription {
 
 class RealtimeService {
   private static instance: RealtimeService;
+  private static initialized: boolean = false;
   
   // State atoms
   public readonly loadingAtom = atom<boolean>(false);
@@ -38,16 +39,40 @@ class RealtimeService {
 
   private constructor() {}
 
-  public static getInstance(): RealtimeService {
+  public static async getInstance(): Promise<RealtimeService> {
     if (!RealtimeService.instance) {
       RealtimeService.instance = new RealtimeService();
     }
+    
+    // Initialize auth if not already done
+    if (!RealtimeService.initialized) {
+      try {
+        await RealtimeService.instance.initializeAuth();
+        RealtimeService.initialized = true;
+      } catch (err) {
+        console.error('[RealtimeService] Failed to initialize auth during getInstance:', err);
+        // Don't throw here, let individual methods handle auth failures
+      }
+    }
+    
     return RealtimeService.instance;
   }
 
   private clearMessages(): void {
     this.errorAtom.set("");
     this.successAtom.set("");
+  }
+
+  public async initializeAuth(): Promise<void> {
+    try {
+      // Set auth for realtime connection
+      await supabase.realtime.setAuth();
+      console.log('[RealtimeService] Authentication initialized');
+    } catch (err: any) {
+      console.error('[RealtimeService] Failed to initialize auth:', err);
+      this.errorAtom.set(`Auth initialization failed: ${err.message}`);
+      throw err;
+    }
   }
 
   public async subscribeToChannel(
@@ -342,5 +367,16 @@ class RealtimeService {
   }
 }
 
-// Export singleton instance
-export const realtimeService = RealtimeService.getInstance();
+// Export singleton instance getter (async)
+export const getRealtimeService = () => RealtimeService.getInstance();
+
+// For backwards compatibility, create a synchronous version that logs a warning
+let _cachedInstance: RealtimeService | null = null;
+export const realtimeService = {
+  async getService(): Promise<RealtimeService> {
+    if (!_cachedInstance) {
+      _cachedInstance = await RealtimeService.getInstance();
+    }
+    return _cachedInstance;
+  }
+};
