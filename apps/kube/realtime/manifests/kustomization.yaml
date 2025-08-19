@@ -11,4 +11,4 @@ resources:
 configMapGenerator:
   - name: realtime-seeds
     files:
-      - seeds.exs=../files/seeds.exs
+      - seeds.exs
