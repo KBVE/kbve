@@ -1,0 +1,58 @@
+require Logger
+alias Realtime.{Api.Tenant, Repo}
+import Ecto.Adapters.SQL, only: [query: 3]
+
+tenant_name = System.get_env("TENANT_NAME", "realtime")
+
+env = if :ets.whereis(Mix.State) != :undefined, do: Mix.env(), else: :prod
+default_db_host = if env in [:dev, :test], do: "localhost", else: "host.docker.internal"
+
+Repo.transaction(fn ->
+  case Repo.get_by(Tenant, external_id: tenant_name) do
+    %Tenant{} = tenant -> Repo.delete!(tenant)
+    nil -> {:ok, nil}
+  end
+
+  %Tenant{}
+  |> Tenant.changeset(%{
+    "name" => tenant_name,
+    "external_id" => tenant_name,
+    "jwt_secret" =>
+      System.get_env("API_JWT_SECRET", "super-secret-jwt-token-with-at-least-32-characters-long"),
+    "jwt_jwks" => System.get_env("API_JWT_JWKS") |> then(fn v -> if v, do: Jason.decode!(v) end),
+    "extensions" => [
+      %{
+        "type" => "postgres_cdc_rls",
+        "settings" => %{
+          "db_name" => System.get_env("DB_NAME", "supabase"),
+          "db_host" => System.get_env("DB_HOST", "supabase-cluster-rw.kilobase.svc.cluster.local"),
+          "db_user" => System.get_env("DB_USER", "supabase_admin"),
+          "db_password" => System.get_env("DB_PASSWORD", "postgres"),
+          "db_port" => System.get_env("DB_PORT", "5432"),
+          "region" => "us-east-1",
+          "poll_interval_ms" => 100,
+          "poll_max_record_bytes" => 1_048_576,
+          "ssl_enforced" => false
+        }
+      }
+    ],
+    "notify_private_alpha" => true
+  })
+  |> Repo.insert!()
+end)
+
+# Create realtime publication for our tables
+publication = "supabase_realtime"
+
+{:ok, _} =
+  Repo.transaction(fn ->
+    [
+      "drop publication if exists #{publication}",
+      "create publication #{publication} for table public.realtime_messages",
+      "grant all on table public.realtime_messages to anon",
+      "grant all on table public.realtime_messages to postgres",
+      "grant all on table public.realtime_messages to service_role",
+      "grant all on table public.realtime_messages to authenticated"
+    ]
+    |> Enum.each(&query(Repo, &1, []))
+  end)
