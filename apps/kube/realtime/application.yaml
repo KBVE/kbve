@@ -11,6 +11,8 @@ spec:
     repoURL: https://github.com/kbve/kbve
     targetRevision: HEAD
     path: apps/kube/realtime/manifests
+    # Enable Kustomize to generate ConfigMap from files
+    kustomize: {}
   destination:
     server: https://kubernetes.default.svc
     namespace: kilobase
