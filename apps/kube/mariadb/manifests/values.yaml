@@ -5,7 +5,7 @@
 replicaCount: 1
 
 image:
-  repository: docker.io/mariadb/mariadb-operator
+  repository: docker-registry3.mariadb.com/mariadb-operator/mariadb-operator
   pullPolicy: IfNotPresent
   # Overrides the image tag whose default is the chart appVersion.
   # tag: ""
@@ -76,7 +76,7 @@ galera:
   # Galera agent configuration
   agent:
     image:
-      repository: docker.io/mariadb/mariadb-operator
+      repository: docker-registry3.mariadb.com/mariadb-operator/mariadb-operator
       pullPolicy: IfNotPresent
     port: 5555
     kubernetesAuth:
