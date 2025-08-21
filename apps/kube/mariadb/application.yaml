@@ -1,0 +1,39 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: mariadb-operator
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: "1"  # Deploy after CRDs
+spec:
+    project: default
+    sources:
+        - repoURL: https://helm.mariadb.com/mariadb-operator
+          targetRevision: 0.36.0
+          chart: mariadb-operator
+          helm:
+              releaseName: mariadb-operator
+              valueFiles:
+                  - $values/apps/kube/mariadb/manifests/values.yaml
+        - repoURL: https://github.com/kbve/kbve
+          targetRevision: main
+          ref: values
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: mariadb-system
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - Replace=true
+            - Force=true
+            - RespectIgnoreDifferences=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m

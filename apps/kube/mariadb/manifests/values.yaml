@@ -1,0 +1,111 @@
+# MariaDB Operator Helm Values
+# https://github.com/mariadb-operator/mariadb-operator
+
+# Operator configuration
+replicaCount: 1
+
+image:
+  repository: docker.io/mariadb/mariadb-operator
+  pullPolicy: IfNotPresent
+  # Overrides the image tag whose default is the chart appVersion.
+  # tag: ""
+
+imagePullSecrets: []
+nameOverride: ""
+fullnameOverride: ""
+
+serviceAccount:
+  # Specifies whether a service account should be created
+  create: true
+  # Annotations to add to the service account
+  annotations: {}
+  # The name of the service account to use.
+  # If not set and create is true, a name is generated using the fullname template
+  name: ""
+
+# Resources for the operator pod
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Node selector for operator pod
+nodeSelector: {}
+
+# Tolerations for operator pod
+tolerations: []
+
+# Affinity for operator pod
+affinity: {}
+
+# Webhook configuration
+webhook:
+  enabled: true
+  certManager:
+    enabled: true
+  port: 9443
+
+# Metrics configuration
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false
+    # namespace: monitoring
+    # interval: 30s
+    # scrapeTimeout: 10s
+
+# Leader election configuration
+leaderElection:
+  enabled: true
+  leaseDuration: 15s
+  renewDeadline: 10s
+  retryPeriod: 2s
+
+# Log level
+logLevel: info
+
+# Enable development mode
+dev: false
+
+# Galera configuration
+galera:
+  enabled: true
+  # Galera agent configuration
+  agent:
+    image:
+      repository: docker.io/mariadb/mariadb-operator
+      pullPolicy: IfNotPresent
+    port: 5555
+    kubernetesAuth:
+      enabled: true
+    gracefulShutdownTimeout: 5s
+
+# MaxScale configuration (for connection pooling and load balancing)
+maxScale:
+  enabled: false
+  # image:
+  #   repository: mariadb/maxscale
+  #   tag: latest
+  #   pullPolicy: IfNotPresent
+
+# Backup configuration
+backup:
+  # S3 compatible storage configuration
+  s3:
+    enabled: false
+    # endpoint: ""
+    # bucket: ""
+    # region: ""
+    # accessKeyId: ""
+    # secretAccessKey: ""
+
+# Cert-manager integration
+certManager:
+  enabled: true
+
+# RBAC configuration
+rbac:
+  create: true
