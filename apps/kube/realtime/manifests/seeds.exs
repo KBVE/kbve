@@ -59,6 +59,7 @@ tenant_result = Repo.transaction(fn ->
       # Update existing tenant
       Logger.info("  Updating existing tenant...")
       existing_tenant
+      |> Repo.preload(:extensions)
       |> Tenant.changeset(tenant_attrs)
       |> Repo.update!()
   end
