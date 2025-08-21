@@ -59,6 +59,7 @@ tenant_result = Repo.transaction(fn ->
       # Update existing tenant
       Logger.info("  Updating existing tenant...")
       existing_tenant
+      |> Repo.preload(:extensions)
       |> Tenant.changeset(tenant_attrs)
       |> Repo.update!()
   end
@@ -130,11 +131,11 @@ publication_result = Repo.transaction(fn ->
       {:ok, _} ->
         :ok
       {:error, %{postgres: %{code: :undefined_table}}} ->
-        Logger.warn("  ⚠️  Table public.realtime_messages doesn't exist yet")
-        Logger.warn("     Make sure to run the schema creation SQL first")
+        Logger.warning("Table public.realtime_messages doesn't exist yet")
+        Logger.warning("Make sure to run the schema creation SQL first")
         throw(:table_not_found)
       {:error, reason} ->
-        Logger.error("  Failed: #{inspect(reason)}")
+        Logger.error("Failed: #{inspect(reason)}")
         throw({:error, reason})
     end
   end)
@@ -142,11 +143,11 @@ end)
 
 case publication_result do
   {:ok, _} ->
-    Logger.info(" Publication setup successful")
+    Logger.info("Publication setup successful")
   {:error, :table_not_found} ->
-    Logger.warn("⚠️  Publication setup skipped - table doesn't exist")
-    Logger.warn("   Run your schema SQL files first, then re-run seeds")
+    Logger.warning("Publication setup skipped - table doesn't exist")
+    Logger.warning("Run your schema SQL files first, then re-run seeds")
   {:error, reason} ->
-    Logger.error("❌ Publication setup failed: #{inspect(reason)}")
+    Logger.error("Publication setup failed: #{inspect(reason)}")
     raise "Failed to setup publication: #{inspect(reason)}"
 end
