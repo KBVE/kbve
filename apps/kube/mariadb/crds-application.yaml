@@ -1,0 +1,32 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+    name: mariadb-operator-crds
+    namespace: argocd
+    annotations:
+        argocd.argoproj.io/sync-wave: "0"  # Deploy CRDs first
+spec:
+    project: default
+    source:
+        repoURL: https://helm.mariadb.com/mariadb-operator
+        targetRevision: 0.36.0
+        chart: mariadb-operator-crds
+        helm:
+            releaseName: mariadb-operator-crds
+    destination:
+        server: https://kubernetes.default.svc
+        namespace: mariadb-system
+    syncPolicy:
+        automated:
+            selfHeal: true
+            prune: true
+        syncOptions:
+            - CreateNamespace=true
+            - ServerSideApply=true
+            - Replace=true
+        retry:
+            limit: 3
+            backoff:
+                duration: 5s
+                factor: 2
+                maxDuration: 3m

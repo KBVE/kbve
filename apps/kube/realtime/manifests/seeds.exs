@@ -168,7 +168,7 @@ case lock_result do
           raise "Failed to setup publication: #{inspect(reason)}"
       end
 
-      Logger.info("✅ Seeds completed successfully!")
+      Logger.info("Seeds completed successfully!")
 
     after
       # Always release the advisory lock
@@ -177,7 +177,7 @@ case lock_result do
     end
 
   {:ok, %{rows: [[false]]}} ->
-    Logger.info("⏳ Another pod is already running seeds, skipping...")
+    Logger.info("Another pod is already running seeds, skipping...")
 
   {:error, reason} ->
     Logger.error("Failed to check advisory lock: #{inspect(reason)}")
