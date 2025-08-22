@@ -24,11 +24,11 @@
     "Unity.TextMeshPro",
     "R3",
     "Supabase",
-    "Postgrest",
-    "Realtime",
-    "Gotrue",
-    "Storage",
-    "Functions"
+    "Supabase.Postgrest",
+    "Supabase.Realtime",
+    "Supabase.Gotrue",
+    "Supabase.Storage",
+    "Supabase.Functions"
   ],
   "includePlatforms": [
         "Editor",

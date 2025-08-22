@@ -3,7 +3,7 @@ using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
 using Supabase;
-using Supabase.Functions;
+using Supabase.Functions.Interfaces;
 using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
 using Client = Supabase.Client;
@@ -36,7 +36,7 @@ namespace KBVE.SSDB.SupabaseFDW
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
-             await Operator.R();
+            await Operator.R();
             _networkStatus = new NetworkStatus();
             _options = new SupabaseOptions
             {
