@@ -21,7 +21,7 @@ spec:
       initContainers:
       - name: wait-for-db
         image: busybox:1.35
-        command: ['sh', '-c', 'until nc -z azerothcore-mariadb.ac.svc.cluster.local 3306; do echo waiting for database; sleep 2; done;']
+        command: ['sh', '-c', 'until nc -z azerothcore-mysql.ac.svc.cluster.local 3306; do echo waiting for database; sleep 2; done;']
       
       containers:
       - name: worldserver
@@ -41,15 +41,15 @@ spec:
         - name: AC_LOGS_DIR
           value: "/azerothcore/env/dist/logs"
         - name: AC_LOGIN_DATABASE_INFO
-          value: "azerothcore-mariadb.ac.svc.cluster.local;3306;acore;$(DB_PASSWORD);acore_auth"
+          value: "azerothcore-mysql.ac.svc.cluster.local;3306;acore;$(DB_PASSWORD);acore_auth"
         - name: AC_WORLD_DATABASE_INFO
-          value: "azerothcore-mariadb.ac.svc.cluster.local;3306;acore;$(DB_PASSWORD);acore_world"
+          value: "azerothcore-mysql.ac.svc.cluster.local;3306;acore;$(DB_PASSWORD);acore_world"
         - name: AC_CHARACTER_DATABASE_INFO
-          value: "azerothcore-mariadb.ac.svc.cluster.local;3306;acore;$(DB_PASSWORD);acore_characters"
+          value: "azerothcore-mysql.ac.svc.cluster.local;3306;acore;$(DB_PASSWORD);acore_characters"
         - name: DB_PASSWORD
           valueFrom:
             secretKeyRef:
-              name: azerothcore-mariadb-user
+              name: azerothcore-mysql-user
               key: password
         
         volumeMounts:
