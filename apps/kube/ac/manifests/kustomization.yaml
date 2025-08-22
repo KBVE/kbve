@@ -1,0 +1,40 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: ac
+
+resources:
+  - namespace.yaml
+  - mariadb-galera.yaml
+  - authserver-deployment.yaml
+  - worldserver-deployment.yaml
+  - authserver-service.yaml
+  - worldserver-service.yaml
+
+configMapGenerator:
+  - name: ac-config
+    literals:
+      - AC_DATA_DIR=/azerothcore/env/dist/data
+      - AC_LOGS_DIR=/azerothcore/env/dist/logs
+      - AC_TEMP_DIR=/azerothcore/env/dist/temp
+      - DB_HOST=azerothcore-mariadb.ac.svc.cluster.local
+      - DB_PORT=3306
+      - DB_AUTH_NAME=acore_auth
+      - DB_CHARACTERS_NAME=acore_characters
+      - DB_WORLD_NAME=acore_world
+
+secretGenerator:
+  - name: ac-db-credentials
+    literals:
+      - DB_USERNAME=acore
+      - DB_PASSWORD=changeme  # This will be replaced with actual secret
+
+commonLabels:
+  app: azerothcore
+  component: game-server
+
+images:
+  - name: acore/ac-wotlk-worldserver
+    newTag: master
+  - name: acore/ac-wotlk-authserver
+    newTag: master

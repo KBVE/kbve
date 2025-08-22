@@ -1,0 +1,149 @@
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: MariaDB
+metadata:
+  name: azerothcore-mariadb
+  namespace: ac
+spec:
+  # MariaDB version compatible with AzerothCore
+  image: mariadb:10.11
+  imagePullPolicy: IfNotPresent
+  
+  # Galera cluster with 3 replicas for HA
+  replicas: 3
+  galera:
+    enabled: true
+    primary:
+      automaticFailover: true
+    agent:
+      kubernetesAuth:
+        enabled: true
+      port: 5555
+      gracefulShutdownTimeout: 5s
+    recovery:
+      enabled: true
+      minClusterSize: 2
+      clusterMonitorInterval: 10s
+  
+  # Root credentials
+  rootPasswordSecretKeyRef:
+    name: azerothcore-mariadb-root
+    key: password
+  
+  # Database configuration for AzerothCore
+  database: acore_auth
+  
+  # User for AzerothCore
+  username: acore
+  passwordSecretKeyRef:
+    name: azerothcore-mariadb-user
+    key: password
+  
+  # Grant privileges to acore user
+  grantOptions: GRANT OPTION
+  
+  # Port configuration
+  port: 3306
+  
+  # Resource limits
+  resources:
+    requests:
+      cpu: 300m
+      memory: 256Mi
+    limits:
+      cpu: 2
+      memory: 2Gi
+  
+  # Storage configuration
+  storage:
+    size: 10Gi
+    storageClassName: longhorn
+    resizeInUseVolumes: true
+    waitForVolumeResize: true
+    retain: true
+  
+  # Service configuration
+  service:
+    type: ClusterIP
+    port: 3306
+  
+  # Health checks
+  livenessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+  readinessProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+    timeoutSeconds: 5
+  
+  # MySQL configuration optimized for AzerothCore
+  myCnf: |
+    [mariadb]
+    bind-address=*
+    default_storage_engine=InnoDB
+    max_allowed_packet=64M
+    innodb_buffer_pool_size=1G
+    innodb_log_file_size=256M
+    innodb_flush_method=O_DIRECT
+    innodb_flush_log_at_trx_commit=2
+    innodb_file_per_table=1
+    character-set-server=utf8mb4
+    collation-server=utf8mb4_unicode_ci
+    skip-character-set-client-handshake
+    
+    # Galera specific settings
+    binlog_format=ROW
+    default-storage-engine=innodb
+    innodb_autoinc_lock_mode=2
+    
+    # Performance tuning for game server
+    max_connections=500
+    thread_cache_size=50
+    query_cache_size=0
+    query_cache_type=0
+    
+  # Monitoring
+  metrics:
+    enabled: true
+    
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  name: acore-characters
+  namespace: ac
+spec:
+  mariaDbRef:
+    name: azerothcore-mariadb
+  name: acore_characters
+  characterSet: utf8mb4
+  collate: utf8mb4_unicode_ci
+  
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Database
+metadata:
+  name: acore-world
+  namespace: ac
+spec:
+  mariaDbRef:
+    name: azerothcore-mariadb
+  name: acore_world
+  characterSet: utf8mb4
+  collate: utf8mb4_unicode_ci
+  
+---
+apiVersion: k8s.mariadb.com/v1alpha1
+kind: Grant
+metadata:
+  name: acore-grant
+  namespace: ac
+spec:
+  mariaDbRef:
+    name: azerothcore-mariadb
+  privileges:
+    - ALL PRIVILEGES
+  database: "*"
+  table: "*"
+  username: acore
+  grantOption: true

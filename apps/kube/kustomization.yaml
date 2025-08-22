@@ -36,3 +36,4 @@ resources:
   - studio/application.yaml
   - vector/application.yaml
   - disoxide/application.yaml
+  - ac/application.yaml
