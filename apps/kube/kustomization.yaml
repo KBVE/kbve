@@ -14,8 +14,8 @@ resources:
   - namespace/application.yaml
   - cnpg/application.yaml
   - cnpg/plugins-application.yaml
-  - mariadb/crds-application.yaml
-  - mariadb/application.yaml
+  - mysql/crds-application.yaml
+  - mysql/application.yaml
   - metallb/application.yaml
   - ingress/application.yaml
   - cert-manager/application.yaml
@@ -36,3 +36,4 @@ resources:
   - studio/application.yaml
   - vector/application.yaml
   - disoxide/application.yaml
+  - ac/application.yaml

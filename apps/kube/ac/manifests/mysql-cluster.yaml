@@ -1,0 +1,87 @@
+apiVersion: mysql.oracle.com/v2
+kind: InnoDBCluster
+metadata:
+  name: azerothcore-mysql
+  namespace: ac
+spec:
+  # Secret containing root credentials
+  secretName: azerothcore-mysql-root
+  
+  # TLS configuration
+  tlsUseSelfSigned: true
+  
+  # InnoDB Cluster with 3 instances for HA
+  instances: 3
+  
+  # MySQL Router for load balancing
+  router:
+    instances: 1
+    
+  # MySQL version compatible with AzerothCore (matching docker-compose)
+  version: "8.4.0"
+  
+  # Storage configuration using Longhorn
+  datadirVolumeClaimTemplate:
+    accessModes:
+      - ReadWriteOnce
+    resources:
+      requests:
+        storage: 10Gi
+    storageClassName: longhorn
+  
+  # Resource limits
+  podSpec:
+    resources:
+      requests:
+        cpu: 300m
+        memory: 1Gi
+      limits:
+        cpu: 2
+        memory: 4Gi
+  
+  # MySQL configuration optimized for AzerothCore
+  mycnf: |
+    [mysqld]
+    # Basic settings
+    bind-address=*
+    default_storage_engine=InnoDB
+    max_allowed_packet=64M
+    character_set_server=utf8mb4
+    collation_server=utf8mb4_unicode_ci
+    
+    # InnoDB settings for performance
+    innodb_buffer_pool_size=2G
+    innodb_log_file_size=256M
+    innodb_flush_method=O_DIRECT
+    innodb_flush_log_at_trx_commit=2
+    innodb_file_per_table=1
+    
+    # Group Replication settings (managed by operator)
+    binlog_format=ROW
+    enforce_gtid_consistency=ON
+    gtid_mode=ON
+    
+    # Performance tuning for game server
+    max_connections=500
+    thread_cache_size=50
+    table_open_cache=2000
+    
+    # Query cache disabled (deprecated in MySQL 8.0)
+    # query_cache_size=0
+    # query_cache_type=0
+    
+    # Binary logging
+    log-bin=mysql-bin
+    sync_binlog=1
+    
+    # Error logging
+    log-error=/var/log/mysql/error.log
+    
+    # Slow query log
+    slow_query_log=1
+    slow_query_log_file=/var/log/mysql/slow.log
+    long_query_time=2
+    
+  # Service configuration
+  serviceSpec:
+    type: ClusterIP

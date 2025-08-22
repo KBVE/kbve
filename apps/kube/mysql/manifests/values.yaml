@@ -1,0 +1,83 @@
+# MySQL Operator for Kubernetes Helm Values
+# https://github.com/mysql/mysql-operator
+
+# Operator configuration
+replicaCount: 1
+
+image:
+  repository: mysql/mysql-operator
+  pullPolicy: IfNotPresent
+  # tag: 9.4.0-2.2.5
+
+# Service account configuration
+serviceAccount:
+  create: true
+  annotations: {}
+  name: ""
+
+# RBAC configuration
+rbac:
+  create: true
+
+# Resource limits for the operator
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Node selector
+nodeSelector: {}
+
+# Tolerations
+tolerations: []
+
+# Affinity
+affinity: {}
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 2
+
+# Pod security context
+podSecurityContext:
+  fsGroup: 2
+
+# Log level
+logLevel: INFO
+
+# Webhook configuration
+webhook:
+  enabled: true
+  port: 9443
+  certManager:
+    enabled: true
+
+# Metrics
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false
+    # namespace: monitoring
+    # interval: 30s
+
+# Enterprise features (requires license)
+enterprise:
+  enabled: false
+
+# Backup configuration
+backup:
+  enabled: false
+  # s3:
+  #   endpoint: ""
+  #   bucket: ""
+  #   credentials:
+  #     secretName: ""
+
+# Additional environment variables
+env: []
+  # - name: MYSQL_OPERATOR_DEBUG
+  #   value: "1"
