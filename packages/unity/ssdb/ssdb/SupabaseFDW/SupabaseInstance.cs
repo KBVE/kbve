@@ -8,6 +8,7 @@ using Supabase.Gotrue;
 using Supabase.Gotrue.Interfaces;
 using Client = Supabase.Client;
 using UnityEngine;
+using UnityEngine.Scripting;
 using VContainer;
 using VContainer.Unity;
 using KBVE.SSDB;
@@ -16,23 +17,49 @@ using KBVE.MMExtensions.Orchestrator;
 
 namespace KBVE.SSDB.SupabaseFDW
 {
+    // Wrapper class to hold Supabase client and prevent code stripping
+    [UnityEngine.Scripting.Preserve]
+    public class SupabaseClientWrapper
+    {
+        public Client Client { get; private set; }
+        
+        [UnityEngine.Scripting.Preserve]
+        public SupabaseClientWrapper()
+        {
+            // Empty constructor for VContainer and to prevent stripping
+        }
+        
+        [UnityEngine.Scripting.Preserve]
+        public void Initialize(string url, string anonKey, SupabaseOptions options)
+        {
+            Client = new Client(url, anonKey, options);
+        }
+    }
+
     public class SupabaseInstance : IAsyncStartable, ISupabaseInstance, IDisposable
     {
         private readonly CompositeDisposable _disposables = new();
 
         private NetworkStatus _networkStatus;
         private SupabaseOptions _options;
-        private Client _supabase;
+        private SupabaseClientWrapper _clientWrapper;
 
         public ReactiveProperty<bool> Initialized { get; } = new(false);
         public ReactiveProperty<Session?> CurrentSession { get; } = new(null);
         public ReactiveProperty<User?> CurrentUser { get; } = new(null);
         public ReactiveProperty<bool> Online { get; } = new(false);
 
-        public Client Client => _supabase;
+        public Client Client => _clientWrapper?.Client;
 
         private readonly Subject<AuthStateChangedEvent> _authStateSubject = new();
         public Observable<AuthStateChangedEvent> AuthStateStream => _authStateSubject;
+
+        [Inject]
+        public SupabaseInstance()
+        {
+            // Create wrapper instance - VContainer will handle this
+            _clientWrapper = new SupabaseClientWrapper();
+        }
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
@@ -44,37 +71,38 @@ namespace KBVE.SSDB.SupabaseFDW
                 AutoConnectRealtime = false
             };
 
-            _supabase = new Client(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
+            // Initialize the client through the wrapper to prevent stripping issues
+            _clientWrapper.Initialize(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
 
-            _supabase.Auth.AddDebugListener(DebugListener);
-            _networkStatus.Client = (Supabase.Gotrue.Client)_supabase.Auth;
-            _supabase.Auth.SetPersistence(new UnitySession());
-            _supabase.Auth.AddStateChangedListener((sender, state) => UnityAuthListener(state, sender.CurrentSession));
-            _supabase.Auth.LoadSession();
-            _supabase.Auth.Options.AllowUnconfirmedUserSessions = true;
+            _clientWrapper.Client.Auth.AddDebugListener(DebugListener);
+            _networkStatus.Client = (Supabase.Gotrue.Client)_clientWrapper.Client.Auth;
+            _clientWrapper.Client.Auth.SetPersistence(new UnitySession());
+            _clientWrapper.Client.Auth.AddStateChangedListener((sender, state) => UnityAuthListener(state, sender.CurrentSession));
+            _clientWrapper.Client.Auth.LoadSession();
+            _clientWrapper.Client.Auth.Options.AllowUnconfirmedUserSessions = true;
 
             string url = $"{SupabaseInfo.Url}/auth/v1/settings?apikey={SupabaseInfo.AnonKey}";
 
             try
             {
-                _supabase.Auth.Online = await _networkStatus.StartAsync(url);
+                _clientWrapper.Client.Auth.Online = await _networkStatus.StartAsync(url);
             }
             catch (NotSupportedException)
             {
-                _supabase.Auth.Online = true;
+                _clientWrapper.Client.Auth.Online = true;
             }
             catch (Exception e)
             {
                 PostMessage(NotificationType.Debug, $"Network Error {e.GetType()}", e);
-                _supabase.Auth.Online = false;
+                _clientWrapper.Client.Auth.Online = false;
             }
 
-            Online.Value = _supabase.Auth.Online;
+            Online.Value = _clientWrapper.Client.Auth.Online;
 
-            if (_supabase.Auth.Online)
+            if (_clientWrapper.Client.Auth.Online)
             {
-                await _supabase.InitializeAsync();
-                await _supabase.Auth.Settings();
+                await _clientWrapper.Client.InitializeAsync();
+                await _clientWrapper.Client.Auth.Settings();
             }
 
             Initialized.Value = true;
