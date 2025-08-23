@@ -7,6 +7,9 @@ using VContainer;
 using R3;
 using System;
 using System.Threading;
+using UnityEngine;
+using System.Runtime.CompilerServices;
+using System.IO;
 
 namespace KBVE.MMExtensions.Orchestrator
 {
@@ -26,6 +29,8 @@ namespace KBVE.MMExtensions.Orchestrator
         public static OrchestratorQuestService Quest { get; internal set; }
 
         public static UniTask Ready => _readyTcs.Task;
+        
+        public static ReactiveProperty<bool> DebugSettings { get; } = new(true);
 
         /// <summary>
         /// Initializes service references from VContainer.
@@ -49,6 +54,22 @@ namespace KBVE.MMExtensions.Orchestrator
             await Quest.QuestsReady.WaitUntilTrue();
         }
         public static UniTask R() => WaitForFullReady();
+
+        public static void D(
+            string message,
+            [CallerMemberName] string memberName = "",
+            [CallerFilePath] string filePath = "",
+            [CallerLineNumber] int lineNumber = 0)
+        {
+            if (string.IsNullOrEmpty(message))
+                return;
+                
+            if (!DebugSettings.Value)
+                return;
+                
+            string fileName = Path.GetFileNameWithoutExtension(filePath);
+            Debug.Log($"[{fileName}.{memberName}:{lineNumber}] {message}");
+        }
 
     }
 }
