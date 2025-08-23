@@ -17,7 +17,6 @@ using KBVE.MMExtensions.Orchestrator;
 
 namespace KBVE.SSDB.SupabaseFDW
 {
-    // Wrapper class to hold Supabase client and prevent code stripping
     [UnityEngine.Scripting.Preserve]
     public class SupabaseClientWrapper
     {
@@ -26,7 +25,6 @@ namespace KBVE.SSDB.SupabaseFDW
         [UnityEngine.Scripting.Preserve]
         public SupabaseClientWrapper()
         {
-            // Empty constructor for VContainer and to prevent stripping
         }
         
         [UnityEngine.Scripting.Preserve]
@@ -43,11 +41,13 @@ namespace KBVE.SSDB.SupabaseFDW
         private NetworkStatus _networkStatus;
         private SupabaseOptions _options;
         private SupabaseClientWrapper _clientWrapper;
+        private CancellationTokenSource _cts;
 
         public ReactiveProperty<bool> Initialized { get; } = new(false);
         public ReactiveProperty<Session?> CurrentSession { get; } = new(null);
         public ReactiveProperty<User?> CurrentUser { get; } = new(null);
         public ReactiveProperty<bool> Online { get; } = new(false);
+        public ReactiveProperty<bool> Debug { get; } = new(false);
 
         public Client Client => _clientWrapper?.Client;
 
@@ -57,13 +57,15 @@ namespace KBVE.SSDB.SupabaseFDW
         [Inject]
         public SupabaseInstance()
         {
-            // Create wrapper instance - VContainer will handle this
             _clientWrapper = new SupabaseClientWrapper();
         }
 
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             await Operator.R();
+            _cts.Token.ThrowIfCancellationRequested();
+                        
             _networkStatus = new NetworkStatus();
             _options = new SupabaseOptions
             {
@@ -71,8 +73,16 @@ namespace KBVE.SSDB.SupabaseFDW
                 AutoConnectRealtime = false
             };
 
-            // Initialize the client through the wrapper to prevent stripping issues
-            _clientWrapper.Initialize(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
+            try
+            {
+                _clientWrapper.Initialize(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
+            }
+            catch (Exception e)
+            {
+                Debugger($"Failed to initialize Supabase client: {e.Message}");
+                PostMessage(NotificationType.Debug, $"Initialization Error {e.GetType()}", e);
+                throw;
+            }
 
             _clientWrapper.Client.Auth.AddDebugListener(DebugListener);
             _networkStatus.Client = (Supabase.Gotrue.Client)_clientWrapper.Client.Auth;
@@ -115,6 +125,17 @@ namespace KBVE.SSDB.SupabaseFDW
             _authStateSubject.OnNext(new AuthStateChangedEvent(state, session));
         }
 
+        public void Debugger(string message)
+        {
+            if (string.IsNullOrEmpty(message))
+                return;
+                
+            if (Debug.Value)
+            {
+                UnityEngine.Debug.Log($"[Supabase Instance] {message}");
+            }
+        }
+
         private void DebugListener(string message, Exception ex)
         {
             if (ex != null)
@@ -123,17 +144,21 @@ namespace KBVE.SSDB.SupabaseFDW
                 Debug.Log($"[Supabase Auth] {message}");
         }
 
-        public void Dispose()
-        {
-            _authStateSubject.OnCompleted();
-            _authStateSubject.Dispose();
-            _disposables.Dispose();
-        }
+
 
         private void PostMessage(NotificationType type, string message, Exception e = null)
         {
             Debug.Log($"{type}: {message}");
             if (e != null) Debug.LogException(e);
+        }
+
+        public void Dispose()
+        {
+            _cts?.Cancel();
+            _cts?.Dispose();
+            _authStateSubject.OnCompleted();
+            _authStateSubject.Dispose();
+            _disposables.Dispose();
         }
     }
 }
