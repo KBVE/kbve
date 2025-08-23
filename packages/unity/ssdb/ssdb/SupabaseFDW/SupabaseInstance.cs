@@ -75,6 +75,8 @@ namespace KBVE.SSDB.SupabaseFDW
             try
             {
                 _clientWrapper.Initialize(SupabaseInfo.Url, SupabaseInfo.AnonKey, _options);
+                Operator.D("Supabase Initialized.");
+
             }
             catch (Exception e)
             {
