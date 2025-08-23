@@ -47,7 +47,6 @@ namespace KBVE.SSDB.SupabaseFDW
         public ReactiveProperty<Session?> CurrentSession { get; } = new(null);
         public ReactiveProperty<User?> CurrentUser { get; } = new(null);
         public ReactiveProperty<bool> Online { get; } = new(false);
-        public ReactiveProperty<bool> DebugSettings { get; } = new(false);
 
         public Client Client => _clientWrapper?.Client;
 
@@ -79,7 +78,7 @@ namespace KBVE.SSDB.SupabaseFDW
             }
             catch (Exception e)
             {
-                Debugger($"Failed to initialize Supabase client: {e.Message}");
+                Operator.D($"Failed to initialize Supabase client: {e.Message}");
                 PostMessage(NotificationType.Debug, $"Initialization Error {e.GetType()}", e);
                 throw;
             }
@@ -103,6 +102,7 @@ namespace KBVE.SSDB.SupabaseFDW
             }
             catch (Exception e)
             {
+                Operator.D($"Network Error {e.GetType()}: {e.Message}");
                 PostMessage(NotificationType.Debug, $"Network Error {e.GetType()}", e);
                 _clientWrapper.Client.Auth.Online = false;
             }
@@ -125,16 +125,6 @@ namespace KBVE.SSDB.SupabaseFDW
             _authStateSubject.OnNext(new AuthStateChangedEvent(state, session));
         }
 
-        public void Debugger(string message)
-        {
-            if (string.IsNullOrEmpty(message))
-                return;
-                
-            if (DebugSettings.Value)
-            {
-                Debug.Log($"[Supabase Instance] {message}");
-            }
-        }
 
         private void DebugListener(string message, Exception ex)
         {
