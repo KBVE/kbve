@@ -47,7 +47,7 @@ namespace KBVE.SSDB.SupabaseFDW
         public ReactiveProperty<Session?> CurrentSession { get; } = new(null);
         public ReactiveProperty<User?> CurrentUser { get; } = new(null);
         public ReactiveProperty<bool> Online { get; } = new(false);
-        public ReactiveProperty<bool> Debug { get; } = new(false);
+        public ReactiveProperty<bool> DebugSettings { get; } = new(false);
 
         public Client Client => _clientWrapper?.Client;
 
@@ -65,7 +65,7 @@ namespace KBVE.SSDB.SupabaseFDW
             _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
             await Operator.R();
             _cts.Token.ThrowIfCancellationRequested();
-                        
+
             _networkStatus = new NetworkStatus();
             _options = new SupabaseOptions
             {
@@ -130,9 +130,9 @@ namespace KBVE.SSDB.SupabaseFDW
             if (string.IsNullOrEmpty(message))
                 return;
                 
-            if (Debug.Value)
+            if (DebugSettings.Value)
             {
-                UnityEngine.Debug.Log($"[Supabase Instance] {message}");
+                Debug.Log($"[Supabase Instance] {message}");
             }
         }
 
