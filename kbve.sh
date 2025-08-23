@@ -187,7 +187,7 @@ prepare_disoxide_container() {
 atomic_function() {
     set -e
 
-    git switch dev
+    git switch main
 
     git pull
 
