@@ -16,11 +16,12 @@ using Newtonsoft.Json;
 
 namespace KBVE.SSDB.SupabaseFDW
 {
-    public class SupabaseRealtimeFDW : IInitializable, IDisposable
+    public class SupabaseRealtimeFDW : IAsyncStartable, IDisposable
     {
         private readonly ISupabaseInstance _supabaseInstance;
         private readonly CompositeDisposable _disposables = new();
         private readonly Dictionary<string, RealtimeChannel> _channels = new();
+        private CancellationTokenSource _cts;
         
         public ReactiveProperty<bool> IsConnected { get; } = new(false);
         public ReactiveProperty<string> ConnectionState { get; } = new("disconnected");
@@ -35,13 +36,15 @@ namespace KBVE.SSDB.SupabaseFDW
             _supabaseInstance = supabaseInstance;
         }
         
-        public void Initialize()
+        public async UniTask StartAsync(CancellationToken cancellationToken)
         {
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            
             _supabaseInstance.Initialized
                 .Where(initialized => initialized)
                 .Subscribe(async _ =>
                 {
-                    await ConnectRealtimeAsync();
+                    await ConnectRealtimeAsync(_cts.Token);
                 })
                 .AddTo(_disposables);
                 
@@ -54,6 +57,15 @@ namespace KBVE.SSDB.SupabaseFDW
                     }
                 })
                 .AddTo(_disposables);
+                
+            // Wait for Supabase to be initialized before completing startup
+            await _supabaseInstance.Initialized.WaitUntilValueChangedAsync(_cts.Token);
+            _cts.Token.ThrowIfCancellationRequested();
+            
+            if (_supabaseInstance.Initialized.Value && _supabaseInstance.Online.Value)
+            {
+                await ConnectRealtimeAsync(_cts.Token);
+            }
         }
         
         private async UniTask ConnectRealtimeAsync(CancellationToken cancellationToken = default)
@@ -92,15 +104,19 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts?.Token ?? default, cancellationToken);
+                
                 if (_channels.ContainsKey(channelName))
                 {
                     Operator.D($"Already subscribed to channel: {channelName}");
                     return _channels[channelName];
                 }
                 
+                linkedCts.Token.ThrowIfCancellationRequested();
+                
                 if (!IsConnected.Value)
                 {
-                    await ConnectRealtimeAsync(cancellationToken);
+                    await ConnectRealtimeAsync(linkedCts.Token);
                 }
                 
                 var channel = _supabaseInstance.Client.Realtime.Channel(channelName);
@@ -130,6 +146,8 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts?.Token ?? default, cancellationToken);
+                linkedCts.Token.ThrowIfCancellationRequested();
                 if (!_channels.ContainsKey(channelName))
                 {
                     Operator.D($"Not subscribed to channel: {channelName}");
@@ -160,9 +178,12 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts?.Token ?? default, cancellationToken);
+                linkedCts.Token.ThrowIfCancellationRequested();
+                
                 if (!_channels.ContainsKey(channelName))
                 {
-                    await SubscribeToChannelAsync(channelName, cancellationToken);
+                    await SubscribeToChannelAsync(channelName, linkedCts.Token);
                 }
                 
                 var channel = _channels[channelName];
@@ -187,6 +208,9 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts?.Token ?? default, cancellationToken);
+                linkedCts.Token.ThrowIfCancellationRequested();
+                
                 var channelName = $"table-{tableName}";
                 
                 if (_channels.ContainsKey(channelName))
@@ -195,7 +219,7 @@ namespace KBVE.SSDB.SupabaseFDW
                     return _channels[channelName];
                 }
                 
-                var channel = await SubscribeToChannelAsync(channelName, cancellationToken);
+                var channel = await SubscribeToChannelAsync(channelName, linkedCts.Token);
                 
                 channel.OnPostgresChange += (sender, change) =>
                 {
@@ -250,8 +274,11 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts?.Token ?? default, cancellationToken);
+                linkedCts.Token.ThrowIfCancellationRequested();
+                
                 var presenceChannelName = $"presence-{channelName}";
-                var channel = await SubscribeToChannelAsync(presenceChannelName, cancellationToken);
+                var channel = await SubscribeToChannelAsync(presenceChannelName, linkedCts.Token);
                 
                 var presence = channel.Register();
                 
@@ -347,6 +374,7 @@ namespace KBVE.SSDB.SupabaseFDW
         
         public void Dispose()
         {
+            _cts?.Cancel();
             DisconnectAllChannels();
             
             if (_supabaseInstance.Client?.Realtime != null)
@@ -361,6 +389,7 @@ namespace KBVE.SSDB.SupabaseFDW
             
             _messageSubject.OnCompleted();
             _messageSubject.Dispose();
+            _cts?.Dispose();
             _disposables?.Dispose();
         }
     }

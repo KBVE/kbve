@@ -13,10 +13,11 @@ using KBVE.MMExtensions.Orchestrator;
 
 namespace KBVE.SSDB.SupabaseFDW
 {
-    public class SupabaseAuthFDW : IInitializable, IDisposable
+    public class SupabaseAuthFDW : IAsyncStartable, IDisposable
     {
         private readonly ISupabaseInstance _supabaseInstance;
         private readonly CompositeDisposable _disposables = new();
+        private CancellationTokenSource _cts;
         
         public ReactiveProperty<bool> IsAuthenticated { get; } = new(false);
         public ReactiveProperty<string> ErrorMessage { get; } = new(string.Empty);
@@ -27,8 +28,10 @@ namespace KBVE.SSDB.SupabaseFDW
             _supabaseInstance = supabaseInstance;
         }
         
-        public void Initialize()
+        public async UniTask StartAsync(CancellationToken cancellationToken)
         {
+            _cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+            
             _supabaseInstance.CurrentSession
                 .Subscribe(session =>
                 {
@@ -42,18 +45,32 @@ namespace KBVE.SSDB.SupabaseFDW
                     HandleAuthStateChange(authEvent);
                 })
                 .AddTo(_disposables);
+                
+            // Wait for Supabase to be initialized
+            await _supabaseInstance.Initialized.WaitUntilValueChangedAsync(_cts.Token);
+            _cts.Token.ThrowIfCancellationRequested();
+            
+            // Check if there's an existing session after initialization
+            if (_supabaseInstance.CurrentSession.Value != null)
+            {
+                IsAuthenticated.Value = true;
+                Operator.D($"Existing session found for user: {_supabaseInstance.CurrentUser.Value?.Email}");
+            }
         }
         
         public async UniTask<bool> SignInWithEmailAsync(string email, string password, CancellationToken cancellationToken = default)
         {
             try
             {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts?.Token ?? default, cancellationToken);
+                
                 if (!_supabaseInstance.Initialized.Value)
                 {
                     ErrorMessage.Value = "Supabase client not initialized";
                     return false;
                 }
                 
+                linkedCts.Token.ThrowIfCancellationRequested();
                 var session = await _supabaseInstance.Client.Auth.SignIn(email, password);
                 return session != null;
             }
@@ -69,12 +86,15 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts?.Token ?? default, cancellationToken);
+                
                 if (!_supabaseInstance.Initialized.Value)
                 {
                     ErrorMessage.Value = "Supabase client not initialized";
                     return false;
                 }
                 
+                linkedCts.Token.ThrowIfCancellationRequested();
                 var session = await _supabaseInstance.Client.Auth.SignUp(email, password);
                 return session != null;
             }
@@ -90,12 +110,15 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts?.Token ?? default, cancellationToken);
+                
                 if (!_supabaseInstance.Initialized.Value)
                 {
                     ErrorMessage.Value = "Supabase client not initialized";
                     return false;
                 }
                 
+                linkedCts.Token.ThrowIfCancellationRequested();
                 var providerAuth = await _supabaseInstance.Client.Auth.SignIn(provider);
                 return providerAuth != null;
             }
@@ -111,12 +134,15 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts?.Token ?? default, cancellationToken);
+                
                 if (!_supabaseInstance.Initialized.Value)
                 {
                     ErrorMessage.Value = "Supabase client not initialized";
                     return false;
                 }
                 
+                linkedCts.Token.ThrowIfCancellationRequested();
                 await _supabaseInstance.Client.Auth.SignOut();
                 return true;
             }
@@ -132,12 +158,15 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
+                using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts?.Token ?? default, cancellationToken);
+                
                 if (!_supabaseInstance.Initialized.Value)
                 {
                     ErrorMessage.Value = "Supabase client not initialized";
                     return false;
                 }
                 
+                linkedCts.Token.ThrowIfCancellationRequested();
                 var session = await _supabaseInstance.Client.Auth.RefreshSession();
                 return session != null;
             }
@@ -179,6 +208,8 @@ namespace KBVE.SSDB.SupabaseFDW
         
         public void Dispose()
         {
+            _cts?.Cancel();
+            _cts?.Dispose();
             _disposables?.Dispose();
         }
     }
