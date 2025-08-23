@@ -10,6 +10,8 @@
     <IsTestProject>true</IsTestProject>
     <OutputType>Library</OutputType>
     <DefineConstants>VCONTAINER_UNITASK_INTEGRATION</DefineConstants>
+     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
 
   </PropertyGroup>
 
@@ -262,7 +264,21 @@
   </Reference>
 </ItemGroup>
 
-<!-- Supabase (Windows) -->
+
+<!-- Unity.Mathematics + Burst (macOS/Linux) -->
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="Unity.Mathematics">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Unity.Burst">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Unity.Burst.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+
+<!-- Supabase (Windows)
 <ItemGroup Condition="'$(OS)' == 'Windows_NT'">
   <Reference Include="Supabase">
     <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Supabase.dll</HintPath>
@@ -290,19 +306,6 @@
   </Reference>
 </ItemGroup>
 
-<!-- Unity.Mathematics + Burst (macOS/Linux) -->
-<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
-  <Reference Include="Unity.Mathematics">
-    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Unity.Mathematics.dll</HintPath>
-    <Private>false</Private>
-  </Reference>
-  <Reference Include="Unity.Burst">
-    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Unity.Burst.dll</HintPath>
-    <Private>false</Private>
-  </Reference>
-</ItemGroup>
-
-<!-- Supabase (macOS/Linux) -->
 <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
   <Reference Include="Supabase">
     <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Supabase.dll</HintPath>
@@ -329,6 +332,8 @@
     <Private>false</Private>
   </Reference>
 </ItemGroup>
+
+  -->
 
 
   <!-- Kilonet -->
