@@ -13,10 +13,11 @@ using KBVE.MMExtensions.Orchestrator;
 
 namespace KBVE.SSDB.SupabaseFDW
 {
-    public class SupabaseAuthFDW : IInitializable, IDisposable
+    public class SupabaseAuthFDW : IAsyncStartable, IDisposable
     {
         private readonly ISupabaseInstance _supabaseInstance;
         private readonly CompositeDisposable _disposables = new();
+        private readonly CancellationTokenSource _cts = new();
         
         public ReactiveProperty<bool> IsAuthenticated { get; } = new(false);
         public ReactiveProperty<string> ErrorMessage { get; } = new(string.Empty);
@@ -27,125 +28,181 @@ namespace KBVE.SSDB.SupabaseFDW
             _supabaseInstance = supabaseInstance;
         }
         
-        public void Initialize()
+        public async UniTask StartAsync(CancellationToken cancellationToken)
         {
-            _supabaseInstance.CurrentSession
-                .Subscribe(session =>
-                {
-                    IsAuthenticated.Value = session != null;
-                })
-                .AddTo(_disposables);
-                
-            _supabaseInstance.AuthStateStream
-                .Subscribe(authEvent =>
-                {
-                    HandleAuthStateChange(authEvent);
-                })
-                .AddTo(_disposables);
+            // Link the provided cancellation token with our class-level token
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token))
+            {
+                _supabaseInstance.CurrentSession
+                    .Subscribe(session =>
+                    {
+                        IsAuthenticated.Value = session != null;
+                    })
+                    .AddTo(_disposables);
+                    
+                _supabaseInstance.AuthStateStream
+                    .Subscribe(authEvent =>
+                    {
+                        HandleAuthStateChange(authEvent);
+                    })
+                    .AddTo(_disposables);
+                    
+                await UniTask.CompletedTask;
+            }
         }
         
         public async UniTask<bool> SignInWithEmailAsync(string email, string password, CancellationToken cancellationToken = default)
         {
-            try
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token))
             {
-                if (!_supabaseInstance.Initialized.Value)
+                try
                 {
-                    ErrorMessage.Value = "Supabase client not initialized";
+                    if (!_supabaseInstance.Initialized.Value)
+                    {
+                        ErrorMessage.Value = "Supabase client not initialized";
+                        return false;
+                    }
+                    
+                    linkedCts.Token.ThrowIfCancellationRequested();
+                    var session = await _supabaseInstance.Client.Auth.SignIn(email, password);
+                    return session != null;
+                }
+                catch (OperationCanceledException)
+                {
+                    ErrorMessage.Value = "Operation cancelled";
+                    Operator.D("SignIn cancelled");
                     return false;
                 }
-                
-                var session = await _supabaseInstance.Client.Auth.SignIn(email, password);
-                return session != null;
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage.Value = ex.Message;
-                Operator.D($"SignIn failed: {ex.Message}");
-                return false;
+                catch (Exception ex)
+                {
+                    ErrorMessage.Value = ex.Message;
+                    Operator.D($"SignIn failed: {ex.Message}");
+                    return false;
+                }
             }
         }
         
         public async UniTask<bool> SignUpWithEmailAsync(string email, string password, CancellationToken cancellationToken = default)
         {
-            try
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token))
             {
-                if (!_supabaseInstance.Initialized.Value)
+                try
                 {
-                    ErrorMessage.Value = "Supabase client not initialized";
+                    if (!_supabaseInstance.Initialized.Value)
+                    {
+                        ErrorMessage.Value = "Supabase client not initialized";
+                        return false;
+                    }
+                    
+                    linkedCts.Token.ThrowIfCancellationRequested();
+                    var session = await _supabaseInstance.Client.Auth.SignUp(email, password);
+                    return session != null;
+                }
+                catch (OperationCanceledException)
+                {
+                    ErrorMessage.Value = "Operation cancelled";
+                    Operator.D("SignUp cancelled");
                     return false;
                 }
-                
-                var session = await _supabaseInstance.Client.Auth.SignUp(email, password);
-                return session != null;
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage.Value = ex.Message;
-                Operator.D($"SignUp failed: {ex.Message}");
-                return false;
+                catch (Exception ex)
+                {
+                    ErrorMessage.Value = ex.Message;
+                    Operator.D($"SignUp failed: {ex.Message}");
+                    return false;
+                }
             }
         }
         
         public async UniTask<bool> SignInWithOAuthAsync(Constants.Provider provider, CancellationToken cancellationToken = default)
         {
-            try
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token))
             {
-                if (!_supabaseInstance.Initialized.Value)
+                try
                 {
-                    ErrorMessage.Value = "Supabase client not initialized";
+                    if (!_supabaseInstance.Initialized.Value)
+                    {
+                        ErrorMessage.Value = "Supabase client not initialized";
+                        return false;
+                    }
+                    
+                    linkedCts.Token.ThrowIfCancellationRequested();
+                    var providerAuth = await _supabaseInstance.Client.Auth.SignIn(provider);
+                    return providerAuth != null;
+                }
+                catch (OperationCanceledException)
+                {
+                    ErrorMessage.Value = "Operation cancelled";
+                    Operator.D("OAuth SignIn cancelled");
                     return false;
                 }
-                
-                var providerAuth = await _supabaseInstance.Client.Auth.SignIn(provider);
-                return providerAuth != null;
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage.Value = ex.Message;
-                Operator.D($"OAuth SignIn failed: {ex.Message}");
-                return false;
+                catch (Exception ex)
+                {
+                    ErrorMessage.Value = ex.Message;
+                    Operator.D($"OAuth SignIn failed: {ex.Message}");
+                    return false;
+                }
             }
         }
         
         public async UniTask<bool> SignOutAsync(CancellationToken cancellationToken = default)
         {
-            try
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token))
             {
-                if (!_supabaseInstance.Initialized.Value)
+                try
                 {
-                    ErrorMessage.Value = "Supabase client not initialized";
+                    if (!_supabaseInstance.Initialized.Value)
+                    {
+                        ErrorMessage.Value = "Supabase client not initialized";
+                        return false;
+                    }
+                    
+                    linkedCts.Token.ThrowIfCancellationRequested();
+                    await _supabaseInstance.Client.Auth.SignOut();
+                    return true;
+                }
+                catch (OperationCanceledException)
+                {
+                    ErrorMessage.Value = "Operation cancelled";
+                    Operator.D("SignOut cancelled");
                     return false;
                 }
-                
-                await _supabaseInstance.Client.Auth.SignOut();
-                return true;
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage.Value = ex.Message;
-                Operator.D($"SignOut failed: {ex.Message}");
-                return false;
+                catch (Exception ex)
+                {
+                    ErrorMessage.Value = ex.Message;
+                    Operator.D($"SignOut failed: {ex.Message}");
+                    return false;
+                }
             }
         }
         
         public async UniTask<bool> RefreshSessionAsync(CancellationToken cancellationToken = default)
         {
-            try
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token))
             {
-                if (!_supabaseInstance.Initialized.Value)
+                try
                 {
-                    ErrorMessage.Value = "Supabase client not initialized";
+                    if (!_supabaseInstance.Initialized.Value)
+                    {
+                        ErrorMessage.Value = "Supabase client not initialized";
+                        return false;
+                    }
+                    
+                    linkedCts.Token.ThrowIfCancellationRequested();
+                    var session = await _supabaseInstance.Client.Auth.RefreshSession();
+                    return session != null;
+                }
+                catch (OperationCanceledException)
+                {
+                    ErrorMessage.Value = "Operation cancelled";
+                    Operator.D("RefreshSession cancelled");
                     return false;
                 }
-                
-                var session = await _supabaseInstance.Client.Auth.RefreshSession();
-                return session != null;
-            }
-            catch (Exception ex)
-            {
-                ErrorMessage.Value = ex.Message;
-                Operator.D($"RefreshSession failed: {ex.Message}");
-                return false;
+                catch (Exception ex)
+                {
+                    ErrorMessage.Value = ex.Message;
+                    Operator.D($"RefreshSession failed: {ex.Message}");
+                    return false;
+                }
             }
         }
         
@@ -179,6 +236,8 @@ namespace KBVE.SSDB.SupabaseFDW
         
         public void Dispose()
         {
+            _cts?.Cancel();
+            _cts?.Dispose();
             _disposables?.Dispose();
         }
     }
