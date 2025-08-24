@@ -296,7 +296,8 @@ namespace KBVE.SSDB.SupabaseFDW
                     return false;
                 }
                 
-                await channel.Send(eventName, payload);
+                // Send requires Constants.ChannelEventName as first parameter
+                await channel.Send(Supabase.Realtime.Constants.ChannelEventName.Broadcast, eventName, payload);
                 
                 Operator.D($"Broadcast sent to channel {channelName}: {eventName}");
                 return true;
@@ -332,7 +333,8 @@ namespace KBVE.SSDB.SupabaseFDW
                     return false;
                 }
                 
-                var presence = channel.Register().Presence;
+                // Register requires explicit type parameter for presence
+                var presence = channel.Register<Supabase.Realtime.Presence>(false, false).Presence;
                 await presence.Track(presenceState);
                 
                 Operator.D($"Presence tracked for channel: {channelName}");
@@ -368,7 +370,8 @@ namespace KBVE.SSDB.SupabaseFDW
                     return false;
                 }
                 
-                var presence = channel.Register().Presence;
+                // Register requires explicit type parameter for presence
+                var presence = channel.Register<Supabase.Realtime.Presence>(false, false).Presence;
                 await presence.Untrack();
                 
                 Operator.D($"Presence untracked for channel: {channelName}");
@@ -420,7 +423,8 @@ namespace KBVE.SSDB.SupabaseFDW
                 // Disconnect realtime
                 if (_supabaseInstance.Client?.Realtime != null)
                 {
-                    await _supabaseInstance.Client.Realtime.DisconnectAsync();
+                    // Use Disconnect instead of DisconnectAsync
+                    await _supabaseInstance.Client.Realtime.Disconnect();
                 }
                 
                 // Update connection state
@@ -451,7 +455,8 @@ namespace KBVE.SSDB.SupabaseFDW
                 using (var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
                 using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token))
                 {
-                    await channel.Unsubscribe().AttachExternalCancellation(linkedCts.Token);
+                    // Unsubscribe returns void, wrap in UniTask
+                    await UniTask.RunOnThreadPool(async () => await channel.Unsubscribe(), cancellationToken: linkedCts.Token);
                 }
             }
             catch (Exception ex)
