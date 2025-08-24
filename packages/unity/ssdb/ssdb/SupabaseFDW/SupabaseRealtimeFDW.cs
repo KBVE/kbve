@@ -40,13 +40,18 @@ namespace KBVE.SSDB.SupabaseFDW
             
             try
             {
-                // Monitor connection state changes
-                _supabaseInstance.RealtimeConnected
-                    .Subscribe(connected =>
+                // Monitor online state changes as a proxy for connection state
+                _supabaseInstance.Online
+                    .Subscribe(online =>
                     {
-                        IsConnected.Value = connected;
-                        ConnectionState.Value = connected ? "connected" : "disconnected";
-                        Operator.D($"Realtime connection state: {ConnectionState.Value}");
+                        // Update connection state based on online status
+                        // Note: This is a general online state, not specific to realtime
+                        if (!online)
+                        {
+                            IsConnected.Value = false;
+                            ConnectionState.Value = "offline";
+                            Operator.D($"Supabase connection state: offline");
+                        }
                     })
                     .AddTo(_disposables);
                 
@@ -83,24 +88,36 @@ namespace KBVE.SSDB.SupabaseFDW
                 if (_supabaseInstance.Client?.Realtime != null)
                 {
                     await _supabaseInstance.Client.Realtime.ConnectAsync();
+                    
+                    // Update connection state after successful connection
+                    IsConnected.Value = true;
+                    ConnectionState.Value = "connected";
                     Operator.D("Realtime connection initialized");
+                }
+                else
+                {
+                    ErrorMessage.Value = "Realtime client not available";
+                    Operator.D("Realtime client not available");
                 }
             }
             catch (OperationCanceledException)
             {
+                IsConnected.Value = false;
+                ConnectionState.Value = "cancelled";
                 ErrorMessage.Value = "Realtime initialization cancelled";
                 Operator.D("Realtime initialization cancelled");
             }
             catch (Exception ex)
             {
+                IsConnected.Value = false;
+                ConnectionState.Value = "error";
                 ErrorMessage.Value = $"Failed to initialize realtime: {ex.Message}";
                 Operator.D($"Realtime initialization failed: {ex.Message}");
             }
         }
         
         public async UniTask<RealtimeChannel> SubscribeToChannelAsync(
-            string channelName, 
-            RealtimeChannel.Options options = null,
+            string channelName,
             CancellationToken cancellationToken = default)
         {
             // Create combined token that respects both lifetime and passed token
@@ -125,7 +142,7 @@ namespace KBVE.SSDB.SupabaseFDW
                 }
                 
                 // Create and subscribe to channel
-                var channel = _supabaseInstance.Client.Realtime.Channel(channelName, options);
+                var channel = _supabaseInstance.Client.Realtime.Channel(channelName);
                 await channel.Subscribe();
                 
                 _channels[channelName] = channel;
@@ -143,6 +160,75 @@ namespace KBVE.SSDB.SupabaseFDW
             {
                 ErrorMessage.Value = $"Failed to subscribe to channel: {ex.Message}";
                 Operator.D($"Channel subscription failed: {ex.Message}");
+                return null;
+            }
+            finally
+            {
+                _channelLock.Release();
+            }
+        }
+        
+        public async UniTask<RealtimeChannel> SubscribeToDatabaseChannelAsync(
+            string channelName,
+            string schema,
+            string table,
+            string column = null,
+            string value = null,
+            CancellationToken cancellationToken = default)
+        {
+            // Create combined token that respects both lifetime and passed token
+            var effectiveToken = CreateEffectiveToken(cancellationToken);
+            
+            await _channelLock.WaitAsync(effectiveToken);
+            try
+            {
+                if (!_supabaseInstance.Initialized.Value)
+                {
+                    ErrorMessage.Value = "Supabase client not initialized";
+                    return null;
+                }
+                
+                effectiveToken.ThrowIfCancellationRequested();
+                
+                // Create a unique key for database channels
+                var channelKey = $"{channelName}_{schema}_{table}_{column}_{value}";
+                
+                // Check if channel already exists
+                if (_channels.TryGetValue(channelKey, out var existingChannel))
+                {
+                    Operator.D($"Database channel {channelKey} already subscribed");
+                    return existingChannel;
+                }
+                
+                // Create database channel with filtering if column and value are provided
+                RealtimeChannel channel;
+                if (!string.IsNullOrEmpty(column) && !string.IsNullOrEmpty(value))
+                {
+                    channel = _supabaseInstance.Client.Realtime.Channel(channelName, schema, table, column, value);
+                }
+                else
+                {
+                    // Simple database channel without filtering
+                    channel = _supabaseInstance.Client.Realtime.Channel(channelName);
+                }
+                
+                await channel.Subscribe();
+                
+                _channels[channelKey] = channel;
+                Operator.D($"Subscribed to database channel: {channelKey}");
+                
+                return channel;
+            }
+            catch (OperationCanceledException)
+            {
+                ErrorMessage.Value = "Database channel subscription cancelled";
+                Operator.D($"Database channel subscription cancelled: {channelName}");
+                return null;
+            }
+            catch (Exception ex)
+            {
+                ErrorMessage.Value = $"Failed to subscribe to database channel: {ex.Message}";
+                Operator.D($"Database channel subscription failed: {ex.Message}");
                 return null;
             }
             finally
@@ -337,6 +423,9 @@ namespace KBVE.SSDB.SupabaseFDW
                     await _supabaseInstance.Client.Realtime.DisconnectAsync();
                 }
                 
+                // Update connection state
+                IsConnected.Value = false;
+                ConnectionState.Value = "disconnected";
                 Operator.D("Realtime disconnected");
             }
             catch (OperationCanceledException)
