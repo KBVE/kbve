@@ -55,6 +55,26 @@ namespace KBVE.SSDB.SupabaseFDW
                     })
                     .AddTo(_disposables);
                 
+                // Monitor auth state changes to update realtime token
+                _supabaseInstance.Client.Auth.AddStateChangedListener((sender, state) =>
+                {
+                    if (state == Supabase.Gotrue.Constants.AuthState.SignedIn)
+                    {
+                        var session = _supabaseInstance.Client.Auth.CurrentSession;
+                        if (session != null && !string.IsNullOrEmpty(session.AccessToken))
+                        {
+                            _supabaseInstance.Client.Realtime.SetAuth(session.AccessToken);
+                            Operator.D("Realtime auth token updated on sign in");
+                        }
+                    }
+                    else if (state == Supabase.Gotrue.Constants.AuthState.SignedOut)
+                    {
+                        // Clear auth token when signed out
+                        _supabaseInstance.Client.Realtime.SetAuth(string.Empty);
+                        Operator.D("Realtime auth token cleared on sign out");
+                    }
+                });
+                
                 // Initialize realtime connection if client is ready
                 if (_supabaseInstance.Initialized.Value)
                 {
@@ -87,6 +107,29 @@ namespace KBVE.SSDB.SupabaseFDW
                 
                 if (_supabaseInstance.Client?.Realtime != null)
                 {
+                    // Get the current session and access token
+                    var currentSession = _supabaseInstance.Client.Auth.CurrentSession;
+                    if (currentSession != null && !string.IsNullOrEmpty(currentSession.AccessToken))
+                    {
+                        // Set the authentication token for realtime
+                        _supabaseInstance.Client.Realtime.SetAuth(currentSession.AccessToken);
+                        Operator.D($"Realtime auth token set");
+                    }
+                    else
+                    {
+                        // If no session, try to refresh the token
+                        var refreshedSession = await _supabaseInstance.Client.Auth.RefreshSession();
+                        if (refreshedSession != null && !string.IsNullOrEmpty(refreshedSession.AccessToken))
+                        {
+                            _supabaseInstance.Client.Realtime.SetAuth(refreshedSession.AccessToken);
+                            Operator.D($"Realtime auth token set after refresh");
+                        }
+                        else
+                        {
+                            Operator.D("No auth token available for realtime - connecting as anonymous");
+                        }
+                    }
+                    
                     await _supabaseInstance.Client.Realtime.ConnectAsync();
                     
                     // Update connection state after successful connection
@@ -142,6 +185,7 @@ namespace KBVE.SSDB.SupabaseFDW
                 }
                 
                 // Create and subscribe to channel
+                // Channels are automatically namespaced, no need for prefix
                 var channel = _supabaseInstance.Client.Realtime.Channel(channelName);
                 await channel.Subscribe();
                 
@@ -278,11 +322,11 @@ namespace KBVE.SSDB.SupabaseFDW
             }
         }
         
-        public async UniTask<bool> BroadcastToChannelAsync<T>(
+        public async UniTask<bool> SendBroadcastAsync<T>(
             string channelName,
             string eventName,
             T payload,
-            CancellationToken cancellationToken = default) where T : class
+            CancellationToken cancellationToken = default) where T : Supabase.Realtime.Models.BaseBroadcast
         {
             var effectiveToken = CreateEffectiveToken(cancellationToken);
             
@@ -296,8 +340,10 @@ namespace KBVE.SSDB.SupabaseFDW
                     return false;
                 }
                 
-                // Send requires Constants.ChannelEventName as first parameter
-                await channel.Send(Supabase.Realtime.Constants.ChannelEventName.Broadcast, eventName, payload);
+                // Get or create broadcast handler for this channel
+                var broadcastOptions = new Supabase.Realtime.Broadcast.BroadcastOptions(true, true);
+                var broadcast = new RealtimeBroadcast<T>(channel, broadcastOptions, null);
+                await broadcast.Send(eventName, payload);
                 
                 Operator.D($"Broadcast sent to channel {channelName}: {eventName}");
                 return true;
@@ -314,6 +360,16 @@ namespace KBVE.SSDB.SupabaseFDW
                 Operator.D($"Broadcast failed: {ex.Message}");
                 return false;
             }
+        }
+        
+        public Supabase.Realtime.RealtimeBroadcast<T> CreateBroadcast<T>(string channelName) where T : Supabase.Realtime.Models.BaseBroadcast
+        {
+            if (_channels.TryGetValue(channelName, out var channel))
+            {
+                var broadcastOptions = new Supabase.Realtime.Broadcast.BroadcastOptions(true, true);
+                return new Supabase.Realtime.RealtimeBroadcast<T>(channel, broadcastOptions, null);
+            }
+            return null;
         }
         
         public async UniTask<bool> TrackPresenceAsync(

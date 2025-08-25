@@ -9,6 +9,7 @@ using VContainer.Unity;
 using KBVE.SSDB;
 using KBVE.MMExtensions.Orchestrator;
 using Supabase.Realtime;
+using Supabase.Realtime.Broadcast;
 using Supabase.Realtime.Models;
 using Newtonsoft.Json;
 
@@ -25,6 +26,7 @@ namespace KBVE.SSDB.SupabaseFDW
         private readonly CancellationTokenSource _lifetimeCts = new();
         
         private RealtimeChannel _broadcastChannel;
+        private RealtimeBroadcast<GameLaunchPayload> _realtimeBroadcast;
         private bool _hasAnnouncedLaunch = false;
         
         public ReactiveProperty<bool> IsBroadcasting { get; } = new(false);
@@ -102,16 +104,18 @@ namespace KBVE.SSDB.SupabaseFDW
                 
                 if (_broadcastChannel != null)
                 {
+                    // Create RealtimeBroadcast instance with broadcast options
+                    var broadcastOptions = new BroadcastOptions(true, true);
+                    _realtimeBroadcast = new RealtimeBroadcast<GameLaunchPayload>(_broadcastChannel, broadcastOptions, null);
+                    
                     // Register for receiving broadcasts from other players
-                    var broadcast = _broadcastChannel.Register<GameLaunchPayload>(false, true);
-                    broadcast.AddBroadcastEventHandler((sender, baseBroadcast) =>
+                    _realtimeBroadcast.AddBroadcastEventHandler((sender, baseBroadcast) =>
                     {
-                        var response = broadcast.Current();
-                        if (response is GameLaunchPayload payload)
+                        var payload = _realtimeBroadcast.Current();
+                        if (payload != null)
                         {
-                            OnPlayerBroadcastReceived(sender, payload);
+                            OnPlayerBroadcastReceived(payload);
                         }
-                        Operator.D($"Unexpected payload type: {response}");
                     });
                     
                     IsBroadcasting.Value = true;
@@ -145,12 +149,7 @@ namespace KBVE.SSDB.SupabaseFDW
                     EventType = "game_launch"
                 };
                 
-                var success = await _realtimeFDW.BroadcastToChannelAsync(
-                    BroadcastChannelName.Value,
-                    "player_launched",
-                    launchPayload,
-                    cancellationToken
-                );
+                var success = await _realtimeBroadcast.Send("player_launched", launchPayload);
                 
                 if (success)
                 {
@@ -197,12 +196,7 @@ namespace KBVE.SSDB.SupabaseFDW
                             SessionDuration = DateTime.UtcNow - LaunchTime.Value
                         };
                         
-                        await _realtimeFDW.BroadcastToChannelAsync(
-                            BroadcastChannelName.Value,
-                            "session_heartbeat",
-                            heartbeatPayload,
-                            cancellationToken
-                        );
+                        await _realtimeBroadcast.Send("session_heartbeat", heartbeatPayload);
                         
                         Operator.D($"Session heartbeat sent - Duration: {heartbeatPayload.SessionDuration?.TotalMinutes:F1}m");
                     }
@@ -237,12 +231,7 @@ namespace KBVE.SSDB.SupabaseFDW
                     SessionDuration = DateTime.UtcNow - LaunchTime.Value
                 };
                 
-                await _realtimeFDW.BroadcastToChannelAsync(
-                    BroadcastChannelName.Value,
-                    "player_exited",
-                    exitPayload,
-                    effectiveToken
-                );
+                await _realtimeBroadcast.Send("player_exited", exitPayload);
                 
                 Operator.D($"Game exit broadcast sent - Session Duration: {exitPayload.SessionDuration?.TotalMinutes:F1}m");
             }
@@ -252,7 +241,7 @@ namespace KBVE.SSDB.SupabaseFDW
             }
         }
         
-        private void OnPlayerBroadcastReceived(object sender, GameLaunchPayload payload)
+        private void OnPlayerBroadcastReceived(GameLaunchPayload payload)
         {
             // Ignore our own broadcasts
             if (payload.SessionId == SessionId.Value) return;
