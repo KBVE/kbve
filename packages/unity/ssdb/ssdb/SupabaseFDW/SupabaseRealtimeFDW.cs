@@ -55,25 +55,38 @@ namespace KBVE.SSDB.SupabaseFDW
                     })
                     .AddTo(_disposables);
                 
-                // Monitor auth state changes to update realtime token
-                _supabaseInstance.Client.Auth.AddStateChangedListener((sender, state) =>
+                // Monitor auth state changes to update realtime token (only if client is available)
+                if (_supabaseInstance.Client?.Auth != null && _supabaseInstance.Client?.Realtime != null)
                 {
-                    if (state == Supabase.Gotrue.Constants.AuthState.SignedIn)
+                    _supabaseInstance.Client.Auth.AddStateChangedListener((sender, state) =>
                     {
-                        var session = _supabaseInstance.Client.Auth.CurrentSession;
-                        if (session != null && !string.IsNullOrEmpty(session.AccessToken))
+                        try
                         {
-                            _supabaseInstance.Client.Realtime.SetAuth(session.AccessToken);
-                            Operator.D("Realtime auth token updated on sign in");
+                            if (state == Supabase.Gotrue.Constants.AuthState.SignedIn)
+                            {
+                                var session = _supabaseInstance.Client?.Auth?.CurrentSession;
+                                if (session != null && !string.IsNullOrEmpty(session.AccessToken) && _supabaseInstance.Client?.Realtime != null)
+                                {
+                                    _supabaseInstance.Client.Realtime.SetAuth(session.AccessToken);
+                                    Operator.D("Realtime auth token updated on sign in");
+                                }
+                            }
+                            else if (state == Supabase.Gotrue.Constants.AuthState.SignedOut)
+                            {
+                                // Clear auth token when signed out
+                                if (_supabaseInstance.Client?.Realtime != null)
+                                {
+                                    _supabaseInstance.Client.Realtime.SetAuth(string.Empty);
+                                    Operator.D("Realtime auth token cleared on sign out");
+                                }
+                            }
                         }
-                    }
-                    else if (state == Supabase.Gotrue.Constants.AuthState.SignedOut)
-                    {
-                        // Clear auth token when signed out
-                        _supabaseInstance.Client.Realtime.SetAuth(string.Empty);
-                        Operator.D("Realtime auth token cleared on sign out");
-                    }
-                });
+                        catch (Exception ex)
+                        {
+                            Operator.D($"Error updating realtime auth: {ex.Message}");
+                        }
+                    });
+                }
                 
                 // Initialize realtime connection if client is ready
                 if (_supabaseInstance.Initialized.Value)
@@ -107,27 +120,41 @@ namespace KBVE.SSDB.SupabaseFDW
                 
                 if (_supabaseInstance.Client?.Realtime != null)
                 {
-                    // Get the current session and access token
-                    var currentSession = _supabaseInstance.Client.Auth.CurrentSession;
-                    if (currentSession != null && !string.IsNullOrEmpty(currentSession.AccessToken))
+                    // Get the current session and access token (with null checks)
+                    if (_supabaseInstance.Client?.Auth != null)
                     {
-                        // Set the authentication token for realtime
-                        _supabaseInstance.Client.Realtime.SetAuth(currentSession.AccessToken);
-                        Operator.D($"Realtime auth token set");
-                    }
-                    else
-                    {
-                        // If no session, try to refresh the token
-                        var refreshedSession = await _supabaseInstance.Client.Auth.RefreshSession();
-                        if (refreshedSession != null && !string.IsNullOrEmpty(refreshedSession.AccessToken))
+                        var currentSession = _supabaseInstance.Client.Auth.CurrentSession;
+                        if (currentSession != null && !string.IsNullOrEmpty(currentSession.AccessToken))
                         {
-                            _supabaseInstance.Client.Realtime.SetAuth(refreshedSession.AccessToken);
-                            Operator.D($"Realtime auth token set after refresh");
+                            // Set the authentication token for realtime
+                            _supabaseInstance.Client.Realtime.SetAuth(currentSession.AccessToken);
+                            Operator.D($"Realtime auth token set");
                         }
                         else
                         {
-                            Operator.D("No auth token available for realtime - connecting as anonymous");
+                            try
+                            {
+                                // If no session, try to refresh the token
+                                var refreshedSession = await _supabaseInstance.Client.Auth.RefreshSession();
+                                if (refreshedSession != null && !string.IsNullOrEmpty(refreshedSession.AccessToken))
+                                {
+                                    _supabaseInstance.Client.Realtime.SetAuth(refreshedSession.AccessToken);
+                                    Operator.D($"Realtime auth token set after refresh");
+                                }
+                                else
+                                {
+                                    Operator.D("No auth token available for realtime - connecting as anonymous");
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Operator.D($"Could not refresh auth token: {ex.Message} - connecting as anonymous");
+                            }
                         }
+                    }
+                    else
+                    {
+                        Operator.D("Auth client not available - connecting to realtime as anonymous");
                     }
                     
                     await _supabaseInstance.Client.Realtime.ConnectAsync();
