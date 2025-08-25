@@ -9,6 +9,7 @@ using VContainer.Unity;
 using KBVE.SSDB;
 using KBVE.MMExtensions.Orchestrator;
 using Supabase.Realtime.Channel;
+using Supabase.Realtime.Models;
 using Newtonsoft.Json;
 
 namespace KBVE.SSDB.SupabaseFDW
@@ -29,6 +30,7 @@ namespace KBVE.SSDB.SupabaseFDW
         public ReactiveProperty<bool> IsBroadcasting { get; } = new(false);
         public ReactiveProperty<string> SessionId { get; } = new(string.Empty);
         public ReactiveProperty<DateTime> LaunchTime { get; } = new(DateTime.UtcNow);
+        public ReactiveProperty<string> BroadcastChannelName { get; } = new("game-broadcasts");
         
         [Inject]
         public SupabaseBroadcastFDW(SupabaseRealtimeFDW realtimeFDW, SupabaseAuthFDW authFDW)
@@ -96,7 +98,7 @@ namespace KBVE.SSDB.SupabaseFDW
             try
             {
                 // Subscribe to the game broadcast channel
-                _broadcastChannel = await _realtimeFDW.SubscribeToChannelAsync("game-broadcasts", cancellationToken);
+                _broadcastChannel = await _realtimeFDW.SubscribeToChannelAsync(BroadcastChannelName.Value, cancellationToken);
                 
                 if (_broadcastChannel != null)
                 {
@@ -136,7 +138,7 @@ namespace KBVE.SSDB.SupabaseFDW
                 };
                 
                 var success = await _realtimeFDW.BroadcastToChannelAsync(
-                    "game-broadcasts",
+                    BroadcastChannelName.Value,
                     "player_launched",
                     launchPayload,
                     cancellationToken
@@ -188,7 +190,7 @@ namespace KBVE.SSDB.SupabaseFDW
                         };
                         
                         await _realtimeFDW.BroadcastToChannelAsync(
-                            "game-broadcasts",
+                            BroadcastChannelName.Value,
                             "session_heartbeat",
                             heartbeatPayload,
                             cancellationToken
@@ -228,7 +230,7 @@ namespace KBVE.SSDB.SupabaseFDW
                 };
                 
                 await _realtimeFDW.BroadcastToChannelAsync(
-                    "game-broadcasts",
+                    BroadcastChannelName.Value,
                     "player_exited",
                     exitPayload,
                     effectiveToken
@@ -297,6 +299,7 @@ namespace KBVE.SSDB.SupabaseFDW
             IsBroadcasting?.Dispose();
             SessionId?.Dispose();
             LaunchTime?.Dispose();
+            BroadcastChannelName?.Dispose();
         }
     }
     
