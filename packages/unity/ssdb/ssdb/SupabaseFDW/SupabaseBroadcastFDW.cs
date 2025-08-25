@@ -8,6 +8,7 @@ using VContainer;
 using VContainer.Unity;
 using KBVE.SSDB;
 using KBVE.MMExtensions.Orchestrator;
+using Supabase.Realtime;
 using Supabase.Realtime.Models;
 using Newtonsoft.Json;
 
@@ -103,7 +104,15 @@ namespace KBVE.SSDB.SupabaseFDW
                 {
                     // Register for receiving broadcasts from other players
                     var broadcast = _broadcastChannel.Register<GameLaunchPayload>(false, true);
-                    broadcast.OnBroadcast += OnPlayerBroadcastReceived;
+                    broadcast.AddBroadcastEventHandler((sender, baseBroadcast) =>
+                    {
+                        var response = broadcast.Current();
+                        if (response is GameLaunchPayload payload)
+                        {
+                            OnPlayerBroadcastReceived(sender, payload);
+                        }
+                        Operator.D($"Unexpected payload type: {response}");
+                    });
                     
                     IsBroadcasting.Value = true;
                     Operator.D("Broadcast channel initialized");
@@ -306,7 +315,7 @@ namespace KBVE.SSDB.SupabaseFDW
     /// Payload for game launch and session broadcasts
     /// </summary>
     [Serializable]
-    public class GameLaunchPayload
+    public class GameLaunchPayload : BaseBroadcast
     {
         [JsonProperty("session_id")]
         public string SessionId { get; set; }
