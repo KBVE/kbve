@@ -69,7 +69,7 @@ namespace KBVE.SSDB.SupabaseFDW
             _options = new SupabaseOptions
             {
                 AutoRefreshToken = true,
-                AutoConnectRealtime = false
+                AutoConnectRealtime = true
             };
 
             try
