@@ -56,6 +56,21 @@ namespace KBVE.SSDB
             .As<IAsyncStartable>()
             .As<IDisposable>();
 
+            builder.Register<SupabaseAuthFDW>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
+            builder.Register<SupabaseRealtimeFDW>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
+            builder.Register<SupabaseBroadcastFDW>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
 
         }
     }
