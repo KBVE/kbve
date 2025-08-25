@@ -12,6 +12,7 @@ using VContainer.Unity;
 using UnityEngine;
 using KBVE.SSDB;
 using KBVE.MMExtensions.Orchestrator;
+using Supabase.Realtime.Interfaces;
 
 namespace KBVE.SSDB.SupabaseFDW
 {
@@ -128,7 +129,7 @@ namespace KBVE.SSDB.SupabaseFDW
                         {
                             // Set the authentication token for realtime
                             _supabaseInstance.Client.Realtime.SetAuth(currentSession.AccessToken);
-                            Operator.D($"Realtime auth token set");
+                            Operator.D($"Realtime auth token set: {currentSession.AccessToken.Substring(0, Math.Min(20, currentSession.AccessToken.Length))}...");
                         }
                         else
                         {
@@ -139,7 +140,7 @@ namespace KBVE.SSDB.SupabaseFDW
                                 if (refreshedSession != null && !string.IsNullOrEmpty(refreshedSession.AccessToken))
                                 {
                                     _supabaseInstance.Client.Realtime.SetAuth(refreshedSession.AccessToken);
-                                    Operator.D($"Realtime auth token set after refresh");
+                                    Operator.D($"Realtime auth token set after refresh: {refreshedSession.AccessToken.Substring(0, Math.Min(20, refreshedSession.AccessToken.Length))}...");
                                 }
                                 else
                                 {
@@ -186,9 +187,68 @@ namespace KBVE.SSDB.SupabaseFDW
             }
         }
         
-        public async UniTask<RealtimeChannel> SubscribeToChannelAsync(
+        private async UniTask EnsureAuthTokenSetAsync()
+        {
+            try
+            {
+                if (_supabaseInstance.Client?.Auth != null && _supabaseInstance.Client?.Realtime != null)
+                {
+                    var currentSession = _supabaseInstance.Client.Auth.CurrentSession;
+                    if (currentSession != null && !string.IsNullOrEmpty(currentSession.AccessToken))
+                    {
+                        // Set auth and ensure realtime is connected
+                        _supabaseInstance.Client.Realtime.SetAuth(currentSession.AccessToken);
+
+                        // If realtime is not connected, connect it now with auth
+                        if (!IsConnected.Value)
+                        {
+                            await _supabaseInstance.Client.Realtime.ConnectAsync();
+                            IsConnected.Value = true;
+                            ConnectionState.Value = "connected";
+                        }
+
+                        Operator.D($"Auth token ensured for channel, token starts with: {currentSession.AccessToken.Substring(0, Math.Min(20, currentSession.AccessToken.Length))}...");
+                        Operator.D($"Token length: {currentSession.AccessToken.Length}");
+                    }
+                    else
+                    {
+                        // Try to refresh if no current session
+                        try
+                        {
+                            var refreshedSession = await _supabaseInstance.Client.Auth.RefreshSession();
+                            if (refreshedSession != null && !string.IsNullOrEmpty(refreshedSession.AccessToken))
+                            {
+                                _supabaseInstance.Client.Realtime.SetAuth(refreshedSession.AccessToken);
+
+                                // If realtime is not connected, connect it now with auth
+                                if (!IsConnected.Value)
+                                {
+                                    await _supabaseInstance.Client.Realtime.ConnectAsync();
+                                    IsConnected.Value = true;
+                                    ConnectionState.Value = "connected";
+                                }
+
+                                Operator.D($"Auth token refreshed for channel: {refreshedSession.AccessToken.Substring(0, Math.Min(20, refreshedSession.AccessToken.Length))}...");
+                                Operator.D($"Token length: {refreshedSession.AccessToken.Length}");
+                            }
+                        }
+                        catch (Exception ex)
+                        {
+                            Operator.D($"Could not refresh token for channel: {ex.Message}");
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Operator.D($"Error ensuring auth token: {ex.Message}");
+            }
+        }
+        
+        public async UniTask<RealtimeBroadcast<T>> CreateBroadcastAsync<T>(
             string channelName,
-            CancellationToken cancellationToken = default)
+            System.Action<T> onBroadcastReceived,
+            CancellationToken cancellationToken = default) where T : BaseBroadcast
         {
             // Create combined token that respects both lifetime and passed token
             var effectiveToken = CreateEffectiveToken(cancellationToken);
@@ -207,30 +267,47 @@ namespace KBVE.SSDB.SupabaseFDW
                 // Check if channel already exists
                 if (_channels.TryGetValue(channelName, out var existingChannel))
                 {
-                    Operator.D($"Channel {channelName} already subscribed");
-                    return existingChannel;
+                    Operator.D($"Channel {channelName} already exists, creating new broadcast instance");
+                    var existingBroadcast = existingChannel.Register<T>();
+                    return existingBroadcast;
                 }
                 
-                // Create and subscribe to channel
-                // Channels are automatically namespaced, no need for prefix
-                var channel = _supabaseInstance.Client.Realtime.Channel(channelName);
+                // Ensure auth token is set before subscribing
+                await EnsureAuthTokenSetAsync();
+                
+                // Create channel (don't subscribe yet)
+                var channel = _supabaseInstance.Client.Realtime.Channel(database: "realtime", schema: "public", value: channelName, parameters: _supabaseInstance.Client.Auth.GetHeaders());
+                Operator.D("[supabase] About to Register");
+                // Register broadcast and set up event handler BEFORE subscribing
+                var broadcast = channel.Register<T>(false, true);
+                broadcast.AddBroadcastEventHandler((sender, _) =>
+                {
+                    var response = broadcast.Current();
+                    // if (response != null)
+                    // {
+                    //     onBroadcastReceived?.Invoke(response);
+                    // }
+                });
+                
+                 Operator.D("[supabase] About to Subscribe");
+                // Now subscribe to the channel
                 await channel.Subscribe();
                 
                 _channels[channelName] = channel;
-                Operator.D($"Subscribed to channel: {channelName}");
+                Operator.D($"Created broadcast for channel: {channelName}");
                 
-                return channel;
+                return broadcast;
             }
             catch (OperationCanceledException)
             {
-                ErrorMessage.Value = "Channel subscription cancelled";
-                Operator.D($"Channel subscription cancelled: {channelName}");
+                ErrorMessage.Value = "Broadcast creation cancelled";
+                Operator.D($"Broadcast creation cancelled: {channelName}");
                 return null;
             }
             catch (Exception ex)
             {
-                ErrorMessage.Value = $"Failed to subscribe to channel: {ex.Message}";
-                Operator.D($"Channel subscription failed: {ex.Message}");
+                ErrorMessage.Value = $"Failed to create broadcast: {ex.Message}";
+                Operator.D($"Broadcast creation failed: {ex.Message}");
                 return null;
             }
             finally
@@ -271,16 +348,17 @@ namespace KBVE.SSDB.SupabaseFDW
                     return existingChannel;
                 }
                 
-                // Create database channel with filtering if column and value are provided
+                // Create database channel with proper database parameters
                 RealtimeChannel channel;
                 if (!string.IsNullOrEmpty(column) && !string.IsNullOrEmpty(value))
                 {
+                    // Database channel with filtering
                     channel = _supabaseInstance.Client.Realtime.Channel(channelName, schema, table, column, value);
                 }
                 else
                 {
-                    // Simple database channel without filtering
-                    channel = _supabaseInstance.Client.Realtime.Channel(channelName);
+                    // Database channel for entire table
+                    channel = _supabaseInstance.Client.Realtime.Channel(channelName, schema, table);
                 }
                 
                 await channel.Subscribe();

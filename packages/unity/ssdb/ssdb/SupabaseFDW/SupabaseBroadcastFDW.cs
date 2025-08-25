@@ -9,7 +9,6 @@ using VContainer.Unity;
 using KBVE.SSDB;
 using KBVE.MMExtensions.Orchestrator;
 using Supabase.Realtime;
-using Supabase.Realtime.Broadcast;
 using Supabase.Realtime.Models;
 using Newtonsoft.Json;
 
@@ -22,26 +21,27 @@ namespace KBVE.SSDB.SupabaseFDW
     {
         private readonly SupabaseRealtimeFDW _realtimeFDW;
         private readonly SupabaseAuthFDW _authFDW;
+        private readonly ISupabaseInstance _supabaseInstance;
         private readonly CompositeDisposable _disposables = new();
         private readonly CancellationTokenSource _lifetimeCts = new();
         
-        private RealtimeChannel _broadcastChannel;
         private RealtimeBroadcast<GameLaunchPayload> _realtimeBroadcast;
         private bool _hasAnnouncedLaunch = false;
         
         public ReactiveProperty<bool> IsBroadcasting { get; } = new(false);
         public ReactiveProperty<string> SessionId { get; } = new(string.Empty);
         public ReactiveProperty<DateTime> LaunchTime { get; } = new(DateTime.UtcNow);
-        public ReactiveProperty<string> BroadcastChannelName { get; } = new("game-broadcasts");
+        public ReactiveProperty<string> BroadcastChannelName { get; } = new("demo");
         
         [Inject]
-        public SupabaseBroadcastFDW(SupabaseRealtimeFDW realtimeFDW, SupabaseAuthFDW authFDW)
+        public SupabaseBroadcastFDW(SupabaseRealtimeFDW realtimeFDW, SupabaseAuthFDW authFDW, ISupabaseInstance supabaseInstance)
         {
             _realtimeFDW = realtimeFDW;
             _authFDW = authFDW;
+            _supabaseInstance = supabaseInstance;
             
-            // Generate unique session ID
-            SessionId.Value = Guid.NewGuid().ToString();
+            // Initialize session ID - will be set properly in StartAsync
+            InitializeSessionId();
         }
         
         public async UniTask StartAsync(CancellationToken cancellationToken)
@@ -50,6 +50,9 @@ namespace KBVE.SSDB.SupabaseFDW
             
             try
             {
+                // Refresh session ID based on current auth state
+                InitializeSessionId();
+                
                 // Wait for realtime to be connected before starting broadcast
                 await WaitForRealtimeConnectionAsync(effectiveToken);
                 
@@ -99,31 +102,20 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
-                // Subscribe to the game broadcast channel
-                _broadcastChannel = await _realtimeFDW.SubscribeToChannelAsync(BroadcastChannelName.Value, cancellationToken);
+                // Use centralized RealtimeFDW method that handles all setup including event handlers
+                _realtimeBroadcast = await _realtimeFDW.CreateBroadcastAsync<GameLaunchPayload>(
+                    BroadcastChannelName.Value,
+                    OnPlayerBroadcastReceived,
+                    cancellationToken);
                 
-                if (_broadcastChannel != null)
+                if (_realtimeBroadcast != null)
                 {
-                    // Create RealtimeBroadcast instance with broadcast options
-                    var broadcastOptions = new BroadcastOptions(true, true);
-                    _realtimeBroadcast = new RealtimeBroadcast<GameLaunchPayload>(_broadcastChannel, broadcastOptions, null);
-                    
-                    // Register for receiving broadcasts from other players
-                    _realtimeBroadcast.AddBroadcastEventHandler((sender, baseBroadcast) =>
-                    {
-                        var payload = _realtimeBroadcast.Current();
-                        if (payload != null)
-                        {
-                            OnPlayerBroadcastReceived(payload);
-                        }
-                    });
-                    
                     IsBroadcasting.Value = true;
                     Operator.D("Broadcast channel initialized");
                 }
                 else
                 {
-                    throw new Exception("Failed to subscribe to broadcast channel");
+                    throw new Exception("Failed to create broadcast instance");
                 }
             }
             catch (Exception ex)
@@ -142,14 +134,15 @@ namespace KBVE.SSDB.SupabaseFDW
                 var launchPayload = new GameLaunchPayload
                 {
                     SessionId = SessionId.Value,
-                    PlayerId = _authFDW.IsAuthenticated.Value ? "authenticated" : "anonymous",
+                    PlayerId = GetPlayerId(),
                     LaunchTime = LaunchTime.Value,
                     GameVersion = Application.version,
                     Platform = Application.platform.ToString(),
                     EventType = "game_launch"
                 };
                 
-                var success = await _realtimeBroadcast.Send("player_launched", launchPayload);
+                // Send broadcast with event name "message" to match TypeScript pattern
+                var success = await _realtimeBroadcast.Send("message", launchPayload);
                 
                 if (success)
                 {
@@ -183,12 +176,12 @@ namespace KBVE.SSDB.SupabaseFDW
                 {
                     await UniTask.Delay(heartbeatInterval, cancellationToken: cancellationToken);
                     
-                    if (IsBroadcasting.Value && _broadcastChannel != null)
+                    if (IsBroadcasting.Value && _realtimeBroadcast != null)
                     {
                         var heartbeatPayload = new GameLaunchPayload
                         {
                             SessionId = SessionId.Value,
-                            PlayerId = _authFDW.IsAuthenticated.Value ? "authenticated" : "anonymous", 
+                            PlayerId = GetPlayerId(), 
                             LaunchTime = LaunchTime.Value,
                             GameVersion = Application.version,
                             Platform = Application.platform.ToString(),
@@ -196,7 +189,8 @@ namespace KBVE.SSDB.SupabaseFDW
                             SessionDuration = DateTime.UtcNow - LaunchTime.Value
                         };
                         
-                        await _realtimeBroadcast.Send("session_heartbeat", heartbeatPayload);
+                        // Send heartbeat with event name "message"
+                        await _realtimeBroadcast.Send("message", heartbeatPayload);
                         
                         Operator.D($"Session heartbeat sent - Duration: {heartbeatPayload.SessionDuration?.TotalMinutes:F1}m");
                     }
@@ -218,12 +212,12 @@ namespace KBVE.SSDB.SupabaseFDW
             
             try
             {
-                if (!IsBroadcasting.Value || _broadcastChannel == null) return;
+                if (!IsBroadcasting.Value || _realtimeBroadcast == null) return;
                 
                 var exitPayload = new GameLaunchPayload
                 {
                     SessionId = SessionId.Value,
-                    PlayerId = _authFDW.IsAuthenticated.Value ? "authenticated" : "anonymous",
+                    PlayerId = GetPlayerId(),
                     LaunchTime = LaunchTime.Value,
                     GameVersion = Application.version,
                     Platform = Application.platform.ToString(),
@@ -231,7 +225,8 @@ namespace KBVE.SSDB.SupabaseFDW
                     SessionDuration = DateTime.UtcNow - LaunchTime.Value
                 };
                 
-                await _realtimeBroadcast.Send("player_exited", exitPayload);
+                // Send exit broadcast with event name "message"
+                await _realtimeBroadcast.Send("message", exitPayload);
                 
                 Operator.D($"Game exit broadcast sent - Session Duration: {exitPayload.SessionDuration?.TotalMinutes:F1}m");
             }
@@ -257,6 +252,59 @@ namespace KBVE.SSDB.SupabaseFDW
                 case "game_exit":
                     Operator.D($"Player exited game - Session Duration: {payload.SessionDuration?.TotalMinutes:F1}m");
                     break;
+            }
+        }
+        
+        private void InitializeSessionId()
+        {
+            // Try to get the actual session ID from the supabase instance
+            try
+            {
+                if (_authFDW.IsAuthenticated.Value && _supabaseInstance.Client?.Auth != null)
+                {
+                    // Use the authenticated user's session information
+                    var session = _supabaseInstance.Client.Auth.CurrentSession;
+                    if (session != null && !string.IsNullOrEmpty(session.AccessToken))
+                    {
+                        // Use a hash of the access token as session ID (for readability)
+                        SessionId.Value = session.AccessToken;
+                    }
+                    else
+                    {
+                        // Fallback to user ID if available
+                        var user = _supabaseInstance.Client.Auth.CurrentUser;
+                        SessionId.Value = user?.Id ?? $"auth_{Guid.NewGuid().ToString().Substring(0, 8)}";
+                    }
+                }
+                else
+                {
+                    // For anonymous users, create a shorter unique ID
+                    SessionId.Value = $"anon_{Guid.NewGuid().ToString().Substring(0, 8)}";
+                }
+            }
+            catch (Exception ex)
+            {
+                Operator.D($"Error initializing session ID: {ex.Message}");
+                // Fallback to anonymous ID
+                SessionId.Value = $"anon_{Guid.NewGuid().ToString().Substring(0, 8)}";
+            }
+        }
+        
+        private string GetPlayerId()
+        {
+            try
+            {
+                if (_authFDW.IsAuthenticated.Value && _supabaseInstance.Client?.Auth != null)
+                {
+                    var user = _supabaseInstance.Client.Auth.CurrentUser;
+                    return user?.Id ?? "authenticated_unknown";
+                }
+                return "anonymous";
+            }
+            catch (Exception ex)
+            {
+                Operator.D($"Error getting player ID: {ex.Message}");
+                return "anonymous";
             }
         }
         
@@ -299,34 +347,33 @@ namespace KBVE.SSDB.SupabaseFDW
             BroadcastChannelName?.Dispose();
         }
     }
-    
+
     /// <summary>
     /// Payload for game launch and session broadcasts
     /// </summary>
-    [Serializable]
     public class GameLaunchPayload : BaseBroadcast
     {
         [JsonProperty("session_id")]
         public string SessionId { get; set; }
-        
+
         [JsonProperty("player_id")]
         public string PlayerId { get; set; }
-        
+
         [JsonProperty("launch_time")]
         public DateTime LaunchTime { get; set; }
-        
+
         [JsonProperty("game_version")]
         public string GameVersion { get; set; }
-        
+
         [JsonProperty("platform")]
         public string Platform { get; set; }
-        
+
         [JsonProperty("event_type")]
         public string EventType { get; set; }
-        
+
         [JsonProperty("session_duration")]
         public TimeSpan? SessionDuration { get; set; }
-        
+
         [JsonProperty("timestamp")]
         public DateTime Timestamp { get; set; } = DateTime.UtcNow;
     }
