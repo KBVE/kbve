@@ -62,13 +62,13 @@ namespace KBVE.SSDB.SupabaseFDW
                 }
                 else
                 {
-                    // Wait for initialization then connect
+                    // Wait for initialization then connect - use lifetime token instead of disposed linkedCts
                     _supabaseInstance.Initialized
                         .Where(initialized => initialized)
                         .Take(1) // Only react to the first initialization
                         .Subscribe(async _ =>
                         {
-                            await InitializeRealtimeAsync(linkedCts.Token);
+                            await InitializeRealtimeAsync(_lifetimeCts.Token);
                         })
                         .AddTo(_disposables);
                 }
