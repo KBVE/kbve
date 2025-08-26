@@ -39,9 +39,6 @@ namespace KBVE.SSDB.SupabaseFDW
             _realtimeFDW = realtimeFDW;
             _authFDW = authFDW;
             _supabaseInstance = supabaseInstance;
-            
-            // Initialize session ID - will be set properly in StartAsync
-            InitializeSessionId();
         }
         
         public async UniTask StartAsync(CancellationToken cancellationToken)
@@ -50,21 +47,11 @@ namespace KBVE.SSDB.SupabaseFDW
             
             try
             {
-                // Refresh session ID based on current auth state
                 InitializeSessionId();
-                
-                // Wait for realtime to be connected before starting broadcast
                 await WaitForRealtimeConnectionAsync(effectiveToken);
-                
-                // Subscribe to broadcast channel
                 await InitializeBroadcastChannelAsync(effectiveToken);
-                
-                // Send initial game launch broadcast
                 await BroadcastGameLaunchAsync(effectiveToken);
-                
-                // Start periodic heartbeat broadcasts
-                StartHeartbeatBroadcasts(effectiveToken);
-                
+                StartHeartbeatBroadcasts(effectiveToken);          
                 Operator.D("SupabaseBroadcastFDW started successfully");
             }
             catch (OperationCanceledException)
@@ -79,10 +66,9 @@ namespace KBVE.SSDB.SupabaseFDW
         
         private async UniTask WaitForRealtimeConnectionAsync(CancellationToken cancellationToken)
         {
-            // Wait for realtime to be connected with timeout
             const int maxWaitSeconds = 30;
             var waitTime = TimeSpan.FromSeconds(0.5f);
-            var maxAttempts = maxWaitSeconds * 2; // 0.5s intervals
+            var maxAttempts = maxWaitSeconds * 2;
             var attempts = 0;
             
             while (!_realtimeFDW.IsConnected.Value && attempts < maxAttempts)
@@ -102,7 +88,6 @@ namespace KBVE.SSDB.SupabaseFDW
         {
             try
             {
-                // Use centralized RealtimeFDW method that handles all setup including event handlers
                 _realtimeBroadcast = await _realtimeFDW.CreateBroadcastAsync<GameLaunchPayload>(
                     BroadcastChannelName.Value,
                     OnPlayerBroadcastReceived,
@@ -141,7 +126,6 @@ namespace KBVE.SSDB.SupabaseFDW
                     EventType = "game_launch"
                 };
                 
-                // Send broadcast with event name "message" to match TypeScript pattern
                 var success = await _realtimeBroadcast.Send("message", launchPayload);
                 
                 if (success)
@@ -162,7 +146,6 @@ namespace KBVE.SSDB.SupabaseFDW
         
         private void StartHeartbeatBroadcasts(CancellationToken cancellationToken)
         {
-            // Send heartbeat every 5 minutes to indicate active session
             HeartbeatLoop(cancellationToken).Forget();
         }
         
@@ -189,7 +172,6 @@ namespace KBVE.SSDB.SupabaseFDW
                             SessionDuration = DateTime.UtcNow - LaunchTime.Value
                         };
                         
-                        // Send heartbeat with event name "message"
                         await _realtimeBroadcast.Send("message", heartbeatPayload);
                         
                         Operator.D($"Session heartbeat sent - Duration: {heartbeatPayload.SessionDuration?.TotalMinutes:F1}m");
@@ -225,7 +207,6 @@ namespace KBVE.SSDB.SupabaseFDW
                     SessionDuration = DateTime.UtcNow - LaunchTime.Value
                 };
                 
-                // Send exit broadcast with event name "message"
                 await _realtimeBroadcast.Send("message", exitPayload);
                 
                 Operator.D($"Game exit broadcast sent - Session Duration: {exitPayload.SessionDuration?.TotalMinutes:F1}m");
@@ -238,7 +219,6 @@ namespace KBVE.SSDB.SupabaseFDW
         
         private void OnPlayerBroadcastReceived(GameLaunchPayload payload)
         {
-            // Ignore our own broadcasts
             if (payload.SessionId == SessionId.Value) return;
             
             switch (payload.EventType)
@@ -257,35 +237,29 @@ namespace KBVE.SSDB.SupabaseFDW
         
         private void InitializeSessionId()
         {
-            // Try to get the actual session ID from the supabase instance
             try
             {
                 if (_authFDW.IsAuthenticated.Value && _supabaseInstance.Client?.Auth != null)
                 {
-                    // Use the authenticated user's session information
                     var session = _supabaseInstance.Client.Auth.CurrentSession;
                     if (session != null && !string.IsNullOrEmpty(session.AccessToken))
                     {
-                        // Use a hash of the access token as session ID (for readability)
                         SessionId.Value = session.AccessToken;
                     }
                     else
                     {
-                        // Fallback to user ID if available
                         var user = _supabaseInstance.Client.Auth.CurrentUser;
                         SessionId.Value = user?.Id ?? $"auth_{Guid.NewGuid().ToString().Substring(0, 8)}";
                     }
                 }
                 else
                 {
-                    // For anonymous users, create a shorter unique ID
                     SessionId.Value = $"anon_{Guid.NewGuid().ToString().Substring(0, 8)}";
                 }
             }
             catch (Exception ex)
             {
                 Operator.D($"Error initializing session ID: {ex.Message}");
-                // Fallback to anonymous ID
                 SessionId.Value = $"anon_{Guid.NewGuid().ToString().Substring(0, 8)}";
             }
         }
@@ -322,8 +296,6 @@ namespace KBVE.SSDB.SupabaseFDW
         public void Dispose()
         {
             _lifetimeCts?.Cancel();
-            
-            // Send exit broadcast before disposing
             try
             {
                 using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5)))
