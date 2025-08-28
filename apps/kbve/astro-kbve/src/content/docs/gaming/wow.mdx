@@ -233,6 +233,31 @@ It will pick pocket and then garrote the humanoid, however the loot for the pick
 /castsequence [combat] reset=target/combat Slice and Dice, Eviscerate
 ```
 
+#### Shaman
+
+##### Turtle WoW Friendly
+
+The all in one key press, defensive macro.
+This defensive macro below will cast Lightning Shield, StoneSkin and if both are there then Healing Wave.
+
+```lua
+
+/run c=CastSpellByName function pb(k) for i=1,40 do local b=UnitBuff("player",i) if b and strfind(b,k) then return 1 end end end
+/run if not pb("ghtningSh") then c("Lightning Shield") elseif not pb("StoneSkin") then c("Stoneskin Totem") else c("Healing Wave") end
+
+```
+
+Next is our shock rotation macro, which is a WIP.
+
+```lua
+
+/run c=CastSpellByName function td(k)for i=1,16 do local d=UnitDebuff("target",i) if d and strfind(tostring(d),k)then return 1 end end end
+/run local s=3 if UnitExists("target")and UnitCanAttack("player","target")and not UnitIsDead("target")then local st,du=GetActionCooldown(s) if du==0 and not td("FlameShock")then c("Flame Shock") elseif du==0 then c("Earth Shock") else c("Lightning Bolt") end end
+
+```
+
+
+
 #### Guild
 
 This is our guild macro for messaging around in general chat!
