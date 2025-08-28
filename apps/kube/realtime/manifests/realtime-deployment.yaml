@@ -108,7 +108,7 @@ spec:
 
                   volumeMounts:
                       - name: realtime-seeds
-                        mountPath: /app/lib/realtime-2.42.5/priv/repo/seeds.exs
+                        mountPath: /app/lib/realtime-2.43.1/priv/repo/seeds.exs
                         subPath: seeds.exs
 
                   livenessProbe:
