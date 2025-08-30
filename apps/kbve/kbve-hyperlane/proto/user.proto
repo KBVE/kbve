@@ -1,6 +1,6 @@
 syntax = "proto3";
 
-package disoxide;
+package kbve-hyperlane;
 
 message UserData {
   uint32 id = 1;
