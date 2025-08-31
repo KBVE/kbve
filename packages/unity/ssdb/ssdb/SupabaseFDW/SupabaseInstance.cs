@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using R3;
@@ -69,7 +70,8 @@ namespace KBVE.SSDB.SupabaseFDW
             _options = new SupabaseOptions
             {
                 AutoRefreshToken = true,
-                AutoConnectRealtime = true
+                AutoConnectRealtime = true,
+                Headers = new Dictionary<string, string>()
             };
 
             try
@@ -89,6 +91,12 @@ namespace KBVE.SSDB.SupabaseFDW
             _clientWrapper.Client.Auth.AddStateChangedListener((sender, state) => UnityAuthListener(state, sender.CurrentSession));
             _clientWrapper.Client.Auth.LoadSession();
             _clientWrapper.Client.Auth.Options.AllowUnconfirmedUserSessions = true;
+            
+            var currentSession = _clientWrapper.Client.Auth.CurrentSession;
+            if (currentSession != null)
+            {
+                UpdateAuthHeaders(currentSession);
+            }
 
             string url = $"{SupabaseInfo.Url}/auth/v1/settings?apikey={SupabaseInfo.AnonKey}";
 
@@ -123,6 +131,24 @@ namespace KBVE.SSDB.SupabaseFDW
             CurrentSession.Value = session;
             CurrentUser.Value = session?.User;
             _authStateSubject.OnNext(new AuthStateChangedEvent(state, session));
+            
+            UpdateAuthHeaders(session);
+        }
+        
+        private void UpdateAuthHeaders(Session session)
+        {
+            if (session != null && !string.IsNullOrEmpty(session.AccessToken))
+            {
+                if (_options?.Headers != null)
+                {
+                    _options.Headers["Authorization"] = "Bearer " + session.AccessToken;
+                }
+                
+                if (_clientWrapper?.Client?.Realtime != null)
+                {
+                    _clientWrapper.Client.Realtime.SetAuth(session.AccessToken);
+                }
+            }
         }
 
 
