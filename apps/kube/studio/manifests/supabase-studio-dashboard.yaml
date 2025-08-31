@@ -18,8 +18,6 @@ spec:
                 component: studio
         spec:
             volumes:
-                - name: nextjs-cache
-                  emptyDir: {}
                 - name: tmp
                   emptyDir: {}
             containers:
@@ -29,8 +27,6 @@ spec:
                       - containerPort: 3000
                         name: http
                   volumeMounts:
-                      - name: nextjs-cache
-                        mountPath: /app/apps/studio/.next
                       - name: tmp
                         mountPath: /tmp
                   env:
