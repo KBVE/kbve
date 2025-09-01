@@ -133,10 +133,34 @@ namespace KBVE.SSDB.SupabaseFDW
                         }
                         else
                         {
-                            // For anonymous connections, use the anon key as token (like web implementation)
-                            var anonKey = SupabaseInfo.AnonKey;
-                            _supabaseInstance.Client.Realtime.SetAuth(anonKey);
-                            Operator.D("[SupabaseRealtimeFDW.InitializeRealtimeAsync:152] Could not refresh auth token: Not Logged in. - connecting as anonymous with anon key");
+                            // For anonymous connections, sign in anonymously to get proper JWT (like web implementation)
+                            Operator.D("[SupabaseRealtimeFDW.InitializeRealtimeAsync:152] Could not refresh auth token: Not Logged in. - attempting anonymous sign-in");
+                            
+                            try
+                            {
+                                // Sign in anonymously to get a proper JWT token with role=anon
+                                var anonymousSession = await _supabaseInstance.Client.Auth.SignInAnonymously();
+                                if (anonymousSession?.User != null && !string.IsNullOrEmpty(anonymousSession.AccessToken))
+                                {
+                                    Operator.D($"[SupabaseRealtimeFDW] Anonymous sign-in successful. User ID: {anonymousSession.User.Id}");
+                                    Operator.D($"[SupabaseRealtimeFDW] Anonymous user role: {anonymousSession.User.Role}");
+                                    Operator.D($"[SupabaseRealtimeFDW] Anonymous user is_anonymous: {anonymousSession.User.IsAnonymous}");
+                                    Operator.D($"[SupabaseRealtimeFDW] Access token length: {anonymousSession.AccessToken?.Length ?? 0}");
+                                    _supabaseInstance.Client.Realtime.SetAuth(anonymousSession.AccessToken);
+                                }
+                                else
+                                {
+                                    Operator.D("[SupabaseRealtimeFDW] Anonymous sign-in failed, falling back to anon key");
+                                    var anonKey = SupabaseInfo.AnonKey;
+                                    _supabaseInstance.Client.Realtime.SetAuth(anonKey);
+                                }
+                            }
+                            catch (Exception ex)
+                            {
+                                Operator.D($"[SupabaseRealtimeFDW] Anonymous sign-in error: {ex.Message}, falling back to anon key");
+                                var anonKey = SupabaseInfo.AnonKey;
+                                _supabaseInstance.Client.Realtime.SetAuth(anonKey);
+                            }
                         }
                     }
                     else
@@ -278,29 +302,72 @@ namespace KBVE.SSDB.SupabaseFDW
                     Operator.D($"[supabase] User ID: {currentSession.User?.Id ?? "unknown"}");
                 }
                 
-                // Access channel (supports both authenticated and anonymous users like web)
+                // Create channel with broadcast event handlers BEFORE subscribing (like web implementation)
                 var channel = _supabaseInstance.Client.Realtime.Channel(channelName);
-                Operator.D($"[supabase] Attempting to access channel: {channelName}");
+                Operator.D($"[supabase] Created channel: {channelName}");
                 
                 // Add debugging to see what topic Unity actually creates
                 Operator.D($"[supabase] Unity channel object type: {channel.GetType().FullName}");
                 
-                // Register broadcast using the fluent API pattern like web implementation
-                var broadcast = channel.Register<T>();
+                // Set up broadcast event handling BEFORE subscribing (like web implementation)
+                RealtimeBroadcast<T> broadcast = null;
                 
-                // Set up event handler
-                broadcast.AddBroadcastEventHandler((sender, _) =>
+                try
                 {
-                    var response = broadcast.Current();
-                    if (response != null)
+                    // Register broadcast using simple approach
+                    broadcast = channel.Register<T>();
+                    Operator.D($"[supabase] Successfully registered broadcast for {channelName}");
+                    
+                    // Set up event handler
+                    broadcast.AddBroadcastEventHandler((sender, _) =>
                     {
-                        onBroadcastReceived?.Invoke(response);
-                    }
-                });
+                        var response = broadcast.Current();
+                        if (response != null)
+                        {
+                            onBroadcastReceived?.Invoke(response);
+                        }
+                    });
+                    
+                    Operator.D($"[supabase] Event handler added for {channelName}");
+                }
+                catch (Exception regEx)
+                {
+                    Operator.D($"[supabase] Failed to register broadcast: {regEx.Message}");
+                    throw new Exception($"Failed to register broadcast for {channelName}: {regEx.Message}");
+                }
                 
                 Operator.D($"[supabase] About to Subscribe to channel: {channelName}");
-                // Subscribe to the channel - Subscribe() doesn't return status, it throws on error
-                await channel.Subscribe();
+                // Subscribe to the channel with error handling and timeout
+                var subscribeTask = channel.Subscribe();
+                var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(10), cancellationToken: effectiveToken);
+                
+                var completedTask = await UniTask.WhenAny(subscribeTask, timeoutTask);
+                
+                if (completedTask == 1) // timeout occurred
+                {
+                    throw new TimeoutException($"Channel subscription timeout for: {channelName}");
+                }
+                
+                var subscribeResult = await subscribeTask;
+                
+                if (subscribeResult == null)
+                {
+                    throw new Exception($"Failed to subscribe to channel: {channelName}. No response received");
+                }
+                
+                Operator.D($"[supabase] Channel subscription status: {subscribeResult.Status} for {channelName}");
+                
+                if (subscribeResult.Status != Supabase.Realtime.Constants.ChannelState.Subscribed)
+                {
+                    // Log more details about the failure
+                    var statusMessage = subscribeResult.Status switch
+                    {
+                        Supabase.Realtime.Constants.ChannelState.Errored => "Channel errored during subscription",
+                        Supabase.Realtime.Constants.ChannelState.Closed => "Channel was closed",
+                        _ => $"Unexpected status: {subscribeResult.Status}"
+                    };
+                    throw new Exception($"Failed to subscribe to channel: {channelName}. {statusMessage}");
+                }
                 
                 _channels[channelName] = channel;
                 Operator.D($"Successfully created and subscribed to channel: {channelName}");
