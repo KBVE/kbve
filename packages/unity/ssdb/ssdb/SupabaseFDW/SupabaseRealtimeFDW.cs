@@ -350,24 +350,26 @@ namespace KBVE.SSDB.SupabaseFDW
                 
                 var subscribeResult = await subscribeTask;
                 
-                if (subscribeResult == null)
+                // Handle the tuple result from Subscribe
+                if (subscribeResult.hasResultLeft)
+                {
+                    var subscribeChannel = subscribeResult.result;
+                    if (subscribeChannel?.State != Supabase.Realtime.Constants.ChannelState.Joined)
+                    {
+                        // Log more details about the failure
+                        var statusMessage = subscribeChannel?.State switch
+                        {
+                            Supabase.Realtime.Constants.ChannelState.Errored => "Channel errored during subscription",
+                            Supabase.Realtime.Constants.ChannelState.Closed => "Channel was closed",
+                            _ => $"Unexpected status: {subscribeChannel?.State}"
+                        };
+                        throw new Exception($"Failed to subscribe to channel: {channelName}. {statusMessage}");
+                    }
+                    Operator.D($"[supabase] Channel subscription status: {subscribeChannel?.State} for {channelName}");
+                }
+                else
                 {
                     throw new Exception($"Failed to subscribe to channel: {channelName}. No response received");
-                }
-                
-
-                Operator.D($"[supabase] Channel subscription status: {subscribeResult.Status} for {channelName}");
-                
-                if (subscribeResult.Status != Supabase.Realtime.Constants.ChannelState.Subscribed)
-                {
-                    // Log more details about the failure
-                    var statusMessage = subscribeResult.Status switch
-                    {
-                        Supabase.Realtime.Constants.ChannelState.Errored => "Channel errored during subscription",
-                        Supabase.Realtime.Constants.ChannelState.Closed => "Channel was closed",
-                        _ => $"Unexpected status: {subscribeResult.Status}"
-                    };
-                    throw new Exception($"Failed to subscribe to channel: {channelName}. {statusMessage}");
                 }
                 
                 _channels[channelName] = channel;
