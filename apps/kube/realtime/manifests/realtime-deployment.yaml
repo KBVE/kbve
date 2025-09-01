@@ -78,7 +78,7 @@ spec:
                         value: 'true'
                       - name: RUN_JANITOR
                         value: 'true'
-                      - name: ACK_BROADCAST
+                      - name: SELF_BROADCAST
                         value: 'true'
                       - name: ANON_KEY
                         valueFrom:
