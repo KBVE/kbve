@@ -133,10 +133,9 @@ namespace KBVE.SSDB.SupabaseFDW
                         }
                         else
                         {
-                            // For anonymous connections, use anon key directly (like web implementation)
-                            Operator.D("[SupabaseRealtimeFDW] No auth session found, using anon key for realtime");
-                            var anonKey = SupabaseInfo.AnonKey;
-                            _supabaseInstance.Client.Realtime.SetAuth(anonKey);
+                            // For anonymous connections, set auth without token (like web implementation)
+                            Operator.D("[SupabaseRealtimeFDW] No auth session found, using default config for realtime");
+                            _supabaseInstance.Client.Realtime.SetAuth();
                         }
                     }
                     else
