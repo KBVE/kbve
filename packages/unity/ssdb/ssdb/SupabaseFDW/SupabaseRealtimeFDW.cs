@@ -271,18 +271,32 @@ namespace KBVE.SSDB.SupabaseFDW
                 // Add debugging to see what topic Unity actually creates
                 Operator.D($"[supabase] Unity channel object type: {channel.GetType().FullName}");
                 
-                // Register broadcast using the fluent API pattern like web implementation
-                var broadcast = channel.Register<T>();
+                // Set up broadcast event handling BEFORE subscribing (like web implementation)
+                RealtimeBroadcast<T> broadcast = null;
                 
-                // Set up event handler
-                broadcast.AddBroadcastEventHandler((sender, _) =>
+                try
                 {
-                    var response = broadcast.Current();
-                    if (response != null)
+                    // Register broadcast using simple approach
+                    broadcast = channel.Register<T>();
+                    Operator.D($"[supabase] Successfully registered broadcast for {channelName}");
+                    
+                    // Set up event handler
+                    broadcast.AddBroadcastEventHandler((sender, _) =>
                     {
-                        onBroadcastReceived?.Invoke(response);
-                    }
-                });
+                        var response = broadcast.Current();
+                        if (response != null)
+                        {
+                            onBroadcastReceived?.Invoke(response);
+                        }
+                    });
+                    
+                    Operator.D($"[supabase] Event handler added for {channelName}");
+                }
+                catch (Exception regEx)
+                {
+                    Operator.D($"[supabase] Failed to register broadcast: {regEx.Message}");
+                    throw new Exception($"Failed to register broadcast for {channelName}: {regEx.Message}");
+                }
                 
                 Operator.D($"[supabase] About to Subscribe to channel: {channelName}");
                 // Subscribe to the channel - Subscribe() doesn't return status, it throws on error
