@@ -133,17 +133,9 @@ namespace KBVE.SSDB.SupabaseFDW
                         }
                         else
                         {
-                            // For anonymous connections, use the anon key
-                            var anonKey = SupabaseInfo.AnonKey;
-                            if (!string.IsNullOrEmpty(anonKey))
-                            {
-                                _supabaseInstance.Client.Realtime.SetAuth(anonKey);
-                                Operator.D("[SSDB] Realtime auth set to anon key for anonymous connection");
-                            }
-                            else
-                            {
-                                Operator.D("[SSDB] No auth token available for realtime - connecting without auth");
-                            }
+                            // For anonymous connections, don't set an auth token - use null
+                            _supabaseInstance.Client.Realtime.SetAuth(null);
+                            Operator.D("[SupabaseRealtimeFDW.InitializeRealtimeAsync:152] Could not refresh auth token: Not Logged in. - connecting as anonymous");
                         }
                     }
                     else
@@ -156,7 +148,7 @@ namespace KBVE.SSDB.SupabaseFDW
                     // Update connection state after successful connection
                     IsConnected.Value = true;
                     ConnectionState.Value = "connected";
-                    Operator.D("Realtime connection initialized");
+                    Operator.D("[SupabaseRealtimeFDW.InitializeRealtimeAsync:166] Realtime connection initialized");
                 }
                 else
                 {
@@ -227,7 +219,7 @@ namespace KBVE.SSDB.SupabaseFDW
                         }
                         catch (Exception ex)
                         {
-                            Operator.D($"Could not refresh token for channel: {ex.Message}");
+                            Operator.D($"[SupabaseRealtimeFDW.EnsureAuthTokenSetAsync:237] Could not refresh token for channel: {ex.Message}");
                         }
                     }
                 }
@@ -265,15 +257,18 @@ namespace KBVE.SSDB.SupabaseFDW
                     return existingBroadcast;
                 }
                 
-                // For broadcast channels, we don't need auth tokens
-                Operator.D("[supabase] Skipping auth token for broadcast channel");
+                // Ensure realtime is connected before creating channels
+                if (!IsConnected.Value)
+                {
+                    Operator.D("[supabase] Realtime not connected, attempting to connect...");
+                    await InitializeRealtimeAsync(effectiveToken);
+                }
                 
-                // Create channel specifically for broadcasting
-                var channelTopic = $"broadcast-{channelName}";
-                var channel = _supabaseInstance.Client.Realtime.Channel(channelTopic);
-                Operator.D($"[supabase] Created broadcast channel: {channelTopic}");
+                // Use simple channel name like web implementation (no "broadcast-" prefix)
+                var channel = _supabaseInstance.Client.Realtime.Channel(channelName);
+                Operator.D($"[supabase] Created channel: {channelName}");
                 
-                // Register broadcast with explicit broadcast options
+                // Register broadcast with explicit broadcast options - enable both self and ack
                 var broadcastOptions = new Supabase.Realtime.Broadcast.BroadcastOptions(true, true);
                 var broadcast = new Supabase.Realtime.RealtimeBroadcast<T>(channel, broadcastOptions, null);
                 
@@ -287,12 +282,19 @@ namespace KBVE.SSDB.SupabaseFDW
                     }
                 });
                 
-                Operator.D("[supabase] About to Subscribe to broadcast channel");
-                // Subscribe to the channel
-                await channel.Subscribe();
+                Operator.D($"[supabase] About to Register broadcast for channel: {channelName}");
+                
+                Operator.D($"[supabase] About to Subscribe to channel: {channelName}");
+                // Subscribe to the channel with error handling
+                var subscribeResult = await channel.Subscribe();
+                
+                if (subscribeResult == null || subscribeResult.Status != Supabase.Realtime.Constants.ChannelState.Subscribed)
+                {
+                    throw new Exception($"Failed to subscribe to channel: {channelName}. Status: {subscribeResult?.Status}");
+                }
                 
                 _channels[channelName] = channel;
-                Operator.D($"Created broadcast for channel: {channelName}");
+                Operator.D($"Successfully created and subscribed to broadcast channel: {channelName}");
                 
                 return broadcast;
             }
@@ -305,7 +307,7 @@ namespace KBVE.SSDB.SupabaseFDW
             catch (Exception ex)
             {
                 ErrorMessage.Value = $"Failed to create broadcast: {ex.Message}";
-                Operator.D($"Broadcast creation failed: {ex.Message}");
+                Operator.D($"Broadcast creation failed for {channelName}: {ex.Message}");
                 return null;
             }
             finally
