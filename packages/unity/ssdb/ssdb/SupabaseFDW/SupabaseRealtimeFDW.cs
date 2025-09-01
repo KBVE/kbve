@@ -133,34 +133,10 @@ namespace KBVE.SSDB.SupabaseFDW
                         }
                         else
                         {
-                            // For anonymous connections, sign in anonymously to get proper JWT (like web implementation)
-                            Operator.D("[SupabaseRealtimeFDW.InitializeRealtimeAsync:152] Could not refresh auth token: Not Logged in. - attempting anonymous sign-in");
-                            
-                            try
-                            {
-                                // Sign in anonymously to get a proper JWT token with role=anon
-                                var anonymousSession = await _supabaseInstance.Client.Auth.SignInAnonymously();
-                                if (anonymousSession?.User != null && !string.IsNullOrEmpty(anonymousSession.AccessToken))
-                                {
-                                    Operator.D($"[SupabaseRealtimeFDW] Anonymous sign-in successful. User ID: {anonymousSession.User.Id}");
-                                    Operator.D($"[SupabaseRealtimeFDW] Anonymous user role: {anonymousSession.User.Role}");
-                                    Operator.D($"[SupabaseRealtimeFDW] Anonymous user is_anonymous: {anonymousSession.User.IsAnonymous}");
-                                    Operator.D($"[SupabaseRealtimeFDW] Access token length: {anonymousSession.AccessToken?.Length ?? 0}");
-                                    _supabaseInstance.Client.Realtime.SetAuth(anonymousSession.AccessToken);
-                                }
-                                else
-                                {
-                                    Operator.D("[SupabaseRealtimeFDW] Anonymous sign-in failed, falling back to anon key");
-                                    var anonKey = SupabaseInfo.AnonKey;
-                                    _supabaseInstance.Client.Realtime.SetAuth(anonKey);
-                                }
-                            }
-                            catch (Exception ex)
-                            {
-                                Operator.D($"[SupabaseRealtimeFDW] Anonymous sign-in error: {ex.Message}, falling back to anon key");
-                                var anonKey = SupabaseInfo.AnonKey;
-                                _supabaseInstance.Client.Realtime.SetAuth(anonKey);
-                            }
+                            // For anonymous connections, use anon key directly (like web implementation)
+                            Operator.D("[SupabaseRealtimeFDW] No auth session found, using anon key for realtime");
+                            var anonKey = SupabaseInfo.AnonKey;
+                            _supabaseInstance.Client.Realtime.SetAuth(anonKey);
                         }
                     }
                     else
@@ -337,28 +313,11 @@ namespace KBVE.SSDB.SupabaseFDW
                 }
                 
                 Operator.D($"[supabase] About to Subscribe to channel: {channelName}");
-                // Subscribe to the channel with error handling and timeout
-                var subscribeTask = channel.Subscribe().AsUniTask();
-                var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(10), cancellationToken: effectiveToken);
-
                 
-                // Wait for subscription to complete
-                await subscribeTask;
+                // Subscribe to the channel using simple approach like web implementation
+                await channel.Subscribe();
                 
-                // Check channel state after subscription
-                if (channel.State != Supabase.Realtime.Constants.ChannelState.Joined)
-                {
-                    // Log more details about the failure
-                    var statusMessage = channel.State switch
-                    {
-                        Supabase.Realtime.Constants.ChannelState.Errored => "Channel errored during subscription",
-                        Supabase.Realtime.Constants.ChannelState.Closed => "Channel was closed",
-                        _ => $"Unexpected status: {channel.State}"
-                    };
-                    throw new Exception($"Failed to subscribe to channel: {channelName}. {statusMessage}");
-                }
-                
-                Operator.D($"[supabase] Channel subscription successful with status: {channel.State} for {channelName}");
+                Operator.D($"[supabase] Channel subscribed: {channelName}");
                 
                 _channels[channelName] = channel;
                 Operator.D($"Successfully created and subscribed to channel: {channelName}");
