@@ -341,9 +341,9 @@ namespace KBVE.SSDB.SupabaseFDW
                 var subscribeTask = channel.Subscribe().AsUniTask();
                 var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(10), cancellationToken: effectiveToken);
                 
-                var completedTask = await UniTask.WhenAny(subscribeTask, timeoutTask);
+                var (completedIndex, _) = await UniTask.WhenAny(subscribeTask, timeoutTask);
                 
-                if (completedTask == 1) // timeout occurred
+                if (completedIndex == 1) // timeout occurred
                 {
                     throw new TimeoutException($"Channel subscription timeout for: {channelName}");
                 }
