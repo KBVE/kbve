@@ -285,13 +285,8 @@ namespace KBVE.SSDB.SupabaseFDW
                 Operator.D($"[supabase] About to Register broadcast for channel: {channelName}");
                 
                 Operator.D($"[supabase] About to Subscribe to channel: {channelName}");
-                // Subscribe to the channel with error handling
-                var subscribeResult = await channel.Subscribe();
-                
-                if (subscribeResult == null || subscribeResult.Status != Supabase.Realtime.Constants.ChannelState.Subscribed)
-                {
-                    throw new Exception($"Failed to subscribe to channel: {channelName}. Status: {subscribeResult?.Status}");
-                }
+                // Subscribe to the channel - Subscribe() doesn't return status, it throws on error
+                await channel.Subscribe();
                 
                 _channels[channelName] = channel;
                 Operator.D($"Successfully created and subscribed to broadcast channel: {channelName}");
