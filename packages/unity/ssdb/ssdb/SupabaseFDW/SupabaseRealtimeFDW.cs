@@ -133,9 +133,10 @@ namespace KBVE.SSDB.SupabaseFDW
                         }
                         else
                         {
-                            // For anonymous connections, don't set an auth token - use null
-                            _supabaseInstance.Client.Realtime.SetAuth(null);
-                            Operator.D("[SupabaseRealtimeFDW.InitializeRealtimeAsync:152] Could not refresh auth token: Not Logged in. - connecting as anonymous");
+                            // For anonymous connections, use the anon key as token (like web implementation)
+                            var anonKey = SupabaseInfo.AnonKey;
+                            _supabaseInstance.Client.Realtime.SetAuth(anonKey);
+                            Operator.D("[SupabaseRealtimeFDW.InitializeRealtimeAsync:152] Could not refresh auth token: Not Logged in. - connecting as anonymous with anon key");
                         }
                     }
                     else
@@ -271,32 +272,18 @@ namespace KBVE.SSDB.SupabaseFDW
                 // Add debugging to see what topic Unity actually creates
                 Operator.D($"[supabase] Unity channel object type: {channel.GetType().FullName}");
                 
-                // Set up broadcast event handling BEFORE subscribing (like web implementation)
-                RealtimeBroadcast<T> broadcast = null;
+                // Register broadcast using the fluent API pattern like web implementation
+                var broadcast = channel.Register<T>();
                 
-                try
+                // Set up event handler
+                broadcast.AddBroadcastEventHandler((sender, _) =>
                 {
-                    // Register broadcast using simple approach
-                    broadcast = channel.Register<T>();
-                    Operator.D($"[supabase] Successfully registered broadcast for {channelName}");
-                    
-                    // Set up event handler
-                    broadcast.AddBroadcastEventHandler((sender, _) =>
+                    var response = broadcast.Current();
+                    if (response != null)
                     {
-                        var response = broadcast.Current();
-                        if (response != null)
-                        {
-                            onBroadcastReceived?.Invoke(response);
-                        }
-                    });
-                    
-                    Operator.D($"[supabase] Event handler added for {channelName}");
-                }
-                catch (Exception regEx)
-                {
-                    Operator.D($"[supabase] Failed to register broadcast: {regEx.Message}");
-                    throw new Exception($"Failed to register broadcast for {channelName}: {regEx.Message}");
-                }
+                        onBroadcastReceived?.Invoke(response);
+                    }
+                });
                 
                 Operator.D($"[supabase] About to Subscribe to channel: {channelName}");
                 // Subscribe to the channel - Subscribe() doesn't return status, it throws on error
