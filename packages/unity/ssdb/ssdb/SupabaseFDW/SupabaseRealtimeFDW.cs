@@ -338,7 +338,7 @@ namespace KBVE.SSDB.SupabaseFDW
                 
                 Operator.D($"[supabase] About to Subscribe to channel: {channelName}");
                 // Subscribe to the channel with error handling and timeout
-                var subscribeTask = channel.Subscribe();
+                var subscribeTask = channel.Subscribe().AsUniTask();
                 var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(10), cancellationToken: effectiveToken);
                 
                 var completedTask = await UniTask.WhenAny(subscribeTask, timeoutTask);
@@ -355,6 +355,7 @@ namespace KBVE.SSDB.SupabaseFDW
                     throw new Exception($"Failed to subscribe to channel: {channelName}. No response received");
                 }
                 
+
                 Operator.D($"[supabase] Channel subscription status: {subscribeResult.Status} for {channelName}");
                 
                 if (subscribeResult.Status != Supabase.Realtime.Constants.ChannelState.Subscribed)
