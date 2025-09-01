@@ -269,10 +269,7 @@ namespace KBVE.SSDB.SupabaseFDW
                 Operator.D($"[supabase] Created channel: {channelName}");
                 
                 // Add debugging to see what topic Unity actually creates
-                if (channel is Supabase.Realtime.Channel realtimeChannel)
-                {
-                    Operator.D($"[supabase] Unity channel topic: {realtimeChannel.Topic}");
-                }
+                Operator.D($"[supabase] Unity channel object type: {channel.GetType().FullName}");
                 
                 // Register broadcast using the fluent API pattern like web implementation
                 var broadcast = channel.Register<T>();
