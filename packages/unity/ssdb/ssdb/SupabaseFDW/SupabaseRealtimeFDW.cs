@@ -133,10 +133,9 @@ namespace KBVE.SSDB.SupabaseFDW
                         }
                         else
                         {
-                            // For anonymous connections, use anon key (Unity C# requires parameter)
-                            Operator.D("[SupabaseRealtimeFDW] No auth session found, using anon key for realtime");
-                            var anonKey = SupabaseInfo.AnonKey;
-                            _supabaseInstance.Client.Realtime.SetAuth(anonKey);
+                            // For anonymous connections, use default client auth (like web implementation)
+                            Operator.D("[SupabaseRealtimeFDW] No auth session found, using default client configuration");
+                            // Don't call SetAuth() - let client use the anon key from initialization
                         }
                     }
                     else
