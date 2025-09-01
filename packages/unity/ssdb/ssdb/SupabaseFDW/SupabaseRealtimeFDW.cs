@@ -340,13 +340,13 @@ namespace KBVE.SSDB.SupabaseFDW
                 // Subscribe to the channel with error handling and timeout
                 var subscribeTask = channel.Subscribe().AsUniTask();
                 var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(10), cancellationToken: effectiveToken);
-                
+
                 var (completedIndex, _) = await UniTask.WhenAny(subscribeTask, timeoutTask);
-                
                 if (completedIndex == 1) // timeout occurred
                 {
                     throw new TimeoutException($"Channel subscription timeout for: {channelName}");
                 }
+                
                 
                 // Wait for subscription to complete
                 await subscribeTask;
