@@ -348,29 +348,23 @@ namespace KBVE.SSDB.SupabaseFDW
                     throw new TimeoutException($"Channel subscription timeout for: {channelName}");
                 }
                 
-                var subscribeResult = await subscribeTask;
+                // Wait for subscription to complete
+                await subscribeTask;
                 
-                // Handle the tuple result from Subscribe
-                if (subscribeResult.hasResultLeft)
+                // Check channel state after subscription
+                if (channel.State != Supabase.Realtime.Constants.ChannelState.Joined)
                 {
-                    var subscribeChannel = subscribeResult.result;
-                    if (subscribeChannel?.State != Supabase.Realtime.Constants.ChannelState.Joined)
+                    // Log more details about the failure
+                    var statusMessage = channel.State switch
                     {
-                        // Log more details about the failure
-                        var statusMessage = subscribeChannel?.State switch
-                        {
-                            Supabase.Realtime.Constants.ChannelState.Errored => "Channel errored during subscription",
-                            Supabase.Realtime.Constants.ChannelState.Closed => "Channel was closed",
-                            _ => $"Unexpected status: {subscribeChannel?.State}"
-                        };
-                        throw new Exception($"Failed to subscribe to channel: {channelName}. {statusMessage}");
-                    }
-                    Operator.D($"[supabase] Channel subscription status: {subscribeChannel?.State} for {channelName}");
+                        Supabase.Realtime.Constants.ChannelState.Errored => "Channel errored during subscription",
+                        Supabase.Realtime.Constants.ChannelState.Closed => "Channel was closed",
+                        _ => $"Unexpected status: {channel.State}"
+                    };
+                    throw new Exception($"Failed to subscribe to channel: {channelName}. {statusMessage}");
                 }
-                else
-                {
-                    throw new Exception($"Failed to subscribe to channel: {channelName}. No response received");
-                }
+                
+                Operator.D($"[supabase] Channel subscription successful with status: {channel.State} for {channelName}");
                 
                 _channels[channelName] = channel;
                 Operator.D($"Successfully created and subscribed to channel: {channelName}");
