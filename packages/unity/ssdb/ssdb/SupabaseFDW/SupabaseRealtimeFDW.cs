@@ -133,9 +133,10 @@ namespace KBVE.SSDB.SupabaseFDW
                         }
                         else
                         {
-                            // For anonymous connections, don't set an auth token - use null
-                            _supabaseInstance.Client.Realtime.SetAuth(null);
-                            Operator.D("[SupabaseRealtimeFDW.InitializeRealtimeAsync:152] Could not refresh auth token: Not Logged in. - connecting as anonymous");
+                            // For anonymous connections, use the anon key as token (like web implementation)
+                            var anonKey = SupabaseInfo.AnonKey;
+                            _supabaseInstance.Client.Realtime.SetAuth(anonKey);
+                            Operator.D("[SupabaseRealtimeFDW.InitializeRealtimeAsync:152] Could not refresh auth token: Not Logged in. - connecting as anonymous with anon key");
                         }
                     }
                     else
