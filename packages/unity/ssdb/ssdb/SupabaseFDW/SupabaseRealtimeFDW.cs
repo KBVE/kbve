@@ -268,9 +268,14 @@ namespace KBVE.SSDB.SupabaseFDW
                 var channel = _supabaseInstance.Client.Realtime.Channel(channelName);
                 Operator.D($"[supabase] Created channel: {channelName}");
                 
-                // Register broadcast with explicit broadcast options - enable both self and ack
-                var broadcastOptions = new Supabase.Realtime.Broadcast.BroadcastOptions(true, true);
-                var broadcast = new Supabase.Realtime.RealtimeBroadcast<T>(channel, broadcastOptions, null);
+                // Add debugging to see what topic Unity actually creates
+                if (channel is Supabase.Realtime.Channel realtimeChannel)
+                {
+                    Operator.D($"[supabase] Unity channel topic: {realtimeChannel.Topic}");
+                }
+                
+                // Register broadcast using the fluent API pattern like web implementation
+                var broadcast = channel.Register<T>();
                 
                 // Set up event handler
                 broadcast.AddBroadcastEventHandler((sender, _) =>
@@ -281,8 +286,6 @@ namespace KBVE.SSDB.SupabaseFDW
                         onBroadcastReceived?.Invoke(response);
                     }
                 });
-                
-                Operator.D($"[supabase] About to Register broadcast for channel: {channelName}");
                 
                 Operator.D($"[supabase] About to Subscribe to channel: {channelName}");
                 // Subscribe to the channel - Subscribe() doesn't return status, it throws on error
