@@ -355,7 +355,20 @@ namespace KBVE.SSDB.SupabaseFDW
                     throw new Exception($"Failed to subscribe to channel: {channelName}. No response received");
                 }
                 
-                Operator.D($"[supabase] Channel subscription completed for {channelName}");
+
+                Operator.D($"[supabase] Channel subscription status: {subscribeResult.Status} for {channelName}");
+                
+                if (subscribeResult.Status != Supabase.Realtime.Constants.ChannelState.Subscribed)
+                {
+                    // Log more details about the failure
+                    var statusMessage = subscribeResult.Status switch
+                    {
+                        Supabase.Realtime.Constants.ChannelState.Errored => "Channel errored during subscription",
+                        Supabase.Realtime.Constants.ChannelState.Closed => "Channel was closed",
+                        _ => $"Unexpected status: {subscribeResult.Status}"
+                    };
+                    throw new Exception($"Failed to subscribe to channel: {channelName}. {statusMessage}");
+                }
                 
                 _channels[channelName] = channel;
                 Operator.D($"Successfully created and subscribed to channel: {channelName}");
