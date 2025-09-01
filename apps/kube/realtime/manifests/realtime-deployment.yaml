@@ -19,10 +19,10 @@ spec:
         spec:
             containers:
                 - name: realtime
-                  image: supabase/realtime:v2.43.1
+                  image: supabase/realtime:v2.45.0
                   command: ['/bin/sh']
                   args:
-                      [
+                      [ß
                           '-c',
                           "/app/bin/migrate && /app/bin/realtime eval 'Realtime.Release.seeds(Realtime.Repo)' && /app/bin/server",
                       ]
@@ -108,7 +108,7 @@ spec:
 
                   volumeMounts:
                       - name: realtime-seeds
-                        mountPath: /app/lib/realtime-2.43.1/priv/repo/seeds.exs
+                        mountPath: /app/lib/realtime-2.45.0/priv/repo/seeds.exs
                         subPath: seeds.exs
 
                   livenessProbe:
