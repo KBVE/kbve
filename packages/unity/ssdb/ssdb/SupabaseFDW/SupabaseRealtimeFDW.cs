@@ -121,7 +121,7 @@ namespace KBVE.SSDB.SupabaseFDW
                 
                 if (_supabaseInstance.Client?.Realtime != null)
                 {
-                    // Get the current session and access token (with null checks)
+                    // Setup authentication for realtime (handle anonymous connections)
                     if (_supabaseInstance.Client?.Auth != null)
                     {
                         var currentSession = _supabaseInstance.Client.Auth.CurrentSession;
@@ -129,33 +129,26 @@ namespace KBVE.SSDB.SupabaseFDW
                         {
                             // Set the authentication token for realtime
                             _supabaseInstance.Client.Realtime.SetAuth(currentSession.AccessToken);
-                            Operator.D($"Realtime auth token set: {currentSession.AccessToken.Substring(0, Math.Min(20, currentSession.AccessToken.Length))}...");
+                            Operator.D($"[SSDB] Realtime auth token set: {currentSession.AccessToken.Substring(0, Math.Min(20, currentSession.AccessToken.Length))}...");
                         }
                         else
                         {
-                            try
+                            // For anonymous connections, use the anon key
+                            var anonKey = SupabaseInfo.AnonKey;
+                            if (!string.IsNullOrEmpty(anonKey))
                             {
-                                // If no session, try to refresh the token
-                                var refreshedSession = await _supabaseInstance.Client.Auth.RefreshSession();
-                                if (refreshedSession != null && !string.IsNullOrEmpty(refreshedSession.AccessToken))
-                                {
-                                    _supabaseInstance.Client.Realtime.SetAuth(refreshedSession.AccessToken);
-                                    Operator.D($"Realtime auth token set after refresh: {refreshedSession.AccessToken.Substring(0, Math.Min(20, refreshedSession.AccessToken.Length))}...");
-                                }
-                                else
-                                {
-                                    Operator.D("No auth token available for realtime - connecting as anonymous");
-                                }
+                                _supabaseInstance.Client.Realtime.SetAuth(anonKey);
+                                Operator.D("[SSDB] Realtime auth set to anon key for anonymous connection");
                             }
-                            catch (Exception ex)
+                            else
                             {
-                                Operator.D($"Could not refresh auth token: {ex.Message} - connecting as anonymous");
+                                Operator.D("[SSDB] No auth token available for realtime - connecting without auth");
                             }
                         }
                     }
                     else
                     {
-                        Operator.D("Auth client not available - connecting to realtime as anonymous");
+                        Operator.D("[SSDB] Auth client not available - connecting to realtime as anonymous");
                     }
                     
                     await _supabaseInstance.Client.Realtime.ConnectAsync();
@@ -272,25 +265,30 @@ namespace KBVE.SSDB.SupabaseFDW
                     return existingBroadcast;
                 }
                 
-                // Ensure auth token is set before subscribing
-                await EnsureAuthTokenSetAsync();
+                // For broadcast channels, we don't need auth tokens
+                Operator.D("[supabase] Skipping auth token for broadcast channel");
                 
-                // Create channel (don't subscribe yet)
-                var channel = _supabaseInstance.Client.Realtime.Channel(database: "realtime", schema: "public", value: channelName, parameters: _supabaseInstance.Client.Auth.GetHeaders());
-                Operator.D("[supabase] About to Register");
-                // Register broadcast and set up event handler BEFORE subscribing
-                var broadcast = channel.Register<T>(false, true);
+                // Create channel specifically for broadcasting
+                var channelTopic = $"broadcast-{channelName}";
+                var channel = _supabaseInstance.Client.Realtime.Channel(channelTopic);
+                Operator.D($"[supabase] Created broadcast channel: {channelTopic}");
+                
+                // Register broadcast with explicit broadcast options
+                var broadcastOptions = new Supabase.Realtime.Broadcast.BroadcastOptions(true, true);
+                var broadcast = new Supabase.Realtime.RealtimeBroadcast<T>(channel, broadcastOptions, null);
+                
+                // Set up event handler
                 broadcast.AddBroadcastEventHandler((sender, _) =>
                 {
                     var response = broadcast.Current();
-                    // if (response != null)
-                    // {
-                    //     onBroadcastReceived?.Invoke(response);
-                    // }
+                    if (response != null)
+                    {
+                        onBroadcastReceived?.Invoke(response);
+                    }
                 });
                 
-                 Operator.D("[supabase] About to Subscribe");
-                // Now subscribe to the channel
+                Operator.D("[supabase] About to Subscribe to broadcast channel");
+                // Subscribe to the channel
                 await channel.Subscribe();
                 
                 _channels[channelName] = channel;

@@ -70,7 +70,7 @@ namespace KBVE.SSDB.SupabaseFDW
             _options = new SupabaseOptions
             {
                 AutoRefreshToken = true,
-                AutoConnectRealtime = true,
+                AutoConnectRealtime = false, // Disable auto-connect, let RealtimeFDW handle it explicitly
                 Headers = new Dictionary<string, string>()
             };
 
@@ -102,25 +102,43 @@ namespace KBVE.SSDB.SupabaseFDW
 
             try
             {
+                Operator.D($"[SSDB] Testing network connectivity to: {url}");
                 _clientWrapper.Client.Auth.Online = await _networkStatus.StartAsync(url);
+                Operator.D($"[SSDB] Network status check result: {_clientWrapper.Client.Auth.Online}");
             }
             catch (NotSupportedException)
             {
+                Operator.D("[SSDB] Network status not supported on this platform, assuming online");
                 _clientWrapper.Client.Auth.Online = true;
             }
             catch (Exception e)
             {
-                Operator.D($"Network Error {e.GetType()}: {e.Message}");
-                PostMessage(NotificationType.Debug, $"Network Error {e.GetType()}", e);
+                Operator.D($"[SSDB] Network Error {e.GetType()}: {e.Message}");
+                PostMessage(NotificationType.Warning, $"Network connectivity failed, but continuing with offline mode: {e.Message}", e);
+                // Don't fail completely - continue with offline mode
                 _clientWrapper.Client.Auth.Online = false;
             }
 
             Online.Value = _clientWrapper.Client.Auth.Online;
+            Operator.D($"[SSDB] Connection state set to: {Online.Value}");
 
-            if (_clientWrapper.Client.Auth.Online)
+            // Always try to initialize, even if offline
+            try 
             {
                 await _clientWrapper.Client.InitializeAsync();
-                await _clientWrapper.Client.Auth.Settings();
+                Operator.D("[SSDB] Client initialized successfully");
+                
+                if (_clientWrapper.Client.Auth.Online)
+                {
+                    await _clientWrapper.Client.Auth.Settings();
+                    Operator.D("[SSDB] Auth settings retrieved successfully");
+                }
+            }
+            catch (Exception e)
+            {
+                Operator.D($"[SSDB] Client initialization error: {e.Message}");
+                PostMessage(NotificationType.Error, $"Supabase client initialization failed: {e.Message}", e);
+                throw; // This should fail the startup
             }
 
             Initialized.Value = true;
