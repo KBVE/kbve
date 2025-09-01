@@ -31,7 +31,7 @@ namespace KBVE.SSDB.SupabaseFDW
         public ReactiveProperty<bool> IsBroadcasting { get; } = new(false);
         public ReactiveProperty<string> SessionId { get; } = new(string.Empty);
         public ReactiveProperty<DateTime> LaunchTime { get; } = new(DateTime.UtcNow);
-        public ReactiveProperty<string> BroadcastChannelName { get; } = new("broadcast:demo");
+        public ReactiveProperty<string> BroadcastChannelName { get; } = new("demo");
         
         [Inject]
         public SupabaseBroadcastFDW(SupabaseRealtimeFDW realtimeFDW, SupabaseAuthFDW authFDW, ISupabaseInstance supabaseInstance)
