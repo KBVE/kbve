@@ -265,9 +265,22 @@ namespace KBVE.SSDB.SupabaseFDW
                     await InitializeRealtimeAsync(effectiveToken);
                 }
                 
-                // Use simple channel name like web implementation (no "broadcast-" prefix)
+                // Check authentication status like web implementation
+                var currentSession = _supabaseInstance.Client?.Auth?.CurrentSession;
+                if (currentSession == null || string.IsNullOrEmpty(currentSession.AccessToken))
+                {
+                    Operator.D($"[supabase] Accessing channel '{channelName}' as anonymous user (like web implementation)");
+                    Operator.D("[supabase] Anonymous access permitted for this channel");
+                }
+                else
+                {
+                    Operator.D($"[supabase] Accessing channel '{channelName}' with authenticated user: {currentSession.User?.Email ?? "unknown"}");
+                    Operator.D($"[supabase] User ID: {currentSession.User?.Id ?? "unknown"}");
+                }
+                
+                // Access channel (supports both authenticated and anonymous users like web)
                 var channel = _supabaseInstance.Client.Realtime.Channel(channelName);
-                Operator.D($"[supabase] Created channel: {channelName}");
+                Operator.D($"[supabase] Attempting to access channel: {channelName}");
                 
                 // Add debugging to see what topic Unity actually creates
                 Operator.D($"[supabase] Unity channel object type: {channel.GetType().FullName}");
@@ -290,7 +303,7 @@ namespace KBVE.SSDB.SupabaseFDW
                 await channel.Subscribe();
                 
                 _channels[channelName] = channel;
-                Operator.D($"Successfully created and subscribed to broadcast channel: {channelName}");
+                Operator.D($"Successfully created and subscribed to channel: {channelName}");
                 
                 return broadcast;
             }
