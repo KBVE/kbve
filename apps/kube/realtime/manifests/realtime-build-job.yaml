@@ -9,54 +9,70 @@ spec:
   template:
     spec:
       restartPolicy: Never
-      containers:
-      - name: docker-builder
-        image: docker:24-dind
-        securityContext:
-          privileged: true
-        env:
-        - name: DOCKER_TLS_CERTDIR
-          value: ""
+      securityContext:
+        runAsUser: 1000
+        runAsGroup: 1000
+        fsGroup: 1000
+      initContainers:
+      - name: git-clone
+        image: alpine/git:latest
         command:
         - sh
         - -c
         - |
-          # Start Docker daemon
-          dockerd-entrypoint.sh &
-          
-          # Wait for Docker to be ready
-          until docker info > /dev/null 2>&1; do
-            echo "Waiting for Docker daemon to start..."
-            sleep 2
-          done
-          
-          echo "Docker daemon started successfully"
-          
-          # Install git
-          apk add --no-cache git
-          
-          # Clone the KBVE realtime repo
           echo "Cloning KBVE/realtime repository..."
           git clone https://github.com/KBVE/realtime.git /workspace
-          cd /workspace
-          
           echo "Repository cloned successfully"
-          
-          # Build the Docker image
-          echo "Building realtime image..."
-          docker build -t kbve-realtime:latest .
-          
-          echo "Image built successfully!"
-          docker images | grep kbve-realtime
-          
-          echo "Build job completed successfully"
+          ls -la /workspace
         volumeMounts:
-        - name: docker-sock
-          mountPath: /var/run
         - name: workspace
           mountPath: /workspace
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+      containers:
+      - name: buildah-builder
+        image: quay.io/buildah/stable:latest
+        command:
+        - sh
+        - -c
+        - |
+          echo "Building image with buildah..."
+          cd /workspace
+          
+          # Build the image using buildah (rootless)
+          buildah bud --storage-driver vfs -t kbve-realtime:latest .
+          
+          # Export the image to a tar file
+          buildah push --storage-driver vfs kbve-realtime:latest oci-archive:/output/kbve-realtime.tar:kbve-realtime:latest
+          
+          echo "Image built and exported successfully!"
+          ls -la /output/
+        volumeMounts:
+        - name: workspace
+          mountPath: /workspace
+        - name: output
+          mountPath: /output
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          allowPrivilegeEscalation: false
+          capabilities:
+            drop:
+            - ALL
+        resources:
+          requests:
+            memory: "2Gi"
+            cpu: "1000m"
+          limits:
+            memory: "4Gi" 
+            cpu: "2000m"
       volumes:
-      - name: docker-sock
-        emptyDir: {}
       - name: workspace
+        emptyDir: {}
+      - name: output
         emptyDir: {}
