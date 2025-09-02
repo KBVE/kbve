@@ -4,17 +4,17 @@ metadata:
     name: realtime
     namespace: kilobase
     labels:
-        app: realtime
+        app: realtime-prod
         component: websocket
 spec:
     replicas: 1
     selector:
         matchLabels:
-            app: realtime
+            app: realtime-prod
     template:
         metadata:
             labels:
-                app: realtime
+                app: realtime-prod
                 component: websocket
         spec:
             containers:
@@ -99,10 +99,10 @@ spec:
                                 key: ANON_KEY
 
                       - name: SELF_HOST_TENANT_NAME
-                        value: 'kbve'
+                        value: 'realtime-prod'
 
                       - name: TENANT_NAME
-                        value: 'kbve'
+                        value: 'realtime-prod'
 
                       - name: RESTART_TRIGGER
                         value: 'jwt-update-2025-08-18-ALPHA'
