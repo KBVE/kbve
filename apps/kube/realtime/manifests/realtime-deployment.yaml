@@ -29,6 +29,10 @@ spec:
                   ports:
                       - containerPort: 4000
                         name: http
+                      - containerPort: 4369
+                        name: epmd
+                      - containerPort: 5369
+                        name: gen-rpc
                   env:
                       - name: PORT
                         value: '4000'
@@ -69,11 +73,23 @@ spec:
                       - name: ERL_AFLAGS
                         value: '-proto_dist inet_tcp'
                       - name: DNS_NODES
-                        value: "''"
+                        value: 'realtime@realtime-prod-headless.kilobase.svc.cluster.local'
                       - name: RLIMIT_NOFILE
                         value: '10000'
                       - name: APP_NAME
                         value: 'realtime'
+                      - name: RELEASE_NAME
+                        value: 'realtime'
+                      - name: RELEASE_NODE
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: status.podIP
+                      - name: RELEASE_COOKIE
+                        value: 'realtime-cluster-cookie-secure-string'
+                      - name: GEN_RPC_TCP_SERVER_PORT
+                        value: '5369'
+                      - name: GEN_RPC_TCP_CLIENT_PORT
+                        value: '5369'
                       - name: SEED_SELF_HOST
                         value: 'true'
                       - name: RUN_JANITOR
