@@ -19,7 +19,7 @@ spec:
         spec:
             containers:
                 - name: realtime
-                  image: supabase/realtime:v2.46.2
+                  image: supabase/realtime:v2.45.0
                   command: ['/bin/sh']
                   args:
                       [
@@ -109,7 +109,7 @@ spec:
 
                   volumeMounts:
                       - name: realtime-seeds
-                        mountPath: /app/lib/realtime-2.46.2/priv/repo/seeds.exs
+                        mountPath: /app/lib/realtime-2.45.0/priv/repo/seeds.exs
                         subPath: seeds.exs
 
                   livenessProbe:
