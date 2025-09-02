@@ -25,8 +25,8 @@ spec:
                   args:
                       [
                           '-c',
-                          # Dynamically set REPLICATION_SLOT_NAME based on pod ordinal
-                          'export REPLICATION_SLOT_NAME="supabase_realtime_replication_slot_${HOSTNAME##*-}" && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server',
+                          # Dynamically set REPLICATION_SLOT_NAME and node name based on pod ordinal
+                          'export REPLICATION_SLOT_NAME="supabase_realtime_replication_slot_${HOSTNAME##*-}" && export RELEASE_NODE="realtime@${HOSTNAME}.realtime-prod-headless.kilobase.svc.cluster.local" && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server',
                       ]
                   ports:
                       - containerPort: 4000
@@ -79,17 +79,15 @@ spec:
                       - name: ERL_AFLAGS
                         value: '-proto_dist inet_tcp'
                       - name: DNS_NODES
-                        value: 'realtime@realtime-prod-headless.kilobase.svc.cluster.local'
+                        value: 'realtime@realtime-prod-0.realtime-prod-headless.kilobase.svc.cluster.local,realtime@realtime-prod-1.realtime-prod-headless.kilobase.svc.cluster.local,realtime@realtime-prod-2.realtime-prod-headless.kilobase.svc.cluster.local'
                       - name: RLIMIT_NOFILE
                         value: '10000'
                       - name: APP_NAME
                         value: 'realtime'
                       - name: RELEASE_NAME
                         value: 'realtime'
-                      - name: RELEASE_NODE
-                        valueFrom:
-                          fieldRef:
-                            fieldPath: status.podIP
+                      # RELEASE_NODE is set dynamically in the startup script above
+                      # It will be: realtime@<pod-name>.realtime-prod-headless.kilobase.svc.cluster.local
                       - name: RELEASE_COOKIE
                         value: 'realtime-cluster-cookie-secure-string'
                       - name: GEN_RPC_TCP_SERVER_PORT
