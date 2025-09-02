@@ -7,7 +7,7 @@ metadata:
         app: realtime-prod
         component: websocket
 spec:
-    replicas: 1
+    replicas: 3
     selector:
         matchLabels:
             app: realtime-prod
