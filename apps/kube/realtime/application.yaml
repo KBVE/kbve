@@ -24,3 +24,4 @@ spec:
       - CreateNamespace=false
       - ServerSideApply=true
       - RespectIgnoreDifferences=true
+      - Replace=true
