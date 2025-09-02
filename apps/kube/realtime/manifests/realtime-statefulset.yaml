@@ -1,0 +1,163 @@
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+    name: realtime-prod
+    namespace: kilobase
+    labels:
+        app: realtime-prod
+        component: websocket
+spec:
+    serviceName: realtime-prod-headless  # Must match the headless service
+    replicas: 3
+    selector:
+        matchLabels:
+            app: realtime-prod
+    template:
+        metadata:
+            labels:
+                app: realtime-prod
+                component: websocket
+        spec:
+            containers:
+                - name: realtime
+                  image: supabase/realtime:v2.45.0
+                  command: ['/bin/sh']
+                  args:
+                      [
+                          '-c',
+                          # Dynamically set REPLICATION_SLOT_NAME based on pod ordinal
+                          'export REPLICATION_SLOT_NAME="supabase_realtime_replication_slot_${HOSTNAME##*-}" && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server',
+                      ]
+                  ports:
+                      - containerPort: 4000
+                        name: http
+                      - containerPort: 4369
+                        name: epmd
+                      - containerPort: 5369
+                        name: gen-rpc
+                  env:
+                      - name: HOSTNAME
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: metadata.name
+                      - name: PORT
+                        value: '4000'
+                      - name: DB_HOST
+                        value: 'supabase-cluster-rw.kilobase.svc.cluster.local'
+                      - name: DB_PORT
+                        value: '5432'
+                      - name: DB_USER
+                        value: 'supabase_admin'
+                      - name: DB_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-superuser
+                                key: password
+                      - name: DB_NAME
+                        value: 'supabase'
+                      - name: DB_AFTER_CONNECT_QUERY
+                        value: 'SET search_path TO _realtime'
+                      - name: DB_ENC_KEY
+                        value: 'supabaserealtime'
+                      - name: API_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: realtime-jwt-secret
+                                key: API_JWT_SECRET
+                      - name: JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: realtime-jwt-secret
+                                key: API_JWT_SECRET
+                      - name: JWT_CLAIM_VALIDATORS
+                        value: '{"iss": "supabase"}'
+                      - name: SECRET_KEY_BASE
+                        valueFrom:
+                            secretKeyRef:
+                                name: realtime-jwt-secret
+                                key: secret-key-base
+                      - name: ERL_AFLAGS
+                        value: '-proto_dist inet_tcp'
+                      - name: DNS_NODES
+                        value: 'realtime@realtime-prod-headless.kilobase.svc.cluster.local'
+                      - name: RLIMIT_NOFILE
+                        value: '10000'
+                      - name: APP_NAME
+                        value: 'realtime'
+                      - name: RELEASE_NAME
+                        value: 'realtime'
+                      - name: RELEASE_NODE
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: status.podIP
+                      - name: RELEASE_COOKIE
+                        value: 'realtime-cluster-cookie-secure-string'
+                      - name: GEN_RPC_TCP_SERVER_PORT
+                        value: '5369'
+                      - name: GEN_RPC_TCP_CLIENT_PORT
+                        value: '5369'
+                      - name: SEED_SELF_HOST
+                        value: 'true'
+                      - name: RUN_JANITOR
+                        value: 'true'
+                      - name: SELF_BROADCAST
+                        value: 'true'
+                      - name: ANON_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: realtime-jwt-secret
+                                key: ANON_KEY
+
+                      - name: SUPABASE_SERVICE_ROLE_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: realtime-jwt-secret
+                                key: SERVICE_KEY
+
+                      - name: NEXT_PUBLIC_SUPABASE_ANON_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: realtime-jwt-secret
+                                key: ANON_KEY
+
+                      - name: SELF_HOST_TENANT_NAME
+                        value: 'realtime-prod'
+
+                      - name: TENANT_NAME
+                        value: 'realtime-prod'
+
+                      - name: RESTART_TRIGGER
+                        value: 'statefulset-migration-2025-09-02'
+
+                  volumeMounts:
+                      - name: realtime-seeds
+                        mountPath: /app/lib/realtime-2.45.0/priv/repo/seeds.exs
+                        subPath: seeds.exs
+
+                  livenessProbe:
+                      tcpSocket:
+                          port: 4000
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+
+                  readinessProbe:
+                      tcpSocket:
+                          port: 4000
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+
+                  resources:
+                      requests:
+                          memory: '256Mi'
+                          cpu: '200m'
+                      limits:
+                          memory: '1Gi'
+                          cpu: '1000m'
+            volumes:
+                - name: realtime-seeds
+                  configMap:
+                      name: realtime-seeds
