@@ -35,35 +35,19 @@ spec:
             drop:
             - ALL
       containers:
-      - name: buildah-builder
-        image: quay.io/buildah/stable:latest
-        command:
-        - sh
-        - -c
-        - |
-          echo "Building image with buildah..."
-          cd /workspace
-          
-          # Build the image using buildah (rootless)
-          buildah bud --storage-driver vfs -t kbve-realtime:latest .
-          
-          # Export the image to a tar file
-          buildah push --storage-driver vfs kbve-realtime:latest oci-archive:/output/kbve-realtime.tar:kbve-realtime:latest
-          
-          echo "Image built and exported successfully!"
-          ls -la /output/
+      - name: kaniko-builder
+        image: gcr.io/kaniko-project/executor:latest
+        args:
+        - --dockerfile=/workspace/Dockerfile
+        - --context=/workspace
+        - --no-push
+        - --tarPath=/shared-storage/kbve-realtime.tar
+        - --destination=kbve-realtime:latest
         volumeMounts:
         - name: workspace
           mountPath: /workspace
-        - name: output
-          mountPath: /output
-        securityContext:
-          runAsUser: 1000
-          runAsGroup: 1000
-          allowPrivilegeEscalation: false
-          capabilities:
-            drop:
-            - ALL
+        - name: shared-storage
+          mountPath: /shared-storage
         resources:
           requests:
             memory: "2Gi"
@@ -74,5 +58,6 @@ spec:
       volumes:
       - name: workspace
         emptyDir: {}
-      - name: output
-        emptyDir: {}
+      - name: shared-storage
+        persistentVolumeClaim:
+          claimName: realtime-image-storage
