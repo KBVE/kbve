@@ -1,0 +1,62 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: realtime-builder
+  namespace: kilobase
+  labels:
+    app: realtime-builder
+spec:
+  template:
+    spec:
+      restartPolicy: Never
+      containers:
+      - name: docker-builder
+        image: docker:24-dind
+        securityContext:
+          privileged: true
+        env:
+        - name: DOCKER_TLS_CERTDIR
+          value: ""
+        command:
+        - sh
+        - -c
+        - |
+          # Start Docker daemon
+          dockerd-entrypoint.sh &
+          
+          # Wait for Docker to be ready
+          until docker info > /dev/null 2>&1; do
+            echo "Waiting for Docker daemon to start..."
+            sleep 2
+          done
+          
+          echo "Docker daemon started successfully"
+          
+          # Install git
+          apk add --no-cache git
+          
+          # Clone the KBVE realtime repo
+          echo "Cloning KBVE/realtime repository..."
+          git clone https://github.com/KBVE/realtime.git /workspace
+          cd /workspace
+          
+          echo "Repository cloned successfully"
+          
+          # Build the Docker image
+          echo "Building realtime image..."
+          docker build -t kbve-realtime:latest .
+          
+          echo "Image built successfully!"
+          docker images | grep kbve-realtime
+          
+          echo "Build job completed successfully"
+        volumeMounts:
+        - name: docker-sock
+          mountPath: /var/run
+        - name: workspace
+          mountPath: /workspace
+      volumes:
+      - name: docker-sock
+        emptyDir: {}
+      - name: workspace
+        emptyDir: {}

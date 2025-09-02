@@ -20,7 +20,8 @@ spec:
         spec:
             containers:
                 - name: realtime
-                  image: supabase/realtime:v2.46.2
+                  image: kbve-realtime:latest
+                  imagePullPolicy: Never  # Use locally built image
                   command: ['/bin/sh']
                   args:
                       [
