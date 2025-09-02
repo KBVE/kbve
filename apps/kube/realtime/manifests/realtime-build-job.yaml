@@ -1,7 +1,7 @@
 apiVersion: batch/v1
 kind: Job
 metadata:
-  name: realtime-builder
+  name: realtime-builder-v2
   namespace: kilobase
   labels:
     app: realtime-builder
