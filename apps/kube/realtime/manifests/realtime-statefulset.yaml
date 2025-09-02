@@ -21,7 +21,7 @@ spec:
             containers:
                 - name: realtime
                   image: kbve-realtime:latest
-                  imagePullPolicy: Never  # Use locally built image
+                  imagePullPolicy: Never
                   command: ['/bin/sh']
                   args:
                       [
