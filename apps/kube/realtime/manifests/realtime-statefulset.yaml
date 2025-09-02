@@ -41,7 +41,7 @@ spec:
                       [
                           '-c',
                           # Dynamically set REPLICATION_SLOT_NAME and RELEASE_NODE based on pod IP
-                          'export REPLICATION_SLOT_NAME="supabase_realtime_replication_slot_${HOSTNAME##*-}" && export RELEASE_NODE="realtime@$(hostname -i)" && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server',
+                          'export REPLICATION_SLOT_NAME="supabase_realtime_replication_slot_${HOSTNAME##*-}" && export RELEASE_NODE="realtime@${POD_IP}" && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server',
                       ]
                   ports:
                       - containerPort: 4000
@@ -50,6 +50,10 @@ spec:
                         name: epmd
                       - containerPort: 5369
                         name: gen-rpc
+                      - containerPort: 9100
+                        name: dist-start
+                      - containerPort: 9110
+                        name: dist-end
                   env:
                       - name: HOSTNAME
                         valueFrom:
@@ -92,7 +96,7 @@ spec:
                                 name: realtime-jwt-secret
                                 key: secret-key-base
                       - name: ERL_AFLAGS
-                        value: '-proto_dist inet_tcp'
+                        value: '-proto_dist inet_tcp -kernel inet_dist_listen_min 9100 -kernel inet_dist_listen_max 9110'
                       - name: DNS_NODES
                         value: 'realtime-prod-headless.kilobase.svc.cluster.local'
                       - name: CLUSTER_STRATEGIES
@@ -105,6 +109,10 @@ spec:
                         value: 'realtime'
                       - name: RELEASE_COOKIE
                         value: 'realtime-cluster-cookie-secure-string'
+                      - name: POD_IP
+                        valueFrom:
+                          fieldRef:
+                            fieldPath: status.podIP
                       - name: GEN_RPC_TCP_SERVER_PORT
                         value: '5369'
                       - name: GEN_RPC_TCP_CLIENT_PORT
@@ -159,11 +167,12 @@ spec:
                       failureThreshold: 3
 
                   readinessProbe:
-                      tcpSocket:
+                      httpGet:
+                          path: /healthcheck
                           port: 4000
-                      initialDelaySeconds: 10
-                      periodSeconds: 5
-                      timeoutSeconds: 5
+                      initialDelaySeconds: 45
+                      periodSeconds: 10
+                      timeoutSeconds: 10
                       failureThreshold: 3
 
                   resources:

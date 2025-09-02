@@ -22,5 +22,9 @@ spec:
       targetPort: 5369
       protocol: TCP
       name: gen-rpc  # GenRPC for inter-node communication
+    - port: 9105
+      targetPort: 9105
+      protocol: TCP
+      name: dist-port   # Erlang distribution port range
   selector:
     app: realtime-prod
