@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: realtime
+  name: realtime-prod
   namespace: kilobase
   labels:
     app: realtime-prod
