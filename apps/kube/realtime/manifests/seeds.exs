@@ -6,7 +6,7 @@ import Ecto.Adapters.SQL, only: [query: 3]
 # CONFIGURATION
 # =============================================================================
 
-tenant_name = System.get_env("TENANT_NAME", "kbve")
+tenant_name = System.get_env("TENANT_NAME", "realtime-prod")
 publication = "supabase_realtime"
 
 env = if :ets.whereis(Mix.State) != :undefined, do: Mix.env(), else: :prod

@@ -99,10 +99,10 @@ spec:
                                 key: ANON_KEY
 
                       - name: SELF_HOST_TENANT_NAME
-                        value: 'kbve'
+                        value: 'realtime-prod'
 
                       - name: TENANT_NAME
-                        value: 'kbve'
+                        value: 'realtime-prod'
 
                       - name: RESTART_TRIGGER
                         value: 'jwt-update-2025-08-18-ALPHA'
