@@ -18,21 +18,6 @@ spec:
                 app: realtime-prod
                 component: websocket
         spec:
-            initContainers:
-                - name: fix-runtime-bug
-                  image: supabase/realtime:v2.46.2
-                  command: ['/bin/sh', '-c']
-                  args:
-                      - |
-                        echo "Fixing runtime.exs bug in v2.46.2..."
-                        # Fix the bug where String.to_integer(env) should be String.to_integer(value)
-                        sed -i 's/String\.to_integer(env)/String.to_integer(value)/g' /app/releases/2.46.2/runtime.exs
-                        # Copy the fixed runtime.exs to a shared volume
-                        cp /app/releases/2.46.2/runtime.exs /fixed-config/runtime.exs
-                        echo "Runtime bug fixed!"
-                  volumeMounts:
-                      - name: fixed-config
-                        mountPath: /fixed-config
             containers:
                 - name: realtime
                   image: supabase/realtime:v2.46.2
@@ -154,9 +139,6 @@ spec:
                       - name: realtime-seeds
                         mountPath: /app/lib/realtime-2.46.2/priv/repo/seeds.exs
                         subPath: seeds.exs
-                      - name: fixed-config
-                        mountPath: /app/releases/2.46.2/runtime.exs
-                        subPath: runtime.exs
 
                   livenessProbe:
                       tcpSocket:
@@ -186,5 +168,3 @@ spec:
                 - name: realtime-seeds
                   configMap:
                       name: realtime-seeds
-                - name: fixed-config
-                  emptyDir: {}
