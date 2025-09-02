@@ -9,6 +9,8 @@ resources:
   - realtime-headless-service.yaml
   - realtime-jwt-external-secret.yaml
   - realtime-build-job.yaml
+  - realtime-image-pvc.yaml
+  - realtime-image-loader.yaml
 
 configMapGenerator:
   - name: realtime-seeds

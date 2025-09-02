@@ -1,0 +1,12 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: realtime-image-storage
+  namespace: kilobase
+spec:
+  accessModes:
+    - ReadWriteMany  # Allows multiple pods to read the image
+  resources:
+    requests:
+      storage: 2Gi
+  storageClassName: ""  # Use default storage class
