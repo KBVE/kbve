@@ -25,8 +25,8 @@ spec:
                   args:
                       [
                           '-c',
-                          # Dynamically set REPLICATION_SLOT_NAME based on pod ordinal
-                          'export REPLICATION_SLOT_NAME="supabase_realtime_replication_slot_${HOSTNAME##*-}" && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server',
+                          # Dynamically set REPLICATION_SLOT_NAME and RELEASE_NODE based on pod IP
+                          'export REPLICATION_SLOT_NAME="supabase_realtime_replication_slot_${HOSTNAME##*-}" && export RELEASE_NODE="realtime@$(hostname -i)" && /app/bin/migrate && /app/bin/realtime eval "Realtime.Release.seeds(Realtime.Repo)" && /app/bin/server',
                       ]
                   ports:
                       - containerPort: 4000
