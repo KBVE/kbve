@@ -4,8 +4,9 @@ kind: Kustomization
 namespace: kilobase
 
 resources:
-  - realtime-deployment.yaml
+  - realtime-statefulset.yaml
   - realtime-service.yaml
+  - realtime-headless-service.yaml
   - realtime-jwt-external-secret.yaml
 
 configMapGenerator:
