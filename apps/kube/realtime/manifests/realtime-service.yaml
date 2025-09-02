@@ -4,7 +4,7 @@ metadata:
   name: realtime
   namespace: kilobase
   labels:
-    app: realtime
+    app: realtime-prod
     component: websocket
 spec:
   type: ClusterIP
@@ -14,4 +14,4 @@ spec:
     protocol: TCP
     name: http
   selector:
-    app: realtime
+    app: realtime-prod
