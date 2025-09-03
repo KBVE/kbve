@@ -37,3 +37,5 @@ resources:
   - vector/application.yaml
   - disoxide/application.yaml
   - ac/application.yaml
+  - notification-bot/application.yaml
+  - functions/application.yaml
