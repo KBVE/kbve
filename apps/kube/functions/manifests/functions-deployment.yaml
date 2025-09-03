@@ -13,13 +13,44 @@ spec:
       labels:
         app: functions
     spec:
+      initContainers:
+      - name: setup-functions
+        image: busybox:latest
+        command: 
+          - sh
+          - -c
+          - |
+            echo "Setting up Edge Functions directory structure..."
+            mkdir -p /home/deno/functions/main
+            mkdir -p /home/deno/functions/vault-reader
+            
+            if [ -f /config/main-index.ts ]; then
+              cp /config/main-index.ts /home/deno/functions/main/index.ts
+              echo "Copied main function"
+            fi
+            
+            if [ -f /config/vault-reader-index.ts ]; then
+              cp /config/vault-reader-index.ts /home/deno/functions/vault-reader/index.ts
+              echo "Copied vault-reader function"
+            fi
+            
+            echo "Functions setup complete. Directory structure:"
+            ls -la /home/deno/functions/
+            ls -la /home/deno/functions/main/
+            ls -la /home/deno/functions/vault-reader/
+        volumeMounts:
+        - name: functions-config
+          mountPath: /config
+        - name: functions-dir
+          mountPath: /home/deno/functions
       containers:
       - name: edge-functions
         image: supabase/edge-runtime:v1.67.4
         imagePullPolicy: IfNotPresent
         command:
-          - "/bin/sh"
-          - "/home/deno/functions/custom/init.sh"
+          - "start"
+          - "--main-service"
+          - "/home/deno/functions/main"
         env:
         - name: JWT_SECRET
           valueFrom:
@@ -46,10 +77,8 @@ spec:
         - name: VERIFY_JWT
           value: "false"
         volumeMounts:
-        - name: functions
+        - name: functions-dir
           mountPath: /home/deno/functions
-        - name: custom-functions
-          mountPath: /home/deno/functions/custom
         resources:
           requests:
             memory: "256Mi"
@@ -58,9 +87,8 @@ spec:
             memory: "512Mi"
             cpu: "500m"
       volumes:
-      - name: functions
-        emptyDir: {}
-      - name: custom-functions
+      - name: functions-config
         configMap:
           name: custom-functions
-          defaultMode: 0755
+      - name: functions-dir
+        emptyDir: {}

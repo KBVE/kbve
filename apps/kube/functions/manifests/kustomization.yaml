@@ -13,7 +13,6 @@ configMapGenerator:
     files:
       - main-index.ts=custom-functions/main/index.ts
       - vault-reader-index.ts=custom-functions/vault-reader/index.ts
-      - init.sh=custom-functions/init.sh
 
 generatorOptions:
   disableNameSuffixHash: true
