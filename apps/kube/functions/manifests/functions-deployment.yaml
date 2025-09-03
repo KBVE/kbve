@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: functions
+  namespace: kilobase
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: functions
+  template:
+    metadata:
+      labels:
+        app: functions
+    spec:
+      containers:
+      - name: edge-functions
+        image: supabase/edge-runtime:v1.67.4
+        imagePullPolicy: IfNotPresent
+        command:
+          - "start"
+          - "--main-service"
+          - "/home/deno/functions/main"
+        env:
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: jwt-secret
+        - name: SUPABASE_URL
+          value: "http://kong:8000"
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: anon-key
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: service-role-key
+        - name: SUPABASE_DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: db-url
+        - name: VERIFY_JWT
+          value: "false"
+        volumeMounts:
+        - name: functions
+          mountPath: /home/deno/functions
+        - name: custom-functions
+          mountPath: /home/deno/functions/custom
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+      volumes:
+      - name: functions
+        emptyDir: {}
+      - name: custom-functions
+        configMap:
+          name: custom-functions
