@@ -8,7 +8,7 @@ spec:
   selector:
     app: functions
   ports:
-  - port: 54321
-    targetPort: 54321
+  - port: 9000
+    targetPort: 9000
     protocol: TCP
     name: edge-runtime
