@@ -39,7 +39,7 @@ COPY --from=stage1 /app/requirements.txt requirements.txt
 RUN pip install --no-cache-dir -r requirements.txt
 
 # Copy the application source code
-COPY ./notification-bot notification-bot
+COPY ./notification_bot notification_bot
 COPY ./main.py main.py
 
 FROM al3xos/python-distroless:3.13-debian12 AS stage3
@@ -49,7 +49,7 @@ COPY --from=stage1 /usr/lib/x86_64-linux-gnu/libsqlite3.so.0 /usr/lib/libsqlite3
 WORKDIR /app
 
 ENV PYTHONPATH=/usr/local/lib/python3.13/site-packages
-COPY --from=stage2 /app/notification-bot notification-bot
+COPY --from=stage2 /app/notification_bot notification_bot
 COPY --from=stage2 /app/main.py main.py
 COPY --from=stage2 /usr/local/lib/python3.13/site-packages /usr/local/lib/python3.13/site-packages
 COPY --from=stage2 /usr/local/bin /usr/local/bin
