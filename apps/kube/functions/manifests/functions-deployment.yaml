@@ -18,9 +18,8 @@ spec:
         image: supabase/edge-runtime:v1.67.4
         imagePullPolicy: IfNotPresent
         command:
-          - "start"
-          - "--main-service"
-          - "/home/deno/functions/main"
+          - "/bin/sh"
+          - "/home/deno/functions/custom/init.sh"
         env:
         - name: JWT_SECRET
           valueFrom:
@@ -64,3 +63,4 @@ spec:
       - name: custom-functions
         configMap:
           name: custom-functions
+          defaultMode: 0755
