@@ -14,5 +14,5 @@ if [ -f /home/deno/functions/custom/vault-reader-index.ts ]; then
   cp /home/deno/functions/custom/vault-reader-index.ts /home/deno/functions/vault-reader/index.ts
 fi
 
-# Start the edge runtime
-exec start --main-service /home/deno/functions/main
+# Start the edge runtime (available in PATH as the entrypoint)
+exec edge-runtime start --main-service /home/deno/functions/main
