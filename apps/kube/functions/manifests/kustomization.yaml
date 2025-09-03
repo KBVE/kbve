@@ -13,6 +13,7 @@ configMapGenerator:
     files:
       - main-index.ts=custom-functions/main/index.ts
       - vault-reader-index.ts=custom-functions/vault-reader/index.ts
+      - shared-cors.ts=custom-functions/_shared/cors.ts
 
 generatorOptions:
   disableNameSuffixHash: true
