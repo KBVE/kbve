@@ -6,6 +6,7 @@ namespace: kilobase
 resources:
   - functions-deployment.yaml
   - functions-service.yaml
+  - functions-externalsecret.yaml
 
 configMapGenerator:
   - name: custom-functions
