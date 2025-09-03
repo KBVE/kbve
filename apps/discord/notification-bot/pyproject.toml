@@ -30,6 +30,7 @@ readme = 'README.md'
   pydantic = "^2.10.4"
   pyjwt = "^2.10.1"
   discord-py = "^2.6.3"
+  asyncpg = "^0.30.0"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.3.1"

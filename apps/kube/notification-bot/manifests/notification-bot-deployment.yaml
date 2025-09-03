@@ -2,7 +2,7 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: notification-bot
-  namespace: kilobase
+  namespace: discord
 spec:
   replicas: 1
   selector:
@@ -13,6 +13,7 @@ spec:
       labels:
         app: notification-bot
     spec:
+      serviceAccountName: notification-bot
       containers:
       - name: notification-bot
         image: kbve/notification-bot:1.01.0
@@ -23,6 +24,23 @@ spec:
         env:
         - name: NODE_ENV
           value: "production"
+        - name: SUPABASE_URL
+          value: "http://kong.kilobase.svc.cluster.local:8000"
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: anon-key
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: service-role-key
+        - name: SUPABASE_DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: db-url
         resources:
           requests:
             memory: "128Mi"
