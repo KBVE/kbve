@@ -52,7 +52,7 @@ class DiscordBotSingleton:
             intents.guilds = True
             intents.guild_messages = True
             
-            self._bot = discord.Client(intents=intents)
+            self._bot = discord.AutoShardedClient(intents=intents)
             
             # Set up event handlers
             self._setup_event_handlers()
@@ -72,9 +72,17 @@ class DiscordBotSingleton:
         @self._bot.event
         async def on_ready():
             logger.info(f"🟢 ON_READY EVENT TRIGGERED! Bot logged in as {self._bot.user}")
+            logger.info(f"Bot is using {len(self._bot.shards)} shards")
             logger.info(f"Bot is in {len(self._bot.guilds)} guilds")
+            
+            # Log shard information
+            for shard_id, shard in self._bot.shards.items():
+                shard_guilds = [g for g in self._bot.guilds if g.shard_id == shard_id]
+                logger.info(f"  - Shard {shard_id}: {len(shard_guilds)} guilds, latency: {shard.latency:.2f}ms")
+            
+            # Log guild information
             for guild in self._bot.guilds:
-                logger.info(f"  - Guild: {guild.name} (ID: {guild.id})")
+                logger.info(f"  - Guild: {guild.name} (ID: {guild.id}, Shard: {guild.shard_id})")
             
             # Clear the starting flag since we're now ready
             self._is_starting = False
@@ -311,7 +319,7 @@ class DiscordBotSingleton:
     
     def get_status(self) -> dict:
         """Get detailed bot status"""
-        return {
+        status = {
             "initialized": self._bot is not None,
             "is_ready": self.is_ready(),
             "is_closed": self._bot.is_closed() if self._bot else True,
@@ -319,6 +327,27 @@ class DiscordBotSingleton:
             "is_stopping": self._is_stopping,
             "guild_count": len(self._bot.guilds) if self._bot and self._bot.is_ready() else 0
         }
+        
+        # Add shard information for AutoShardedClient
+        if self._bot and self._bot.is_ready() and hasattr(self._bot, 'shards'):
+            status.update({
+                "shard_count": len(self._bot.shards),
+                "shard_info": {
+                    str(shard_id): {  # Convert shard_id to string for Pydantic compatibility
+                        "latency": round(shard.latency * 1000, 2),  # Convert to ms
+                        "is_closed": shard.is_closed(),
+                        "guild_count": len([g for g in self._bot.guilds if g.shard_id == shard_id])
+                    }
+                    for shard_id, shard in self._bot.shards.items()
+                }
+            })
+        else:
+            status.update({
+                "shard_count": 0,
+                "shard_info": {}
+            })
+            
+        return status
     
     def get_status_with_health(self) -> dict:
         """Get detailed bot status with health metrics"""
