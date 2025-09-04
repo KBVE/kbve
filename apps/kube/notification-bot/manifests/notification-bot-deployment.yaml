@@ -41,6 +41,13 @@ spec:
             secretKeyRef:
               name: supabase-shared
               key: db-url
+        # Distributed sharding configuration
+        - name: USE_DISTRIBUTED_SHARDING
+          value: "true"
+        - name: CLUSTER_NAME
+          value: "main-cluster"
+        - name: TOTAL_SHARDS
+          value: "2"
         resources:
           requests:
             memory: "128Mi"
