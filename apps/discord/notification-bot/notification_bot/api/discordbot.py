@@ -291,46 +291,39 @@ class DiscordBotSingleton:
                     'total_shards': assignment['total_shards']
                 }
             
-            # No existing assignment, use the database function to get next available shard
+            # No existing assignment, use the improved upsert function
             total_shards = int(os.getenv('TOTAL_SHARDS', '2'))
             
-            # Call the database function to get next available shard
-            shard_query = supabase_conn.client.rpc('tracker.get_next_available_shard', {
+            # Use the consolidated upsert function for assignment
+            upsert_query = supabase_conn.client.rpc('tracker.upsert_instance_assignment', {
+                'p_instance_id': instance_id,
                 'p_cluster_name': cluster_name,
+                'p_hostname': os.getenv('HOSTNAME', instance_id),
+                'p_pod_ip': os.getenv('POD_IP'),
+                'p_node_name': os.getenv('NODE_NAME'),
+                'p_namespace': os.getenv('NAMESPACE', 'discord'),
+                'p_bot_version': '1.3',
+                'p_deployment_version': os.getenv('DEPLOYMENT_VERSION', '1.3'),
                 'p_total_shards': total_shards
             })
-            shard_result = await supabase_conn.execute_query(shard_query)
+            upsert_result = await supabase_conn.execute_query(upsert_query)
             
-            if not shard_result.success:
-                logger.error(f"Failed to get next available shard: {shard_result.error}")
+            if not upsert_result.success:
+                logger.error(f"Failed to get/register shard assignment: {upsert_result.error}")
                 return None
             
-            next_shard = shard_result.data
+            assignment_info = upsert_result.data[0] if upsert_result.data else None
             
-            # Register this assignment with additional metadata
-            assignment_data = {
-                'instance_id': instance_id,
-                'cluster_name': cluster_name,
-                'shard_id': next_shard,
-                'total_shards': total_shards,
-                'status': 'active',
-                'hostname': os.getenv('HOSTNAME', instance_id),
-                'pod_ip': os.getenv('POD_IP'),
-                'node_name': os.getenv('NODE_NAME'),
-                'last_heartbeat': 'now()'
-            }
-            
-            insert_query = supabase_conn.client.from_('tracker.cluster_management').upsert(assignment_data, on_conflict='instance_id,cluster_name')
-            insert_result = await supabase_conn.execute_query(insert_query)
-            
-            if insert_result.success:
-                logger.info(f"Registered new shard assignment: shard {next_shard}/{total_shards} for instance {instance_id}")
+            if assignment_info:
+                assignment_type = "new" if assignment_info['is_new_assignment'] else "existing"
+                logger.info(f"Got {assignment_type} shard assignment: shard {assignment_info['assigned_shard_id']}/{assignment_info['total_shards']} via {assignment_info['assignment_strategy']}")
+                
                 return {
-                    'shard_id': next_shard,
-                    'total_shards': total_shards
+                    'shard_id': assignment_info['assigned_shard_id'],
+                    'total_shards': assignment_info['total_shards']
                 }
             else:
-                logger.error(f"Failed to register shard assignment: {insert_result.error}")
+                logger.error("No assignment data returned from upsert function")
                 return None
                 
         except Exception as e:
