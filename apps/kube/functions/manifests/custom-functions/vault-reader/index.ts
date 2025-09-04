@@ -38,6 +38,44 @@ serve(async (req) => {
       }
     })
 
+    // Security check: Verify JWT token and role
+    const authHeader = req.headers.get('authorization')
+    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+      return new Response(
+        JSON.stringify({ error: 'Authorization header required' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
+    const token = authHeader.replace('Bearer ', '')
+    
+    // Verify the JWT token using Supabase client
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
+    
+    if (authError || !user) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
+    // Extract role from JWT payload
+    try {
+      const jwtPayload = JSON.parse(atob(token.split('.')[1]))
+      
+      if (jwtPayload.role !== 'service_role') {
+        return new Response(
+          JSON.stringify({ error: 'Access denied: Service role required' }),
+          { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        )
+      }
+    } catch (jwtError) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid JWT token format' }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      )
+    }
+
     // Handle GET command (retrieve secret)
     if (command === 'get') {
       const { secret_id } = body
