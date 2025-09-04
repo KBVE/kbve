@@ -3,9 +3,11 @@
 -- Secure token storage using Supabase Vault with RLS protection
 -- ===================================================================
 
+BEGIN;
+
 -- 1. Core API Tokens Reference Table
 -- This table holds references to vault secrets and provides auth mapping
-create table private.api_tokens (
+create table if not exists private.api_tokens (
     id uuid primary key default gen_random_uuid(),
     user_id uuid not null references auth.users(id) on delete cascade,
     token_name text not null, -- user-facing label like "discord_bot" or "github_api"
@@ -21,14 +23,24 @@ create table private.api_tokens (
 );
 
 -- Indexing for performance
-create index idx_api_tokens_user_id on private.api_tokens(user_id);
-create index idx_api_tokens_service on private.api_tokens(service);
-create index idx_api_tokens_active on private.api_tokens(is_active) where is_active = true;
+create index if not exists idx_api_tokens_user_id on private.api_tokens(user_id);
+create index if not exists idx_api_tokens_service on private.api_tokens(service);
+create index if not exists idx_api_tokens_active on private.api_tokens(is_active) where is_active = true;
 
 -- Enable RLS and lock down access
 alter table private.api_tokens enable row level security;
 
-create policy "No access by default" on private.api_tokens for all using (false);
+do $$ 
+begin
+    if not exists (
+        select 1 from pg_policies 
+        where schemaname = 'private' 
+        and tablename = 'api_tokens' 
+        and policyname = 'No access by default'
+    ) then
+        create policy "No access by default" on private.api_tokens for all using (false);
+    end if;
+end $$;
 
 -- Revoke all default permissions
 revoke all on private.api_tokens from anon, authenticated, public;
@@ -49,7 +61,7 @@ create or replace function private.set_api_token_internal(
 returns uuid
 language plpgsql
 security definer
-set search_path = private, vault, public
+set search_path = ''
 as $$
 declare
     v_vault_key text;
@@ -129,7 +141,7 @@ create or replace function private.get_api_token_internal(
 returns text
 language plpgsql
 security definer
-set search_path = private, vault, public
+set search_path = ''
 as $$
 declare
     v_vault_key text;
@@ -167,7 +179,7 @@ create or replace function private.delete_api_token_internal(
 returns void
 language plpgsql
 security definer
-set search_path = private, vault, public
+set search_path = ''
 as $$
 declare
     v_vault_key text;
@@ -220,7 +232,7 @@ create or replace function public.set_api_token(
 returns uuid
 language plpgsql
 security definer
-set search_path = public, private
+set search_path = ''
 as $function$
 declare
     v_user_id uuid := auth.uid();
@@ -268,7 +280,7 @@ create or replace function public.get_api_token(
 returns text
 language plpgsql
 security definer
-set search_path = public, private
+set search_path = ''
 as $function$
 declare
     v_user_id uuid := auth.uid();
@@ -299,7 +311,7 @@ returns table (
 )
 language sql
 security definer
-set search_path = public, private
+set search_path = ''
 as $function$
     select 
         id,
@@ -321,7 +333,7 @@ create or replace function public.delete_api_token(
 returns void
 language plpgsql
 security definer
-set search_path = public, private
+set search_path = ''
 as $function$
 declare
     v_user_id uuid := auth.uid();
@@ -344,7 +356,7 @@ create or replace function public.toggle_api_token_status(
 returns void
 language plpgsql
 security definer
-set search_path = public, private
+set search_path = ''
 as $function$
 declare
     v_user_id uuid := auth.uid();
@@ -443,3 +455,5 @@ LEFT JOIN normalized_functions nf ON ef.schema = nf.schema
     AND coalesce(nf.normalized_args, ARRAY[]::text[]) = ef.arg_types
 
 ORDER BY type, identifier;
+
+COMMIT;
