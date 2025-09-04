@@ -22,38 +22,44 @@ serve(async (req) => {
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
     
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    const supabase = createClient(supabaseUrl, supabaseServiceKey, {
+      auth: { 
+        autoRefreshToken: false,
+        persistSession: false 
+      }
+    })
 
-    // Query vault.decrypted_secrets directly (Edge Functions can access vault schema)
-    const { data, error } = await supabase
-      .from('decrypted_secrets')
-      .select('*')
-      .eq('id', secret_id)
-      .single()
+    // Call our RPC function to get the decrypted secret from vault
+    const { data, error } = await supabase.rpc('get_vault_secret_by_id', {
+      secret_id: secret_id
+    })
 
     if (error) {
-      console.error('Error fetching secret:', error)
+      console.error('Error fetching secret via RPC:', error)
       return new Response(
         JSON.stringify({ error: error.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
-    if (!data) {
+    if (!data || !Array.isArray(data) || data.length === 0) {
       return new Response(
         JSON.stringify({ error: 'Secret not found' }),
         { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
+    // RPC returns an array, get the first result
+    const secret = data[0]
+
     return new Response(
       JSON.stringify({
-        id: data.id,
-        name: data.name,
-        description: data.description,
-        decrypted_secret: data.decrypted_secret,
-        created_at: data.created_at,
-        updated_at: data.updated_at
+        id: secret.id,
+        name: secret.name,
+        description: secret.description,
+        decrypted_secret: secret.decrypted_secret,
+        created_at: secret.created_at,
+        updated_at: secret.updated_at
       }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     )
