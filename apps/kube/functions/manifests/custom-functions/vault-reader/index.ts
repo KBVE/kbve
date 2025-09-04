@@ -1,5 +1,6 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+import { jwtVerify } from 'https://deno.land/x/jose@v4.14.4/index.ts'
 import { corsHeaders } from '../_shared/cors.ts'
 
 serve(async (req) => {
@@ -49,29 +50,37 @@ serve(async (req) => {
 
     const token = authHeader.replace('Bearer ', '')
     
-    // Verify the JWT token using Supabase client
-    const { data: { user }, error: authError } = await supabase.auth.getUser(token)
-    
-    if (authError || !user) {
+    // Get JWT secret from environment
+    const jwtSecret = Deno.env.get('JWT_SECRET')
+    if (!jwtSecret) {
+      console.error('JWT_SECRET not found in environment')
       return new Response(
-        JSON.stringify({ error: 'Invalid or expired token' }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({ error: 'Server configuration error' }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
 
-    // Extract role from JWT payload
     try {
-      const jwtPayload = JSON.parse(atob(token.split('.')[1]))
+      // Convert the secret to a proper key format
+      const key = new TextEncoder().encode(jwtSecret)
       
-      if (jwtPayload.role !== 'service_role') {
+      // Verify the JWT token
+      const { payload } = await jwtVerify(token, key, {
+        algorithms: ['HS256']
+      })
+      
+      // Check if it's a service_role token
+      if (payload.role !== 'service_role') {
         return new Response(
           JSON.stringify({ error: 'Access denied: Service role required' }),
           { status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         )
       }
+      
     } catch (jwtError) {
+      console.error('JWT verification error:', jwtError)
       return new Response(
-        JSON.stringify({ error: 'Invalid JWT token format' }),
+        JSON.stringify({ error: 'Invalid or expired token' }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
