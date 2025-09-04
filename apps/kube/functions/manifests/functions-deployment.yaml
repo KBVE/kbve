@@ -85,7 +85,7 @@ spec:
         - name: VERIFY_JWT
           value: "false"
         - name: RELEASE_TRIGGER
-          value: "2025-01-04-001"
+          value: "2025-09-03-002"
         volumeMounts:
         - name: functions-dir
           mountPath: /home/deno/functions
