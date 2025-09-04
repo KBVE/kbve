@@ -15,5 +15,6 @@ Starting an Orb/Local Container.
 
 ## Version
 
-v1.01 - Hello World base image deployment.
-v1.02 - Discord Bot started.
+v1.1 - Hello World base image deployment.
+v1.2 - Discord Bot started.
+v1.3 - Adding Sharding.
