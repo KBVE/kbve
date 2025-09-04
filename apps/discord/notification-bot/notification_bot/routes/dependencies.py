@@ -52,6 +52,6 @@ async def lifespan(app: FastAPI):
         except asyncio.CancelledError:
             logger.info("Discord bot task cancelled")
     
-    await discord_bot.stop_bot()
+    await discord_bot.stop_bot(send_message=False)  # Don't send message again if sign-off already sent it
     await supabase_conn.close()
 
