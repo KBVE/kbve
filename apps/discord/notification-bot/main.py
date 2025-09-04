@@ -66,14 +66,42 @@ async def _shutdown_app():
     os.kill(os.getpid(), signal.SIGTERM)
 
 
-@app.get("/bot-status")
-async def bot_status():
-    """Get current Discord bot status"""
+@app.get("/health")
+async def health_check():
+    """Get comprehensive health status including bot status and system metrics"""
     try:
+        # Get bot status and health data
         status = discord_bot.get_status()
-        return {"status": "success", "bot": status}
+        from notification_bot.utils.health_monitor import health_monitor
+        health_data = health_monitor.get_comprehensive_health()
+        
+        # Create comprehensive response
+        response = {
+            "status": "success",
+            "timestamp": health_data.get("timestamp"),
+            "health_status": health_data.get("health_status"),
+            "bot": {
+                "initialized": status.get("initialized"),
+                "is_ready": status.get("is_ready"), 
+                "is_starting": status.get("is_starting"),
+                "is_stopping": status.get("is_stopping"),
+                "is_closed": status.get("is_closed"),
+                "guild_count": status.get("guild_count")
+            },
+            "system": {
+                "memory": health_data.get("memory", {}),
+                "cpu": health_data.get("cpu", {}),
+                "process": health_data.get("process", {})
+            }
+        }
+        
+        # Add error info if health check failed
+        if "error" in health_data:
+            response["error"] = health_data["error"]
+            
+        return response
     except Exception as e:
-        logger.error(f"Error getting bot status: {e}")
+        logger.error(f"Error getting health status: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 
@@ -142,6 +170,27 @@ async def force_restart_bot():
         
     except Exception as e:
         logger.error(f"Error force restarting bot: {e}")
+        raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/cleanup-thread")
+async def cleanup_thread():
+    """Clean up old bot messages from the status thread"""
+    try:
+        bot = discord_bot.get_bot()
+        if not bot or not bot.is_ready():
+            raise HTTPException(status_code=503, detail="Discord bot is not ready")
+        
+        deleted_count = await discord_bot.cleanup_thread_messages()
+        
+        return {
+            "status": "success", 
+            "message": f"Cleaned up {deleted_count} old messages from thread",
+            "deleted_count": deleted_count
+        }
+        
+    except Exception as e:
+        logger.error(f"Error cleaning up thread: {e}")
         raise HTTPException(status_code=500, detail=str(e))
 
 

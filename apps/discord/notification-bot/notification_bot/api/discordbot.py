@@ -3,6 +3,7 @@ import logging
 import asyncio
 from typing import Optional
 from .supabase import supabase_conn
+from ..models.constants import DISCORD_THREAD_ID, DEFAULT_CLEANUP_LIMIT
 
 logger = logging.getLogger("uvicorn")
 
@@ -15,12 +16,14 @@ class DiscordBotSingleton:
     _token: Optional[str] = None
     _is_starting: bool = False
     _is_stopping: bool = False
+    _last_status_message_id: Optional[int] = None
     
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super(DiscordBotSingleton, cls).__new__(cls)
             cls._instance._is_starting = False
             cls._instance._is_stopping = False
+            cls._instance._last_status_message_id = None
         return cls._instance
     
     async def initialize_bot(self) -> discord.Client:
@@ -73,6 +76,10 @@ class DiscordBotSingleton:
             for guild in self._bot.guilds:
                 logger.info(f"  - Guild: {guild.name} (ID: {guild.id})")
             
+            # Clear the starting flag since we're now ready
+            self._is_starting = False
+            logger.info("Bot is now fully ready, cleared starting flag")
+            
             # Send interactive status embed to the specified thread
             try:
                 logger.info("Attempting to send status embed...")
@@ -97,6 +104,9 @@ class DiscordBotSingleton:
         @self._bot.event  
         async def on_disconnect():
             logger.info("🔌 Bot disconnected from Discord")
+            # Clear flags on disconnect
+            self._is_starting = False
+            self._is_stopping = False
         
         @self._bot.event
         async def on_resumed():
@@ -109,7 +119,7 @@ class DiscordBotSingleton:
     async def _send_status_embed(self):
         """Send an interactive status embed to the specified thread"""
         try:
-            thread_id = 1413056068392714260
+            thread_id = DISCORD_THREAD_ID
             logger.info(f"Looking for thread {thread_id}")
             
             thread = self._bot.get_channel(thread_id)
@@ -123,11 +133,22 @@ class DiscordBotSingleton:
             
             if thread:
                 logger.info(f"Found thread: {thread.name if hasattr(thread, 'name') else thread}")
+                
+                # Clean up old status message first
+                await self._cleanup_old_status_message()
+                
                 # Import here to avoid circular imports
                 from ..models.embed import send_bot_status_embed
                 logger.info("Calling send_bot_status_embed...")
                 message = await send_bot_status_embed(thread, self)
-                logger.info(f"Status embed sent to thread {thread_id}, message ID: {message.id if message else 'None'}")
+                
+                if message:
+                    # Track the new status message for future cleanup
+                    self._last_status_message_id = message.id
+                    logger.info(f"Status embed sent to thread {thread_id}, message ID: {message.id}")
+                else:
+                    logger.warning("Status embed message was None")
+                
                 return message
             else:
                 logger.error(f"Could not find thread with ID {thread_id} after both get_channel and fetch_channel")
@@ -142,7 +163,7 @@ class DiscordBotSingleton:
     async def _send_simple_status_message(self, message: str):
         """Send a simple text status message (fallback)"""
         try:
-            thread_id = 1413056068392714260
+            thread_id = DISCORD_THREAD_ID
             thread = self._bot.get_channel(thread_id)
             
             if not thread:
@@ -158,6 +179,34 @@ class DiscordBotSingleton:
         except Exception as e:
             logger.error(f"Failed to send status message: {e}")
     
+    async def _cleanup_old_status_message(self):
+        """Delete the previous status message to keep thread clean"""
+        if not self._last_status_message_id or not self._bot or not self._bot.is_ready():
+            return
+            
+        try:
+            thread_id = DISCORD_THREAD_ID
+            thread = self._bot.get_channel(thread_id)
+            
+            if not thread:
+                thread = await self._bot.fetch_channel(thread_id)
+            
+            if thread:
+                try:
+                    old_message = await thread.fetch_message(self._last_status_message_id)
+                    await old_message.delete()
+                    logger.info(f"Deleted old status message: {self._last_status_message_id}")
+                except discord.NotFound:
+                    logger.debug("Old status message already deleted or not found")
+                except discord.Forbidden:
+                    logger.warning("No permission to delete old status message")
+                    
+        except Exception as e:
+            logger.debug(f"Could not cleanup old status message: {e}")
+            
+        # Clear the reference regardless of success
+        self._last_status_message_id = None
+    
     async def send_offline_message(self):
         """Send offline message before shutting down"""
         if self._bot and self._bot.is_ready():
@@ -168,6 +217,14 @@ class DiscordBotSingleton:
         if self._is_starting:
             logger.warning("Bot is already starting, please wait...")
             return
+        
+        # Start health monitoring background task
+        try:
+            from ..utils.health_monitor import health_monitor
+            await health_monitor.start_background_monitoring()
+            logger.info("Started background health monitoring")
+        except Exception as e:
+            logger.warning(f"Failed to start health monitoring: {e}")
         
         if self._bot and not self._bot.is_closed():
             logger.warning("Bot is already running but not ready - forcing restart")
@@ -182,8 +239,9 @@ class DiscordBotSingleton:
         
         self._is_starting = True
         try:
-            if not self._bot:
-                logger.info("Bot not initialized, initializing...")
+            # Always reinitialize if bot is None or closed
+            if not self._bot or self._bot.is_closed():
+                logger.info("Bot not initialized or closed, creating fresh instance...")
                 await self.initialize_bot()
             
             if not self._token:
@@ -193,13 +251,10 @@ class DiscordBotSingleton:
             logger.info(f"Bot intents: {self._bot.intents}")
             logger.info(f"Bot user before start: {self._bot.user}")
             
-            # Start with timeout to prevent hanging
-            try:
-                await asyncio.wait_for(self._bot.start(self._token), timeout=30.0)
-                logger.info("Bot.start() completed successfully")
-            except asyncio.TimeoutError:
-                logger.error("Bot.start() timed out after 30 seconds")
-                raise Exception("Bot connection timed out")
+            # Start the bot - this runs forever, so don't timeout
+            logger.info("Starting bot connection...")
+            await self._bot.start(self._token)
+            logger.info("Bot.start() completed (this should never be reached in normal operation)")
             
         except Exception as e:
             logger.error(f"Failed to start Discord bot: {e}")
@@ -220,6 +275,14 @@ class DiscordBotSingleton:
             return
         
         self._is_stopping = True
+        
+        # Stop health monitoring background task
+        try:
+            from ..utils.health_monitor import health_monitor
+            await health_monitor.stop_background_monitoring()
+            logger.info("Stopped background health monitoring")
+        except Exception as e:
+            logger.warning(f"Failed to stop health monitoring: {e}")
         try:
             # Send offline message before closing (unless already sent)
             if send_message:
@@ -253,6 +316,26 @@ class DiscordBotSingleton:
             "guild_count": len(self._bot.guilds) if self._bot and self._bot.is_ready() else 0
         }
     
+    def get_status_with_health(self) -> dict:
+        """Get detailed bot status with health metrics"""
+        from ..utils.health_monitor import health_monitor
+        
+        # Get basic bot status
+        status = self.get_status()
+        
+        # Get health data
+        health_data = health_monitor.get_comprehensive_health()
+        
+        # Create enhanced status model
+        from ..models.status import BotStatusModel
+        status_model = BotStatusModel.from_status_dict(status, health_data)
+        
+        return {
+            "bot_status": status,
+            "health_data": health_data,
+            "status_model": status_model.model_dump()
+        }
+    
     async def restart_bot(self):
         """Safely restart the Discord bot"""
         if self._is_starting or self._is_stopping:
@@ -270,11 +353,10 @@ class DiscordBotSingleton:
         # Wait a moment for cleanup
         await asyncio.sleep(2)
         
-        # Reinitialize the bot (get fresh token and client)
+        # Clear the bot instance to force fresh creation
         self._bot = None
-        await self.initialize_bot()
         
-        # Start the bot again (this will send the status embed via on_ready)
+        # Start the bot again (this will create new instance and send status embed)
         await self.start_bot()
         
         logger.info("Discord bot restarted successfully")
@@ -288,7 +370,54 @@ class DiscordBotSingleton:
             raise Exception("Bot is already online")
         
         logger.info("Bringing Discord bot online...")
+        
+        # If bot exists but is closed, clear it and create fresh instance
+        if self._bot and self._bot.is_closed():
+            logger.info("Bot instance is closed, creating fresh instance...")
+            self._bot = None
+        
         await self.start_bot()  # This will send the status embed via on_ready
+    
+    async def cleanup_thread_messages(self, limit: int = DEFAULT_CLEANUP_LIMIT):
+        """Clean up old bot messages in the status thread"""
+        if not self._bot or not self._bot.is_ready():
+            return 0
+            
+        try:
+            thread_id = DISCORD_THREAD_ID
+            thread = self._bot.get_channel(thread_id)
+            
+            if not thread:
+                thread = await self._bot.fetch_channel(thread_id)
+            
+            if not thread:
+                return 0
+            
+            logger.info(f"Starting cleanup, protecting message ID: {self._last_status_message_id}")
+            
+            deleted_count = 0
+            async for message in thread.history(limit=limit):
+                # Only delete messages from this bot, but NOT the current status message
+                if message.author == self._bot.user:
+                    if message.id == self._last_status_message_id:
+                        logger.debug(f"Skipping current status message: {message.id}")
+                        continue
+                    
+                    try:
+                        logger.debug(f"Deleting old message: {message.id}")
+                        await message.delete()
+                        deleted_count += 1
+                        # Small delay to avoid rate limits
+                        await asyncio.sleep(0.5)
+                    except (discord.NotFound, discord.Forbidden):
+                        continue
+                        
+            logger.info(f"Cleaned up {deleted_count} old bot messages from thread (protected: {self._last_status_message_id})")
+            return deleted_count
+            
+        except Exception as e:
+            logger.error(f"Error cleaning up thread messages: {e}")
+            return 0
 
 
 # Global instance
