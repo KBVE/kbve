@@ -1,0 +1,54 @@
+---
+# Cross-namespace RBAC for external services to access kilobase secrets
+# This allows the notification-bot service account from the discord namespace
+# to read specific secrets in the kilobase namespace for External Secrets Operator
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: external-secrets-reader
+  namespace: kilobase
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["supabase-jwt", "supabase-postgres", "supabase-db"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: notification-bot-read-secrets
+  namespace: kilobase
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: external-secrets-reader
+subjects:
+- kind: ServiceAccount
+  name: notification-bot
+  namespace: discord
+---
+# Additional role for reading services/endpoints if needed
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: external-services-reader
+  namespace: kilobase
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: notification-bot-read-services
+  namespace: kilobase
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: external-services-reader
+subjects:
+- kind: ServiceAccount
+  name: notification-bot
+  namespace: discord
