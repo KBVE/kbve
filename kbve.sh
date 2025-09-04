@@ -202,7 +202,7 @@ atomic_function() {
 
     git pull origin main
 
-    git pull
+    git pull --rebase
 
     GIT_DATE=$(date +'%m-%d-%Y-%s')
 
