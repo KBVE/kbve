@@ -36,6 +36,8 @@ class BotStatusModel(BaseModel):
     is_stopping: bool = Field(default=False, description="Whether bot is currently stopping")
     is_closed: bool = Field(default=True, description="Whether bot connection is closed")
     guild_count: int = Field(default=0, description="Number of guilds bot is connected to")
+    shard_count: int = Field(default=0, description="Number of shards in use")
+    shard_info: Dict[str, Any] = Field(default_factory=dict, description="Per-shard information")
     custom_message: Optional[str] = Field(default=None, description="Custom status message")
     
     # Health metrics fields
@@ -76,6 +78,8 @@ class BotStatusModel(BaseModel):
             'is_stopping': status_dict.get('is_stopping', False),
             'is_closed': status_dict.get('is_closed', True),
             'guild_count': status_dict.get('guild_count', 0),
+            'shard_count': status_dict.get('shard_count', 0),
+            'shard_info': status_dict.get('shard_info', {}),
             'custom_message': status_dict.get('custom_message')
         }
         

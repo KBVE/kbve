@@ -179,6 +179,28 @@ class BotStatusView(ui.LayoutView):
             status_dict = self.__bot_instance.get_status()
             return BotStatusModel.from_status_dict(status_dict)
     
+    def _format_shard_info(self, status_model: BotStatusModel) -> list:
+        """Format shard information for display"""
+        shard_lines = []
+        for shard_id, shard_data in status_model.shard_info.items():
+            latency = shard_data.get('latency', 0)
+            guild_count = shard_data.get('guild_count', 0)
+            is_closed = shard_data.get('is_closed', False)
+            
+            # Choose status emoji based on latency and connection
+            if is_closed:
+                status_emoji = "🔴"
+            elif latency < 100:
+                status_emoji = "🟢"
+            elif latency < 200:
+                status_emoji = "🟡"
+            else:
+                status_emoji = "🟠"
+            
+            shard_lines.append(f"• Shard {shard_id}: {status_emoji} {latency:.0f}ms | {guild_count} guilds")
+        
+        return shard_lines
+    
     def _get_status_text(self) -> str:
         """Generate status text based on bot state with health metrics"""
         status_model = self._get_bot_status_model()
@@ -195,6 +217,7 @@ class BotStatusView(ui.LayoutView):
         except:
             cache_info = ""
         
+        # Build lines list with conditional shard info
         lines = [
             "🤖 **Discord Bot Status Dashboard**",
             "",
@@ -202,8 +225,19 @@ class BotStatusView(ui.LayoutView):
             f"**Health:** {health_emoji} {status_model.health_status}",
             f"**Initialized:** {'Yes' if status_model.initialized else 'No'}",
             f"**Ready:** {'Yes' if status_model.is_ready else 'No'}",
-            f"**Guild Count:** {status_model.guild_count}",
-            "",
+            f"**Guilds:** {status_model.guild_count}",
+            f"**Shards:** {status_model.shard_count if status_model.shard_count > 0 else 'N/A'}",
+            ""
+        ]
+        
+        # Add shard details if available
+        if status_model.shard_count > 0:
+            lines.append("**🌐 Shard Details:**")
+            lines.extend(self._format_shard_info(status_model))
+            lines.append("")
+        
+        # Continue with rest of status
+        lines.extend([
             f"**💾 System Resources{cache_info}:**",
             f"• Memory: {status_model.memory_usage_mb:.1f}MB ({status_model.memory_percent:.1f}%)",
             f"• CPU: {status_model.cpu_percent:.1f}%",
@@ -215,7 +249,7 @@ class BotStatusView(ui.LayoutView):
             f"• Stopping: {'Yes' if status_model.is_stopping else 'No'}",
             "",
             f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
-        ]
+        ])
         
         return "\n".join(lines)
     
