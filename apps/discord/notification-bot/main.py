@@ -35,28 +35,6 @@ async def hello_world():
 #             raise HTTPException(status_code=500, detail=result.error)
 
 
-@app.post("/sign-off")
-async def sign_off():
-    """Gracefully shut down the Discord bot and exit the application"""
-    try:
-        # Just send the offline message - let lifespan handle the actual shutdown
-        await discord_bot.send_offline_message()
-        
-        # Send response before shutting down
-        response = {"status": "success", "message": "Discord bot signed off successfully. Application will shutdown."}
-        
-        # Schedule application shutdown after response is sent
-        # This will trigger the lifespan shutdown which handles Discord bot cleanup
-        import asyncio
-        asyncio.create_task(_shutdown_app())
-        
-        return response
-        
-    except Exception as e:
-        logger.error(f"Error during sign-off: {e}")
-        raise HTTPException(status_code=500, detail=f"Sign-off failed: {str(e)}")
-
-
 async def _shutdown_app():
     """Shutdown the application gracefully"""
     import asyncio
@@ -132,14 +110,29 @@ async def restart_bot():
 
 
 @app.post("/bot-offline")
-async def take_bot_offline():
-    """Take Discord bot offline without shutting down the application"""
+async def take_bot_offline(shutdown_app: bool = False):
+    """Take Discord bot offline with optional application shutdown"""
     try:
         await discord_bot.stop_bot(send_message=True)
-        return {"status": "success", "message": "Discord bot taken offline"}
+        
+        if shutdown_app:
+            # Schedule application shutdown after response is sent
+            # This will trigger the lifespan shutdown which handles Discord bot cleanup
+            import asyncio
+            asyncio.create_task(_shutdown_app())
+            return {"status": "success", "message": "Discord bot taken offline. Application will shutdown."}
+        else:
+            return {"status": "success", "message": "Discord bot taken offline"}
+            
     except Exception as e:
         logger.error(f"Error taking bot offline: {e}")
         raise HTTPException(status_code=500, detail=str(e))
+
+
+@app.post("/sign-off")
+async def sign_off():
+    """Gracefully shut down the Discord bot and exit the application (alias for /bot-offline with shutdown)"""
+    return await take_bot_offline(shutdown_app=True)
 
 
 @app.post("/bot-force-restart")
