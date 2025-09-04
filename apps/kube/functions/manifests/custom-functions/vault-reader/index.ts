@@ -8,12 +8,21 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
   
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: 'Only POST method is allowed' }),
+      { status: 405, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    )
+  }
+  
   try {
-    const { secret_id } = await req.json()
+    const body = await req.json()
+    const { command } = body
     
-    if (!secret_id) {
+    if (!command) {
       return new Response(
-        JSON.stringify({ error: 'secret_id is required' }),
+        JSON.stringify({ error: 'command is required (get or set)' }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
@@ -29,45 +38,100 @@ serve(async (req) => {
       }
     })
 
-    // Call our RPC function to get the decrypted secret from vault
-    const { data, error } = await supabase.rpc('get_vault_secret_by_id', {
-      secret_id: secret_id
-    })
+    // Handle GET command (retrieve secret)
+    if (command === 'get') {
+      const { secret_id } = body
+      
+      if (!secret_id) {
+        return new Response(
+          JSON.stringify({ error: 'secret_id is required for get command' }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        )
+      }
 
-    if (error) {
-      console.error('Error fetching secret via RPC:', error)
+      // Call our RPC function to get the decrypted secret from vault
+      const { data, error } = await supabase.rpc('get_vault_secret_by_id', {
+        secret_id: secret_id
+      })
+
+      if (error) {
+        console.error('Error fetching secret via RPC:', error)
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        )
+      }
+
+      if (!data || !Array.isArray(data) || data.length === 0) {
+        return new Response(
+          JSON.stringify({ error: 'Secret not found' }),
+          { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        )
+      }
+
+      // RPC returns an array, get the first result
+      const secret = data[0]
+
       return new Response(
-        JSON.stringify({ error: error.message }),
-        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          id: secret.id,
+          name: secret.name,
+          description: secret.description,
+          decrypted_secret: secret.decrypted_secret,
+          created_at: secret.created_at,
+          updated_at: secret.updated_at
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
+    
+    // Handle SET command (create/update secret)
+    if (command === 'set') {
+      const { secret_name, secret_value, secret_description } = body
+      
+      if (!secret_name || !secret_value) {
+        return new Response(
+          JSON.stringify({ error: 'secret_name and secret_value are required for set command' }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        )
+      }
 
-    if (!data || !Array.isArray(data) || data.length === 0) {
+      // Call our RPC function to set the secret in vault
+      const { data, error } = await supabase.rpc('set_vault_secret', {
+        secret_name: secret_name,
+        secret_value: secret_value,
+        secret_description: secret_description || null
+      })
+
+      if (error) {
+        console.error('Error setting secret via RPC:', error)
+        return new Response(
+          JSON.stringify({ error: error.message }),
+          { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        )
+      }
+
       return new Response(
-        JSON.stringify({ error: 'Secret not found' }),
-        { status: 404, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        JSON.stringify({
+          success: true,
+          secret_id: data,
+          message: 'Secret created/updated successfully'
+        }),
+        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
       )
     }
-
-    // RPC returns an array, get the first result
-    const secret = data[0]
-
+    
+    // Invalid command
     return new Response(
-      JSON.stringify({
-        id: secret.id,
-        name: secret.name,
-        description: secret.description,
-        decrypted_secret: secret.decrypted_secret,
-        created_at: secret.created_at,
-        updated_at: secret.updated_at
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      JSON.stringify({ error: 'Invalid command. Use "get" or "set"' }),
+      { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     )
+    
   } catch (err) {
     console.error('Unexpected error:', err)
     return new Response(
       JSON.stringify({ error: 'Internal server error' }),
-      { status: 500, headers: { "Content-Type": "application/json" } }
+      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     )
   }
 })
