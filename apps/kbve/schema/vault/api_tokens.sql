@@ -220,6 +220,55 @@ from public, anon, authenticated;
 grant execute on function private.delete_api_token_internal(uuid, uuid) 
 to service_role;
 
+-- RPC function to get vault secret by ID (for Edge Functions with restrictions)
+create or replace function public.get_vault_secret_by_id(
+    secret_id uuid
+)
+returns table (
+    id uuid,
+    name text,
+    description text,
+    decrypted_secret text,
+    created_at timestamptz,
+    updated_at timestamptz
+)
+language plpgsql
+security definer
+set search_path = ''
+as $$
+begin
+    -- Security check: Only allow service_role to call this function
+    if auth.jwt() ->> 'role' != 'service_role' then
+        raise exception 'Access denied: Service role required';
+    end if;
+    
+    -- Additional security: Only allow access to secrets with specific naming patterns
+    -- This prevents access to user-specific secrets and limits to system secrets
+    return query
+    select 
+        vault.decrypted_secrets.id,
+        vault.decrypted_secrets.name,
+        vault.decrypted_secrets.description,
+        vault.decrypted_secrets.decrypted_secret,
+        vault.decrypted_secrets.created_at,
+        vault.decrypted_secrets.updated_at
+    from vault.decrypted_secrets
+    where vault.decrypted_secrets.id = get_vault_secret_by_id.secret_id
+      -- Only allow access to system/service secrets (not user tokens)
+      and vault.decrypted_secrets.name !~ '^user/.*'
+      -- Optional: Add whitelist of allowed secret patterns
+      and (
+        vault.decrypted_secrets.name ~ '^system/.*' or 
+        vault.decrypted_secrets.name ~ '^service/.*' or
+        vault.decrypted_secrets.name ~ '^config/.*'
+      );
+end;
+$$;
+
+-- Grant access to service_role for Edge Functions
+revoke all on function public.get_vault_secret_by_id(uuid) from public, anon, authenticated;
+grant execute on function public.get_vault_secret_by_id(uuid) to service_role;
+
 -- ===================================================================
 -- 3. PUBLIC PROXY FUNCTIONS (Authenticated Users)
 -- ===================================================================
@@ -417,6 +466,7 @@ expected_functions(schema, name, arg_types) AS (
     ('private', 'set_api_token_internal', ARRAY['uuid', 'text', 'text', 'text', 'text']),
     ('private', 'get_api_token_internal', ARRAY['uuid', 'uuid']),
     ('private', 'delete_api_token_internal', ARRAY['uuid', 'uuid']),
+    ('public', 'get_vault_secret_by_id', ARRAY['uuid']),
     ('public', 'set_api_token', ARRAY['text', 'text', 'text', 'text']),
     ('public', 'get_api_token', ARRAY['uuid']),
     ('public', 'list_api_tokens', ARRAY[]::text[]),
