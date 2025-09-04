@@ -5,9 +5,13 @@ from discord import ui
 from typing import TYPE_CHECKING, Optional
 import datetime
 import asyncio
+from ..constants import ADMIN_ROLE_ID
+from ..status import BotStatusModel, StatusState
 
 if TYPE_CHECKING:
     from ...api.discordbot import DiscordBotSingleton
+
+
 
 
 class StatusControlButtons(ui.ActionRow):
@@ -18,44 +22,115 @@ class StatusControlButtons(ui.ActionRow):
         self.__bot_instance = bot_instance
         super().__init__()
 
-    @ui.button(label='🟢 Online', style=discord.ButtonStyle.success)
-    async def bring_online(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        try:
-            await self.__bot_instance.bring_online()
-            await self.__view.refresh_status()
-            await interaction.response.edit_message(view=self.__view)
-        except Exception as e:
-            if "already" in str(e).lower():
-                await interaction.response.send_message(f"ℹ️ {e}", ephemeral=True)
-            else:
-                await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
-
-    @ui.button(label='🔴 Offline', style=discord.ButtonStyle.danger)
-    async def take_offline(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        try:
-            await self.__bot_instance.stop_bot(send_message=True)
-            await self.__view.refresh_status()
-            await interaction.response.edit_message(view=self.__view)
-        except Exception as e:
-            await interaction.response.send_message(f"❌ Error: {e}", ephemeral=True)
-
-    @ui.button(label='🔄 Restart', style=discord.ButtonStyle.secondary)
-    async def restart_bot(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+    @ui.button(label='🔄 Refresh', style=discord.ButtonStyle.primary)
+    async def refresh_status(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         try:
             await interaction.response.defer()
+            
+            # Force refresh health data
+            try:
+                from ...utils.health_monitor import health_monitor
+                await health_monitor.force_refresh()
+            except Exception as e:
+                import logging
+                logging.warning(f"Failed to force refresh health data: {e}")
+            
+            # Refresh the status display
+            await self.__view.refresh_status()
+            
+            # Update the message with new status and color
+            await interaction.followup.edit_message(
+                interaction.message.id, 
+                view=self.__view
+            )
+            
+            await interaction.followup.send(
+                "✅ Status refreshed!", 
+                ephemeral=True
+            )
+            
+        except Exception as e:
+            await interaction.followup.send(f"❌ Error refreshing: {e}", ephemeral=True)
+
+    @ui.button(label='🧹 Cleanup', style=discord.ButtonStyle.secondary)
+    async def cleanup_thread(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        try:
+            await interaction.response.defer()
+            
+            # Clean up old messages
+            deleted_count = await self.__bot_instance.cleanup_thread_messages()
+            
+            await interaction.followup.send(
+                f"🧹 Cleaned up {deleted_count} old messages from thread", 
+                ephemeral=True
+            )
+            
+        except Exception as e:
+            await interaction.followup.send(f"❌ Error cleaning up: {e}", ephemeral=True)
+
+    @ui.button(label='🔄 Restart', style=discord.ButtonStyle.danger)
+    async def restart_bot(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
+        try:
+            # Check if user has permission to restart
+            if not self._has_restart_permission(interaction.user, interaction.guild):
+                await interaction.response.send_message(
+                    "❌ You don't have permission to restart the bot. Admin role required.", 
+                    ephemeral=True
+                )
+                return
+                
+            await interaction.response.defer()
+            
+            # Update status to show pending restart
+            old_text = self.__view.status_text.content
+            await self.__view._show_pending_restart()
+            await interaction.followup.edit_message(interaction.message.id, view=self.__view)
+            
+            # Actually restart the bot
             await self.__bot_instance.restart_bot()
+            
+            # Wait a moment for restart to complete
+            await asyncio.sleep(3)
+            
+            # Update with final status
             await self.__view.refresh_status()
             await interaction.followup.edit_message(interaction.message.id, view=self.__view)
+            
         except Exception as e:
+            # Restore original text if error
+            if 'old_text' in locals():
+                self.__view.status_text.content = old_text
+                await interaction.followup.edit_message(interaction.message.id, view=self.__view)
+                
             if "starting or stopping" in str(e).lower():
                 await interaction.followup.send("⏳ Bot is busy, please try again in a moment", ephemeral=True)
             else:
                 await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
+    
+    def _has_restart_permission(self, user: discord.User, guild: Optional[discord.Guild]) -> bool:
+        """Check if user has permission to restart the bot"""
+        if not guild:
+            return False
+            
+        member = guild.get_member(user.id)
+        if not member:
+            return False
+            
+        # Check if user has the admin role
+        admin_role = guild.get_role(ADMIN_ROLE_ID)
+        if admin_role and admin_role in member.roles:
+            return True
+            
+        # Check if user is server owner
+        if member == guild.owner:
+            return True
+            
+        # Check if user has administrator permission
+        if member.guild_permissions.administrator:
+            return True
+            
+        return False
 
-    @ui.button(label='📊 Refresh', style=discord.ButtonStyle.primary)
-    async def refresh_status(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        await self.__view.refresh_status()
-        await interaction.response.edit_message(view=self.__view)
 
 
 class BotStatusView(ui.LayoutView):
@@ -63,16 +138,19 @@ class BotStatusView(ui.LayoutView):
     
     def __init__(self, bot_instance: 'DiscordBotSingleton', *, wolf_image_url: str = None) -> None:
         super().__init__()
-        self.__bot_instance = bot_instance
+        self.__bot_instance = bot_instance  # Store bot instance for status checks
         
-        # Default wolf image URL (can be replaced later)
-        default_wolf_url = wolf_image_url or "https://random.dog/woof.json"
+        # Get current bot status model
+        status_model = self._get_bot_status_model()
+        
+        # Use state-based image instead of wolf image
+        state_image_url = status_model.get_image_url()
         
         # Initialize status text
         self.status_text = ui.TextDisplay(self._get_status_text())
         
-        # Create thumbnail with wolf image
-        self.thumbnail = ui.Thumbnail(media=default_wolf_url)
+        # Create thumbnail with state-appropriate image
+        self.thumbnail = ui.Thumbnail(media=state_image_url)
         
         # Create section with status text and thumbnail
         self.section = ui.Section(self.status_text, accessory=self.thumbnail)
@@ -80,82 +158,161 @@ class BotStatusView(ui.LayoutView):
         # Create control buttons
         self.buttons = StatusControlButtons(self, bot_instance)
         
-        # Determine container color based on bot status
-        color = self._get_status_color()
+        # Use health-based color for container (overrides state color if unhealthy)
+        color = status_model.get_health_based_color()
         
         # Create container with all components
         container = ui.Container(self.section, self.buttons, accent_color=color)
         self.add_item(container)
     
+    def _get_bot_status_model(self) -> BotStatusModel:
+        """Get current bot status as Pydantic model with health data"""
+        try:
+            status_with_health = self.__bot_instance.get_status_with_health()
+            status_dict = status_with_health["bot_status"]
+            health_data = status_with_health["health_data"]
+            return BotStatusModel.from_status_dict(status_dict, health_data)
+        except Exception as e:
+            # Fallback to basic status without health data if health collection fails
+            import logging
+            logging.warning(f"Health data collection failed, using basic status: {e}")
+            status_dict = self.__bot_instance.get_status()
+            return BotStatusModel.from_status_dict(status_dict)
+    
     def _get_status_text(self) -> str:
-        """Generate status text based on bot state"""
-        status = self.__bot_instance.get_status()
+        """Generate status text based on bot state with health metrics"""
+        status_model = self._get_bot_status_model()
+        
+        # Get health status indicator
+        health_emoji = "🟢" if status_model.health_status == "HEALTHY" else "🟡" if status_model.health_status == "WARNING" else "🔴"
+        
+        # Get cache age info (if available)
+        try:
+            status_with_health = self.__bot_instance.get_status_with_health()
+            health_data = status_with_health["health_data"]
+            cache_age = health_data.get("cache_age_seconds", 0)
+            cache_info = f" (cached {cache_age}s ago)" if cache_age > 0 else " (fresh)"
+        except:
+            cache_info = ""
         
         lines = [
             "🤖 **Discord Bot Status Dashboard**",
             "",
-            f"**Status:** {self._get_status_emoji(status)} {self._get_status_description(status)}",
-            f"**Initialized:** {'Yes' if status['initialized'] else 'No'}",
-            f"**Ready:** {'Yes' if status['is_ready'] else 'No'}",
-            f"**Guild Count:** {status['guild_count']}",
+            f"**Status:** {status_model.get_emoji()} {status_model.get_status_description()}",
+            f"**Health:** {health_emoji} {status_model.health_status}",
+            f"**Initialized:** {'Yes' if status_model.initialized else 'No'}",
+            f"**Ready:** {'Yes' if status_model.is_ready else 'No'}",
+            f"**Guild Count:** {status_model.guild_count}",
+            "",
+            f"**💾 System Resources{cache_info}:**",
+            f"• Memory: {status_model.memory_usage_mb:.1f}MB ({status_model.memory_percent:.1f}%)",
+            f"• CPU: {status_model.cpu_percent:.1f}%",
+            f"• Threads: {status_model.thread_count}",
+            f"• Uptime: {status_model.uptime_formatted}",
             "",
             f"**State Flags:**",
-            f"• Starting: {'Yes' if status['is_starting'] else 'No'}",
-            f"• Stopping: {'Yes' if status['is_stopping'] else 'No'}",
+            f"• Starting: {'Yes' if status_model.is_starting else 'No'}",
+            f"• Stopping: {'Yes' if status_model.is_stopping else 'No'}",
             "",
             f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
         ]
         
         return "\n".join(lines)
     
-    def _get_status_emoji(self, status: dict) -> str:
-        """Get emoji for current status"""
-        if status['is_starting']:
-            return "🟡"
-        elif status['is_stopping']:
-            return "🟠"
-        elif status['is_ready']:
-            return "🟢"
-        elif status['initialized'] and not status['is_closed']:
-            return "🟡"
-        else:
-            return "🔴"
+    def _get_pending_online_text(self) -> str:
+        """Generate pending online text"""
+        lines = [
+            "🤖 **Discord Bot Status Dashboard**",
+            "",
+            f"**Status:** 🟡 Coming Online...",
+            "**Operation:** Starting bot connection",
+            "",
+            "⏳ Please wait while the bot comes online...",
+            "",
+            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
+        ]
+        return "\n".join(lines)
     
-    def _get_status_description(self, status: dict) -> str:
-        """Get human-readable status description"""
-        if status['is_starting']:
-            return "Starting..."
-        elif status['is_stopping']:
-            return "Stopping..."
-        elif status['is_ready']:
-            return "Online & Ready"
-        elif status['initialized'] and not status['is_closed']:
-            return "Initialized but not ready"
-        else:
-            return "Offline"
+    def _get_pending_offline_text(self) -> str:
+        """Generate pending offline text"""
+        lines = [
+            "🤖 **Discord Bot Status Dashboard**",
+            "",
+            f"**Status:** 🟠 Going Offline...",
+            "**Operation:** Shutting down gracefully",
+            "",
+            "⏳ Please wait while the bot stops safely...",
+            "",
+            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
+        ]
+        return "\n".join(lines)
+    
+    def _get_pending_restart_text(self) -> str:
+        """Generate pending restart text"""
+        lines = [
+            "🤖 **Discord Bot Status Dashboard**",
+            "",
+            f"**Status:** 🟡 Restarting...",
+            "**Operation:** Performing full restart",
+            "",
+            "⏳ Please wait while the bot restarts...",
+            "• Stopping current instance",
+            "• Reinitializing connection",
+            "• Starting fresh instance",
+            "",
+            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
+        ]
+        return "\n".join(lines)
+    
+    async def _show_pending_restart(self):
+        """Show pending restart state with appropriate color and image"""
+        # Update status text
+        self.status_text.content = self._get_pending_restart_text()
+        
+        # Use pending/starting state for color and image
+        pending_color = StatusState.STARTING.color
+        pending_image = StatusState.STARTING.image_url
+        
+        # Update thumbnail with pending image
+        self.thumbnail = ui.Thumbnail(media=pending_image)
+        
+        # Recreate the container with pending color
+        self.clear_items()
+        
+        # Recreate section with updated thumbnail and buttons
+        self.section = ui.Section(self.status_text, accessory=self.thumbnail)
+        self.buttons = StatusControlButtons(self, self.__bot_instance)
+        
+        # Create new container with pending color
+        container = ui.Container(self.section, self.buttons, accent_color=pending_color)
+        self.add_item(container)
     
     def _get_status_color(self) -> discord.Color:
-        """Get container color based on bot status"""
-        status = self.__bot_instance.get_status()
-        
-        if status['is_starting'] or status['is_stopping']:
-            return discord.Color.orange()
-        elif status['is_ready']:
-            return discord.Color.green()
-        elif status['initialized'] and not status['is_closed']:
-            return discord.Color.yellow()
-        else:
-            return discord.Color.red()
+        """Get container color based on bot status and health"""
+        status_model = self._get_bot_status_model()
+        return status_model.get_health_based_color()
     
     async def refresh_status(self):
-        """Refresh the status display"""
+        """Refresh the status display with new color and image"""
         # Update status text
         self.status_text.content = self._get_status_text()
         
-        # Update container color
-        new_color = self._get_status_color()
-        # Note: Container color can't be changed after creation in current discord.py
-        # This would require recreating the container, which is more complex
+        # Get new status model
+        status_model = self._get_bot_status_model()
+        
+        # Update thumbnail with state-appropriate image
+        self.thumbnail = ui.Thumbnail(media=status_model.get_image_url())
+        
+        # Recreate the container with new color and image
+        self.clear_items()
+        
+        # Recreate section with updated thumbnail and buttons
+        self.section = ui.Section(self.status_text, accessory=self.thumbnail)
+        self.buttons = StatusControlButtons(self, self.__bot_instance)
+        
+        # Create new container with updated health-based color
+        container = ui.Container(self.section, self.buttons, accent_color=status_model.get_health_based_color())
+        self.add_item(container)
     
     @classmethod
     async def create_with_wolf_image(cls, bot_instance: 'DiscordBotSingleton') -> 'BotStatusView':
