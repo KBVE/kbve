@@ -198,9 +198,12 @@ prepare_disoxide_container() {
 atomic_function() {
     set -e
 
+    git fetch origin
+
     git switch dev
 
-    git pull origin main
+    #git pull origin main --rebase
+    git rebase origin/main
 
     git pull --rebase
 
