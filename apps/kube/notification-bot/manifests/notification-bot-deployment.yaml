@@ -22,7 +22,7 @@ spec:
         - containerPort: 3000
           protocol: TCP
         env:
-        - name: NODE_ENV
+        - name: PYTHON_ENV
           value: "production"
         - name: SUPABASE_URL
           value: "http://kong.kilobase.svc.cluster.local:8000"
