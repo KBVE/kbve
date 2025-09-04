@@ -251,10 +251,14 @@ class DiscordBotSingleton:
             logger.info(f"Bot intents: {self._bot.intents}")
             logger.info(f"Bot user before start: {self._bot.user}")
             
-            # Start the bot - this runs forever, so don't timeout
-            logger.info("Starting bot connection...")
-            await self._bot.start(self._token)
-            logger.info("Bot.start() completed (this should never be reached in normal operation)")
+            # Start the bot in a background task - this runs forever, so don't block
+            logger.info("Starting bot connection in background...")
+            import asyncio
+            asyncio.create_task(self._bot.start(self._token))
+            
+            # Wait a short moment to ensure connection starts
+            await asyncio.sleep(2)
+            logger.info("Bot start initiated (running in background)")
             
         except Exception as e:
             logger.error(f"Failed to start Discord bot: {e}")
