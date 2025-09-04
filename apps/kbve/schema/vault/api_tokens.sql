@@ -269,6 +269,74 @@ $$;
 revoke all on function public.get_vault_secret_by_id(uuid) from public, anon, authenticated;
 grant execute on function public.get_vault_secret_by_id(uuid) to service_role;
 
+-- RPC function to set vault secret (for Edge Functions with restrictions)
+create or replace function public.set_vault_secret(
+    secret_name text,
+    secret_value text,
+    secret_description text default null
+)
+returns uuid
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+    v_secret_id uuid;
+    v_clean_name text;
+begin
+    -- Security check: Only allow service_role to call this function
+    if auth.jwt() ->> 'role' != 'service_role' then
+        raise exception 'Access denied: Service role required';
+    end if;
+    
+    -- Clean and validate the secret name
+    v_clean_name := trim(secret_name);
+    
+    -- Additional security: Only allow setting system/service/config secrets
+    if v_clean_name !~ '^(system|service|config)/' then
+        raise exception 'Access denied: Only system/, service/, or config/ secrets allowed';
+    end if;
+    
+    -- Validate name format (no user paths allowed)
+    if v_clean_name ~ '^user/' then
+        raise exception 'Access denied: Cannot create user secrets via this function';
+    end if;
+    
+    -- Input validation
+    if length(v_clean_name) < 3 or length(v_clean_name) > 200 then
+        raise exception 'Secret name must be between 3 and 200 characters';
+    end if;
+    
+    if length(secret_value) < 1 or length(secret_value) > 8000 then
+        raise exception 'Secret value must be between 1 and 8000 characters';
+    end if;
+    
+    -- Create or update the secret in vault
+    begin
+        select vault.create_secret(
+            secret_value,
+            v_clean_name,
+            coalesce(secret_description, 'System secret created via Edge Function')
+        ) into v_secret_id;
+    exception 
+        when unique_violation then
+            -- If vault key exists, update the secret
+            update vault.secrets 
+            set secret = secret_value, 
+                updated_at = now(),
+                description = coalesce(secret_description, description)
+            where name = v_clean_name
+            returning id into v_secret_id;
+    end;
+    
+    return v_secret_id;
+end;
+$$;
+
+-- Grant access to service_role for Edge Functions
+revoke all on function public.set_vault_secret(text, text, text) from public, anon, authenticated;
+grant execute on function public.set_vault_secret(text, text, text) to service_role;
+
 -- ===================================================================
 -- 3. PUBLIC PROXY FUNCTIONS (Authenticated Users)
 -- ===================================================================
@@ -467,6 +535,7 @@ expected_functions(schema, name, arg_types) AS (
     ('private', 'get_api_token_internal', ARRAY['uuid', 'uuid']),
     ('private', 'delete_api_token_internal', ARRAY['uuid', 'uuid']),
     ('public', 'get_vault_secret_by_id', ARRAY['uuid']),
+    ('public', 'set_vault_secret', ARRAY['text', 'text', 'text']),
     ('public', 'set_api_token', ARRAY['text', 'text', 'text', 'text']),
     ('public', 'get_api_token', ARRAY['uuid']),
     ('public', 'list_api_tokens', ARRAY[]::text[]),
