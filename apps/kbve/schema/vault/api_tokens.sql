@@ -3,6 +3,9 @@
 -- Secure token storage using Supabase Vault with RLS protection
 -- ===================================================================
 
+-- 0. Ensure private schema exists
+create schema if not exists private;
+
 -- 1. Core API Tokens Reference Table
 -- This table holds references to vault secrets and provides auth mapping
 create table private.api_tokens (
@@ -49,7 +52,7 @@ create or replace function private.set_api_token_internal(
 returns uuid
 language plpgsql
 security definer
-set search_path = private, vault, public
+set search_path = pg_catalog, private, vault
 as $$
 declare
     v_vault_key text;
@@ -129,7 +132,7 @@ create or replace function private.get_api_token_internal(
 returns text
 language plpgsql
 security definer
-set search_path = private, vault, public
+set search_path = pg_catalog, private, vault
 as $$
 declare
     v_vault_key text;
@@ -167,7 +170,7 @@ create or replace function private.delete_api_token_internal(
 returns void
 language plpgsql
 security definer
-set search_path = private, vault, public
+set search_path = pg_catalog, private, vault
 as $$
 declare
     v_vault_key text;
@@ -220,12 +223,18 @@ create or replace function public.set_api_token(
 returns uuid
 language plpgsql
 security definer
-set search_path = public, private
+set search_path = pg_catalog, public, private
 as $function$
 declare
     v_user_id uuid := auth.uid();
     v_token_id uuid;
 begin
+
+    -- [TEMP] Disable this function if they are not service role.
+    if auth.jwt() ->> 'role' != 'service_role' then
+        raise exception 'API token creation is temporarily disabled. Please try again later.';
+    end if;
+
     -- Authentication check
     if v_user_id is null then
         raise exception 'Not authenticated';
@@ -268,7 +277,7 @@ create or replace function public.get_api_token(
 returns text
 language plpgsql
 security definer
-set search_path = public, private
+set search_path = pg_catalog, public, private
 as $function$
 declare
     v_user_id uuid := auth.uid();
@@ -299,7 +308,7 @@ returns table (
 )
 language sql
 security definer
-set search_path = public, private
+set search_path = pg_catalog, public, private
 as $function$
     select 
         id,
@@ -321,7 +330,7 @@ create or replace function public.delete_api_token(
 returns void
 language plpgsql
 security definer
-set search_path = public, private
+set search_path = pg_catalog, public, private
 as $function$
 declare
     v_user_id uuid := auth.uid();
@@ -344,7 +353,7 @@ create or replace function public.toggle_api_token_status(
 returns void
 language plpgsql
 security definer
-set search_path = public, private
+set search_path = pg_catalog, public, private
 as $function$
 declare
     v_user_id uuid := auth.uid();
