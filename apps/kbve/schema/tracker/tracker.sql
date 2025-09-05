@@ -254,11 +254,19 @@ $$ LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = '';
 ALTER TABLE tracker.cluster_management ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist to allow re-running the script
+DROP POLICY IF EXISTS "service_role_full_access" ON tracker.cluster_management;
+DROP POLICY IF EXISTS "deny_anon_access" ON tracker.cluster_management;
+DROP POLICY IF EXISTS "deny_authenticated_access" ON tracker.cluster_management;
+
+-- Create policies
 CREATE POLICY "service_role_full_access" ON tracker.cluster_management
     FOR ALL 
     TO service_role
     USING (true)
     WITH CHECK (true);
+
 CREATE POLICY "deny_anon_access" ON tracker.cluster_management
     FOR ALL TO anon
     USING (false);
