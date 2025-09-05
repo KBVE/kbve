@@ -2,7 +2,7 @@ import discord
 import logging
 import asyncio
 from typing import Optional
-from .supabase import supabase_conn
+from .supabase import vault_manager, tracker_manager
 from ..models.constants import DISCORD_THREAD_ID, DEFAULT_CLEANUP_LIMIT
 
 logger = logging.getLogger("uvicorn")
@@ -34,7 +34,7 @@ class DiscordBotSingleton:
         try:
             # Get Discord token from vault
             secret_id = "39781c47-be8f-4a10-ae3a-714da299ca07"
-            result = await supabase_conn.get_vault_secret(secret_id)
+            result = await vault_manager.get_vault_secret(secret_id)
             
             if not result.success:
                 raise Exception(f"Failed to retrieve Discord token: {result.error}")
@@ -62,6 +62,8 @@ class DiscordBotSingleton:
             
             # Check if we should use distributed sharding
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
+            logger.info(f"USE_DISTRIBUTED_SHARDING environment variable: {os.getenv('USE_DISTRIBUTED_SHARDING', 'not set')}")
+            logger.info(f"Distributed sharding enabled: {use_distributed_sharding}")
             
             if use_distributed_sharding:
                 logger.info(f"Using distributed sharding coordination for instance {instance_id} in cluster {cluster_name}")
@@ -273,124 +275,34 @@ class DiscordBotSingleton:
     
     async def _get_shard_assignment(self, instance_id: str, cluster_name: str) -> dict:
         """Get shard assignment from distributed coordination system using tracker schema"""
-        try:
-            import os
-            
-            # First, check if this instance already has an assignment
-            client = supabase_conn.init_supabase_client()
-            existing_query = client.table('tracker.cluster_management').select('*').eq('instance_id', instance_id).eq('cluster_name', cluster_name)
-            existing_result = await supabase_conn.execute_query(existing_query)
-            
-            if existing_result.success and existing_result.data:
-                assignment = existing_result.data[0]
-                logger.info(f"Found existing shard assignment: {assignment}")
-                
-                # Update heartbeat and metadata
-                await self._update_shard_heartbeat(instance_id, cluster_name)
-                return {
-                    'shard_id': assignment['shard_id'],
-                    'total_shards': assignment['total_shards']
-                }
-            
-            # No existing assignment, use the improved upsert function
-            total_shards = int(os.getenv('TOTAL_SHARDS', '2'))
-            
-            # Use the consolidated upsert function for assignment
-            client = supabase_conn.init_supabase_client()
-            upsert_result = client.rpc('tracker.upsert_instance_assignment', {
-                'p_instance_id': instance_id,
-                'p_cluster_name': cluster_name,
-                'p_hostname': os.getenv('HOSTNAME', instance_id),
-                'p_pod_ip': os.getenv('POD_IP'),
-                'p_node_name': os.getenv('NODE_NAME'),
-                'p_namespace': os.getenv('NAMESPACE', 'discord'),
-                'p_bot_version': '1.3',
-                'p_deployment_version': os.getenv('DEPLOYMENT_VERSION', '1.3'),
-                'p_total_shards': total_shards
-            }).execute()
-            
-            # Convert response to expected format
-            if hasattr(upsert_result, 'error') and upsert_result.error:
-                logger.error(f"Failed to get/register shard assignment: {upsert_result.error}")
-                return None
-            
-            upsert_data = upsert_result.data if hasattr(upsert_result, 'data') else upsert_result
-            
-            assignment_info = upsert_data[0] if upsert_data else None
-            
-            if assignment_info:
-                assignment_type = "new" if assignment_info['is_new_assignment'] else "existing"
-                logger.info(f"Got {assignment_type} shard assignment: shard {assignment_info['assigned_shard_id']}/{assignment_info['total_shards']} via {assignment_info['assignment_strategy']}")
-                
-                return {
-                    'shard_id': assignment_info['assigned_shard_id'],
-                    'total_shards': assignment_info['total_shards']
-                }
-            else:
-                logger.error("No assignment data returned from upsert function")
-                return None
-                
-        except Exception as e:
-            logger.error(f"Error in shard coordination: {e}")
-            import traceback
-            logger.error(f"Traceback: {traceback.format_exc()}")
-            return None
+        import os
+        total_shards = int(os.getenv('TOTAL_SHARDS', '2'))
+        return await tracker_manager.get_shard_assignment(instance_id, cluster_name, total_shards)
     
     async def _update_shard_heartbeat(self, instance_id: str, cluster_name: str):
         """Update heartbeat for this shard assignment with performance metrics"""
-        try:
-            import os
-            
-            # Gather performance metrics if bot is ready
-            guild_count = len(self._bot.guilds) if self._bot and self._bot.is_ready() else 0
-            latency_ms = round(self._bot.latency * 1000, 2) if self._bot and self._bot.is_ready() else 0
-            
-            update_data = {
-                'last_heartbeat': 'now()',
-                'status': 'active',
-                'guild_count': guild_count,
-                'latency_ms': latency_ms,
-                'hostname': os.getenv('HOSTNAME', instance_id),
-                'pod_ip': os.getenv('POD_IP'),
-                'node_name': os.getenv('NODE_NAME')
-            }
-            
-            client = supabase_conn.init_supabase_client()
-            query = client.table('tracker.cluster_management').update(update_data).eq('instance_id', instance_id).eq('cluster_name', cluster_name)
-            result = await supabase_conn.execute_query(query)
-            
-            if not result.success:
-                logger.warning(f"Failed to update shard heartbeat: {result.error}")
-            else:
-                logger.debug(f"Updated heartbeat for {instance_id}: guilds={guild_count}, latency={latency_ms}ms")
-                
-        except Exception as e:
-            logger.warning(f"Error updating shard heartbeat: {e}")
+        # Gather performance metrics if bot is ready
+        guild_count = len(self._bot.guilds) if self._bot and self._bot.is_ready() else 0
+        latency_ms = round(self._bot.latency * 1000, 2) if self._bot and self._bot.is_ready() else 0
+        
+        await tracker_manager.update_heartbeat(
+            instance_id=instance_id,
+            cluster_name=cluster_name,
+            guild_count=guild_count,
+            latency_ms=latency_ms
+        )
     
     async def _cleanup_shard_assignment(self):
         """Mark this instance's shard assignment as inactive"""
-        try:
-            import os
-            
-            instance_id = os.getenv('HOSTNAME', str(__import__('uuid').uuid4())[:8])
-            cluster_name = os.getenv('CLUSTER_NAME', 'default')
-            
-            update_data = {
-                'status': 'inactive',
-                'last_heartbeat': 'now()'
-            }
-            
-            client = supabase_conn.init_supabase_client()
-            query = client.table('tracker.cluster_management').update(update_data).eq('instance_id', instance_id).eq('cluster_name', cluster_name)
-            result = await supabase_conn.execute_query(query)
-            
-            if result.success:
-                logger.info(f"Marked shard assignment as inactive for {instance_id}")
-            else:
-                logger.warning(f"Failed to cleanup shard assignment: {result.error}")
-                
-        except Exception as e:
-            logger.warning(f"Error cleaning up shard assignment: {e}")
+        import os
+        
+        instance_id = os.getenv('HOSTNAME', str(__import__('uuid').uuid4())[:8])
+        cluster_name = os.getenv('CLUSTER_NAME', 'default')
+        
+        await tracker_manager.cleanup_shard_assignment(
+            instance_id=instance_id,
+            cluster_name=cluster_name
+        )
     
     async def send_offline_message(self):
         """Send offline message before shutting down"""
