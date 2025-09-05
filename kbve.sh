@@ -8,6 +8,7 @@
 # Author: KBVE Team
 # Repository: https://github.com/KBVE/kbve
 # Last Updated: 2025-09-05
+# Docs: https://kbve.com/docs/
 #
 # This script provides automated installation, configuration, and management
 # utilities for the KBVE development environment including:
