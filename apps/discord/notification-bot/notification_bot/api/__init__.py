@@ -5,9 +5,4 @@ from .supabase import (
     VaultSecretResponse,
     VaultOperationResponse
 )
-from .discordbot import (
-    discord_bot,
-    get_discord_bot,
-    start_discord_bot,
-    stop_discord_bot
-)
+from .discord import DiscordBotService

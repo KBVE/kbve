@@ -1,10 +1,11 @@
 """
 Supabase package for managing database operations, vault secrets, distributed coordination, and user management
 """
-from .supabase_singleton import (
+from .supabase_service import (
     supabase_conn,
     get_supabase_client,
-    QueryResult
+    QueryResult,
+    SupabaseService
 )
 from .vault import (
     vault_manager,
@@ -28,11 +29,14 @@ from .users import (
 )
 
 __all__ = [
-    # Singleton instances
+    # Service instances  
     'supabase_conn',
     'vault_manager',
     'tracker_manager',
     'user_manager',
+    
+    # Services
+    'SupabaseService',
     
     # Functions
     'get_supabase_client',
