@@ -1,38 +1,25 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from typing import List
 
-class CORS:
-    def __init__(
-        self,
-        app: FastAPI,
-        origins: List[str] = [
-            "http://localhost:8086",
-            "http://localhost:4321",
-            "http://localhost:1337",
-            "http://localhost",
-            "http://localhost:8080",
-            "https://discord.sh",
-            "https://api.discord.sh",
-            "https://supabase.kbve.com",
-            "https://kbve.com",
-        ],
-        allow_credentials: bool = True,
-        allow_methods: List[str] = ["*"],
-        allow_headers: List[str] = ["*"],
-    ):
-        self.app = app
-        self.origins = origins
-        self.allow_credentials = allow_credentials
-        self.allow_methods = allow_methods
-        self.allow_headers = allow_headers
-        self.add_cors_middleware()
+# Optimized CORS origins
+ALLOWED_ORIGINS = [
+    "http://localhost:8086",
+    "http://localhost:4321", 
+    "http://localhost:1337",
+    "http://localhost",
+    "http://localhost:8080",
+    "https://discord.sh",
+    "https://api.discord.sh",
+    "https://supabase.kbve.com",
+    "https://kbve.com",
+]
 
-    def add_cors_middleware(self):
-        self.app.add_middleware(
-            CORSMiddleware,
-            allow_origins=self.origins,
-            allow_credentials=self.allow_credentials,
-            allow_methods=self.allow_methods,
-            allow_headers=self.allow_headers,
-        )
+def CORS(app: FastAPI) -> None:
+    """Add optimized CORS middleware to FastAPI app"""
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=ALLOWED_ORIGINS,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )

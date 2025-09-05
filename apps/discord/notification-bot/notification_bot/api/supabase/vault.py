@@ -6,7 +6,7 @@ import logging
 from typing import Optional, Any, Dict, Literal
 from datetime import datetime
 from pydantic import BaseModel, Field, UUID4
-from .supabase_singleton import supabase_conn
+from .supabase_service import supabase_conn
 
 logger = logging.getLogger("uvicorn")
 
@@ -44,7 +44,10 @@ class VaultOperationResponse(BaseModel):
 
 
 class VaultManager:
-    """Manager class for vault operations"""
+    """Optimized manager class for vault operations"""
+    
+    def __init__(self, supabase_service=None):
+        self._supabase = supabase_service or supabase_conn
     
     async def get_vault_secret(self, secret_id: str) -> VaultOperationResponse:
         """
@@ -57,7 +60,7 @@ class VaultManager:
             VaultOperationResponse with the secret data or error
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             # Create the request using Pydantic model
             request = VaultGetRequest(secret_id=secret_id)
@@ -126,7 +129,7 @@ class VaultManager:
             VaultOperationResponse with the new secret ID or error
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             # Create the request using Pydantic model
             request = VaultSetRequest(

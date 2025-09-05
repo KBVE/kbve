@@ -6,7 +6,7 @@ import logging
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from pydantic import BaseModel, Field
-from .supabase_singleton import supabase_conn
+from .supabase_service import supabase_conn
 from ...models.constants import VERSION
 
 logger = logging.getLogger("uvicorn")
@@ -50,7 +50,10 @@ class ShardAssignmentResult(BaseModel):
 
 
 class TrackerManager:
-    """Manager class for tracker/cluster coordination operations"""
+    """Optimized manager class for tracker/cluster coordination operations"""
+    
+    def __init__(self, supabase_service=None):
+        self._supabase = supabase_service or supabase_conn
     
     async def get_shard_assignment(
         self, 
@@ -70,7 +73,7 @@ class TrackerManager:
             Dictionary with shard_id and total_shards, or None if failed
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             # Always use the upsert function - it handles all cases properly
             logger.info(f"Getting shard assignment for instance {instance_id} in cluster {cluster_name}")
@@ -270,7 +273,7 @@ class TrackerManager:
             True if update successful, False otherwise
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             bot_version = str(VERSION)
             deployment_version = os.getenv('DEPLOYMENT_VERSION', str(VERSION))
@@ -335,7 +338,7 @@ class TrackerManager:
             True if cleanup successful, False otherwise
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             update_data = {
                 'status': 'inactive',
@@ -377,7 +380,7 @@ class TrackerManager:
             List of shard assignment dictionaries
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             result = (
                 client.schema('tracker')
