@@ -18,3 +18,4 @@ Starting an Orb/Local Container.
 v1.1 - Hello World base image deployment.
 v1.2 - Discord Bot started.
 v1.3 - Adding Sharding.
+v1.4 - Adding Supabase Integration.
