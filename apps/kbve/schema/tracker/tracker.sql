@@ -297,7 +297,6 @@ GRANT ALL ON ALL TABLES IN SCHEMA tracker TO service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA tracker TO service_role;
 
 COMMENT ON SCHEMA tracker IS 'Service-level operations and distributed system coordination - Service role access only';
--- Tracker - Social Providers
 -- Add to tracker.sql after the cluster_management table
 
 -- User Provider Relationships Table v3 - Simplified
@@ -326,12 +325,13 @@ CREATE INDEX IF NOT EXISTS idx_user_providers_provider_lookup
     ON tracker.user_providers(provider, provider_id);
 
 -- Trigger for updated_at
+DROP TRIGGER IF EXISTS trigger_update_user_providers_updated_at ON tracker.user_providers;
 CREATE TRIGGER trigger_update_user_providers_updated_at
     BEFORE UPDATE ON tracker.user_providers
     FOR EACH ROW
     EXECUTE FUNCTION tracker.update_updated_at_column();
 
--- Function to extract and map provider IDs from auth.users metadata
+-- Function to extract and map provider IDs from auth.identities (all linked providers)
 CREATE OR REPLACE FUNCTION tracker.sync_user_provider_relationships(
     p_user_id UUID
 )
@@ -340,54 +340,39 @@ RETURNS TABLE (
     total_synced INTEGER
 ) AS $$
 DECLARE
-    user_meta JSONB;
+    identity_record RECORD;
     synced_list TEXT[] := ARRAY[]::TEXT[];
     sync_count INTEGER := 0;
-    discord_id TEXT;
-    github_id TEXT;
+    provider_id_val TEXT;
 BEGIN
-    -- Get user metadata
-    SELECT raw_user_meta_data INTO user_meta
-    FROM auth.users
-    WHERE id = p_user_id;
-    
-    IF NOT FOUND THEN
+    -- Validate user exists
+    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = p_user_id) THEN
         RAISE EXCEPTION 'User not found: %', p_user_id;
     END IF;
     
-    -- Extract Discord ID (from provider_id when iss contains discord)
-    IF user_meta ? 'provider_id' AND 
-       user_meta ? 'iss' AND 
-       user_meta->>'iss' LIKE '%discord%' THEN
+    -- Loop through all identities for this user
+    FOR identity_record IN 
+        SELECT provider, provider_id, identity_data
+        FROM auth.identities
+        WHERE user_id = p_user_id
+    LOOP
+        -- Extract provider_id from the identity
+        provider_id_val := identity_record.provider_id;
         
-        discord_id := user_meta->>'provider_id';
+        -- Skip if no provider_id
+        IF provider_id_val IS NULL OR provider_id_val = '' THEN
+            CONTINUE;
+        END IF;
         
+        -- Insert or update the provider relationship
         INSERT INTO tracker.user_providers (user_id, provider, provider_id)
-        VALUES (p_user_id, 'discord', discord_id)
+        VALUES (p_user_id, identity_record.provider, provider_id_val)
         ON CONFLICT (provider, provider_id) 
         DO UPDATE SET updated_at = NOW();
         
-        synced_list := array_append(synced_list, 'discord');
+        synced_list := array_append(synced_list, identity_record.provider);
         sync_count := sync_count + 1;
-    END IF;
-    
-    -- Extract GitHub ID (from provider_id when iss contains github)
-    IF user_meta ? 'provider_id' AND 
-       user_meta ? 'iss' AND 
-       user_meta->>'iss' LIKE '%github%' THEN
-        
-        github_id := user_meta->>'provider_id';
-        
-        INSERT INTO tracker.user_providers (user_id, provider, provider_id)
-        VALUES (p_user_id, 'github', github_id)
-        ON CONFLICT (provider, provider_id) 
-        DO UPDATE SET updated_at = NOW();
-        
-        synced_list := array_append(synced_list, 'github');
-        sync_count := sync_count + 1;
-    END IF;
-    
-    -- Could add more providers here (Google, etc.)
+    END LOOP;
     
     RETURN QUERY SELECT synced_list, sync_count;
 END;
