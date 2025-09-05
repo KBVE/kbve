@@ -29,6 +29,12 @@ for router in [bot_online_router, bot_offline_router, bot_restart_router,
 async def hello_world() -> Response:
     return success_response("Hello World")
 
+
+@app.get("/healthz", response_model=None)
+async def simple_health_check() -> Response:
+    """Simple health check endpoint for Kubernetes probes - no dependencies required"""
+    return success_response("Healthy")
+
 # @app.get("/test-vault")
 # async def test_vault():
 #     """Test endpoint to fetch the specific vault secret using the helper function"""
