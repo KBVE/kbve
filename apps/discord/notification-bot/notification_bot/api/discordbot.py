@@ -277,7 +277,8 @@ class DiscordBotSingleton:
             import os
             
             # First, check if this instance already has an assignment
-            existing_query = supabase_conn.client.from_('tracker.cluster_management').select('*').eq('instance_id', instance_id).eq('cluster_name', cluster_name)
+            client = supabase_conn.init_supabase_client()
+            existing_query = client.table('tracker.cluster_management').select('*').eq('instance_id', instance_id).eq('cluster_name', cluster_name)
             existing_result = await supabase_conn.execute_query(existing_query)
             
             if existing_result.success and existing_result.data:
@@ -295,7 +296,8 @@ class DiscordBotSingleton:
             total_shards = int(os.getenv('TOTAL_SHARDS', '2'))
             
             # Use the consolidated upsert function for assignment
-            upsert_query = supabase_conn.client.rpc('tracker.upsert_instance_assignment', {
+            client = supabase_conn.init_supabase_client()
+            upsert_result = client.rpc('tracker.upsert_instance_assignment', {
                 'p_instance_id': instance_id,
                 'p_cluster_name': cluster_name,
                 'p_hostname': os.getenv('HOSTNAME', instance_id),
@@ -305,14 +307,16 @@ class DiscordBotSingleton:
                 'p_bot_version': '1.3',
                 'p_deployment_version': os.getenv('DEPLOYMENT_VERSION', '1.3'),
                 'p_total_shards': total_shards
-            })
-            upsert_result = await supabase_conn.execute_query(upsert_query)
+            }).execute()
             
-            if not upsert_result.success:
+            # Convert response to expected format
+            if hasattr(upsert_result, 'error') and upsert_result.error:
                 logger.error(f"Failed to get/register shard assignment: {upsert_result.error}")
                 return None
             
-            assignment_info = upsert_result.data[0] if upsert_result.data else None
+            upsert_data = upsert_result.data if hasattr(upsert_result, 'data') else upsert_result
+            
+            assignment_info = upsert_data[0] if upsert_data else None
             
             if assignment_info:
                 assignment_type = "new" if assignment_info['is_new_assignment'] else "existing"
@@ -351,7 +355,8 @@ class DiscordBotSingleton:
                 'node_name': os.getenv('NODE_NAME')
             }
             
-            query = supabase_conn.client.from_('tracker.cluster_management').update(update_data).eq('instance_id', instance_id).eq('cluster_name', cluster_name)
+            client = supabase_conn.init_supabase_client()
+            query = client.table('tracker.cluster_management').update(update_data).eq('instance_id', instance_id).eq('cluster_name', cluster_name)
             result = await supabase_conn.execute_query(query)
             
             if not result.success:
@@ -375,7 +380,8 @@ class DiscordBotSingleton:
                 'last_heartbeat': 'now()'
             }
             
-            query = supabase_conn.client.from_('tracker.cluster_management').update(update_data).eq('instance_id', instance_id).eq('cluster_name', cluster_name)
+            client = supabase_conn.init_supabase_client()
+            query = client.table('tracker.cluster_management').update(update_data).eq('instance_id', instance_id).eq('cluster_name', cluster_name)
             result = await supabase_conn.execute_query(query)
             
             if result.success:
