@@ -52,7 +52,7 @@ class DiscordBotService:
             # For cross-cluster deployments, use distributed shard coordination via Supabase
             # Get instance ID for this deployment
             instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
-            cluster_name = os.getenv('CLUSTER_NAME', 'default')
+            cluster_name = os.getenv('CLUSTER_NAME', 'main-cluster')
             
             # Check if we should use distributed sharding
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
