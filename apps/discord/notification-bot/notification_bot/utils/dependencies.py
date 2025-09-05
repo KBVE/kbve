@@ -3,7 +3,7 @@ from contextlib import asynccontextmanager
 import logging
 import asyncio
 from notification_bot.api.supabase import supabase_conn
-from notification_bot.api.discordbot import discord_bot
+from notification_bot.api.discord import discord_bot
 
 logger = logging.getLogger("uvicorn")
 
@@ -24,8 +24,18 @@ async def lifespan(app: FastAPI):
         logger.info("Discord bot initialized")
         
         # Start Discord bot in background task
-        discord_task = asyncio.create_task(discord_bot.start_bot())
-        logger.info("Discord bot started in background")
+        async def start_bot_wrapper():
+            try:
+                logger.info("🚀 Background task starting Discord bot...")
+                await discord_bot.start_bot()
+                logger.info("✅ Discord bot background task completed")
+            except Exception as e:
+                logger.error(f"❌ Discord bot background task failed: {e}")
+                import traceback
+                logger.error(f"Full traceback: {traceback.format_exc()}")
+        
+        discord_task = asyncio.create_task(start_bot_wrapper())
+        logger.info("Discord bot started in background task")
         
         # Initialize PostgreSQL pool
         # await supabase_conn.init_postgres_pool()

@@ -5,11 +5,11 @@ from discord import ui
 from typing import TYPE_CHECKING, Optional
 import datetime
 import asyncio
-from ..constants import ADMIN_ROLE_ID
-from ..status import BotStatusModel, StatusState
+from ....models.constants import ADMIN_ROLE_ID
+from ....models.status import BotStatusModel, StatusState
 
 if TYPE_CHECKING:
-    from ...api.discordbot import DiscordBotSingleton
+    from .. import DiscordBotSingleton
 
 
 
@@ -29,7 +29,7 @@ class StatusControlButtons(ui.ActionRow):
             
             # Force refresh health data
             try:
-                from ...utils.health_monitor import health_monitor
+                from ....utils.health_monitor import health_monitor
                 await health_monitor.force_refresh()
             except Exception as e:
                 import logging

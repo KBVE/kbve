@@ -5,8 +5,6 @@ from .api import (
     VaultSecretResponse,
     VaultOperationResponse,
     discord_bot,
-    get_discord_bot,
-    start_discord_bot,
-    stop_discord_bot
+    DiscordBotSingleton
 )
-from .routes import lifespan
+from .utils.dependencies import lifespan
