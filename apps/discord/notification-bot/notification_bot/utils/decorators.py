@@ -1,15 +1,11 @@
 """
 Developer-friendly decorators for ultra-fast endpoints with minimal boilerplate
 """
-import logging
 from functools import wraps
 from typing import Callable, Any
 from fastapi import Response
-
 from .fast_responses import success_response, error_response, info_response
-
-logger = logging.getLogger("uvicorn")
-
+from notification_bot.utils.logger import logger
 
 def auto_response(func: Callable) -> Callable:
     """
@@ -68,7 +64,6 @@ def auto_response(func: Callable) -> Callable:
     
     return wrapper
 
-
 def bot_action(success_message: str = None):
     """
     Decorator for bot action endpoints with custom success messages
@@ -108,7 +103,6 @@ def bot_action(success_message: str = None):
         
         return wrapper
     return decorator
-
 
 def require_ready_bot(func: Callable) -> Callable:
     """
@@ -152,7 +146,6 @@ def require_ready_bot(func: Callable) -> Callable:
     
     return wrapper
 
-
 def with_error_context(context: str):
     """
     Add contextual information to errors
@@ -174,7 +167,6 @@ def with_error_context(context: str):
         
         return wrapper
     return decorator
-
 
 def log_execution(func: Callable) -> Callable:
     """

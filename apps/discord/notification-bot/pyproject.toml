@@ -35,6 +35,7 @@ readme = 'README.md'
   dishka = "^1.6.0"
   typing-extensions = "^4.15.0"
   orjson = "^3.11.3"
+  granian = "^2.5.2"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.3.1"
