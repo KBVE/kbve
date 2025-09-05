@@ -74,17 +74,20 @@ class UserManager:
         try:
             client = self._supabase.init_supabase_client()
             
+            # Call RPC function with proper parameter - the function expects TEXT
             result = client.schema('tracker').rpc('find_user_by_discord_id', {
-                'p_discord_id': discord_id
+                'p_discord_id': str(discord_id)  # Ensure it's a string
             }).execute()
             
             if result.data and len(result.data) > 0:
                 user_data = result.data[0]
+                
+                # The RPC returns specific columns matching our UserProfile
                 return UserProfile(
                     user_id=user_data['user_id'],
-                    email=user_data['email'],
-                    username=user_data['discord_username'],
-                    avatar_url=user_data['discord_avatar'],
+                    email=user_data['email'] if user_data.get('email') else None,
+                    username=user_data['discord_username'],  # Note: RPC returns 'discord_username'
+                    avatar_url=user_data['discord_avatar'],  # Note: RPC returns 'discord_avatar'
                     full_name=user_data['full_name'],
                     provider='discord',
                     provider_id=discord_id,

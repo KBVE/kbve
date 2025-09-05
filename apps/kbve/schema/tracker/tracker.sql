@@ -398,10 +398,10 @@ BEGIN
     RETURN QUERY
     SELECT 
         u.id,
-        u.email,
-        u.raw_user_meta_data->>'user_name',
-        u.raw_user_meta_data->>'picture',
-        u.raw_user_meta_data->>'full_name',
+        u.email::TEXT,  -- Explicitly cast varchar(255) to TEXT
+        (u.raw_user_meta_data->>'user_name')::TEXT,
+        (u.raw_user_meta_data->>'picture')::TEXT,
+        (u.raw_user_meta_data->>'full_name')::TEXT,
         u.raw_user_meta_data,
         u.created_at,
         u.last_sign_in_at
@@ -433,13 +433,13 @@ BEGIN
     RETURN QUERY
     SELECT 
         u.id,
-        u.email,
-        u.raw_user_meta_data->>'user_name',
+        u.email::TEXT,  -- Explicitly cast varchar(255) to TEXT
+        (u.raw_user_meta_data->>'user_name')::TEXT,
         COALESCE(
             u.raw_user_meta_data->>'picture', 
             u.raw_user_meta_data->>'avatar_url'
-        ),
-        u.raw_user_meta_data->>'full_name',
+        )::TEXT,
+        (u.raw_user_meta_data->>'full_name')::TEXT,
         u.raw_user_meta_data,
         up.created_at,
         u.last_sign_in_at
@@ -470,12 +470,12 @@ BEGIN
         up.provider,
         up.provider_id,
         up.created_at,
-        u.raw_user_meta_data->>'user_name',
-        u.email,
+        (u.raw_user_meta_data->>'user_name')::TEXT,
+        u.email::TEXT,  -- Explicitly cast varchar(255) to TEXT
         COALESCE(
             u.raw_user_meta_data->>'picture', 
             u.raw_user_meta_data->>'avatar_url'
-        )
+        )::TEXT
     FROM tracker.user_providers up
     JOIN auth.users u ON u.id = up.user_id
     WHERE up.user_id = p_user_id
