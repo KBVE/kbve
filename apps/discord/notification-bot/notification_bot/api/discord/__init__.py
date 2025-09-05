@@ -1,10 +1,7 @@
 """
 Discord API package for managing bot operations and commands
 """
-from .discord_singleton import (
-    discord_bot,
-    DiscordBotSingleton
-)
+from .discord_service import DiscordBotService
 from .embed import (
     BotStatusView,
     StatusControlButtons,
@@ -12,8 +9,7 @@ from .embed import (
 )
 
 __all__ = [
-    'discord_bot',
-    'DiscordBotSingleton',
+    'DiscordBotService',
     'BotStatusView',
     'StatusControlButtons',
     'send_bot_status_embed'

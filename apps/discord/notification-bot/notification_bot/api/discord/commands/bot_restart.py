@@ -3,14 +3,14 @@ Bot restart command module
 """
 import logging
 from fastapi import APIRouter, HTTPException
-from ..discord_singleton import discord_bot
+from ....types import BotService
 
 logger = logging.getLogger("uvicorn")
 router = APIRouter()
 
 
 @router.post("/bot-restart")
-async def restart_bot():
+async def restart_bot(discord_bot: BotService):
     """Restart the Discord bot"""
     try:
         await discord_bot.restart_bot()

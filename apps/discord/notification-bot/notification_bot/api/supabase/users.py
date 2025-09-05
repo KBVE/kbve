@@ -5,7 +5,7 @@ import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field, UUID4
-from .supabase_singleton import supabase_conn
+from .supabase_service import supabase_conn
 
 logger = logging.getLogger("uvicorn")
 
@@ -56,7 +56,10 @@ class SyncResult(BaseModel):
 
 
 class UserManager:
-    """Manager class for user provider operations"""
+    """Optimized manager class for user provider operations"""
+    
+    def __init__(self, supabase_service=None):
+        self._supabase = supabase_service or supabase_conn
     
     async def find_user_by_discord_id(self, discord_id: str) -> Optional[UserProfile]:
         """
@@ -69,7 +72,7 @@ class UserManager:
             UserProfile or None if not found
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             result = client.schema('tracker').rpc('find_user_by_discord_id', {
                 'p_discord_id': discord_id
@@ -111,7 +114,7 @@ class UserManager:
             UserProfile or None if not found
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             result = client.schema('tracker').rpc('find_user_by_provider', {
                 'p_provider': provider,
@@ -149,7 +152,7 @@ class UserManager:
             UserAllProviders or None if user not found
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             result = client.schema('tracker').rpc('get_user_all_providers', {
                 'p_user_id': user_id
@@ -189,7 +192,7 @@ class UserManager:
             SyncResult with operation details
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             result = client.schema('tracker').rpc('sync_user_provider_relationships', {
                 'p_user_id': user_id
@@ -236,7 +239,7 @@ class UserManager:
             Relationship ID or None if failed
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             result = client.schema('tracker').rpc('link_user_provider', {
                 'p_user_id': user_id,
@@ -266,7 +269,7 @@ class UserManager:
             True if successful, False otherwise
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             result = client.schema('tracker').rpc('unlink_user_provider', {
                 'p_user_id': user_id,
@@ -298,7 +301,7 @@ class UserManager:
             List of UserProvider objects
         """
         try:
-            client = supabase_conn.init_supabase_client()
+            client = self._supabase.init_supabase_client()
             
             result = (
                 client.schema('tracker')

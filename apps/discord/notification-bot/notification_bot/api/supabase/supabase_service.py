@@ -1,5 +1,5 @@
 """
-Core Supabase client singleton for managing database connections
+Core Supabase client service for managing database connections
 """
 import os
 import logging
@@ -16,8 +16,8 @@ class QueryResult(NamedTuple):
     error: Optional[str] = None
 
 
-class SupabaseConnection:
-    """Singleton class for managing Supabase client connection"""
+class SupabaseService:
+    """Service class for managing Supabase client connection"""
     
     def __init__(self):
         self.supabase_url = os.getenv("SUPABASE_URL")
@@ -63,10 +63,6 @@ class SupabaseConnection:
             return QueryResult(success=False, data=None, error=str(e))
 
 
-# Global instance
-supabase_conn = SupabaseConnection()
-
-
-def get_supabase_client() -> Client:
-    """Dependency to get Supabase client"""
-    return supabase_conn.init_supabase_client()
+# Legacy global instance - use Dishka injection instead
+supabase_conn = SupabaseService()
+SupabaseConnection = SupabaseService  # Alias for compatibility

@@ -4,14 +4,14 @@ Bot force restart command module
 import logging
 import asyncio
 from fastapi import APIRouter, HTTPException
-from ..discord_singleton import discord_bot
+from ....types import BotService
 
 logger = logging.getLogger("uvicorn")
 router = APIRouter()
 
 
 @router.post("/bot-force-restart")
-async def force_restart_bot():
+async def force_restart_bot(discord_bot: BotService):
     """Force restart the Discord bot even if it appears to be running"""
     try:
         logger.info("Force restarting Discord bot...")

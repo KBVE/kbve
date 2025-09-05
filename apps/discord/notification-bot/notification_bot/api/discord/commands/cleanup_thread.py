@@ -3,14 +3,14 @@ Cleanup thread command module
 """
 import logging
 from fastapi import APIRouter, HTTPException
-from ..discord_singleton import discord_bot
+from ....types import BotService
 
 logger = logging.getLogger("uvicorn")
 router = APIRouter()
 
 
 @router.post("/cleanup-thread")
-async def cleanup_thread():
+async def cleanup_thread(discord_bot: BotService):
     """Clean up old bot messages from the status thread"""
     try:
         bot = discord_bot.get_bot()

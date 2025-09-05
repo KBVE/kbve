@@ -3,19 +3,18 @@ Health check command module
 """
 import logging
 from fastapi import APIRouter, HTTPException
-from ..discord_singleton import discord_bot
+from ....types import BotService, Monitor
 
 logger = logging.getLogger("uvicorn")
 router = APIRouter()
 
 
-@router.get("/health")
-async def health_check():
+@router.get("/health") 
+async def health_check(discord_bot: BotService, health_monitor: Monitor):
     """Get comprehensive health status including bot status and system metrics"""
     try:
         # Get bot status and health data
         status = discord_bot.get_status()
-        from ....utils.health_monitor import health_monitor
         health_data = health_monitor.get_comprehensive_health()
         
         # Create comprehensive response

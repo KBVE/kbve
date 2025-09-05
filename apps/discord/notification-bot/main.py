@@ -1,33 +1,27 @@
 from fastapi import FastAPI, HTTPException
-from notification_bot.utils.dependencies import lifespan
-from notification_bot.api.cors import CORS
-from notification_bot.api.supabase import supabase_conn
-from notification_bot.api.discord import discord_bot
-from notification_bot.api.discord.commands import (
-    bot_online_router,
-    bot_offline_router,
-    bot_restart_router,
-    bot_force_restart_router,
-    cleanup_thread_router,
-    health_router
-)
+from dishka import make_container
+from dishka.integrations.fastapi import setup_dishka
 import os
 import logging
 
+from notification_bot.utils.dependencies import lifespan
+from notification_bot.api.cors import CORS
+from notification_bot.api.discord.commands import *
+from notification_bot.providers import *
+
 logger = logging.getLogger("uvicorn")
 
+# Optimized Dishka container setup
+container = make_container(CoreProvider(), ServicesProvider(), HealthProvider())
 
 app = FastAPI(lifespan=lifespan)
-
+setup_dishka(container, app)
 CORS(app)
 
-# Include Discord command routers
-app.include_router(bot_online_router)
-app.include_router(bot_offline_router)
-app.include_router(bot_restart_router)
-app.include_router(bot_force_restart_router)
-app.include_router(cleanup_thread_router)
-app.include_router(health_router)
+# Include all command routers
+for router in [bot_online_router, bot_offline_router, bot_restart_router, 
+               bot_force_restart_router, cleanup_thread_router, health_router]:
+    app.include_router(router)
 
 @app.get("/")
 async def hello_world():

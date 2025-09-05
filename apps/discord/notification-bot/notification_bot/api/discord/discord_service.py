@@ -1,5 +1,5 @@
 """
-Discord bot singleton for managing core bot operations
+Discord bot service for managing core bot operations
 """
 import discord
 import logging
@@ -13,23 +13,15 @@ import uuid
 logger = logging.getLogger("uvicorn")
 
 
-class DiscordBotSingleton:
-    """Singleton Discord bot instance"""
+class DiscordBotService:
+    """Discord bot service managed by Dishka"""
     
-    _instance = None
-    _bot: Optional[discord.Client] = None
-    _token: Optional[str] = None
-    _is_starting: bool = False
-    _is_stopping: bool = False
-    _last_status_message_id: Optional[int] = None
-    
-    def __new__(cls):
-        if cls._instance is None:
-            cls._instance = super(DiscordBotSingleton, cls).__new__(cls)
-            cls._instance._is_starting = False
-            cls._instance._is_stopping = False
-            cls._instance._last_status_message_id = None
-        return cls._instance
+    def __init__(self):
+        self._bot: Optional[discord.Client] = None
+        self._token: Optional[str] = None
+        self._is_starting: bool = False
+        self._is_stopping: bool = False
+        self._last_status_message_id: Optional[int] = None
     
     async def initialize_bot(self) -> discord.Client:
         """Initialize the Discord bot with token from vault"""
@@ -524,5 +516,3 @@ class DiscordBotSingleton:
             raise
 
 
-# Global Discord bot instance
-discord_bot = DiscordBotSingleton()

@@ -4,7 +4,6 @@ from .api import (
     get_supabase_client,
     VaultSecretResponse,
     VaultOperationResponse,
-    discord_bot,
-    DiscordBotSingleton
+    DiscordBotService
 )
 from .utils.dependencies import lifespan

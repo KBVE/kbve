@@ -3,14 +3,14 @@ Bot online command module
 """
 import logging
 from fastapi import APIRouter, HTTPException
-from ..discord_singleton import discord_bot
+from ....types import BotService
 
 logger = logging.getLogger("uvicorn")
 router = APIRouter()
 
 
 @router.post("/bot-online")
-async def bring_bot_online():
+async def bring_bot_online(discord_bot: BotService):
     """Bring Discord bot online if it's offline"""
     try:
         await discord_bot.bring_online()

@@ -6,7 +6,7 @@ import asyncio
 import os
 import signal
 from fastapi import APIRouter, HTTPException
-from ..discord_singleton import discord_bot
+from ....types import BotService
 
 logger = logging.getLogger("uvicorn")
 router = APIRouter()
@@ -21,7 +21,7 @@ async def _shutdown_app():
 
 
 @router.post("/bot-offline")
-async def take_bot_offline(shutdown_app: bool = False):
+async def take_bot_offline(discord_bot: BotService, shutdown_app: bool = False):
     """Take Discord bot offline with optional application shutdown"""
     try:
         await discord_bot.stop_bot(send_message=True)
@@ -40,6 +40,6 @@ async def take_bot_offline(shutdown_app: bool = False):
 
 
 @router.post("/sign-off")
-async def sign_off():
+async def sign_off(discord_bot: BotService):
     """Gracefully shut down the Discord bot and exit the application (alias for /bot-offline with shutdown)"""
-    return await take_bot_offline(shutdown_app=True)
+    return await take_bot_offline(discord_bot, shutdown_app=True)
