@@ -203,9 +203,9 @@ atomic_function() {
     git switch dev
 
     #git pull origin main --rebase
-    git rebase origin/main
+    #git rebase origin/main
 
-    git pull --rebase
+    git pull
 
     GIT_DATE=$(date +'%m-%d-%Y-%s')
 
