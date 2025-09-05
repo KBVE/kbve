@@ -195,9 +195,9 @@ DECLARE
 BEGIN
     -- Check for existing assignment
     SELECT * INTO existing_assignment
-    FROM tracker.cluster_management
-    WHERE cluster_management.instance_id = p_instance_id 
-    AND cluster_management.cluster_name = p_cluster_name;
+    FROM tracker.cluster_management cm
+    WHERE cm.instance_id = p_instance_id 
+    AND cm.cluster_name = p_cluster_name;
     
     IF existing_assignment IS NOT NULL THEN
         -- Update existing assignment
@@ -211,8 +211,8 @@ BEGIN
             bot_version = COALESCE(p_bot_version, bot_version),
             deployment_version = COALESCE(p_deployment_version, deployment_version),
             total_shards = p_total_shards
-        WHERE cluster_management.instance_id = p_instance_id 
-        AND cluster_management.cluster_name = p_cluster_name;
+        WHERE instance_id = p_instance_id 
+        AND cluster_name = p_cluster_name;
         
         -- Return existing assignment
         RETURN QUERY SELECT 
@@ -227,18 +227,36 @@ BEGIN
         SELECT * INTO shard_assignment
         FROM tracker.get_next_available_shard(p_cluster_name, p_total_shards);
         
-        -- Insert new assignment
-        INSERT INTO tracker.cluster_management (
-            instance_id, cluster_name, shard_id, total_shards,
-            hostname, pod_ip, node_name, namespace,
-            bot_version, deployment_version,
-            status, last_heartbeat
-        ) VALUES (
-            p_instance_id, p_cluster_name, shard_assignment.shard_id, p_total_shards,
-            p_hostname, p_pod_ip, p_node_name, p_namespace,
-            p_bot_version, p_deployment_version,
-            'active', NOW()
-        );
+        -- Insert new assignment with conflict handling
+        BEGIN
+            INSERT INTO tracker.cluster_management (
+                instance_id, cluster_name, shard_id, total_shards,
+                hostname, pod_ip, node_name, namespace,
+                bot_version, deployment_version,
+                status, last_heartbeat
+            ) VALUES (
+                p_instance_id, p_cluster_name, shard_assignment.shard_id, p_total_shards,
+                p_hostname, p_pod_ip, p_node_name, p_namespace,
+                p_bot_version, p_deployment_version,
+                'active', NOW()
+            );
+        EXCEPTION
+            WHEN unique_violation THEN
+                -- If shard is already assigned, take it over (assume old instance is dead)
+                UPDATE tracker.cluster_management SET
+                    instance_id = p_instance_id,
+                    last_heartbeat = NOW(),
+                    status = 'active',
+                    hostname = p_hostname,
+                    pod_ip = p_pod_ip,
+                    node_name = p_node_name,
+                    namespace = COALESCE(p_namespace, namespace),
+                    bot_version = p_bot_version,
+                    deployment_version = p_deployment_version,
+                    total_shards = p_total_shards
+                WHERE tracker.cluster_management.cluster_name = p_cluster_name 
+                AND tracker.cluster_management.shard_id = shard_assignment.shard_id;
+        END;
         
         -- Return new assignment
         RETURN QUERY SELECT 
