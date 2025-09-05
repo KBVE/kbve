@@ -2,14 +2,11 @@
 Vault module for managing secrets in Supabase
 """
 import json
-import logging
-from typing import Optional, Any, Dict, Literal
+from typing import Optional, Literal, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field, UUID4
 from .supabase_service import supabase_conn
-
-logger = logging.getLogger("uvicorn")
-
+from notification_bot.utils.logger import logger
 
 # Pydantic Models for Vault Operations
 class VaultSecretResponse(BaseModel):
@@ -21,12 +18,10 @@ class VaultSecretResponse(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-
 class VaultGetRequest(BaseModel):
     """Model for getting a vault secret"""
     command: Literal["get"] = "get"
     secret_id: UUID4
-
 
 class VaultSetRequest(BaseModel):
     """Model for setting a vault secret"""
@@ -35,13 +30,11 @@ class VaultSetRequest(BaseModel):
     secret_value: str = Field(..., min_length=1, max_length=8000)
     secret_description: Optional[str] = Field(None, max_length=500)
 
-
 class VaultOperationResponse(BaseModel):
     """Generic response model for vault operations"""
     success: bool
     data: Optional[Dict[str, Any]] = None
     error: Optional[str] = None
-
 
 class VaultManager:
     """Optimized manager class for vault operations"""
@@ -181,7 +174,6 @@ class VaultManager:
                 success=False,
                 error=str(e)
             )
-
 
 # Global vault manager instance
 vault_manager = VaultManager()

@@ -2,15 +2,14 @@ from fastapi import FastAPI, Response
 from dishka import make_async_container
 from dishka.integrations.fastapi import setup_dishka
 import os
-import logging
 
+# Import logger configuration early to set up logging
+from notification_bot.utils.logger import logger
 from notification_bot.utils.dependencies import lifespan, set_container
 from notification_bot.api.cors import CORS
 from notification_bot.api.discord.commands import *
 from notification_bot.providers import *
 from notification_bot.utils.fast_responses import *
-
-logger = logging.getLogger("uvicorn")
 
 # Optimized Dishka async container setup for Python 3.13 compatibility
 container = make_async_container(CoreProvider(), ServicesProvider(), HealthProvider())

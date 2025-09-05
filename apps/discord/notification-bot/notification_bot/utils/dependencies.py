@@ -1,12 +1,10 @@
 from fastapi import FastAPI
 from contextlib import asynccontextmanager
-import logging
 import asyncio
 from dishka import AsyncContainer
 from ..api.supabase.supabase_service import SupabaseService  
 from ..api.discord.discord_service import DiscordBotService
-
-logger = logging.getLogger("uvicorn")
+from .logger import logger
 
 # Global container reference for lifespan management
 _container: AsyncContainer = None

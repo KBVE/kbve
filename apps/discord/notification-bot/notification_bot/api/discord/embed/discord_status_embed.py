@@ -5,14 +5,11 @@ from discord import ui
 from typing import TYPE_CHECKING, Optional
 import datetime
 import asyncio
-from ....models.constants import ADMIN_ROLE_ID
+from ...supabase.constants import ADMIN_ROLE_ID
 from ....models.status import BotStatusModel, StatusState
 
 if TYPE_CHECKING:
     from .. import DiscordBotService
-
-
-
 
 class StatusControlButtons(ui.ActionRow):
     """Action row containing bot control buttons"""
@@ -25,7 +22,7 @@ class StatusControlButtons(ui.ActionRow):
     @ui.button(label='🔄 Refresh', style=discord.ButtonStyle.primary)
     async def refresh_status(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         import logging
-        logger = logging.getLogger("uvicorn")
+        logger = logging.getLogger("app")
         
         # Get Discord ID and lookup user profile
         discord_id = str(interaction.user.id)
@@ -85,7 +82,7 @@ class StatusControlButtons(ui.ActionRow):
     @ui.button(label='🧹 Cleanup', style=discord.ButtonStyle.secondary)
     async def cleanup_thread(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         import logging
-        logger = logging.getLogger("uvicorn")
+        logger = logging.getLogger("app")
         
         # Get Discord ID and lookup user profile
         discord_id = str(interaction.user.id)
@@ -129,7 +126,7 @@ class StatusControlButtons(ui.ActionRow):
     @ui.button(label='🔄 Restart', style=discord.ButtonStyle.danger)
     async def restart_bot(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
         import logging
-        logger = logging.getLogger("uvicorn")
+        logger = logging.getLogger("app")
         
         # Get Discord ID and lookup user profile
         discord_id = str(interaction.user.id)
@@ -208,8 +205,6 @@ class StatusControlButtons(ui.ActionRow):
             return True
             
         return False
-
-
 
 class BotStatusView(ui.LayoutView):
     """Discord bot status display using LayoutView"""
@@ -443,7 +438,6 @@ class BotStatusView(ui.LayoutView):
             wolf_url = None
         
         return cls(bot_instance, wolf_image_url=wolf_url)
-
 
 async def send_bot_status_embed(channel: discord.abc.Messageable, bot_instance: 'DiscordBotService') -> discord.Message:
     """

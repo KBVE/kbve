@@ -1,17 +1,27 @@
 """
 Discord bot service for managing core bot operations
 """
-import discord
-import logging
-import asyncio
-from typing import Optional
-from ..supabase import vault_manager, tracker_manager
-from ...models.constants import DISCORD_THREAD_ID, DEFAULT_CLEANUP_LIMIT, VERSION
 import os
+import asyncio
 import uuid
+from typing import Optional, Dict, Any
+import discord
+from notification_bot.utils.logger import logger
 
-logger = logging.getLogger("uvicorn")
+# Import constants
+try:
+    from ..supabase.constants import DISCORD_THREAD_ID, DEFAULT_CLEANUP_LIMIT
+except ImportError:
+    # Fallback constants
+    DISCORD_THREAD_ID = os.getenv("DISCORD_THREAD_ID")
+    DEFAULT_CLEANUP_LIMIT = 50
 
+# Import managers - use try/except for graceful fallback
+try:
+    from ..supabase import vault_manager, tracker_manager
+except ImportError:
+    vault_manager = None
+    tracker_manager = None
 
 class DiscordBotService:
     """Discord bot service managed by Dishka"""
@@ -514,5 +524,4 @@ class DiscordBotService:
         except Exception as e:
             logger.error(f"Failed to cleanup thread messages: {e}")
             raise
-
 

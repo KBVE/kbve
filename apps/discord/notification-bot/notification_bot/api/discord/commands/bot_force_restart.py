@@ -2,15 +2,13 @@
 Bot force restart command module - Ultra-optimized
 """
 from __future__ import annotations
-import logging
 import asyncio
 from fastapi import APIRouter, Response
 from ....types import BotService
 from ....utils.decorators import bot_action
+from notification_bot.utils.logger import logger
 
-logger = logging.getLogger("uvicorn")
 router = APIRouter()
-
 
 @router.post("/bot-force-restart", response_model=None)
 @bot_action("Discord bot force restarted")

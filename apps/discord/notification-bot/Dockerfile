@@ -55,4 +55,4 @@ COPY --from=stage2 /usr/local/lib/python3.13/site-packages /usr/local/lib/python
 COPY --from=stage2 /usr/local/bin /usr/local/bin
 
 EXPOSE 3000
-ENTRYPOINT ["python3", "-m", "uvicorn", "main:app", "--host", "0.0.0.0", "--port", "3000", "--ws-ping-interval", "25", "--ws-ping-timeout", "5"]
+ENTRYPOINT ["python3", "-m", "granian", "--interface", "asgi", "--host", "0.0.0.0", "--port", "3000", "--workers", "1", "--blocking-threads", "1", "main:app"]

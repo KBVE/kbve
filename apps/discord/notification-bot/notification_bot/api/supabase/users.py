@@ -1,14 +1,11 @@
 """
 Users module for managing user provider relationships
 """
-import logging
 from typing import Optional, List, Dict, Any
 from datetime import datetime
 from pydantic import BaseModel, Field, UUID4
 from .supabase_service import supabase_conn
-
-logger = logging.getLogger("uvicorn")
-
+from notification_bot.utils.logger import logger
 
 # Pydantic Models for User Provider Operations
 class UserProvider(BaseModel):
@@ -20,13 +17,11 @@ class UserProvider(BaseModel):
     created_at: datetime
     updated_at: datetime
 
-
 class UserProviderCreate(BaseModel):
     """Model for creating user provider relationship"""
     user_id: UUID4
     provider: str = Field(..., description="Provider name (discord, github, google, etc.)")
     provider_id: str = Field(..., description="External provider ID")
-
 
 class UserProfile(BaseModel):
     """Model for user profile with provider data"""
@@ -40,12 +35,10 @@ class UserProfile(BaseModel):
     provider_linked_at: datetime
     last_sign_in: Optional[datetime] = None
 
-
 class UserAllProviders(BaseModel):
     """Model for user with all their linked providers"""
     user_id: UUID4
     providers: List[Dict[str, Any]]
-
 
 class SyncResult(BaseModel):
     """Model for provider sync operation result"""
@@ -53,7 +46,6 @@ class SyncResult(BaseModel):
     synced_providers: List[str]
     total_synced: int
     error: Optional[str] = None
-
 
 class UserManager:
     """Optimized manager class for user provider operations"""
@@ -324,7 +316,6 @@ class UserManager:
         except Exception as e:
             logger.error(f"Error getting provider list for user {user_id}: {e}")
             return []
-
 
 # Global user manager instance
 user_manager = UserManager()
