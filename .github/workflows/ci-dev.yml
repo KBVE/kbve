@@ -21,27 +21,27 @@ jobs:
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Configure Git
-              run: |
-                  git config user.name "github-actions[bot]"
-                  git config user.email "github-actions[bot]@users.noreply.github.com"
+            # - name: Configure Git
+            #   run: |
+            #       git config user.name "github-actions[bot]"
+            #       git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            - name: Sync with main branch
-              run: |
-                  echo "Fetching latest main branch..."
-                  git fetch origin main
+            # - name: Sync with main branch
+            #   run: |
+            #       echo "Fetching latest main branch..."
+            #       git fetch origin main
                   
-                  echo "Current branch: $(git branch --show-current)"
+            #       echo "Current branch: $(git branch --show-current)"
                   
-                  echo "Attempting to merge main into current branch..."
-                  git merge origin/main --no-edit || {
-                      echo "Merge conflict detected. Attempting to abort merge..."
-                      git merge --abort
-                      echo "⚠️ Warning: Could not automatically sync with main due to conflicts"
-                      echo "Manual intervention may be required"
-                  }
+            #       echo "Attempting to merge main into current branch..."
+            #       git merge origin/main --no-edit || {
+            #           echo "Merge conflict detected. Attempting to abort merge..."
+            #           git merge --abort
+            #           echo "⚠️ Warning: Could not automatically sync with main due to conflicts"
+            #           echo "Manual intervention may be required"
+            #       }
                   
-                  echo "Sync complete"
+            #       echo "Sync complete"
 
             - name: Auto-Pull
               id: open-pr
