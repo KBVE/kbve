@@ -20,6 +20,37 @@ jobs:
         steps:
             - name: Checkout Code
               uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Configure Git
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+            - name: Sync dev branch with main
+              run: |
+                  echo "🔄 Syncing dev branch with main to prevent atomic workflow conflicts..."
+                  
+                  # Fetch all branches
+                  git fetch origin
+                  
+                  # Check if dev branch exists remotely
+                  if git ls-remote --exit-code --heads origin dev > /dev/null 2>&1; then
+                      echo "Dev branch exists, updating it to match main..."
+                      git checkout -B dev origin/main
+                      git push --force-with-lease origin dev
+                      echo "✅ Dev branch updated to match main"
+                  else
+                      echo "Dev branch doesn't exist, creating it from main..."
+                      git checkout -b dev
+                      git push origin dev
+                      echo "✅ Dev branch created from main"
+                  fi
+                  
+                  # Switch back to main
+                  git checkout main
 
             - name: Calculate SHA-256 Hash
               id: hash
