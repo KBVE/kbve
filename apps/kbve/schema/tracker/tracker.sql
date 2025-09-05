@@ -297,6 +297,280 @@ GRANT ALL ON ALL TABLES IN SCHEMA tracker TO service_role;
 GRANT ALL ON ALL SEQUENCES IN SCHEMA tracker TO service_role;
 
 COMMENT ON SCHEMA tracker IS 'Service-level operations and distributed system coordination - Service role access only';
+-- Tracker - Social Providers
+-- Add to tracker.sql after the cluster_management table
+
+-- User Provider Relationships Table v3 - Simplified
+-- Just maps external provider IDs to Supabase user UUIDs - no data duplication
+CREATE TABLE IF NOT EXISTS tracker.user_providers (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
+    provider TEXT NOT NULL, -- 'discord', 'github', 'google', etc.
+    provider_id TEXT NOT NULL, -- The external ID from the provider
+    created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    
+    -- Ensure unique provider/provider_id combinations
+    UNIQUE(provider, provider_id),
+    -- One provider account per user per type
+    UNIQUE(user_id, provider)
+);
+
+COMMENT ON TABLE tracker.user_providers IS 'Maps external provider IDs to Supabase users - one account per provider type';
+
+-- Performance indexes
+CREATE INDEX IF NOT EXISTS idx_user_providers_user_id 
+    ON tracker.user_providers(user_id);
+
+CREATE INDEX IF NOT EXISTS idx_user_providers_provider_lookup 
+    ON tracker.user_providers(provider, provider_id);
+
+-- Trigger for updated_at
+CREATE TRIGGER trigger_update_user_providers_updated_at
+    BEFORE UPDATE ON tracker.user_providers
+    FOR EACH ROW
+    EXECUTE FUNCTION tracker.update_updated_at_column();
+
+-- Function to extract and map provider IDs from auth.users metadata
+CREATE OR REPLACE FUNCTION tracker.sync_user_provider_relationships(
+    p_user_id UUID
+)
+RETURNS TABLE (
+    synced_providers TEXT[],
+    total_synced INTEGER
+) AS $$
+DECLARE
+    user_meta JSONB;
+    synced_list TEXT[] := ARRAY[]::TEXT[];
+    sync_count INTEGER := 0;
+    discord_id TEXT;
+    github_id TEXT;
+BEGIN
+    -- Get user metadata
+    SELECT raw_user_meta_data INTO user_meta
+    FROM auth.users
+    WHERE id = p_user_id;
+    
+    IF NOT FOUND THEN
+        RAISE EXCEPTION 'User not found: %', p_user_id;
+    END IF;
+    
+    -- Extract Discord ID (from provider_id when iss contains discord)
+    IF user_meta ? 'provider_id' AND 
+       user_meta ? 'iss' AND 
+       user_meta->>'iss' LIKE '%discord%' THEN
+        
+        discord_id := user_meta->>'provider_id';
+        
+        INSERT INTO tracker.user_providers (user_id, provider, provider_id)
+        VALUES (p_user_id, 'discord', discord_id)
+        ON CONFLICT (provider, provider_id) 
+        DO UPDATE SET updated_at = NOW();
+        
+        synced_list := array_append(synced_list, 'discord');
+        sync_count := sync_count + 1;
+    END IF;
+    
+    -- Extract GitHub ID (from provider_id when iss contains github)
+    IF user_meta ? 'provider_id' AND 
+       user_meta ? 'iss' AND 
+       user_meta->>'iss' LIKE '%github%' THEN
+        
+        github_id := user_meta->>'provider_id';
+        
+        INSERT INTO tracker.user_providers (user_id, provider, provider_id)
+        VALUES (p_user_id, 'github', github_id)
+        ON CONFLICT (provider, provider_id) 
+        DO UPDATE SET updated_at = NOW();
+        
+        synced_list := array_append(synced_list, 'github');
+        sync_count := sync_count + 1;
+    END IF;
+    
+    -- Could add more providers here (Google, etc.)
+    
+    RETURN QUERY SELECT synced_list, sync_count;
+END;
+$$ LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = '';
+
+-- Function to find user by Discord ID with all their data via JOIN
+CREATE OR REPLACE FUNCTION tracker.find_user_by_discord_id(
+    p_discord_id TEXT
+)
+RETURNS TABLE (
+    user_id UUID,
+    email TEXT,
+    discord_username TEXT,
+    discord_avatar TEXT,
+    full_name TEXT,
+    raw_metadata JSONB,
+    created_at TIMESTAMPTZ,
+    last_sign_in TIMESTAMPTZ
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        u.id,
+        u.email,
+        u.raw_user_meta_data->>'user_name',
+        u.raw_user_meta_data->>'picture',
+        u.raw_user_meta_data->>'full_name',
+        u.raw_user_meta_data,
+        u.created_at,
+        u.last_sign_in_at
+    FROM tracker.user_providers up
+    JOIN auth.users u ON u.id = up.user_id
+    WHERE up.provider = 'discord' 
+    AND up.provider_id = p_discord_id;
+END;
+$$ LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = '';
+
+-- Function to find user by any provider with full user data
+CREATE OR REPLACE FUNCTION tracker.find_user_by_provider(
+    p_provider TEXT,
+    p_provider_id TEXT
+)
+RETURNS TABLE (
+    user_id UUID,
+    email TEXT,
+    username TEXT,
+    avatar_url TEXT,
+    full_name TEXT,
+    raw_metadata JSONB,
+    provider_linked_at TIMESTAMPTZ,
+    last_sign_in TIMESTAMPTZ
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        u.id,
+        u.email,
+        u.raw_user_meta_data->>'user_name',
+        COALESCE(
+            u.raw_user_meta_data->>'picture', 
+            u.raw_user_meta_data->>'avatar_url'
+        ),
+        u.raw_user_meta_data->>'full_name',
+        u.raw_user_meta_data,
+        up.created_at,
+        u.last_sign_in_at
+    FROM tracker.user_providers up
+    JOIN auth.users u ON u.id = up.user_id
+    WHERE up.provider = LOWER(p_provider)
+    AND up.provider_id = p_provider_id;
+END;
+$$ LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = '';
+
+-- Function to get all linked providers for a user with their data
+CREATE OR REPLACE FUNCTION tracker.get_user_all_providers(
+    p_user_id UUID
+)
+RETURNS TABLE (
+    provider TEXT,
+    provider_id TEXT,
+    linked_at TIMESTAMPTZ,
+    username TEXT,
+    email TEXT,
+    avatar_url TEXT
+) AS $$
+BEGIN
+    RETURN QUERY
+    SELECT 
+        up.provider,
+        up.provider_id,
+        up.created_at,
+        u.raw_user_meta_data->>'user_name',
+        u.email,
+        COALESCE(
+            u.raw_user_meta_data->>'picture', 
+            u.raw_user_meta_data->>'avatar_url'
+        )
+    FROM tracker.user_providers up
+    JOIN auth.users u ON u.id = up.user_id
+    WHERE up.user_id = p_user_id
+    ORDER BY up.provider;
+END;
+$$ LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = '';
+
+-- Convenience function to register a provider relationship manually
+CREATE OR REPLACE FUNCTION tracker.link_user_provider(
+    p_user_id UUID,
+    p_provider TEXT,
+    p_provider_id TEXT
+)
+RETURNS UUID AS $$
+DECLARE
+    relationship_id UUID;
+BEGIN
+    -- Validate user exists
+    IF NOT EXISTS (SELECT 1 FROM auth.users WHERE id = p_user_id) THEN
+        RAISE EXCEPTION 'User not found: %', p_user_id;
+    END IF;
+    
+    -- Insert or update the relationship
+    INSERT INTO tracker.user_providers (user_id, provider, provider_id)
+    VALUES (p_user_id, LOWER(p_provider), p_provider_id)
+    ON CONFLICT (provider, provider_id) 
+    DO UPDATE SET updated_at = NOW()
+    RETURNING id INTO relationship_id;
+    
+    RETURN relationship_id;
+END;
+$$ LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = '';
+
+-- Function to unlink a provider from a user
+CREATE OR REPLACE FUNCTION tracker.unlink_user_provider(
+    p_user_id UUID,
+    p_provider TEXT
+)
+RETURNS BOOLEAN AS $$
+DECLARE
+    deleted_count INTEGER;
+BEGIN
+    DELETE FROM tracker.user_providers
+    WHERE user_id = p_user_id 
+    AND provider = LOWER(p_provider);
+    
+    GET DIAGNOSTICS deleted_count = ROW_COUNT;
+    
+    RETURN deleted_count > 0;
+END;
+$$ LANGUAGE plpgsql 
+SECURITY DEFINER
+SET search_path = '';
+
+-- Enable RLS
+ALTER TABLE tracker.user_providers ENABLE ROW LEVEL SECURITY;
+
+-- Drop existing policies if they exist
+DROP POLICY IF EXISTS "service_role_full_access_user_providers" ON tracker.user_providers;
+DROP POLICY IF EXISTS "deny_anon_access_user_providers" ON tracker.user_providers;
+DROP POLICY IF EXISTS "deny_authenticated_access_user_providers" ON tracker.user_providers;
+
+-- Create policies (service role only)
+CREATE POLICY "service_role_full_access_user_providers" ON tracker.user_providers
+    FOR ALL 
+    TO service_role
+    USING (true)
+    WITH CHECK (true);
+
+CREATE POLICY "deny_anon_access_user_providers" ON tracker.user_providers
+    FOR ALL TO anon
+    USING (false);
+
+CREATE POLICY "deny_authenticated_access_user_providers" ON tracker.user_providers
+    FOR ALL TO authenticated
+    USING (false);
 
 -- Verify setup before committing
 DO $$
