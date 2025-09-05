@@ -193,6 +193,36 @@ class SupabaseConnection:
                 error=str(e)
             )
 
+    async def execute_query(self, query):
+        """Execute a Supabase query and return result
+        
+        Args:
+            query: A Supabase query builder object
+            
+        Returns:
+            Object with success, data, and error attributes
+        """
+        from typing import NamedTuple
+        
+        class QueryResult(NamedTuple):
+            success: bool
+            data: Optional[Any] = None
+            error: Optional[str] = None
+        
+        try:
+            client = self.init_supabase_client()
+            response = query.execute()
+            
+            if hasattr(response, 'error') and response.error:
+                return QueryResult(success=False, data=None, error=str(response.error))
+            
+            data = response.data if hasattr(response, 'data') else response
+            return QueryResult(success=True, data=data, error=None)
+            
+        except Exception as e:
+            logger.error(f"Query execution error: {e}")
+            return QueryResult(success=False, data=None, error=str(e))
+
 # Global instance
 supabase_conn = SupabaseConnection()
 
