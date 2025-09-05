@@ -1,9 +1,33 @@
 #!/bin/bash
 
-# Define internals
-#[v01d]
-#[ulid]:01HQH3MJ9FVHC4C2H68SV5SSMB
-#[path]:/kbve.sh
+#==============================================================================
+# KBVE Development Environment Management Script
+#==============================================================================
+# Description: Comprehensive toolchain manager for KBVE monorepo development
+# Version: 2.0.0
+# Author: KBVE Team
+# Repository: https://github.com/KBVE/kbve
+# Last Updated: 2025-09-05
+#
+# This script provides automated installation, configuration, and management
+# utilities for the KBVE development environment including:
+# - Language runtimes (Rust, Node.js, Python, .NET)
+# - Package managers (pnpm, Poetry, Cargo)
+# - Development tools (tmux session management, git workflows)
+# - Build systems (Nx monorepo tooling)
+# - Container preparation and deployment utilities
+#
+# Usage Examples:
+#   ./kbve.sh -install          # Install monorepo dependencies
+#   ./kbve.sh -atomic "feature" # Create atomic git branch
+#   ./kbve.sh -nx build app     # Run Nx build command
+#   ./kbve.sh -studio           # Launch development studio
+#
+# For full command reference, see the case statement at the bottom of this file
+#==============================================================================
+
+# Script Configuration
+
 
 UNTIY_SUBMODULE_PATH="/apps/saber/Assets/Plugins"
 UNITY_SUBMODULE_URL="https://github.com/KBVE/unity-plugins-rentearth.git"
