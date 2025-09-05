@@ -37,6 +37,7 @@ class BotStatusModel(BaseModel):
     is_closed: bool = Field(default=True, description="Whether bot connection is closed")
     guild_count: int = Field(default=0, description="Number of guilds bot is connected to")
     shard_count: int = Field(default=0, description="Number of shards in use")
+    current_shard: Optional[int] = Field(default=None, description="Current shard ID for manual sharding")
     shard_info: Dict[str, Any] = Field(default_factory=dict, description="Per-shard information")
     custom_message: Optional[str] = Field(default=None, description="Custom status message")
     
