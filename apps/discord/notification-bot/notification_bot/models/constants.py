@@ -9,3 +9,5 @@ ADMIN_ROLE_ID = 733334418747555918  # Role that can restart the bot
 
 # Bot Management
 DEFAULT_CLEANUP_LIMIT = 10
+
+VERSION = 1.4

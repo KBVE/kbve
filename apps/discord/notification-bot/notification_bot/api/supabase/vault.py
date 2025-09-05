@@ -1,10 +1,12 @@
-import os
+"""
+Vault module for managing secrets in Supabase
+"""
 import json
 import logging
 from typing import Optional, Any, Dict, Literal
 from datetime import datetime
 from pydantic import BaseModel, Field, UUID4
-from supabase import create_client, Client
+from .supabase_singleton import supabase_conn
 
 logger = logging.getLogger("uvicorn")
 
@@ -41,24 +43,8 @@ class VaultOperationResponse(BaseModel):
     error: Optional[str] = None
 
 
-class SupabaseConnection:
-    def __init__(self):
-        self.supabase_url = os.getenv("SUPABASE_URL")
-        self.supabase_service_key = os.getenv("SUPABASE_SERVICE_ROLE_KEY")
-        self.client: Optional[Client] = None
-        
-    def init_supabase_client(self) -> Client:
-        """Initialize Supabase client with service role key"""
-        if not self.client:
-            if not self.supabase_url or not self.supabase_service_key:
-                raise ValueError("Supabase URL and service role key are required")
-            self.client = create_client(self.supabase_url, self.supabase_service_key)
-            logger.info("Supabase service client initialized with service role key")
-        return self.client
-    
-    async def close(self):
-        """Placeholder for cleanup - Supabase client doesn't need explicit closing"""
-        logger.info("Supabase client cleanup completed")
+class VaultManager:
+    """Manager class for vault operations"""
     
     async def get_vault_secret(self, secret_id: str) -> VaultOperationResponse:
         """
@@ -71,7 +57,7 @@ class SupabaseConnection:
             VaultOperationResponse with the secret data or error
         """
         try:
-            client = self.init_supabase_client()
+            client = supabase_conn.init_supabase_client()
             
             # Create the request using Pydantic model
             request = VaultGetRequest(secret_id=secret_id)
@@ -140,7 +126,7 @@ class SupabaseConnection:
             VaultOperationResponse with the new secret ID or error
         """
         try:
-            client = self.init_supabase_client()
+            client = supabase_conn.init_supabase_client()
             
             # Create the request using Pydantic model
             request = VaultSetRequest(
@@ -193,39 +179,6 @@ class SupabaseConnection:
                 error=str(e)
             )
 
-    async def execute_query(self, query):
-        """Execute a Supabase query and return result
-        
-        Args:
-            query: A Supabase query builder object
-            
-        Returns:
-            Object with success, data, and error attributes
-        """
-        from typing import NamedTuple
-        
-        class QueryResult(NamedTuple):
-            success: bool
-            data: Optional[Any] = None
-            error: Optional[str] = None
-        
-        try:
-            client = self.init_supabase_client()
-            response = query.execute()
-            
-            if hasattr(response, 'error') and response.error:
-                return QueryResult(success=False, data=None, error=str(response.error))
-            
-            data = response.data if hasattr(response, 'data') else response
-            return QueryResult(success=True, data=data, error=None)
-            
-        except Exception as e:
-            logger.error(f"Query execution error: {e}")
-            return QueryResult(success=False, data=None, error=str(e))
 
-# Global instance
-supabase_conn = SupabaseConnection()
-
-def get_supabase_client() -> Client:
-    """Dependency to get Supabase client"""
-    return supabase_conn.init_supabase_client()
+# Global vault manager instance
+vault_manager = VaultManager()
