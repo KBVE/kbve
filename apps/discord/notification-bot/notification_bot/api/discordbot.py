@@ -52,7 +52,52 @@ class DiscordBotSingleton:
             intents.guilds = True
             intents.guild_messages = True
             
-            self._bot = discord.AutoShardedClient(intents=intents)
+            # For cross-cluster deployments, use distributed shard coordination via Supabase
+            import os
+            import uuid
+            
+            # Get instance ID for this deployment
+            instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
+            cluster_name = os.getenv('CLUSTER_NAME', 'default')
+            
+            # Check if we should use distributed sharding
+            use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
+            
+            if use_distributed_sharding:
+                logger.info(f"Using distributed sharding coordination for instance {instance_id} in cluster {cluster_name}")
+                
+                # Get or register our shard assignment from Supabase
+                shard_assignment = await self._get_shard_assignment(instance_id, cluster_name)
+                
+                if shard_assignment:
+                    # Use assigned shard
+                    self._bot = discord.Client(
+                        intents=intents,
+                        shard_id=shard_assignment['shard_id'],
+                        shard_count=shard_assignment['total_shards']
+                    )
+                    logger.info(f"Using distributed shard {shard_assignment['shard_id']} of {shard_assignment['total_shards']} (instance: {instance_id})")
+                else:
+                    # Fallback to auto-sharding if coordination fails
+                    logger.warning("Distributed shard coordination failed, falling back to auto-sharding")
+                    self._bot = discord.AutoShardedClient(intents=intents)
+            else:
+                # Traditional environment variable sharding or auto-sharding
+                shard_id = int(os.getenv('SHARD_ID', '-1'))
+                shard_count = int(os.getenv('SHARD_COUNT', '1'))
+                
+                if shard_id >= 0 and shard_count > 1:
+                    # Manual sharding via environment variables
+                    self._bot = discord.Client(
+                        intents=intents,
+                        shard_id=shard_id,
+                        shard_count=shard_count
+                    )
+                    logger.info(f"Using env-based manual sharding: shard {shard_id}/{shard_count}")
+                else:
+                    # Auto-sharding for single instance
+                    self._bot = discord.AutoShardedClient(intents=intents)
+                    logger.info("Using auto-sharding for single instance")
             
             # Set up event handlers
             self._setup_event_handlers()
@@ -72,17 +117,28 @@ class DiscordBotSingleton:
         @self._bot.event
         async def on_ready():
             logger.info(f"🟢 ON_READY EVENT TRIGGERED! Bot logged in as {self._bot.user}")
-            logger.info(f"Bot is using {len(self._bot.shards)} shards")
             logger.info(f"Bot is in {len(self._bot.guilds)} guilds")
             
-            # Log shard information
-            for shard_id, shard in self._bot.shards.items():
-                shard_guilds = [g for g in self._bot.guilds if g.shard_id == shard_id]
-                logger.info(f"  - Shard {shard_id}: {len(shard_guilds)} guilds, latency: {shard.latency:.2f}ms")
+            # Log shard information for both auto and manual sharding
+            if hasattr(self._bot, 'shards') and self._bot.shards:
+                # AutoShardedClient
+                logger.info(f"Bot is using {len(self._bot.shards)} auto-managed shards")
+                for shard_id, shard in self._bot.shards.items():
+                    shard_guilds = [g for g in self._bot.guilds if g.shard_id == shard_id]
+                    logger.info(f"  - Shard {shard_id}: {len(shard_guilds)} guilds, latency: {shard.latency:.2f}ms")
+            elif hasattr(self._bot, 'shard_id') and self._bot.shard_id is not None:
+                # Manual sharding
+                shard_id = self._bot.shard_id
+                shard_count = getattr(self._bot, 'shard_count', 1)
+                logger.info(f"Bot is using manual sharding: shard {shard_id} of {shard_count} total")
+                logger.info(f"  - Current shard {shard_id}: {len(self._bot.guilds)} guilds, latency: {self._bot.latency:.2f}ms")
+            else:
+                logger.info("Bot is using no sharding (single instance)")
             
             # Log guild information
             for guild in self._bot.guilds:
-                logger.info(f"  - Guild: {guild.name} (ID: {guild.id}, Shard: {guild.shard_id})")
+                shard_info = f", Shard: {guild.shard_id}" if hasattr(guild, 'shard_id') else ""
+                logger.info(f"  - Guild: {guild.name} (ID: {guild.id}{shard_info})")
             
             # Clear the starting flag since we're now ready
             self._is_starting = False
@@ -215,6 +271,121 @@ class DiscordBotSingleton:
         # Clear the reference regardless of success
         self._last_status_message_id = None
     
+    async def _get_shard_assignment(self, instance_id: str, cluster_name: str) -> dict:
+        """Get shard assignment from distributed coordination system using tracker schema"""
+        try:
+            import os
+            
+            # First, check if this instance already has an assignment
+            existing_query = supabase_conn.client.from_('tracker.cluster_management').select('*').eq('instance_id', instance_id).eq('cluster_name', cluster_name)
+            existing_result = await supabase_conn.execute_query(existing_query)
+            
+            if existing_result.success and existing_result.data:
+                assignment = existing_result.data[0]
+                logger.info(f"Found existing shard assignment: {assignment}")
+                
+                # Update heartbeat and metadata
+                await self._update_shard_heartbeat(instance_id, cluster_name)
+                return {
+                    'shard_id': assignment['shard_id'],
+                    'total_shards': assignment['total_shards']
+                }
+            
+            # No existing assignment, use the improved upsert function
+            total_shards = int(os.getenv('TOTAL_SHARDS', '2'))
+            
+            # Use the consolidated upsert function for assignment
+            upsert_query = supabase_conn.client.rpc('tracker.upsert_instance_assignment', {
+                'p_instance_id': instance_id,
+                'p_cluster_name': cluster_name,
+                'p_hostname': os.getenv('HOSTNAME', instance_id),
+                'p_pod_ip': os.getenv('POD_IP'),
+                'p_node_name': os.getenv('NODE_NAME'),
+                'p_namespace': os.getenv('NAMESPACE', 'discord'),
+                'p_bot_version': '1.3',
+                'p_deployment_version': os.getenv('DEPLOYMENT_VERSION', '1.3'),
+                'p_total_shards': total_shards
+            })
+            upsert_result = await supabase_conn.execute_query(upsert_query)
+            
+            if not upsert_result.success:
+                logger.error(f"Failed to get/register shard assignment: {upsert_result.error}")
+                return None
+            
+            assignment_info = upsert_result.data[0] if upsert_result.data else None
+            
+            if assignment_info:
+                assignment_type = "new" if assignment_info['is_new_assignment'] else "existing"
+                logger.info(f"Got {assignment_type} shard assignment: shard {assignment_info['assigned_shard_id']}/{assignment_info['total_shards']} via {assignment_info['assignment_strategy']}")
+                
+                return {
+                    'shard_id': assignment_info['assigned_shard_id'],
+                    'total_shards': assignment_info['total_shards']
+                }
+            else:
+                logger.error("No assignment data returned from upsert function")
+                return None
+                
+        except Exception as e:
+            logger.error(f"Error in shard coordination: {e}")
+            import traceback
+            logger.error(f"Traceback: {traceback.format_exc()}")
+            return None
+    
+    async def _update_shard_heartbeat(self, instance_id: str, cluster_name: str):
+        """Update heartbeat for this shard assignment with performance metrics"""
+        try:
+            import os
+            
+            # Gather performance metrics if bot is ready
+            guild_count = len(self._bot.guilds) if self._bot and self._bot.is_ready() else 0
+            latency_ms = round(self._bot.latency * 1000, 2) if self._bot and self._bot.is_ready() else 0
+            
+            update_data = {
+                'last_heartbeat': 'now()',
+                'status': 'active',
+                'guild_count': guild_count,
+                'latency_ms': latency_ms,
+                'hostname': os.getenv('HOSTNAME', instance_id),
+                'pod_ip': os.getenv('POD_IP'),
+                'node_name': os.getenv('NODE_NAME')
+            }
+            
+            query = supabase_conn.client.from_('tracker.cluster_management').update(update_data).eq('instance_id', instance_id).eq('cluster_name', cluster_name)
+            result = await supabase_conn.execute_query(query)
+            
+            if not result.success:
+                logger.warning(f"Failed to update shard heartbeat: {result.error}")
+            else:
+                logger.debug(f"Updated heartbeat for {instance_id}: guilds={guild_count}, latency={latency_ms}ms")
+                
+        except Exception as e:
+            logger.warning(f"Error updating shard heartbeat: {e}")
+    
+    async def _cleanup_shard_assignment(self):
+        """Mark this instance's shard assignment as inactive"""
+        try:
+            import os
+            
+            instance_id = os.getenv('HOSTNAME', str(__import__('uuid').uuid4())[:8])
+            cluster_name = os.getenv('CLUSTER_NAME', 'default')
+            
+            update_data = {
+                'status': 'inactive',
+                'last_heartbeat': 'now()'
+            }
+            
+            query = supabase_conn.client.from_('tracker.cluster_management').update(update_data).eq('instance_id', instance_id).eq('cluster_name', cluster_name)
+            result = await supabase_conn.execute_query(query)
+            
+            if result.success:
+                logger.info(f"Marked shard assignment as inactive for {instance_id}")
+            else:
+                logger.warning(f"Failed to cleanup shard assignment: {result.error}")
+                
+        except Exception as e:
+            logger.warning(f"Error cleaning up shard assignment: {e}")
+    
     async def send_offline_message(self):
         """Send offline message before shutting down"""
         if self._bot and self._bot.is_ready():
@@ -302,6 +473,9 @@ class DiscordBotSingleton:
                 # Give a moment for the message to send
                 await asyncio.sleep(1)
             
+            # Mark shard assignment as inactive
+            await self._cleanup_shard_assignment()
+            
             await self._bot.close()
             logger.info("Discord bot stopped")
         except Exception as e:
@@ -328,19 +502,48 @@ class DiscordBotSingleton:
             "guild_count": len(self._bot.guilds) if self._bot and self._bot.is_ready() else 0
         }
         
-        # Add shard information for AutoShardedClient
-        if self._bot and self._bot.is_ready() and hasattr(self._bot, 'shards'):
-            status.update({
-                "shard_count": len(self._bot.shards),
-                "shard_info": {
-                    str(shard_id): {  # Convert shard_id to string for Pydantic compatibility
-                        "latency": round(shard.latency * 1000, 2),  # Convert to ms
-                        "is_closed": shard.is_closed(),
-                        "guild_count": len([g for g in self._bot.guilds if g.shard_id == shard_id])
+        # Add shard information for both AutoShardedClient and manual sharding
+        if self._bot and self._bot.is_ready():
+            if hasattr(self._bot, 'shards') and self._bot.shards:
+                # AutoShardedClient
+                status.update({
+                    "shard_count": len(self._bot.shards),
+                    "shard_info": {
+                        str(shard_id): {  # Convert shard_id to string for Pydantic compatibility
+                            "latency": round(shard.latency * 1000, 2),  # Convert to ms
+                            "is_closed": shard.is_closed(),
+                            "guild_count": len([g for g in self._bot.guilds if g.shard_id == shard_id])
+                        }
+                        for shard_id, shard in self._bot.shards.items()
                     }
-                    for shard_id, shard in self._bot.shards.items()
-                }
-            })
+                })
+            elif hasattr(self._bot, 'shard_id') and self._bot.shard_id is not None:
+                # Manual sharding (single shard per instance)
+                shard_id = self._bot.shard_id
+                shard_count = getattr(self._bot, 'shard_count', 1)
+                status.update({
+                    "shard_count": shard_count,
+                    "current_shard": shard_id,
+                    "shard_info": {
+                        str(shard_id): {
+                            "latency": round(self._bot.latency * 1000, 2),
+                            "is_closed": self._bot.is_closed(),
+                            "guild_count": len(self._bot.guilds)
+                        }
+                    }
+                })
+            else:
+                # No sharding info available
+                status.update({
+                    "shard_count": 1,
+                    "shard_info": {
+                        "0": {
+                            "latency": round(self._bot.latency * 1000, 2),
+                            "is_closed": self._bot.is_closed(),
+                            "guild_count": len(self._bot.guilds)
+                        }
+                    }
+                })
         else:
             status.update({
                 "shard_count": 0,
