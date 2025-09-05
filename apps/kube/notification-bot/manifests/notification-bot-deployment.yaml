@@ -24,6 +24,8 @@ spec:
         env:
         - name: PYTHON_ENV
           value: "production"
+        - name: SUPABASE
+          value: "true"
         - name: SUPABASE_URL
           value: "http://kong.kilobase.svc.cluster.local:8000"
         - name: SUPABASE_ANON_KEY
