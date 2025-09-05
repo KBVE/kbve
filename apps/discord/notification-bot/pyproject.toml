@@ -33,6 +33,8 @@ readme = 'README.md'
   asyncpg = "^0.30.0"
   psutil = "^7.0.0"
   dishka = "^1.6.0"
+  typing-extensions = "^4.15.0"
+  orjson = "^3.11.3"
 
   [tool.poetry.group.dev.dependencies]
   autopep8 = "2.3.1"

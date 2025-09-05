@@ -2,24 +2,36 @@ from fastapi import FastAPI
 from contextlib import asynccontextmanager
 import logging
 import asyncio
-from dishka.integrations.fastapi import get_dishka_container
+from dishka import AsyncContainer
 from ..api.supabase.supabase_service import SupabaseService  
 from ..api.discord.discord_service import DiscordBotService
 
 logger = logging.getLogger("uvicorn")
+
+# Global container reference for lifespan management
+_container: AsyncContainer = None
+
+
+def set_container(container: AsyncContainer):
+    """Set the global container for lifespan management"""
+    global _container
+    _container = container
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     logger.info("Preparing FastAPI Lifespan")
     
-    # Get Dishka container from the app
-    container = get_dishka_container(app)
+    # Use the global container reference
+    container = _container
+    if not container:
+        logger.error("Dishka container not set")
+        raise RuntimeError("Dishka container not available")
     
     # Initialize connections on startup
     discord_task = None
     try:
-        # Get services from Dishka container
+        # Get services from Dishka async container with proper scope management
         async with container() as request_container:
             supabase_conn = await request_container.get(SupabaseService)
             discord_bot = await request_container.get(DiscordBotService)

@@ -8,7 +8,11 @@ from ..api.supabase.supabase_service import SupabaseService
 
 class CoreProvider(Provider):
     """Optimized provider for core services"""
-    scope = Scope.SINGLETON
     
-    discord_bot = provide(DiscordBotService)
-    supabase_service = provide(SupabaseService)
+    @provide(scope=Scope.APP)
+    def discord_bot(self) -> DiscordBotService:
+        return DiscordBotService()
+    
+    @provide(scope=Scope.APP)
+    def supabase_service(self) -> SupabaseService:
+        return SupabaseService()

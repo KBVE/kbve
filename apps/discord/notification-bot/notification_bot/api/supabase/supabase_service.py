@@ -66,3 +66,8 @@ class SupabaseService:
 # Legacy global instance - use Dishka injection instead
 supabase_conn = SupabaseService()
 SupabaseConnection = SupabaseService  # Alias for compatibility
+
+
+def get_supabase_client() -> Client:
+    """Legacy dependency to get Supabase client"""
+    return supabase_conn.init_supabase_client()

@@ -1,22 +1,16 @@
 """
-Bot restart command module
+Bot restart command module - Ultra-optimized
 """
-import logging
-from fastapi import APIRouter, HTTPException
+from __future__ import annotations
+from fastapi import APIRouter, Response
 from ....types import BotService
+from ....utils.decorators import bot_action
 
-logger = logging.getLogger("uvicorn")
 router = APIRouter()
 
 
-@router.post("/bot-restart")
-async def restart_bot(discord_bot: BotService):
+@router.post("/bot-restart", response_model=None)
+@bot_action("Discord bot restarted successfully")  
+async def restart_bot(discord_bot: "BotService") -> Response:
     """Restart the Discord bot"""
-    try:
-        await discord_bot.restart_bot()
-        return {"status": "success", "message": "Discord bot restarted successfully"}
-    except Exception as e:
-        logger.error(f"Error restarting bot: {e}")
-        if "starting or stopping" in str(e).lower():
-            return {"status": "error", "message": "Bot is currently busy, please try again in a moment"}
-        raise HTTPException(status_code=500, detail=str(e))
+    await discord_bot.restart_bot()
