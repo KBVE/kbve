@@ -18,7 +18,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.UNITY_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Git
         run: |
@@ -63,7 +63,7 @@ jobs:
           echo "Cleanup completed"
 
       - name: Close resolved merge conflict issues
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.UNITY_PAT }}
           script: |
@@ -116,7 +116,7 @@ jobs:
             }
 
       - name: Close issues with explicit keywords
-        uses: actions/github-script@v7
+        uses: actions/github-script@v8
         with:
           github-token: ${{ secrets.UNITY_PAT }}
           script: |
@@ -210,7 +210,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.UNITY_PAT }}
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Configure Git
         run: |
