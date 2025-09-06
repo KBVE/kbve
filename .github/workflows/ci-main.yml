@@ -47,7 +47,7 @@ jobs:
                   gh pr create \
                       --base dev \
                       --head "$RESET_BRANCH" \
-                      --title "Sync: Reset Dev to Main (Clean History)" \
+                      --title "[skip-release-pr] Sync: Reset Dev to Main (Clean History)" \
                       --body "Reset dev branch to match main after release.
 
                   This prevents duplicate commits in future release PRs by ensuring clean history.
