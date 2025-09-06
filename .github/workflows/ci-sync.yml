@@ -1,119 +1,188 @@
+# Updated ci-sync.yml - Safe, Non-Destructive Sync
+
 name: CI - Sync Branches
 
 on:
     workflow_dispatch:
     workflow_call:
+        secrets:
+            UNITY_PAT:
+                required: true
+                description: 'GitHub PAT with admin permissions'
 
 jobs:
-    sync_dev_with_main_via_api:
-        name: 'Force Reset Dev to Match Main (via API)'
+    sync_dev_with_main:
+        name: 'Sync Dev with Main (Safe)'
         runs-on: ubuntu-latest
         permissions:
             contents: write
+            issues: write
 
         steps:
-            - name: Force dev to main (via API)
+            - name: Safe sync dev with main
               uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.UNITY_PAT }}
                   script: |
                       const { owner, repo } = context.repo;
 
-                      // Get both main and dev branch info
+                      // Get main and dev branch info
                       const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
                       const mainSha = main.data.commit.sha;
 
                       let devSha;
                       try {
-                        const dev = await github.rest.repos.getBranch({ owner, repo, branch: 'dev' });
-                        devSha = dev.data.commit.sha;
+                          const dev = await github.rest.repos.getBranch({ owner, repo, branch: 'dev' });
+                          devSha = dev.data.commit.sha;
                       } catch (e) {
-                        if (e.status === 404) {
-                          // Dev doesn't exist, safe to create
-                          await github.rest.git.createRef({
-                            owner,
-                            repo,
-                            ref: 'refs/heads/dev',
-                            sha: mainSha,
-                          });
-                          console.log(`Created dev branch at ${mainSha}`);
-                          return;
-                        }
-                        throw e;
+                          if (e.status === 404) {
+                              // Dev doesn't exist, safe to create from main
+                              await github.rest.git.createRef({
+                                  owner,
+                                  repo,
+                                  ref: 'refs/heads/dev',
+                                  sha: mainSha,
+                              });
+                              console.log(`✅ Created dev branch at ${mainSha}`);
+                              return;
+                          }
+                          throw e;
                       }
 
-                      // Check if main is ahead of dev (safe to fast-forward)
+                      if (devSha === mainSha) {
+                          console.log('✅ Dev is already up to date with main');
+                          return;
+                      }
+
+                      // Compare branches to understand the relationship
                       const comparison = await github.rest.repos.compareCommits({
-                        owner,
-                        repo,
-                        base: devSha,
-                        head: mainSha
+                          owner,
+                          repo,
+                          base: mainSha,
+                          head: devSha
                       });
 
                       if (comparison.data.ahead_by === 0) {
-                        console.log('Dev is already up to date with main');
-                      } else if (comparison.data.behind_by === 0) {
-                        // Dev is ahead - this would be destructive
-                        console.log('⚠️ Dev is ahead of main by', comparison.data.ahead_by, 'commits');
-                        console.log('Skipping sync to avoid losing commits');
-                        core.setFailed('Dev branch is ahead of main. Manual intervention required.');
+                          // Dev is behind main - safe to fast-forward
+                          console.log(`📈 Dev is ${comparison.data.behind_by} commits behind main`);
+                          console.log('Safe to fast-forward dev to main');
+                          
+                          await github.rest.git.updateRef({
+                              owner,
+                              repo,
+                              ref: 'heads/dev',
+                              sha: mainSha,
+                              force: false,
+                          });
+                          console.log('✅ Fast-forwarded dev to match main');
+                          
                       } else {
-                        // Safe to fast-forward
-                        await github.rest.git.updateRef({
-                          owner,
-                          repo,
-                          ref: 'heads/dev',
-                          sha: mainSha,
-                          force: false, // No force needed for fast-forward
-                        });
-                        console.log(`Fast-forwarded dev to ${mainSha}`);
+                          // Dev has atomic commits that aren't in main yet
+                          console.log(`📊 Dev status:`);
+                          console.log(`   - ${comparison.data.ahead_by} commits ahead of main`);
+                          console.log(`   - ${comparison.data.behind_by} commits behind main`);
+                          console.log('🟡 Dev has unreleased atomic commits - preserving them');
+                          
+                          // Create an informational issue (not an error!)
+                          const issueBody = `## 📈 Development Status Report
+
+                            Dev branch contains **${comparison.data.ahead_by} atomic commits** that haven't been released to main yet.
+
+                            **Current Status:**
+                            - Dev ahead by: ${comparison.data.ahead_by} commits
+                            - Dev behind by: ${comparison.data.behind_by} commits
+                            - Last main commit: \`${mainSha.substring(0, 7)}\`
+                            - Last dev commit: \`${devSha.substring(0, 7)}\`
+
+                            **This is normal!** Dev contains work-in-progress atomic commits that will be released through the staging process.
+
+                            **No action needed** - sync was skipped to preserve development work.
+
+                            ---
+                            *This status report was automatically created by the sync workflow.*`;
+
+                          await github.rest.issues.create({
+                              owner,
+                              repo,
+                              title: `📊 Dev Sync Status: ${comparison.data.ahead_by} unreleased commits`,
+                              body: issueBody,
+                              labels: ['sync-status', 'info', 'development']
+                          });
+                          
+                          console.log('📝 Created development status issue');
                       }
 
-    sync_delete_create_stage:
-        name: 'Delete and Recreate Staging from Main'
+    sync_staging_with_main:
+        name: 'Sync Staging with Main (Safe)'
         runs-on: ubuntu-latest
         permissions:
             contents: write
+            issues: write
 
         steps:
-            - name: Checkout main branch
-              uses: actions/checkout@v4
+            - name: Safe sync staging with main
+              uses: actions/github-script@v8
               with:
-                  ref: main
-                  fetch-depth: 0
-                  token: ${{ secrets.GITHUB_TOKEN }}
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const { owner, repo } = context.repo;
 
-            - name: Configure Git
-              run: |
-                  git config user.name "h0lybyte"
-                  git config user.email "5599058+h0lybyte@users.noreply.github.com"
-                  git config url."https://${{ secrets.UNITY_PAT }}@github.com/".insteadOf "https://github.com/"
+                      // Get main branch info
+                      const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
+                      const mainSha = main.data.commit.sha;
 
-            - name: Delete and recreate staging branch
-              run: |
-                  echo "Deleting and recreating staging branch from main..."
+                      try {
+                          const staging = await github.rest.repos.getBranch({ owner, repo, branch: 'staging' });
+                          const stagingSha = staging.data.commit.sha;
+                          
+                          if (stagingSha === mainSha) {
+                              console.log('✅ Staging is already up to date with main');
+                              return;
+                          }
 
-                  # Fetch all branches
-                  git fetch origin
+                          // Compare branches
+                          const comparison = await github.rest.repos.compareCommits({
+                              owner,
+                              repo,
+                              base: mainSha,
+                              head: stagingSha
+                          });
 
-                  # Check if staging branch exists and delete it
-                  if git ls-remote --exit-code --heads origin staging > /dev/null 2>&1; then
-                    echo "Staging branch exists, deleting it..."
-                    git push origin --delete staging
-                    echo "Staging branch deleted"
-                  fi
+                          if (comparison.data.ahead_by === 0) {
+                              // Staging is behind main - safe to fast-forward
+                              console.log(`📈 Staging is ${comparison.data.behind_by} commits behind main`);
+                              
+                              await github.rest.git.updateRef({
+                                  owner,
+                                  repo,
+                                  ref: 'heads/staging',
+                                  sha: mainSha,
+                                  force: false,
+                              });
+                              console.log('✅ Fast-forwarded staging to match main');
+                              
+                          } else {
+                              // Staging has unreleased changes
+                              console.log(`🟡 Staging has ${comparison.data.ahead_by} unreleased commits`);
+                              console.log('Preserving staging changes for testing');
+                          }
+                          
+                      } catch (e) {
+                          if (e.status === 404) {
+                              // Staging doesn't exist, create from main
+                              await github.rest.git.createRef({
+                                  owner,
+                                  repo,
+                                  ref: 'refs/heads/staging',
+                                  sha: mainSha,
+                              });
+                              console.log(`✅ Created staging branch at ${mainSha}`);
+                          } else {
+                              throw e;
+                          }
+                      }
 
-                  # Create new staging branch from main
-                  echo "Creating new staging branch from main..."
-                  git checkout -b staging origin/main
-                  git push origin staging
-                  echo "Created staging branch from main"
-
-            - name: Staging sync summary
-              run: |
-                  echo "Staging sync completed successfully!"
-                  echo "- Staging branch deleted and recreated from main"
-
+    # Keep your existing cleanup jobs - they're still useful
     cleanup_orphaned_atomic_branches:
         name: 'Cleanup Orphaned Atomic Branches'
         runs-on: ubuntu-latest
@@ -121,32 +190,51 @@ jobs:
             contents: write
 
         steps:
-            - name: Checkout main branch
-              uses: actions/checkout@v4
+            - name: Cleanup merged atomic branches
+              uses: actions/github-script@v8
               with:
-                  ref: main
-                  fetch-depth: 0
-                  token: ${{ secrets.GITHUB_TOKEN }}
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const { owner, repo } = context.repo;
 
-            - name: Configure Git
-              run: |
-                  git config user.name "h0lybyte"
-                  git config user.email "5599058+h0lybyte@users.noreply.github.com"
-                  git config url."https://${{ secrets.UNITY_PAT }}@github.com/".insteadOf "https://github.com/"
+                      // Get all branches
+                      const branches = await github.rest.repos.listBranches({
+                          owner,
+                          repo,
+                          per_page: 100
+                      });
 
-            - name: Cleanup orphaned atomic branches
-              run: |
-                  echo "Cleaning up orphaned atomic branches..."
+                      const atomicBranches = branches.data.filter(branch => 
+                          branch.name.startsWith('atom-')
+                      );
 
-                  # Find atomic branches that are fully merged into main
-                  git branch -r --merged origin/main | grep "origin/atom-" | sed 's/origin\///' | while read -r branch; do
-                    if [[ "$branch" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
-                      echo "Deleting merged atomic branch: $branch"
-                      git push origin --delete "$branch" || echo "Branch $branch already deleted"
-                    fi
-                  done
+                      console.log(`Found ${atomicBranches.length} atomic branches`);
 
-                  echo "Cleanup completed"
+                      for (const branch of atomicBranches) {
+                          try {
+                              // Check if branch is merged into dev
+                              const comparison = await github.rest.repos.compareCommits({
+                                  owner,
+                                  repo,
+                                  base: 'dev',
+                                  head: branch.name
+                              });
+
+                              if (comparison.data.ahead_by === 0) {
+                                  // Branch is fully merged into dev, safe to delete
+                                  await github.rest.git.deleteRef({
+                                      owner,
+                                      repo,
+                                      ref: `heads/${branch.name}`
+                                  });
+                                  console.log(`🗑️ Deleted merged atomic branch: ${branch.name}`);
+                              } else {
+                                  console.log(`⚠️ Keeping unmerged atomic branch: ${branch.name}`);
+                              }
+                          } catch (error) {
+                              console.log(`❌ Error processing ${branch.name}: ${error.message}`);
+                          }
+                      }
 
     close_resolved_merge_conflict_issues:
         name: 'Close Resolved Merge Conflict Issues'
@@ -173,10 +261,10 @@ jobs:
                       for (const issue of openIssues.data) {
                         // Extract branch name from issue title
                         const branchMatch = issue.title.match(/Merge conflict: (atom-[a-zA-Z0-9-]+)/);
-                        
+
                         if (branchMatch) {
                           const branchName = branchMatch[1];
-                          
+
                           // Check if the atomic branch still exists
                           try {
                             await github.rest.repos.getBranch({
@@ -194,14 +282,14 @@ jobs:
                                 issue_number: issue.number,
                                 state: 'closed'
                               });
-                              
+
                               await github.rest.issues.createComment({
                                 owner: context.repo.owner,
                                 repo: context.repo.repo,
                                 issue_number: issue.number,
                                 body: `Merge conflict resolved! The atomic branch \`${branchName}\` was successfully merged and deleted.`
                               });
-                              
+
                               console.log(`Closed merge conflict issue #${issue.number} for ${branchName}`);
                             }
                           }
@@ -234,12 +322,12 @@ jobs:
 
                       for (const commit of commits.data) {
                         const message = commit.commit.message;
-                        
+
                         // ONLY explicit close keywords WITH exclamation mark prefix
                         const issuePatterns = [
                           /!(?:fix(?:es)?|close(?:s)?|resolve(?:s)?)\s+#(\d+)/gi
                         ];
-                        
+
                         for (const pattern of issuePatterns) {
                           let match;
                           while ((match = pattern.exec(message)) !== null) {
@@ -260,7 +348,7 @@ jobs:
                             repo: context.repo.repo,
                             issue_number: issueNumber
                           });
-                          
+
                           if (issue.data.state === 'open') {
                             await github.rest.issues.update({
                               owner: context.repo.owner,
@@ -268,14 +356,14 @@ jobs:
                               issue_number: issueNumber,
                               state: 'closed'
                             });
-                            
+
                             await github.rest.issues.createComment({
                               owner: context.repo.owner,
                               repo: context.repo.repo,
                               issue_number: issueNumber,
                               body: `This issue was automatically closed because it was explicitly resolved in the main branch.`
                             });
-                            
+
                             console.log(`Closed issue #${issueNumber}`);
                           }
                         } catch (error) {
