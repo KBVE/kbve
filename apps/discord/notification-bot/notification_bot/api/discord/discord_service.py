@@ -32,6 +32,8 @@ class DiscordBotService:
         self._is_starting: bool = False
         self._is_stopping: bool = False
         self._last_status_message_id: Optional[int] = None
+        self._master_status_message_id: Optional[int] = None
+        self._heartbeat_task: Optional[asyncio.Task] = None
     
     async def initialize_bot(self) -> discord.Client:
         """Initialize the Discord bot with token from vault"""
@@ -64,36 +66,34 @@ class DiscordBotService:
             instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
             cluster_name = os.getenv('CLUSTER_NAME', 'main-cluster')
             
+            # Import master server constant for forced guild joining
+            from ..supabase.constants import MASTER_SERVER
+            
             # Check if we should use distributed sharding
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
             logger.info(f"USE_DISTRIBUTED_SHARDING environment variable: {os.getenv('USE_DISTRIBUTED_SHARDING', 'not set')}")
             logger.info(f"Distributed sharding enabled: {use_distributed_sharding}")
             
+            # Always use AutoShardedClient for distributed deployments
+            # Let Discord.py determine optimal shard count and assignments
+            # We'll track what it actually does rather than trying to control it
+            
             if use_distributed_sharding:
-                logger.info(f"Using distributed sharding coordination for instance {instance_id} in cluster {cluster_name}")
-                
-                # Get or register our shard assignment from Supabase
-                shard_assignment = await self._get_shard_assignment(instance_id, cluster_name)
-                
-                if shard_assignment:
-                    # Use assigned shard
-                    self._bot = discord.Client(
-                        intents=intents,
-                        shard_id=shard_assignment['shard_id'],
-                        shard_count=shard_assignment['total_shards']
-                    )
-                    logger.info(f"Using distributed shard {shard_assignment['shard_id']} of {shard_assignment['total_shards']} (instance: {instance_id})")
-                else:
-                    # Fallback to auto-sharding if coordination fails
-                    logger.warning("Distributed shard coordination failed, falling back to auto-sharding")
-                    self._bot = discord.AutoShardedClient(intents=intents)
+                logger.info(f"Using AutoShardedClient with automatic shard determination for instance {instance_id}")
+                # Force a minimum shard count for distributed deployments
+                suggested_shard_count = int(os.getenv('TOTAL_SHARDS', '2'))
+                self._bot = discord.AutoShardedClient(
+                    intents=intents,
+                    shard_count=suggested_shard_count  # Suggest minimum, Discord may use more
+                )
+                logger.info(f"Created AutoShardedClient with suggested {suggested_shard_count} shards")
             else:
                 # Traditional environment variable sharding or auto-sharding
                 shard_id = int(os.getenv('SHARD_ID', '-1'))
                 shard_count = int(os.getenv('SHARD_COUNT', '1'))
                 
                 if shard_id >= 0 and shard_count > 1:
-                    # Manual sharding via environment variables
+                    # Manual sharding via environment variables (backward compatibility)
                     self._bot = discord.Client(
                         intents=intents,
                         shard_id=shard_id,
@@ -128,26 +128,44 @@ class DiscordBotService:
             logger.info(f"🟢🟢🟢 ON_READY EVENT TRIGGERED! Bot logged in as {self._bot.user} 🟢🟢🟢")
             logger.info(f"Bot is in {len(self._bot.guilds)} guilds")
             
-            # Log shard information for both auto and manual sharding
+            # Log shard information and track what Discord actually assigned
+            actual_shards = []
             if hasattr(self._bot, 'shards') and self._bot.shards:
-                # AutoShardedClient
-                logger.info(f"Bot is using {len(self._bot.shards)} auto-managed shards")
+                # AutoShardedClient - track what Discord determined
+                logger.info(f"🔍 Discord determined {len(self._bot.shards)} shards for this instance")
                 for shard_id, shard in self._bot.shards.items():
                     shard_guilds = [g for g in self._bot.guilds if g.shard_id == shard_id]
-                    logger.info(f"  - Shard {shard_id}: {len(shard_guilds)} guilds, latency: {shard.latency:.2f}ms")
+                    actual_shards.append(shard_id)
+                    logger.info(f"  ✅ Shard {shard_id}: {len(shard_guilds)} guilds, latency: {shard.latency:.2f}ms")
+                
+                # Check master server assignment
+                from ..supabase.constants import MASTER_SERVER
+                master_shard = MASTER_SERVER % len(self._bot.shards) if self._bot.shards else 0
+                if master_shard in actual_shards:
+                    logger.info(f"🎯 This instance OWNS master server {MASTER_SERVER} (shard {master_shard})")
+                else:
+                    logger.info(f"ℹ️ Master server {MASTER_SERVER} belongs to shard {master_shard}, not in our shards: {actual_shards}")
+                    
             elif hasattr(self._bot, 'shard_id') and self._bot.shard_id is not None:
-                # Manual sharding
+                # Manual sharding - track what was assigned
                 shard_id = self._bot.shard_id
                 shard_count = getattr(self._bot, 'shard_count', 1)
-                logger.info(f"Bot is using manual sharding: shard {shard_id} of {shard_count} total")
+                actual_shards = [shard_id]
+                logger.info(f"📌 Using manual shard assignment: {shard_id} of {shard_count} total")
                 logger.info(f"  - Current shard {shard_id}: {len(self._bot.guilds)} guilds, latency: {self._bot.latency:.2f}ms")
             else:
-                logger.info("Bot is using no sharding (single instance)")
+                # No sharding
+                actual_shards = [0]
+                logger.info("📌 Using single instance (no sharding)")
             
-            # Log guild information
+            # Log all guild assignments
+            logger.info(f"📋 Guild assignments for shards {actual_shards}:")
             for guild in self._bot.guilds:
                 shard_info = f", Shard: {guild.shard_id}" if hasattr(guild, 'shard_id') else ""
-                logger.info(f"  - Guild: {guild.name} (ID: {guild.id}{shard_info})")
+                logger.info(f"  - {guild.name} (ID: {guild.id}{shard_info})")
+            
+            # Track actual shard assignment in database
+            await self._record_actual_shard_assignment(actual_shards)
             
             # Clear the starting flag since we're now ready
             self._is_starting = False
@@ -155,6 +173,12 @@ class DiscordBotService:
             
             # Send interactive status embed to the specified thread
             await self._send_status_message()
+            
+            # Send initial master server embed
+            await self._send_initial_master_server_embed()
+            
+            # Start periodic heartbeat task
+            await self._start_periodic_heartbeat()
             
             # Update heartbeat for distributed sharding
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
@@ -176,6 +200,9 @@ class DiscordBotService:
                     latency_ms=latency_ms
                 )
                 logger.info(f"Updated heartbeat for distributed sharding: {guild_count} guilds, {latency_ms:.2f}ms latency")
+            
+            # Verify master server connection
+            await self._verify_master_server_connection()
         
         @self._bot.event
         async def on_shard_ready(shard_id):
@@ -206,6 +233,307 @@ class DiscordBotService:
             logger.info(f"🟢 BOT RESUMED! Reconnected and resumed previous session")
         
         logger.info("✅ Discord bot event handlers set up successfully")
+    
+    async def _start_periodic_heartbeat(self):
+        """Start periodic heartbeat and master server embed updates"""
+        if self._heartbeat_task and not self._heartbeat_task.done():
+            logger.warning("Heartbeat task already running")
+            return
+        
+        async def heartbeat_loop():
+            await asyncio.sleep(30)  # Wait 30 seconds before first heartbeat
+            while not self._bot.is_closed():
+                try:
+                    await self._periodic_heartbeat()
+                    await asyncio.sleep(30)  # 30 second intervals
+                except Exception as e:
+                    logger.error(f"Error in periodic heartbeat: {e}")
+                    await asyncio.sleep(10)  # Shorter retry interval on error
+        
+        self._heartbeat_task = asyncio.create_task(heartbeat_loop())
+        logger.info("Started periodic heartbeat task")
+    
+    async def _periodic_heartbeat(self):
+        """Perform periodic heartbeat and update master server embed"""
+        try:
+            # Update database heartbeat
+            use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
+            if use_distributed_sharding:
+                instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
+                cluster_name = os.getenv('CLUSTER_NAME', 'default')
+                guild_count = len(self._bot.guilds) if self._bot.guilds else 0
+                
+                # Calculate average latency
+                if hasattr(self._bot, 'shards') and self._bot.shards:
+                    latency_ms = sum(shard.latency for shard in self._bot.shards.values()) / len(self._bot.shards) * 1000
+                else:
+                    latency_ms = self._bot.latency * 1000 if hasattr(self._bot, 'latency') else 0
+                
+                # Update database heartbeat
+                from ..supabase import tracker_manager
+                await tracker_manager.update_heartbeat(
+                    instance_id=instance_id,
+                    cluster_name=cluster_name,
+                    guild_count=guild_count,
+                    latency_ms=latency_ms
+                )
+                logger.debug(f"Updated database heartbeat: {guild_count} guilds, {latency_ms:.2f}ms latency")
+            
+            # Update master server embed
+            await self._update_master_server_embed()
+            
+        except Exception as e:
+            logger.error(f"Error in periodic heartbeat: {e}")
+    
+    async def _update_master_server_embed(self):
+        """Update the status embed in the master server"""
+        try:
+            from ..supabase.constants import MASTER_SERVER
+            
+            master_guild_id = MASTER_SERVER
+            master_guild = self._bot.get_guild(master_guild_id)
+            
+            if not master_guild:
+                logger.debug(f"Master guild {master_guild_id} not found in cache, fetching...")
+                try:
+                    master_guild = await self._bot.fetch_guild(master_guild_id)
+                except discord.NotFound:
+                    logger.warning(f"Master server {master_guild_id} not found")
+                    return
+                except discord.Forbidden:
+                    logger.warning(f"No access to master server {master_guild_id}")
+                    return
+            
+            # Find the status channel (could be default channel or specific channel)
+            status_channel = None
+            for channel in master_guild.text_channels:
+                if channel.name in ['general', 'bot-status', 'status'] or channel == master_guild.system_channel:
+                    status_channel = channel
+                    break
+            
+            if not status_channel:
+                status_channel = master_guild.text_channels[0] if master_guild.text_channels else None
+            
+            if not status_channel:
+                logger.warning(f"No suitable text channel found in master server {master_guild_id}")
+                return
+            
+            # Update the embed with shard-specific title
+            await self._send_master_status_embed(status_channel)
+            
+        except Exception as e:
+            logger.error(f"Error updating master server embed: {e}")
+    
+    async def _send_master_status_embed(self, channel):
+        """Send or update status embed in master server with shard-specific title"""
+        try:
+            # Get current shard information
+            current_shard = None
+            if hasattr(self._bot, 'shard_id') and self._bot.shard_id is not None:
+                current_shard = self._bot.shard_id
+            
+            # Import and create master server status embed with shard ID in title
+            from .embed.discord_status_embed import BotStatusView
+            view = await BotStatusView.create_master_server_view(self, current_shard)
+            
+            # Try to update existing message first
+            if self._master_status_message_id:
+                try:
+                    existing_message = await channel.fetch_message(self._master_status_message_id)
+                    await existing_message.edit(view=view)
+                    logger.debug(f"✅ EDITED existing master server embed (shard {current_shard}, msg {self._master_status_message_id})")
+                    return existing_message
+                except discord.NotFound:
+                    # Message was deleted, create new one
+                    logger.info(f"⚠️ Previous master server embed {self._master_status_message_id} not found, creating new one")
+                    self._master_status_message_id = None
+                except Exception as e:
+                    logger.warning(f"Failed to update existing master embed {self._master_status_message_id}: {e}")
+                    self._master_status_message_id = None
+            
+            # Create new message only if we don't have an existing one
+            new_message = await channel.send(view=view)
+            self._master_status_message_id = new_message.id
+            logger.info(f"🆕 CREATED new master server embed for shard {current_shard} (Message ID: {new_message.id})")
+            return new_message
+            
+        except Exception as e:
+            logger.error(f"Failed to send master status embed: {e}")
+    
+    async def _verify_master_server_connection(self):
+        """Verify bot is connected to master server"""
+        try:
+            from ..supabase.constants import MASTER_SERVER
+            
+            master_guild_id = MASTER_SERVER
+            master_guild = self._bot.get_guild(master_guild_id)
+            
+            if master_guild:
+                logger.info(f"✅ Connected to master server: {master_guild.name} (ID: {master_guild_id})")
+                
+                # Log which shard is handling this master server
+                if hasattr(self._bot, 'shard_id') and self._bot.shard_id is not None:
+                    expected_shard = master_guild_id % int(os.getenv('TOTAL_SHARDS', '2'))
+                    current_shard = self._bot.shard_id
+                    if expected_shard != current_shard:
+                        logger.warning(f"Master server {master_guild_id} should be on shard {expected_shard}, but we are shard {current_shard}")
+                        logger.warning("This shard will NOT receive events for the master server!")
+                    else:
+                        logger.info(f"✅ Master server correctly assigned to our shard {current_shard}")
+            else:
+                logger.warning(f"❌ Bot is NOT connected to master server {master_guild_id}")
+                logger.warning("Make sure the bot is invited to the master server!")
+                
+        except Exception as e:
+            logger.error(f"Error verifying master server connection: {e}")
+    
+    async def _send_initial_master_server_embed(self):
+        """Send initial status embed to master server on startup"""
+        try:
+            from ..supabase.constants import MASTER_SERVER
+            
+            master_guild_id = MASTER_SERVER
+            master_guild = self._bot.get_guild(master_guild_id)
+            
+            # Only send if this shard owns the master server
+            if not master_guild:
+                logger.debug(f"Master server {master_guild_id} not accessible to this shard")
+                return
+            
+            # Check if we own this guild
+            if hasattr(self._bot, 'shard_id') and self._bot.shard_id is not None:
+                expected_shard = master_guild_id % int(os.getenv('TOTAL_SHARDS', '2'))
+                current_shard = self._bot.shard_id
+                if expected_shard != current_shard:
+                    logger.info(f"Skipping master server embed - guild {master_guild_id} belongs to shard {expected_shard}, we are shard {current_shard}")
+                    return
+            
+            # Find status channel
+            status_channel = None
+            for channel in master_guild.text_channels:
+                if channel.name in ['general', 'bot-status', 'status'] or channel == master_guild.system_channel:
+                    status_channel = channel
+                    break
+            
+            if not status_channel:
+                status_channel = master_guild.text_channels[0] if master_guild.text_channels else None
+            
+            if status_channel:
+                await self._send_master_status_embed(status_channel)
+                logger.info(f"Sent initial master server embed to {master_guild.name} - {status_channel.name}")
+            
+        except Exception as e:
+            logger.error(f"Error sending initial master server embed: {e}")
+    
+    async def _record_actual_shard_assignment(self, actual_shards: list):
+        """Record what Discord.py actually assigned to this instance"""
+        try:
+            use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
+            if not use_distributed_sharding:
+                return
+            
+            from ..supabase import tracker_manager
+            instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
+            cluster_name = os.getenv('CLUSTER_NAME', 'default')
+            
+            # Record each shard this instance is handling
+            for shard_id in actual_shards:
+                logger.info(f"📝 Recording shard {shard_id} assignment for instance {instance_id}")
+                
+                # Use existing tracker but with discovered shard info
+                guild_count = len([g for g in self._bot.guilds if g.shard_id == shard_id]) if self._bot.guilds else 0
+                
+                if hasattr(self._bot, 'shards') and shard_id in self._bot.shards:
+                    latency_ms = self._bot.shards[shard_id].latency * 1000
+                else:
+                    latency_ms = self._bot.latency * 1000 if hasattr(self._bot, 'latency') else 0
+                
+                await tracker_manager.record_discovered_shard(
+                    instance_id=instance_id,
+                    cluster_name=cluster_name,
+                    shard_id=shard_id,
+                    total_shards=len(self._bot.shards) if hasattr(self._bot, 'shards') else 1,
+                    guild_count=guild_count,
+                    latency_ms=latency_ms
+                )
+                
+        except Exception as e:
+            logger.error(f"Error recording shard assignments: {e}")
+    
+    async def _update_master_server_shutdown_status(self):
+        """Update master server embed to show shutdown status"""
+        try:
+            from ..supabase.constants import MASTER_SERVER
+            
+            master_guild_id = MASTER_SERVER
+            master_guild = self._bot.get_guild(master_guild_id)
+            
+            if not master_guild:
+                logger.debug("Master server not accessible for shutdown status update")
+                return
+            
+            # Check if this instance owns the master server
+            if hasattr(self._bot, 'shards') and self._bot.shards:
+                master_shard = master_guild_id % len(self._bot.shards)
+                our_shards = list(self._bot.shards.keys())
+                if master_shard not in our_shards:
+                    logger.debug(f"Skipping shutdown status - master server belongs to shard {master_shard}, we have {our_shards}")
+                    return
+            
+            # Find status channel
+            status_channel = None
+            for channel in master_guild.text_channels:
+                if channel.name in ['general', 'bot-status', 'status'] or channel == master_guild.system_channel:
+                    status_channel = channel
+                    break
+            
+            if not status_channel:
+                status_channel = master_guild.text_channels[0] if master_guild.text_channels else None
+            
+            if status_channel and self._master_status_message_id:
+                try:
+                    # Update existing embed with shutdown status
+                    from .embed.discord_status_embed import BotStatusView
+                    
+                    # Get current shard for title
+                    current_shard = None
+                    if hasattr(self._bot, 'shards') and self._bot.shards:
+                        current_shard = list(self._bot.shards.keys())[0] if self._bot.shards else None
+                    elif hasattr(self._bot, 'shard_id'):
+                        current_shard = self._bot.shard_id
+                    
+                    view = await BotStatusView.create_shutdown_view(self, current_shard)
+                    
+                    existing_message = await status_channel.fetch_message(self._master_status_message_id)
+                    await existing_message.edit(view=view)
+                    logger.info(f"🛑 Updated master server embed with shutdown status (shard {current_shard})")
+                    
+                except discord.NotFound:
+                    logger.debug("Master server embed not found for shutdown update")
+                except Exception as e:
+                    logger.warning(f"Failed to update master server shutdown status: {e}")
+            
+        except Exception as e:
+            logger.error(f"Error updating master server shutdown status: {e}")
+    
+    async def _update_shutdown_status(self):
+        """Update both database status and master server embed for shutdown"""
+        try:
+            # Update database status to stopping
+            use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
+            if use_distributed_sharding:
+                from ..supabase import tracker_manager
+                instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
+                cluster_name = os.getenv('CLUSTER_NAME', 'default')
+                
+                await tracker_manager.update_status_to_stopping(instance_id, cluster_name)
+                logger.info(f"📝 Updated database status to 'stopping' for {instance_id}")
+            
+            # Update master server embed
+            await self._update_master_server_shutdown_status()
+            
+        except Exception as e:
+            logger.error(f"Error updating shutdown status: {e}")
     
     async def _get_shard_assignment(self, instance_id: str, cluster_name: str, total_shards: int = 2):
         """Get shard assignment from tracker"""
@@ -443,6 +771,14 @@ class DiscordBotService:
             
             if send_message:
                 await self._send_offline_message()
+            
+            # Update database status to stopping and update master server embed
+            await self._update_shutdown_status()
+            
+            # Stop heartbeat task
+            if self._heartbeat_task and not self._heartbeat_task.done():
+                self._heartbeat_task.cancel()
+                logger.info("Cancelled periodic heartbeat task")
             
             # Close the bot
             await self._bot.close()

@@ -232,7 +232,12 @@ class BotStatusView(ui.LayoutView):
         self.buttons = StatusControlButtons(self, bot_instance)
         
         # Use health-based color for container (overrides state color if unhealthy)
-        color = status_model.get_health_based_color()
+        # Special case: if this is a shutdown view, use STOPPING state color
+        if hasattr(self, '_is_shutdown_view') and self._is_shutdown_view:
+            from ..models.status import StatusState
+            color = StatusState.STOPPING.color
+        else:
+            color = status_model.get_health_based_color()
         
         # Create container with all components
         container = ui.Container(self.section, self.buttons, accent_color=color)
@@ -276,6 +281,10 @@ class BotStatusView(ui.LayoutView):
     
     def _get_status_text(self) -> str:
         """Generate status text based on bot state with health metrics"""
+        # Check if this is a shutdown view
+        if hasattr(self, '_is_shutdown_view') and self._is_shutdown_view:
+            return self._get_shutdown_status_text()
+        
         status_model = self._get_bot_status_model()
         
         # Get health status indicator
@@ -300,8 +309,13 @@ class BotStatusView(ui.LayoutView):
                 # Auto-sharding - show total count
                 shard_display = f"{status_model.shard_count} (Auto-managed)"
         
+        # Check if this is for master server display
+        title = "🤖 **Discord Bot Status Dashboard**"
+        if hasattr(self, '_master_server_shard_id') and self._master_server_shard_id is not None:
+            title = f"🤖 **Bot Status - Shard {self._master_server_shard_id}**"
+        
         lines = [
-            "🤖 **Discord Bot Status Dashboard**",
+            title,
             "",
             f"**Status:** {status_model.get_emoji()} {status_model.get_status_description()}",
             f"**Health:** {health_emoji} {status_model.health_status}",
@@ -332,6 +346,35 @@ class BotStatusView(ui.LayoutView):
             "",
             f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
         ])
+        
+        return "\n".join(lines)
+    
+    def _get_shutdown_status_text(self) -> str:
+        """Generate shutdown status text using STOPPING state"""
+        # Get shard ID for title
+        shard_id = getattr(self, '_master_server_shard_id', None)
+        title = f"🤖 **Bot Status - Shard {shard_id}**" if shard_id is not None else "🤖 **Discord Bot Status Dashboard**"
+        
+        # Use the STOPPING state from our enum
+        from ...models.status import StatusState
+        stopping_state = StatusState.STOPPING
+        
+        lines = [
+            title,
+            "",
+            f"**Status:** {stopping_state.emoji} {stopping_state.display_name}",
+            f"**Operation:** Graceful shutdown in progress",
+            "",
+            "⏹️ **Shutdown Process:**",
+            "• Stopping heartbeat monitoring",
+            "• Closing Discord connections", 
+            "• Cleaning up resources",
+            "• Updating database status",
+            "",
+            "Bot will be offline momentarily.",
+            "",
+            f"**Last Updated:** {datetime.datetime.now().strftime('%H:%M:%S')}"
+        ]
         
         return "\n".join(lines)
     
@@ -447,6 +490,29 @@ class BotStatusView(ui.LayoutView):
             wolf_url = None
         
         return cls(bot_instance, wolf_image_url=wolf_url)
+    
+    @classmethod
+    async def create_master_server_view(cls, bot_instance: 'DiscordBotService', shard_id: Optional[int] = None) -> 'BotStatusView':
+        """Create status view for master server with shard-specific title"""
+        view = cls(bot_instance)
+        
+        # Override the title to include shard information
+        if shard_id is not None:
+            view._master_server_shard_id = shard_id
+        
+        return view
+    
+    @classmethod
+    async def create_shutdown_view(cls, bot_instance: 'DiscordBotService', shard_id: Optional[int] = None) -> 'BotStatusView':
+        """Create status view showing shutdown state for master server"""
+        view = cls(bot_instance)
+        
+        # Override for shutdown display
+        if shard_id is not None:
+            view._master_server_shard_id = shard_id
+            view._is_shutdown_view = True
+        
+        return view
 
 async def send_bot_status_embed(channel: discord.abc.Messageable, bot_instance: 'DiscordBotService') -> discord.Message:
     """
