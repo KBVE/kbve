@@ -29,36 +29,45 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            - name: Update dev branch (forward-only merge)
+            - name: Sync dev branch with main (via PR)
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
               run: |
-                  echo "Updating dev branch with latest main changes..."
+                  echo "Syncing dev branch with main changes via PR..."
                   
                   # Fetch all branches
                   git fetch origin
                   
                   # Check if dev branch exists
                   if git ls-remote --exit-code --heads origin dev > /dev/null 2>&1; then
-                      echo "Dev branch exists, merging main into dev..."
+                      echo "Dev branch exists, checking if sync is needed..."
                       
-                      # Switch to dev and pull latest
-                      git checkout dev
-                      git pull origin dev
+                      # Check if main has commits that dev doesn't have
+                      COMMITS_AHEAD=$(git rev-list --count origin/dev..origin/main)
                       
-                      # Merge main into dev (forward-only, no force)
-                      if git merge origin/main --no-ff -m "Merge main into dev after production release"; then
-                          git push origin dev
-                          echo "Successfully merged main into dev"
-                      else
-                          echo "Merge conflicts detected - manual resolution required"
-                          echo "This is normal if dev has unreleased changes"
-                          git merge --abort
+                      if [ "$COMMITS_AHEAD" -gt 0 ]; then
+                          echo "Main is $COMMITS_AHEAD commits ahead of dev, creating sync PR..."
                           
-                          # Create an issue for manual resolution
-                          echo "Creating issue for manual dev sync..."
-                          gh issue create \
-                              --title "Manual dev sync required after main release" \
-                              --body "Main branch was updated but couldn't auto-merge into dev due to conflicts. Please manually sync when ready." \
-                              --label "dev-sync-needed"
+                          # Create a temporary sync branch from main
+                          SYNC_BRANCH="sync-main-to-dev-$(date +'%m%d%H%M')"
+                          git checkout -b "$SYNC_BRANCH" origin/main
+                          git push origin "$SYNC_BRANCH"
+                          
+                          # Create PR to merge main changes into dev
+                          gh pr create \
+                              --base dev \
+                              --head "$SYNC_BRANCH" \
+                              --title "Sync: Main → Dev (Post-Release)" \
+                              --body "Automated sync of main branch changes back to dev after release.
+
+                  This ensures dev stays current with production fixes and updates.
+                  
+                  **Auto-generated after main release**" \
+                              --label "auto-sync,main→dev"
+                          
+                          echo "Created sync PR from $SYNC_BRANCH to dev"
+                      else
+                          echo "Dev is already up to date with main"
                       fi
                   else
                       echo "Dev branch doesn't exist, creating from main..."
@@ -66,9 +75,6 @@ jobs:
                       git push origin dev
                       echo "Created dev branch from main"
                   fi
-                  
-                  # Switch back to main
-                  git checkout main
 
             - name: Calculate SHA-256 Hash
               id: hash
@@ -88,7 +94,7 @@ jobs:
                   done
                   
                   echo "Cleanup completed"
-
+                  
     close_merge_conflict_issues:
         needs: ['globals']
         name: 'Close Merge Conflict Issues'
