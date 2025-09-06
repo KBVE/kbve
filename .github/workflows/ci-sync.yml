@@ -1,243 +1,271 @@
 name: CI - Sync Branches
 
 on:
-  workflow_dispatch:
-  workflow_call:
+    workflow_dispatch:
+    workflow_call:
 
 jobs:
-  sync_dev_with_main:
-    name: 'Force Reset Dev to Match Main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      issues: write
-    
-    steps:
-      - name: Checkout main branch
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+    sync_dev_with_main_via_api:
+        name: 'Force Reset Dev to Match Main (via API)'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+        steps:
+            - name: Force dev to main (via API)
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const { owner, repo } = context.repo;
 
-      - name: Force reset dev to match main exactly
-        run: |
-          echo "Force resetting dev to match main exactly..."
-          
-          # Fetch all branches
-          git fetch origin
-          
-          # Check if dev branch exists
-          if git ls-remote --exit-code --heads origin dev > /dev/null 2>&1; then
-            echo "Dev branch exists, force resetting to match main..."
-            
-            # Force reset dev branch to match main exactly
-            git checkout -B dev origin/main
-            git push --force origin dev
-            
-            echo "Dev branch force reset to match main"
-          else
-            echo "Dev branch doesn't exist, creating from main..."
-            git checkout -b dev origin/main
-            git push origin dev
-            echo "Created dev branch from main"
-          fi
+                      // 1) Read main's tip SHA
+                      const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
+                      const sha = main.data.commit.sha;
 
-      - name: Cleanup orphaned atomic branches
-        run: |
-          echo "Cleaning up orphaned atomic branches..."
-          
-          # Find atomic branches that are fully merged into main
-          git branch -r --merged origin/main | grep "origin/atom-" | sed 's/origin\///' | while read -r branch; do
-            if [[ "$branch" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
-              echo "Deleting merged atomic branch: $branch"
-              git push origin --delete "$branch" || echo "Branch $branch already deleted"
-            fi
-          done
-          
-          echo "Cleanup completed"
+                      // 2) Try to move dev (force). If it doesn't exist, create it.
+                      try {
+                          await github.rest.git.updateRef({
+                              owner,
+                              repo,
+                              ref: 'heads/dev',
+                              sha,
+                              force: true,
+                          });
+                          console.log(`Moved dev to ${sha}`);
+                      } catch (e) {
+                          if (e.status === 422) {
+                              // ref not found -> create
+                              await github.rest.git.createRef({
+                                  owner,
+                                  repo,
+                                  ref: 'refs/heads/dev',
+                                  sha,
+                              });
+                              console.log(`Created dev at ${sha}`);
+                          } else if (e.status === 403) {
+                              throw new Error('Forbidden by branch protection. Ensure your PAT actor is allowed to bypass or force-push to dev.');
+                          } else {
+                              throw e;
+                          }
+                      }
 
-      - name: Close resolved merge conflict issues
-        uses: actions/github-script@v8
-        with:
-          github-token: ${{ secrets.UNITY_PAT }}
-          script: |
-            // Find open merge conflict issues for atomic branches
-            const openIssues = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              state: 'open',
-              labels: 'merge-conflict'
-            });
-            
-            console.log(`Found ${openIssues.data.length} open merge conflict issues`);
-            
-            for (const issue of openIssues.data) {
-              // Extract branch name from issue title
-              const branchMatch = issue.title.match(/Merge conflict: (atom-[a-zA-Z0-9-]+)/);
-              
-              if (branchMatch) {
-                const branchName = branchMatch[1];
-                
-                // Check if the atomic branch still exists
-                try {
-                  await github.rest.repos.getBranch({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    branch: branchName
-                  });
-                  console.log(`Branch ${branchName} still exists, keeping issue open`);
-                } catch (error) {
-                  if (error.status === 404) {
-                    // Branch doesn't exist anymore, close the issue
-                    await github.rest.issues.update({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      issue_number: issue.number,
-                      state: 'closed'
-                    });
-                    
-                    await github.rest.issues.createComment({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      issue_number: issue.number,
-                      body: `Merge conflict resolved! The atomic branch \`${branchName}\` was successfully merged and deleted.`
-                    });
-                    
-                    console.log(`Closed merge conflict issue #${issue.number} for ${branchName}`);
-                  }
-                }
-              }
-            }
+    sync_delete_create_stage:
+        name: 'Delete and Recreate Staging from Main'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
 
-      - name: Close issues with explicit keywords
-        uses: actions/github-script@v8
-        with:
-          github-token: ${{ secrets.UNITY_PAT }}
-          script: |
-            // Get recent commits on main
-            const commits = await github.rest.repos.listCommits({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              sha: 'main',
-              per_page: 10
-            });
-            
-            console.log(`Checking ${commits.data.length} recent commits for explicit issue closures...`);
-            
-            const closedIssues = new Set();
-            
-            for (const commit of commits.data) {
-              const message = commit.commit.message;
-              
-              // ONLY explicit close keywords WITH exclamation mark prefix
-              const issuePatterns = [
-                /!(?:fix(?:es)?|close(?:s)?|resolve(?:s)?)\s+#(\d+)/gi
-              ];
-              
-              for (const pattern of issuePatterns) {
-                let match;
-                while ((match = pattern.exec(message)) !== null) {
-                  const issueNumber = parseInt(match[1]);
-                  if (!closedIssues.has(issueNumber)) {
-                    closedIssues.add(issueNumber);
-                    console.log(`Found explicit closure: ${match[0]} -> #${issueNumber}`);
-                  }
-                }
-              }
-            }
-            
-            // Close the explicitly referenced issues
-            for (const issueNumber of closedIssues) {
-              try {
-                const issue = await github.rest.issues.get({
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issueNumber
-                });
-                
-                if (issue.data.state === 'open') {
-                  await github.rest.issues.update({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: issueNumber,
-                    state: 'closed'
-                  });
-                  
-                  await github.rest.issues.createComment({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: issueNumber,
-                    body: `This issue was automatically closed because it was explicitly resolved in the main branch.`
-                  });
-                  
-                  console.log(`Closed issue #${issueNumber}`);
-                }
-              } catch (error) {
-                console.log(`Error processing issue #${issueNumber}: ${error.message}`);
-              }
-            }
-            
-            if (closedIssues.size === 0) {
-              console.log('No explicit issue closures found');
-            } else {
-              console.log(`Processed ${closedIssues.size} explicit issue closure(s)`);
-            }
+        steps:
+            - name: Checkout main branch
+              uses: actions/checkout@v4
+              with:
+                  ref: main
+                  fetch-depth: 0
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Sync summary
-        run: |
-          echo "Sync workflow completed successfully!"
-          echo "- Dev branch force reset to match main"
-          echo "- Orphaned atomic branches cleaned up"
-          echo "- Merge conflict issues resolved"
-          echo "- Explicit issue closures processed"
-          echo "- No PR creation = No infinite loops!"
+            - name: Configure Git
+              run: |
+                  git config user.name "h0lybyte"
+                  git config user.email "5599058+h0lybyte@users.noreply.github.com"
+                  git config url."https://${{ secrets.UNITY_PAT }}@github.com/".insteadOf "https://github.com/"
 
-  sync_delete_create_stage:
-    name: 'Delete and Recreate Staging from Main'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-    
-    steps:
-      - name: Checkout main branch
-        uses: actions/checkout@v4
-        with:
-          ref: main
-          fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+            - name: Delete and recreate staging branch
+              run: |
+                  echo "Deleting and recreating staging branch from main..."
 
-      - name: Configure Git
-        run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
+                  # Fetch all branches
+                  git fetch origin
 
-      - name: Delete and recreate staging branch
-        run: |
-          echo "Deleting and recreating staging branch from main..."
-          
-          # Fetch all branches
-          git fetch origin
-          
-          # Check if staging branch exists and delete it
-          if git ls-remote --exit-code --heads origin staging > /dev/null 2>&1; then
-            echo "Staging branch exists, deleting it..."
-            git push origin --delete staging
-            echo "Staging branch deleted"
-          fi
-          
-          # Create new staging branch from main
-          echo "Creating new staging branch from main..."
-          git checkout -b staging origin/main
-          git push origin staging
-          echo "Created staging branch from main"
+                  # Check if staging branch exists and delete it
+                  if git ls-remote --exit-code --heads origin staging > /dev/null 2>&1; then
+                    echo "Staging branch exists, deleting it..."
+                    git push origin --delete staging
+                    echo "Staging branch deleted"
+                  fi
 
-      - name: Staging sync summary
-        run: |
-          echo "Staging sync completed successfully!"
-          echo "- Staging branch deleted and recreated from main"
+                  # Create new staging branch from main
+                  echo "Creating new staging branch from main..."
+                  git checkout -b staging origin/main
+                  git push origin staging
+                  echo "Created staging branch from main"
+
+            - name: Staging sync summary
+              run: |
+                  echo "Staging sync completed successfully!"
+                  echo "- Staging branch deleted and recreated from main"
+
+    cleanup_orphaned_atomic_branches:
+        name: 'Cleanup Orphaned Atomic Branches'
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+
+        steps:
+            - name: Checkout main branch
+              uses: actions/checkout@v4
+              with:
+                  ref: main
+                  fetch-depth: 0
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Configure Git
+              run: |
+                  git config user.name "h0lybyte"
+                  git config user.email "5599058+h0lybyte@users.noreply.github.com"
+                  git config url."https://${{ secrets.UNITY_PAT }}@github.com/".insteadOf "https://github.com/"
+
+            - name: Cleanup orphaned atomic branches
+              run: |
+                  echo "Cleaning up orphaned atomic branches..."
+
+                  # Find atomic branches that are fully merged into main
+                  git branch -r --merged origin/main | grep "origin/atom-" | sed 's/origin\///' | while read -r branch; do
+                    if [[ "$branch" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
+                      echo "Deleting merged atomic branch: $branch"
+                      git push origin --delete "$branch" || echo "Branch $branch already deleted"
+                    fi
+                  done
+
+                  echo "Cleanup completed"
+
+    close_resolved_merge_conflict_issues:
+        name: 'Close Resolved Merge Conflict Issues'
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+
+        steps:
+            - name: Close resolved merge conflict issues
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      // Find open merge conflict issues for atomic branches
+                      const openIssues = await github.rest.issues.listForRepo({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        state: 'open',
+                        labels: 'merge-conflict'
+                      });
+
+                      console.log(`Found ${openIssues.data.length} open merge conflict issues`);
+
+                      for (const issue of openIssues.data) {
+                        // Extract branch name from issue title
+                        const branchMatch = issue.title.match(/Merge conflict: (atom-[a-zA-Z0-9-]+)/);
+                        
+                        if (branchMatch) {
+                          const branchName = branchMatch[1];
+                          
+                          // Check if the atomic branch still exists
+                          try {
+                            await github.rest.repos.getBranch({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              branch: branchName
+                            });
+                            console.log(`Branch ${branchName} still exists, keeping issue open`);
+                          } catch (error) {
+                            if (error.status === 404) {
+                              // Branch doesn't exist anymore, close the issue
+                              await github.rest.issues.update({
+                                owner: context.repo.owner,
+                                repo: context.repo.repo,
+                                issue_number: issue.number,
+                                state: 'closed'
+                              });
+                              
+                              await github.rest.issues.createComment({
+                                owner: context.repo.owner,
+                                repo: context.repo.repo,
+                                issue_number: issue.number,
+                                body: `Merge conflict resolved! The atomic branch \`${branchName}\` was successfully merged and deleted.`
+                              });
+                              
+                              console.log(`Closed merge conflict issue #${issue.number} for ${branchName}`);
+                            }
+                          }
+                        }
+                      }
+
+    close_explicit_keyword_issues:
+        name: 'Close Issues with Explicit Keywords'
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+
+        steps:
+            - name: Close issues with explicit keywords
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      // Get recent commits on main
+                      const commits = await github.rest.repos.listCommits({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        sha: 'main',
+                        per_page: 10
+                      });
+
+                      console.log(`Checking ${commits.data.length} recent commits for explicit issue closures...`);
+
+                      const closedIssues = new Set();
+
+                      for (const commit of commits.data) {
+                        const message = commit.commit.message;
+                        
+                        // ONLY explicit close keywords WITH exclamation mark prefix
+                        const issuePatterns = [
+                          /!(?:fix(?:es)?|close(?:s)?|resolve(?:s)?)\s+#(\d+)/gi
+                        ];
+                        
+                        for (const pattern of issuePatterns) {
+                          let match;
+                          while ((match = pattern.exec(message)) !== null) {
+                            const issueNumber = parseInt(match[1]);
+                            if (!closedIssues.has(issueNumber)) {
+                              closedIssues.add(issueNumber);
+                              console.log(`Found explicit closure: ${match[0]} -> #${issueNumber}`);
+                            }
+                          }
+                        }
+                      }
+
+                      // Close the explicitly referenced issues
+                      for (const issueNumber of closedIssues) {
+                        try {
+                          const issue = await github.rest.issues.get({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: issueNumber
+                          });
+                          
+                          if (issue.data.state === 'open') {
+                            await github.rest.issues.update({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              issue_number: issueNumber,
+                              state: 'closed'
+                            });
+                            
+                            await github.rest.issues.createComment({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              issue_number: issueNumber,
+                              body: `This issue was automatically closed because it was explicitly resolved in the main branch.`
+                            });
+                            
+                            console.log(`Closed issue #${issueNumber}`);
+                          }
+                        } catch (error) {
+                          console.log(`Error processing issue #${issueNumber}: ${error.message}`);
+                        }
+                      }
+
+                      if (closedIssues.size === 0) {
+                        console.log('No explicit issue closures found');
+                      } else {
+                        console.log(`Processed ${closedIssues.size} explicit issue closure(s)`);
+                      }
