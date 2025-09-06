@@ -291,6 +291,15 @@ class BotStatusView(ui.LayoutView):
             cache_info = ""
         
         # Build lines list with conditional shard info
+        shard_display = "N/A"
+        if status_model.shard_count > 0:
+            if status_model.current_shard is not None:
+                # Manual sharding - show current shard ID and total
+                shard_display = f"{status_model.current_shard}/{status_model.shard_count} (Shard ID: {status_model.current_shard})"
+            else:
+                # Auto-sharding - show total count
+                shard_display = f"{status_model.shard_count} (Auto-managed)"
+        
         lines = [
             "🤖 **Discord Bot Status Dashboard**",
             "",
@@ -299,7 +308,7 @@ class BotStatusView(ui.LayoutView):
             f"**Initialized:** {'Yes' if status_model.initialized else 'No'}",
             f"**Ready:** {'Yes' if status_model.is_ready else 'No'}",
             f"**Guilds:** {status_model.guild_count}",
-            f"**Shards:** {status_model.shard_count if status_model.shard_count > 0 else 'N/A'}",
+            f"**Shards:** {shard_display}",
             ""
         ]
         

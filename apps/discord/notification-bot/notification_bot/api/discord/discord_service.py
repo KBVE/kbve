@@ -308,7 +308,47 @@ class DiscordBotService:
                 "is_starting": self._is_starting,
                 "is_stopping": self._is_stopping,
                 "is_closed": True,
-                "guild_count": 0
+                "guild_count": 0,
+                "shard_count": 0,
+                "current_shard": None,
+                "shard_info": {}
+            }
+        
+        # Collect shard information
+        shard_info = {}
+        current_shard = None
+        shard_count = 0
+        
+        if hasattr(self._bot, 'shards') and self._bot.shards:
+            # AutoShardedClient
+            shard_count = len(self._bot.shards)
+            for shard_id, shard in self._bot.shards.items():
+                shard_guilds = [g for g in self._bot.guilds if g.shard_id == shard_id] if self._bot.guilds else []
+                shard_info[str(shard_id)] = {
+                    'shard_id': shard_id,
+                    'guild_count': len(shard_guilds),
+                    'latency': shard.latency * 1000,  # Convert to ms
+                    'is_closed': shard.is_closed()
+                }
+        elif hasattr(self._bot, 'shard_id') and self._bot.shard_id is not None:
+            # Manual sharding (single shard)
+            current_shard = self._bot.shard_id
+            shard_count = getattr(self._bot, 'shard_count', 1)
+            shard_info[str(current_shard)] = {
+                'shard_id': current_shard,
+                'guild_count': len(self._bot.guilds) if self._bot.guilds else 0,
+                'latency': self._bot.latency * 1000 if hasattr(self._bot, 'latency') else 0,
+                'is_closed': self._bot.is_closed()
+            }
+        else:
+            # No sharding (single instance)
+            shard_count = 1
+            current_shard = 0
+            shard_info['0'] = {
+                'shard_id': 0,
+                'guild_count': len(self._bot.guilds) if self._bot.guilds else 0,
+                'latency': self._bot.latency * 1000 if hasattr(self._bot, 'latency') else 0,
+                'is_closed': self._bot.is_closed()
             }
         
         return {
@@ -317,7 +357,10 @@ class DiscordBotService:
             "is_starting": self._is_starting,
             "is_stopping": self._is_stopping,
             "is_closed": self._bot.is_closed(),
-            "guild_count": len(self._bot.guilds) if self._bot.guilds else 0
+            "guild_count": len(self._bot.guilds) if self._bot.guilds else 0,
+            "shard_count": shard_count,
+            "current_shard": current_shard,
+            "shard_info": shard_info
         }
     
     def get_status_with_health(self) -> dict:

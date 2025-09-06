@@ -80,6 +80,7 @@ class BotStatusModel(BaseModel):
             'is_closed': status_dict.get('is_closed', True),
             'guild_count': status_dict.get('guild_count', 0),
             'shard_count': status_dict.get('shard_count', 0),
+            'current_shard': status_dict.get('current_shard'),
             'shard_info': status_dict.get('shard_info', {}),
             'custom_message': status_dict.get('custom_message')
         }
