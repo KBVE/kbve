@@ -11,206 +11,12 @@ from ....models.status import BotStatusModel, StatusState
 if TYPE_CHECKING:
     from .. import DiscordBotService
 
-class StatusControlButtons(ui.ActionRow):
-    """Action row containing bot control buttons"""
-    
-    def __init__(self, view: 'BotStatusView', bot_instance: 'DiscordBotService') -> None:
-        self.__view = view
-        self.__bot_instance = bot_instance
-        super().__init__()
 
-    @ui.button(label='🔄 Refresh', style=discord.ButtonStyle.primary)
-    async def refresh_status(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        import logging
-        logger = logging.getLogger("app")
-        
-        # Get Discord ID and lookup user profile
-        discord_id = str(interaction.user.id)
-        logger.info(f"🔄 Refresh button clicked by {interaction.user} (Discord ID: {discord_id})")
-        
-        # Try to lookup user in Supabase
-        try:
-            from ....api.supabase import user_manager
-            user_profile = await user_manager.find_user_by_discord_id(discord_id)
-            if user_profile:
-                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
-            else:
-                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
-        except Exception as e:
-            logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
-        
-        try:
-            await interaction.response.defer()
-            logger.info("Refresh button interaction deferred")
-            
-            # Force refresh health data
-            try:
-                from ....utils.health_monitor import health_monitor
-                await health_monitor.force_refresh()
-                logger.info("Health data refreshed successfully")
-            except Exception as e:
-                logger.warning(f"Failed to force refresh health data: {e}")
-            
-            # Refresh the status display
-            logger.info("Refreshing status display...")
-            await self.__view.refresh_status()
-            logger.info("Status display refreshed")
-            
-            # Update the message with new status and color
-            logger.info("Updating message...")
-            await interaction.followup.edit_message(
-                interaction.message.id, 
-                view=self.__view
-            )
-            logger.info("Message updated successfully")
-            
-            await interaction.followup.send(
-                "✅ Status refreshed!", 
-                ephemeral=True
-            )
-            logger.info("Refresh button completed successfully")
-            
-        except Exception as e:
-            logger.error(f"❌ Error in refresh button: {e}")
-            import traceback
-            logger.error(f"Full traceback: {traceback.format_exc()}")
-            try:
-                await interaction.followup.send(f"❌ Error refreshing: {e}", ephemeral=True)
-            except:
-                logger.error("Failed to send error message to user")
-
-    @ui.button(label='🧹 Cleanup', style=discord.ButtonStyle.secondary)
-    async def cleanup_thread(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        import logging
-        logger = logging.getLogger("app")
-        
-        # Get Discord ID and lookup user profile
-        discord_id = str(interaction.user.id)
-        logger.info(f"🧹 Cleanup button clicked by {interaction.user} (Discord ID: {discord_id})")
-        
-        # Try to lookup user in Supabase
-        try:
-            from ....api.supabase import user_manager
-            user_profile = await user_manager.find_user_by_discord_id(discord_id)
-            if user_profile:
-                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
-            else:
-                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
-        except Exception as e:
-            logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
-        
-        try:
-            await interaction.response.defer()
-            logger.info("Cleanup button interaction deferred")
-            
-            # Clean up old messages
-            logger.info("Starting thread cleanup...")
-            deleted_count = await self.__bot_instance.cleanup_thread_messages()
-            logger.info(f"Thread cleanup completed, deleted {deleted_count} messages")
-            
-            await interaction.followup.send(
-                f"🧹 Cleaned up {deleted_count} old messages from thread", 
-                ephemeral=True
-            )
-            logger.info("Cleanup button completed successfully")
-            
-        except Exception as e:
-            logger.error(f"❌ Error in cleanup button: {e}")
-            import traceback
-            logger.error(f"Full traceback: {traceback.format_exc()}")
-            try:
-                await interaction.followup.send(f"❌ Error cleaning up: {e}", ephemeral=True)
-            except:
-                logger.error("Failed to send error message to user")
-
-    @ui.button(label='🔄 Restart', style=discord.ButtonStyle.danger)
-    async def restart_bot(self, interaction: discord.Interaction, button: discord.ui.Button) -> None:
-        import logging
-        logger = logging.getLogger("app")
-        
-        # Get Discord ID and lookup user profile
-        discord_id = str(interaction.user.id)
-        logger.info(f"🔄 Restart button clicked by {interaction.user} (Discord ID: {discord_id})")
-        
-        # Try to lookup user in Supabase
-        try:
-            from ....api.supabase import user_manager
-            user_profile = await user_manager.find_user_by_discord_id(discord_id)
-            if user_profile:
-                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
-            else:
-                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
-        except Exception as e:
-            logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
-        
-        try:
-            # Check if user has permission to restart
-            if not self._has_restart_permission(interaction.user, interaction.guild):
-                logger.info(f"User {interaction.user} denied restart permission")
-                await interaction.response.send_message(
-                    "❌ You don't have permission to restart the bot. Admin role required.", 
-                    ephemeral=True
-                )
-                return
-                
-            logger.info(f"User {interaction.user} has restart permission, proceeding...")
-            await interaction.response.defer()
-            
-            # Update status to show pending restart
-            old_text = self.__view.status_text.content
-            await self.__view._show_pending_restart()
-            await interaction.followup.edit_message(interaction.message.id, view=self.__view)
-            
-            # Actually restart the bot
-            await self.__bot_instance.restart_bot()
-            
-            # Wait a moment for restart to complete
-            await asyncio.sleep(3)
-            
-            # Update with final status
-            await self.__view.refresh_status()
-            await interaction.followup.edit_message(interaction.message.id, view=self.__view)
-            
-        except Exception as e:
-            # Restore original text if error
-            if 'old_text' in locals():
-                self.__view.status_text.content = old_text
-                await interaction.followup.edit_message(interaction.message.id, view=self.__view)
-                
-            if "starting or stopping" in str(e).lower():
-                await interaction.followup.send("⏳ Bot is busy, please try again in a moment", ephemeral=True)
-            else:
-                await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
-    
-    def _has_restart_permission(self, user: discord.User, guild: Optional[discord.Guild]) -> bool:
-        """Check if user has permission to restart the bot"""
-        if not guild:
-            return False
-            
-        member = guild.get_member(user.id)
-        if not member:
-            return False
-            
-        # Check if user has the admin role
-        admin_role = guild.get_role(ADMIN_ROLE_ID)
-        if admin_role and admin_role in member.roles:
-            return True
-            
-        # Check if user is server owner
-        if member == guild.owner:
-            return True
-            
-        # Check if user has administrator permission
-        if member.guild_permissions.administrator:
-            return True
-            
-        return False
-
-class BotStatusView(ui.LayoutView):
-    """Discord bot status display using LayoutView"""
+class BotStatusView(ui.View):
+    """Discord bot status display as a View with embedded buttons"""
     
     def __init__(self, bot_instance: 'DiscordBotService', *, wolf_image_url: str = None) -> None:
-        super().__init__()
+        super().__init__(timeout=None)  # No timeout for persistent view
         self.__bot_instance = bot_instance  # Store bot instance for status checks
         
         # Get current bot status model
@@ -220,28 +26,17 @@ class BotStatusView(ui.LayoutView):
         state_image_url = status_model.get_image_url()
         
         # Initialize status text
-        self.status_text = ui.TextDisplay(self._get_status_text())
+        self.status_text = self._get_status_text()
         
-        # Create thumbnail with state-appropriate image
-        self.thumbnail = ui.Thumbnail(media=state_image_url)
+        # Store thumbnail URL for embed
+        self.thumbnail_url = state_image_url
         
-        # Create section with status text and thumbnail
-        self.section = ui.Section(self.status_text, accessory=self.thumbnail)
-        
-        # Create control buttons
-        self.buttons = StatusControlButtons(self, bot_instance)
-        
-        # Use health-based color for container (overrides state color if unhealthy)
-        # Special case: if this is a shutdown view, use STOPPING state color
+        # Store color for embed
         if hasattr(self, '_is_shutdown_view') and self._is_shutdown_view:
-            from ..models.status import StatusState
-            color = StatusState.STOPPING.color
+            from ...models.status import StatusState
+            self.embed_color = StatusState.STOPPING.color
         else:
-            color = status_model.get_health_based_color()
-        
-        # Create container with all components
-        container = ui.Container(self.section, self.buttons, accent_color=color)
-        self.add_item(container)
+            self.embed_color = status_model.get_health_based_color()
     
     def _get_bot_status_model(self) -> BotStatusModel:
         """Get current bot status as Pydantic model with health data"""
@@ -426,52 +221,229 @@ class BotStatusView(ui.LayoutView):
     async def _show_pending_restart(self):
         """Show pending restart state with appropriate color and image"""
         # Update status text
-        self.status_text.content = self._get_pending_restart_text()
+        self.status_text = self._get_pending_restart_text()
         
         # Use pending/starting state for color and image
+        from ...models.status import StatusState
         pending_color = StatusState.STARTING.color
         pending_image = StatusState.STARTING.image_url
         
         # Update thumbnail with pending image
-        self.thumbnail = ui.Thumbnail(media=pending_image)
-        
-        # Recreate the container with pending color
-        self.clear_items()
-        
-        # Recreate section with updated thumbnail and buttons
-        self.section = ui.Section(self.status_text, accessory=self.thumbnail)
-        self.buttons = StatusControlButtons(self, self.__bot_instance)
-        
-        # Create new container with pending color
-        container = ui.Container(self.section, self.buttons, accent_color=pending_color)
-        self.add_item(container)
+        self.thumbnail_url = pending_image
+        self.embed_color = pending_color
     
     def _get_status_color(self) -> discord.Color:
         """Get container color based on bot status and health"""
         status_model = self._get_bot_status_model()
         return status_model.get_health_based_color()
     
+    @ui.button(label='🔄 Refresh', style=discord.ButtonStyle.primary)
+    async def refresh_status_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        import logging
+        logger = logging.getLogger("app")
+        
+        # Get Discord ID and lookup user profile
+        discord_id = str(interaction.user.id)
+        logger.info(f"🔄 Refresh button clicked by {interaction.user} (Discord ID: {discord_id})")
+        
+        # Try to lookup user in Supabase
+        try:
+            from ....api.supabase import user_manager
+            user_profile = await user_manager.find_user_by_discord_id(discord_id)
+            if user_profile:
+                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
+            else:
+                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
+        except Exception as e:
+            logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
+        
+        try:
+            await interaction.response.defer()
+            logger.info("Refresh button interaction deferred")
+            
+            # Force refresh health data
+            try:
+                from ....utils.health_monitor import health_monitor
+                await health_monitor.force_refresh()
+                logger.info("Health data refreshed successfully")
+            except Exception as e:
+                logger.warning(f"Failed to force refresh health data: {e}")
+            
+            # Refresh the status display
+            logger.info("Refreshing status display...")
+            await self.refresh_status()
+            logger.info("Status display refreshed")
+            
+            # Create new embed with updated status
+            embed = self.create_status_embed()
+            
+            # Update the message with new embed
+            logger.info("Updating message...")
+            await interaction.followup.edit_message(
+                interaction.message.id, 
+                embed=embed,
+                view=self
+            )
+            logger.info("Message updated successfully")
+            
+            await interaction.followup.send(
+                "✅ Status refreshed!", 
+                ephemeral=True
+            )
+            logger.info("Refresh button completed successfully")
+            
+        except Exception as e:
+            logger.error(f"❌ Error in refresh button: {e}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            try:
+                await interaction.followup.send(f"❌ Error refreshing: {e}", ephemeral=True)
+            except:
+                logger.error("Failed to send error message to user")
+
+    @ui.button(label='🧹 Cleanup', style=discord.ButtonStyle.secondary)
+    async def cleanup_thread_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        import logging
+        logger = logging.getLogger("app")
+        
+        # Get Discord ID and lookup user profile
+        discord_id = str(interaction.user.id)
+        logger.info(f"🧹 Cleanup button clicked by {interaction.user} (Discord ID: {discord_id})")
+        
+        # Try to lookup user in Supabase
+        try:
+            from ....api.supabase import user_manager
+            user_profile = await user_manager.find_user_by_discord_id(discord_id)
+            if user_profile:
+                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
+            else:
+                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
+        except Exception as e:
+            logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
+        
+        try:
+            await interaction.response.defer()
+            logger.info("Cleanup button interaction deferred")
+            
+            # Clean up old messages
+            logger.info("Starting thread cleanup...")
+            deleted_count = await self.__bot_instance.cleanup_thread_messages()
+            logger.info(f"Thread cleanup completed, deleted {deleted_count} messages")
+            
+            await interaction.followup.send(
+                f"🧹 Cleaned up {deleted_count} old messages from thread", 
+                ephemeral=True
+            )
+            logger.info("Cleanup button completed successfully")
+            
+        except Exception as e:
+            logger.error(f"❌ Error in cleanup button: {e}")
+            import traceback
+            logger.error(f"Full traceback: {traceback.format_exc()}")
+            try:
+                await interaction.followup.send(f"❌ Error cleaning up: {e}", ephemeral=True)
+            except:
+                logger.error("Failed to send error message to user")
+
+    @ui.button(label='🔄 Restart', style=discord.ButtonStyle.danger)
+    async def restart_bot_button(self, interaction: discord.Interaction, button: discord.ui.Button):
+        import logging
+        logger = logging.getLogger("app")
+        
+        # Get Discord ID and lookup user profile
+        discord_id = str(interaction.user.id)
+        logger.info(f"🔄 Restart button clicked by {interaction.user} (Discord ID: {discord_id})")
+        
+        # Try to lookup user in Supabase
+        try:
+            from ....api.supabase import user_manager
+            user_profile = await user_manager.find_user_by_discord_id(discord_id)
+            if user_profile:
+                logger.info(f"   └─ Supabase user found: {user_profile.user_id} ({user_profile.email})")
+            else:
+                logger.info(f"   └─ No Supabase user profile found for Discord ID: {discord_id}")
+        except Exception as e:
+            logger.warning(f"   └─ Failed to lookup Supabase user: {e}")
+        
+        try:
+            # Check if user has permission to restart
+            if not self._has_restart_permission(interaction.user, interaction.guild):
+                logger.info(f"User {interaction.user} denied restart permission")
+                await interaction.response.send_message(
+                    "❌ You don't have permission to restart the bot. Admin role required.", 
+                    ephemeral=True
+                )
+                return
+                
+            logger.info(f"User {interaction.user} has restart permission, proceeding...")
+            await interaction.response.defer()
+            
+            # Update status to show pending restart
+            old_text = self.status_text
+            await self._show_pending_restart()
+            embed = self.create_status_embed()
+            await interaction.followup.edit_message(interaction.message.id, embed=embed, view=self)
+            
+            # Actually restart the bot
+            await self.__bot_instance.restart_bot()
+            
+            # Wait a moment for restart to complete
+            await asyncio.sleep(3)
+            
+            # Update with final status
+            await self.refresh_status()
+            embed = self.create_status_embed()
+            await interaction.followup.edit_message(interaction.message.id, embed=embed, view=self)
+            
+        except Exception as e:
+            # Restore original text if error
+            if 'old_text' in locals():
+                self.status_text = old_text
+                embed = self.create_status_embed()
+                await interaction.followup.edit_message(interaction.message.id, embed=embed, view=self)
+                
+            if "starting or stopping" in str(e).lower():
+                await interaction.followup.send("⏳ Bot is busy, please try again in a moment", ephemeral=True)
+            else:
+                await interaction.followup.send(f"❌ Error: {e}", ephemeral=True)
+    
+    def _has_restart_permission(self, user: discord.User, guild: Optional[discord.Guild]) -> bool:
+        """Check if user has permission to restart the bot"""
+        if not guild:
+            return False
+            
+        member = guild.get_member(user.id)
+        if not member:
+            return False
+            
+        # Check if user has the admin role
+        admin_role = guild.get_role(ADMIN_ROLE_ID)
+        if admin_role and admin_role in member.roles:
+            return True
+            
+        # Check if user is server owner
+        if member == guild.owner:
+            return True
+            
+        # Check if user has administrator permission
+        if member.guild_permissions.administrator:
+            return True
+            
+        return False
+    
     async def refresh_status(self):
         """Refresh the status display with new color and image"""
         # Update status text
-        self.status_text.content = self._get_status_text()
+        self.status_text = self._get_status_text()
         
         # Get new status model
         status_model = self._get_bot_status_model()
         
         # Update thumbnail with state-appropriate image
-        self.thumbnail = ui.Thumbnail(media=status_model.get_image_url())
+        self.thumbnail_url = status_model.get_image_url()
         
-        # Recreate the container with new color and image
-        self.clear_items()
-        
-        # Recreate section with updated thumbnail and buttons
-        self.section = ui.Section(self.status_text, accessory=self.thumbnail)
-        self.buttons = StatusControlButtons(self, self.__bot_instance)
-        
-        # Create new container with updated health-based color
-        container = ui.Container(self.section, self.buttons, accent_color=status_model.get_health_based_color())
-        self.add_item(container)
+        # Update embed color
+        self.embed_color = status_model.get_health_based_color()
     
     @classmethod
     async def create_with_wolf_image(cls, bot_instance: 'DiscordBotService') -> 'BotStatusView':
@@ -514,6 +486,15 @@ class BotStatusView(ui.LayoutView):
         
         return view
 
+    def create_status_embed(self) -> discord.Embed:
+        """Create a Discord embed from the current status"""
+        embed = discord.Embed(
+            description=self.status_text,
+            color=self.embed_color
+        )
+        embed.set_thumbnail(url=self.thumbnail_url)
+        return embed
+
 async def send_bot_status_embed(channel: discord.abc.Messageable, bot_instance: 'DiscordBotService') -> discord.Message:
     """
     Send a bot status embed to the specified channel
@@ -526,4 +507,5 @@ async def send_bot_status_embed(channel: discord.abc.Messageable, bot_instance: 
         The sent message
     """
     view = await BotStatusView.create_with_wolf_image(bot_instance)
-    return await channel.send(view=view)
+    embed = view.create_status_embed()
+    return await channel.send(embed=embed, view=view)
