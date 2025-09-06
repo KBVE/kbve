@@ -117,8 +117,53 @@ class TrackerManager:
                         'total_shards': total_shards
                     }
                 else:
-                    # No existing assignment - assign shard 0 for now (simplified logic)
+                    # No existing assignment - find next available shard
                     logger.info(f"Creating new assignment for {instance_id}")
+                    
+                    # Get all current active shard assignments for this cluster
+                    active_shards_result = (
+                        client.schema('tracker')
+                        .table('cluster_management')
+                        .select('shard_id')
+                        .eq('cluster_name', cluster_name)
+                        .eq('status', 'active')
+                        .execute()
+                    )
+                    
+                    # Determine which shards are already taken
+                    taken_shards = set()
+                    if active_shards_result.data:
+                        taken_shards = {row['shard_id'] for row in active_shards_result.data}
+                    
+                    # Find the next available shard ID (0 to total_shards-1)
+                    assigned_shard_id = None
+                    for shard_id in range(total_shards):
+                        if shard_id not in taken_shards:
+                            assigned_shard_id = shard_id
+                            break
+                    
+                    # If all shards are taken, take over the oldest assignment
+                    if assigned_shard_id is None:
+                        logger.warning(f"All {total_shards} shards are taken, finding oldest assignment to take over")
+                        oldest_assignment = (
+                            client.schema('tracker')
+                            .table('cluster_management')
+                            .select('*')
+                            .eq('cluster_name', cluster_name)
+                            .order('last_heartbeat', desc=False)
+                            .limit(1)
+                            .execute()
+                        )
+                        
+                        if oldest_assignment.data:
+                            assigned_shard_id = oldest_assignment.data[0]['shard_id']
+                            logger.info(f"Taking over oldest assignment: shard {assigned_shard_id}")
+                        else:
+                            # Fallback to shard 0 if no existing assignments
+                            assigned_shard_id = 0
+                            logger.warning("No existing assignments found, defaulting to shard 0")
+                    
+                    logger.info(f"Assigning shard {assigned_shard_id} to {instance_id}")
                     
                     try:
                         insert_result = (
@@ -127,7 +172,7 @@ class TrackerManager:
                             .insert({
                                 'instance_id': instance_id,
                                 'cluster_name': cluster_name,
-                                'shard_id': 0,  # Simplified: always assign shard 0
+                                'shard_id': assigned_shard_id,
                                 'total_shards': total_shards,
                                 'status': 'active',
                                 'last_heartbeat': 'now()',
@@ -141,16 +186,16 @@ class TrackerManager:
                             .execute()
                         )
                         
-                        logger.info(f"Created new assignment for {instance_id}: shard 0")
+                        logger.info(f"Created new assignment for {instance_id}: shard {assigned_shard_id}")
                         return {
-                            'shard_id': 0,
+                            'shard_id': assigned_shard_id,
                             'total_shards': total_shards
                         }
                         
                     except Exception as insert_error:
                         if 'duplicate key value violates unique constraint' in str(insert_error):
-                            logger.warning("Shard 0 already assigned, taking it over")
-                            # Take over existing shard 0
+                            logger.warning(f"Shard {assigned_shard_id} already assigned, taking it over")
+                            # Take over the assigned shard
                             takeover_result = (
                                 client.schema('tracker')
                                 .table('cluster_management')
@@ -159,17 +204,22 @@ class TrackerManager:
                                     'last_heartbeat': 'now()',
                                     'status': 'active',
                                     'hostname': os.getenv('HOSTNAME', instance_id),
+                                    'pod_ip': os.getenv('POD_IP'),
+                                    'node_name': os.getenv('NODE_NAME'),
+                                    'namespace': os.getenv('NAMESPACE', 'discord'),
+                                    'bot_version': str(VERSION),
+                                    'deployment_version': os.getenv('DEPLOYMENT_VERSION', str(VERSION)),
                                     'total_shards': total_shards
                                 })
                                 .eq('cluster_name', cluster_name)
-                                .eq('shard_id', 0)
+                                .eq('shard_id', assigned_shard_id)
                                 .execute()
                             )
                             
                             if takeover_result.data:
-                                logger.info("Successfully took over shard 0")
+                                logger.info(f"Successfully took over shard {assigned_shard_id}")
                                 return {
-                                    'shard_id': 0,
+                                    'shard_id': assigned_shard_id,
                                     'total_shards': total_shards
                                 }
                         

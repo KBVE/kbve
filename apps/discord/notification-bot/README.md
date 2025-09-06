@@ -25,3 +25,4 @@ v1.2 - Discord Bot started.
 v1.3 - Adding Sharding.
 v1.4 - Adding Supabase Integration.
 v1.5 - Granian/Rust HTTP added.
+v1.6 - Fixing the shard mismatch.
