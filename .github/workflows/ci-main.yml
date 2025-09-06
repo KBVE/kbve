@@ -62,8 +62,9 @@ jobs:
 
                   This ensures dev stays current with production fixes and updates.
                   
-                  **Auto-generated after main release**" \
-                              --label "auto-pr"
+                  **Auto-generated after main release**" 
+                  **[skip-release-pr]** - This sync should not trigger a new release PR" \
+                              --label "auto-pr,sync"
 
                           
                           echo "Created sync PR from $SYNC_BRANCH to dev"

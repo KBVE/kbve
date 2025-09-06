@@ -13,7 +13,7 @@ jobs:
     dev_to_main_pr:
         name: 'Create/Update Dev to Main PR'
         runs-on: ubuntu-latest
-        if: github.event_name == 'push' && github.ref_name == 'dev'
+        if: github.event_name == 'push' && github.ref_name == 'dev' && !contains(github.event.head_commit.message, '[skip-release-pr]')
         permissions:
             contents: read
             pull-requests: write
