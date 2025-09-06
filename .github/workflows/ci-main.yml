@@ -38,6 +38,8 @@ jobs:
         needs: ['globals']
         name: 'Call Sync Workflow'
         uses: ./.github/workflows/ci-sync.yml
+        secrets:
+          UNITY_PAT: ${{ secrets.UNITY_PAT }}
         
     alter:
         needs: ['globals']
