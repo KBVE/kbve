@@ -6,12 +6,12 @@ on:
             - 'dev'
     pull_request:
         branches:
-            - 'main'
+            - 'staging'
         types: [opened, synchronize, reopened]
 
 jobs:
-    dev_to_main_pr:
-        name: 'Create/Update Dev to Main PR'
+    dev_to_staging_pr:
+        name: 'Create/Update Dev to Staging PR'
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref_name == 'dev' && !contains(github.event.head_commit.message, '[skip-release-pr]')
         permissions:
@@ -24,7 +24,7 @@ jobs:
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Check if dev→main PR exists
+            - name: Check if dev→staging PR exists
               id: check_pr
               uses: actions/github-script@v7
               with:
@@ -34,7 +34,7 @@ jobs:
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         head: `${context.repo.owner}:dev`,
-                        base: 'main',
+                        base: 'staging',
                         state: 'open'
                       });
 
@@ -46,11 +46,11 @@ jobs:
                           url: existingPRs.data[0].html_url
                         };
                       } else {
-                        console.log('No existing dev→main PR found');
+                        console.log('No existing dev→staging PR found');
                         return { exists: false };
                       }
 
-            - name: Create new dev→main PR
+            - name: Create new dev→staging PR
               if: fromJson(steps.check_pr.outputs.result).exists == false
               id: create_pr
               uses: actions/github-script@v7
@@ -60,12 +60,12 @@ jobs:
                       const pr = await github.rest.pulls.create({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        title: 'Release: Dev → Main',
+                        title: 'Release: Dev → Staging',
                         head: 'dev',
-                        base: 'main',
-                        body: `## 🚀 Release: Dev → Main
+                        base: 'staging',
+                        body: `## 🚀 Release: Dev → Staging
                         
-                        This PR contains accumulated changes from the dev branch ready for production.
+                        This PR contains accumulated changes from the dev branch ready for staging environment.
                         
                         ### Changes will be categorized below...
                         
@@ -79,7 +79,7 @@ jobs:
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         issue_number: pr.data.number,
-                        labels: ['auto-pr', 'release', 'dev→main']
+                        labels: ['auto-pr', 'staging']
                       });
 
                       console.log(`Created PR #${pr.data.number}`);
@@ -106,11 +106,11 @@ jobs:
                         return;
                       }
 
-                      // Get commits between main and dev
+                      // Get commits between staging and dev
                       const comparison = await github.rest.repos.compareCommits({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        base: 'main',
+                        base: 'staging',
                         head: 'dev'
                       });
 
@@ -148,8 +148,8 @@ jobs:
                       });
 
                       // Build PR body
-                      let prBody = `## 🚀 Release: Dev → Main\n\n`;
-                      prBody += `**${commits.length} commits** ready for production\n\n`;
+                      let prBody = `## 🚀 Release: Dev → Staging\n\n`;
+                      prBody += `**${commits.length} commits** ready for staging\n\n`;
 
                       if (categories.feat.length > 0) {
                         prBody += `### ✨ Features\n${categories.feat.join('\n')}\n\n`;
@@ -190,9 +190,9 @@ jobs:
             branch: 'dev'
 
     validate_pr:
-        name: 'Validate Dev→Main PR'
+        name: 'Validate Dev→Staging PR'
         runs-on: ubuntu-latest
-        if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'dev'
+        if: github.event_name == 'pull_request' && github.base_ref == 'staging' && github.head_ref == 'dev'
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -201,7 +201,7 @@ jobs:
 
             - name: Validate release PR
               run: |
-                  echo "Validating dev→main release PR"
+                  echo "Validating dev→staging release PR"
                   echo "Base: ${{ github.base_ref }}"
                   echo "Head: ${{ github.head_ref }}"
                   echo "PR Number: ${{ github.event.number }}"
@@ -211,4 +211,4 @@ jobs:
                   # - Validate version bumps
                   # - Run integration tests
 
-                  echo "Release PR validation completed"
+                  echo "Staging PR validation completed"
