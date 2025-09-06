@@ -94,7 +94,7 @@ jobs:
                   done
                   
                   echo "Cleanup completed"
-
+                  
     close_merge_conflict_issues:
         needs: ['globals']
         name: 'Close Merge Conflict Issues'
