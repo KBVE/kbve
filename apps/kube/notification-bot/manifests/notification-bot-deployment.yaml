@@ -16,7 +16,7 @@ spec:
       serviceAccountName: notification-bot
       containers:
       - name: notification-bot
-        image: kbve/notification-bot:1.6
+        image: kbve/notification-bot:1.7
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000
