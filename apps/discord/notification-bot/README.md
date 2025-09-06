@@ -28,3 +28,4 @@ v1.5.0  - Granian/Rust HTTP added.
 v1.6.0  - Fixing the shard mismatch.
 v1.7.0  - Reverting to automatic shards.
 v1.7.1  - Fixing the smaller issue of the status message.
+v1.7.2  - Adjusting Auto Scaling / Distributed Sharding

@@ -41,19 +41,35 @@ class DiscordBotService:
             return self._bot
         
         try:
-            # Get Discord token from vault
-            secret_id = "39781c47-be8f-4a10-ae3a-714da299ca07"
-            result = await vault_manager.get_vault_secret(secret_id)
+            # Check if we're in development mode and have env vars set
+            python_env = os.getenv('PYTHON_ENV', '').lower()
+            is_development = python_env == 'development'
             
-            if not result.success:
-                raise Exception(f"Failed to retrieve Discord token: {result.error}")
+            # Try to get token from environment variables first if in development
+            env_token = None
+            if is_development:
+                env_token = (os.getenv('DISCORD_BOT') or 
+                            os.getenv('DISCORD_BOT_TOKEN') or 
+                            os.getenv('DISCORD_TOKEN'))
             
-            # Extract the token from the secret data
-            secret_data = result.data
-            if not secret_data or 'decrypted_secret' not in secret_data:
-                raise Exception("Discord token not found in vault secret")
-            
-            self._token = secret_data['decrypted_secret']
+            if env_token:
+                logger.info("Using Discord token from environment variables (development mode)")
+                self._token = env_token
+            else:
+                # Fallback to Supabase vault for production or when env vars not set
+                logger.info("Retrieving Discord token from Supabase vault")
+                secret_id = "39781c47-be8f-4a10-ae3a-714da299ca07"
+                result = await vault_manager.get_vault_secret(secret_id)
+                
+                if not result.success:
+                    raise Exception(f"Failed to retrieve Discord token: {result.error}")
+                
+                # Extract the token from the secret data
+                secret_data = result.data
+                if not secret_data or 'decrypted_secret' not in secret_data:
+                    raise Exception("Discord token not found in vault secret")
+                
+                self._token = secret_data['decrypted_secret']
             
             # Create Discord bot with intents
             intents = discord.Intents.default()
@@ -69,26 +85,42 @@ class DiscordBotService:
             # Import master server constant for forced guild joining
             from ..supabase.constants import MASTER_SERVER
             
-            # Check if we should use distributed sharding
+            # Check sharding configuration - priority order matters
+            use_auto_scaling = os.getenv('USE_AUTO_SCALING', 'false').lower() == 'true'
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
+            
+            logger.info(f"USE_AUTO_SCALING environment variable: {os.getenv('USE_AUTO_SCALING', 'not set')}")
             logger.info(f"USE_DISTRIBUTED_SHARDING environment variable: {os.getenv('USE_DISTRIBUTED_SHARDING', 'not set')}")
+            logger.info(f"Auto-scaling enabled: {use_auto_scaling}")
             logger.info(f"Distributed sharding enabled: {use_distributed_sharding}")
             
-            # Always use AutoShardedClient for distributed deployments
-            # Let Discord.py determine optimal shard count and assignments
-            # We'll track what it actually does rather than trying to control it
-            
-            if use_distributed_sharding:
-                logger.info(f"Using AutoShardedClient with automatic shard determination for instance {instance_id}")
-                # Force a minimum shard count for distributed deployments
+            if use_auto_scaling:
+                # Auto-scaling: All shards in one process using AutoShardedClient
+                logger.info(f"Using AutoShardedClient with all shards in one process for instance {instance_id}")
                 suggested_shard_count = int(os.getenv('TOTAL_SHARDS', '2'))
                 self._bot = discord.AutoShardedClient(
                     intents=intents,
                     shard_count=suggested_shard_count  # Suggest minimum, Discord may use more
                 )
-                logger.info(f"Created AutoShardedClient with suggested {suggested_shard_count} shards")
+                logger.info(f"Created AutoShardedClient with {suggested_shard_count} shards in one process")
+                
+            elif use_distributed_sharding:
+                # True distributed sharding: One shard per container using manual Client
+                shard_id = int(os.getenv('SHARD_ID', '0'))
+                shard_count = int(os.getenv('SHARD_COUNT', '2'))
+                
+                logger.info(f"Using true distributed sharding for instance {instance_id}")
+                logger.info(f"This container will run shard {shard_id} of {shard_count} total shards")
+                
+                self._bot = discord.Client(
+                    intents=intents,
+                    shard_id=shard_id,
+                    shard_count=shard_count
+                )
+                logger.info(f"Created distributed Client for shard {shard_id}/{shard_count}")
+                
             else:
-                # Traditional environment variable sharding or auto-sharding
+                # Fallback: Traditional environment variable sharding or single instance auto-sharding
                 shard_id = int(os.getenv('SHARD_ID', '-1'))
                 shard_count = int(os.getenv('SHARD_COUNT', '1'))
                 
@@ -99,11 +131,11 @@ class DiscordBotService:
                         shard_id=shard_id,
                         shard_count=shard_count
                     )
-                    logger.info(f"Using env-based manual sharding: shard {shard_id}/{shard_count}")
+                    logger.info(f"Using fallback manual sharding: shard {shard_id}/{shard_count}")
                 else:
                     # Auto-sharding for single instance
                     self._bot = discord.AutoShardedClient(intents=intents)
-                    logger.info("Using auto-sharding for single instance")
+                    logger.info("Using fallback auto-sharding for single instance")
             
             # Set up event handlers
             self._setup_event_handlers()
@@ -182,9 +214,10 @@ class DiscordBotService:
             # Start periodic heartbeat task (database tracking only)
             await self._start_periodic_heartbeat()
             
-            # Update heartbeat for distributed sharding
+            # Update heartbeat for sharding configurations that need tracking
+            use_auto_scaling = os.getenv('USE_AUTO_SCALING', 'false').lower() == 'true'
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
-            if use_distributed_sharding:
+            if use_auto_scaling or use_distributed_sharding:
                 instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
                 cluster_name = os.getenv('CLUSTER_NAME', 'default')
                 guild_count = len(self._bot.guilds)
@@ -201,7 +234,8 @@ class DiscordBotService:
                     guild_count=guild_count,
                     latency_ms=latency_ms
                 )
-                logger.info(f"Updated heartbeat for distributed sharding: {guild_count} guilds, {latency_ms:.2f}ms latency")
+                sharding_type = "auto-scaling" if use_auto_scaling else "distributed"
+                logger.info(f"Updated heartbeat for {sharding_type} sharding: {guild_count} guilds, {latency_ms:.2f}ms latency")
             
             # Verify master server connection and control
             await self._verify_master_server_control()
@@ -258,9 +292,10 @@ class DiscordBotService:
     async def _periodic_heartbeat(self):
         """Perform periodic database heartbeat tracking only"""
         try:
-            # Update database heartbeat only
+            # Update database heartbeat only for configurations that need tracking
+            use_auto_scaling = os.getenv('USE_AUTO_SCALING', 'false').lower() == 'true'
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
-            if use_distributed_sharding:
+            if use_auto_scaling or use_distributed_sharding:
                 instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
                 cluster_name = os.getenv('CLUSTER_NAME', 'default')
                 guild_count = len(self._bot.guilds) if self._bot.guilds else 0
@@ -279,7 +314,8 @@ class DiscordBotService:
                     guild_count=guild_count,
                     latency_ms=latency_ms
                 )
-                logger.debug(f"Updated database heartbeat: {guild_count} guilds, {latency_ms:.2f}ms latency")
+                sharding_type = "auto-scaling" if use_auto_scaling else "distributed"
+                logger.debug(f"Updated database heartbeat ({sharding_type}): {guild_count} guilds, {latency_ms:.2f}ms latency")
             
         except Exception as e:
             logger.error(f"Error in periodic heartbeat: {e}")
@@ -428,8 +464,9 @@ class DiscordBotService:
     async def _record_actual_shard_assignment(self, actual_shards: list):
         """Record what Discord.py actually assigned to this instance"""
         try:
+            use_auto_scaling = os.getenv('USE_AUTO_SCALING', 'false').lower() == 'true'
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
-            if not use_distributed_sharding:
+            if not (use_auto_scaling or use_distributed_sharding):
                 return
             
             from ..supabase import tracker_manager
@@ -519,9 +556,10 @@ class DiscordBotService:
     async def _update_shutdown_status(self):
         """Update database status to stopping for tracking"""
         try:
-            # Update database status to stopping
+            # Update database status to stopping for configurations that need tracking
+            use_auto_scaling = os.getenv('USE_AUTO_SCALING', 'false').lower() == 'true'
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
-            if use_distributed_sharding:
+            if use_auto_scaling or use_distributed_sharding:
                 from ..supabase import tracker_manager
                 instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
                 cluster_name = os.getenv('CLUSTER_NAME', 'default')
@@ -792,9 +830,10 @@ class DiscordBotService:
             # Close the bot
             await self._bot.close()
             
-            # Clean up shard assignment if using distributed sharding
+            # Clean up shard assignment if using sharding configurations that need tracking
+            use_auto_scaling = os.getenv('USE_AUTO_SCALING', 'false').lower() == 'true'
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
-            if use_distributed_sharding:
+            if use_auto_scaling or use_distributed_sharding:
                 instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
                 cluster_name = os.getenv('CLUSTER_NAME', 'default')
                 await tracker_manager.cleanup_shard_assignment(instance_id, cluster_name)

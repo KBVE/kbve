@@ -16,7 +16,7 @@ spec:
       serviceAccountName: notification-bot
       containers:
       - name: notification-bot
-        image: kbve/notification-bot:1.7.1
+        image: kbve/notification-bot:1.7.2
         imagePullPolicy: IfNotPresent
         ports:
         - containerPort: 3000
@@ -44,10 +44,12 @@ spec:
               name: supabase-shared
               key: db-url
         # Distributed sharding configuration
+        - name: USE_AUTO_SCALING
+          value: "false"
         - name: USE_DISTRIBUTED_SHARDING
-          value: "true"
+          value: "false"
         - name: CLUSTER_NAME
-          value: "main-cluster"
+          value: "main-cluster-notify-py"
         - name: TOTAL_SHARDS
           value: "2"
         resources:
