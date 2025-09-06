@@ -181,8 +181,10 @@ jobs:
                 
                 if [[ "${{ fromJson(steps.check_pr.outputs.result).exists }}" == "true" ]]; then
                   echo "Existing PR: ${{ fromJson(steps.check_pr.outputs.result).url }}"
-                else
+                elif [[ "${{ steps.create_pr.outputs.result }}" != "" ]]; then
                   echo "New PR created: ${{ fromJson(steps.create_pr.outputs.result).url }}"
+                else
+                  echo "PR processing completed"
                 fi
                 
                 echo ""

@@ -19,35 +19,54 @@ jobs:
                   script: |
                       const { owner, repo } = context.repo;
 
-                      // 1) Read main's tip SHA
+                      // Get both main and dev branch info
                       const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
-                      const sha = main.data.commit.sha;
+                      const mainSha = main.data.commit.sha;
 
-                      // 2) Try to move dev (force). If it doesn't exist, create it.
+                      let devSha;
                       try {
-                          await github.rest.git.updateRef({
-                              owner,
-                              repo,
-                              ref: 'heads/dev',
-                              sha,
-                              force: true,
-                          });
-                          console.log(`Moved dev to ${sha}`);
+                        const dev = await github.rest.repos.getBranch({ owner, repo, branch: 'dev' });
+                        devSha = dev.data.commit.sha;
                       } catch (e) {
-                          if (e.status === 422) {
-                              // ref not found -> create
-                              await github.rest.git.createRef({
-                                  owner,
-                                  repo,
-                                  ref: 'refs/heads/dev',
-                                  sha,
-                              });
-                              console.log(`Created dev at ${sha}`);
-                          } else if (e.status === 403) {
-                              throw new Error('Forbidden by branch protection. Ensure your PAT actor is allowed to bypass or force-push to dev.');
-                          } else {
-                              throw e;
-                          }
+                        if (e.status === 404) {
+                          // Dev doesn't exist, safe to create
+                          await github.rest.git.createRef({
+                            owner,
+                            repo,
+                            ref: 'refs/heads/dev',
+                            sha: mainSha,
+                          });
+                          console.log(`Created dev branch at ${mainSha}`);
+                          return;
+                        }
+                        throw e;
+                      }
+
+                      // Check if main is ahead of dev (safe to fast-forward)
+                      const comparison = await github.rest.repos.compareCommits({
+                        owner,
+                        repo,
+                        base: devSha,
+                        head: mainSha
+                      });
+
+                      if (comparison.data.ahead_by === 0) {
+                        console.log('Dev is already up to date with main');
+                      } else if (comparison.data.behind_by === 0) {
+                        // Dev is ahead - this would be destructive
+                        console.log('⚠️ Dev is ahead of main by', comparison.data.ahead_by, 'commits');
+                        console.log('Skipping sync to avoid losing commits');
+                        core.setFailed('Dev branch is ahead of main. Manual intervention required.');
+                      } else {
+                        // Safe to fast-forward
+                        await github.rest.git.updateRef({
+                          owner,
+                          repo,
+                          ref: 'heads/dev',
+                          sha: mainSha,
+                          force: false, // No force needed for fast-forward
+                        });
+                        console.log(`Fast-forwarded dev to ${mainSha}`);
                       }
 
     sync_delete_create_stage:
