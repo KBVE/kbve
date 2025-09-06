@@ -29,24 +29,42 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            - name: Sync dev branch with main
+            - name: Update dev branch (forward-only merge)
               run: |
-                  echo "🔄 Syncing dev branch with main to prevent atomic workflow conflicts..."
+                  echo "Updating dev branch with latest main changes..."
                   
                   # Fetch all branches
                   git fetch origin
                   
-                  # Check if dev branch exists remotely
+                  # Check if dev branch exists
                   if git ls-remote --exit-code --heads origin dev > /dev/null 2>&1; then
-                      echo "Dev branch exists, updating it to match main..."
-                      git checkout -B dev origin/main
-                      git push --force-with-lease origin dev
-                      echo "✅ Dev branch updated to match main"
+                      echo "Dev branch exists, merging main into dev..."
+                      
+                      # Switch to dev and pull latest
+                      git checkout dev
+                      git pull origin dev
+                      
+                      # Merge main into dev (forward-only, no force)
+                      if git merge origin/main --no-ff -m "Merge main into dev after production release"; then
+                          git push origin dev
+                          echo "Successfully merged main into dev"
+                      else
+                          echo "Merge conflicts detected - manual resolution required"
+                          echo "This is normal if dev has unreleased changes"
+                          git merge --abort
+                          
+                          # Create an issue for manual resolution
+                          echo "Creating issue for manual dev sync..."
+                          gh issue create \
+                              --title "Manual dev sync required after main release" \
+                              --body "Main branch was updated but couldn't auto-merge into dev due to conflicts. Please manually sync when ready." \
+                              --label "dev-sync-needed"
+                      fi
                   else
-                      echo "Dev branch doesn't exist, creating it from main..."
-                      git checkout -b dev
+                      echo "Dev branch doesn't exist, creating from main..."
+                      git checkout -b dev origin/main
                       git push origin dev
-                      echo "✅ Dev branch created from main"
+                      echo "Created dev branch from main"
                   fi
                   
                   # Switch back to main
@@ -55,8 +73,234 @@ jobs:
             - name: Calculate SHA-256 Hash
               id: hash
               run: |
-                  echo "::set-output name=sha256head::$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')"
+                  echo "sha256head=$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')" >> $GITHUB_OUTPUT
 
+            - name: Cleanup any orphaned atomic branches
+              run: |
+                  echo "Cleaning up orphaned atomic branches..."
+                  
+                  # Find atomic branches that are fully merged into main
+                  git branch -r --merged origin/main | grep "origin/atom-" | sed 's/origin\///' | while read -r branch; do
+                      if [[ "$branch" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
+                          echo "Deleting merged atomic branch: $branch"
+                          git push origin --delete "$branch" || echo "Branch $branch already deleted"
+                      fi
+                  done
+                  
+                  echo "Cleanup completed"
+
+    close_merge_conflict_issues:
+        needs: ['globals']
+        name: 'Close Merge Conflict Issues'
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            contents: read
+        steps:
+            - name: Close resolved merge conflict issues
+              uses: actions/github-script@v7
+              with:
+                github-token: ${{ secrets.GITHUB_TOKEN }}
+                script: |
+                  // Find open merge conflict issues for atomic branches
+                  const openIssues = await github.rest.issues.listForRepo({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    state: 'open',
+                    labels: 'merge-conflict'
+                  });
+                  
+                  console.log(`Found ${openIssues.data.length} open merge conflict issues`);
+                  
+                  for (const issue of openIssues.data) {
+                    // Extract branch name from issue title: "Merge conflict: atom-09060626-fixing-main-ci → dev"
+                    const branchMatch = issue.title.match(/Merge conflict: (atom-[a-zA-Z0-9-]+)/);
+                    
+                    if (branchMatch) {
+                      const branchName = branchMatch[1];
+                      console.log(`Checking if branch ${branchName} still exists...`);
+                      
+                      // Check if the atomic branch still exists
+                      try {
+                        await github.rest.repos.getBranch({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          branch: branchName
+                        });
+                        console.log(`Branch ${branchName} still exists, keeping issue open`);
+                      } catch (error) {
+                        if (error.status === 404) {
+                          // Branch doesn't exist anymore, close the issue
+                          await github.rest.issues.update({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: issue.number,
+                            state: 'closed'
+                          });
+                          
+                          await github.rest.issues.createComment({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: issue.number,
+                            body: `Merge conflict resolved! The atomic branch \`${branchName}\` was successfully merged and deleted.`
+                          });
+                          
+                          console.log(`Closed merge conflict issue #${issue.number} for ${branchName}`);
+                        }
+                      }
+                    } else {
+                      console.log(`Could not extract branch name from issue title: "${issue.title}"`);
+                    }
+                  }
+                  
+                  console.log('Merge conflict cleanup completed')
+
+
+    close_merged_issues:
+        needs: ['globals']
+        name: 'Close Merged Issues'
+        runs-on: ubuntu-latest
+        permissions:
+            issues: write
+            contents: read
+        steps:
+            - name: Close issues with explicit keywords
+              uses: actions/github-script@v7
+              with:
+                github-token: ${{ secrets.GITHUB_TOKEN }}
+                script: |
+                  // Get the commits in this push to main
+                  const commits = await github.rest.repos.listCommits({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    sha: context.sha,
+                    per_page: 50
+                  });
+                  
+                  console.log(`Checking ${commits.data.length} commits for explicit issue closures...`);
+                  
+                  const closedIssues = new Set();
+                  
+                  for (const commit of commits.data) {
+                    const message = commit.commit.message;
+                    console.log(`Checking commit: ${commit.sha.substring(0, 7)} - ${message.split('\n')[0]}`);
+                    
+                    // ONLY explicit close keywords WITH exclamation mark prefix
+                    const issuePatterns = [
+                      /!(?:fix(?:es)?|close(?:s)?|resolve(?:s)?)\s+#(\d+)/gi
+                    ];
+                    
+                    for (const pattern of issuePatterns) {
+                      let match;
+                      while ((match = pattern.exec(message)) !== null) {
+                        const issueNumber = parseInt(match[1]);
+                        if (!closedIssues.has(issueNumber)) {
+                          closedIssues.add(issueNumber);
+                          console.log(`Found explicit closure: ${match[0]} -> #${issueNumber}`);
+                        }
+                      }
+                    }
+                  }
+                  
+                  // Close the explicitly referenced issues
+                  for (const issueNumber of closedIssues) {
+                    try {
+                      // Check if issue exists and is open
+                      const issue = await github.rest.issues.get({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: issueNumber
+                      });
+                      
+                      if (issue.data.state === 'open') {
+                        // Close the issue
+                        await github.rest.issues.update({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: issueNumber,
+                          state: 'closed'
+                        });
+                        
+                        // Add a comment explaining the closure
+                        await github.rest.issues.createComment({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: issueNumber,
+                          body: `This issue was automatically closed because it was explicitly resolved in the main branch.\n\n**Merge commit:** ${context.sha.substring(0, 7)}\n**Workflow:** [${context.workflow}](${context.payload.repository.html_url}/actions/runs/${context.runId})`
+                        });
+                        
+                        console.log(`Closed issue #${issueNumber}`);
+                      } else {
+                        console.log(`Issue #${issueNumber} is already ${issue.data.state}`);
+                      }
+                    } catch (error) {
+                      if (error.status === 404) {
+                        console.log(`Issue #${issueNumber} not found`);
+                      } else {
+                        console.log(`Error processing issue #${issueNumber}: ${error.message}`);
+                      }
+                    }
+                  }
+                  
+                  if (closedIssues.size === 0) {
+                    console.log('No explicit issue closures found in commits');
+                  } else {
+                    console.log(`Processed ${closedIssues.size} explicit issue closure(s)`);
+                  }
+
+            - name: Close resolved merge conflict issues
+              uses: actions/github-script@v7
+              with:
+                github-token: ${{ secrets.GITHUB_TOKEN }}
+                script: |
+                  // Close any open merge conflict issues that may have been resolved
+                  const openIssues = await github.rest.issues.listForRepo({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    state: 'open',
+                    labels: 'merge-conflict'
+                  });
+                  
+                  console.log(`Found ${openIssues.data.length} open merge conflict issues`);
+                  
+                  for (const issue of openIssues.data) {
+                    // Extract branch name from issue title: "Merge conflict: atom-09060626-fixing-main-ci → dev"
+                    const branchMatch = issue.title.match(/Merge conflict: (atom-[a-zA-Z0-9-]+)/);
+                    
+                    if (branchMatch) {
+                      const branchName = branchMatch[1];
+                      
+                      // Check if the atomic branch still exists
+                      try {
+                        await github.rest.repos.getBranch({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          branch: branchName
+                        });
+                        console.log(`Branch ${branchName} still exists, keeping issue open`);
+                      } catch (error) {
+                        if (error.status === 404) {
+                          // Branch doesn't exist anymore, close the issue
+                          await github.rest.issues.update({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: issue.number,
+                            state: 'closed'
+                          });
+                          
+                          await github.rest.issues.createComment({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            issue_number: issue.number,
+                            body: `Merge conflict resolved! The atomic branch \`${branchName}\` was successfully merged and deleted.`
+                          });
+                          
+                          console.log(`Closed merge conflict issue #${issue.number} for ${branchName}`);
+                        }
+                      }
+                    }
+                  }
+    
     alter:
         needs: ['globals']
         name: 'Alpha Alters'
