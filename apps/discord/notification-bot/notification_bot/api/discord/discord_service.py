@@ -41,19 +41,35 @@ class DiscordBotService:
             return self._bot
         
         try:
-            # Get Discord token from vault
-            secret_id = "39781c47-be8f-4a10-ae3a-714da299ca07"
-            result = await vault_manager.get_vault_secret(secret_id)
+            # Check if we're in development mode and have env vars set
+            python_env = os.getenv('PYTHON_ENV', '').lower()
+            is_development = python_env == 'development'
             
-            if not result.success:
-                raise Exception(f"Failed to retrieve Discord token: {result.error}")
+            # Try to get token from environment variables first if in development
+            env_token = None
+            if is_development:
+                env_token = (os.getenv('DISCORD_BOT') or 
+                            os.getenv('DISCORD_BOT_TOKEN') or 
+                            os.getenv('DISCORD_TOKEN'))
             
-            # Extract the token from the secret data
-            secret_data = result.data
-            if not secret_data or 'decrypted_secret' not in secret_data:
-                raise Exception("Discord token not found in vault secret")
-            
-            self._token = secret_data['decrypted_secret']
+            if env_token:
+                logger.info("Using Discord token from environment variables (development mode)")
+                self._token = env_token
+            else:
+                # Fallback to Supabase vault for production or when env vars not set
+                logger.info("Retrieving Discord token from Supabase vault")
+                secret_id = "39781c47-be8f-4a10-ae3a-714da299ca07"
+                result = await vault_manager.get_vault_secret(secret_id)
+                
+                if not result.success:
+                    raise Exception(f"Failed to retrieve Discord token: {result.error}")
+                
+                # Extract the token from the secret data
+                secret_data = result.data
+                if not secret_data or 'decrypted_secret' not in secret_data:
+                    raise Exception("Discord token not found in vault secret")
+                
+                self._token = secret_data['decrypted_secret']
             
             # Create Discord bot with intents
             intents = discord.Intents.default()

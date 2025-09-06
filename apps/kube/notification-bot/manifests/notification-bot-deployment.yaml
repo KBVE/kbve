@@ -47,7 +47,7 @@ spec:
         - name: USE_DISTRIBUTED_SHARDING
           value: "true"
         - name: CLUSTER_NAME
-          value: "main-cluster"
+          value: "main-cluster-notify-py"
         - name: TOTAL_SHARDS
           value: "2"
         resources:
