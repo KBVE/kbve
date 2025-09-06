@@ -1,9 +1,34 @@
 #!/bin/bash
 
-# Define internals
-#[v01d]
-#[ulid]:01HQH3MJ9FVHC4C2H68SV5SSMB
-#[path]:/kbve.sh
+#==============================================================================
+# KBVE Development Environment Management Script
+#==============================================================================
+# Description: Comprehensive toolchain manager for KBVE monorepo development
+# Version: 2.0.0
+# Author: KBVE Team
+# Repository: https://github.com/KBVE/kbve
+# Last Updated: 2025-09-05
+# Docs: https://kbve.com/docs/
+#
+# This script provides automated installation, configuration, and management
+# utilities for the KBVE development environment including:
+# - Language runtimes (Rust, Node.js, Python, .NET)
+# - Package managers (pnpm, Poetry, Cargo)
+# - Development tools (tmux session management, git workflows)
+# - Build systems (Nx monorepo tooling)
+# - Container preparation and deployment utilities
+#
+# Usage Examples:
+#   ./kbve.sh -install          # Install monorepo dependencies
+#   ./kbve.sh -atomic "feature" # Create atomic git branch
+#   ./kbve.sh -nx build app     # Run Nx build command
+#   ./kbve.sh -studio           # Launch development studio
+#
+# For full command reference, see the case statement at the bottom of this file
+#==============================================================================
+
+# Script Configuration
+
 
 UNTIY_SUBMODULE_PATH="/apps/saber/Assets/Plugins"
 UNITY_SUBMODULE_URL="https://github.com/KBVE/unity-plugins-rentearth.git"
@@ -163,6 +188,17 @@ check_root() {
     [ "$(id -u)" -eq 0 ] && echo "true" || echo "false"
 }
 
+prepare_hyperlane_container() {
+    echo "Cleaning hyperlane/dist..."
+    rm -rf ./apps/kbve/kbve-hyperlane/dist/
+
+    echo "Creating dist directory..."
+    mkdir -p ./apps/kbve/kbve-hyperlane/dist/
+
+    echo "Copying Astro build out..."
+    cp -a ./dist/apps/astro-kbve/. ./apps/kbve/kbve-hyperlane/dist/
+}
+
 # Function to help prepare the Disoxide Container
 prepare_disoxide_container() {
     echo "Cleaning disoxide/dist..."
@@ -186,23 +222,63 @@ prepare_disoxide_container() {
 # Function for atomic patching. 
 atomic_function() {
     set -e
-
-    git switch dev
-
-    git pull
-
-    GIT_DATE=$(date +'%m-%d-%Y-%s')
-
-    if [ "$#" -eq "0" ]; then
-        PATCH_NAME="patch-atomic-${GIT_DATE}"
-    else
-        UNFORMAT_PATCH=$(echo "$@" | tr ' ' '-')
-        NEW_PATCH="${UNFORMAT_PATCH//[^[:alnum:]-]/-}"
-        NEW_PATCH=$(echo "$NEW_PATCH" | tr '[:upper:]' '[:lower:]')
-        PATCH_NAME="patch-atomic-${NEW_PATCH}-${GIT_DATE}"
+    
+    echo "Creating atomic branch..."
+    
+    # Fetch latest changes
+    git fetch origin
+    
+    # Always start from a fresh dev branch to avoid any local divergence
+    echo "Setting up fresh dev branch..."
+    
+    # Delete local dev if it exists (to avoid any divergence issues)
+    if git show-ref --verify --quiet refs/heads/dev; then
+        echo "Deleting local dev branch to start fresh..."
+        git branch -D dev 2>/dev/null || true
     fi
-
-    git switch -c "${PATCH_NAME}"
+    
+    # Create fresh local dev branch from remote
+    git switch -c dev origin/dev
+    echo "Fresh dev branch created from origin/dev"
+    
+    # Generate timestamp
+    GIT_DATE=$(date +'%m%d%H%M')  # Format: MMDDHHMM (e.g., 12151430)
+    
+    # Build branch name with description
+    if [ "$#" -eq "0" ]; then
+        PATCH_NAME="atom-${GIT_DATE}"
+    else
+        # Clean the description: lowercase, spaces to hyphens, remove special chars
+        DESCRIPTION=$(echo "$@" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g' | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
+        PATCH_NAME="atom-${GIT_DATE}-${DESCRIPTION}"
+    fi
+    
+    # Validate branch name matches CI workflow requirements
+    if [[ ! "$PATCH_NAME" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
+        echo "Generated branch name '$PATCH_NAME' is invalid!"
+        return 1
+    fi
+    
+    # Length check (same as CI workflow)
+    if [[ ${#PATCH_NAME} -gt 50 ]]; then
+        echo "Branch name too long: ${#PATCH_NAME} characters (max 50)"
+        echo "Try a shorter description"
+        return 1
+    fi
+    
+    # Check if branch already exists remotely
+    if git ls-remote --exit-code --heads origin "$PATCH_NAME" > /dev/null 2>&1; then
+        echo "Branch '$PATCH_NAME' already exists remotely!"
+        return 1
+    fi
+    
+    # Create the atomic branch
+    echo "Creating atomic branch: $PATCH_NAME"
+    git switch -c "$PATCH_NAME"
+    
+    echo "Atomic branch '$PATCH_NAME' created from fresh dev!"
+    echo "When ready: git add . && git commit -m 'your message' && git push origin $PATCH_NAME"
+    echo "This will automatically create a PR to dev branch"
 }
 
 # Function for the zeta script
@@ -551,6 +627,9 @@ case "$1" in
         ;;
     -ulid)
         generate_ulid
+        ;;
+    -preparehyperlane)
+        prepare_hyperlane_container
         ;;
     -preparecontainer)
         prepare_disoxide_container

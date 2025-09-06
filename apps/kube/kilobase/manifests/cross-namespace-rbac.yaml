@@ -1,0 +1,70 @@
+---
+# Cross-namespace RBAC for external services to access kilobase secrets
+# This allows the notification-bot service account from the discord namespace
+# to read specific secrets in the kilobase namespace for External Secrets Operator
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kilobase-secrets-reader-for-discord
+  namespace: kilobase
+  labels:
+    app.kubernetes.io/name: kilobase
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/managed-by: argocd
+rules:
+- apiGroups: [""]
+  resources: ["secrets"]
+  resourceNames: ["supabase-jwt", "supabase-postgres", "supabase-db"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: notification-bot-read-secrets
+  namespace: kilobase
+  labels:
+    app.kubernetes.io/name: kilobase
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/managed-by: argocd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kilobase-secrets-reader-for-discord
+subjects:
+- kind: ServiceAccount
+  name: notification-bot
+  namespace: discord
+---
+# Additional role for reading services/endpoints if needed
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: kilobase-services-reader-for-discord
+  namespace: kilobase
+  labels:
+    app.kubernetes.io/name: kilobase
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/managed-by: argocd
+rules:
+- apiGroups: [""]
+  resources: ["services", "endpoints"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: notification-bot-read-services
+  namespace: kilobase
+  labels:
+    app.kubernetes.io/name: kilobase
+    app.kubernetes.io/component: rbac
+    app.kubernetes.io/managed-by: argocd
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: kilobase-services-reader-for-discord
+subjects:
+- kind: ServiceAccount
+  name: notification-bot
+  namespace: discord

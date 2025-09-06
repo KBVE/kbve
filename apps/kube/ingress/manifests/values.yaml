@@ -16,15 +16,14 @@ controller:
         enable-real-ip: "true"
         real-ip-header: "X-Forwarded-For"
         real-ip-recursive: "on"
-        custom-http-errors: "403,404,500,502,503"
 
         # Critical for handling large headers/tokens
-        proxy-buffer-size: "32k"
-        proxy-buffers: "8 32k"
-        proxy-busy-buffers-size: "64k"
-        large-client-header-buffers: "8 64k"
-        client-header-buffer-size: "32k"
-        client-body-buffer-size: "32k"
+        proxy-buffer-size: "160k"
+        proxy-buffers: "64 160k"
+        proxy-busy-buffers-size: "320k"
+        large-client-header-buffers: "64 160k"
+        client-header-buffer-size: "160k"
+        client-body-buffer-size: "160k"
         
         # Increase timeouts
         proxy-connect-timeout: "300"
@@ -51,14 +50,6 @@ controller:
         proxy-body-size: "50m"
 
 
-    extraVolumes:
-        - name: custom-error-pages
-          configMap:
-            name: custom-error-pages
-
-    extraVolumeMounts:
-        - name: custom-error-pages
-          mountPath: /etc/nginx/errorpages
 
     metrics:
         enabled: true

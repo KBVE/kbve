@@ -22,16 +22,19 @@
     "com.rlabrecque.steamworks.net",
     "ObservableCollections",
     "Unity.TextMeshPro",
-    "R3"
+    "R3",
+    "Supabase",
+    "Supabase.Postgrest",
+    "Supabase.Realtime",
+    "Supabase.Gotrue",
+    "Supabase.Storage",
+    "Supabase.Functions"
   ],
   "includePlatforms": [
         "Editor",
         "LinuxStandalone64",
         "macOSStandalone",
-        "WindowsStandalone32",
-        "WindowsStandalone64",
-        "WindowsStandalone32Server",
-        "WindowsStandalone64Server"
+        "WindowsStandalone64"
     ],
   "excludePlatforms": [],
   "allowUnsafeCode": false,

@@ -12,3 +12,6 @@ v1.4.3 - Minor errors with the routes.
 v1.4.4 - Adding additional static routes.
 v1.4.5 - Added static categories via `/cat/$`.
 v1.4.6 - CORS Issues.
+v1.4.7 - Demo of the Realtime.
+v1.4.8 - Deployment of Realtime.
+v1.4.9 - Added Co Author Richie The Meme God

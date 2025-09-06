@@ -1,0 +1,110 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: storage-api
+  namespace: kilobase
+  labels:
+    app: storage-api
+    component: storage
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: storage-api
+  template:
+    metadata:
+      labels:
+        app: storage-api
+        component: storage
+    spec:
+      containers:
+      - name: storage-api
+        image: supabase/storage-api:v1.25.7
+        ports:
+        - containerPort: 5000
+          name: http
+        env:
+        - name: PORT
+          value: "5000"
+        - name: DATABASE_URL
+          valueFrom:
+            secretKeyRef:
+              name: storage-api-db-config
+              key: DATABASE_URL
+        - name: ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: anon-key
+        - name: SERVICE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: service-key
+        - name: SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: service-key
+        - name: POSTGREST_URL
+          value: "http://postgrest:3000"
+        - name: PGRST_JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: secret
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: supabase-jwt
+              key: secret
+        - name: FILE_SIZE_LIMIT
+          value: "52428800"
+        - name: STORAGE_BACKEND
+          value: "file"
+        - name: FILE_STORAGE_BACKEND_PATH
+          value: "/var/lib/storage"
+        - name: TENANT_ID
+          value: "stub"
+        - name: REGION
+          value: "stub"
+        - name: GLOBAL_S3_BUCKET
+          value: "stub"
+        - name: ENABLE_IMAGE_TRANSFORMATION
+          value: "false"
+        - name: IMGPROXY_URL
+          value: "http://imgproxy:5001"
+        
+        livenessProbe:
+          httpGet:
+            path: /status
+            port: 5000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        readinessProbe:
+          httpGet:
+            path: /status
+            port: 5000
+          initialDelaySeconds: 10
+          periodSeconds: 5
+          timeoutSeconds: 5
+          failureThreshold: 3
+        
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "100m"
+          limits:
+            memory: "512Mi"
+            cpu: "500m"
+        
+        volumeMounts:
+        - name: storage-data
+          mountPath: /var/lib/storage
+      
+      volumes:
+      - name: storage-data
+        emptyDir: {}

@@ -17,12 +17,18 @@ spec:
                 app: supabase-studio
                 component: studio
         spec:
+            volumes:
+                - name: tmp
+                  emptyDir: {}
             containers:
                 - name: studio
                   image: supabase/studio:2025.06.30-sha-6f5982d
                   ports:
                       - containerPort: 3000
                         name: http
+                  volumeMounts:
+                      - name: tmp
+                        mountPath: /tmp
                   env:
                       # Core studio configuration
                       - name: STUDIO_PG_META_URL
@@ -36,7 +42,7 @@ spec:
 
                       # Supabase API configuration
                       - name: SUPABASE_URL
-                        value: 'http://kong:8000'
+                        value: 'http://kong-kong-proxy:80'
                       - name: SUPABASE_PUBLIC_URL
                         value: 'https://supabase.kbve.com'
 
@@ -105,7 +111,7 @@ spec:
                       runAsNonRoot: true
                       runAsUser: 1000
                       allowPrivilegeEscalation: false
-                      readOnlyRootFilesystem: true
+                      readOnlyRootFilesystem: false
                       capabilities:
                           drop:
                               - ALL

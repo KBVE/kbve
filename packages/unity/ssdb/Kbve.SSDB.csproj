@@ -10,6 +10,8 @@
     <IsTestProject>true</IsTestProject>
     <OutputType>Library</OutputType>
     <DefineConstants>VCONTAINER_UNITASK_INTEGRATION</DefineConstants>
+     <AutoGenerateBindingRedirects>true</AutoGenerateBindingRedirects>
+    <GenerateBindingRedirectsOutputType>true</GenerateBindingRedirectsOutputType>
 
   </PropertyGroup>
 
@@ -137,6 +139,7 @@
     <PackageReference Include="NUnit3TestAdapter" Version="4.2.1" />
     <PackageReference Include="NUnit.Analyzers" Version="3.6.1" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
+    <PackageReference Include="supabase-csharp" Version="1.1.1" />
   </ItemGroup>
 
   <!-- Heathen - Windows -->
@@ -261,6 +264,7 @@
   </Reference>
 </ItemGroup>
 
+
 <!-- Unity.Mathematics + Burst (macOS/Linux) -->
 <ItemGroup Condition="'$(OS)' != 'Windows_NT'">
   <Reference Include="Unity.Mathematics">
@@ -272,6 +276,64 @@
     <Private>false</Private>
   </Reference>
 </ItemGroup>
+
+
+<!-- Supabase (Windows)
+<ItemGroup Condition="'$(OS)' == 'Windows_NT'">
+  <Reference Include="Supabase">
+    <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Supabase.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Postgrest">
+    <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Postgrest.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Realtime">
+    <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Realtime.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Gotrue">
+    <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Gotrue.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Storage">
+    <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Storage.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Functions">
+    <HintPath>$(UnityProjectRoot)\Library\ScriptAssemblies\Functions.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+<ItemGroup Condition="'$(OS)' != 'Windows_NT'">
+  <Reference Include="Supabase">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Supabase.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Postgrest">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Postgrest.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Realtime">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Realtime.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Gotrue">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Gotrue.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Storage">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Storage.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+  <Reference Include="Functions">
+    <HintPath>$(UnityProjectRoot)/Library/ScriptAssemblies/Functions.dll</HintPath>
+    <Private>false</Private>
+  </Reference>
+</ItemGroup>
+
+  -->
 
 
   <!-- Kilonet -->

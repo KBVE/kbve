@@ -12,20 +12,35 @@ env:
 
 jobs:
     globals:
-        runs-on: ubuntu-latest
-        name: Global Variables
-        outputs:
-            sha256head: ${{ steps.hash.outputs.sha256head }}
+      runs-on: ubuntu-latest
+      name: Global Variables
+      outputs:
+          sha256head: ${{ steps.hash.outputs.sha256head }}
 
-        steps:
-            - name: Checkout Code
-              uses: actions/checkout@v4
+      steps:
+          - name: Checkout Code
+            uses: actions/checkout@v4
+            with:
+                fetch-depth: 0
+                token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Calculate SHA-256 Hash
-              id: hash
-              run: |
-                  echo "::set-output name=sha256head::$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')"
+          - name: Configure Git
+            run: |
+                git config user.name "github-actions[bot]"
+                git config user.email "github-actions[bot]@users.noreply.github.com"
 
+          - name: Calculate SHA-256 Hash
+            id: hash
+            run: |
+                echo "sha256head=$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')" >> $GITHUB_OUTPUT
+
+    call_sync:
+        needs: ['globals']
+        name: 'Call Sync Workflow'
+        uses: ./.github/workflows/ci-sync.yml
+        secrets:
+          UNITY_PAT: ${{ secrets.UNITY_PAT }}
+        
     alter:
         needs: ['globals']
         name: 'Alpha Alters'
@@ -33,7 +48,6 @@ jobs:
         uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
         with:
             branch: 'main'
-
 
     deploy:
         needs: ['alter', 'globals']
@@ -67,276 +81,183 @@ jobs:
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
 
-            #   @[CACHE]->[END]
-
-            # - name: Install pnpm dependencies
-            #   run: pnpm install
-
-            #   @[NX] -> [REPORT] -> [START]
-
-            # - name: KBVE Shell - Generate Report
-            #   uses: ./.github/actions/kbve-shell
-            #   with:
-            #       flag: '-outpostgraph'
-            #       create_pull_request: true
-            #       github_token: ${{ secrets.GITHUB_TOKEN }}
-            #       pull_request_title: 'outpost-nx-report-${{ needs.globals.outputs.sha256head }}'
-            #       pull_request_body: 'Generating NX Report and saving it as a MDX Report'
-
-            #   @[NX] -> [REPORT] -> [END]
-
-            #   [KBVE.com]
-
-            # - name: KBVE.com -> Build
-            #   shell: bash
-            #   run: |
-            #       pnpm nx build kbve.com
-
-            # - name: KBVE.com -> Deployment
-            #   uses: dobbelina/copy_file_to_another_repo_action@main
-            #   env:
-            #       API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-            #   with:
-            #       source_file: 'dist/apps/kbve.com/'
-            #       destination_repo: 'KBVE/kbve.com'
-            #       destination_folder: '/docs'
-            #       destination_branch: 'dev'
-            #       destination_branch_create: 'patch-kbve-deploy-${{ needs.globals.outputs.sha256head }}'
-            #       user_email: '5599058+h0lybyte@users.noreply.github.com'
-            #       user_name: 'h0lybyte'
-            #       commit_message: ${{ github.event.head_commit.message }}
-            #       rsync_option: '-avrh --delete'
-
-            #   [HerbMail]
-
-            # - name: HerbMail -> Build
-            #   if: needs.alter.outputs.herbmail == 'true'
-            #   shell: bash
-            #   run: |
-            #       pnpm nx build herbmail.com
-
-            # - name: HerbMail -> Deployment
-            #   if: needs.alter.outputs.herbmail == 'true'
-            #   uses: dobbelina/copy_file_to_another_repo_action@main
-            #   env:
-            #       API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-            #   with:
-            #       source_file: 'dist/apps/herbmail.com/'
-            #       destination_repo: 'KBVE/herbmail.com'
-            #       destination_folder: '/docs'
-            #       destination_branch: 'main'
-            #       destination_branch_create: 'patch-herbmail-deploy-${{ needs.globals.outputs.sha256head }}'
-            #       user_email: '5599058+h0lybyte@users.noreply.github.com'
-            #       user_name: 'h0lybyte'
-            #       commit_message: ${{ github.event.head_commit.message }}
-            #       rsync_option: '-avrh --delete'
-
-
-
-    # generate_crates_matrix:
-    #     needs: ['deploy', 'alter', 'globals']
-    #     runs-on: ubuntu-latest
-    #     outputs:
-    #         matrix: ${{ steps.set-matrix.outputs.matrix }}
-    #     steps:
-    #         - name: Generate Matrix
-    #           id: set-matrix
-    #           run: |
-    #               MATRIX=$(jq -n '{
-    #                 include: [
-    #                   { "name": "q", "condition": "${{ needs.alter.outputs.q_crate }}" },
-    #                   { "name": "jedi", "condition": "${{ needs.alter.outputs.jedi_crate }}" },
-    #                   { "name": "soul", "condition": "${{ needs.alter.outputs.soul_crate }}" },
-    #                   { "name": "kbve", "condition": "${{ needs.alter.outputs.kbve_crate }}" },
-    #                   { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
-    #                   { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
-    #                 ]
-    #               } | .include |= map(select(.condition == "true")) | if (.include | length) == 0 then null else . end')
-
-    #               echo "matrix=$(echo "$MATRIX" | jq -c)" >> "$GITHUB_OUTPUT"
-
-
     ## Godot
-
     generate_godot_matrix:
-      needs: ['deploy', 'alter', 'globals']
-      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-      with:
-        items: |
-            [
-                {
-                    "name": "pirate17",
-                    "condition": "${{ needs.alter.outputs.pirate17 == 'true' }}",
-                    "project": "pirate17",
-                    "branch": "main",
-                    "deploy_to_itch": true,
-                    "export_name": "pirate17",
-                    "project_path": "./apps/gamejam/pirate/pirate17",
-                    "build_artifact_name": "pirate17",
-                    "itch_username": "kbve",
-                    "itch_gameid": "airship",
-                    "godot_version": "4.4.1"
-                }
-            ]
-    
-    publish_godot:
-      name: Publish Godot Game on Itch
-      needs: ['generate_godot_matrix']
-      if: ${{ needs.generate_godot_matrix.outputs.matrix != 'null' }}
-      strategy:
-        matrix: ${{ fromJson(needs.generate_godot_matrix.outputs.matrix) }}
-      uses: KBVE/kbve/.github/workflows/utils-godot-itch-build-pipeline.yml@main
-      with:
-        branch: ${{ matrix.branch }}
-        deploy_to_itch: ${{ matrix.deploy_to_itch }}
-        godot_version: ${{ matrix.godot_version }}
-        export_name: ${{ matrix.export_name }}
-        project_path: ${{ matrix.project_path }}
-        build_artifact_name: ${{ matrix.build_artifact_name }}
-        itch_username: ${{ matrix.itch_username }}
-        itch_gameid: ${{ matrix.itch_gameid }}
-      secrets:
-        butler_api: ${{ secrets.ITCH_API }}
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                    {
+                        "name": "pirate17",
+                        "condition": "${{ needs.alter.outputs.pirate17 == 'true' }}",
+                        "project": "pirate17",
+                        "branch": "main",
+                        "deploy_to_itch": true,
+                        "export_name": "pirate17",
+                        "project_path": "./apps/gamejam/pirate/pirate17",
+                        "build_artifact_name": "pirate17",
+                        "itch_username": "kbve",
+                        "itch_gameid": "airship",
+                        "godot_version": "4.4.1"
+                    }
+                ]
 
+    publish_godot:
+        name: Publish Godot Game on Itch
+        needs: ['generate_godot_matrix']
+        if: ${{ needs.generate_godot_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_godot_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-godot-itch-build-pipeline.yml@main
+        with:
+            branch: ${{ matrix.branch }}
+            deploy_to_itch: ${{ matrix.deploy_to_itch }}
+            godot_version: ${{ matrix.godot_version }}
+            export_name: ${{ matrix.export_name }}
+            project_path: ${{ matrix.project_path }}
+            build_artifact_name: ${{ matrix.build_artifact_name }}
+            itch_username: ${{ matrix.itch_username }}
+            itch_gameid: ${{ matrix.itch_gameid }}
+        secrets:
+            butler_api: ${{ secrets.ITCH_API }}
 
     ## NPM
     generate_npm_matrix:
-      needs: ['deploy', 'alter', 'globals']
-      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-      with:
-        items: |
-            [
-                {
-                  "name": "droid",
-                  "condition": "${{ needs.alter.outputs.droid == 'true' }}",
-                  "project": "droid"
-                }
-            ]
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                    {
+                      "name": "droid",
+                      "condition": "${{ needs.alter.outputs.droid == 'true' }}",
+                      "project": "droid"
+                    }
+                ]
 
     publish_npm:
-      name: Publish NPM
-      needs: ['generate_npm_matrix']
-      if: ${{ needs.generate_npm_matrix.outputs.matrix != 'null' }}
-      strategy:
-        matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
-      uses: KBVE/kbve/.github/workflows/utils-npm-publish.yml@main
-      with:
-        project: ${{ matrix.project }}
-      secrets:
-        NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
-
+        name: Publish NPM
+        needs: ['generate_npm_matrix']
+        if: ${{ needs.generate_npm_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-npm-publish.yml@main
+        with:
+            project: ${{ matrix.project }}
+        secrets:
+            NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     ## Astro
     generate_astro_matrix:
-      needs: ['deploy', 'alter', 'globals']
-      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-      with:
-        items: |
-            [
-                {
-                  "name": "astro_kbve",
-                  "condition": "${{ needs.alter.outputs.astro_kbve == 'true' }}",
-                  "node_version": "22",
-                  "pnpm_version": "10",
-                  "build_command": "astro-kbve:build",
-                  "source_path": "dist/apps/astro-kbve/",
-                  "destination_repo": "KBVE/kbve.com",
-                  "destination_folder": "/docs",
-                  "destination_branch": "dev"
-                },
-                {
-                  "name": "astro_memes",
-                  "condition": "${{ needs.alter.outputs.astro_memes == 'true' }}",
-                  "node_version": "22",
-                  "pnpm_version": "10",
-                  "build_command": "astro-memes:build",
-                  "source_path": "dist/apps/astro-memes/",
-                  "destination_repo": "KBVE/meme.sh",
-                  "destination_folder": "/docs",
-                  "destination_branch": "main"
-                }
-            ]
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                    {
+                      "name": "astro_kbve",
+                      "condition": "${{ needs.alter.outputs.astro_kbve == 'true' }}",
+                      "node_version": "22",
+                      "pnpm_version": "10",
+                      "build_command": "astro-kbve:build",
+                      "source_path": "dist/apps/astro-kbve/",
+                      "destination_repo": "KBVE/kbve.com",
+                      "destination_folder": "/docs",
+                      "destination_branch": "dev"
+                    },
+                    {
+                      "name": "astro_memes",
+                      "condition": "${{ needs.alter.outputs.astro_memes == 'true' }}",
+                      "node_version": "22",
+                      "pnpm_version": "10",
+                      "build_command": "astro-memes:build",
+                      "source_path": "dist/apps/astro-memes/",
+                      "destination_repo": "KBVE/meme.sh",
+                      "destination_folder": "/docs",
+                      "destination_branch": "main"
+                    }
+                ]
 
     build_astro:
-      name: Build Astro Projects
-      needs: ['generate_astro_matrix']
-      if: ${{ needs.generate_astro_matrix.outputs.matrix != 'null' }}
-      strategy:
-        matrix: ${{ fromJson(needs.generate_astro_matrix.outputs.matrix) }}
-      uses: KBVE/kbve/.github/workflows/utils-astro-deployment.yml@main
-      with:
-        node_version: ${{ matrix.node_version }}
-        pnpm_version: ${{ matrix.pnpm_version }}
-        build_command: ${{ matrix.build_command }}
-        source_path: ${{ matrix.source_path }}
-        destination_repo: ${{ matrix.destination_repo }}
-        destination_folder: ${{ matrix.destination_folder }}
-        destination_branch: ${{ matrix.destination_branch }}
-       
-      secrets:
-        GITHUB_PAT: ${{ secrets.UNITY_PAT }}  
+        name: Build Astro Projects
+        needs: ['generate_astro_matrix']
+        if: ${{ needs.generate_astro_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_astro_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-astro-deployment.yml@main
+        with:
+            node_version: ${{ matrix.node_version }}
+            pnpm_version: ${{ matrix.pnpm_version }}
+            build_command: ${{ matrix.build_command }}
+            source_path: ${{ matrix.source_path }}
+            destination_repo: ${{ matrix.destination_repo }}
+            destination_folder: ${{ matrix.destination_folder }}
+            destination_branch: ${{ matrix.destination_branch }}
 
+        secrets:
+            GITHUB_PAT: ${{ secrets.UNITY_PAT }}
 
     #  "target_platforms": "[\"StandaloneWindows64\", \"WebGL\"]",
     generate_unity_matrix:
-      needs: ['deploy', 'alter', 'globals']
-      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-      with:
-        items: |
-          [
-            {
-              "name": "rareicon",
-              "condition": "${{ needs.alter.outputs.rareicon_unity == 'true' }}",
-              "project_path": "azure-rareicon",
-              "azure_repo_url": "dev.azure.com/kbve/rareicon/_git/rareicon",
-              "unity_version": "6000.0.25f1",
-              "target_platforms": "[\"StandaloneWindows64\", \"WebGL\"]",
-              "deploy_to_itch": true,
-              "itch_username": "kbve",
-              "itch_gameid": "rareicon",
-              "gh_pages_repo": "KBVE/unity.rareicon.com",
-              "gh_pages_domain": "unity.rareicon.com"
-            }
-          ]
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  {
+                    "name": "rareicon",
+                    "condition": "${{ needs.alter.outputs.rareicon_unity == 'true' }}",
+                    "project_path": "azure-rareicon",
+                    "azure_repo_url": "dev.azure.com/kbve/rareicon/_git/rareicon",
+                    "unity_version": "6000.0.25f1",
+                    "target_platforms": "[\"StandaloneWindows64\", \"WebGL\"]",
+                    "deploy_to_itch": true,
+                    "itch_username": "kbve",
+                    "itch_gameid": "rareicon",
+                    "gh_pages_repo": "KBVE/unity.rareicon.com",
+                    "gh_pages_domain": "unity.rareicon.com"
+                  }
+                ]
 
     build_unity:
-      name: Build Unity Projects
-      needs: ['generate_unity_matrix']
-      if: ${{ needs.generate_unity_matrix.outputs.matrix != 'null' }}
-      strategy:
-        matrix: ${{ fromJson(needs.generate_unity_matrix.outputs.matrix) }}
-      uses: KBVE/kbve/.github/workflows/utils-unity-azure-deployment.yml@main
-      with:
-        unity_version: ${{ matrix.unity_version }}
-        project_path: ${{ matrix.project_path }}
-        azure_repo_url: ${{ matrix.azure_repo_url }}
-        target_platforms: ${{ matrix.target_platforms }}
-        deploy_to_itch: ${{ matrix.deploy_to_itch }}
-        itch_username: ${{ matrix.itch_username }}
-        itch_gameid: ${{ matrix.itch_gameid }}
-        gh_pages_repo: ${{ matrix.gh_pages_repo }}
-        gh_pages_domain: ${{ matrix.gh_pages_domain }}
-      secrets:
-        unity_license: ${{ secrets.UNITY_LICENSE }}
-        unity_email: ${{ secrets.UNITY_EMAIL }}
-        unity_password: ${{ secrets.UNITY_PASSWORD }}
-        azure_pat: ${{ secrets.AZURE_NOV2025_TOKEN_SECRET  }}
-        butler_api: ${{ secrets.ITCH_API }}
-        gh_pages_pat: ${{ secrets.UNITY_PAT }}
+        name: Build Unity Projects
+        needs: ['generate_unity_matrix']
+        if: ${{ needs.generate_unity_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_unity_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-unity-azure-deployment.yml@main
+        with:
+            unity_version: ${{ matrix.unity_version }}
+            project_path: ${{ matrix.project_path }}
+            azure_repo_url: ${{ matrix.azure_repo_url }}
+            target_platforms: ${{ matrix.target_platforms }}
+            deploy_to_itch: ${{ matrix.deploy_to_itch }}
+            itch_username: ${{ matrix.itch_username }}
+            itch_gameid: ${{ matrix.itch_gameid }}
+            gh_pages_repo: ${{ matrix.gh_pages_repo }}
+            gh_pages_domain: ${{ matrix.gh_pages_domain }}
+        secrets:
+            unity_license: ${{ secrets.UNITY_LICENSE }}
+            unity_email: ${{ secrets.UNITY_EMAIL }}
+            unity_password: ${{ secrets.UNITY_PASSWORD }}
+            azure_pat: ${{ secrets.AZURE_NOV2025_TOKEN_SECRET  }}
+            butler_api: ${{ secrets.ITCH_API }}
+            gh_pages_pat: ${{ secrets.UNITY_PAT }}
 
     generate_crates_matrix:
-      needs: ['deploy', 'alter', 'globals']
-      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-      with:
-        items: |
-          [
-            { "name": "q", "condition": "${{ needs.alter.outputs.q_crate }}" },
-            { "name": "jedi", "condition": "${{ needs.alter.outputs.jedi_crate }}" },
-            { "name": "soul", "condition": "${{ needs.alter.outputs.soul_crate }}" },
-            { "name": "kbve", "condition": "${{ needs.alter.outputs.kbve_crate }}" },
-            { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
-            { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
-          ]
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  { "name": "q", "condition": "${{ needs.alter.outputs.q_crate }}" },
+                  { "name": "jedi", "condition": "${{ needs.alter.outputs.jedi_crate }}" },
+                  { "name": "soul", "condition": "${{ needs.alter.outputs.soul_crate }}" },
+                  { "name": "kbve", "condition": "${{ needs.alter.outputs.kbve_crate }}" },
+                  { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
+                  { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
+                ]
 
     publish_crates:
         needs: ['generate_crates_matrix']
@@ -351,14 +272,17 @@ jobs:
             CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
 
     generate_docker_matrix:
-      needs: ['deploy', 'alter', 'globals']
-      uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-      with:
-        items: |
-          [
-            { "name": "kilobase", "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
-            { "name": "disoxide", "target": "container", "condition": "${{ needs.alter.outputs.disoxide }}" }
-          ]
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  { "name": "kilobase", "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
+                  { "name": "disoxide", "target": "container", "condition": "${{ needs.alter.outputs.disoxide }}" },
+                  { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" }
+
+
+                ]
 
     publish_docker:
         needs: ['generate_docker_matrix']
@@ -374,7 +298,6 @@ jobs:
             DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
             DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
             MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
 
     #   ! Everything below this line will be removed and replaced with the matrix setup.
 
@@ -762,7 +685,6 @@ jobs:
                   name: fudster-python-package-distributions
                   path: apps/fudster/dist/
 
-
     # q_release:
     #     needs: ['deploy', 'alter', 'globals']
     #     name: Q Crates Publish
@@ -816,304 +738,3 @@ jobs:
               with:
                   user: __token__
                   password: ${{ secrets.PYPI_API_SCOPE_TOKEN }}
-
-    # # Monorepo Image from https://docs.github.com/en/actions/publishing-packages/publishing-docker-images#publishing-images-to-github-packages
-    # monorepo-image:
-    #     needs: ['deploy']
-    #     name: Build Monorepo Docker Image
-    #     runs-on: ubuntu-latest
-    #     permissions:
-    #         contents: read
-    #         packages: write
-    #     steps:
-    #         - name: Checkout Repository
-    #           uses: actions/checkout@v4
-
-    #         - name: Set up QEMU
-    #           uses: docker/setup-qemu-action@v3
-
-    #         - name: Set up Docker Buildx
-    #           uses: docker/setup-buildx-action@v3
-
-    #         - name: Login to Docker Hub
-    #           uses: docker/login-action@v3
-    #           with:
-    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
-    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    #         - name: Log in to the Container registry
-    #           uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
-    #           with:
-    #               registry: ${{ env.REGISTRY }}
-    #               username: ${{ github.actor }}
-    #               password: ${{ secrets.GITHUB_TOKEN }}
-
-    #         - name: Extract metadata (tags, labels) for Docker
-    #           id: meta
-    #           uses: docker/metadata-action@9ec57ed1fcdbf14dcef7dfbe97b2010124a938b7
-    #           with:
-    #               images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-
-    #         - name: Build and push Docker image
-    #           uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
-    #           with:
-    #               context: .
-    #               # platforms: linux/amd64, linux/arm64
-    #               platforms: linux/amd64
-    #               push: true
-    #               tags: ${{ steps.meta.outputs.tags }}
-    #               labels: ${{ steps.meta.outputs.labels }}
-    #               cache-from: type=gha
-    #               cache-to: type=gha,mode=max
-
-    # # Rust Profile Image Deployment
-    # rust-profile-image:
-    #     needs: ['monorepo-image', 'alter']
-    #     name: Build Rust Profile Docker Image
-    #     if: needs.alter.outputs.rustprofile == 'true'
-    #     runs-on: ubuntu-latest
-    #     permissions:
-    #         contents: read
-    #         packages: write
-    #     steps:
-    #         - name: Checkout Repository
-    #           uses: actions/checkout@v4
-
-    #         - name: Set up QEMU
-    #           uses: docker/setup-qemu-action@v3
-
-    #         - name: Set up Docker Buildx
-    #           uses: docker/setup-buildx-action@v3
-
-    #         - name: Login to Docker Hub
-    #           uses: docker/login-action@v3
-    #           with:
-    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
-    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    #         - name: Build and push
-    #           uses: docker/build-push-action@v5
-    #           with:
-    #               context: ./apps/rust_api_profile/
-    #               push: true
-    #               tags: kbve/rustprofile:latest
-    #               #platforms: linux/amd64, linux/arm64
-    #               platforms: linux/amd64
-    #               file: ./apps/rust_api_profile/Dockerfile
-    #               cache-from: type=gha
-    #               cache-to: type=gha,mode=max
-    #               #cache-from: type=registry,ref=kbve/rustprofile:buildcache
-    #               #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
-
-    # # Deploy Rust Profile Image
-    # deploy-rust-profile-image:
-    #     needs: ['rust-profile-image', 'alter']
-    #     name: Deploy Rust Profile Docker Image to Portainer
-    #     runs-on: ubuntu-latest
-    #     steps:
-    #         - name: Checkout Repository
-    #           uses: actions/checkout@v4
-
-    #         - name: Deploy to Portainer
-    #           uses: ./.github/actions/shieldwall-command-center
-    #           with:
-    #               token: ${{ secrets.KBVE_PAT }}
-    #               command: 'deploy'
-    #               kbve-shield-token: ${{ secrets.SHIELDWALL }}
-
-    # # Chisel Deployment
-    # chisel-rust-profile-image:
-    #     needs: ['rust-profile-image', 'alter', 'deploy-rust-profile-image']
-    #     name: Chisel Rust Profile Docker Image
-    #     runs-on: ubuntu-latest
-    #     permissions:
-    #         contents: read
-    #         packages: write
-    #     steps:
-    #         - name: Checkout Repository
-    #           uses: actions/checkout@v4
-
-    #         - name: Set up QEMU
-    #           uses: docker/setup-qemu-action@v3
-
-    #         - name: Set up Docker Buildx
-    #           uses: docker/setup-buildx-action@v3
-
-    #         - name: Login to Docker Hub
-    #           uses: docker/login-action@v3
-    #           with:
-    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
-    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    #         - name: Build and push
-    #           uses: docker/build-push-action@v5
-    #           with:
-    #               context: ./migrations/docker/chisel/rust-profile-api/
-    #               push: true
-    #               tags: kbve/rustprofilechisel:latest
-    #               #platforms: linux/amd64, linux/arm64
-    #               platforms: linux/amd64
-    #               file: ./migrations/docker/chisel/rust-profile-api/Dockerfile
-    #               cache-from: type=gha
-    #               cache-to: type=gha,mode=max
-
-    # NodeJS
-
-    # [EXPO] -> [START]
-
-    # expo-lcagents-web-build:
-    #   needs: ['alter', 'globals']
-    #   name: Expo LC Agents Web Build
-    #   runs-on: ubuntu-latest
-    #   if: needs.alter.outputs.expolcagents == 'true'
-    #   steps:
-    #     - name: Checkout repository
-    #       uses: actions/checkout@v4
-
-    #     - name: Setup NodeJS
-    #       uses: actions/setup-node@v4
-    #       with:
-    #         node-version: 20
-
-    #     - name: Setup PNPM
-    #       uses: pnpm/action-setup@v3
-    #       with:
-    #         version: 9
-    #         run_install: false
-
-    #     - name: Install react-native-cli globally
-    #       run: pnpm add -g react-native-cli
-
-    #     - name: Install dependencies
-    #       run: pnpm install
-
-    #     - name: Setup Watchman (if applicable)
-    #       run: |
-    #         sudo apt-get update
-    #         sudo apt-get install -y watchman
-    #         watchman --version
-
-    #     - name: NX Command
-    #       shell: bash
-    #       continue-on-error: true
-    #       run: |
-    #         pnpm nx run expo-lcagents:export --verbose
-
-    #     - name: NX Command - 2
-    #       shell: bash
-    #       continue-on-error: true
-    #       run: |
-    #         pnpm nx run expo-lcagents:export --verbose
-
-    #     - name: LCA Expo Build
-    #       uses: ./.github/actions/kbve-shell
-    #       with:
-    #         flag: '-nx expo-lcagents:export'
-    #         create_pull_request: false
-    #         github_token: ${{ secrets.GITHUB_TOKEN }}
-
-    #     - name: Create .nojekyll file
-    #       run: |
-    #         mkdir -p dist/apps/expo-lcagents/
-    #         touch dist/apps/expo-lcagents/.nojekyll
-
-    #     - name: Create CNAME file
-    #       run: |
-    #         mkdir -p dist/apps/expo-lcagents/
-    #         echo "lc-agents.com" > dist/apps/expo-lcagents/CNAME
-
-    #     - name: LC Agents -> Deployment
-    #       uses: dobbelina/copy_file_to_another_repo_action@main
-    #       env:
-    #         API_TOKEN_GITHUB: ${{ secrets.UNITY_PAT }}
-    #       with:
-    #         source_file: 'dist/apps/expo-lcagents/'
-    #         destination_repo: 'kbve/lc-agents.com'
-    #         destination_folder: '/docs'
-    #         destination_branch: 'main'
-    #         destination_branch_create: 'patch-kbve-lcagents-deploy-${{ needs.globals.outputs.sha256head }}'
-    #         user_email: '5599058+h0lybyte@users.noreply.github.com'
-    #         user_name: 'h0lybyte'
-    #         commit_message: ${{ github.event.head_commit.message }}
-    #         rsync_option: '-avrh --delete'
-
-    #   [Expo] -> [HQ Plan]
-
-    # #   [Docker]
-    # void-docker-base-image:
-    #     needs: ['monorepo-image', 'alter']
-    #     name: v01d Base Docker Image Build
-    #     runs-on: ubuntu-latest
-    #     if: needs.alter.outputs.dockervoid == 'true'
-
-    #     permissions:
-    #         contents: read
-    #         packages: write
-    #     steps:
-    #         - name: Checkout repository
-    #           uses: actions/checkout@v4
-
-    #         - name: Set up QEMU
-    #           uses: docker/setup-qemu-action@v3
-
-    #         - name: Set up Docker Buildx
-    #           uses: docker/setup-buildx-action@v3
-
-    #         - name: Login to Docker Hub
-    #           uses: docker/login-action@v3
-    #           with:
-    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
-    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    #         - name: Build Docker Image and Push
-    #           uses: docker/build-push-action@v5
-    #           with:
-    #               context: ./migrations/docker/v01d/
-    #               push: true
-    #               tags: kbve/v01d:latest
-    #               #platforms: linux/amd64, linux/arm64
-    #               platforms: linux/amd64
-    #               file: ./migrations/docker/v01d/Dockerfile
-    #               cache-from: type=gha
-    #               cache-to: type=gha,mode=max
-    #               #cache-from: type=registry,ref=kbve/rustprofile:buildcache
-    #               #cache-to: type=registry,ref=kbve/rustprofile:buildcache,mode=max
-
-    # python_atlas_docker:
-    #     needs: ['python_atlas_publish', 'alter']
-    #     name: Atlas Docker Image Build
-    #     runs-on: ubuntu-latest
-    #     if: needs.alter.outputs.atlas == 'true'
-
-    #     permissions:
-    #         contents: read
-    #         packages: write
-
-    #     steps:
-    #         - name: Checkout repository
-    #           uses: actions/checkout@v4
-
-    #         - name: Set up QEMU
-    #           uses: docker/setup-qemu-action@v3
-
-    #         - name: Set up Docker Buildx
-    #           uses: docker/setup-buildx-action@v3
-
-    #         - name: Login to Docker Hub
-    #           uses: docker/login-action@v3
-    #           with:
-    #               username: ${{ secrets.DOCKERHUB_USERNAME }}
-    #               password: ${{ secrets.DOCKERHUB_TOKEN }}
-
-    #         - name: Build Docker Image and Push
-    #           uses: docker/build-push-action@v5
-    #           with:
-    #               context: ./apps/atlas/
-    #               push: true
-    #               tags: kbve/atlas:latest
-    #               #platforms: linux/amd64, linux/arm64
-    #               platforms: linux/amd64
-    #               file: ./apps/atlas/Dockerfile
-    #               cache-from: type=gha
-    #               cache-to: type=gha,mode=max
-    #               #cache-from: type=registry,ref=kbve/rustprofile:buildcache

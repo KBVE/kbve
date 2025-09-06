@@ -1,0 +1,17 @@
+# MySQL Operator CRDs
+# These must be applied before the operator itself
+# Source: https://raw.githubusercontent.com/mysql/mysql-operator/9.1.0-2.2.5/deploy/deploy-crds.yaml
+#
+# To update, run:
+# curl -L https://raw.githubusercontent.com/mysql/mysql-operator/9.1.0-2.2.5/deploy/deploy-crds.yaml > mysql-crds.yaml
+#
+# For now, we'll use kustomization to reference the remote file
+
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - https://raw.githubusercontent.com/mysql/mysql-operator/9.1.0-2.2.5/deploy/deploy-crds.yaml
+
+patchesStrategicMerge:
+  - mysql-crd-patch.yaml

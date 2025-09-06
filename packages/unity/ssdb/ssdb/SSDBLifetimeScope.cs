@@ -5,6 +5,7 @@ using VContainer.Unity;
 #if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
 using KBVE.SSDB;
 using KBVE.SSDB.Steam;
+using KBVE.SSDB.SupabaseFDW;
 #endif
 
 using System;
@@ -28,7 +29,7 @@ namespace KBVE.SSDB
 
         protected override void Configure(IContainerBuilder builder)
         {
-            #if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
             if (autoStart)
             {
 
@@ -45,9 +46,30 @@ namespace KBVE.SSDB
                 .As<IDisposable>();
 
             }
-            #else
+#else
                 Debug.LogWarning("[SSDBLifetimeScope] Steamworks integration is disabled or not supported on this platform.");
-            #endif
+#endif
+
+            builder.Register<SupabaseInstance>(Lifetime.Singleton)
+            .AsSelf()
+            .As<ISupabaseInstance>()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
+            builder.Register<SupabaseAuthFDW>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
+            builder.Register<SupabaseRealtimeFDW>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
+            builder.Register<SupabaseBroadcastFDW>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
 
 
         }

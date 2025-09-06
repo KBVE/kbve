@@ -35,7 +35,7 @@ spec:
         
         # PostgREST configuration
         - name: PGRST_DB_SCHEMAS
-          value: "public,storage,graphql_public"
+          value: "public,storage,graphql_public,tracker"
         - name: PGRST_DB_ANON_ROLE
           value: "anon"
         - name: PGRST_DB_USE_LEGACY_GUCS
@@ -87,3 +87,9 @@ spec:
           limits:
             memory: "1Gi"
             cpu: "1000m"
+        
+        # Security context to fix user ID issues
+        securityContext:
+          runAsUser: 1000
+          runAsGroup: 1000
+          runAsNonRoot: true

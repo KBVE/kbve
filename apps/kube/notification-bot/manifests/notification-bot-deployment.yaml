@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: notification-bot
+  namespace: discord
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: notification-bot
+  template:
+    metadata:
+      labels:
+        app: notification-bot
+    spec:
+      serviceAccountName: notification-bot
+      containers:
+      - name: notification-bot
+        image: kbve/notification-bot:1.7.2
+        imagePullPolicy: IfNotPresent
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        env:
+        - name: PYTHON_ENV
+          value: "production"
+        - name: SUPABASE
+          value: "true"
+        - name: SUPABASE_URL
+          value: "http://kong.kilobase.svc.cluster.local:8000"
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: anon-key
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: service-role-key
+        - name: SUPABASE_DB_URL
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: db-url
+        # Distributed sharding configuration
+        - name: USE_AUTO_SCALING
+          value: "false"
+        - name: USE_DISTRIBUTED_SHARDING
+          value: "false"
+        - name: CLUSTER_NAME
+          value: "main-cluster-notify-py"
+        - name: TOTAL_SHARDS
+          value: "2"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "50m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /healthz
+            port: 3000
+          initialDelaySeconds: 30
+          periodSeconds: 30
+          timeoutSeconds: 5
+          failureThreshold: 3
