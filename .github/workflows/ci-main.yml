@@ -29,24 +29,42 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
-            - name: Sync dev branch with main
+            - name: Update dev branch (forward-only merge)
               run: |
-                  echo "🔄 Syncing dev branch with main to prevent atomic workflow conflicts..."
+                  echo "Updating dev branch with latest main changes..."
                   
                   # Fetch all branches
                   git fetch origin
                   
-                  # Check if dev branch exists remotely
+                  # Check if dev branch exists
                   if git ls-remote --exit-code --heads origin dev > /dev/null 2>&1; then
-                      echo "Dev branch exists, updating it to match main..."
-                      git checkout -B dev origin/main
-                      git push --force-with-lease origin dev
-                      echo "✅ Dev branch updated to match main"
+                      echo "Dev branch exists, merging main into dev..."
+                      
+                      # Switch to dev and pull latest
+                      git checkout dev
+                      git pull origin dev
+                      
+                      # Merge main into dev (forward-only, no force)
+                      if git merge origin/main --no-ff -m "Merge main into dev after production release"; then
+                          git push origin dev
+                          echo "Successfully merged main into dev"
+                      else
+                          echo "Merge conflicts detected - manual resolution required"
+                          echo "This is normal if dev has unreleased changes"
+                          git merge --abort
+                          
+                          # Create an issue for manual resolution
+                          echo "Creating issue for manual dev sync..."
+                          gh issue create \
+                              --title "Manual dev sync required after main release" \
+                              --body "Main branch was updated but couldn't auto-merge into dev due to conflicts. Please manually sync when ready." \
+                              --label "dev-sync-needed"
+                      fi
                   else
-                      echo "Dev branch doesn't exist, creating it from main..."
-                      git checkout -b dev
+                      echo "Dev branch doesn't exist, creating from main..."
+                      git checkout -b dev origin/main
                       git push origin dev
-                      echo "✅ Dev branch created from main"
+                      echo "Created dev branch from main"
                   fi
                   
                   # Switch back to main
@@ -55,8 +73,21 @@ jobs:
             - name: Calculate SHA-256 Hash
               id: hash
               run: |
-                  echo "::set-output name=sha256head::$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')"
+                  echo "sha256head=$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')" >> $GITHUB_OUTPUT
 
+            - name: Cleanup any orphaned atomic branches
+              run: |
+                  echo "Cleaning up orphaned atomic branches..."
+                  
+                  # Find atomic branches that are fully merged into main
+                  git branch -r --merged origin/main | grep "origin/atom-" | sed 's/origin\///' | while read -r branch; do
+                      if [[ "$branch" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
+                          echo "Deleting merged atomic branch: $branch"
+                          git push origin --delete "$branch" || echo "Branch $branch already deleted"
+                      fi
+                  done
+                  
+                  echo "Cleanup completed"
     alter:
         needs: ['globals']
         name: 'Alpha Alters'
