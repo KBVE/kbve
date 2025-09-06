@@ -228,9 +228,18 @@ atomic_function() {
     # Fetch latest changes
     git fetch origin
     
-    # Ensure we're on dev and it's up to date
-    git switch dev
-    git pull origin dev
+    # Always start from a fresh dev branch to avoid any local divergence
+    echo "Setting up fresh dev branch..."
+    
+    # Delete local dev if it exists (to avoid any divergence issues)
+    if git show-ref --verify --quiet refs/heads/dev; then
+        echo "Deleting local dev branch to start fresh..."
+        git branch -D dev 2>/dev/null || true
+    fi
+    
+    # Create fresh local dev branch from remote
+    git switch -c dev origin/dev
+    echo "Fresh dev branch created from origin/dev"
     
     # Generate timestamp
     GIT_DATE=$(date +'%m%d%H%M')  # Format: MMDDHHMM (e.g., 12151430)
@@ -257,18 +266,19 @@ atomic_function() {
         return 1
     fi
     
-    # Check if branch already exists
-    if git show-ref --verify --quiet refs/heads/"$PATCH_NAME"; then
-        echo "Branch '$PATCH_NAME' already exists locally!"
+    # Check if branch already exists remotely
+    if git ls-remote --exit-code --heads origin "$PATCH_NAME" > /dev/null 2>&1; then
+        echo "Branch '$PATCH_NAME' already exists remotely!"
         return 1
     fi
     
-    # Create the branch
-    echo "Creating branch: $PATCH_NAME"
+    # Create the atomic branch
+    echo "Creating atomic branch: $PATCH_NAME"
     git switch -c "$PATCH_NAME"
     
-    echo "Atomic branch '$PATCH_NAME' created!"
+    echo "Atomic branch '$PATCH_NAME' created from fresh dev!"
     echo "When ready: git add . && git commit -m 'your message' && git push origin $PATCH_NAME"
+    echo "This will automatically create a PR to dev branch"
 }
 
 # Function for the zeta script
