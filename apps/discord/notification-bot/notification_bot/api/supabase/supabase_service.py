@@ -2,19 +2,15 @@
 Core Supabase client service for managing database connections
 """
 import os
-import logging
-from typing import Optional, Any, NamedTuple
+from typing import NamedTuple, Optional, Any
 from supabase import create_client, Client
-
-logger = logging.getLogger("uvicorn")
-
+from notification_bot.utils.logger import logger
 
 class QueryResult(NamedTuple):
     """Result from executing a Supabase query"""
     success: bool
     data: Optional[Any] = None
     error: Optional[str] = None
-
 
 class SupabaseService:
     """Service class for managing Supabase client connection"""
@@ -62,11 +58,9 @@ class SupabaseService:
             logger.error(f"Query execution error: {e}")
             return QueryResult(success=False, data=None, error=str(e))
 
-
 # Legacy global instance - use Dishka injection instead
 supabase_conn = SupabaseService()
 SupabaseConnection = SupabaseService  # Alias for compatibility
-
 
 def get_supabase_client() -> Client:
     """Legacy dependency to get Supabase client"""

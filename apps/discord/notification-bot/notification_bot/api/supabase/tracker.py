@@ -2,18 +2,20 @@
 Tracker module for managing distributed shard coordination
 """
 import os
-import logging
 from typing import Optional, Dict, Any, List
 from datetime import datetime
 from pydantic import BaseModel, Field
 from .supabase_service import supabase_conn
-from ...models.constants import VERSION
+from notification_bot.utils.logger import logger
 
-logger = logging.getLogger("uvicorn")
+# Import VERSION from constants
+try:
+    from .constants import VERSION
+except ImportError:
+    VERSION = "1.4"  # fallback
 
 # Log the version on module load
 logger.info(f"Tracker module loaded with VERSION: {VERSION}")
-
 
 # Pydantic Models for Tracker Operations
 class ShardAssignment(BaseModel):
@@ -38,7 +40,6 @@ class ShardAssignment(BaseModel):
     bot_version: Optional[str] = None
     deployment_version: Optional[str] = None
 
-
 class ShardAssignmentResult(BaseModel):
     """Result from shard assignment operation"""
     instance_id: str
@@ -47,7 +48,6 @@ class ShardAssignmentResult(BaseModel):
     total_shards: int
     assignment_strategy: str
     is_new_assignment: bool
-
 
 class TrackerManager:
     """Optimized manager class for tracker/cluster coordination operations"""
@@ -401,7 +401,6 @@ class TrackerManager:
         except Exception as e:
             logger.error(f"Error getting cluster status: {e}")
             return []
-
 
 # Global tracker manager instance
 tracker_manager = TrackerManager()
