@@ -1,271 +1,324 @@
-name: CI - Sync Branches
+name: CI - Staging
 
 on:
-    workflow_dispatch:
-    workflow_call:
+    push:
+        branches:
+            - 'staging'
+    pull_request:
+        branches:
+            - 'main'
+        types: [opened, synchronize, reopened]
 
 jobs:
-    sync_dev_with_main_via_api:
-        name: 'Force Reset Dev to Match Main (via API)'
+    staging_to_main_pr:
+        name: 'Create/Update Staging to Main PR'
         runs-on: ubuntu-latest
+        if: github.event_name == 'push' && github.ref_name == 'staging'
         permissions:
-            contents: write
-
+            contents: read
+            pull-requests: write
+            issues: write
+        
         steps:
-            - name: Force dev to main (via API)
-              uses: actions/github-script@v8
-              with:
-                  github-token: ${{ secrets.UNITY_PAT }}
-                  script: |
-                      const { owner, repo } = context.repo;
-
-                      // 1) Read main's tip SHA
-                      const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
-                      const sha = main.data.commit.sha;
-
-                      // 2) Try to move dev (force). If it doesn't exist, create it.
-                      try {
-                          await github.rest.git.updateRef({
-                              owner,
-                              repo,
-                              ref: 'heads/dev',
-                              sha,
-                              force: true,
-                          });
-                          console.log(`Moved dev to ${sha}`);
-                      } catch (e) {
-                          if (e.status === 422) {
-                              // ref not found -> create
-                              await github.rest.git.createRef({
-                                  owner,
-                                  repo,
-                                  ref: 'refs/heads/dev',
-                                  sha,
-                              });
-                              console.log(`Created dev at ${sha}`);
-                          } else if (e.status === 403) {
-                              throw new Error('Forbidden by branch protection. Ensure your PAT actor is allowed to bypass or force-push to dev.');
-                          } else {
-                              throw e;
-                          }
-                      }
-
-    sync_delete_create_stage:
-        name: 'Delete and Recreate Staging from Main'
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-
-        steps:
-            - name: Checkout main branch
+            - name: Checkout
               uses: actions/checkout@v4
               with:
-                  ref: main
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
 
-            - name: Configure Git
+            - name: Check if stagingmain PR exists
+              id: check_pr
+              uses: actions/github-script@v7
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const existingPRs = await github.rest.pulls.list({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        head: `${context.repo.owner}:staging`,
+                        base: 'main',
+                        state: 'open'
+                      });
+
+                      if (existingPRs.data.length > 0) {
+                        console.log(`Found existing PR: #${existingPRs.data[0].number}`);
+                        return {
+                          exists: true,
+                          number: existingPRs.data[0].number,
+                          url: existingPRs.data[0].html_url
+                        };
+                      } else {
+                        console.log('No existing stagingmain PR found');
+                        return { exists: false };
+                      }
+
+            - name: Create new stagingmain PR
+              if: fromJson(steps.check_pr.outputs.result).exists == false
+              id: create_pr
+              uses: actions/github-script@v7
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const pr = await github.rest.pulls.create({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        title: '= Production Release: Staging Main',
+                        head: 'staging',
+                        base: 'main',
+                        body: `## Production Release from Staging
+                        
+                        This PR contains tested and validated changes from staging ready for production deployment.
+                        
+                        ### Pre-merge Checklist
+                        - [ ] All tests passing
+                        - [ ] No merge conflicts
+                        - [ ] Changes reviewed and approved
+                        - [ ] Version bumped (if applicable)
+                        - [ ] Documentation updated
+                        
+                        ### =Merge Strategy
+                        **This PR will be SQUASH MERGED to maintain linear history**
+                        
+                        ### Changes will be categorized below...
+                        
+                        ---
+                        *This PR is automatically maintained by CI*`,
+                        draft: false
+                      });
+
+                      // Add labels
+                      await github.rest.issues.addLabels({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        issue_number: pr.data.number,
+                        labels: ['production', 'stagingmain', 'auto-pr']
+                      });
+
+                      console.log(`Created PR #${pr.data.number}`);
+                      return { number: pr.data.number, url: pr.data.html_url };
+
+            - name: Update PR with detailed changes
+              id: update_pr
+              uses: actions/github-script@v7
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      let prNumber = null;
+                      const checkResult = ${{ toJson(steps.check_pr.outputs.result) }};
+                      const createResult = ${{ toJson(steps.create_pr.outputs.result) }};
+                      
+                      if (checkResult && checkResult.exists) {
+                        prNumber = checkResult.number;
+                      } else if (createResult && createResult.number) {
+                        prNumber = createResult.number;
+                      }
+
+                      if (!prNumber) {
+                        console.log('No PR number available');
+                        return;
+                      }
+
+                      // Get commits between main and staging
+                      const comparison = await github.rest.repos.compareCommits({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        base: 'main',
+                        head: 'staging'
+                      });
+
+                      const commits = comparison.data.commits;
+                      console.log(`Found ${commits.length} commits`);
+
+                      // Categorize commits
+                      const categories = {
+                        feat: [],
+                        fix: [],
+                        docs: [],
+                        perf: [],
+                        refactor: [],
+                        test: [],
+                        ci: [],
+                        chore: [],
+                        other: []
+                      };
+
+                      // Track merged PRs for better context
+                      const mergedPRs = new Set();
+                      
+                      commits.forEach(commit => {
+                        const message = commit.commit.message;
+                        const firstLine = message.split('\n')[0];
+                        const sha = commit.sha.substring(0, 7);
+                        
+                        // Check if this is a squashed PR merge
+                        const prMatch = message.match(/#(\d+)/);
+                        if (prMatch) {
+                          mergedPRs.add(prMatch[1]);
+                        }
+                        
+                        const commitLine = `- ${firstLine} (\`${sha}\`)`;
+                        
+                        if (message.match(/^feat(\(.+\))?:/i)) {
+                          categories.feat.push(commitLine);
+                        } else if (message.match(/^fix(\(.+\))?:/i)) {
+                          categories.fix.push(commitLine);
+                        } else if (message.match(/^docs(\(.+\))?:/i)) {
+                          categories.docs.push(commitLine);
+                        } else if (message.match(/^perf(\(.+\))?:/i)) {
+                          categories.perf.push(commitLine);
+                        } else if (message.match(/^refactor(\(.+\))?:/i)) {
+                          categories.refactor.push(commitLine);
+                        } else if (message.match(/^test(\(.+\))?:/i)) {
+                          categories.test.push(commitLine);
+                        } else if (message.match(/^ci(\(.+\))?:/i)) {
+                          categories.ci.push(commitLine);
+                        } else if (message.match(/^chore(\(.+\))?:/i)) {
+                          categories.chore.push(commitLine);
+                        } else {
+                          categories.other.push(commitLine);
+                        }
+                      });
+
+                      // Build comprehensive PR body
+                      let prBody = `## < Production Release from Staging\n\n`;
+                      prBody += `### = Summary\n`;
+                      prBody += `- **Total Commits:** ${commits.length}\n`;
+                      prBody += `- **Merged PRs:** ${mergedPRs.size}\n`;
+                      prBody += `- **Target Branch:** main\n`;
+                      prBody += `- **Merge Strategy:** Squash and Merge\n\n`;
+                      
+                      prBody += `### = Pre-merge Checklist\n`;
+                      prBody += `- [ ] All tests passing\n`;
+                      prBody += `- [ ] No merge conflicts\n`;
+                      prBody += `- [ ] Changes reviewed and approved\n`;
+                      prBody += `- [ ] Version bumped (if applicable)\n`;
+                      prBody += `- [ ] Documentation updated\n\n`;
+
+                      prBody += `### Changes by Category\n\n`;
+
+                      if (categories.feat.length > 0) {
+                        prBody += `#### ( New Features\n${categories.feat.join('\n')}\n\n`;
+                      }
+                      if (categories.fix.length > 0) {
+                        prBody += `#### = Bug Fixes\n${categories.fix.join('\n')}\n\n`;
+                      }
+                      if (categories.perf.length > 0) {
+                        prBody += `####  Performance Improvements\n${categories.perf.join('\n')}\n\n`;
+                      }
+                      if (categories.refactor.length > 0) {
+                        prBody += `#### { Code Refactoring\n${categories.refactor.join('\n')}\n\n`;
+                      }
+                      if (categories.docs.length > 0) {
+                        prBody += `#### = Documentation\n${categories.docs.join('\n')}\n\n`;
+                      }
+                      if (categories.test.length > 0) {
+                        prBody += `#### > Tests\n${categories.test.join('\n')}\n\n`;
+                      }
+                      if (categories.ci.length > 0) {
+                        prBody += `####  CI/CD\n${categories.ci.join('\n')}\n\n`;
+                      }
+                      if (categories.chore.length > 0) {
+                        prBody += `#### > Chores\n${categories.chore.join('\n')}\n\n`;
+                      }
+                      if (categories.other.length > 0) {
+                        prBody += `#### = Other Changes\n${categories.other.join('\n')}\n\n`;
+                      }
+
+                      prBody += `###  Important Notes\n`;
+                      prBody += `- This PR should be **SQUASH MERGED** to maintain linear history\n`;
+                      prBody += `- Ensure all checks pass before merging\n`;
+                      prBody += `- After merge, staging will be automatically synced with main\n\n`;
+                      
+                      prBody += `---\n`;
+                      prBody += `*This PR is automatically maintained by CI " Last updated: ${new Date().toISOString()}*`;
+
+                      // Update the PR
+                      await github.rest.pulls.update({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber,
+                        body: prBody
+                      });
+
+                      console.log(`Updated PR #${prNumber} with detailed categorized commits`);
+
+    validate_staging_pr:
+        name: 'Validate StagingMain PR'
+        runs-on: ubuntu-latest
+        if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'staging'
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+
+            - name: Check linear history
               run: |
-                  git config user.name "h0lybyte"
-                  git config user.email "5599058+h0lybyte@users.noreply.github.com"
-                  git config url."https://${{ secrets.UNITY_PAT }}@github.com/".insteadOf "https://github.com/"
+                  echo "=
+                  Validating staging main PR for linear history"
+                                    echo "Base: ${{ github.base_ref }}"
+                                    echo "Head: ${{ github.head_ref }}"
+                                    echo "PR Number: ${{ github.event.number }}"
+                                    
+                                    # Check if there are any merge commits in the staging branch
+                                    MERGE_COMMITS=$(git rev-list --merges origin/staging ^origin/main | wc -l)
+                                    
+                                    if [ "$MERGE_COMMITS" -gt 0 ]; then
+                                      echo "Warning: Found $MERGE_COMMITS merge commits in staging branch"
+                                      echo "Recommendation: Use squash merge to maintain linear history"
+                                    else
+                                      echo "No merge commits found - linear history maintained"
+                                    fi
 
-            - name: Delete and recreate staging branch
+            - name: Check for conflicts
               run: |
-                  echo "Deleting and recreating staging branch from main..."
-
-                  # Fetch all branches
-                  git fetch origin
-
-                  # Check if staging branch exists and delete it
-                  if git ls-remote --exit-code --heads origin staging > /dev/null 2>&1; then
-                    echo "Staging branch exists, deleting it..."
-                    git push origin --delete staging
-                    echo "Staging branch deleted"
+                  echo "=
+                  Checking for merge conflicts..."
+                  
+                  # Try to merge main into staging (dry run)
+                  git config user.name "CI Bot"
+                  git config user.email "ci@example.com"
+                  
+                  if git merge --no-commit --no-ff origin/main; then
+                    echo "No merge conflicts detected"
+                    git merge --abort
+                  else
+                    echo "Merge conflicts detected! Please resolve before merging."
+                    git merge --abort
+                    exit 1
                   fi
 
-                  # Create new staging branch from main
-                  echo "Creating new staging branch from main..."
-                  git checkout -b staging origin/main
-                  git push origin staging
-                  echo "Created staging branch from main"
-
-            - name: Staging sync summary
+            - name: Validate commit messages
               run: |
-                  echo "Staging sync completed successfully!"
-                  echo "- Staging branch deleted and recreated from main"
-
-    cleanup_orphaned_atomic_branches:
-        name: 'Cleanup Orphaned Atomic Branches'
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-
-        steps:
-            - name: Checkout main branch
-              uses: actions/checkout@v4
-              with:
-                  ref: main
-                  fetch-depth: 0
-                  token: ${{ secrets.GITHUB_TOKEN }}
-
-            - name: Configure Git
-              run: |
-                  git config user.name "h0lybyte"
-                  git config user.email "5599058+h0lybyte@users.noreply.github.com"
-                  git config url."https://${{ secrets.UNITY_PAT }}@github.com/".insteadOf "https://github.com/"
-
-            - name: Cleanup orphaned atomic branches
-              run: |
-                  echo "Cleaning up orphaned atomic branches..."
-
-                  # Find atomic branches that are fully merged into main
-                  git branch -r --merged origin/main | grep "origin/atom-" | sed 's/origin\///' | while read -r branch; do
-                    if [[ "$branch" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
-                      echo "Deleting merged atomic branch: $branch"
-                      git push origin --delete "$branch" || echo "Branch $branch already deleted"
+                  echo "=
+                  Validating commit message format..."
+                  
+                  # Get all commits between main and staging
+                  INVALID_COMMITS=0
+                  
+                  while IFS= read -r commit; do
+                    if [[ ! "$commit" =~ ^(feat|fix|docs|style|refactor|perf|test|build|ci|chore|revert)(\(.+\))?:\ .+ ]] && \
+                       [[ ! "$commit" =~ ^Merge\ pull\ request ]] && \
+                       [[ ! "$commit" =~ ^Atomic: ]]; then
+                      echo "Non-conventional commit: $commit"
+                      INVALID_COMMITS=$((INVALID_COMMITS + 1))
                     fi
-                  done
+                  done < <(git log --pretty=format:"%s" origin/main..origin/staging)
+                  
+                  if [ "$INVALID_COMMITS" -gt 0 ]; then
+                    echo "Found $INVALID_COMMITS non-conventional commits"
+                    echo "Consider using conventional commit format for better changelog generation"
+                  else
+                    echo "All commits follow conventional format"
+                  fi
 
-                  echo "Cleanup completed"
-
-    close_resolved_merge_conflict_issues:
-        name: 'Close Resolved Merge Conflict Issues'
-        runs-on: ubuntu-latest
-        permissions:
-            issues: write
-
-        steps:
-            - name: Close resolved merge conflict issues
-              uses: actions/github-script@v8
-              with:
-                  github-token: ${{ secrets.UNITY_PAT }}
-                  script: |
-                      // Find open merge conflict issues for atomic branches
-                      const openIssues = await github.rest.issues.listForRepo({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        state: 'open',
-                        labels: 'merge-conflict'
-                      });
-
-                      console.log(`Found ${openIssues.data.length} open merge conflict issues`);
-
-                      for (const issue of openIssues.data) {
-                        // Extract branch name from issue title
-                        const branchMatch = issue.title.match(/Merge conflict: (atom-[a-zA-Z0-9-]+)/);
-                        
-                        if (branchMatch) {
-                          const branchName = branchMatch[1];
-                          
-                          // Check if the atomic branch still exists
-                          try {
-                            await github.rest.repos.getBranch({
-                              owner: context.repo.owner,
-                              repo: context.repo.repo,
-                              branch: branchName
-                            });
-                            console.log(`Branch ${branchName} still exists, keeping issue open`);
-                          } catch (error) {
-                            if (error.status === 404) {
-                              // Branch doesn't exist anymore, close the issue
-                              await github.rest.issues.update({
-                                owner: context.repo.owner,
-                                repo: context.repo.repo,
-                                issue_number: issue.number,
-                                state: 'closed'
-                              });
-                              
-                              await github.rest.issues.createComment({
-                                owner: context.repo.owner,
-                                repo: context.repo.repo,
-                                issue_number: issue.number,
-                                body: `Merge conflict resolved! The atomic branch \`${branchName}\` was successfully merged and deleted.`
-                              });
-                              
-                              console.log(`Closed merge conflict issue #${issue.number} for ${branchName}`);
-                            }
-                          }
-                        }
-                      }
-
-    close_explicit_keyword_issues:
-        name: 'Close Issues with Explicit Keywords'
-        runs-on: ubuntu-latest
-        permissions:
-            issues: write
-
-        steps:
-            - name: Close issues with explicit keywords
-              uses: actions/github-script@v8
-              with:
-                  github-token: ${{ secrets.UNITY_PAT }}
-                  script: |
-                      // Get recent commits on main
-                      const commits = await github.rest.repos.listCommits({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        sha: 'main',
-                        per_page: 10
-                      });
-
-                      console.log(`Checking ${commits.data.length} recent commits for explicit issue closures...`);
-
-                      const closedIssues = new Set();
-
-                      for (const commit of commits.data) {
-                        const message = commit.commit.message;
-                        
-                        // ONLY explicit close keywords WITH exclamation mark prefix
-                        const issuePatterns = [
-                          /!(?:fix(?:es)?|close(?:s)?|resolve(?:s)?)\s+#(\d+)/gi
-                        ];
-                        
-                        for (const pattern of issuePatterns) {
-                          let match;
-                          while ((match = pattern.exec(message)) !== null) {
-                            const issueNumber = parseInt(match[1]);
-                            if (!closedIssues.has(issueNumber)) {
-                              closedIssues.add(issueNumber);
-                              console.log(`Found explicit closure: ${match[0]} -> #${issueNumber}`);
-                            }
-                          }
-                        }
-                      }
-
-                      // Close the explicitly referenced issues
-                      for (const issueNumber of closedIssues) {
-                        try {
-                          const issue = await github.rest.issues.get({
-                            owner: context.repo.owner,
-                            repo: context.repo.repo,
-                            issue_number: issueNumber
-                          });
-                          
-                          if (issue.data.state === 'open') {
-                            await github.rest.issues.update({
-                              owner: context.repo.owner,
-                              repo: context.repo.repo,
-                              issue_number: issueNumber,
-                              state: 'closed'
-                            });
-                            
-                            await github.rest.issues.createComment({
-                              owner: context.repo.owner,
-                              repo: context.repo.repo,
-                              issue_number: issueNumber,
-                              body: `This issue was automatically closed because it was explicitly resolved in the main branch.`
-                            });
-                            
-                            console.log(`Closed issue #${issueNumber}`);
-                          }
-                        } catch (error) {
-                          console.log(`Error processing issue #${issueNumber}: ${error.message}`);
-                        }
-                      }
-
-                      if (closedIssues.size === 0) {
-                        console.log('No explicit issue closures found');
-                      } else {
-                        console.log(`Processed ${closedIssues.size} explicit issue closure(s)`);
-                      }
+            - name: Summary
+              run: |
+                  echo "  StagingMain PR Validation Summary"
+                  echo "======================================"
+                  echo "  PR validation completed"
+                  echo "  Remember to:"
+                  echo "  - Review all changes carefully"
+                  echo "  - Ensure all tests pass"
+                  echo "  - Use SQUASH MERGE for linear history"
+                  echo "  - Update version numbers if needed"
