@@ -18,7 +18,7 @@ jobs:
         with:
           ref: main
           fetch-depth: 0
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.UNITY_PAT }}
 
       - name: Configure Git
         run: |
@@ -65,7 +65,7 @@ jobs:
       - name: Close resolved merge conflict issues
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.UNITY_PAT }}
           script: |
             // Find open merge conflict issues for atomic branches
             const openIssues = await github.rest.issues.listForRepo({
@@ -118,7 +118,7 @@ jobs:
       - name: Close issues with explicit keywords
         uses: actions/github-script@v7
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          github-token: ${{ secrets.UNITY_PAT }}
           script: |
             // Get recent commits on main
             const commits = await github.rest.repos.listCommits({
@@ -197,3 +197,47 @@ jobs:
           echo "- Merge conflict issues resolved"
           echo "- Explicit issue closures processed"
           echo "- No PR creation = No infinite loops!"
+
+  sync_delete_create_stage:
+    name: 'Delete and Recreate Staging from Main'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    
+    steps:
+      - name: Checkout main branch
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
+          token: ${{ secrets.UNITY_PAT }}
+
+      - name: Configure Git
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+
+      - name: Delete and recreate staging branch
+        run: |
+          echo "Deleting and recreating staging branch from main..."
+          
+          # Fetch all branches
+          git fetch origin
+          
+          # Check if staging branch exists and delete it
+          if git ls-remote --exit-code --heads origin staging > /dev/null 2>&1; then
+            echo "Staging branch exists, deleting it..."
+            git push origin --delete staging
+            echo "Staging branch deleted"
+          fi
+          
+          # Create new staging branch from main
+          echo "Creating new staging branch from main..."
+          git checkout -b staging origin/main
+          git push origin staging
+          echo "Created staging branch from main"
+
+      - name: Staging sync summary
+        run: |
+          echo "Staging sync completed successfully!"
+          echo "- Staging branch deleted and recreated from main"
