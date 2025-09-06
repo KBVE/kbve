@@ -126,15 +126,15 @@ jobs:
                         const sha = commit.sha.substring(0, 7);
                         const commitLine = `- ${message} (\`${sha}\`)`;
                         
-                        if (message.match(/^feat(\(.+\))?: /i)) {
+                        if (message.match(/^feat(\(.+\))?:/i)) {
                           categories.feat.push(commitLine);
-                        } else if (message.match(/^fix(\(.+\))?: /i)) {
+                        } else if (message.match(/^fix(\(.+\))?:/i)) {
                           categories.fix.push(commitLine);
-                        } else if (message.match(/^docs(\(.+\))?: /i)) {
+                        } else if (message.match(/^docs(\(.+\))?:/i)) {
                           categories.docs.push(commitLine);
-                        } else if (message.match(/^ci(\(.+\))?: /i)) {
+                        } else if (message.match(/^ci(\(.+\))?:/i)) {
                           categories.ci.push(commitLine);
-                        } else if (message.match(/^chore(\(.+\))?: /i)) {
+                        } else if (message.match(/^chore(\(.+\))?:/i)) {
                           categories.chore.push(commitLine);
                         } else {
                           categories.other.push(commitLine);
