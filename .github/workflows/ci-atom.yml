@@ -293,9 +293,9 @@ jobs:
                 echo "Proceeding with auto-merge..."
 
             - name: Auto-approve PR
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
-                github-token: ${{ secrets.GITHUB_TOKEN }}
+                github-token: ${{ secrets.UNITY_PAT }}
                 script: |
                   const prNumber = ${{ needs.security_check.outputs.pr_number }};
                   const authorUsername = '${{ needs.security_check.outputs.author_username }}';
@@ -313,9 +313,9 @@ jobs:
                   console.log(`PR #${prNumber} approved`);
 
             - name: Enable auto-merge
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
-                github-token: ${{ secrets.GITHUB_TOKEN }}
+                github-token: ${{ secrets.UNITY_PAT }}
                 script: |
                   const prNumber = ${{ needs.security_check.outputs.pr_number }};
                   
