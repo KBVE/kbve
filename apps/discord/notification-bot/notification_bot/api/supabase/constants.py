@@ -13,7 +13,7 @@ ADMIN_ROLE_ID = 733334418747555918  # Role that can restart the bot
 DEFAULT_CLEANUP_LIMIT = 10
 
 # Application version
-VERSION = "1.7"
+VERSION = "1.7.1"
 
 # Master Server Hardcoded for now
 MASTER_SERVER = 342732838598082562

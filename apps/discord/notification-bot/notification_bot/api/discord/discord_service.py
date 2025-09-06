@@ -162,7 +162,12 @@ class DiscordBotService:
             logger.info(f"📋 Guild assignments for shards {actual_shards}:")
             for guild in self._bot.guilds:
                 shard_info = f", Shard: {guild.shard_id}" if hasattr(guild, 'shard_id') else ""
-                logger.info(f"  - {guild.name} (ID: {guild.id}{shard_info})")
+                # Highlight master server
+                from ..supabase.constants import MASTER_SERVER
+                if guild.id == MASTER_SERVER:
+                    logger.info(f"  - {guild.name} (ID: {guild.id}{shard_info}) 🎯 MASTER SERVER")
+                else:
+                    logger.info(f"  - {guild.name} (ID: {guild.id}{shard_info})")
             
             # Track actual shard assignment in database
             await self._record_actual_shard_assignment(actual_shards)
@@ -174,10 +179,7 @@ class DiscordBotService:
             # Send interactive status embed to the specified thread
             await self._send_status_message()
             
-            # Send initial master server embed
-            await self._send_initial_master_server_embed()
-            
-            # Start periodic heartbeat task
+            # Start periodic heartbeat task (database tracking only)
             await self._start_periodic_heartbeat()
             
             # Update heartbeat for distributed sharding
@@ -201,8 +203,8 @@ class DiscordBotService:
                 )
                 logger.info(f"Updated heartbeat for distributed sharding: {guild_count} guilds, {latency_ms:.2f}ms latency")
             
-            # Verify master server connection
-            await self._verify_master_server_connection()
+            # Verify master server connection and control
+            await self._verify_master_server_control()
         
         @self._bot.event
         async def on_shard_ready(shard_id):
@@ -235,7 +237,7 @@ class DiscordBotService:
         logger.info("✅ Discord bot event handlers set up successfully")
     
     async def _start_periodic_heartbeat(self):
-        """Start periodic heartbeat and master server embed updates"""
+        """Start periodic database heartbeat tracking (every 30 seconds)"""
         if self._heartbeat_task and not self._heartbeat_task.done():
             logger.warning("Heartbeat task already running")
             return
@@ -251,12 +253,12 @@ class DiscordBotService:
                     await asyncio.sleep(10)  # Shorter retry interval on error
         
         self._heartbeat_task = asyncio.create_task(heartbeat_loop())
-        logger.info("Started periodic heartbeat task")
+        logger.info("Started periodic database heartbeat task")
     
     async def _periodic_heartbeat(self):
-        """Perform periodic heartbeat and update master server embed"""
+        """Perform periodic database heartbeat tracking only"""
         try:
-            # Update database heartbeat
+            # Update database heartbeat only
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
             if use_distributed_sharding:
                 instance_id = os.getenv('HOSTNAME', str(uuid.uuid4())[:8])
@@ -269,7 +271,7 @@ class DiscordBotService:
                 else:
                     latency_ms = self._bot.latency * 1000 if hasattr(self._bot, 'latency') else 0
                 
-                # Update database heartbeat
+                # Update database heartbeat only
                 from ..supabase import tracker_manager
                 await tracker_manager.update_heartbeat(
                     instance_id=instance_id,
@@ -278,9 +280,6 @@ class DiscordBotService:
                     latency_ms=latency_ms
                 )
                 logger.debug(f"Updated database heartbeat: {guild_count} guilds, {latency_ms:.2f}ms latency")
-            
-            # Update master server embed
-            await self._update_master_server_embed()
             
         except Exception as e:
             logger.error(f"Error in periodic heartbeat: {e}")
@@ -360,8 +359,8 @@ class DiscordBotService:
         except Exception as e:
             logger.error(f"Failed to send master status embed: {e}")
     
-    async def _verify_master_server_connection(self):
-        """Verify bot is connected to master server"""
+    async def _verify_master_server_control(self):
+        """Verify which instance has control of master server for status embeds"""
         try:
             from ..supabase.constants import MASTER_SERVER
             
@@ -369,23 +368,24 @@ class DiscordBotService:
             master_guild = self._bot.get_guild(master_guild_id)
             
             if master_guild:
-                logger.info(f"✅ Connected to master server: {master_guild.name} (ID: {master_guild_id})")
+                logger.info(f"🎯 THIS INSTANCE HAS MASTER SERVER CONTROL")
+                logger.info(f"  └─ Connected to: {master_guild.name} (ID: {master_guild_id})")
+                logger.info(f"  └─ Will send status embeds to thread {DISCORD_THREAD_ID}")
                 
                 # Log which shard is handling this master server
-                if hasattr(self._bot, 'shard_id') and self._bot.shard_id is not None:
-                    expected_shard = master_guild_id % int(os.getenv('TOTAL_SHARDS', '2'))
-                    current_shard = self._bot.shard_id
-                    if expected_shard != current_shard:
-                        logger.warning(f"Master server {master_guild_id} should be on shard {expected_shard}, but we are shard {current_shard}")
-                        logger.warning("This shard will NOT receive events for the master server!")
-                    else:
-                        logger.info(f"✅ Master server correctly assigned to our shard {current_shard}")
+                if hasattr(self._bot, 'shards') and self._bot.shards:
+                    for shard_id in self._bot.shards:
+                        if master_guild.shard_id == shard_id:
+                            logger.info(f"  └─ Master server on our shard {shard_id}")
+                            break
             else:
-                logger.warning(f"❌ Bot is NOT connected to master server {master_guild_id}")
-                logger.warning("Make sure the bot is invited to the master server!")
+                logger.info(f"ℹ️ THIS INSTANCE DOES NOT HAVE MASTER SERVER CONTROL")
+                logger.info(f"  └─ Not connected to master server {master_guild_id}")
+                logger.info(f"  └─ Will NOT send status embeds (avoiding duplicates)")
+                logger.info(f"  └─ This is expected for shards that don't own the master server")
                 
         except Exception as e:
-            logger.error(f"Error verifying master server connection: {e}")
+            logger.error(f"Error verifying master server control: {e}")
     
     async def _send_initial_master_server_embed(self):
         """Send initial status embed to master server on startup"""
@@ -517,7 +517,7 @@ class DiscordBotService:
             logger.error(f"Error updating master server shutdown status: {e}")
     
     async def _update_shutdown_status(self):
-        """Update both database status and master server embed for shutdown"""
+        """Update database status to stopping for tracking"""
         try:
             # Update database status to stopping
             use_distributed_sharding = os.getenv('USE_DISTRIBUTED_SHARDING', 'false').lower() == 'true'
@@ -528,9 +528,6 @@ class DiscordBotService:
                 
                 await tracker_manager.update_status_to_stopping(instance_id, cluster_name)
                 logger.info(f"📝 Updated database status to 'stopping' for {instance_id}")
-            
-            # Update master server embed
-            await self._update_master_server_shutdown_status()
             
         except Exception as e:
             logger.error(f"Error updating shutdown status: {e}")
@@ -621,6 +618,18 @@ class DiscordBotService:
     
     async def _send_status_message(self):
         """Send status message to Discord thread (wrapper for backward compatibility)"""
+        # Check if we should send status embeds based on master server access
+        from ..supabase.constants import MASTER_SERVER
+        
+        # Check if this bot instance can see the master server
+        master_guild = self._bot.get_guild(MASTER_SERVER)
+        
+        if not master_guild:
+            logger.info(f"⚠️ Bot is NOT in master server {MASTER_SERVER} - skipping status embed to avoid duplicates")
+            logger.info("This shard will handle its assigned guilds but won't post status embeds")
+            return
+        
+        logger.info(f"✅ Bot IS in master server {MASTER_SERVER} - sending status embed")
         await self._send_status_embed()
     
     def get_bot(self) -> Optional[discord.Client]:
@@ -841,6 +850,14 @@ class DiscordBotService:
         """Send offline message to Discord thread"""
         try:
             if not self._bot or self._bot.is_closed():
+                return
+            
+            # Check if we're in master server before sending offline message
+            from ..supabase.constants import MASTER_SERVER
+            master_guild = self._bot.get_guild(MASTER_SERVER)
+            
+            if not master_guild:
+                logger.debug("Not in master server - skipping offline message")
                 return
             
             channel = self._bot.get_channel(DISCORD_THREAD_ID)
