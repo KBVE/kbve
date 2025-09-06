@@ -64,6 +64,7 @@ jobs:
                   
                   **Auto-generated after main release**" \
                               --label "auto-pr"
+
                           
                           echo "Created sync PR from $SYNC_BRANCH to dev"
                       else
