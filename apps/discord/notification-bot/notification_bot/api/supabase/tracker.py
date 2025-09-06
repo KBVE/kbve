@@ -451,6 +451,124 @@ class TrackerManager:
         except Exception as e:
             logger.error(f"Error getting cluster status: {e}")
             return []
+    
+    async def record_discovered_shard(
+        self,
+        instance_id: str,
+        cluster_name: str,
+        shard_id: int,
+        total_shards: int,
+        guild_count: int = 0,
+        latency_ms: float = 0.0
+    ) -> bool:
+        """
+        Record shard assignment that was discovered/determined by Discord.py
+        
+        Args:
+            instance_id: Unique identifier for this bot instance
+            cluster_name: Name of the cluster
+            shard_id: The shard ID that Discord assigned
+            total_shards: Total shards Discord determined
+            guild_count: Number of guilds on this shard
+            latency_ms: Current latency in milliseconds
+            
+        Returns:
+            True if record successful, False otherwise
+        """
+        try:
+            client = self._supabase.init_supabase_client()
+            
+            bot_version = str(VERSION)
+            deployment_version = os.getenv('DEPLOYMENT_VERSION', str(VERSION))
+            
+            # Use upsert to handle both insert and update cases
+            upsert_data = {
+                'instance_id': instance_id,
+                'cluster_name': cluster_name,
+                'shard_id': shard_id,
+                'total_shards': total_shards,
+                'status': 'active',
+                'last_heartbeat': 'now()',
+                'hostname': os.getenv('HOSTNAME', instance_id),
+                'pod_ip': os.getenv('POD_IP'),
+                'node_name': os.getenv('NODE_NAME'),
+                'namespace': os.getenv('NAMESPACE', 'discord'),
+                'guild_count': guild_count,
+                'latency_ms': latency_ms,
+                'bot_version': bot_version,
+                'deployment_version': deployment_version
+            }
+            
+            try:
+                result = (
+                    client.schema('tracker')
+                    .table('cluster_management')
+                    .upsert(upsert_data, on_conflict='instance_id,cluster_name')
+                    .execute()
+                )
+                
+                if hasattr(result, 'error') and result.error:
+                    logger.warning(f"Failed to record discovered shard: {result.error}")
+                    return False
+                else:
+                    logger.info(f"✅ Recorded discovered shard {shard_id} for {instance_id} ({guild_count} guilds)")
+                    return True
+                    
+            except Exception as e:
+                logger.warning(f"Error recording discovered shard: {e}")
+                return False
+                
+        except Exception as e:
+            logger.warning(f"Error in record_discovered_shard: {e}")
+            return False
+    
+    async def update_status_to_stopping(
+        self,
+        instance_id: str,
+        cluster_name: str
+    ) -> bool:
+        """
+        Update instance status to 'stopping' in database
+        
+        Args:
+            instance_id: Unique identifier for this bot instance
+            cluster_name: Name of the cluster
+            
+        Returns:
+            True if update successful, False otherwise
+        """
+        try:
+            client = self._supabase.init_supabase_client()
+            
+            update_data = {
+                'status': 'stopping',
+                'last_heartbeat': 'now()'
+            }
+            
+            try:
+                result = (
+                    client.schema('tracker')
+                    .table('cluster_management')
+                    .update(update_data)
+                    .eq('instance_id', instance_id)
+                    .eq('cluster_name', cluster_name)
+                    .execute()
+                )
+                
+                if hasattr(result, 'error') and result.error:
+                    logger.warning(f"Failed to update status to stopping: {result.error}")
+                    return False
+                else:
+                    logger.debug(f"Updated status to 'stopping' for {instance_id}")
+                    return True
+                    
+            except Exception as e:
+                logger.warning(f"Error updating status to stopping: {e}")
+                return False
+                
+        except Exception as e:
+            logger.warning(f"Error in update_status_to_stopping: {e}")
+            return False
 
 # Global tracker manager instance
 tracker_manager = TrackerManager()
