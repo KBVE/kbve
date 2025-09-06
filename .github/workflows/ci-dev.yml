@@ -24,9 +24,94 @@ jobs:
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
 
+            - name: Check if dev has changes for staging
+              id: check_changes
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      // Compare dev with staging to see if there are changes to promote
+                      try {
+                          const comparison = await github.rest.repos.compareCommits({
+                              owner: context.repo.owner,
+                              repo: context.repo.repo,
+                              base: 'staging',
+                              head: 'dev'
+                          });
+                          
+                          const commitCount = comparison.data.commits.length;
+                          console.log(`Found ${commitCount} commits between staging and dev`);
+                          
+                          if (commitCount === 0) {
+                              console.log('Dev is up-to-date with staging - no PR needed');
+                              
+                              // Check the reverse - is staging ahead of dev?
+                              const reverseComparison = await github.rest.repos.compareCommits({
+                                  owner: context.repo.owner,
+                                  repo: context.repo.repo,
+                                  base: 'dev',
+                                  head: 'staging'
+                              });
+                              
+                              if (reverseComparison.data.commits.length > 0) {
+                                  return {
+                                      hasChanges: false,
+                                      commitCount: 0,
+                                      message: `Staging is ${reverseComparison.data.commits.length} commits ahead of dev`,
+                                      stagingAhead: true,
+                                      stagingAheadBy: reverseComparison.data.commits.length
+                                  };
+                              } else {
+                                  return {
+                                      hasChanges: false,
+                                      commitCount: 0,
+                                      message: 'Dev and staging are synchronized',
+                                      stagingAhead: false
+                                  };
+                              }
+                          }
+                          
+                          console.log(`Dev has ${commitCount} commits ready for staging`);
+                          return {
+                              hasChanges: true,
+                              commitCount: commitCount,
+                              commits: comparison.data.commits,
+                              stagingAhead: false
+                          };
+                          
+                      } catch (error) {
+                          console.log(`Error comparing branches: ${error.message}`);
+                          return {
+                              hasChanges: false,
+                              commitCount: 0,
+                              error: error.message
+                          };
+                      }
+
+            - name: Skip PR creation - no changes or staging ahead
+              if: fromJson(steps.check_changes.outputs.result).hasChanges == false
+              run: |
+                  echo "Dev to Staging PR Status: NOT NEEDED"
+                  
+                  if [[ "${{ fromJson(steps.check_changes.outputs.result).stagingAhead }}" == "true" ]]; then
+                      echo "Staging is ${{ fromJson(steps.check_changes.outputs.result).stagingAheadBy }} commits ahead of dev"
+                      echo "This is normal after a release - staging contains the latest tested code"
+                      echo "Dev will catch up when new atomic commits are added"
+                  else
+                      echo "Dev and staging are synchronized"
+                      echo "No new atomic commits to promote yet"
+                  fi
+                  
+                  echo ""
+                  echo "This is a normal state that indicates:"
+                  echo "- No new atomic commits have been merged to dev since last promotion"
+                  echo "- System is in a clean, synchronized state"
+                  echo "- Ready for new development work"
+
             - name: Check if dev→staging PR exists
+              if: fromJson(steps.check_changes.outputs.result).hasChanges == true
               id: check_pr
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
@@ -51,21 +136,31 @@ jobs:
                       }
 
             - name: Create new dev→staging PR
-              if: fromJson(steps.check_pr.outputs.result).exists == false
+              if: fromJson(steps.check_changes.outputs.result).hasChanges == true && fromJson(steps.check_pr.outputs.result).exists == false
               id: create_pr
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
+                      const commitCount = ${{ fromJson(steps.check_changes.outputs.result).commitCount }};
+                      
                       const pr = await github.rest.pulls.create({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        title: 'Release: Dev → Staging',
+                        title: `Release: Dev → Staging (${commitCount} commits)`,
                         head: 'dev',
                         base: 'staging',
-                        body: `## 🚀 Release: Dev → Staging
+                        body: `## Release: Dev → Staging
                         
-                        This PR contains accumulated changes from the dev branch ready for staging environment.
+                        This PR contains **${commitCount} atomic commits** ready for staging environment testing.
+                        
+                        ### Staging Checklist
+                        - [ ] Review atomic commits
+                        - [ ] Verify feature completeness  
+                        - [ ] Ready for staging deployment
+                        
+                        ### Merge Strategy
+                        **This PR will be MERGE COMMITTED to preserve atomic commit history**
                         
                         ### Changes will be categorized below...
                         
@@ -79,15 +174,17 @@ jobs:
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         issue_number: pr.data.number,
-                        labels: ['auto-pr', 'staging']
+                        labels: ['auto-pr', 'staging', 'dev→staging']
                       });
 
                       console.log(`Created PR #${pr.data.number}`);
                       return { number: pr.data.number, url: pr.data.html_url };
 
+            # Only update PR if we have changes
             - name: Update PR with categorized commits
+              if: fromJson(steps.check_changes.outputs.result).hasChanges == true
               id: update_pr
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
@@ -117,7 +214,7 @@ jobs:
                       const commits = comparison.data.commits;
                       console.log(`Found ${commits.length} commits`);
 
-                      // Categorize commits
+                      // Categorize commits (your existing logic)
                       const categories = {
                         feat: [],
                         fix: [],
@@ -128,7 +225,7 @@ jobs:
                       };
 
                       commits.forEach(commit => {
-                        const message = commit.commit.message.split('\n')[0]; // First line only
+                        const message = commit.commit.message.split('\n')[0];
                         const sha = commit.sha.substring(0, 7);
                         const commitLine = `- ${message} (\`${sha}\`)`;
                         
@@ -148,26 +245,26 @@ jobs:
                       });
 
                       // Build PR body
-                      let prBody = `## 🚀 Release: Dev → Staging\n\n`;
-                      prBody += `**${commits.length} commits** ready for staging\n\n`;
+                      let prBody = `## Release: Dev → Staging\n\n`;
+                      prBody += `**${commits.length} atomic commits** ready for staging\n\n`;
 
                       if (categories.feat.length > 0) {
-                        prBody += `### ✨ Features\n${categories.feat.join('\n')}\n\n`;
+                        prBody += `### Features\n${categories.feat.join('\n')}\n\n`;
                       }
                       if (categories.fix.length > 0) {
-                        prBody += `### 🐛 Bug Fixes\n${categories.fix.join('\n')}\n\n`;
+                        prBody += `### Bug Fixes\n${categories.fix.join('\n')}\n\n`;
                       }
                       if (categories.docs.length > 0) {
-                        prBody += `### 📚 Documentation\n${categories.docs.join('\n')}\n\n`;
+                        prBody += `### Documentation\n${categories.docs.join('\n')}\n\n`;
                       }
                       if (categories.ci.length > 0) {
-                        prBody += `### ⚙️ CI/CD\n${categories.ci.join('\n')}\n\n`;
+                        prBody += `### CI/CD\n${categories.ci.join('\n')}\n\n`;
                       }
                       if (categories.chore.length > 0) {
-                        prBody += `### 🧹 Chores\n${categories.chore.join('\n')}\n\n`;
+                        prBody += `### Chores\n${categories.chore.join('\n')}\n\n`;
                       }
                       if (categories.other.length > 0) {
-                        prBody += `### 📦 Other Changes\n${categories.other.join('\n')}\n\n`;
+                        prBody += `### Other Changes\n${categories.other.join('\n')}\n\n`;
                       }
 
                       prBody += `---\n*This PR is automatically maintained by CI*`;
@@ -181,6 +278,16 @@ jobs:
                       });
 
                       console.log(`Updated PR #${prNumber} with categorized commits`);
+
+            - name: Summary
+              run: |
+                  if [[ "${{ fromJson(steps.check_changes.outputs.result).hasChanges }}" == "true" ]]; then
+                      echo "Dev→Staging PR: CREATED/UPDATED"
+                      echo "Atomic commits ready for staging: ${{ fromJson(steps.check_changes.outputs.result).commitCount }}"
+                  else
+                      echo "Dev→Staging PR: NOT NEEDED"
+                      echo "Branches are synchronized or staging is ahead"
+                  fi
 
     alter:
         name: 'Dev File Alterations'
