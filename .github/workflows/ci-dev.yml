@@ -91,9 +91,15 @@ jobs:
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
-                      const prNumber = ${{ fromJson(steps.check_pr.outputs.result).exists }} 
-                        ? ${{ fromJson(steps.check_pr.outputs.result).number }}
-                        : ${{ steps.create_pr.outputs.result != null && fromJson(steps.create_pr.outputs.result).number || 'null' }};
+                      let prNumber = null;
+                      const checkResult = ${{ toJson(steps.check_pr.outputs.result) }};
+                      const createResult = ${{ toJson(steps.create_pr.outputs.result) }};
+                      
+                      if (checkResult && checkResult.exists) {
+                        prNumber = checkResult.number;
+                      } else if (createResult && createResult.number) {
+                        prNumber = createResult.number;
+                      }
 
                       if (!prNumber) {
                         console.log('No PR number available');

@@ -63,7 +63,7 @@ jobs:
                   This ensures dev stays current with production fixes and updates.
                   
                   **Auto-generated after main release**" \
-                              --label "auto-sync,main→dev"
+                              --label "auto-pr,main→dev"
                           
                           echo "Created sync PR from $SYNC_BRANCH to dev"
                       else
