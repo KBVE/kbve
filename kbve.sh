@@ -222,28 +222,53 @@ prepare_disoxide_container() {
 # Function for atomic patching. 
 atomic_function() {
     set -e
-
+    
+    echo "Creating atomic branch..."
+    
+    # Fetch latest changes
     git fetch origin
-
+    
+    # Ensure we're on dev and it's up to date
     git switch dev
-
-    #git pull origin main --rebase
-    #git rebase origin/main
-
-    git pull
-
-    GIT_DATE=$(date +'%m-%d-%Y-%s')
-
+    git pull origin dev
+    
+    # Generate timestamp
+    GIT_DATE=$(date +'%m%d%H%M')  # Format: MMDDHHMM (e.g., 12151430)
+    
+    # Build branch name with description
     if [ "$#" -eq "0" ]; then
         PATCH_NAME="atom-${GIT_DATE}"
     else
-        UNFORMAT_PATCH=$(echo "$@" | tr ' ' '-')
-        NEW_PATCH="${UNFORMAT_PATCH//[^[:alnum:]-]/-}"
-        NEW_PATCH=$(echo "$NEW_PATCH" | tr '[:upper:]' '[:lower:]')
-        PATCH_NAME="atom-${NEW_PATCH}-${GIT_DATE}"
+        # Clean the description: lowercase, spaces to hyphens, remove special chars
+        DESCRIPTION=$(echo "$@" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g' | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
+        PATCH_NAME="atom-${GIT_DATE}-${DESCRIPTION}"
     fi
-
-    git switch -c "${PATCH_NAME}"
+    
+    # Validate branch name matches CI workflow requirements
+    if [[ ! "$PATCH_NAME" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
+        echo "Generated branch name '$PATCH_NAME' is invalid!"
+        return 1
+    fi
+    
+    # Length check (same as CI workflow)
+    if [[ ${#PATCH_NAME} -gt 50 ]]; then
+        echo "Branch name too long: ${#PATCH_NAME} characters (max 50)"
+        echo "Try a shorter description"
+        return 1
+    fi
+    
+    # Check if branch already exists
+    if git show-ref --verify --quiet refs/heads/"$PATCH_NAME"; then
+        echo "Branch '$PATCH_NAME' already exists locally!"
+        return 1
+    fi
+    
+    # Create the branch
+    echo "Creating branch: $PATCH_NAME"
+    git switch -c "$PATCH_NAME"
+    
+    echo "Atomic branch '$PATCH_NAME' created!"
+    echo "When ready: git add . && git commit -m 'your message' && git push origin $PATCH_NAME"
 }
 
 # Function for the zeta script
