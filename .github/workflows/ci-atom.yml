@@ -6,11 +6,11 @@ on:
             - 'atom-*'
 
 jobs:
-    validate_and_merge:
-        name: 'Validate & Auto-merge Atom Branch'
+    create_pull_request:
+        name: 'Create PR for Atom Branch'
         runs-on: ubuntu-latest
         permissions:
-            contents: write
+            contents: read
             pull-requests: write
             issues: write
         
@@ -20,29 +20,29 @@ jobs:
               run: |
                   BRANCH_NAME="${{ github.ref_name }}"
                   
-                  echo "🔍 Validating branch: $BRANCH_NAME"
+                  echo "Validating branch: $BRANCH_NAME"
                   
-                  # Strict validation: atom- prefix + alphanumeric/hyphens/underscores only
-                  if [[ ! "$BRANCH_NAME" =~ ^atom-[a-zA-Z0-9_-]+$ ]]; then
-                      echo "❌ Invalid branch name: $BRANCH_NAME"
-                      echo "✅ Valid format: atom-[a-zA-Z0-9_-]+"
-                      echo "Examples: atom-fix-login, atom-add-feature, atom-update-docs"
+                  # Strict validation: atom- prefix + alphanumeric/hyphens only
+                  if [[ ! "$BRANCH_NAME" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
+                      echo "Invalid branch name: $BRANCH_NAME"
+                      echo "Valid format: atom-[a-zA-Z0-9-]+"
+                      echo "Examples: atom-12151430-fix-login, atom-12151430-update-docs"
                       exit 1
                   fi
                   
-                  # Length check (reasonable limit)
+                  # Length check
                   if [[ ${#BRANCH_NAME} -gt 50 ]]; then
-                      echo "❌ Branch name too long: ${#BRANCH_NAME} characters (max 50)"
+                      echo "Branch name too long: ${#BRANCH_NAME} characters (max 50)"
                       exit 1
                   fi
                   
                   # Reserved name check
                   if [[ "$BRANCH_NAME" =~ (atom-main|atom-dev|atom-master) ]]; then
-                      echo "❌ Reserved branch name: $BRANCH_NAME"
+                      echo "Reserved branch name: $BRANCH_NAME"
                       exit 1
                   fi
                   
-                  echo "✅ Valid branch name: $BRANCH_NAME"
+                  echo "Valid branch name: $BRANCH_NAME"
                   echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
 
             - name: Check if dev branch exists
@@ -57,11 +57,11 @@ jobs:
                       repo: context.repo.repo,
                       branch: 'dev'
                     });
-                    console.log('✅ Dev branch exists');
+                    console.log('Dev branch exists');
                     return true;
                   } catch (error) {
                     if (error.status === 404) {
-                      console.log('❌ Dev branch does not exist');
+                      console.log('Dev branch does not exist');
                       return false;
                     }
                     throw error;
@@ -88,144 +88,105 @@ jobs:
                     sha: mainBranch.data.commit.sha
                   });
                   
-                  console.log('✅ Created dev branch from main');
+                  console.log('Created dev branch from main');
 
-            - name: Auto-merge atom into dev
-              id: merge
-              uses: actions/github-script@v7
-              with:
-                github-token: ${{ secrets.GITHUB_TOKEN }}
-                script: |
-                  const branchName = '${{ steps.validate.outputs.branch_name }}';
-                  const owner = context.repo.owner;
-                  const repo = context.repo.repo;
-                  
-                  console.log(`🔄 Attempting to merge ${branchName} into dev...`);
-                  
-                  try {
-                    // Attempt merge using GitHub API (safe from injection)
-                    const mergeResult = await github.rest.repos.merge({
-                      owner: owner,
-                      repo: repo,
-                      base: 'dev',
-                      head: branchName,
-                      commit_message: `Auto-merge ${branchName} into dev\n\nMerged via automated workflow`
-                    });
-                    
-                    console.log(`✅ Successfully merged into dev`);
-                    console.log(`📍 Merge commit SHA: ${mergeResult.data.sha}`);
-                    
-                    return {
-                      success: true,
-                      sha: mergeResult.data.sha,
-                      message: 'Merge successful'
-                    };
-                    
-                  } catch (error) {
-                    console.log(`❌ Merge failed: ${error.message}`);
-                    
-                    // Common merge conflict scenario
-                    if (error.status === 409) {
-                      return {
-                        success: false,
-                        error: 'merge_conflict',
-                        message: 'Merge conflicts detected - manual resolution required'
-                      };
-                    }
-                    
-                    // Other errors (network, permissions, etc.)
-                    return {
-                      success: false,
-                      error: 'merge_failed',
-                      message: error.message
-                    };
-                  }
-
-            - name: Delete atom branch on successful merge
-              if: fromJson(steps.merge.outputs.result).success == true
+            - name: Check if PR already exists
+              id: check_pr
               uses: actions/github-script@v7
               with:
                 github-token: ${{ secrets.GITHUB_TOKEN }}
                 script: |
                   const branchName = '${{ steps.validate.outputs.branch_name }}';
                   
-                  try {
-                    await github.rest.git.deleteRef({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      ref: `heads/${branchName}`
-                    });
-                    
-                    console.log(`✅ Successfully deleted branch: ${branchName}`);
-                  } catch (error) {
-                    console.log(`⚠️ Could not delete branch ${branchName}: ${error.message}`);
-                    // Don't fail the workflow if branch deletion fails
-                  }
-
-            - name: Create issue for merge conflicts
-              if: fromJson(steps.merge.outputs.result).success == false && fromJson(steps.merge.outputs.result).error == 'merge_conflict'
-              uses: actions/github-script@v7
-              with:
-                github-token: ${{ secrets.GITHUB_TOKEN }}
-                script: |
-                  const branchName = '${{ steps.validate.outputs.branch_name }}';
-                  const issueBody = `
-                  ## 🔀 Merge Conflict: \`${branchName}\`
-                  
-                  The atomic branch \`${branchName}\` could not be automatically merged into \`dev\` due to conflicts.
-                  
-                  ### Manual Resolution Required:
-                  
-                  \`\`\`bash
-                  # 1. Checkout and update dev
-                  git checkout dev
-                  git pull origin dev
-                  
-                  # 2. Checkout your atom branch
-                  git checkout ${branchName}
-                  
-                  # 3. Rebase onto latest dev
-                  git rebase dev
-                  
-                  # 4. Resolve conflicts, then:
-                  git add .
-                  git rebase --continue
-                  
-                  # 5. Force push (creates new commits, triggers re-merge)
-                  git push --force-with-lease origin ${branchName}
-                  \`\`\`
-                  
-                  ### Or use GitHub UI:
-                  1. Create a PR from \`${branchName}\` to \`dev\`
-                  2. Resolve conflicts in the web editor
-                  3. Merge manually
-                  
-                  **This issue will auto-close when the branch is successfully merged or deleted.**
-                  `;
-                  
-                  await github.rest.issues.create({
+                  const existingPRs = await github.rest.pulls.list({
                     owner: context.repo.owner,
                     repo: context.repo.repo,
-                    title: `Merge conflict: ${branchName} → dev`,
-                    body: issueBody,
-                    labels: ['merge-conflict', 'atom-branch', 'needs-resolution']
+                    head: `${context.repo.owner}:${branchName}`,
+                    base: 'dev',
+                    state: 'open'
                   });
                   
-                  console.log(`📝 Created issue for merge conflict resolution`);
+                  if (existingPRs.data.length > 0) {
+                    console.log(`PR already exists: #${existingPRs.data[0].number}`);
+                    return {
+                      exists: true,
+                      number: existingPRs.data[0].number,
+                      url: existingPRs.data[0].html_url
+                    };
+                  } else {
+                    console.log('No existing PR found');
+                    return { exists: false };
+                  }
 
-            - name: Fail workflow on merge error
-              if: fromJson(steps.merge.outputs.result).success == false
-              run: |
-                echo "❌ Atomic merge failed"
-                echo "Branch: ${{ steps.validate.outputs.branch_name }}"
-                echo "Error: ${{ fromJson(steps.merge.outputs.result).message }}"
-                exit 1
+            - name: Create pull request
+              if: fromJson(steps.check_pr.outputs.result).exists == false
+              id: create_pr
+              uses: actions/github-script@v7
+              with:
+                github-token: ${{ secrets.GITHUB_TOKEN }}
+                script: |
+                  const branchName = '${{ steps.validate.outputs.branch_name }}';
+                  
+                  // Extract description from branch name for title
+                  const parts = branchName.split('-');
+                  const description = parts.length > 2 ? parts.slice(2).join(' ') : 'atomic changes';
+                  const title = `Atomic: ${description}`;
+                  
+                  const prBody = `## Atomic Branch: \`${branchName}\`
+                  
+                  This is an automated pull request for atomic changes.
+                  
+                  ### Changes
+                  - [ ] Review changes
+                  - [ ] Verify tests pass
+                  - [ ] Ready to merge
+                  
+                  ### Branch Info
+                  - **Source:** \`${branchName}\`
+                  - **Target:** \`dev\`
+                  - **Type:** Atomic workflow
+                  
+                  ---
+                  *This PR was automatically created by the atomic branch workflow.*`;
+                  
+                  const pr = await github.rest.pulls.create({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    title: title,
+                    head: branchName,
+                    base: 'dev',
+                    body: prBody,
+                    draft: false
+                  });
+                  
+                  // Add labels
+                  await github.rest.issues.addLabels({
+                    owner: context.repo.owner,
+                    repo: context.repo.repo,
+                    issue_number: pr.data.number,
+                    labels: ['atomic-branch', 'auto-pr']
+                  });
+                  
+                  console.log(`Created PR #${pr.data.number}: ${pr.data.html_url}`);
+                  
+                  return {
+                    number: pr.data.number,
+                    url: pr.data.html_url
+                  };
 
             - name: Success summary
-              if: fromJson(steps.merge.outputs.result).success == true
               run: |
-                echo "🎉 Atomic branch workflow completed successfully!"
-                echo "✅ Branch: ${{ steps.validate.outputs.branch_name }}"
-                echo "✅ Merged into: dev"
-                echo "✅ Branch deleted: ${{ steps.validate.outputs.branch_name }}"
-                echo "📍 Merge SHA: ${{ fromJson(steps.merge.outputs.result).sha }}"
+                echo "Atomic branch workflow completed!"
+                echo "Branch: ${{ steps.validate.outputs.branch_name }}"
+                
+                if [[ "${{ fromJson(steps.check_pr.outputs.result).exists }}" == "true" ]]; then
+                  echo "Existing PR: ${{ fromJson(steps.check_pr.outputs.result).url }}"
+                else
+                  echo "New PR created: ${{ fromJson(steps.create_pr.outputs.result).url }}"
+                fi
+                
+                echo ""
+                echo "Next steps:"
+                echo "1. Review the PR"
+                echo "2. Approve and merge when ready"
+                echo "3. Branch will be auto-deleted after merge"
