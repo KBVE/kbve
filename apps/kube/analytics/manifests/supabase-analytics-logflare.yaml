@@ -19,7 +19,7 @@ spec:
     spec:
       initContainers:
       - name: tzdata-init
-        image: supabase/logflare:1.15.3
+        image: supabase/logflare:1.21.0
         command:
         - sh
         - -c
