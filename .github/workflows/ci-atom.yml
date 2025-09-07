@@ -6,22 +6,23 @@ on:
             - 'atom-*'
 
 jobs:
-    create_pull_request:
-        name: 'Create PR for Atom Branch'
+    # Job 1: Validate the branch name and extract metadata
+    validate_branch:
+        name: 'Validate Branch'
         runs-on: ubuntu-latest
-        permissions:
-            contents: read
-            pull-requests: write
-            issues: write
-        
+        outputs:
+            branch_name: ${{ steps.validate.outputs.branch_name }}
+            branch_valid: ${{ steps.validate.outputs.valid }}
+            pr_title: ${{ steps.validate.outputs.pr_title }}
+
         steps:
             - name: Validate branch name
               id: validate
               run: |
                   BRANCH_NAME="${{ github.ref_name }}"
-                  
+
                   echo "Validating branch: $BRANCH_NAME"
-                  
+
                   # Strict validation: atom- prefix + alphanumeric/hyphens only
                   if [[ ! "$BRANCH_NAME" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
                       echo "Invalid branch name: $BRANCH_NAME"
@@ -29,333 +30,441 @@ jobs:
                       echo "Examples: atom-12151430-fix-login, atom-12151430-update-docs"
                       exit 1
                   fi
-                  
+
                   # Length check
                   if [[ ${#BRANCH_NAME} -gt 50 ]]; then
                       echo "Branch name too long: ${#BRANCH_NAME} characters (max 50)"
                       exit 1
                   fi
-                  
+
                   # Reserved name check
                   if [[ "$BRANCH_NAME" =~ (atom-main|atom-dev|atom-master) ]]; then
                       echo "Reserved branch name: $BRANCH_NAME"
                       exit 1
                   fi
-                  
-                  echo "Valid branch name: $BRANCH_NAME"
-                  echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
 
+                  # Extract description from branch name for PR title
+                  IFS='-' read -ra PARTS <<< "$BRANCH_NAME"
+                  if [[ ${#PARTS[@]} -gt 2 ]]; then
+                      DESCRIPTION="${PARTS[@]:2}"
+                      DESCRIPTION="${DESCRIPTION// / }"
+                  else
+                      DESCRIPTION="atomic changes"
+                  fi
+                  PR_TITLE="Atomic: $DESCRIPTION"
+
+                  echo "Valid branch name: $BRANCH_NAME"
+                  echo "PR title will be: $PR_TITLE"
+                  echo "branch_name=$BRANCH_NAME" >> $GITHUB_OUTPUT
+                  echo "valid=true" >> $GITHUB_OUTPUT
+                  echo "pr_title=$PR_TITLE" >> $GITHUB_OUTPUT
+
+    # Job 2: Ensure dev branch exists
+    ensure_dev_branch:
+        name: 'Ensure Dev Branch'
+        runs-on: ubuntu-latest
+        needs: validate_branch
+        permissions:
+            contents: write
+        outputs:
+            dev_exists: ${{ steps.check.outputs.exists }}
+            dev_created: ${{ steps.create.outputs.created }}
+
+        steps:
             - name: Check if dev branch exists
-              id: check_dev
+              id: check
               uses: actions/github-script@v7
               with:
-                github-token: ${{ secrets.GITHUB_TOKEN }}
-                script: |
-                  try {
-                    await github.rest.repos.getBranch({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      branch: 'dev'
-                    });
-                    console.log('Dev branch exists');
-                    return true;
-                  } catch (error) {
-                    if (error.status === 404) {
-                      console.log('Dev branch does not exist');
-                      return false;
-                    }
-                    throw error;
-                  }
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      try {
+                        await github.rest.repos.getBranch({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          branch: 'dev'
+                        });
+                        console.log('Dev branch exists');
+                        core.setOutput('exists', 'true');
+                        return { exists: true };
+                      } catch (error) {
+                        if (error.status === 404) {
+                          console.log('Dev branch does not exist');
+                          core.setOutput('exists', 'false');
+                          return { exists: false };
+                        }
+                        throw error;
+                      }
 
             - name: Create dev branch if missing
-              if: steps.check_dev.outputs.result == 'false'
+              id: create
+              if: steps.check.outputs.exists == 'false'
               uses: actions/github-script@v7
               with:
-                github-token: ${{ secrets.GITHUB_TOKEN }}
-                script: |
-                  // Get main branch SHA
-                  const mainBranch = await github.rest.repos.getBranch({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    branch: 'main'
-                  });
-                  
-                  // Create dev branch from main
-                  await github.rest.git.createRef({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    ref: 'refs/heads/dev',
-                    sha: mainBranch.data.commit.sha
-                  });
-                  
-                  console.log('Created dev branch from main');
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      // Get main branch SHA
+                      const mainBranch = await github.rest.repos.getBranch({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        branch: 'main'
+                      });
 
-            - name: Check if PR already exists
-              id: check_pr
+                      // Create dev branch from main
+                      await github.rest.git.createRef({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        ref: 'refs/heads/dev',
+                        sha: mainBranch.data.commit.sha
+                      });
+
+                      console.log('Created dev branch from main');
+                      core.setOutput('created', 'true');
+
+    # Job 3: Check if PR already exists
+    check_pr_status:
+        name: 'Check PR Status'
+        runs-on: ubuntu-latest
+        needs: [validate_branch, ensure_dev_branch]
+        permissions:
+            pull-requests: read
+        outputs:
+            pr_exists: ${{ steps.check.outputs.exists }}
+            pr_number: ${{ steps.check.outputs.number }}
+            pr_url: ${{ steps.check.outputs.url }}
+
+        steps:
+            - name: Check for existing PR
+              id: check
               uses: actions/github-script@v7
               with:
-                github-token: ${{ secrets.GITHUB_TOKEN }}
-                script: |
-                  const branchName = '${{ steps.validate.outputs.branch_name }}';
-                  
-                  const existingPRs = await github.rest.pulls.list({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    head: `${context.repo.owner}:${branchName}`,
-                    base: 'dev',
-                    state: 'open'
-                  });
-                  
-                  if (existingPRs.data.length > 0) {
-                    console.log(`PR already exists: #${existingPRs.data[0].number}`);
-                    return {
-                      exists: true,
-                      number: existingPRs.data[0].number,
-                      url: existingPRs.data[0].html_url
-                    };
-                  } else {
-                    console.log('No existing PR found');
-                    return { exists: false };
-                  }
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const branchName = '${{ needs.validate_branch.outputs.branch_name }}';
 
-            - name: Create pull request
-              if: fromJson(steps.check_pr.outputs.result).exists == false
-              id: create_pr
+                      const existingPRs = await github.rest.pulls.list({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        head: `${context.repo.owner}:${branchName}`,
+                        base: 'dev',
+                        state: 'open'
+                      });
+
+                      if (existingPRs.data.length > 0) {
+                        const pr = existingPRs.data[0];
+                        console.log(`PR already exists: #${pr.number}`);
+                        core.setOutput('exists', 'true');
+                        core.setOutput('number', pr.number.toString());
+                        core.setOutput('url', pr.html_url);
+                      } else {
+                        console.log('No existing PR found');
+                        core.setOutput('exists', 'false');
+                        core.setOutput('number', '');
+                        core.setOutput('url', '');
+                      }
+
+    # Job 4: Create PR if it doesn't exist
+    create_pr:
+        name: 'Create Pull Request'
+        runs-on: ubuntu-latest
+        needs: [validate_branch, check_pr_status]
+        if: needs.check_pr_status.outputs.pr_exists == 'false'
+        permissions:
+            pull-requests: write
+            issues: write
+        outputs:
+            pr_created: ${{ steps.create.outputs.created }}
+            pr_number: ${{ steps.create.outputs.number }}
+            pr_url: ${{ steps.create.outputs.url }}
+
+        steps:
+            - name: Create new PR
+              id: create
               uses: actions/github-script@v7
               with:
-                github-token: ${{ secrets.GITHUB_TOKEN }}
-                script: |
-                  const branchName = '${{ steps.validate.outputs.branch_name }}';
-                  
-                  // Extract description from branch name for title
-                  const parts = branchName.split('-');
-                  const description = parts.length > 2 ? parts.slice(2).join(' ') : 'atomic changes';
-                  const title = `Atomic: ${description}`;
-                  
-                  const prBody = `## Atomic Branch: \`${branchName}\`
-                  
-                  This is an automated pull request for atomic changes.
-                  
-                  ### Changes
-                  - [ ] Review changes
-                  - [ ] Verify tests pass
-                  - [ ] Ready to merge
-                  
-                  ### Branch Info
-                  - **Source:** \`${branchName}\`
-                  - **Target:** \`dev\`
-                  - **Type:** Atomic workflow
-                  
-                  ---
-                  *This PR was automatically created by the atomic branch workflow.*`;
-                  
-                  const pr = await github.rest.pulls.create({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    title: title,
-                    head: branchName,
-                    base: 'dev',
-                    body: prBody,
-                    draft: false
-                  });
-                  
-                  // Add labels
-                  await github.rest.issues.addLabels({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    issue_number: pr.data.number,
-                    labels: ['atomic-branch', 'auto-pr']
-                  });
-                  
-                  console.log(`Created PR #${pr.data.number}: ${pr.data.html_url}`);
-                  
-                  return {
-                    number: pr.data.number,
-                    url: pr.data.html_url
-                  };
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const branchName = '${{ needs.validate_branch.outputs.branch_name }}';
+                      const title = '${{ needs.validate_branch.outputs.pr_title }}';
 
-            - name: Success summary
+                      const prBody = `## Atomic Branch: \`${branchName}\`
+
+                      This is an automated pull request for atomic changes.
+
+                      ### Changes
+                      - [ ] Review changes
+                      - [ ] Verify tests pass
+                      - [ ] Ready to merge
+
+                      ### Branch Info
+                      - **Source:** \`${branchName}\`
+                      - **Target:** \`dev\`
+                      - **Type:** Atomic workflow
+
+                      ---
+                      *This PR was automatically created by the atomic branch workflow.*`;
+
+                      try {
+                        const pr = await github.rest.pulls.create({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          title: title,
+                          head: branchName,
+                          base: 'dev',
+                          body: prBody,
+                          draft: false
+                        });
+                        
+                        // Add labels
+                        await github.rest.issues.addLabels({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: pr.data.number,
+                          labels: ['atomic-branch', 'auto-pr']
+                        });
+                        
+                        console.log(`Created PR #${pr.data.number}: ${pr.data.html_url}`);
+                        core.setOutput('created', 'true');
+                        core.setOutput('number', pr.data.number.toString());
+                        core.setOutput('url', pr.data.html_url);
+                      } catch (error) {
+                        console.error(`Failed to create PR: ${error.message}`);
+                        core.setFailed(`Failed to create PR: ${error.message}`);
+                      }
+
+    # Job 5: Workflow summary (always runs)
+    workflow_summary:
+        name: 'Workflow Summary'
+        runs-on: ubuntu-latest
+        needs: [validate_branch, check_pr_status, create_pr]
+        if: always()
+
+        steps:
+            - name: Generate summary
               run: |
-                echo "Atomic branch workflow completed!"
-                echo "Branch: ${{ steps.validate.outputs.branch_name }}"
-                
-                if [[ "${{ fromJson(steps.check_pr.outputs.result).exists }}" == "true" ]]; then
-                  echo "Existing PR: ${{ fromJson(steps.check_pr.outputs.result).url }}"
-                elif [[ "${{ steps.create_pr.outputs.result }}" != "" ]]; then
-                  echo "New PR created: ${{ fromJson(steps.create_pr.outputs.result).url }}"
-                else
-                  echo "PR processing completed"
-                fi
-                
-                echo ""
-                echo "Next steps:"
-                echo "1. Review the PR"
-                echo "2. Approve and merge when ready"
-                echo "3. Branch will be auto-deleted after merge"
+                  echo "## 🚀 Atomic Branch Workflow Summary"
+                  echo ""
+                  echo "**Branch:** ${{ needs.validate_branch.outputs.branch_name }}"
+                  echo ""
+
+                  # Check if PR exists or was created
+                  if [[ "${{ needs.check_pr_status.outputs.pr_exists }}" == "true" ]]; then
+                    echo "### ✅ Existing PR Found"
+                    echo "- PR #${{ needs.check_pr_status.outputs.pr_number }}"
+                    echo "- URL: ${{ needs.check_pr_status.outputs.pr_url }}"
+                  elif [[ "${{ needs.create_pr.outputs.pr_created }}" == "true" ]]; then
+                    echo "### ✅ New PR Created"
+                    echo "- PR #${{ needs.create_pr.outputs.pr_number }}"
+                    echo "- URL: ${{ needs.create_pr.outputs.pr_url }}"
+                  else
+                    echo "### ⚠️ No PR Created"
+                    echo "Check previous job logs for details."
+                  fi
+
+                  echo ""
+                  echo "### 📝 Next Steps"
+                  echo "1. Review the PR changes"
+                  echo "2. Ensure all checks pass"
+                  echo "3. Approve and merge when ready"
+                  echo "4. Branch will be auto-deleted after merge"
 
     # Security check job - validates PR author against authorized users
     security_check:
         name: 'Security Check - Validate Author'
         runs-on: ubuntu-latest
-        needs: [create_pull_request]
+        needs: [check_pr_status, create_pr]
+        if: always() && (needs.check_pr_status.outputs.pr_exists == 'true' || needs.create_pr.outputs.pr_created == 'true')
         permissions:
             pull-requests: read
         outputs:
             is_authorized: ${{ steps.check_authorization.outputs.is_authorized }}
-            author_username: ${{ steps.get_pr_author.outputs.author_username }}
-            author_id: ${{ steps.get_pr_author.outputs.author_id }}
-            pr_number: ${{ steps.get_pr_author.outputs.pr_number }}
-            pr_url: ${{ steps.get_pr_author.outputs.pr_url }}
-        
-        strategy:
-            matrix:
-                # Define authorized users with their GitHub IDs for extra security
-                authorized_users:
-                    - username: "h0lybyte"
-                      id: "5599058"
-                    # - username: "fudster"  
-                    #   id: "YOUR_FUDSTER_ID_HERE"  # Replace with fudster's actual GitHub user ID
-        
+            author_username: ${{ steps.check_authorization.outputs.author_username }}
+            author_id: ${{ steps.check_authorization.outputs.author_id }}
+            pr_number: ${{ steps.check_authorization.outputs.pr_number }}
+            pr_url: ${{ steps.check_authorization.outputs.pr_url }}
+
         steps:
-            - name: Get PR author details
-              id: get_pr_author
+            - name: Check PR and Authorization
+              id: check_authorization
               uses: actions/github-script@v7
               with:
-                github-token: ${{ secrets.GITHUB_TOKEN }}
-                script: |
-                  const branchName = '${{ github.ref_name }}';
-                  
-                  // Get the PR for this branch
-                  const prs = await github.rest.pulls.list({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    head: `${context.repo.owner}:${branchName}`,
-                    base: 'dev',
-                    state: 'open'
-                  });
-                  
-                  if (prs.data.length === 0) {
-                    console.log('No open PR found for this branch');
-                    core.setFailed('No open PR found for this branch');
-                    return;
-                  }
-                  
-                  const pr = prs.data[0];
-                  console.log(`Found PR #${pr.number} by ${pr.user.login} (ID: ${pr.user.id})`);
-                  
-                  core.setOutput('author_username', pr.user.login);
-                  core.setOutput('author_id', pr.user.id.toString());
-                  core.setOutput('pr_number', pr.number.toString());
-                  core.setOutput('pr_url', pr.html_url);
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      // Define authorized users with their GitHub IDs
+                      const AUTHORIZED_USERS = [
+                        { username: 'h0lybyte', id: '5599058' },
+                        // Add more authorized users here:
+                        // { username: 'fudster', id: 'USER_ID_HERE' },
+                      ];
 
-            - name: Check authorization against matrix
-              id: check_authorization
-              run: |
-                AUTHOR_USERNAME="${{ steps.get_pr_author.outputs.author_username }}"
-                AUTHOR_ID="${{ steps.get_pr_author.outputs.author_id }}"
-                MATRIX_USERNAME="${{ matrix.authorized_users.username }}"
-                MATRIX_ID="${{ matrix.authorized_users.id }}"
-                
-                echo "Checking: $AUTHOR_USERNAME (ID: $AUTHOR_ID) against $MATRIX_USERNAME (ID: $MATRIX_ID)"
-                
-                # Double verification: both username and ID must match
-                if [[ "$AUTHOR_USERNAME" == "$MATRIX_USERNAME" && "$AUTHOR_ID" == "$MATRIX_ID" ]]; then
-                  echo "✅ User $AUTHOR_USERNAME is authorized for auto-merge"
-                  echo "is_authorized=true" >> $GITHUB_OUTPUT
-                  exit 0
-                else
-                  echo "❌ User $AUTHOR_USERNAME does not match $MATRIX_USERNAME"
-                  echo "is_authorized=false" >> $GITHUB_OUTPUT
-                fi
+                      // Get PR number from previous jobs
+                      let prNumber = '';
+                      if ('${{ needs.check_pr_status.outputs.pr_exists }}' === 'true') {
+                        prNumber = '${{ needs.check_pr_status.outputs.pr_number }}';
+                      } else if ('${{ needs.create_pr.outputs.pr_created }}' === 'true') {
+                        prNumber = '${{ needs.create_pr.outputs.pr_number }}';
+                      }
+                      
+                      if (!prNumber) {
+                        console.log('No PR found to check');
+                        core.setOutput('is_authorized', 'false');
+                        core.setOutput('author_username', '');
+                        core.setOutput('author_id', '');
+                        core.setOutput('pr_number', '');
+                        core.setOutput('pr_url', '');
+                        return;
+                      }
+
+                      try {
+                        // Get PR details
+                        const pr = await github.rest.pulls.get({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: parseInt(prNumber)
+                        });
+
+                        const authorUsername = pr.data.user.login;
+                        const authorId = pr.data.user.id.toString();
+                        
+                        console.log(`Found PR #${pr.data.number} by ${authorUsername} (ID: ${authorId})`);
+
+                        // Check if user is authorized
+                        const isAuthorized = AUTHORIZED_USERS.some(user => 
+                          user.username === authorUsername && 
+                          user.id === authorId
+                        );
+
+                        if (isAuthorized) {
+                          console.log(`✅ User ${authorUsername} is authorized for auto-merge`);
+                        } else {
+                          console.log(`❌ User ${authorUsername} is not authorized for auto-merge`);
+                        }
+
+                        // Set outputs
+                        core.setOutput('is_authorized', isAuthorized.toString());
+                        core.setOutput('author_username', authorUsername);
+                        core.setOutput('author_id', authorId);
+                        core.setOutput('pr_number', pr.data.number.toString());
+                        core.setOutput('pr_url', pr.data.html_url);
+                        
+                      } catch (error) {
+                        console.error(`Error checking PR: ${error.message}`);
+                        core.setOutput('is_authorized', 'false');
+                        core.setOutput('author_username', '');
+                        core.setOutput('author_id', '');
+                        core.setOutput('pr_number', prNumber);
+                        core.setOutput('pr_url', '');
+                      }
 
             - name: Security check summary
               run: |
-                echo "Security check completed for PR #${{ steps.get_pr_author.outputs.pr_number }}"
-                echo "Author: ${{ steps.get_pr_author.outputs.author_username }} (ID: ${{ steps.get_pr_author.outputs.author_id }})"
-                echo "Authorization status: ${{ steps.check_authorization.outputs.is_authorized }}"
+                  if [[ -n "${{ steps.check_authorization.outputs.pr_number }}" ]]; then
+                    echo "## Security Check Summary"
+                    echo "PR #${{ steps.check_authorization.outputs.pr_number }}"
+                    echo "Author: ${{ steps.check_authorization.outputs.author_username }} (ID: ${{ steps.check_authorization.outputs.author_id }})"
+                    echo "Authorization: ${{ steps.check_authorization.outputs.is_authorized }}"
+                    echo "URL: ${{ steps.check_authorization.outputs.pr_url }}"
+                  else
+                    echo "## Security Check Summary"
+                    echo "⚠️ No PR found to check"
+                  fi
 
     # Auto-merge job - only runs if security check passes
     auto_merge:
         name: 'Auto-Merge Authorized PRs'
         runs-on: ubuntu-latest
-        needs: [create_pull_request, security_check]
-        # Only run if ANY of the matrix jobs in security_check found authorization
-        if: contains(needs.security_check.outputs.is_authorized, 'true')
+        needs: [security_check]
+        # Only run if security check passed and user is authorized
+        if: needs.security_check.outputs.is_authorized == 'true'
         permissions:
             contents: write
             pull-requests: write
             actions: read
-        
+
         steps:
             - name: Verify authorization status
               run: |
-                echo "🔒 Security check passed!"
-                echo "Authorized user: ${{ needs.security_check.outputs.author_username }}"
-                echo "PR #${{ needs.security_check.outputs.pr_number }}: ${{ needs.security_check.outputs.pr_url }}"
-                echo "Proceeding with auto-merge..."
+                  echo "🔒 Security check passed!"
+                  echo "Authorized user: ${{ needs.security_check.outputs.author_username }}"
+                  echo "PR #${{ needs.security_check.outputs.pr_number }}: ${{ needs.security_check.outputs.pr_url }}"
+                  echo "Proceeding with auto-merge..."
 
             - name: Auto-approve PR
               uses: actions/github-script@v8
               with:
-                github-token: ${{ secrets.UNITY_PAT }}
-                script: |
-                  const prNumber = ${{ needs.security_check.outputs.pr_number }};
-                  const authorUsername = '${{ needs.security_check.outputs.author_username }}';
-                  
-                  console.log(`Auto-approving PR #${prNumber} by ${authorUsername}`);
-                  
-                  await github.rest.pulls.createReview({
-                    owner: context.repo.owner,
-                    repo: context.repo.repo,
-                    pull_number: prNumber,
-                    event: 'APPROVE',
-                    body: `✅ Auto-approved by atomic workflow for authorized user: ${authorUsername}`
-                  });
-                  
-                  console.log(`PR #${prNumber} approved`);
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const prNumber = '${{ needs.security_check.outputs.pr_number }}';
+                      const authorUsername = '${{ needs.security_check.outputs.author_username }}';
+                      
+                      if (!prNumber) {
+                        core.setFailed('PR number not found');
+                        return;
+                      }
+
+                      console.log(`Auto-approving PR #${prNumber} by ${authorUsername}`);
+
+                      try {
+                        await github.rest.pulls.createReview({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: parseInt(prNumber),
+                          event: 'APPROVE',
+                          body: `✅ Auto-approved by atomic workflow for authorized user: ${authorUsername}`
+                        });
+                        
+                        console.log(`PR #${prNumber} approved`);
+                      } catch (error) {
+                        console.error(`Failed to approve PR: ${error.message}`);
+                        core.setFailed(`Failed to approve PR: ${error.message}`);
+                      }
 
             - name: Enable auto-merge
               uses: actions/github-script@v8
               with:
-                github-token: ${{ secrets.UNITY_PAT }}
-                script: |
-                  const prNumber = ${{ needs.security_check.outputs.pr_number }};
-                  
-                  console.log(`Enabling auto-merge for PR #${prNumber}`);
-                  
-                  try {
-                    await github.rest.pulls.enableAutoMerge({
-                      owner: context.repo.owner,
-                      repo: context.repo.repo,
-                      pull_number: prNumber,
-                      merge_method: 'squash'
-                    });
-                    
-                    console.log(`Auto-merge (squash) enabled for PR #${prNumber}`);
-                  } catch (error) {
-                    console.log(`Failed to enable auto-merge: ${error.message}`);
-                    
-                    // Fallback: try to squash merge directly if no branch protections
-                    console.log('Attempting direct squash merge...');
-                    try {
-                      await github.rest.pulls.merge({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        pull_number: prNumber,
-                        merge_method: 'squash',
-                        commit_title: `Atomic: ${context.ref.replace('refs/heads/', '')}`
-                      });
+                  github-token: ${{ secrets.UNITY_PAT }}
+                  script: |
+                      const prNumber = '${{ needs.security_check.outputs.pr_number }}';
                       
-                      console.log(`PR #${prNumber} squash merged successfully`);
-                    } catch (mergeError) {
-                      console.log(`Direct squash merge also failed: ${mergeError.message}`);
-                      throw mergeError;
-                    }
-                  }
+                      if (!prNumber) {
+                        core.setFailed('PR number not found');
+                        return;
+                      }
+
+                      console.log(`Enabling auto-merge for PR #${prNumber}`);
+
+                      try {
+                        await github.rest.pulls.enableAutoMerge({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          pull_number: parseInt(prNumber),
+                          merge_method: 'squash'
+                        });
+                        
+                        console.log(`Auto-merge (squash) enabled for PR #${prNumber}`);
+                      } catch (error) {
+                        console.log(`Failed to enable auto-merge: ${error.message}`);
+                        
+                        // Fallback: try to squash merge directly if no branch protections
+                        console.log('Attempting direct squash merge...');
+                        try {
+                          await github.rest.pulls.merge({
+                            owner: context.repo.owner,
+                            repo: context.repo.repo,
+                            pull_number: parseInt(prNumber),
+                            merge_method: 'squash',
+                            commit_title: `Atomic: ${context.ref.replace('refs/heads/', '')}`
+                          });
+                          
+                          console.log(`PR #${prNumber} squash merged successfully`);
+                        } catch (mergeError) {
+                          console.log(`Direct squash merge also failed: ${mergeError.message}`);
+                          core.setFailed(`Unable to merge PR: ${mergeError.message}`);
+                        }
+                      }
 
             - name: Auto-merge success summary
               run: |
-                echo "🎉 Auto-merge completed!"
-                echo "✅ User: ${{ needs.security_check.outputs.author_username }}"
-                echo "✅ PR #${{ needs.security_check.outputs.pr_number }}: ${{ needs.security_check.outputs.pr_url }}"
-                echo "✅ The atomic branch changes have been merged into dev automatically."
+                  echo "🎉 Auto-merge completed!"
+                  echo "✅ User: ${{ needs.security_check.outputs.author_username }}"
+                  echo "✅ PR #${{ needs.security_check.outputs.pr_number }}: ${{ needs.security_check.outputs.pr_url }}"
+                  echo "✅ The atomic branch changes have been merged into dev automatically."
