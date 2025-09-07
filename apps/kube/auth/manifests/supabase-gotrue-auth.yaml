@@ -114,6 +114,22 @@ spec:
         - name: GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI
           value: "https://supabase.kbve.com/auth/v1/callback"
 
+        # Twitch OAuth configuration
+        - name: GOTRUE_EXTERNAL_TWITCH_ENABLED
+          value: "true"
+        - name: GOTRUE_EXTERNAL_TWITCH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: twitch-oauth-config
+              key: client-id
+        - name: GOTRUE_EXTERNAL_TWITCH_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: twitch-oauth-config
+              key: client-secret
+        - name: GOTRUE_EXTERNAL_TWITCH_REDIRECT_URI
+          value: "https://supabase.kbve.com/auth/v1/callback"
+
         # Secrets from Kubernetes
         - name: GOTRUE_JWT_EXP
           valueFrom:
