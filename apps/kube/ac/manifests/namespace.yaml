@@ -1,7 +1,0 @@
-apiVersion: v1
-kind: Namespace
-metadata:
-  name: ac
-  labels:
-    name: ac
-    app: azerothcore
