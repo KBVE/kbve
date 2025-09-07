@@ -38,17 +38,16 @@ public class AIDecisionShouldDash : AIDecision
             return false;
         else if (!OnlyAllowValidDash)
             return true;
-        else if (!IsThereObstacleBehindUs())
+        else if (!CheckObstacleBehindUs())
             return true;
         else return false;
     }
 
-    private bool IsThereObstacleBehindUs()
+    private RaycastHit2D CheckObstacleBehindUs()
     {
-        return !Physics2D.Raycast(this.transform.position,
-                (_brain.Target.transform.position - this.transform.position).normalized,
-                ObstacleCheckDistance,
-                DashCheckLayerMask);
+        return Physics2D.Raycast(this.transform.position,
+            (this.transform.position - _brain.Target.transform.position).normalized,
+            ObstacleCheckDistance, DashCheckLayerMask);
     }
 
     private bool IsTargetTooClose()
@@ -60,11 +59,17 @@ public class AIDecisionShouldDash : AIDecision
     {
         if (!_debug || _brain.Target == null) return;
 
-        var hit = Physics2D.Raycast(this.transform.position, (this.transform.position - _brain.Target.transform.position).normalized, ObstacleCheckDistance, DashCheckLayerMask);
+        var hit = CheckObstacleBehindUs();
 
-        Gizmos.color = hit ? Color.red : Color.green; 
+        Gizmos.color = hit ? Color.red : Color.green;
 
+        // Behind obstacle checks
         Gizmos.DrawSphere(hit ? hit.point : this.transform.position, 0.25f);
         Gizmos.DrawLine(this.transform.position, this.transform.position + (this.transform.position - _brain.Target.transform.position).normalized * ObstacleCheckDistance);
+
+        // Target checks
+        Gizmos.color = IsTargetTooClose() ? Color.red : Color.blue;
+        Gizmos.DrawSphere(_brain.Target.transform.position, 0.25f);
+        Gizmos.DrawLine(this.transform.position, this.transform.position + (_brain.Target.transform.position - this.transform.position).normalized * TargetCheckDistance);
     }
 }

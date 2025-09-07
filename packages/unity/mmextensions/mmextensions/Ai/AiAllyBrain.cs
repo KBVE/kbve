@@ -20,9 +20,9 @@ namespace KBVE.MMExtensions.Ai
 
         public Weapon initialWeapon;
         private CharacterHandleWeapon handleWeapon;
-        private LayerMask dashCheckLayerMask;
-        private float dashObstacleCheckDistance;
-        private float dashTargetCheckDistance;
+        public LayerMask dashCheckLayerMask;
+        public float dashObstacleCheckDistance;
+        public float dashTargetCheckDistance;
 
 #region Decisions
         private AIDecisionDetectTargetRadius2D detectPlayerDecision;
@@ -165,6 +165,7 @@ namespace KBVE.MMExtensions.Ai
                     );
             targetIsAliveDecision = CreateTargetIsAliveDecision();
             timeInStateDecision = CreateTimeInStateDecision(2f, 2f);
+            shouldDashDecision = CreateShouldDashDecision();
             reloadNeededDecision = gameObject.MMGetOrAddComponent<AIDecisionReloadNeeded>();
         }
 
@@ -326,7 +327,7 @@ namespace KBVE.MMExtensions.Ai
             attackState.Transitions = new AITransitionsList
             {
                 new AITransition() { Decision = detectEnemyDecision, FalseState = "Idle" },
-                new AITransition() { Decision = distanceToTarget3fDecision, TrueState = "Retreat" },
+                new AITransition() { Decision = shouldDashDecision, TrueState = "Retreat" },
                 new AITransition() { Decision = reloadNeededDecision, TrueState = "ChangeWeapon" },
             };
 
