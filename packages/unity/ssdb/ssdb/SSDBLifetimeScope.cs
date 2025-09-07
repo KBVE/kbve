@@ -71,6 +71,11 @@ namespace KBVE.SSDB
             .As<IAsyncStartable>()
             .As<IDisposable>();
 
+            builder.Register<SupabaseMetrics>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
 
         }
     }
