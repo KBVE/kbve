@@ -32,7 +32,7 @@ spec:
         - name: PG_META_DB_PORT
           value: "5432"
         - name: PG_META_DB_NAME
-          value: "_supabase"
+          value: "supabase"
         - name: PG_META_DB_USER
           value: "supabase_admin"
         
