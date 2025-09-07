@@ -19,19 +19,35 @@ namespace KBVE.MMExtensions.Ai
         private const int ENEMY_LAYER_INT = 13;
 
         public Weapon initialWeapon;
+        private CharacterHandleWeapon handleWeapon;
+        public LayerMask dashCheckLayerMask;
+        public float dashObstacleCheckDistance;
+        public float dashTargetCheckDistance;
+
+#region Decisions
         private AIDecisionDetectTargetRadius2D detectPlayerDecision;
         private AIDecisionDetectTargetRadius2D detectEnemyDecision;
         private AIDecisionDistanceToTarget distanceToTarget2fDecision;
+        private AIDecisionDistanceToTarget distanceToTarget3fDecision;
         private AIDecisionDistanceToTarget distanceToTarget4fDecision;
+        private AIDecisionShouldDash shouldDashDecision;
         private AIDecisionTargetIsAlive targetIsAliveDecision;
         private AIDecisionTimeInState timeInStateDecision;
-        private CharacterHandleWeapon handleWeapon;
+        private AIDecisionReloadNeeded reloadNeededDecision;
+        private AIDecisionDistanceToTarget distanceToTarget9fDecision;
+#endregion
+
+#region Actions
         private AIActionDoNothing actionDoNothing;
+        private AIActionDash aIActionDash;
         private AiActionPathfinderToTarget2D actionPathfinder;
         private AIActionMoveTowardsTarget2D actionMoveTowardTarget;
         private AIActionShoot2D aIActionShoot;
+        private AIActionChangeWeapon aIActionChangeWeapon;
         private WeaponAim.AimControls playerForcedWeaponAimControl = WeaponAim.AimControls.Mouse;
-        private WeaponAim.AimControls aiForcedWeaponAimControl = WeaponAim.AimControls.Script;
+        private WeaponAim.AimControls aiAimingForcedWeaponAimControl = WeaponAim.AimControls.Script;
+        private WeaponAim.AimControls aiPassiveForcedWeaponAimControl = WeaponAim.AimControls.PrimaryMovement;
+#endregion
 
         protected override void Awake()
         {
@@ -58,7 +74,7 @@ namespace KBVE.MMExtensions.Ai
         public void ToggleAI(bool aiControl)
         {
             handleWeapon.ForceWeaponAimControl = true;
-            handleWeapon.ForcedWeaponAimControl = aiControl ? aiForcedWeaponAimControl : playerForcedWeaponAimControl;
+            handleWeapon.ForcedWeaponAimControl = aiControl ? aiPassiveForcedWeaponAimControl : playerForcedWeaponAimControl;
             if(aiControl) handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
             else handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
             if(handleWeapon.WeaponAimComponent != null)
@@ -110,9 +126,13 @@ namespace KBVE.MMExtensions.Ai
             {
                 SetupAllyHealerStates();
             }
+            else if(weapon.GetComponent<ProjectileWeapon>() != null)
+            {
+                SetupAllyRangedAttackerStates();
+            }
             else
             {
-                SetupAllyAttackerStates();
+                SetupAllyMeleeAttackerStates();
             }
 
             if (States != null)
@@ -131,6 +151,10 @@ namespace KBVE.MMExtensions.Ai
         {
             detectPlayerDecision = CreateDetectTarget2DDecision(PLAYER_LAYER_INT, 100f, false);
             detectEnemyDecision = CreateDetectTarget2DDecision(ENEMY_LAYER_INT, 20f);
+            distanceToTarget3fDecision = CreateDistanceToTarget2DDecision(
+                    3f,
+                    AIDecisionDistanceToTarget.ComparisonModes.LowerThan
+                    );
             distanceToTarget2fDecision = CreateDistanceToTarget2DDecision(
                     2f,
                     AIDecisionDistanceToTarget.ComparisonModes.LowerThan
@@ -141,6 +165,8 @@ namespace KBVE.MMExtensions.Ai
                     );
             targetIsAliveDecision = CreateTargetIsAliveDecision();
             timeInStateDecision = CreateTimeInStateDecision(2f, 2f);
+            shouldDashDecision = CreateShouldDashDecision();
+            reloadNeededDecision = gameObject.MMGetOrAddComponent<AIDecisionReloadNeeded>();
         }
 
         protected virtual void SetupActions()
@@ -149,17 +175,34 @@ namespace KBVE.MMExtensions.Ai
             actionPathfinder = gameObject.MMGetOrAddComponent<AiActionPathfinderToTarget2D>();
             actionMoveTowardTarget = gameObject.MMGetOrAddComponent<AIActionMoveTowardsTarget2D>();
             aIActionShoot = gameObject.MMGetOrAddComponent<AIActionShoot2D>();
+            aIActionChangeWeapon = gameObject.MMGetOrAddComponent<AIActionChangeWeapon>();
+            aIActionDash = gameObject.MMGetOrAddComponent<AIActionDash>();
+
+            aIActionDash.Mode = AIActionDash.Modes.AwayFromTarget;
+            aIActionChangeWeapon.NewWeapon = initialWeapon;
             aIActionShoot.AimAtTarget = true;
         }
 
-        protected virtual void SetupAllyAttackerStates()
+        protected virtual void SetupAllyMeleeAttackerStates()
         {
             States = new List<AIState>
             {
                 CreateIdleState(),
-                CreateFollowPlayerState(),
+                CreateFollowPlayerState(false),
                 CreateChaseEnemyState(),
-                CreateAttackState()
+                CreateMeleeAttackState()
+            };
+        }
+
+        private void SetupAllyRangedAttackerStates()
+        {
+            States = new List<AIState>
+            {
+                CreateIdleState(),
+                CreateFollowPlayerState(true),
+                CreateRangedAttackState(),
+                CreateRetreatState(),
+                CreateChangeWeaponState()
             };
         }
 
@@ -181,7 +224,25 @@ namespace KBVE.MMExtensions.Ai
             return idleState;
         }
 
-        private AIState CreateFollowPlayerState()
+        private AIState CreateChangeWeaponState()
+        {
+            AIState changeWeaponState = new AIState();
+            changeWeaponState.StateName = "ChangeWeapon";
+
+            changeWeaponState.Actions = new AIActionsList()
+            {
+                aIActionChangeWeapon
+            };
+
+            changeWeaponState.Transitions = new AITransitionsList
+            {
+                new AITransition() { Decision = timeInStateDecision, TrueState = "Idle" } // TODO: Change timeInStateDecision to a new variable
+            };
+
+            return changeWeaponState;
+        }
+
+        private AIState CreateFollowPlayerState(bool isRanged)
         {
             AIState followState = new AIState();
             followState.StateName = "Follow";
@@ -193,7 +254,7 @@ namespace KBVE.MMExtensions.Ai
 
             followState.Transitions = new AITransitionsList
             {
-                new AITransition() { Decision = detectEnemyDecision, TrueState = "ChaseEnemy" },
+                new AITransition() { Decision = detectEnemyDecision, TrueState = isRanged ? "Attack" : "ChaseEnemy" },
                 new AITransition() { Decision = distanceToTarget4fDecision, TrueState = "Idle" }
             };
 
@@ -220,7 +281,26 @@ namespace KBVE.MMExtensions.Ai
             return chaseEnemyState;
         }
 
-        private AIState CreateAttackState()
+        private AIState CreateRetreatState()
+        {
+            AIState idleState = new AIState();
+            idleState.StateName = "Retreat";
+
+            idleState.Actions = new AIActionsList()
+            {
+                aIActionDash
+            };
+
+            idleState.Transitions = new AITransitionsList
+            {
+                new AITransition() { Decision = distanceToTarget3fDecision, FalseState = "Idle" },
+            };
+
+            return idleState;
+        }
+
+
+        private AIState CreateMeleeAttackState()
         {
             AIState attackState = new AIState();
             attackState.StateName = "Attack";
@@ -230,9 +310,27 @@ namespace KBVE.MMExtensions.Ai
             attackState.Transitions = new AITransitionsList
             {
                 new AITransition() { Decision = detectEnemyDecision, FalseState = "Idle" },
-                new AITransition() { Decision = distanceToTarget2fDecision, FalseState = "ChaseEnemy" },
-                new AITransition() { Decision = timeInStateDecision, TrueState = "ChaseEnemy" }
+                new AITransition() { Decision = distanceToTarget2fDecision, FalseState = "Idle" },
+                new AITransition() { Decision = timeInStateDecision, TrueState = "Idle" }
             };
+
+            return attackState;
+        }
+
+        private AIState CreateRangedAttackState()
+        {
+            AIState attackState = new AIState();
+            attackState.StateName = "Attack";
+
+            attackState.Actions = new AIActionsList() { aIActionShoot };
+
+            attackState.Transitions = new AITransitionsList
+            {
+                new AITransition() { Decision = detectEnemyDecision, FalseState = "Idle" },
+                new AITransition() { Decision = shouldDashDecision, TrueState = "Retreat" },
+                new AITransition() { Decision = reloadNeededDecision, TrueState = "ChangeWeapon" },
+            };
+
             return attackState;
         }
 
@@ -263,6 +361,15 @@ namespace KBVE.MMExtensions.Ai
             return detectDistanceToTarget;
         }
 
+        private AIDecisionShouldDash CreateShouldDashDecision()
+        {
+            AIDecisionShouldDash shouldDashDecision = gameObject.MMGetOrAddComponent<AIDecisionShouldDash>();
+            shouldDashDecision.DashCheckLayerMask = dashCheckLayerMask;
+            shouldDashDecision.ObstacleCheckDistance = dashObstacleCheckDistance;
+            shouldDashDecision.TargetCheckDistance = dashTargetCheckDistance;
+            return shouldDashDecision;
+        }
+
         private AIDecisionTargetIsAlive CreateTargetIsAliveDecision()
         {
             AIDecisionTargetIsAlive targetIsAlive = gameObject.AddComponent<AIDecisionTargetIsAlive>();
@@ -281,8 +388,6 @@ namespace KBVE.MMExtensions.Ai
         {
             return new PhysicsMaterial2D() { friction = 0 };
         }
-
-        private AIDecisionDistanceToTarget distanceToTarget9fDecision;
 
         protected virtual void SetupDecisionsHealer()
         {
