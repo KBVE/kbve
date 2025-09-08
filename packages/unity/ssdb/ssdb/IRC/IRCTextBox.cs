@@ -1,5 +1,6 @@
 using UnityEngine;
 using UnityEngine.UI;
+using UnityEngine.EventSystems;
 using System;
 using System.Collections.Generic;
 using System.Threading;
@@ -10,13 +11,17 @@ using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
+using KBVE.MMExtensions.Orchestrator.Core.UI;
 using TMPro;
+using ObservableCollections;
+using MoreMountains.TopDownEngine;
+using MoreMountains.Tools;
 
 namespace KBVE.SSDB.IRC
 {
     public class IRCTextBox : IAsyncStartable, IDisposable
     {
-        private readonly IGlobalCanvas globalCanvas;
+        private IGlobalCanvas globalCanvas;
         private readonly IIRCService ircService;
         private readonly CompositeDisposable disposables = new();
         
@@ -29,23 +34,102 @@ namespace KBVE.SSDB.IRC
         private Button minimizeButton;
         private GameObject contentPanel;
         
-        // Message history
-        private readonly Queue<string> messageHistory = new();
+        // Input blocking state using R3
+        private static readonly ReactiveProperty<bool> isMouseOverUI = new(false);
+        private static readonly ReactiveProperty<bool> hasInputFocus = new(false);
+        private static IRCTextBox activeInstance = null;
+        
+        // MoreMountains InputManager integration
+        private static bool originalInputDetectionState = true;
+        
+        // Message history using ObservableRingBuffer for efficient rotating storage
+        private readonly ObservableRingBuffer<string> messageHistory = new();
         private const int MaxMessages = 100;
         private readonly ReactiveProperty<bool> isMinimized = new(false);
+        private IDisposable messageHistorySubscription;
         
         [Inject]
-        public IRCTextBox(IGlobalCanvas globalCanvas, IIRCService ircService)
+        public IRCTextBox(IIRCService ircService)
         {
-            this.globalCanvas = globalCanvas ?? throw new ArgumentNullException(nameof(globalCanvas));
             this.ircService = ircService ?? throw new ArgumentNullException(nameof(ircService));
+        }
+        
+        /// <summary>
+        /// Observable that emits when mouse enters/exits any IRC text box UI element
+        /// </summary>
+        public static Observable<bool> OnMouseOverTextBox => isMouseOverUI.AsObservable();
+        
+        /// <summary>
+        /// Observable that emits when any IRC text box gains/loses input focus
+        /// </summary>
+        public static Observable<bool> OnInputFocusChanged => hasInputFocus.AsObservable();
+        
+        /// <summary>
+        /// Check if the mouse is currently over any IRC text box UI element
+        /// </summary>
+        public static bool IsMouseOverTextBox() => isMouseOverUI.Value;
+        
+        /// <summary>
+        /// Check if any IRC text box currently has input focus
+        /// </summary>
+        public static bool HasInputFocus() => hasInputFocus.Value;
+        
+        /// <summary>
+        /// Check if any input should be blocked (for backwards compatibility)
+        /// </summary>
+        public static bool ShouldBlockInput() => hasInputFocus.Value || isMouseOverUI.Value;
+        
+        /// <summary>
+        /// Manage MoreMountains InputManager state based on UI interaction
+        /// </summary>
+        private static void UpdateInputManagerState()
+        {
+            if (InputManager.Instance == null) return;
+            
+            bool shouldBlockInput = hasInputFocus.Value || isMouseOverUI.Value;
+            
+            if (shouldBlockInput && InputManager.Instance.InputDetectionActive)
+            {
+                // Store original state and disable input detection
+                originalInputDetectionState = InputManager.Instance.InputDetectionActive;
+                InputManager.Instance.InputDetectionActive = false;
+                
+                //InputManager.Instance.ForceAllButtonStatesTo(MMInput.ButtonStates.Off);
+
+                // Reset any stuck button states to prevent input bugs
+                //InputManager.Instance.ForceAllButtonStatesTo(MMInput.ButtonStates.ButtonUp);
+                Operator.D("IRCTextBox: Disabled MoreMountains input detection and reset button states");
+            }
+            else if (!shouldBlockInput && !InputManager.Instance.InputDetectionActive)
+            {
+                // Reset button states before re-enabling to ensure clean state
+                //InputManager.Instance.ForceAllButtonStatesTo(MMInput.ButtonStates.ButtonUp);
+                
+                // Restore input detection
+                InputManager.Instance.InputDetectionActive = originalInputDetectionState;
+                //InputManager.Instance.ForceAllButtonStatesTo(MMInput.ButtonStates.ButtonUp);
+
+
+                Operator.D("IRCTextBox: Reset button states and restored MoreMountains input detection");
+            }
         }
         
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
-            // Wait for Operator and GlobalCanvas to be ready
+            // Wait for Operator to be ready
             await Operator.R();
-            await UniTask.WaitUntil(() => globalCanvas.Canvas != null, cancellationToken: cancellationToken);
+            
+            // Find the GlobalCanvas from scene (it's created by OrchestratorLifetimeScope)
+            await UniTask.WaitUntil(() => 
+            {
+                var canvasService = GameObject.FindObjectOfType<GlobalCanvasService>();
+                if (canvasService != null)
+                {
+                    globalCanvas = canvasService;
+                    return globalCanvas.Canvas != null;
+                }
+                return false;
+            }, cancellationToken: cancellationToken);
             
             Operator.D("IRCTextBox: Starting initialization");
             
@@ -68,15 +152,19 @@ namespace KBVE.SSDB.IRC
             panelRoot.transform.SetParent(globalCanvas.GetLayerRoot(UICanvasLayer.HUD), false);
             
             var rectTransform = panelRoot.GetComponent<RectTransform>();
+            // Scale with screen size - 40% width, 50% height for better readability
             rectTransform.anchorMin = new Vector2(0, 0);
-            rectTransform.anchorMax = new Vector2(0, 0);
+            rectTransform.anchorMax = new Vector2(0.4f, 0.5f);
             rectTransform.pivot = new Vector2(0, 0);
-            rectTransform.sizeDelta = new Vector2(400, 300);
-            rectTransform.anchoredPosition = new Vector2(10, 10);
+            rectTransform.offsetMin = new Vector2(10, 10);
+            rectTransform.offsetMax = new Vector2(-10, -10);
             
             // Add background image
             var bgImage = panelRoot.AddComponent<Image>();
             bgImage.color = new Color(0.1f, 0.1f, 0.1f, 0.9f);
+            
+            // Add input blocking components
+            SetupInputBlocking(panelRoot);
             
             // Create header bar
             var headerBar = CreateHeaderBar();
@@ -101,8 +189,16 @@ namespace KBVE.SSDB.IRC
             isMinimized.Subscribe(minimized =>
             {
                 contentPanel.SetActive(!minimized);
-                var size = minimized ? new Vector2(400, 40) : new Vector2(400, 300);
-                rectTransform.sizeDelta = size;
+                if (minimized)
+                {
+                    // Minimized: just header bar height
+                    rectTransform.anchorMax = new Vector2(0.4f, 0.06f);
+                }
+                else
+                {
+                    // Expanded: 40% width, 50% height for better readability
+                    rectTransform.anchorMax = new Vector2(0.4f, 0.5f);
+                }
             }).AddTo(disposables);
         }
         
@@ -351,6 +447,12 @@ namespace KBVE.SSDB.IRC
         
         private void SetupSubscriptions()
         {
+            // Subscribe to message history changes for auto-updating UI
+            messageHistorySubscription = messageHistory
+                .ObserveCountChanged()
+                .Subscribe(_ => UpdateMessageDisplay())
+                .AddTo(disposables);
+            
             // Subscribe to incoming IRC messages
             ircService.OnMessageReceived
                 .Where(msg => msg.isChannelMessage || msg.isPrivateMessage)
@@ -389,11 +491,86 @@ namespace KBVE.SSDB.IRC
         
         private void SetupInputHandling()
         {
+            // Set this instance as active when input field is selected
+            inputField.onSelect.AddListener(_ => 
+            {
+                activeInstance = this;
+                hasInputFocus.Value = true;
+                Operator.D("IRCTextBox: Input field focused");
+            });
+            
+            inputField.onDeselect.AddListener(_ => 
+            {
+                if (activeInstance == this)
+                {
+                    activeInstance = null;
+                    hasInputFocus.Value = false;
+                }
+                Operator.D("IRCTextBox: Input field unfocused");
+            });
+            
             // Handle send button click
             sendButton.onClick.AddListener(SendMessage);
             
             // Handle enter key in input field
             inputField.onSubmit.AddListener(_ => SendMessage());
+            
+            // Ensure input field shows cursor when focused
+            inputField.caretBlinkRate = 0.85f; // Standard blink rate
+            inputField.customCaretColor = true;
+            inputField.caretColor = Color.white;
+            
+            // Subscribe to input focus changes and update InputManager
+            OnInputFocusChanged
+                .Subscribe(focused => 
+                {
+                    Operator.D($"IRCTextBox: Input focus changed to {focused}");
+                    UpdateInputManagerState();
+                })
+                .AddTo(disposables);
+        }
+        
+        private void SetupInputBlocking(GameObject rootPanel)
+        {
+            // Add EventTrigger for mouse enter/exit detection
+            var eventTrigger = rootPanel.AddComponent<EventTrigger>();
+            
+            // Mouse enter - block input to other systems
+            var pointerEnter = new EventTrigger.Entry { eventID = EventTriggerType.PointerEnter };
+            pointerEnter.callback.AddListener((data) => 
+            {
+                isMouseOverUI.Value = true;
+            });
+            eventTrigger.triggers.Add(pointerEnter);
+            
+            // Mouse exit - allow input to other systems
+            var pointerExit = new EventTrigger.Entry { eventID = EventTriggerType.PointerExit };
+            pointerExit.callback.AddListener((data) => 
+            {
+                isMouseOverUI.Value = false;
+            });
+            eventTrigger.triggers.Add(pointerExit);
+            
+            // Click handler to focus input field when clicking on panel
+            var pointerClick = new EventTrigger.Entry { eventID = EventTriggerType.PointerClick };
+            pointerClick.callback.AddListener((data) => 
+            {
+                if (!isMinimized.Value && inputField != null)
+                {
+                    inputField.ActivateInputField();
+                    inputField.Select();
+                }
+            });
+            eventTrigger.triggers.Add(pointerClick);
+            
+            // Subscribe to mouse over changes and update InputManager
+            OnMouseOverTextBox
+                .Subscribe(mouseOver => 
+                {
+                    Operator.D($"IRCTextBox: Mouse over UI changed to {mouseOver}");
+                    UpdateInputManagerState();
+                })
+                .AddTo(disposables);
         }
         
         private void SendMessage()
@@ -410,11 +587,11 @@ namespace KBVE.SSDB.IRC
             else
             {
                 // Send to current channel
-                var channel = ircService.CurrentChannel.Value;
+                var channel = ircService.CurrentChannelValue;
                 if (!string.IsNullOrEmpty(channel))
                 {
                     ircService.SendMessage(channel, message);
-                    AddMessage($"[{DateTime.Now:HH:mm:ss}] <{ircService.CurrentNickname.Value}> {message}");
+                    AddMessage($"[{DateTime.Now:HH:mm:ss}] <{ircService.CurrentNicknameValue}> {message}");
                 }
                 else
                 {
@@ -453,7 +630,7 @@ namespace KBVE.SSDB.IRC
                     }
                     else
                     {
-                        var channel = ircService.CurrentChannel.Value;
+                        var channel = ircService.CurrentChannelValue;
                         if (!string.IsNullOrEmpty(channel))
                         {
                             ircService.LeaveChannel(channel);
@@ -478,7 +655,10 @@ namespace KBVE.SSDB.IRC
                     break;
                 
                 case "/clear":
-                    messageHistory.Clear();
+                    lock (messageHistory.SyncRoot)
+                    {
+                        messageHistory.Clear();
+                    }
                     messagesText.text = "";
                     break;
                 
@@ -501,16 +681,26 @@ namespace KBVE.SSDB.IRC
         
         private void AddMessage(string message)
         {
-            messageHistory.Enqueue(message);
-            
-            // Limit message history
-            while (messageHistory.Count > MaxMessages)
+            // Thread-safe add to ring buffer with manual size limiting
+            lock (messageHistory.SyncRoot)
             {
-                messageHistory.Dequeue();
+                messageHistory.AddLast(message);
+                
+                // Manually limit message history size
+                while (messageHistory.Count > MaxMessages)
+                {
+                    messageHistory.RemoveFirst();
+                }
             }
-            
-            // Update display
-            messagesText.text = string.Join("\n", messageHistory);
+        }
+        
+        private void UpdateMessageDisplay()
+        {
+            // Update display with current messages
+            lock (messageHistory.SyncRoot)
+            {
+                messagesText.text = string.Join("\n", messageHistory);
+            }
             
             // Auto-scroll to bottom
             Canvas.ForceUpdateCanvases();
@@ -519,6 +709,7 @@ namespace KBVE.SSDB.IRC
         
         public void Dispose()
         {
+            messageHistorySubscription?.Dispose();
             disposables?.Dispose();
             
             if (panelRoot != null)

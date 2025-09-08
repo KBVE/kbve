@@ -15,8 +15,8 @@ using System;
 namespace KBVE.SSDB
 {
     /// <summary>
-    /// VContainer LifetimeScope for Steam-specific services.
-    /// Only initialized on supported platforms.
+    /// VContainer LifetimeScope for SSDB-specific services.
+    /// Should be a child of OrchestratorLifetimeScope to access GlobalCanvas.
     /// </summary>
     public class SSDBLifetimeScope : LifetimeScope
     {

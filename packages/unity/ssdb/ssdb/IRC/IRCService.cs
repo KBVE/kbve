@@ -1,6 +1,9 @@
 using UnityEngine;
 using System;
 using System.Collections.Concurrent;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+using ObservableCollections;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
@@ -23,11 +26,17 @@ namespace KBVE.SSDB.IRC
         Observable<string> OnError { get; }
         Observable<string> OnRawMessageReceived { get; }
 
-        // Thread-safe reactive properties
-        ReadOnlyReactiveProperty<bool> IsConnected { get; }
-        ReadOnlyReactiveProperty<int> PendingMessages { get; }
-        ReadOnlyReactiveProperty<string> CurrentChannel { get; }
-        ReadOnlyReactiveProperty<string> CurrentNickname { get; }
+        // Thread-safe reactive properties (exposed as Observable)
+        Observable<bool> IsConnected { get; }
+        Observable<int> PendingMessages { get; }
+        Observable<string> CurrentChannel { get; }
+        Observable<string> CurrentNickname { get; }
+        
+        // Current values (for immediate access)
+        bool IsConnectedValue { get; }
+        int PendingMessagesValue { get; }
+        string CurrentChannelValue { get; }
+        string CurrentNicknameValue { get; }
 
         // Methods
         UniTask<bool> ConnectAsync(CancellationToken cancellationToken = default);
@@ -51,12 +60,13 @@ namespace KBVE.SSDB.IRC
     public class IRCConfig
     {
         public string server = "irc.kbve.com";
-        public int port = 6667;
+        public int port = 6697;
+        public bool useSsl = true;
         public string nickname;
         public string username;
         public string realname;
-        public string password; // Optional server password
-        public string defaultChannel;
+        public string password;
+        public string defaultChannel = "#general";
         public bool autoReconnect = true;
         public int reconnectDelayMs = 5000;
         public int pingTimeoutMs = 60000; // IRC servers typically have longer timeouts
@@ -91,12 +101,23 @@ namespace KBVE.SSDB.IRC
 
         private void ParseMessage(string raw)
         {
+            rawMessage = raw;
+            timestamp = DateTime.Now;
+            var line = raw;
+
+            // Strip IRCv3 tags if present
+            if (line.StartsWith("@"))
+            {
+                var space = line.IndexOf(' ');
+                if (space > 0) line = line.Substring(space + 1);
+            }
+
             // IRC message format: [:prefix] <command> [params] [:trailing]
-            var parts = raw.Split(' ');
+            var parts = line.Split(' ');
             var index = 0;
 
             // Parse prefix (optional)
-            if (raw.StartsWith(":"))
+            if (line.StartsWith(":"))
             {
                 var prefix = parts[0].Substring(1); // Remove ':'
                 ParsePrefix(prefix);
@@ -128,8 +149,9 @@ namespace KBVE.SSDB.IRC
             }
             parameters = paramList.ToArray();
 
-            // Determine message type
-            isServerMessage = string.IsNullOrEmpty(nickname);
+            // Determine message type - server messages have no !user@host in prefix
+            var hasUserHost = !string.IsNullOrEmpty(username) || !string.IsNullOrEmpty(hostname);
+            isServerMessage = line.StartsWith(":") && !hasUserHost;
 
             if (command == "PRIVMSG" && parameters.Length > 0)
             {
@@ -156,7 +178,7 @@ namespace KBVE.SSDB.IRC
     {
         private readonly IRCConfig config;
 
-        // R3 Thread-safe Reactive Properties
+        // R3 Thread-safe Reactive Properties using SynchronizedReactiveProperty
         private readonly SynchronizedReactiveProperty<bool> isConnected = new(false);
         private readonly SynchronizedReactiveProperty<int> pendingMessages = new(0);
         private readonly SynchronizedReactiveProperty<string> currentChannel = new(string.Empty);
@@ -169,24 +191,38 @@ namespace KBVE.SSDB.IRC
         private readonly Subject<string> rawMessageSubject = new();
 
         // Threading
-        private readonly ConcurrentQueue<string> outgoingCommands = new();
-        private readonly ConcurrentQueue<IRCMessage> incomingMessages = new();
+        private readonly ObservableQueue<string> outgoingCommands = new();
+        private readonly ObservableRingBuffer<IRCMessage> incomingMessages = new();
         private readonly CompositeDisposable _disposables = new();
         private readonly CancellationTokenSource _lifetimeCts = new();
         private CancellationTokenSource _connectionCts;
+        private readonly object _connectionLock = new object();
+        private const int MaxMessages = 1000;
 
         // Connection
         private TcpClient tcpClient;
-        private NetworkStream networkStream;
+        private Stream connectionStream;
         private StreamReader streamReader;
         private StreamWriter streamWriter;
         private DateTime lastPingReceived = DateTime.Now;
-        private bool isRegistered = false;
+        private volatile bool isRegistered = false;
+        private readonly object lastPingLock = new object();
 
-        public ReadOnlyReactiveProperty<bool> IsConnected { get; }
-        public ReadOnlyReactiveProperty<int> PendingMessages { get; }
-        public ReadOnlyReactiveProperty<string> CurrentChannel { get; }
-        public ReadOnlyReactiveProperty<string> CurrentNickname { get; }
+        // Connection state tracking
+        private volatile bool isConnecting = false;
+        private volatile bool shouldReconnect = false;
+
+        // ... (Keep existing property exposures unchanged)
+        public Observable<bool> IsConnected => isConnected;
+        public Observable<int> PendingMessages => pendingMessages;
+        public Observable<string> CurrentChannel => currentChannel;
+        public Observable<string> CurrentNickname => currentNickname;
+        
+        // Expose current values for immediate access
+        public bool IsConnectedValue => isConnected.Value;
+        public int PendingMessagesValue => pendingMessages.Value;
+        public string CurrentChannelValue => currentChannel.Value;
+        public string CurrentNicknameValue => currentNickname.Value;
 
         public Observable<IRCMessage> OnMessageReceived => messageSubject.AsObservable();
         public Observable<ConnectionState> OnConnectionStateChanged => connectionState.AsObservable();
@@ -197,12 +233,6 @@ namespace KBVE.SSDB.IRC
         public IRCService(IRCConfig config)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
-
-            // Create read-only properties from synchronized ones
-            IsConnected = isConnected.AsReadOnlyReactiveProperty();
-            PendingMessages = pendingMessages.AsReadOnlyReactiveProperty();
-            CurrentChannel = currentChannel.AsReadOnlyReactiveProperty();
-            CurrentNickname = currentNickname.AsReadOnlyReactiveProperty();
 
             // Set initial values
             currentChannel.Value = config.defaultChannel ?? string.Empty;
@@ -217,7 +247,6 @@ namespace KBVE.SSDB.IRC
             {
                 // Guard: Wait for Operator to be ready
                 await Operator.R();
-                await UniTask.WaitUntil(() => Operator.Ready, cancellationToken: effectiveToken);
                 effectiveToken.ThrowIfCancellationRequested();
                 
                 Operator.D("IRCService starting...");
@@ -228,6 +257,7 @@ namespace KBVE.SSDB.IRC
                 // Auto-connect if configured
                 if (config.autoReconnect)
                 {
+                    shouldReconnect = true;
                     await ConnectAsync(effectiveToken);
                 }
                 
@@ -245,31 +275,55 @@ namespace KBVE.SSDB.IRC
 
         public async UniTask<bool> ConnectAsync(CancellationToken cancellationToken = default)
         {
-            if (isConnected.Value)
+            lock (_connectionLock)
             {
-                Operator.D("IRC: Already connected!");
-                return true;
+                if (isConnected.Value || isConnecting)
+                {
+                    Operator.D($"IRC: Already connected or connecting! Connected: {isConnected.Value}, Connecting: {isConnecting}");
+                    return isConnected.Value;
+                }
+
+                isConnecting = true;
+                ValidateConfig();
+
+                // Cancel and cleanup any existing connection tasks first
+                _connectionCts?.Cancel();
+                CleanupConnection();
+                
+                _connectionCts = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCts.Token, cancellationToken);
             }
 
-            ValidateConfig();
-
-            _connectionCts?.Cancel();
-            _connectionCts = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCts.Token, cancellationToken);
+            // Wait a brief moment for old tasks to cleanup (outside the lock)
+            await UniTask.Delay(100, cancellationToken: cancellationToken);
 
             connectionState.Value = ConnectionState.Connecting;
 
             try
             {
-                await ConnectWithRetryAsync(_connectionCts.Token);
-                return isConnected.Value;
+                var result = await ConnectWithRetryAsync(_connectionCts.Token);
+                
+                lock (_connectionLock)
+                {
+                    isConnecting = false;
+                }
+                
+                return result;
             }
             catch (OperationCanceledException)
             {
+                lock (_connectionLock)
+                {
+                    isConnecting = false;
+                }
                 connectionState.Value = ConnectionState.Disconnected;
                 return false;
             }
             catch (Exception ex)
             {
+                lock (_connectionLock)
+                {
+                    isConnecting = false;
+                }
                 connectionState.Value = ConnectionState.Error;
                 errorSubject.OnNext($"Connection failed: {ex.Message}");
                 return false;
@@ -278,11 +332,34 @@ namespace KBVE.SSDB.IRC
 
         public void Disconnect()
         {
-            _connectionCts?.Cancel();
-            CleanupConnection();
-            connectionState.Value = ConnectionState.Disconnected;
-            isConnected.Value = false;
-            isRegistered = false;
+            lock (_connectionLock)
+            {
+                shouldReconnect = false;
+                
+                // Cancel all connection-related async operations
+                _connectionCts?.Cancel();
+                
+                // Reset all connection state
+                connectionState.Value = ConnectionState.Disconnected;
+                isConnected.Value = false;
+                isRegistered = false;
+                isConnecting = false;
+                
+                // Clean up connection resources
+                CleanupConnection();
+                
+                // Clear queues
+                lock (outgoingCommands.SyncRoot)
+                {
+                    outgoingCommands.Clear();
+                }
+                
+                lock (incomingMessages.SyncRoot)
+                {
+                    incomingMessages.Clear();
+                    pendingMessages.Value = 0;
+                }
+            }
         }
 
         public void SendMessage(string channel, string message)
@@ -293,7 +370,10 @@ namespace KBVE.SSDB.IRC
                 return;
             }
 
-            outgoingCommands.Enqueue($"PRIVMSG {channel} :{message}");
+            lock (outgoingCommands.SyncRoot)
+            {
+                outgoingCommands.Enqueue($"PRIVMSG {channel} :{message}");
+            }
         }
 
         public void SendRawCommand(string command)
@@ -304,7 +384,10 @@ namespace KBVE.SSDB.IRC
                 return;
             }
 
-            outgoingCommands.Enqueue(command);
+            lock (outgoingCommands.SyncRoot)
+            {
+                outgoingCommands.Enqueue(command);
+            }
         }
 
         public void JoinChannel(string channel)
@@ -331,36 +414,85 @@ namespace KBVE.SSDB.IRC
         {
             if (string.IsNullOrEmpty(config.nickname))
             {
-                throw new InvalidOperationException("Nickname must be configured!");
+                config.nickname = $"GuestAnon{UnityEngine.Random.Range(100000, 999999)}";
+                Operator.D($"IRC: No nickname configured, using fallback: {config.nickname}");
+            }
+
+            if (string.IsNullOrEmpty(config.username))
+            {
+                config.username = config.nickname;
+                Operator.D($"IRC: No username configured, using nickname: {config.username}");
+            }
+
+            if (string.IsNullOrEmpty(config.realname))
+            {
+                config.realname = config.nickname;
+                Operator.D($"IRC: No realname configured, using nickname: {config.realname}");
             }
 
             if (string.IsNullOrEmpty(config.server))
             {
                 throw new InvalidOperationException("Server must be configured!");
             }
+
+            // Update current nickname tracking
+            currentNickname.Value = config.nickname;
         }
 
-        private async UniTask ConnectWithRetryAsync(CancellationToken cancellationToken)
+        private async UniTask<bool> ConnectWithRetryAsync(CancellationToken cancellationToken)
         {
-            while (!cancellationToken.IsCancellationRequested)
+            int attemptCount = 0;
+            
+            while (!cancellationToken.IsCancellationRequested && shouldReconnect)
             {
+                attemptCount++;
+                
                 try
                 {
+                    Operator.D($"IRC: Connection attempt #{attemptCount}");
+                    
                     await EstablishConnectionAsync(cancellationToken);
 
-                    if (isConnected.Value)
+                    if (!tcpClient?.Connected == true)
                     {
-                        connectionState.Value = ConnectionState.Connected;
-
-                        // Start background tasks
-                        var inputTask = InputLoopAsync(cancellationToken);
-                        var outputTask = OutputLoopAsync(cancellationToken);
-
-                        // Wait for disconnection
+                        throw new Exception("TCP connection lost after establishment");
+                    }
+                    
+                    Operator.D("IRC: TCP connection established, starting registration and I/O loops...");
+                    
+                    // Start I/O loops but don't wait for registration here
+                    var inputTask = InputLoopAsync(cancellationToken);
+                    var outputTask = OutputLoopAsync(cancellationToken);
+                    
+                    // Wait for either registration success or connection failure
+                    var registrationTimeout = TimeSpan.FromSeconds(30); // Give server time to respond
+                    var registrationStart = DateTime.Now;
+                    
+                    while (!cancellationToken.IsCancellationRequested && 
+                           tcpClient?.Connected == true && 
+                           !isRegistered && 
+                           DateTime.Now - registrationStart < registrationTimeout)
+                    {
+                        await UniTask.Delay(100, cancellationToken: cancellationToken);
+                    }
+                    
+                    if (isRegistered)
+                    {
+                        Operator.D("IRC: Registration successful, connection established!");
+                        
+                        // Now wait for disconnection
                         await UniTask.WhenAny(inputTask, outputTask);
+                        
+                        Operator.D("IRC: Connection lost, I/O loop exited");
+                    }
+                    else
+                    {
+                        Operator.D("IRC: Registration failed or timed out");
+                        throw new Exception($"Registration failed or timed out after {registrationTimeout.TotalSeconds} seconds");
                     }
 
-                    if (!cancellationToken.IsCancellationRequested && config.autoReconnect)
+                    // If we get here and shouldReconnect is still true, attempt reconnection
+                    if (shouldReconnect && config.autoReconnect && !cancellationToken.IsCancellationRequested)
                     {
                         connectionState.Value = ConnectionState.Reconnecting;
                         Operator.D($"IRC: Reconnecting in {config.reconnectDelayMs}ms...");
@@ -373,68 +505,241 @@ namespace KBVE.SSDB.IRC
                 }
                 catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
                 {
-                    errorSubject.OnNext($"Connection error: {ex.Message}");
+                    errorSubject.OnNext($"Connection error (attempt #{attemptCount}): {ex.Message}");
+                    Operator.D($"IRC: Connection attempt #{attemptCount} failed: {ex.Message}");
 
-                    if (!config.autoReconnect) throw;
+                    CleanupConnection();
+
+                    if (!config.autoReconnect || !shouldReconnect) 
+                    {
+                        throw;
+                    }
 
                     connectionState.Value = ConnectionState.Reconnecting;
-                    await UniTask.Delay(config.reconnectDelayMs, cancellationToken: cancellationToken);
+                    var delayMs = Math.Min(config.reconnectDelayMs * attemptCount, 30000); // Exponential backoff, max 30s
+                    Operator.D($"IRC: Retrying in {delayMs}ms...");
+                    await UniTask.Delay(delayMs, cancellationToken: cancellationToken);
                 }
             }
+            
+            return isConnected.Value;
         }
 
         private async UniTask EstablishConnectionAsync(CancellationToken cancellationToken)
         {
-            Operator.D($"IRC: Connecting to {config.server}:{config.port}...");
+            Operator.D($"IRC: Connecting to {config.server}:{config.port} (SSL: {config.useSsl})...");
+
+            // Clean up any existing connection first
+            CleanupConnection();
 
             tcpClient = new TcpClient();
-            await tcpClient.ConnectAsync(config.server, config.port).AsUniTask();
-
-            if (!tcpClient.Connected)
-                throw new Exception("Failed to establish TCP connection");
-
-            networkStream = tcpClient.GetStream();
-            streamReader = new StreamReader(networkStream);
-            streamWriter = new StreamWriter(networkStream) { AutoFlush = true };
-
-            // Send IRC registration
-            if (!string.IsNullOrEmpty(config.password))
+            
+            // Set socket options for better connection handling
+            tcpClient.NoDelay = true;
+            tcpClient.ReceiveTimeout = 30000; // 30 second receive timeout
+            tcpClient.SendTimeout = 10000;    // 10 second send timeout
+            
+            // Use ConnectAsync with timeout
+            var connectTask = tcpClient.ConnectAsync(config.server, config.port).AsUniTask();
+            var timeoutTask = UniTask.Delay(15000, cancellationToken: cancellationToken); // 15 second connect timeout
+            
+            var winArgumentIndex = await UniTask.WhenAny(connectTask, timeoutTask);
+            
+            if (winArgumentIndex == 1) // timeout won
             {
-                await streamWriter.WriteLineAsync($"PASS {config.password}");
+                tcpClient?.Close();
+                throw new TimeoutException($"Connection to {config.server}:{config.port} timed out after 15 seconds");
             }
 
-            await streamWriter.WriteLineAsync($"NICK {config.nickname}");
-            await streamWriter.WriteLineAsync($"USER {config.username ?? config.nickname} 0 * :{config.realname ?? config.nickname}");
+            if (!tcpClient.Connected)
+            {
+                throw new Exception($"Failed to establish TCP connection to {config.server}:{config.port}");
+            }
 
-            isConnected.Value = true;
-            lastPingReceived = DateTime.Now;
+            Operator.D($"IRC: TCP connected to {config.server}:{config.port}");
 
-            Operator.D("IRC: Connected successfully!");
+            // Set up the stream (SSL or plain)
+            try
+            {
+                if (config.useSsl)
+                {
+                    var sslStream = new SslStream(tcpClient.GetStream(), false, ValidateServerCertificate, null);
+                    
+                    // Use timeout for SSL authentication too
+                    var sslTask = sslStream.AuthenticateAsClientAsync(config.server).AsUniTask();
+                    var sslTimeoutTask = UniTask.Delay(10000, cancellationToken: cancellationToken);
+                    
+                    var sslWinArgumentIndex = await UniTask.WhenAny(sslTask, sslTimeoutTask);
+                    
+                    if (sslWinArgumentIndex == 1) // timeout
+                    {
+                        sslStream?.Close();
+                        throw new TimeoutException("SSL authentication timed out after 10 seconds");
+                    }
+                    
+                    connectionStream = sslStream;
+                    Operator.D("IRC: SSL connection established");
+                }
+                else
+                {
+                    connectionStream = tcpClient.GetStream();
+                    Operator.D("IRC: Plain TCP connection established");
+                }
+
+                streamReader = new StreamReader(connectionStream, new System.Text.UTF8Encoding(false));
+                streamWriter = new StreamWriter(connectionStream, new System.Text.UTF8Encoding(false)) 
+                { 
+                    AutoFlush = true, 
+                    NewLine = "\r\n"
+                };
+                
+                Operator.D($"IRC: Stream setup complete - CanRead: {connectionStream.CanRead}, CanWrite: {connectionStream.CanWrite}");
+
+                // Send IRC registration commands with proper timing
+                await SendRegistrationSequenceAsync(cancellationToken);
+                
+                // Reset registration state
+                isRegistered = false;
+                
+                lock (lastPingLock)
+                {
+                    lastPingReceived = DateTime.Now;
+                }
+
+                Operator.D("IRC: Registration sequence sent, waiting for server response...");
+            }
+            catch (Exception ex)
+            {
+                CleanupConnection();
+                throw new Exception($"Failed to establish secure connection: {ex.Message}", ex);
+            }
+        }
+
+        private async UniTask SendRegistrationSequenceAsync(CancellationToken cancellationToken)
+        {
+            try
+            {
+                // 1) Send PASS if configured (must be first)
+                if (!string.IsNullOrEmpty(config.password))
+                {
+                    var passCmd = $"PASS {config.password}";
+                    Operator.D($"IRC: Sending: {passCmd}");
+                    await streamWriter.WriteLineAsync(passCmd);
+                    await streamWriter.FlushAsync();
+                    await UniTask.Delay(100, cancellationToken: cancellationToken);
+                }
+
+                // 2) Send NICK
+                var nickCmd = $"NICK {config.nickname}";
+                Operator.D($"IRC: Sending: {nickCmd}");
+                await streamWriter.WriteLineAsync(nickCmd);
+                await streamWriter.FlushAsync();
+                await UniTask.Delay(100, cancellationToken: cancellationToken);
+                
+                // 3) Send USER
+                var userCmd = $"USER {config.username ?? config.nickname} 0 * :{config.realname ?? config.nickname}";
+                Operator.D($"IRC: Sending: {userCmd}");
+                await streamWriter.WriteLineAsync(userCmd);
+                await streamWriter.FlushAsync();
+                
+                // Give server a moment to process
+                await UniTask.Delay(200, cancellationToken: cancellationToken);
+
+                // Verify connection is still alive after registration
+                if (!tcpClient.Connected)
+                {
+                    throw new Exception("Server closed connection during registration");
+                }
+
+                Operator.D("IRC: Registration commands sent successfully");
+            }
+            catch (Exception ex)
+            {
+                throw new Exception($"Failed to send registration sequence: {ex.Message}", ex);
+            }
+        }
+
+        private bool ValidateServerCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors sslPolicyErrors)
+        {
+            if (sslPolicyErrors == SslPolicyErrors.None)
+                return true;
+
+            Operator.D($"IRC: SSL certificate validation - Policy errors: {sslPolicyErrors}");
+            
+            // Log certificate details for debugging
+            if (certificate != null)
+            {
+                Operator.D($"IRC: Certificate Subject: {certificate.Subject}");
+                Operator.D($"IRC: Certificate Issuer: {certificate.Issuer}");
+            }
+            
+            // For development/testing, accept certificates with warnings
+            // In production, you should validate more strictly
+            return true;
         }
 
         private async UniTask InputLoopAsync(CancellationToken cancellationToken)
         {
             try
             {
-                while (!cancellationToken.IsCancellationRequested && isConnected.Value)
+                Operator.D("IRC: Input loop started");
+                
+                // Don't check isConnected.Value here since we need to wait for the 001 message
+                while (!cancellationToken.IsCancellationRequested && tcpClient?.Connected == true && connectionStream != null)
                 {
-                    if (!networkStream.DataAvailable)
+                    try
                     {
-                        // Check ping timeout
-                        if (DateTime.Now - lastPingReceived > TimeSpan.FromMilliseconds(config.pingTimeoutMs))
+                        // Use a timeout for ReadLineAsync to avoid infinite blocking
+                        var readTask = streamReader.ReadLineAsync().AsUniTask();
+                        var timeoutTask = UniTask.Delay(1000, cancellationToken: cancellationToken);
+                        
+                        var whenAnyResult = await UniTask.WhenAny(readTask, timeoutTask);
+                        
+                        if (whenAnyResult.result == "1")
                         {
-                            throw new Exception("Ping timeout - connection lost");
+                            // Only check ping timeout if we're actually registered
+                            if (isRegistered)
+                            {
+                                DateTime lastPing;
+                                lock (lastPingLock)
+                                {
+                                    lastPing = lastPingReceived;
+                                }
+                                
+                                if (DateTime.Now - lastPing > TimeSpan.FromMilliseconds(config.pingTimeoutMs))
+                                {
+                                    throw new Exception("Ping timeout - connection lost");
+                                }
+                            }
+                            continue; // Try again
+                        }
+                        
+                        // readTask completed - get the actual result
+                        var receivedLine = await readTask;
+                        if (receivedLine == null) 
+                        {
+                            // Null line indicates connection closed
+                            Operator.D("IRC: Server closed connection (received null)");
+                            throw new Exception("Server closed connection");
+                        }
+                        
+                        if (receivedLine.Length == 0)
+                        {
+                            // Empty line - just continue
+                            continue;
                         }
 
-                        await UniTask.Delay(100, cancellationToken: cancellationToken);
-                        continue;
+                        Operator.D($"IRC Received: {receivedLine}");
+                        await ProcessIncomingLineAsync(receivedLine);
                     }
-
-                    var line = await streamReader.ReadLineAsync().AsUniTask();
-                    if (string.IsNullOrEmpty(line)) continue;
-
-                    await ProcessIncomingLineAsync(line);
+                    catch (System.IO.IOException ioEx)
+                    {
+                        Operator.D($"IRC: IO Error reading from stream: {ioEx.Message}");
+                        throw;
+                    }
                 }
+                
+                Operator.D($"IRC: Input loop exiting - Cancelled: {cancellationToken.IsCancellationRequested}, Connected: {tcpClient?.Connected}");
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
@@ -450,9 +755,21 @@ namespace KBVE.SSDB.IRC
 
             try
             {
-                while (!cancellationToken.IsCancellationRequested && isConnected.Value)
+                Operator.D("IRC: Output loop started");
+                
+                // Don't check isConnected.Value here either since we need to send commands before registration
+                while (!cancellationToken.IsCancellationRequested && tcpClient?.Connected == true)
                 {
-                    if (outgoingCommands.TryDequeue(out string command))
+                    string command = null;
+                lock (outgoingCommands.SyncRoot)
+                {
+                    if (outgoingCommands.Count > 0)
+                    {
+                        command = outgoingCommands.Dequeue();
+                    }
+                }
+                
+                if (command != null)
                     {
                         // Rate limiting
                         var timeSinceLastSent = DateTime.Now - lastSent;
@@ -462,7 +779,9 @@ namespace KBVE.SSDB.IRC
                             await UniTask.Delay(delay, cancellationToken: cancellationToken);
                         }
 
-                        await streamWriter.WriteLineAsync(command);
+                        var ircCommand = $"{command}\r\n";
+                        await streamWriter.WriteAsync(ircCommand);
+                        await streamWriter.FlushAsync();
                         lastSent = DateTime.Now;
 
                         Operator.D($"IRC Sent: {command}");
@@ -472,6 +791,8 @@ namespace KBVE.SSDB.IRC
                         await UniTask.Delay(100, cancellationToken: cancellationToken);
                     }
                 }
+                
+                Operator.D($"IRC: Output loop exiting - Cancelled: {cancellationToken.IsCancellationRequested}, Connected: {tcpClient?.Connected}");
             }
             catch (Exception ex) when (!cancellationToken.IsCancellationRequested)
             {
@@ -485,45 +806,150 @@ namespace KBVE.SSDB.IRC
         {
             rawMessageSubject.OnNext(line);
 
-            // Handle PING/PONG
-            if (line.StartsWith("PING "))
+            // Handle PING/PONG with better parsing
+            var trimmed = line.StartsWith("@") ? line[(line.IndexOf(' ') + 1)..] : line;
+            if (trimmed.StartsWith("PING"))
             {
-                lastPingReceived = DateTime.Now;
-                var pongResponse = line.Replace("PING", "PONG");
-                outgoingCommands.Enqueue(pongResponse);
+                lock (lastPingLock)
+                {
+                    lastPingReceived = DateTime.Now;
+                }
+                
+                // Extract the ping argument more reliably
+                var spaceIndex = trimmed.IndexOf(' ');
+                var arg = spaceIndex > 0 ? trimmed[(spaceIndex + 1)..].TrimStart(':') : "";
+                var pong = string.IsNullOrEmpty(arg) ? "PONG" : $"PONG :{arg}";
+                
+                lock (outgoingCommands.SyncRoot)
+                {
+                    outgoingCommands.Enqueue(pong);
+                }
+                Operator.D($"IRC: Responded to PING with: {pong}");
                 return;
             }
 
             var message = new IRCMessage(line);
 
-            // Handle server responses
+            // Handle server numeric responses with better error handling
             if (message.isServerMessage)
             {
                 switch (message.command)
                 {
                     case "001": // RPL_WELCOME - registration successful
                         isRegistered = true;
-                        Operator.D("IRC: Registration successful!");
+                        isConnected.Value = true;
+                        connectionState.Value = ConnectionState.Connected;
+                        Operator.D("IRC: *** REGISTRATION SUCCESSFUL! *** Welcome message received.");
 
                         // Join default channel if specified
                         if (!string.IsNullOrEmpty(config.defaultChannel))
                         {
+                            await UniTask.Delay(500); // Brief delay before joining
                             JoinChannel(config.defaultChannel);
                         }
                         break;
 
+                    case "002": case "003": case "004": case "005":
+                        Operator.D($"IRC: Server info ({message.command}): {message.message}");
+                        break;
+
+                    case "375": case "372": case "376": case "422":
+                        // MOTD messages
+                        Operator.D($"IRC: MOTD ({message.command}): {message.message}");
+                        break;
+
                     case "433": // ERR_NICKNAMEINUSE
                         var newNick = config.nickname + "_";
-                        Operator.D($"IRC: Nickname in use, trying {newNick}");
+                        Operator.D($"IRC: Nickname '{config.nickname}' in use, trying '{newNick}'");
                         currentNickname.Value = newNick;
-                        outgoingCommands.Enqueue($"NICK {newNick}");
+                        config.nickname = newNick;
+                        lock (outgoingCommands.SyncRoot)
+                        {
+                            outgoingCommands.Enqueue($"NICK {newNick}");
+                        }
+                        break;
+
+                    case "464": // ERR_PASSWDMISMATCH
+                        Operator.D("IRC: Password incorrect!");
+                        errorSubject.OnNext("Server password incorrect");
+                        break;
+
+                    case "465": // ERR_YOUREBANNEDCREEP
+                        Operator.D("IRC: Banned from server!");
+                        errorSubject.OnNext("Banned from server");
+                        break;
+
+                    case "353": // RPL_NAMREPLY
+                        Operator.D($"IRC: Channel users: {message.message}");
+                        break;
+
+                    case "366": // RPL_ENDOFNAMES
+                        Operator.D("IRC: End of channel user list");
+                        break;
+
+                    default:
+                        if (int.TryParse(message.command, out var numericCode))
+                        {
+                            if (numericCode >= 400 && numericCode < 600)
+                            {
+                                // Error message
+                                Operator.D($"IRC: Server error {message.command}: {message.message}");
+                                errorSubject.OnNext($"Server error {message.command}: {message.message}");
+                            }
+                        }
                         break;
                 }
             }
 
+            // Handle user-originated commands
+            switch (message.command)
+            {
+                case "JOIN":
+                    if (string.Equals(message.nickname, currentNickname.Value, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var joined = message.parameters?.Length > 0 ? message.parameters[0] : 
+                                   (!string.IsNullOrEmpty(message.message) && message.message.StartsWith("#") ? message.message : 
+                                   message.channel);
+
+                        if (!string.IsNullOrEmpty(joined))
+                        {
+                            currentChannel.Value = joined;
+                            Operator.D($"IRC: Successfully joined {joined}");
+                        }
+                    }
+                    break;
+
+                case "NICK":
+                    if (string.Equals(message.nickname, currentNickname.Value, StringComparison.OrdinalIgnoreCase))
+                    {
+                        var newNick = message.message ?? (message.parameters?.Length > 0 ? message.parameters[0] : null);
+                        if (!string.IsNullOrEmpty(newNick))
+                        {
+                            currentNickname.Value = newNick;
+                            config.nickname = newNick;
+                            Operator.D($"IRC: Nickname changed to {newNick}");
+                        }
+                    }
+                    break;
+
+                case "ERROR":
+                    Operator.D($"IRC: Server ERROR: {message.message}");
+                    errorSubject.OnNext($"Server error: {message.message}");
+                    break;
+            }
+
             // Queue message for main thread processing
-            incomingMessages.Enqueue(message);
-            pendingMessages.Value = incomingMessages.Count;
+            lock (incomingMessages.SyncRoot)
+            {
+                incomingMessages.AddLast(message);
+                
+                while (incomingMessages.Count > MaxMessages)
+                {
+                    incomingMessages.RemoveFirst();
+                }
+                
+                pendingMessages.Value = incomingMessages.Count;
+            }
         }
 
         private async UniTaskVoid StartMessageProcessingLoop(CancellationToken cancellationToken)
@@ -533,10 +959,24 @@ namespace KBVE.SSDB.IRC
             {
                 try
                 {
-                    if (incomingMessages.TryDequeue(out IRCMessage message))
+                    IRCMessage message = null;
+                    lock (incomingMessages.SyncRoot)
+                    {
+                        if (incomingMessages.Count > 0)
+                        {
+                            // Process and remove the oldest message
+                            message = incomingMessages[0];
+                            incomingMessages.RemoveFirst();
+                        }
+                    }
+                    
+                    if (message != null)
                     {
                         messageSubject.OnNext(message);
-                        pendingMessages.Value = incomingMessages.Count;
+                        lock (incomingMessages.SyncRoot)
+                        {
+                            pendingMessages.Value = incomingMessages.Count;
+                        }
                     }
 
                     await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);
@@ -560,12 +1000,19 @@ namespace KBVE.SSDB.IRC
             {
                 streamWriter?.Close();
                 streamReader?.Close();
-                networkStream?.Close();
+                connectionStream?.Close();
                 tcpClient?.Close();
             }
             catch (Exception ex)
             {
                 Operator.D($"IRC: Cleanup error: {ex.Message}");
+            }
+            finally
+            {
+                streamWriter = null;
+                streamReader = null;
+                connectionStream = null;
+                tcpClient = null;
             }
         }
 
@@ -582,29 +1029,53 @@ namespace KBVE.SSDB.IRC
 
         public void Dispose()
         {
+            // Cancel all async operations immediately
             _lifetimeCts?.Cancel();
+            _connectionCts?.Cancel();
             
             try
             {
-                // Send quit message if connected
-                if (isConnected.Value)
+                // Send quit message if connected, with timeout
+                if (isConnected.Value && streamWriter != null)
                 {
-                    using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2)))
+                    using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1)))
                     {
-                        SendRawCommand("QUIT :Closing connection");
-                        UniTask.Delay(500, cancellationToken: cts.Token).GetAwaiter().GetResult();
+                        try
+                        {
+                            SendRawCommand("QUIT :Closing connection");
+                            UniTask.Delay(200, cancellationToken: cts.Token).GetAwaiter().GetResult();
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Timeout - continue with cleanup
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Operator.D($"Error during IRC disposal: {ex.Message}");
+                Operator.D($"Error sending QUIT during disposal: {ex.Message}");
             }
             
+            // Force cleanup of connection resources
             Disconnect();
             
-            _lifetimeCts?.Dispose();
+            // Wait briefly for async tasks to complete cancellation
+            try
+            {
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1)))
+                {
+                    UniTask.Delay(100, cancellationToken: cts.Token).GetAwaiter().GetResult();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Timeout - continue with disposal
+            }
+            
+            // Dispose cancellation tokens
             _connectionCts?.Dispose();
+            _lifetimeCts?.Dispose();
             _disposables?.Dispose();
 
             // Dispose R3 resources

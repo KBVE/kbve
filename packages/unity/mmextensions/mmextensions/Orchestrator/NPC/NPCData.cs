@@ -39,6 +39,15 @@ namespace KBVE.MMExtensions.Orchestrator.Core
         Ally
     }
 
+    /// <summary>
+    /// Interface for NPC metadata component that holds NPC definition data
+    /// </summary>
+    public interface INPCMetadata
+    {
+        NPCDefinition Definition { get; }
+        void Initialize(NPCDefinition definition);
+    }
+
     public class NPCMetadata : MonoBehaviour, INPCMetadata
     {
         public NPCDefinition Definition { get; private set; }
