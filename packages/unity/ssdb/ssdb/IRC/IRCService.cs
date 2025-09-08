@@ -59,14 +59,14 @@ namespace KBVE.SSDB.IRC
     [Serializable]
     public class IRCConfig
     {
-        public string server = "irc.kbve.com";
+        public string server = "irc.lewdchat.com";
         public int port = 6697;
         public bool useSsl = true;
         public string nickname;
         public string username;
         public string realname;
         public string password; // Optional server password
-        public string defaultChannel = "#general";
+        public string defaultChannel = "#lewd";
         public bool autoReconnect = true;
         public int reconnectDelayMs = 5000;
         public int pingTimeoutMs = 60000; // IRC servers typically have longer timeouts
