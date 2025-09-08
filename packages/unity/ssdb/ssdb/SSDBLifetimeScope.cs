@@ -6,9 +6,11 @@ using VContainer.Unity;
 using KBVE.SSDB;
 using KBVE.SSDB.Steam;
 using KBVE.SSDB.SupabaseFDW;
+using KBVE.SSDB.IRC;
 #endif
-
 using System;
+
+// TODO: Fix the SSDB Usage.
 
 namespace KBVE.SSDB
 {
@@ -20,6 +22,9 @@ namespace KBVE.SSDB
     {
         [SerializeField]
         private bool autoStart = true;
+
+        [SerializeField]
+        private IRCConfig ircConfig;
 
         protected override void Awake()
         {
@@ -76,6 +81,22 @@ namespace KBVE.SSDB
             .As<IAsyncStartable>()
             .As<IDisposable>();
 
+            // IRC Services - Register at the end after all other services
+            if (ircConfig != null)
+            {
+                builder.RegisterInstance(ircConfig);
+
+                builder.Register<IRCService>(Lifetime.Singleton)
+                    .AsSelf()
+                    .As<IIRCService>()
+                    .As<IAsyncStartable>()
+                    .As<IDisposable>();
+
+                builder.Register<IRCTextBox>(Lifetime.Singleton)
+                    .AsSelf()
+                    .As<IAsyncStartable>()
+                    .As<IDisposable>();
+            }
 
         }
     }
