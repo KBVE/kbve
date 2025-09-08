@@ -4,6 +4,15 @@ using UnityEngine;
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
+    /// <summary>
+    /// Interface for NPC definition database that provides NPC configuration data
+    /// </summary>
+    public interface INPCDefinitionDatabase
+    {
+        NPCDefinition GetDefinitionByLabel(string label);
+        List<string> GetAllLabels();
+    }
+
     [CreateAssetMenu(menuName = "KBVE/NPC/NPC Definition Database")]
     public class NPCDefinitionDatabase : ScriptableObject, INPCDefinitionDatabase
     {
