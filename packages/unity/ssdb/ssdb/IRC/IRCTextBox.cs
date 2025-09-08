@@ -93,6 +93,8 @@ namespace KBVE.SSDB.IRC
                 // Store original state and disable input detection
                 originalInputDetectionState = InputManager.Instance.InputDetectionActive;
                 InputManager.Instance.InputDetectionActive = false;
+                
+                //InputManager.Instance.ForceAllButtonStatesTo(MMInput.ButtonStates.Off);
 
                 // Reset any stuck button states to prevent input bugs
                 //InputManager.Instance.ForceAllButtonStatesTo(MMInput.ButtonStates.ButtonUp);
@@ -105,7 +107,9 @@ namespace KBVE.SSDB.IRC
                 
                 // Restore input detection
                 InputManager.Instance.InputDetectionActive = originalInputDetectionState;
-                
+                //InputManager.Instance.ForceAllButtonStatesTo(MMInput.ButtonStates.ButtonUp);
+
+
                 Operator.D("IRCTextBox: Reset button states and restored MoreMountains input detection");
             }
         }
