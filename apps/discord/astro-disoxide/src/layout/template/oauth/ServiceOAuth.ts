@@ -2,7 +2,7 @@ import { atom } from 'nanostores';
 import { supabase } from '../supabase';
 import type { AuthChangeEvent } from '@supabase/supabase-js';
 
-type OAuthProvider = 'github' | 'discord' | 'google' | 'twitter';
+type OAuthProvider = 'github' | 'discord' | 'google' | 'twitter' | 'twitch';
 
 class OAuthService {
   private static instance: OAuthService;
@@ -78,6 +78,10 @@ class OAuthService {
 
   public async signInWithTwitter(): Promise<void> {
     return this.signInWithProvider('twitter');
+  }
+
+  public async signInWithTwitch(): Promise<void> {
+    return this.signInWithProvider('twitch');
   }
 
   public async initializeOAuthCallback(): Promise<void> {
