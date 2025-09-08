@@ -59,14 +59,14 @@ namespace KBVE.SSDB.IRC
     [Serializable]
     public class IRCConfig
     {
-        public string server = "irc.lewdchat.com";
+        public string server = "irc.kbve.com";
         public int port = 6697;
         public bool useSsl = true;
         public string nickname;
         public string username;
         public string realname;
-        public string password; // Optional server password
-        public string defaultChannel = "#lewd";
+        public string password;
+        public string defaultChannel = "#general";
         public bool autoReconnect = true;
         public int reconnectDelayMs = 5000;
         public int pingTimeoutMs = 60000; // IRC servers typically have longer timeouts
@@ -286,9 +286,15 @@ namespace KBVE.SSDB.IRC
                 isConnecting = true;
                 ValidateConfig();
 
+                // Cancel and cleanup any existing connection tasks first
                 _connectionCts?.Cancel();
+                CleanupConnection();
+                
                 _connectionCts = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCts.Token, cancellationToken);
             }
+
+            // Wait a brief moment for old tasks to cleanup (outside the lock)
+            await UniTask.Delay(100, cancellationToken: cancellationToken);
 
             connectionState.Value = ConnectionState.Connecting;
 
@@ -329,12 +335,30 @@ namespace KBVE.SSDB.IRC
             lock (_connectionLock)
             {
                 shouldReconnect = false;
+                
+                // Cancel all connection-related async operations
                 _connectionCts?.Cancel();
-                CleanupConnection();
+                
+                // Reset all connection state
                 connectionState.Value = ConnectionState.Disconnected;
                 isConnected.Value = false;
                 isRegistered = false;
                 isConnecting = false;
+                
+                // Clean up connection resources
+                CleanupConnection();
+                
+                // Clear queues
+                lock (outgoingCommands.SyncRoot)
+                {
+                    outgoingCommands.Clear();
+                }
+                
+                lock (incomingMessages.SyncRoot)
+                {
+                    incomingMessages.Clear();
+                    pendingMessages.Value = 0;
+                }
             }
         }
 
@@ -1005,29 +1029,53 @@ namespace KBVE.SSDB.IRC
 
         public void Dispose()
         {
+            // Cancel all async operations immediately
             _lifetimeCts?.Cancel();
+            _connectionCts?.Cancel();
             
             try
             {
-                // Send quit message if connected
-                if (isConnected.Value)
+                // Send quit message if connected, with timeout
+                if (isConnected.Value && streamWriter != null)
                 {
-                    using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(2)))
+                    using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1)))
                     {
-                        SendRawCommand("QUIT :Closing connection");
-                        UniTask.Delay(500, cancellationToken: cts.Token).GetAwaiter().GetResult();
+                        try
+                        {
+                            SendRawCommand("QUIT :Closing connection");
+                            UniTask.Delay(200, cancellationToken: cts.Token).GetAwaiter().GetResult();
+                        }
+                        catch (OperationCanceledException)
+                        {
+                            // Timeout - continue with cleanup
+                        }
                     }
                 }
             }
             catch (Exception ex)
             {
-                Operator.D($"Error during IRC disposal: {ex.Message}");
+                Operator.D($"Error sending QUIT during disposal: {ex.Message}");
             }
             
+            // Force cleanup of connection resources
             Disconnect();
             
-            _lifetimeCts?.Dispose();
+            // Wait briefly for async tasks to complete cancellation
+            try
+            {
+                using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1)))
+                {
+                    UniTask.Delay(100, cancellationToken: cts.Token).GetAwaiter().GetResult();
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                // Timeout - continue with disposal
+            }
+            
+            // Dispose cancellation tokens
             _connectionCts?.Dispose();
+            _lifetimeCts?.Dispose();
             _disposables?.Dispose();
 
             // Dispose R3 resources
