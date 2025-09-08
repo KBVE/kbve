@@ -81,9 +81,9 @@ namespace KBVE.SSDB.IRC
             panelRoot.transform.SetParent(globalCanvas.GetLayerRoot(UICanvasLayer.HUD), false);
             
             var rectTransform = panelRoot.GetComponent<RectTransform>();
-            // Scale with screen size - 30% width, 40% height
+            // Scale with screen size - 40% width, 50% height for better readability
             rectTransform.anchorMin = new Vector2(0, 0);
-            rectTransform.anchorMax = new Vector2(0.3f, 0.4f);
+            rectTransform.anchorMax = new Vector2(0.4f, 0.5f);
             rectTransform.pivot = new Vector2(0, 0);
             rectTransform.offsetMin = new Vector2(10, 10);
             rectTransform.offsetMax = new Vector2(-10, -10);
@@ -118,12 +118,12 @@ namespace KBVE.SSDB.IRC
                 if (minimized)
                 {
                     // Minimized: just header bar height
-                    rectTransform.anchorMax = new Vector2(0.3f, 0.05f);
+                    rectTransform.anchorMax = new Vector2(0.4f, 0.06f);
                 }
                 else
                 {
-                    // Expanded: 30% width, 40% height
-                    rectTransform.anchorMax = new Vector2(0.3f, 0.4f);
+                    // Expanded: 40% width, 50% height for better readability
+                    rectTransform.anchorMax = new Vector2(0.4f, 0.5f);
                 }
             }).AddTo(disposables);
         }
