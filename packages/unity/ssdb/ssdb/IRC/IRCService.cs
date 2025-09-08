@@ -1,6 +1,7 @@
 using UnityEngine;
 using System;
 using System.Collections.Concurrent;
+using ObservableCollections;
 using System.IO;
 using System.Net.Sockets;
 using System.Threading;
@@ -23,11 +24,17 @@ namespace KBVE.SSDB.IRC
         Observable<string> OnError { get; }
         Observable<string> OnRawMessageReceived { get; }
 
-        // Thread-safe reactive properties
-        ReadOnlyReactiveProperty<bool> IsConnected { get; }
-        ReadOnlyReactiveProperty<int> PendingMessages { get; }
-        ReadOnlyReactiveProperty<string> CurrentChannel { get; }
-        ReadOnlyReactiveProperty<string> CurrentNickname { get; }
+        // Thread-safe reactive properties (exposed as Observable)
+        Observable<bool> IsConnected { get; }
+        Observable<int> PendingMessages { get; }
+        Observable<string> CurrentChannel { get; }
+        Observable<string> CurrentNickname { get; }
+        
+        // Current values (for immediate access)
+        bool IsConnectedValue { get; }
+        int PendingMessagesValue { get; }
+        string CurrentChannelValue { get; }
+        string CurrentNicknameValue { get; }
 
         // Methods
         UniTask<bool> ConnectAsync(CancellationToken cancellationToken = default);
@@ -156,7 +163,7 @@ namespace KBVE.SSDB.IRC
     {
         private readonly IRCConfig config;
 
-        // R3 Thread-safe Reactive Properties
+        // R3 Thread-safe Reactive Properties using SynchronizedReactiveProperty
         private readonly SynchronizedReactiveProperty<bool> isConnected = new(false);
         private readonly SynchronizedReactiveProperty<int> pendingMessages = new(0);
         private readonly SynchronizedReactiveProperty<string> currentChannel = new(string.Empty);
@@ -169,11 +176,14 @@ namespace KBVE.SSDB.IRC
         private readonly Subject<string> rawMessageSubject = new();
 
         // Threading
-        private readonly ConcurrentQueue<string> outgoingCommands = new();
-        private readonly ConcurrentQueue<IRCMessage> incomingMessages = new();
+        // Thread-safe observable collections for multi-threaded operations
+        private readonly ObservableQueue<string> outgoingCommands = new();
+        private readonly ObservableRingBuffer<IRCMessage> incomingMessages = new();
         private readonly CompositeDisposable _disposables = new();
         private readonly CancellationTokenSource _lifetimeCts = new();
         private CancellationTokenSource _connectionCts;
+        private readonly object _connectionLock = new object();
+        private const int MaxMessages = 1000; // Maximum messages to keep in buffer
 
         // Connection
         private TcpClient tcpClient;
@@ -181,12 +191,20 @@ namespace KBVE.SSDB.IRC
         private StreamReader streamReader;
         private StreamWriter streamWriter;
         private DateTime lastPingReceived = DateTime.Now;
-        private bool isRegistered = false;
+        private volatile bool isRegistered = false;
+        private readonly object lastPingLock = new object();
 
-        public ReadOnlyReactiveProperty<bool> IsConnected { get; }
-        public ReadOnlyReactiveProperty<int> PendingMessages { get; }
-        public ReadOnlyReactiveProperty<string> CurrentChannel { get; }
-        public ReadOnlyReactiveProperty<string> CurrentNickname { get; }
+        // Expose as Observable for thread-safe read-only access
+        public Observable<bool> IsConnected => isConnected;
+        public Observable<int> PendingMessages => pendingMessages;
+        public Observable<string> CurrentChannel => currentChannel;
+        public Observable<string> CurrentNickname => currentNickname;
+        
+        // Expose current values for immediate access
+        public bool IsConnectedValue => isConnected.Value;
+        public int PendingMessagesValue => pendingMessages.Value;
+        public string CurrentChannelValue => currentChannel.Value;
+        public string CurrentNicknameValue => currentNickname.Value;
 
         public Observable<IRCMessage> OnMessageReceived => messageSubject.AsObservable();
         public Observable<ConnectionState> OnConnectionStateChanged => connectionState.AsObservable();
@@ -197,12 +215,6 @@ namespace KBVE.SSDB.IRC
         public IRCService(IRCConfig config)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
-
-            // Create read-only properties from synchronized ones
-            IsConnected = isConnected.AsReadOnlyReactiveProperty();
-            PendingMessages = pendingMessages.AsReadOnlyReactiveProperty();
-            CurrentChannel = currentChannel.AsReadOnlyReactiveProperty();
-            CurrentNickname = currentNickname.AsReadOnlyReactiveProperty();
 
             // Set initial values
             currentChannel.Value = config.defaultChannel ?? string.Empty;
@@ -217,7 +229,6 @@ namespace KBVE.SSDB.IRC
             {
                 // Guard: Wait for Operator to be ready
                 await Operator.R();
-                await UniTask.WaitUntil(() => Operator.Ready, cancellationToken: effectiveToken);
                 effectiveToken.ThrowIfCancellationRequested();
                 
                 Operator.D("IRCService starting...");
@@ -245,16 +256,28 @@ namespace KBVE.SSDB.IRC
 
         public async UniTask<bool> ConnectAsync(CancellationToken cancellationToken = default)
         {
-            if (isConnected.Value)
+            bool alreadyConnected = false;
+            
+            lock (_connectionLock)
+            {
+                if (isConnected.Value)
+                {
+                    alreadyConnected = true;
+                }
+                else
+                {
+                    ValidateConfig();
+
+                    _connectionCts?.Cancel();
+                    _connectionCts = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCts.Token, cancellationToken);
+                }
+            }
+
+            if (alreadyConnected)
             {
                 Operator.D("IRC: Already connected!");
                 return true;
             }
-
-            ValidateConfig();
-
-            _connectionCts?.Cancel();
-            _connectionCts = CancellationTokenSource.CreateLinkedTokenSource(_lifetimeCts.Token, cancellationToken);
 
             connectionState.Value = ConnectionState.Connecting;
 
@@ -278,11 +301,14 @@ namespace KBVE.SSDB.IRC
 
         public void Disconnect()
         {
-            _connectionCts?.Cancel();
-            CleanupConnection();
-            connectionState.Value = ConnectionState.Disconnected;
-            isConnected.Value = false;
-            isRegistered = false;
+            lock (_connectionLock)
+            {
+                _connectionCts?.Cancel();
+                CleanupConnection();
+                connectionState.Value = ConnectionState.Disconnected;
+                isConnected.Value = false;
+                isRegistered = false;
+            }
         }
 
         public void SendMessage(string channel, string message)
@@ -293,7 +319,10 @@ namespace KBVE.SSDB.IRC
                 return;
             }
 
-            outgoingCommands.Enqueue($"PRIVMSG {channel} :{message}");
+            lock (outgoingCommands.SyncRoot)
+            {
+                outgoingCommands.Enqueue($"PRIVMSG {channel} :{message}");
+            }
         }
 
         public void SendRawCommand(string command)
@@ -304,7 +333,10 @@ namespace KBVE.SSDB.IRC
                 return;
             }
 
-            outgoingCommands.Enqueue(command);
+            lock (outgoingCommands.SyncRoot)
+            {
+                outgoingCommands.Enqueue(command);
+            }
         }
 
         public void JoinChannel(string channel)
@@ -407,7 +439,10 @@ namespace KBVE.SSDB.IRC
             await streamWriter.WriteLineAsync($"USER {config.username ?? config.nickname} 0 * :{config.realname ?? config.nickname}");
 
             isConnected.Value = true;
-            lastPingReceived = DateTime.Now;
+            lock (lastPingLock)
+            {
+                lastPingReceived = DateTime.Now;
+            }
 
             Operator.D("IRC: Connected successfully!");
         }
@@ -421,7 +456,13 @@ namespace KBVE.SSDB.IRC
                     if (!networkStream.DataAvailable)
                     {
                         // Check ping timeout
-                        if (DateTime.Now - lastPingReceived > TimeSpan.FromMilliseconds(config.pingTimeoutMs))
+                        DateTime lastPing;
+                        lock (lastPingLock)
+                        {
+                            lastPing = lastPingReceived;
+                        }
+                        
+                        if (DateTime.Now - lastPing > TimeSpan.FromMilliseconds(config.pingTimeoutMs))
                         {
                             throw new Exception("Ping timeout - connection lost");
                         }
@@ -452,7 +493,16 @@ namespace KBVE.SSDB.IRC
             {
                 while (!cancellationToken.IsCancellationRequested && isConnected.Value)
                 {
-                    if (outgoingCommands.TryDequeue(out string command))
+                    string command = null;
+                lock (outgoingCommands.SyncRoot)
+                {
+                    if (outgoingCommands.Count > 0)
+                    {
+                        command = outgoingCommands.Dequeue();
+                    }
+                }
+                
+                if (command != null)
                     {
                         // Rate limiting
                         var timeSinceLastSent = DateTime.Now - lastSent;
@@ -488,9 +538,15 @@ namespace KBVE.SSDB.IRC
             // Handle PING/PONG
             if (line.StartsWith("PING "))
             {
-                lastPingReceived = DateTime.Now;
+                lock (lastPingLock)
+                {
+                    lastPingReceived = DateTime.Now;
+                }
                 var pongResponse = line.Replace("PING", "PONG");
-                outgoingCommands.Enqueue(pongResponse);
+                lock (outgoingCommands.SyncRoot)
+                {
+                    outgoingCommands.Enqueue(pongResponse);
+                }
                 return;
             }
 
@@ -516,14 +572,27 @@ namespace KBVE.SSDB.IRC
                         var newNick = config.nickname + "_";
                         Operator.D($"IRC: Nickname in use, trying {newNick}");
                         currentNickname.Value = newNick;
-                        outgoingCommands.Enqueue($"NICK {newNick}");
+                        lock (outgoingCommands.SyncRoot)
+                        {
+                            outgoingCommands.Enqueue($"NICK {newNick}");
+                        }
                         break;
                 }
             }
 
-            // Queue message for main thread processing
-            incomingMessages.Enqueue(message);
-            pendingMessages.Value = incomingMessages.Count;
+            // Queue message for main thread processing (thread-safe)
+            lock (incomingMessages.SyncRoot)
+            {
+                incomingMessages.AddLast(message);
+                
+                // Manually limit message history size
+                while (incomingMessages.Count > MaxMessages)
+                {
+                    incomingMessages.RemoveFirst();
+                }
+                
+                pendingMessages.Value = incomingMessages.Count;
+            }
         }
 
         private async UniTaskVoid StartMessageProcessingLoop(CancellationToken cancellationToken)
@@ -533,10 +602,24 @@ namespace KBVE.SSDB.IRC
             {
                 try
                 {
-                    if (incomingMessages.TryDequeue(out IRCMessage message))
+                    IRCMessage message = null;
+                    lock (incomingMessages.SyncRoot)
+                    {
+                        if (incomingMessages.Count > 0)
+                        {
+                            // Process and remove the oldest message
+                            message = incomingMessages[0];
+                            incomingMessages.RemoveFirst();
+                        }
+                    }
+                    
+                    if (message != null)
                     {
                         messageSubject.OnNext(message);
-                        pendingMessages.Value = incomingMessages.Count;
+                        lock (incomingMessages.SyncRoot)
+                        {
+                            pendingMessages.Value = incomingMessages.Count;
+                        }
                     }
 
                     await UniTask.Yield(PlayerLoopTiming.Update, cancellationToken);

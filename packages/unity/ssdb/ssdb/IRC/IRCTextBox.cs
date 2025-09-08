@@ -10,13 +10,15 @@ using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator;
 using KBVE.MMExtensions.Orchestrator.Interfaces;
 using KBVE.MMExtensions.Orchestrator.Core;
+using KBVE.MMExtensions.Orchestrator.Core.UI;
 using TMPro;
+using ObservableCollections;
 
 namespace KBVE.SSDB.IRC
 {
     public class IRCTextBox : IAsyncStartable, IDisposable
     {
-        private readonly IGlobalCanvas globalCanvas;
+        private IGlobalCanvas globalCanvas;
         private readonly IIRCService ircService;
         private readonly CompositeDisposable disposables = new();
         
@@ -29,23 +31,34 @@ namespace KBVE.SSDB.IRC
         private Button minimizeButton;
         private GameObject contentPanel;
         
-        // Message history
-        private readonly Queue<string> messageHistory = new();
+        // Message history using ObservableRingBuffer for efficient rotating storage
+        private readonly ObservableRingBuffer<string> messageHistory = new();
         private const int MaxMessages = 100;
         private readonly ReactiveProperty<bool> isMinimized = new(false);
+        private IDisposable messageHistorySubscription;
         
         [Inject]
-        public IRCTextBox(IGlobalCanvas globalCanvas, IIRCService ircService)
+        public IRCTextBox(IIRCService ircService)
         {
-            this.globalCanvas = globalCanvas ?? throw new ArgumentNullException(nameof(globalCanvas));
             this.ircService = ircService ?? throw new ArgumentNullException(nameof(ircService));
         }
         
         public async UniTask StartAsync(CancellationToken cancellationToken)
         {
-            // Wait for Operator and GlobalCanvas to be ready
+            // Wait for Operator to be ready
             await Operator.R();
-            await UniTask.WaitUntil(() => globalCanvas.Canvas != null, cancellationToken: cancellationToken);
+            
+            // Find the GlobalCanvas from scene (it's created by OrchestratorLifetimeScope)
+            await UniTask.WaitUntil(() => 
+            {
+                var canvasService = GameObject.FindObjectOfType<GlobalCanvasService>();
+                if (canvasService != null)
+                {
+                    globalCanvas = canvasService;
+                    return globalCanvas.Canvas != null;
+                }
+                return false;
+            }, cancellationToken: cancellationToken);
             
             Operator.D("IRCTextBox: Starting initialization");
             
@@ -68,11 +81,12 @@ namespace KBVE.SSDB.IRC
             panelRoot.transform.SetParent(globalCanvas.GetLayerRoot(UICanvasLayer.HUD), false);
             
             var rectTransform = panelRoot.GetComponent<RectTransform>();
+            // Scale with screen size - 30% width, 40% height
             rectTransform.anchorMin = new Vector2(0, 0);
-            rectTransform.anchorMax = new Vector2(0, 0);
+            rectTransform.anchorMax = new Vector2(0.3f, 0.4f);
             rectTransform.pivot = new Vector2(0, 0);
-            rectTransform.sizeDelta = new Vector2(400, 300);
-            rectTransform.anchoredPosition = new Vector2(10, 10);
+            rectTransform.offsetMin = new Vector2(10, 10);
+            rectTransform.offsetMax = new Vector2(-10, -10);
             
             // Add background image
             var bgImage = panelRoot.AddComponent<Image>();
@@ -101,8 +115,16 @@ namespace KBVE.SSDB.IRC
             isMinimized.Subscribe(minimized =>
             {
                 contentPanel.SetActive(!minimized);
-                var size = minimized ? new Vector2(400, 40) : new Vector2(400, 300);
-                rectTransform.sizeDelta = size;
+                if (minimized)
+                {
+                    // Minimized: just header bar height
+                    rectTransform.anchorMax = new Vector2(0.3f, 0.05f);
+                }
+                else
+                {
+                    // Expanded: 30% width, 40% height
+                    rectTransform.anchorMax = new Vector2(0.3f, 0.4f);
+                }
             }).AddTo(disposables);
         }
         
@@ -351,6 +373,12 @@ namespace KBVE.SSDB.IRC
         
         private void SetupSubscriptions()
         {
+            // Subscribe to message history changes for auto-updating UI
+            messageHistorySubscription = messageHistory
+                .ObserveCountChanged()
+                .Subscribe(_ => UpdateMessageDisplay())
+                .AddTo(disposables);
+            
             // Subscribe to incoming IRC messages
             ircService.OnMessageReceived
                 .Where(msg => msg.isChannelMessage || msg.isPrivateMessage)
@@ -410,11 +438,11 @@ namespace KBVE.SSDB.IRC
             else
             {
                 // Send to current channel
-                var channel = ircService.CurrentChannel.Value;
+                var channel = ircService.CurrentChannelValue;
                 if (!string.IsNullOrEmpty(channel))
                 {
                     ircService.SendMessage(channel, message);
-                    AddMessage($"[{DateTime.Now:HH:mm:ss}] <{ircService.CurrentNickname.Value}> {message}");
+                    AddMessage($"[{DateTime.Now:HH:mm:ss}] <{ircService.CurrentNicknameValue}> {message}");
                 }
                 else
                 {
@@ -453,7 +481,7 @@ namespace KBVE.SSDB.IRC
                     }
                     else
                     {
-                        var channel = ircService.CurrentChannel.Value;
+                        var channel = ircService.CurrentChannelValue;
                         if (!string.IsNullOrEmpty(channel))
                         {
                             ircService.LeaveChannel(channel);
@@ -478,7 +506,10 @@ namespace KBVE.SSDB.IRC
                     break;
                 
                 case "/clear":
-                    messageHistory.Clear();
+                    lock (messageHistory.SyncRoot)
+                    {
+                        messageHistory.Clear();
+                    }
                     messagesText.text = "";
                     break;
                 
@@ -501,16 +532,26 @@ namespace KBVE.SSDB.IRC
         
         private void AddMessage(string message)
         {
-            messageHistory.Enqueue(message);
-            
-            // Limit message history
-            while (messageHistory.Count > MaxMessages)
+            // Thread-safe add to ring buffer with manual size limiting
+            lock (messageHistory.SyncRoot)
             {
-                messageHistory.Dequeue();
+                messageHistory.AddLast(message);
+                
+                // Manually limit message history size
+                while (messageHistory.Count > MaxMessages)
+                {
+                    messageHistory.RemoveFirst();
+                }
             }
-            
-            // Update display
-            messagesText.text = string.Join("\n", messageHistory);
+        }
+        
+        private void UpdateMessageDisplay()
+        {
+            // Update display with current messages
+            lock (messageHistory.SyncRoot)
+            {
+                messagesText.text = string.Join("\n", messageHistory);
+            }
             
             // Auto-scroll to bottom
             Canvas.ForceUpdateCanvases();
@@ -519,6 +560,7 @@ namespace KBVE.SSDB.IRC
         
         public void Dispose()
         {
+            messageHistorySubscription?.Dispose();
             disposables?.Dispose();
             
             if (panelRoot != null)
