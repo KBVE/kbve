@@ -562,8 +562,8 @@ namespace KBVE.SSDB.IRC
                     Operator.D("IRC: Plain TCP connection established");
                 }
 
-                streamReader = new StreamReader(connectionStream, System.Text.Encoding.UTF8);
-                streamWriter = new StreamWriter(connectionStream, System.Text.Encoding.UTF8) 
+                streamReader = new StreamReader(connectionStream, new System.Text.UTF8Encoding(false));
+                streamWriter = new StreamWriter(connectionStream, new System.Text.UTF8Encoding(false)) 
                 { 
                     AutoFlush = true, 
                     NewLine = "\r\n"
