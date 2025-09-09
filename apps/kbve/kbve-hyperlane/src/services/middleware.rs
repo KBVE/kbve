@@ -8,14 +8,11 @@ use axum::{
     response::{IntoResponse, Response},
     Json,
 };
-use tower::{Layer, Service};
 use tower_http::{
     compression::CompressionLayer,
     cors::{CorsLayer, Any},
-    services::ServeDir,
     trace::TraceLayer,
 };
-use tower::layer::util::Stack;
 use tracing::{info, warn, error, debug, Span};
 use serde_json::json;
 use ulid::Ulid;
@@ -117,21 +114,35 @@ pub async fn admin_auth_middleware(
     mut request: Request,
     next: Next,
 ) -> Result<Response> {
-    // First check authentication
-    let response = auth_middleware(State(app_state), request, next).await;
+    // First authenticate like normal auth middleware
+    let auth_header = request.headers()
+        .get(header::AUTHORIZATION)
+        .and_then(|h| h.to_str().ok());
     
-    // Extract session from request extensions
-    if let Some(session) = response.as_ref().ok()
-        .and_then(|_| request.extensions().get::<UserSession>())
-    {
-        if session.is_admin() {
-            return response;
+    if let Some(auth_value) = auth_header {
+        if let Some(token) = auth_value.strip_prefix("Bearer ") {
+            match validate_and_load_session(&app_state, token).await {
+                Ok(session) => {
+                    // Check if user is admin
+                    if session.is_admin() {
+                        // Add session to request extensions
+                        request.extensions_mut().insert(session);
+                        Ok(next.run(request).await)
+                    } else {
+                        Err(Error::Forbidden)
+                    }
+                }
+                Err(e) => {
+                    warn!("Authentication failed: {}", e);
+                    Err(Error::AuthenticationFailed("Invalid token".to_string()))
+                }
+            }
         } else {
-            return Err(Error::Forbidden);
+            Err(Error::AuthenticationFailed("Invalid authorization header format".to_string()))
         }
+    } else {
+        Err(Error::AuthenticationFailed("Missing authorization header".to_string()))
     }
-    
-    Err(Error::AuthenticationFailed("Admin access required".to_string()))
 }
 
 async fn validate_and_load_session(
@@ -368,47 +379,10 @@ pub fn compression_layer() -> CompressionLayer {
 // Tracing Layer
 // ============================================================================
 
-pub fn tracing_layer() -> TraceLayer<
-    tower_http::classify::SharedClassifier<tower_http::classify::ServerErrorsAsFailures>,
-> {
+pub fn tracing_layer() -> TraceLayer<tower_http::classify::SharedClassifier<tower_http::classify::ServerErrorsAsFailures>> {
     TraceLayer::new_for_http()
-        .make_span_with(|request: &Request| {
-            tracing::info_span!(
-                "http_request",
-                method = %request.method(),
-                uri = %request.uri(),
-                version = ?request.version(),
-            )
-        })
-        .on_request(|_request: &Request, _span: &Span| {
-            debug!("Started processing request");
-        })
-        .on_response(|response: &Response, latency: Duration, _span: &Span| {
-            info!(
-                status = %response.status(),
-                latency_ms = latency.as_millis(),
-                "Finished processing request"
-            );
-        })
-        .on_failure(|error: tower_http::classify::ServerErrorsFailureClass, latency: Duration, _span: &Span| {
-            error!(
-                error = %error,
-                latency_ms = latency.as_millis(),
-                "Request failed"
-            );
-        })
 }
 
-// ============================================================================
-// Static Content Configuration
-// ============================================================================
-
-pub fn static_files_service(assets_dir: &str) -> ServeDir {
-    ServeDir::new(assets_dir)
-        .append_index_html_on_directories(true)
-        .precompressed_gzip()
-        .precompressed_br()
-}
 
 // ============================================================================
 // Error Response Conversion
@@ -436,23 +410,6 @@ impl IntoResponse for Error {
 // Middleware Builder Utilities
 // ============================================================================
 
-/// Common middleware stack for API routes
-pub fn api_middleware_stack() -> impl tower::Layer<axum::routing::Router> {
-    tower::ServiceBuilder::new()
-        .layer(tracing_layer())
-        .layer(axum::middleware::from_fn(request_id_middleware))
-        .layer(axum::middleware::from_fn(security_headers_middleware))
-        .layer(axum::middleware::from_fn(error_handler_middleware))
-}
-
-/// Middleware stack for authenticated routes
-pub fn auth_middleware_stack() -> impl tower::Layer<axum::routing::Router> {
-    tower::ServiceBuilder::new()
-        .layer(tracing_layer())
-        .layer(axum::middleware::from_fn(request_id_middleware))
-        .layer(axum::middleware::from_fn(security_headers_middleware))
-        .layer(axum::middleware::from_fn(error_handler_middleware))
-}
 
 // ============================================================================
 // Helper Functions

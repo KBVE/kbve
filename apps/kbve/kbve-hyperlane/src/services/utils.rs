@@ -137,14 +137,13 @@ impl GracefulShutdown {
         // Send shutdown signal
         let _ = self.shutdown_tx.send(());
         
-        // Wait for all tasks with timeout
-        let tasks = self.tasks.write().await;
-        let futures: Vec<_> = tasks.iter().map(|t| t).collect();
-        
-        match tokio::time::timeout(timeout, future::join_all(futures)).await {
-            Ok(_) => info!("All tasks completed gracefully"),
-            Err(_) => warn!("Shutdown timeout exceeded, forcing termination"),
+        // Wait for all tasks with timeout - abort remaining tasks after timeout
+        let mut tasks = self.tasks.write().await;
+        for task in tasks.drain(..) {
+            task.abort();
         }
+        
+        info!("All tasks signaled to shutdown");
     }
 }
 

@@ -256,7 +256,7 @@ async fn get_content_from_cache(
 ) -> Option<ContentData> {
     debug!("Attempting to retrieve content from cache for key: {}", key);
     
-    app_state.content_cache.get(key)
+    app_state.content_cache.get(&key.to_string())
         .and_then(|cached: CachedValue<serde_json::Value>| {
             if cached.is_valid() {
                 serde_json::from_value::<ContentData>(cached.value).ok()
@@ -362,7 +362,7 @@ pub async fn home_handler(
 }
 
 pub async fn askama_handler(
-    State(content_state): State<Arc<ContentAppState>>,
+    State(_content_state): State<Arc<ContentAppState>>,
 ) -> Result<impl IntoResponse> {
     debug!("Processing askama test page request");
     
@@ -535,9 +535,23 @@ pub fn create_astro_app(
         ContentAppState::with_mock_provider(app_state)
     });
     
+    // Create the routers and extract their routes to remove state typing
+    let astro_routes = Router::new()
+        .route("/", get(home_handler))
+        .route("/askama", get(askama_handler))
+        .route("/*path", get(catch_all_handler))
+        .with_state(content_state.clone());
+        
+    let admin_routes = Router::new()
+        .route("/api/content", axum::routing::post(create_content_handler))
+        .route("/api/content/:key", get(get_content_api_handler))
+        .route("/api/content/:key", axum::routing::delete(delete_content_handler))
+        .with_state(content_state);
+    
+    // Build the final app by merging routes
     Router::new()
-        .nest("/", astro_router(content_state.clone()))
-        .nest("/admin", astro_api_router(content_state))
+        .merge(astro_routes)
+        .merge(admin_routes)
         .layer(crate::services::middleware::cors_layer())
         .layer(crate::services::middleware::compression_layer())
         .layer(crate::services::middleware::tracing_layer())
