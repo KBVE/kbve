@@ -3,7 +3,7 @@ use std::time::Duration;
 use std::hash::Hash;
 use std::fmt::Debug;
 
-use papaya::HashMap as PapayaHashMap;
+use papaya::{HashMap as PapayaHashMap, Guard};
 use bitflags::bitflags;
 use serde::{Deserialize, Serialize};
 use tracing::{info, warn, error, debug};
@@ -82,8 +82,8 @@ where
     }
     
     pub fn get(&self, key: &K) -> Option<V> {
-        let guard = self.cache.guard();
-        let value = self.cache.get(key, &guard).cloned();
+        let pinned = self.cache.pin();
+        let value = pinned.get(key).cloned();
         
         if value.is_some() {
             debug!("{}: Cache hit for key {:?}", self.name, key);
@@ -96,34 +96,56 @@ where
     
     pub fn insert(&self, key: K, value: V) -> Option<V> {
         debug!("{}: Inserting key {:?}", self.name, key);
-        let guard = self.cache.guard();
-        self.cache.insert(key, value, &guard)
+        let pinned = self.cache.pin();
+        pinned.insert(key, value).cloned()
     }
     
     pub fn remove(&self, key: &K) -> Option<V> {
         debug!("{}: Removing key {:?}", self.name, key);
-        let guard = self.cache.guard();
-        self.cache.remove(key, &guard)
+        let pinned = self.cache.pin();
+        pinned.remove(key).cloned()
     }
     
     pub fn contains_key(&self, key: &K) -> bool {
-        let guard = self.cache.guard();
-        self.cache.contains_key(key, &guard)
+        let pinned = self.cache.pin();
+        pinned.contains_key(key)
     }
     
     pub fn clear(&self) {
         info!("{}: Clearing all entries", self.name);
-        let guard = self.cache.guard();
-        self.cache.clear(&guard);
+        let pinned = self.cache.pin();
+        pinned.clear();
     }
     
     pub fn len(&self) -> usize {
-        let guard = self.cache.guard();
-        self.cache.len(&guard)
+        let pinned = self.cache.pin();
+        pinned.len()
     }
     
     pub fn is_empty(&self) -> bool {
         self.len() == 0
+    }
+    
+    /// Get value using owned guard for async contexts
+    /// Use this when you need to hold a reference across .await points
+    pub async fn get_async(&self, key: &K) -> Option<V> {
+        let pinned_owned = self.cache.pin_owned();
+        let value = pinned_owned.get(key).cloned();
+        
+        if value.is_some() {
+            debug!("{}: Async cache hit for key {:?}", self.name, key);
+        } else {
+            debug!("{}: Async cache miss for key {:?}", self.name, key);
+        }
+        
+        value
+    }
+    
+    /// Insert value using owned guard for async contexts
+    pub async fn insert_async(&self, key: K, value: V) -> Option<V> {
+        debug!("{}: Async inserting key {:?}", self.name, key);
+        let pinned_owned = self.cache.pin_owned();
+        pinned_owned.insert(key, value).cloned()
     }
     
     /// Get or insert with a factory function
@@ -162,14 +184,20 @@ where
 {
     /// Clean up expired entries
     pub fn cleanup_expired(&self) -> usize {
-        let guard = self.cache.guard();
-        let mut removed = 0;
+        let pinned = self.cache.pin();
+        let mut to_remove = Vec::new();
         
-        for (key, value) in self.cache.iter(&guard) {
+        // Collect keys of expired entries
+        for (key, value) in pinned.iter() {
             if value.is_expired() {
-                self.cache.remove(key, &guard);
-                removed += 1;
+                to_remove.push(key.clone());
             }
+        }
+        
+        // Remove expired entries
+        let removed = to_remove.len();
+        for key in to_remove {
+            pinned.remove(&key);
         }
         
         if removed > 0 {
@@ -320,9 +348,10 @@ impl HasMetadata for UserSession {
 #[derive(Clone)]
 pub struct AppState {
     pub sessions: Arc<StateStore<String, UserSession>>,
+    pub content_cache: Arc<StateStore<String, CachedValue<serde_json::Value>>>,
+    pub rate_limits: Arc<StateStore<String, RateLimit>>,
     // Add other state stores as needed:
     // pub api_keys: Arc<StateStore<String, ApiKey>>,
-    // pub rate_limits: Arc<StateStore<String, RateLimit>>,
     // pub feature_flags: Arc<StateStore<String, FeatureFlag>>,
 }
 
@@ -330,6 +359,8 @@ impl AppState {
     pub fn new() -> Self {
         Self {
             sessions: Arc::new(StateStore::new("sessions")),
+            content_cache: Arc::new(StateStore::new("content")),
+            rate_limits: Arc::new(StateStore::new("rate_limits")),
         }
     }
     
