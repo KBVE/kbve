@@ -50,6 +50,12 @@ namespace KBVE.SSDB
                 .As<IAsyncStartable>()
                 .As<IDisposable>();
 
+                builder.RegisterComponentOnNewGameObject<SteamUserProfiles>(Lifetime.Singleton, "SteamUserProfiles")
+                .DontDestroyOnLoad()
+                .AsSelf()
+                .As<IAsyncStartable>()
+                .As<IDisposable>();
+
             }
 #else
                 Debug.LogWarning("[SSDBLifetimeScope] Steamworks integration is disabled or not supported on this platform.");
