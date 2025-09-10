@@ -35,7 +35,6 @@ namespace KBVE.SSDB.Steam
             private readonly CompositeDisposable _disposables = new CompositeDisposable();
             private CancellationTokenSource _cts;
             private SteamworksService _steamworksService;
-            private IGlobalCanvas _globalCanvas;
             
             // Thread-safe Reactive Properties for OneJS
             // Using nullable wrapper since UserData can't be null
@@ -67,10 +66,9 @@ namespace KBVE.SSDB.Steam
             public event Action<Texture2D> OnAvatarLoaded;
 
             [Inject]
-            public void Construct(SteamworksService steamworksService, IGlobalCanvas globalCanvas = null)
+            public void Construct(SteamworksService steamworksService)
             {
                 _steamworksService = steamworksService;
-                _globalCanvas = globalCanvas; // Optional dependency now
             }
 
             public async UniTask StartAsync(CancellationToken cancellationToken)
@@ -83,27 +81,14 @@ namespace KBVE.SSDB.Steam
                     // Wait for SteamworksService readiness
                     await UniTask.WaitUntil(() => _steamworksService.IsReady, cancellationToken: linkedToken);
 
-                    // If GlobalCanvas is available, wait for it too
-                    if (_globalCanvas != null)
-                    {
-                        await UniTask.WaitUntil(() => _globalCanvas.Canvas != null, cancellationToken: linkedToken);
-                        
-                        if (_globalCanvas is GlobalCanvasService gcs)
-                        {
-                            await UniTask.WaitUntil(() => gcs.IsReady.Value, cancellationToken: linkedToken);
-                        }
-                    }
+               
 
                     Debug.Log("[SteamUserProfiles] Services ready, loading user data...");
 
                     // Load user data for OneJS access
                     await LoadUserDataAsync(linkedToken);
                     
-                    // Render UI if canvas is available
-                    if (_globalCanvas != null)
-                    {
-                        await RenderLocalUserAsync(linkedToken);
-                    }
+                
                     
                     // Subscribe to Steam user changes
                     SubscribeToUserUpdates();
@@ -173,39 +158,7 @@ namespace KBVE.SSDB.Steam
                 await tcs.Task.SuppressCancellationThrow();
             }
             
-            private async UniTask RenderLocalUserAsync(CancellationToken token)
-            {
-                var localUserNullable = LocalUser.Value;
-                if (!localUserNullable.HasValue)
-                {
-                    Debug.LogWarning("[SteamUserProfiles] No local user data to render.");
-                    return;
-                }
-                
-                var localUser = localUserNullable.Value;
-
-                var prefab = await Addressables.LoadAssetAsync<GameObject>("UI/UserProfile").Task;
-                var panelGO = _globalCanvas.SpawnPanel(prefab, UICanvasLayer.HUD);
-
-                if (!panelGO.TryGetComponent(out UIStreamUserProfile uiProfile))
-                {
-                    Debug.LogError("[SteamUserProfiles] Spawned profile panel missing UIStreamUserProfile.");
-                    return;
-                }
-
-                await uiProfile.BindAsync(new SteamFriendViewModel
-                {
-                    Name = UserName.Value,
-                    Status = UserStatus.Value,
-                    AvatarTask = UniTask.Create(async () =>
-                    {
-                        var tcs = new UniTaskCompletionSource<Texture2D?>();
-                        localUser.LoadAvatar(t => tcs.TrySetResult(t));
-                        return await tcs.Task;
-                    }),
-                    RawSteamUser = localUser
-                });
-            }
+            
             
             private void SubscribeToUserUpdates()
             {
