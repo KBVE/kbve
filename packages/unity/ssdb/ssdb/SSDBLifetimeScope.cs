@@ -26,6 +26,9 @@ namespace KBVE.SSDB
         [SerializeField]
         private IRCConfig ircConfig;
 
+        [SerializeField, Header("OneJS Integration")]
+        private SteamBridge steamBridge;
+
         protected override void Awake()
         {
             base.Awake();
@@ -55,6 +58,12 @@ namespace KBVE.SSDB
                 .AsSelf()
                 .As<IAsyncStartable>()
                 .As<IDisposable>();
+
+                // Register the bridge reference if provided
+                if (steamBridge != null)
+                {
+                    builder.RegisterInstance(steamBridge);
+                }
 
             }
 #else

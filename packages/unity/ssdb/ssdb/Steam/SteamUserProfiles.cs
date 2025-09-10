@@ -92,9 +92,6 @@ namespace KBVE.SSDB.Steam
                     
                     // Subscribe to Steam user changes
                     SubscribeToUserUpdates();
-                    
-                    // Initialize OneJS bindings
-                    InitializeOneJSBindings();
                 }
                 catch (OperationCanceledException)
                 {
