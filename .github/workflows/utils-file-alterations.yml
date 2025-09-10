@@ -36,6 +36,9 @@ on:
       disoxide:
         description: "Disoxide package changed"
         value: ${{ jobs.alter.outputs.disoxide }}
+      hyperlane:
+        description: "Hyperlane package changed"
+        value: ${{ jobs.alter.outputs.hyperlane }}
       # ? Python
       notification_bot:
         description: "Notification Bot"
@@ -124,6 +127,7 @@ jobs:
       holy_crate: ${{ steps.delta.outputs.holy_crate_any_changed }}
       kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
       disoxide: ${{ steps.delta.outputs.disoxide_any_changed }}
+      hyperlane: ${{ steps.delta.outputs.hyperlane_any_changed }}
       py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}
       py_fudster: ${{ steps.delta.outputs.py_fudster_any_changed }}
       astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
@@ -173,6 +177,8 @@ jobs:
                 -  'apps/kbve/kilobase/README.md'
             disoxide:
                 - 'apps/discord/disoxide/README.md'
+            hyperlane:
+                - 'apps/kbve/kbve-hyperlane/README.md'
             rareicon_unity:
                 - 'apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx'
             droid:

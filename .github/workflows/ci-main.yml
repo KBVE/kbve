@@ -279,7 +279,8 @@ jobs:
                 [
                   { "name": "kilobase", "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
                   { "name": "disoxide", "target": "container", "condition": "${{ needs.alter.outputs.disoxide }}" },
-                  { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" }
+                  { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" },
+                  { "name": "kbve-hyperlane", "target": "container", "condition": "${{ needs.alter.outputs.hyperlane }}" }
 
 
                 ]
