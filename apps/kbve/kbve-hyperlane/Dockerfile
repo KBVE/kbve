@@ -65,5 +65,7 @@ COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-
 COPY /dist /dist
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,lg_tcache_max:14,narenas:2,oversize_threshold:4194304"
+ENV HOST=0.0.0.0
+ENV PORT=3000
 EXPOSE 3000 8081
 ENTRYPOINT ["./kbve-hyperlane"]

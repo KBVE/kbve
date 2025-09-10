@@ -520,8 +520,8 @@ pub fn astro_router(content_state: Arc<ContentAppState>) -> Router<Arc<ContentAp
 pub fn astro_api_router(content_state: Arc<ContentAppState>) -> Router<Arc<ContentAppState>> {
     Router::new()
         .route("/api/content", axum::routing::post(create_content_handler))
-        .route("/api/content/:key", get(get_content_api_handler))
-        .route("/api/content/:key", axum::routing::delete(delete_content_handler))
+        .route("/api/content/{key}", get(get_content_api_handler))
+        .route("/api/content/{key}", axum::routing::delete(delete_content_handler))
         .with_state(content_state)
 }
 
@@ -544,8 +544,8 @@ pub fn create_astro_app(
         
     let admin_routes = Router::new()
         .route("/api/content", axum::routing::post(create_content_handler))
-        .route("/api/content/:key", get(get_content_api_handler))
-        .route("/api/content/:key", axum::routing::delete(delete_content_handler))
+        .route("/api/content/{key}", get(get_content_api_handler))
+        .route("/api/content/{key}", axum::routing::delete(delete_content_handler))
         .with_state(content_state);
     
     // Build the final app by merging routes
