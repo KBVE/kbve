@@ -6,13 +6,10 @@ edition = "2021"
 publish = false
 
 
-[build-dependencies]
-tonic-build = "0.12.3"
-prost-build = "0.13"
-
 [dependencies]
 bytes = "1.10.1"
 http = "1.0"
+anyhow = "1.0.99"
 thiserror = "2"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
@@ -60,6 +57,9 @@ ulid = { version = "1", features = ["serde", "uuid"] }
 chrono = { version = "0.4", features = ["serde"] }
 askama = "0.13.0"
 flexbuffers = "25.2.10"
+num_cpus = "1.17.0"
+html-escape = "0.2.13"
+async-trait = "0.1.89"
 #jedi = { git = "https://github.com/KBVE/kbve.git", branch = "dev", package = "jedi" }
 #jedi = { git = "https://github.com/KBVE/kbve.git", rev = "c13ad2e83ba5910bf2d36759049e7b9740d6edce", package = "jedi"}
 jedi = "0.2.0"
@@ -71,7 +71,7 @@ tikv-jemallocator = { version = "0.6", optional = true }
 jemalloc = ["dep:tikv-jemallocator"]
 
 [package.metadata.askama]
-template-dir = "dist"
+dirs = ["templates"]
 
 [profile.release]
 opt-level = 3

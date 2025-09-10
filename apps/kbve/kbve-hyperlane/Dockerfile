@@ -15,9 +15,16 @@ RUN apt-get update && apt-get install -y protobuf-compiler
 ENV PROTOC=/usr/bin/protoc
 
 COPY --from=planner /app/recipe.json recipe.json
-RUN cargo chef cook --release --recipe-path recipe.json
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    cargo chef cook --release --recipe-path recipe.json
 COPY . .
-RUN cargo build --release --features jemalloc
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    --mount=type=cache,target=/app/target \
+    cargo build --release --features jemalloc && \
+    cp /app/target/release/kbve-hyperlane /app/kbve-hyperlane
 
 #   [STAGE D] - Chisel
 # Rust Profile Chisel by h0lybyte and special thanks to Fernando Silva for Chisel Go core.
@@ -53,10 +60,12 @@ RUN apt-get update \
 #   [STAGE Z] - Release
 FROM --platform=linux/amd64 scratch
 COPY --from=os_builder /rootfs /
-COPY --from=builder /app/target/release/kbve-hyperlane ./kbve-hyperlane
+COPY --from=builder /app/kbve-hyperlane ./kbve-hyperlane
 COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 COPY /dist /dist
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,lg_tcache_max:14,narenas:2,oversize_threshold:4194304"
+ENV HOST=0.0.0.0
+ENV PORT=3000
 EXPOSE 3000 8081
 ENTRYPOINT ["./kbve-hyperlane"]
