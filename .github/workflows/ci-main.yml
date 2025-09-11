@@ -156,17 +156,6 @@ jobs:
             items: |
                 [
                     {
-                      "name": "astro_kbve",
-                      "condition": "${{ needs.alter.outputs.astro_kbve == 'true' }}",
-                      "node_version": "22",
-                      "pnpm_version": "10",
-                      "build_command": "astro-kbve:build",
-                      "source_path": "dist/apps/astro-kbve/",
-                      "destination_repo": "KBVE/kbve.com",
-                      "destination_folder": "/docs",
-                      "destination_branch": "dev"
-                    },
-                    {
                       "name": "astro_memes",
                       "condition": "${{ needs.alter.outputs.astro_memes == 'true' }}",
                       "node_version": "22",
