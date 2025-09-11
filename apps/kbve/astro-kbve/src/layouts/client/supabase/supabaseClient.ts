@@ -9,12 +9,21 @@ declare global {
   }
 }
 
+
 export const supabase = (() => {
   if (typeof window !== 'undefined') {
     if (!window.supabase) {
-      window.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+      const isOAuthCallback = window.location.href.includes('/callback');
+      window.supabase = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+          detectSessionInUrl: isOAuthCallback,
+        },
+      });
     }
     return window.supabase;
   }
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 })();
+
