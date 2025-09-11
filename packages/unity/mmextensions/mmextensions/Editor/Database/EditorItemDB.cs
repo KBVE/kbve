@@ -24,6 +24,7 @@ namespace KBVE.MMExtensions.Database
         private const string SpriteFolder = "Assets/Dungeon/Data/Items/Sprites/";
         private const string PrefabFolder = "Assets/Dungeon/Data/Items/Prefabs/";
         private const string ItemAssetFolder = "Assets/Dungeon/Data/Items/Definitions/";
+        private const string ResourceFolder = "Assets/Resources/Items/";
 
         [MenuItem("KBVE/Database/Sync ItemDB")]
         public static void SyncItemDatabase()
@@ -47,6 +48,7 @@ namespace KBVE.MMExtensions.Database
             Directory.CreateDirectory(SpriteFolder);
             Directory.CreateDirectory(PrefabFolder);
             Directory.CreateDirectory(ItemAssetFolder);
+            Directory.CreateDirectory(ResourceFolder);
 
             foreach (var item in wrapper.items)
             {
@@ -72,6 +74,15 @@ namespace KBVE.MMExtensions.Database
 
                 AssetDatabase.ImportAsset(localImagePath, ImportAssetOptions.ForceUpdate);
 
+                // Copy sprite to Resources folder for easy runtime access
+                string resourceImagePath = Path.Combine(ResourceFolder, imageName);
+                if (File.Exists(localImagePath))
+                {
+                    File.Copy(localImagePath, resourceImagePath, true);
+                    Debug.Log($"Copied sprite to Resources: {resourceImagePath}");
+                    AssetDatabase.ImportAsset(resourceImagePath, ImportAssetOptions.ForceUpdate);
+                }
+
                 // Sprite import settings
                 TextureImporter importer = (TextureImporter)TextureImporter.GetAtPath(localImagePath);
                 importer.textureType = TextureImporterType.Sprite;
@@ -82,6 +93,19 @@ namespace KBVE.MMExtensions.Database
                 importer.spritePivot = new Vector2(0.5f, 0.5f);
                 //importer.spriteMeshType = SpriteMeshType.FullRect;
                 importer.SaveAndReimport();
+
+                // Also apply import settings to the Resources copy
+                TextureImporter resourceImporter = (TextureImporter)TextureImporter.GetAtPath(resourceImagePath);
+                if (resourceImporter != null)
+                {
+                    resourceImporter.textureType = TextureImporterType.Sprite;
+                    resourceImporter.spriteImportMode = SpriteImportMode.Single;
+                    resourceImporter.spritePixelsPerUnit = item.pixelDensity > 0 ? item.pixelDensity : 16;
+                    resourceImporter.mipmapEnabled = false;
+                    resourceImporter.alphaIsTransparency = true;
+                    resourceImporter.spritePivot = new Vector2(0.5f, 0.5f);
+                    resourceImporter.SaveAndReimport();
+                }
 
                 var sprite = AssetDatabase.LoadAssetAtPath<Sprite>(localImagePath);
 
