@@ -24,6 +24,7 @@
     "Unity.TextMeshPro",
     "OneJS",
     "OneJS.Runtime",
+    "Puerts",
     "R3",
     "Supabase",
     "Supabase.Postgrest",

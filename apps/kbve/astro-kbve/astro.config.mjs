@@ -4,23 +4,11 @@ import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
 import tailwindcss from "@tailwindcss/vite";
 import mdx from '@astrojs/mdx';
-import rehypeMermaid from 'rehype-mermaid';
 import starlight from '@astrojs/starlight';
-import alpine from '@astrojs/alpinejs';
-import { fileURLToPath } from 'node:url';
-import markdownConfig from './markdown.config';
-import MillionLint from "@million/lint";
-
-
 import starlightSiteGraph from 'starlight-site-graph';
-
 import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
-// import topLevelAwait from 'vite-plugin-top-level-await';
-import { resolve } from 'path';
-
 import compressor from "astro-compressor";
-import { shield } from '@kindspells/astro-shield'
 import AstroPWA from '@vite-pwa/astro'
 
 export default defineConfig({
@@ -39,7 +27,6 @@ export default defineConfig({
         },
     },
     integrations: [
-        //MillionLint.astro(),
         starlight({
             plugins: [
                 starlightSiteGraph({
@@ -191,13 +178,13 @@ export default defineConfig({
             i18n: {
                 defaultLocale: 'en',
                 locales: {
-                    en: 'en',
-                    // fr: 'fr',
+                    en: 'en'
+                   
                 },
             },
         }),
 
-        //alpine({ entrypoint: '/src/layout/scripts/entrypoints' }),
+       
         //partytown(),
         worker(),
         react({
@@ -305,53 +292,14 @@ export default defineConfig({
 
         }),
 
-        // (await import("@playform/compress")).default({
-        //     CSS: true,
-        //     HTML: {
-        //         "html-minifier-terser": {
-        //             removeAttributeQuotes: false,
-        //         },
-        //     },
-        //     Image: false,
-        //     JavaScript: true,
-        //     SVG: true,
-        // }),
-
-        // shield({
-        //     sri: { hashesModule: resolve(new URL('.', import.meta.url).pathname, 'src', 'generated', 'sriHashes.mjs') },
-        // }),
-
-        // compressor({
-        //     gzip: true,
-        //     brotli: false,
-        //     fileExtensions: [
-        //         ".html",
-        //         ".js",
-        //         ".css",
-        //         ".mjs",
-        //         ".cjs",
-        //         ".svg",
-        //         ".xml",
-        //         ".txt",
-        //         ".json"
-        //     ]
-        // }),
-
-        // mdx({
-        // 	...markdownConfig,
-        // 	//extendPlugins: "astroDefaults"
-        // }),
+        
     ],
 
-    // markdown: markdownConfig,
 
-    markdown: {
-        rehypePlugins: [[rehypeMermaid, { strategy: 'img-svg', dark: true }]],
-    },
 
     vite: defineViteConfig({
         ssr: {
-            noExternal: ['path-to-regexp', '@react-three/fiber', 'three', 'its-fine', '@react-three/drei'],
+            noExternal: ['path-to-regexp'],
         },
         server: {
             watch: {
@@ -377,14 +325,7 @@ export default defineConfig({
             rollupOptions: {
                 // maxConcurrency: 2,
                 output: {
-                    manualChunks: (id) => {
-                        if (id.includes('node_modules')) {
-                            return id
-                                .toString()
-                                .split('node_modules/')[1]
-                                .split('/')[0];
-                        }
-                    },
+                    
                 },
             },
         },
@@ -397,27 +338,10 @@ export default defineConfig({
             plugins: [
                 tailwindcss(),
 
-                // {
-                // 	name: 'emit-sw',
-                // 	apply: 'build',
-                // 	enforce: 'post',
-                // 	async generateBundle(_, bundle) {
-                // 		this.emitFile({
-                // 			type: 'chunk',
-                // 			id: resolve('./src/layout/scripts/sw.ts'),
-                // 			fileName: 'sw.js',
-                // 		});
-                // 	}
-                // },
+              
             ]
             ,
         },
-        // Apply the top-level await plugin to our vite.config.js
-        // plugins: [
-        // 	topLevelAwait({
-        // 		promiseExportName: '__tla',
-        // 		promiseImportName: (i) => `__tla_${i}`,
-        // 	}),
-        // ],
+       
     }),
 });
