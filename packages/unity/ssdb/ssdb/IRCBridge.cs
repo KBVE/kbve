@@ -5,7 +5,9 @@ using R3;
 using VContainer;
 using VContainer.Unity;
 using KBVE.SSDB.IRC;
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
 using KBVE.SSDB.Steam;
+#endif
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
@@ -20,7 +22,9 @@ using System.Linq;
 public partial class IRCBridge : MonoBehaviour
 {
     private IIRCService _ircService;
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
     private SteamUserProfiles _steamUserProfiles;
+#endif
     private readonly CompositeDisposable _disposables = new();
     
     #region OneJS EventfulProperty Fields
@@ -117,10 +121,12 @@ public partial class IRCBridge : MonoBehaviour
             // Services found, wait for Steam to be ready and then initialize
             if (_ircService != null)
             {
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
                 if (_steamUserProfiles != null)
                 {
                     await WaitForSteamReadyAsync(destroyCancellationToken);
                 }
+#endif
                 
                 InitializeBindings();
                 
@@ -153,12 +159,14 @@ public partial class IRCBridge : MonoBehaviour
                         Debug.Log("[IRCBridge] Found IRCService through VContainer");
                     }
                     
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
                     // Find SteamUserProfiles (optional)
                     if (_steamUserProfiles == null && lifetimeScope.Container.TryResolve<SteamUserProfiles>(out var steamProfiles))
                     {
                         _steamUserProfiles = steamProfiles;
                         Debug.Log("[IRCBridge] Found SteamUserProfiles through VContainer");
                     }
+#endif
                     
                     // Return true when we have at least IRCService
                     return _ircService != null;
@@ -173,6 +181,7 @@ public partial class IRCBridge : MonoBehaviour
         }, cancellationToken: cancellationToken);
     }
     
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
     private async UniTask WaitForSteamReadyAsync(CancellationToken cancellationToken)
     {
         if (_steamUserProfiles == null) return;
@@ -209,6 +218,7 @@ public partial class IRCBridge : MonoBehaviour
             JsSteamReady = false;
         }
     }
+#endif
     
     #endregion
     
@@ -241,6 +251,7 @@ public partial class IRCBridge : MonoBehaviour
             JsPendingMessages = value; // Auto-generated property
         }).AddTo(_disposables);
         
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
         // Subscribe to Steam username changes (if Steam integration is available)
         if (_steamUserProfiles != null)
         {
@@ -250,6 +261,7 @@ public partial class IRCBridge : MonoBehaviour
                 JsSteamReady = !string.IsNullOrEmpty(value);
             }).AddTo(_disposables);
         }
+#endif
         
         // Subscribe to connection state changes
         _ircService.OnConnectionStateChanged.Subscribe(state => 
@@ -629,4 +641,165 @@ public partial class IRCBridge : MonoBehaviour
     }
     
     #endregion
+    
+#if !UNITY_WEBGL && !UNITY_IOS && !UNITY_ANDROID
+    #region OneJS Public Methods - Steam Integration
+    
+    /// <summary>
+    /// Get username from Steam ID (with caching)
+    /// Accepts formats: "S76561198123456789" or "76561198123456789"
+    /// </summary>
+    /// <param name="steamId">The Steam ID with or without 'S' prefix</param>
+    /// <returns>A promise that resolves to the username or null</returns>
+    public async UniTask<string> JsUsernameFromSteamID(string steamId)
+    {
+        if (_steamUserProfiles == null)
+        {
+            Debug.LogWarning("[IRCBridge] Steam integration not available");
+            return null;
+        }
+        
+        if (string.IsNullOrEmpty(steamId))
+        {
+            Debug.LogWarning("[IRCBridge] Empty Steam ID provided");
+            return null;
+        }
+        
+        try
+        {
+            Debug.Log($"[IRCBridge] Looking up username for Steam ID: {steamId}");
+            
+            // Use the cached lookup from SteamUserProfiles
+            var username = await _steamUserProfiles.GetUsernameFromSteamIdAsync(
+                steamId, 
+                this.GetCancellationTokenOnDestroy()
+            );
+            
+            if (!string.IsNullOrEmpty(username))
+            {
+                Debug.Log($"[IRCBridge] Found username for {steamId}: {username}");
+            }
+            else
+            {
+                Debug.Log($"[IRCBridge] Could not find username for {steamId}");
+            }
+            
+            return username;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[IRCBridge] Error looking up Steam ID {steamId}: {ex.Message}");
+            return null;
+        }
+    }
+    
+    /// <summary>
+    /// Batch lookup of usernames from Steam IDs
+    /// </summary>
+    /// <param name="steamIds">Array of Steam IDs</param>
+    /// <returns>Dictionary mapping Steam IDs to usernames</returns>
+    public async UniTask<Dictionary<string, string>> JsBatchUsernamesFromSteamIDs(string[] steamIds)
+    {
+        var results = new Dictionary<string, string>();
+        
+        if (_steamUserProfiles == null || steamIds == null || steamIds.Length == 0)
+        {
+            return results;
+        }
+        
+        // Process in parallel but limit concurrency to avoid overwhelming Steam API
+        const int maxConcurrency = 5;
+        var semaphore = new SemaphoreSlim(maxConcurrency);
+        var tasks = new List<UniTask>();
+        
+        foreach (var steamId in steamIds)
+        {
+            if (string.IsNullOrEmpty(steamId)) continue;
+            
+            tasks.Add(ProcessSteamIdAsync(steamId, results, semaphore));
+        }
+        
+        await UniTask.WhenAll(tasks);
+        
+        return results;
+    }
+    
+    private async UniTask ProcessSteamIdAsync(string steamId, Dictionary<string, string> results, SemaphoreSlim semaphore)
+    {
+        await semaphore.WaitAsync();
+        try
+        {
+            var username = await JsUsernameFromSteamID(steamId);
+            if (!string.IsNullOrEmpty(username))
+            {
+                lock (results)
+                {
+                    results[steamId] = username;
+                }
+            }
+        }
+        finally
+        {
+            semaphore.Release();
+        }
+    }
+    
+    /// <summary>
+    /// Clear the Steam username cache
+    /// </summary>
+    public void JsClearSteamUsernameCache()
+    {
+        if (_steamUserProfiles != null)
+        {
+            _steamUserProfiles.ClearUsernameCache();
+            Debug.Log("[IRCBridge] Steam username cache cleared");
+        }
+    }
+    
+    /// <summary>
+    /// Get Steam cache statistics for debugging
+    /// </summary>
+    public string JsGetSteamCacheStats()
+    {
+        if (_steamUserProfiles == null)
+            return "Steam integration not available";
+        
+        var stats = _steamUserProfiles.GetCacheStats();
+        return $"Cache: {stats.totalEntries} total, {stats.validEntries} valid, {stats.expiredEntries} expired";
+    }
+    
+    /// <summary>
+    /// Check if Steam integration is available
+    /// </summary>
+    public bool JsIsSteamAvailable()
+    {
+        return _steamUserProfiles != null && JsSteamReady;
+    }
+    
+    /// <summary>
+    /// Format an IRC message with Steam username lookup
+    /// </summary>
+    public async UniTask<string> JsFormatMessageWithSteamName(IRCMessage message)
+    {
+        if (message == null) return string.Empty;
+        
+        // Check if nickname is a Steam ID (starts with 'S' followed by numbers)
+        if (!string.IsNullOrEmpty(message.nickname) && 
+            message.nickname.StartsWith("S") && 
+            message.nickname.Length > 1 &&
+            message.nickname[1..].All(char.IsDigit))
+        {
+            var username = await JsUsernameFromSteamID(message.nickname);
+            if (!string.IsNullOrEmpty(username))
+            {
+                return $"[{message.timestamp:HH:mm:ss}] <{username}> {message.message}";
+            }
+        }
+        
+        // Fallback to regular formatting
+        return FormatMessage(message);
+    }
+    
+    #endregion
+#endif
 }
