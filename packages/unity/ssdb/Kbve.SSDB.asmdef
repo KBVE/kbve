@@ -25,6 +25,7 @@
     "OneJS",
     "OneJS.Runtime",
     "com.tencent.puerts.core",
+    "Puerts",
     "R3",
     "Supabase",
     "Supabase.Postgrest",
