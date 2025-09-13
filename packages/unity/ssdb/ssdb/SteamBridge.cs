@@ -3,10 +3,15 @@
 using System;
 using UnityEngine;
 using OneJS;
+using Puerts;
 using R3;
 using VContainer;
 using VContainer.Unity;
 using KBVE.SSDB.Steam;
+using Cysharp.Threading.Tasks;
+using System.Threading;
+using MoreMountains.Tools;
+
 
 /// <summary>
 /// OneJS Bridge for Steam user profile data
@@ -44,8 +49,8 @@ public partial class SteamBridge : MonoBehaviour
     
     private void Start()
     {
-        // Find the SteamUserProfiles instance from VContainer
-        InitializeSteamConnection();
+        // Find the SteamUserProfiles instance from VContainer using UniTask
+        InitializeSteamConnection().Forget();
     }
     
     private void OnDestroy()
@@ -57,18 +62,41 @@ public partial class SteamBridge : MonoBehaviour
     
     #region Initialization
     
-    private void InitializeSteamConnection()
+    private async UniTaskVoid InitializeSteamConnection()
     {
-        // Try to find VContainer's SteamUserProfiles instance
-        // This will wait until VContainer has initialized the service
-        StartCoroutine(WaitForSteamUserProfiles());
+        try
+        {
+            // Use UniTask for non-blocking async initialization
+            await WaitForSteamUserProfilesAsync();
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.LogWarning("[SteamBridge] Steam connection initialization was cancelled or timed out");
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[SteamBridge] Failed to initialize Steam connection: {ex.Message}");
+        }
     }
     
-    private System.Collections.IEnumerator WaitForSteamUserProfiles()
+    private async UniTask WaitForSteamUserProfilesAsync()
     {
-        // Wait until we can resolve SteamUserProfiles from VContainer
+        // Set a 30-second timeout for finding SteamUserProfiles
+        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+        var destroyCancellationToken = this.GetCancellationTokenOnDestroy();
+        
+        // Combine timeout and destroy tokens
+        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
+            timeoutCts.Token, 
+            destroyCancellationToken
+        );
+        
+        Debug.Log("[SteamBridge] Starting async search for SteamUserProfiles...");
+        
         while (_steamUserProfiles == null)
         {
+            linkedCts.Token.ThrowIfCancellationRequested();
+            
             try
             {
                 // Method 1: Try to find it through VContainer's resolver
@@ -80,7 +108,7 @@ public partial class SteamBridge : MonoBehaviour
                         _steamUserProfiles = steamProfiles;
                         Debug.Log("[SteamBridge] Found SteamUserProfiles through VContainer");
                         InitializeBindings();
-                        break;
+                        return;
                     }
                 }
                 
@@ -91,15 +119,16 @@ public partial class SteamBridge : MonoBehaviour
                     _steamUserProfiles = steamProfilesComponent;
                     Debug.Log("[SteamBridge] Found SteamUserProfiles as scene component");
                     InitializeBindings();
-                    break;
+                    return;
                 }
             }
-            catch (System.Exception ex)
+            catch (Exception ex)
             {
                 Debug.LogWarning($"[SteamBridge] Error finding SteamUserProfiles: {ex.Message}");
             }
             
-            yield return new WaitForSeconds(0.5f); // Check every 500ms
+            // Non-blocking delay using UniTask
+            await UniTask.Delay(500, cancellationToken: linkedCts.Token);
         }
     }
     
@@ -233,6 +262,140 @@ public partial class SteamBridge : MonoBehaviour
     public bool JsIsConnected()
     {
         return _steamUserProfiles != null;
+    }
+    
+    #endregion
+    
+    #region Scene Management Methods
+    
+    /// <summary>
+    /// Load a scene using MoreMountains Scene Loading Manager
+    /// </summary>
+    /// <param name="sceneName">The name of the scene to load</param>
+    /// <param name="loadingSceneName">Optional loading scene to show during transition</param>
+    public void JsLoadScene(string sceneName, string loadingSceneName = "")
+    {
+        if (string.IsNullOrEmpty(loadingSceneName))
+        {
+            MMSceneLoadingManager.LoadScene(sceneName);
+            Debug.Log($"[SteamBridge] Loading scene: {sceneName}");
+        }
+        else
+        {
+            MMSceneLoadingManager.LoadScene(sceneName, loadingSceneName);
+            Debug.Log($"[SteamBridge] Loading scene: {sceneName} with loading screen: {loadingSceneName}");
+        }
+    }
+    
+    /// <summary>
+    /// Load a scene additively using MoreMountains Additive Scene Loading Manager
+    /// </summary>
+    /// <param name="sceneName">The name of the scene to load additively</param>
+    /// <param name="loadingSceneName">Optional loading scene name</param>
+    public void JsLoadSceneAdditive(string sceneName, string loadingSceneName = "")
+    {
+        var settings = new MMAdditiveSceneLoadingManagerSettings
+        {
+            LoadingSceneName = loadingSceneName,
+            UnloadMethod = MMAdditiveSceneLoadingManagerSettings.UnloadMethods.None
+        };
+        
+        MMAdditiveSceneLoadingManager.LoadScene(sceneName, settings);
+        Debug.Log($"[SteamBridge] Loading scene additively: {sceneName}");
+    }
+    
+    /// <summary>
+    /// Load a scene additively with full control over settings
+    /// </summary>
+    /// <param name="sceneName">The name of the scene to load additively</param>
+    /// <param name="unloadActiveScene">Whether to unload the currently active scene</param>
+    /// <param name="loadingSceneName">Optional loading scene name</param>
+    public void JsLoadSceneAdditiveAdvanced(string sceneName, bool unloadActiveScene = false, string loadingSceneName = "")
+    {
+        var settings = new MMAdditiveSceneLoadingManagerSettings
+        {
+            LoadingSceneName = loadingSceneName,
+            UnloadMethod = unloadActiveScene 
+                ? MMAdditiveSceneLoadingManagerSettings.UnloadMethods.ActiveScene 
+                : MMAdditiveSceneLoadingManagerSettings.UnloadMethods.None,
+            ThreadPriority = UnityEngine.ThreadPriority.High,
+            SecureLoad = true,
+            InterpolateProgress = true
+        };
+        
+        MMAdditiveSceneLoadingManager.LoadScene(sceneName, settings);
+        Debug.Log($"[SteamBridge] Loading scene additively (advanced): {sceneName}, unload active: {unloadActiveScene}");
+    }
+    
+    /// <summary>
+    /// Load a scene asynchronously with progress tracking using UniTask
+    /// </summary>
+    /// <param name="sceneName">The name of the scene to load</param>
+    /// <returns>A promise that can be awaited in JS</returns>
+    public async UniTask<bool> JsLoadSceneAsync(string sceneName)
+    {
+        try
+        {
+            Debug.Log($"[SteamBridge] Starting async load of scene: {sceneName}");
+            
+            var operation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName);
+            if (operation == null)
+            {
+                Debug.LogError($"[SteamBridge] Failed to start loading scene: {sceneName}");
+                return false;
+            }
+            
+            // Wait for the scene to load
+            await operation.ToUniTask();
+            
+            Debug.Log($"[SteamBridge] Successfully loaded scene: {sceneName}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[SteamBridge] Error loading scene {sceneName}: {ex.Message}");
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// Unload a scene asynchronously
+    /// </summary>
+    /// <param name="sceneName">The name of the scene to unload</param>
+    /// <returns>A promise that can be awaited in JS</returns>
+    public async UniTask<bool> JsUnloadSceneAsync(string sceneName)
+    {
+        try
+        {
+            Debug.Log($"[SteamBridge] Starting async unload of scene: {sceneName}");
+            
+            var operation = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(sceneName);
+            if (operation == null)
+            {
+                Debug.LogError($"[SteamBridge] Failed to start unloading scene: {sceneName}");
+                return false;
+            }
+            
+            // Wait for the scene to unload
+            await operation.ToUniTask();
+            
+            Debug.Log($"[SteamBridge] Successfully unloaded scene: {sceneName}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[SteamBridge] Error unloading scene {sceneName}: {ex.Message}");
+            return false;
+        }
+    }
+    
+    /// <summary>
+    /// Get the current active scene name
+    /// </summary>
+    /// <returns>The name of the currently active scene</returns>
+    public string JsGetCurrentSceneName()
+    {
+        return UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
     }
     
     #endregion

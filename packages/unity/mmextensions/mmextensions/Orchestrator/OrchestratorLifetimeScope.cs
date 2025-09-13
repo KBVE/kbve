@@ -12,6 +12,8 @@ namespace KBVE.MMExtensions.Orchestrator
 {
     public class OrchestratorLifetimeScope : LifetimeScope
     {
+        private static OrchestratorLifetimeScope _instance;
+        
         [Header("References")]
         [SerializeField]
         private Transform poolRoot;
@@ -25,8 +27,28 @@ namespace KBVE.MMExtensions.Orchestrator
         
         protected override void Awake()
         {
+            // Singleton pattern implementation
+            if (_instance != null && _instance != this)
+            {
+                Debug.LogWarning("[OrchestratorLifetimeScope] Duplicate instance detected, destroying duplicate.");
+                Destroy(gameObject);
+                return;
+            }
+            
+            _instance = this;
             base.Awake();
             DontDestroyOnLoad(this.gameObject);
+        }
+        
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            
+            // Clear the static instance if this is the one being destroyed
+            if (_instance == this)
+            {
+                _instance = null;
+            }
         }
 
        
