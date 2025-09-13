@@ -24,7 +24,7 @@
     "Unity.TextMeshPro",
     "OneJS",
     "OneJS.Runtime",
-    "Puerts",
+    "com.tencent.puerts.core",
     "R3",
     "Supabase",
     "Supabase.Postgrest",
