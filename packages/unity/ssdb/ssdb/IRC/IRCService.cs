@@ -46,6 +46,11 @@ namespace KBVE.SSDB.IRC
         void SendRawCommand(string command);
         void JoinChannel(string channel);
         void LeaveChannel(string channel);
+        
+        // Message collection access
+        IRCMessage[] GetRecentMessages(int count = 50);
+        int GetMessageCount();
+        IRCMessage GetLatestMessage();
     }
 
     public enum ConnectionState
@@ -533,6 +538,60 @@ namespace KBVE.SSDB.IRC
             if (currentChannel.Value == channel)
                 currentChannel.Value = string.Empty;
         }
+        
+        #region Message Collection Access
+        
+        /// <summary>
+        /// Get recent messages from the collection
+        /// </summary>
+        public IRCMessage[] GetRecentMessages(int count = 50)
+        {
+            lock (incomingMessages.SyncRoot)
+            {
+                if (incomingMessages.Count == 0)
+                    return new IRCMessage[0];
+                
+                // Get the most recent messages up to the specified count
+                var messagesToTake = Math.Min(count, incomingMessages.Count);
+                var messages = new IRCMessage[messagesToTake];
+                
+                // Copy from the end of the buffer (most recent)
+                for (int i = 0; i < messagesToTake; i++)
+                {
+                    var index = incomingMessages.Count - messagesToTake + i;
+                    messages[i] = incomingMessages[index];
+                }
+                
+                return messages;
+            }
+        }
+        
+        /// <summary>
+        /// Get total count of messages in the buffer
+        /// </summary>
+        public int GetMessageCount()
+        {
+            lock (incomingMessages.SyncRoot)
+            {
+                return incomingMessages.Count;
+            }
+        }
+        
+        /// <summary>
+        /// Get the latest (most recent) message
+        /// </summary>
+        public IRCMessage GetLatestMessage()
+        {
+            lock (incomingMessages.SyncRoot)
+            {
+                if (incomingMessages.Count == 0)
+                    return null;
+                
+                return incomingMessages[incomingMessages.Count - 1];
+            }
+        }
+        
+        #endregion
 
         private void ValidateConfig()
         {
