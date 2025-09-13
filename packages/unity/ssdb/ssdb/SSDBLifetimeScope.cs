@@ -30,6 +30,9 @@ namespace KBVE.SSDB
 
         [SerializeField, Header("OneJS Integration")]
         private SteamBridge steamBridge;
+        
+        [SerializeField]
+        private IRCBridge ircBridge;
 
         [SerializeField, Header("Script Engine")]
         private GameObject oneJSPersistentPrefab;
@@ -145,6 +148,12 @@ namespace KBVE.SSDB
                     .AsSelf()
                     .As<IAsyncStartable>()
                     .As<IDisposable>();
+                
+                // Register the IRC bridge reference if provided
+                if (ircBridge != null)
+                {
+                    builder.RegisterInstance(ircBridge);
+                }
             }
 
         }
