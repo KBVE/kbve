@@ -6,25 +6,66 @@ using VContainer.Unity;
 using KBVE.SSDB;
 using KBVE.SSDB.Steam;
 using KBVE.SSDB.SupabaseFDW;
+using KBVE.SSDB.IRC;
 #endif
-
 using System;
+
+// TODO: Fix the SSDB Usage.
 
 namespace KBVE.SSDB
 {
     /// <summary>
-    /// VContainer LifetimeScope for Steam-specific services.
-    /// Only initialized on supported platforms.
+    /// VContainer LifetimeScope for SSDB-specific services.
+    /// Should be a child of OrchestratorLifetimeScope to access GlobalCanvas.
     /// </summary>
     public class SSDBLifetimeScope : LifetimeScope
     {
+        private static SSDBLifetimeScope _instance;
+        
         [SerializeField]
         private bool autoStart = true;
 
+        [SerializeField]
+        private IRCConfig ircConfig;
+
+        [SerializeField, Header("OneJS Integration")]
+        private SteamBridge steamBridge;
+
+        [SerializeField, Header("Script Engine")]
+        private GameObject oneJSPersistentPrefab;
+
         protected override void Awake()
         {
+            // Singleton pattern implementation
+            if (_instance != null && _instance != this)
+            {
+                Debug.LogWarning("[SSDBLifetimeScope] Duplicate instance detected, destroying duplicate.");
+                Destroy(gameObject);
+                return;
+            }
+            
+            _instance = this;
             base.Awake();
             DontDestroyOnLoad(this.gameObject);
+            
+            // Instantiate OneJS persistent prefab if provided
+            if (oneJSPersistentPrefab != null)
+            {
+                var oneJSInstance = Instantiate(oneJSPersistentPrefab, transform);
+                oneJSInstance.name = "OneJSPersistent";
+                Debug.Log("[SSDBLifetimeScope] OneJS persistent components instantiated.");
+            }
+        }
+        
+        protected override void OnDestroy()
+        {
+            base.OnDestroy();
+            
+            // Clear the static instance if this is the one being destroyed
+            if (_instance == this)
+            {
+                _instance = null;
+            }
         }
 
         protected override void Configure(IContainerBuilder builder)
@@ -44,6 +85,18 @@ namespace KBVE.SSDB
                 .AsSelf()
                 .As<IAsyncStartable>()
                 .As<IDisposable>();
+
+                builder.RegisterComponentOnNewGameObject<SteamUserProfiles>(Lifetime.Singleton, "SteamUserProfiles")
+                .DontDestroyOnLoad()
+                .AsSelf()
+                .As<IAsyncStartable>()
+                .As<IDisposable>();
+
+                // Register the bridge reference if provided
+                if (steamBridge != null)
+                {
+                    builder.RegisterInstance(steamBridge);
+                }
 
             }
 #else
@@ -71,6 +124,27 @@ namespace KBVE.SSDB
             .As<IAsyncStartable>()
             .As<IDisposable>();
 
+            builder.Register<SupabaseMetrics>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
+            // IRC Services - Register at the end after all other services
+            if (ircConfig != null)
+            {
+                builder.RegisterInstance(ircConfig);
+
+                builder.Register<IRCService>(Lifetime.Singleton)
+                    .AsSelf()
+                    .As<IIRCService>()
+                    .As<IAsyncStartable>()
+                    .As<IDisposable>();
+
+                builder.Register<IRCTextBox>(Lifetime.Singleton)
+                    .AsSelf()
+                    .As<IAsyncStartable>()
+                    .As<IDisposable>();
+            }
 
         }
     }

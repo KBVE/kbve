@@ -1,4 +1,0 @@
-# MySQL Operator for Kubernetes Helm Values
-# https://github.com/mysql/mysql-operator
-
-# Essential configuration only - let Helm chart handle defaults
