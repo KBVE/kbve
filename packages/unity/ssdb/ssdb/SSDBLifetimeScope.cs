@@ -96,10 +96,11 @@ namespace KBVE.SSDB
                 .As<IAsyncStartable>()
                 .As<IDisposable>();
 
-                // Register the bridge reference if provided
+                // Register the bridge component if provided
+                // Use RegisterComponent to ensure dependency injection
                 if (steamBridge != null)
                 {
-                    builder.RegisterInstance(steamBridge);
+                    builder.RegisterComponent(steamBridge);
                 }
 
             }
@@ -144,15 +145,17 @@ namespace KBVE.SSDB
                     .As<IAsyncStartable>()
                     .As<IDisposable>();
 
-                // builder.Register<IRCTextBox>(Lifetime.Singleton)
-                //     .AsSelf()
-                //     .As<IAsyncStartable>()
-                //     .As<IDisposable>();
+                builder.Register<IRCTextBox>(Lifetime.Singleton)
+                    .AsSelf()
+                    .As<IAsyncStartable>()
+                    .As<IDisposable>();
                 
-                // Register the IRC bridge reference if provided
+                // Register the IRC bridge component if provided
+                // Use RegisterComponent to ensure dependency injection
                 if (ircBridge != null)
                 {
-                    builder.RegisterInstance(ircBridge);
+                    builder.RegisterComponent(ircBridge)
+                        .As<IInitializable>();
                 }
             }
 

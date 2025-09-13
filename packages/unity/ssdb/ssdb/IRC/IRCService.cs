@@ -200,12 +200,14 @@ namespace KBVE.SSDB.IRC
 
         // Threading
         private readonly ObservableQueue<string> outgoingCommands = new();
-        private readonly ObservableRingBuffer<IRCMessage> incomingMessages = new();
+        private readonly ObservableRingBuffer<IRCMessage> incomingMessages = new(); // Temporary queue for processing
+        private readonly ObservableRingBuffer<IRCMessage> messageHistory = new(); // Persistent storage for GetRecentMessages
         private readonly CompositeDisposable _disposables = new();
         private readonly CancellationTokenSource _lifetimeCts = new();
         private CancellationTokenSource _connectionCts;
         private readonly object _connectionLock = new object();
         private const int MaxMessages = 1000;
+        private readonly object _messageHistoryLock = new object();
 
         // Connection
         private TcpClient tcpClient;
@@ -489,6 +491,12 @@ namespace KBVE.SSDB.IRC
                     incomingMessages.Clear();
                     pendingMessages.Value = 0;
                 }
+                
+                // Optionally clear message history on disconnect (or keep it for reference)
+                // lock (_messageHistoryLock)
+                // {
+                //     messageHistory.Clear();
+                // }
             }
         }
 
@@ -528,6 +536,9 @@ namespace KBVE.SSDB.IRC
                             incomingMessages.Clear();
                             pendingMessages.Value = 0;
                         }
+                        
+                        // Keep message history during reconnection for continuity
+                        // Message history will persist across reconnections
                     }
                     
                     // Ensure reconnection is enabled
@@ -616,24 +627,29 @@ namespace KBVE.SSDB.IRC
         #region Message Collection Access
         
         /// <summary>
-        /// Get recent messages from the collection
+        /// Get recent messages from the persistent history
         /// </summary>
         public IRCMessage[] GetRecentMessages(int count = 50)
         {
-            lock (incomingMessages.SyncRoot)
+            lock (_messageHistoryLock)
             {
-                if (incomingMessages.Count == 0)
+                if (messageHistory.Count == 0)
+                {
+                    Debug.Log("[IRCService] No messages in history buffer");
                     return new IRCMessage[0];
+                }
                 
                 // Get the most recent messages up to the specified count
-                var messagesToTake = Math.Min(count, incomingMessages.Count);
+                var messagesToTake = Math.Min(count, messageHistory.Count);
                 var messages = new IRCMessage[messagesToTake];
+                
+                Debug.Log($"[IRCService] Returning {messagesToTake} messages from {messageHistory.Count} total in history");
                 
                 // Copy from the end of the buffer (most recent)
                 for (int i = 0; i < messagesToTake; i++)
                 {
-                    var index = incomingMessages.Count - messagesToTake + i;
-                    messages[i] = incomingMessages[index];
+                    var index = messageHistory.Count - messagesToTake + i;
+                    messages[i] = messageHistory[index];
                 }
                 
                 return messages;
@@ -641,27 +657,27 @@ namespace KBVE.SSDB.IRC
         }
         
         /// <summary>
-        /// Get total count of messages in the buffer
+        /// Get total count of messages in the persistent history
         /// </summary>
         public int GetMessageCount()
         {
-            lock (incomingMessages.SyncRoot)
+            lock (_messageHistoryLock)
             {
-                return incomingMessages.Count;
+                return messageHistory.Count;
             }
         }
         
         /// <summary>
-        /// Get the latest (most recent) message
+        /// Get the latest (most recent) message from persistent history
         /// </summary>
         public IRCMessage GetLatestMessage()
         {
-            lock (incomingMessages.SyncRoot)
+            lock (_messageHistoryLock)
             {
-                if (incomingMessages.Count == 0)
+                if (messageHistory.Count == 0)
                     return null;
                 
-                return incomingMessages[incomingMessages.Count - 1];
+                return messageHistory[messageHistory.Count - 1];
             }
         }
         
@@ -1229,7 +1245,22 @@ namespace KBVE.SSDB.IRC
                     
                     if (message != null)
                     {
+                        // Store message in persistent history for GetRecentMessages
+                        lock (_messageHistoryLock)
+                        {
+                            messageHistory.AddLast(message);
+                            
+                            // Keep history size manageable
+                            while (messageHistory.Count > MaxMessages)
+                            {
+                                messageHistory.RemoveFirst();
+                            }
+                        }
+                        
+                        // Fire the Observable for reactive updates
                         messageSubject.OnNext(message);
+                        
+                        // Update pending message count (from temporary processing queue)
                         lock (incomingMessages.SyncRoot)
                         {
                             pendingMessages.Value = incomingMessages.Count;
