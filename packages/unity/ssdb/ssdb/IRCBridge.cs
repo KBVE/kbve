@@ -5,6 +5,7 @@ using R3;
 using VContainer;
 using VContainer.Unity;
 using KBVE.SSDB.IRC;
+using KBVE.SSDB.Steam;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 using System.Collections.Generic;
@@ -19,6 +20,7 @@ using System.Linq;
 public partial class IRCBridge : MonoBehaviour
 {
     private IIRCService _ircService;
+    private SteamUserProfiles _steamUserProfiles;
     private readonly CompositeDisposable _disposables = new();
     
     #region OneJS EventfulProperty Fields
@@ -29,6 +31,8 @@ public partial class IRCBridge : MonoBehaviour
     [EventfulProperty] string _jsConnectionState = "Disconnected";
     [EventfulProperty] string _jsCurrentChannel = string.Empty;
     [EventfulProperty] string _jsCurrentNickname = string.Empty;
+    [EventfulProperty] string _jsSteamUsername = string.Empty;
+    [EventfulProperty] bool _jsSteamReady = false;
     [EventfulProperty] int _jsPendingMessages = 0;
     [EventfulProperty] string _jsLastMessage = string.Empty;
     [EventfulProperty] string _jsLastError = string.Empty;
@@ -92,50 +96,117 @@ public partial class IRCBridge : MonoBehaviour
     
     private async UniTask WaitForIRCServiceAsync()
     {
-        // Set a 30-second timeout for finding IRCService
-        using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
         var destroyCancellationToken = this.GetCancellationTokenOnDestroy();
         
-        // Combine timeout and destroy tokens
-        using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(
-            timeoutCts.Token, 
-            destroyCancellationToken
-        );
-        
-        Debug.Log("[IRCBridge] Starting async search for IRCService...");
-        
-        while (_ircService == null)
+        try
         {
-            linkedCts.Token.ThrowIfCancellationRequested();
+            Debug.Log("[IRCBridge] Starting async search for services...");
             
+            // Use UniTask.WaitUntil for finding services with timeout
+            var findServicesTask = FindServicesAsync(destroyCancellationToken);
+            var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(30), cancellationToken: destroyCancellationToken);
+            
+            var completedTaskIndex = await UniTask.WhenAny(findServicesTask, timeoutTask);
+            
+            if (completedTaskIndex == 1) // Timeout
+            {
+                Debug.LogWarning("[IRCBridge] Timeout finding services");
+                return;
+            }
+            
+            // Services found, wait for Steam to be ready and then initialize
+            if (_ircService != null)
+            {
+                if (_steamUserProfiles != null)
+                {
+                    await WaitForSteamReadyAsync(destroyCancellationToken);
+                }
+                
+                InitializeBindings();
+                
+                // Auto-connect if configured (Steam username is already set in IRCService)
+                if (autoConnect)
+                {
+                    await JsConnectAsync();
+                }
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.Log("[IRCBridge] Service search cancelled");
+        }
+    }
+    
+    private async UniTask FindServicesAsync(CancellationToken cancellationToken)
+    {
+        await UniTask.WaitUntil(() =>
+        {
             try
             {
-                // Try to find it through VContainer's resolver
                 var lifetimeScope = FindAnyObjectByType<LifetimeScope>();
-                if (lifetimeScope != null && lifetimeScope.Container != null)
+                if (lifetimeScope?.Container != null)
                 {
-                    if (lifetimeScope.Container.TryResolve<IIRCService>(out var ircService))
+                    // Find IRCService
+                    if (_ircService == null && lifetimeScope.Container.TryResolve<IIRCService>(out var ircService))
                     {
                         _ircService = ircService;
                         Debug.Log("[IRCBridge] Found IRCService through VContainer");
-                        InitializeBindings();
-                        
-                        // Auto-connect if configured
-                        if (autoConnect)
-                        {
-                            await JsConnectAsync();
-                        }
-                        return;
                     }
+                    
+                    // Find SteamUserProfiles (optional)
+                    if (_steamUserProfiles == null && lifetimeScope.Container.TryResolve<SteamUserProfiles>(out var steamProfiles))
+                    {
+                        _steamUserProfiles = steamProfiles;
+                        Debug.Log("[IRCBridge] Found SteamUserProfiles through VContainer");
+                    }
+                    
+                    // Return true when we have at least IRCService
+                    return _ircService != null;
                 }
+                return false;
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[IRCBridge] Error finding IRCService: {ex.Message}");
+                Debug.LogWarning($"[IRCBridge] Error in service search: {ex.Message}");
+                return false;
             }
+        }, cancellationToken: cancellationToken);
+    }
+    
+    private async UniTask WaitForSteamReadyAsync(CancellationToken cancellationToken)
+    {
+        if (_steamUserProfiles == null) return;
+        
+        Debug.Log("[IRCBridge] Waiting for Steam to be ready...");
+        
+        try
+        {
+            // Use UniTask.WaitUntil with timeout for better async handling
+            var steamReadyTask = UniTask.WaitUntil(
+                () => !string.IsNullOrEmpty(_steamUserProfiles?.UserName.Value),
+                cancellationToken: cancellationToken
+            );
             
-            // Non-blocking delay using UniTask
-            await UniTask.Delay(500, cancellationToken: linkedCts.Token);
+            var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(15), cancellationToken: cancellationToken);
+            
+            var completedTaskIndex = await UniTask.WhenAny(steamReadyTask, timeoutTask);
+            
+            if (completedTaskIndex == 0) // Steam ready
+            {
+                JsSteamUsername = _steamUserProfiles.UserName.Value;
+                JsSteamReady = true;
+                Debug.Log($"[IRCBridge] Steam ready! Username: {JsSteamUsername}");
+            }
+            else
+            {
+                Debug.Log("[IRCBridge] Steam username not ready, proceeding without it");
+                JsSteamReady = false;
+            }
+        }
+        catch (OperationCanceledException)
+        {
+            Debug.Log("[IRCBridge] Steam wait cancelled");
+            JsSteamReady = false;
         }
     }
     
@@ -169,6 +240,16 @@ public partial class IRCBridge : MonoBehaviour
         {
             JsPendingMessages = value; // Auto-generated property
         }).AddTo(_disposables);
+        
+        // Subscribe to Steam username changes (if Steam integration is available)
+        if (_steamUserProfiles != null)
+        {
+            _steamUserProfiles.UserName.Subscribe(value => 
+            {
+                JsSteamUsername = value; // Auto-generated property
+                JsSteamReady = !string.IsNullOrEmpty(value);
+            }).AddTo(_disposables);
+        }
         
         // Subscribe to connection state changes
         _ircService.OnConnectionStateChanged.Subscribe(state => 

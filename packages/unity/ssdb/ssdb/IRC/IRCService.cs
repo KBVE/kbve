@@ -15,6 +15,7 @@ using VContainer;
 using VContainer.Unity;
 using Newtonsoft.Json;
 using KBVE.MMExtensions.Orchestrator;
+using KBVE.SSDB.Steam;
 
 namespace KBVE.SSDB.IRC
 {
@@ -177,6 +178,7 @@ namespace KBVE.SSDB.IRC
     public class IRCService : IIRCService, IAsyncStartable, IDisposable
     {
         private readonly IRCConfig config;
+        private readonly SteamUserProfiles _steamUserProfiles;
 
         // R3 Thread-safe Reactive Properties using SynchronizedReactiveProperty
         private readonly SynchronizedReactiveProperty<bool> isConnected = new(false);
@@ -230,9 +232,10 @@ namespace KBVE.SSDB.IRC
         public Observable<string> OnRawMessageReceived => rawMessageSubject.AsObservable();
 
         [Inject]
-        public IRCService(IRCConfig config)
+        public IRCService(IRCConfig config, SteamUserProfiles steamUserProfiles = null)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
+            this._steamUserProfiles = steamUserProfiles;
 
             // Set initial values
             currentChannel.Value = config.defaultChannel ?? string.Empty;
@@ -250,6 +253,17 @@ namespace KBVE.SSDB.IRC
                 effectiveToken.ThrowIfCancellationRequested();
                 
                 Operator.D("IRCService starting...");
+                
+                // Wait for Steam to be ready before connecting IRC
+                if (_steamUserProfiles != null)
+                {
+                    await WaitForSteamReadyAsync(effectiveToken);
+                    Operator.D("Steam is ready, configuring IRC with Steam username");
+                }
+                else
+                {
+                    Operator.D("No Steam integration, using configured nickname");
+                }
                 
                 // Start message processing loop on main thread
                 StartMessageProcessingLoop(effectiveToken).Forget();
@@ -271,6 +285,97 @@ namespace KBVE.SSDB.IRC
             {
                 Operator.D($"IRCService startup failed: {ex.Message}");
             }
+        }
+        
+        private async UniTask WaitForSteamReadyAsync(CancellationToken cancellationToken)
+        {
+            if (_steamUserProfiles == null) return;
+            
+            Operator.D("Waiting for Steam username to be available...");
+            
+            try
+            {
+                // Use UniTask.WaitUntil with timeout for better async handling
+                var steamReadyTask = UniTask.WaitUntil(
+                    () => !string.IsNullOrEmpty(_steamUserProfiles.UserName.Value),
+                    cancellationToken: cancellationToken
+                );
+                
+                var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(30), cancellationToken: cancellationToken);
+                
+                // Wait for either Steam to be ready or timeout
+                var completedTaskIndex = await UniTask.WhenAny(steamReadyTask, timeoutTask);
+                
+                if (completedTaskIndex == 1) // Timeout occurred
+                {
+                    Operator.D("Timeout waiting for Steam username, proceeding with configured nickname");
+                    return;
+                }
+                
+                // Steam is ready, update IRC config
+                var steamUsername = _steamUserProfiles.UserName.Value;
+                
+                // Clean username for IRC (remove invalid characters, limit length)
+                var cleanUsername = CleanUsernameForIRC(steamUsername);
+                
+                config.nickname = cleanUsername;
+                config.username = cleanUsername;
+                config.realname = steamUsername; // Keep original name as realname
+                
+                currentNickname.Value = cleanUsername;
+                
+                Operator.D($"Updated IRC config with Steam username: {cleanUsername} (realname: {steamUsername})");
+            }
+            catch (OperationCanceledException)
+            {
+                Operator.D("Steam wait cancelled, proceeding with configured nickname");
+            }
+        }
+        
+        private static string CleanUsernameForIRC(string steamUsername)
+        {
+            if (string.IsNullOrEmpty(steamUsername))
+                return $"GuestAnon{UnityEngine.Random.Range(100000, 999999)}";
+            
+            // IRC nicknames rules:
+            // - Max 30 characters (but often limited to 16 or 9)
+            // - Start with letter or special chars: [ ] \ ` _ ^ { | }
+            // - Can contain letters, numbers, hyphens, and those special chars
+            // - Cannot contain spaces, @, #, :, etc.
+            
+            var cleaned = steamUsername
+                .Replace(" ", "_")           // Spaces to underscores
+                .Replace("@", "at")          // @ symbol
+                .Replace("#", "hash")        // # symbol
+                .Replace(":", "_")           // : symbol
+                .Replace("!", "_")           // ! symbol
+                .Replace("?", "_")           // ? symbol
+                .Replace("*", "_")           // * symbol
+                .Replace(",", "_")           // , symbol
+                .Replace(".", "_");          // . symbol
+            
+            // Remove any other non-alphanumeric chars except allowed ones
+            cleaned = System.Text.RegularExpressions.Regex.Replace(cleaned, @"[^a-zA-Z0-9_\-\[\]\\`^{|}]", "_");
+            
+            // Ensure it starts with a letter or allowed special char
+            if (cleaned.Length > 0 && !char.IsLetter(cleaned[0]) && !"[]\\`_^{|}".Contains(cleaned[0]))
+            {
+                cleaned = "Steam_" + cleaned;
+            }
+            
+            // Limit length to 16 characters (common IRC limit)
+            if (cleaned.Length > 16)
+            {
+                cleaned = cleaned.Substring(0, 16);
+            }
+            
+            // Ensure it's not empty
+            if (string.IsNullOrEmpty(cleaned))
+            {
+                cleaned = $"SteamUser{UnityEngine.Random.Range(100, 999)}";
+            }
+            
+            return cleaned;
         }
 
         public async UniTask<bool> ConnectAsync(CancellationToken cancellationToken = default)
