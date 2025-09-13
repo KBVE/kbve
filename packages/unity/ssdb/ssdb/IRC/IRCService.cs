@@ -41,6 +41,7 @@ namespace KBVE.SSDB.IRC
 
         // Methods
         UniTask<bool> ConnectAsync(CancellationToken cancellationToken = default);
+        UniTask<bool> ReconnectAsync(CancellationToken cancellationToken = default);
         void Disconnect();
         void SendMessage(string channel, string message);
         void SendRawCommand(string command);
@@ -488,6 +489,79 @@ namespace KBVE.SSDB.IRC
                     incomingMessages.Clear();
                     pendingMessages.Value = 0;
                 }
+            }
+        }
+
+        public async UniTask<bool> ReconnectAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                Debug.Log("[IRCService] Starting reconnection process...");
+                
+                lock (_connectionLock)
+                {
+                    // If already connected, gracefully disconnect first
+                    if (isConnected.Value)
+                    {
+                        Debug.Log("[IRCService] Disconnecting before reconnection...");
+                        
+                        // Cancel current connection operations
+                        _connectionCts?.Cancel();
+                        
+                        // Clean up connection resources
+                        CleanupConnection();
+                        
+                        // Reset connection state but KEEP shouldReconnect as true
+                        connectionState.Value = ConnectionState.Disconnected;
+                        isConnected.Value = false;
+                        isRegistered = false;
+                        isConnecting = false;
+                        
+                        // Clear queues
+                        lock (outgoingCommands.SyncRoot)
+                        {
+                            outgoingCommands.Clear();
+                        }
+                        
+                        lock (incomingMessages.SyncRoot)
+                        {
+                            incomingMessages.Clear();
+                            pendingMessages.Value = 0;
+                        }
+                    }
+                    
+                    // Ensure reconnection is enabled
+                    shouldReconnect = true;
+                }
+                
+                // Wait a moment for cleanup to complete
+                await UniTask.Delay(1000, cancellationToken: cancellationToken);
+                
+                // Now attempt to connect
+                Debug.Log("[IRCService] Attempting to reconnect...");
+                var result = await ConnectAsync(cancellationToken);
+                
+                if (result)
+                {
+                    Debug.Log("[IRCService] Reconnection successful");
+                }
+                else
+                {
+                    Debug.LogWarning("[IRCService] Reconnection failed");
+                }
+                
+                return result;
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.Log("[IRCService] Reconnection cancelled");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[IRCService] Reconnection error: {ex.Message}");
+                errorSubject.OnNext($"Reconnection failed: {ex.Message}");
+                return false;
             }
         }
 

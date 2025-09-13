@@ -405,21 +405,10 @@ public partial class IRCBridge : MonoBehaviour
         
         try
         {
-            Debug.Log("[IRCBridge] Starting reconnection process...");
+            Debug.Log("[IRCBridge] Starting reconnection process using IRCService.ReconnectAsync()...");
             
-            // First disconnect if currently connected
-            if (JsIsConnected)
-            {
-                Debug.Log("[IRCBridge] Disconnecting before reconnection...");
-                JsDisconnect();
-                
-                // Wait a moment for disconnect to complete
-                await UniTask.Delay(1000, cancellationToken: this.GetCancellationTokenOnDestroy());
-            }
-            
-            // Now attempt to connect
-            Debug.Log("[IRCBridge] Attempting to reconnect...");
-            var result = await JsConnectAsync();
+            // Use the new dedicated ReconnectAsync method from IRCService
+            var result = await _ircService.ReconnectAsync(this.GetCancellationTokenOnDestroy());
             
             if (result)
             {
