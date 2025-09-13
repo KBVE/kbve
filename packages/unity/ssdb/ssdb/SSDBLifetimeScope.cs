@@ -43,18 +43,19 @@ namespace KBVE.SSDB
                 Destroy(gameObject);
                 return;
             }
-            
+
             _instance = this;
             base.Awake();
             DontDestroyOnLoad(this.gameObject);
-            
+
             // Instantiate OneJS persistent prefab if provided
-            if (oneJSPersistentPrefab != null)
-            {
-                var oneJSInstance = Instantiate(oneJSPersistentPrefab, transform);
-                oneJSInstance.name = "OneJSPersistent";
-                Debug.Log("[SSDBLifetimeScope] OneJS persistent components instantiated.");
-            }
+            //     if (oneJSPersistentPrefab != null)
+            //     {
+            //         var oneJSInstance = Instantiate(oneJSPersistentPrefab, transform);
+            //         oneJSInstance.name = "OneJSPersistent";
+            //         Debug.Log("[SSDBLifetimeScope] OneJS persistent components instantiated.");
+            //     }
+            // 
         }
         
         protected override void OnDestroy()
