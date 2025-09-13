@@ -296,8 +296,10 @@ namespace KBVE.SSDB.IRC
             try
             {
                 // Use UniTask.WaitUntil with timeout for better async handling
+                // Wait for both UserName and UserSteamId to be available
                 var steamReadyTask = UniTask.WaitUntil(
-                    () => !string.IsNullOrEmpty(_steamUserProfiles.UserName.Value),
+                    () => !string.IsNullOrEmpty(_steamUserProfiles.UserName.Value) && 
+                          !string.IsNullOrEmpty(_steamUserProfiles.UserSteamId.Value),
                     cancellationToken: cancellationToken
                 );
                 
@@ -312,19 +314,36 @@ namespace KBVE.SSDB.IRC
                     return;
                 }
                 
-                // Steam is ready, update IRC config
-                var steamUsername = _steamUserProfiles.UserName.Value;
+                // Steam is ready, update IRC config with SteamID
+                var steamDisplayName = _steamUserProfiles.UserName.Value;
+                var steamId = _steamUserProfiles.UserSteamId.Value;
                 
-                // Clean username for IRC (remove invalid characters, limit length)
-                var cleanUsername = CleanUsernameForIRC(steamUsername);
-                
-                config.nickname = cleanUsername;
-                config.username = cleanUsername;
-                config.realname = steamUsername; // Keep original name as realname
-                
-                currentNickname.Value = cleanUsername;
-                
-                Operator.D($"Updated IRC config with Steam username: {cleanUsername} (realname: {steamUsername})");
+                if (!string.IsNullOrEmpty(steamId))
+                {
+                    // Create IRC nickname using "S" + SteamID format
+                    var ircNickname = $"S{steamId}";
+                    
+                    config.nickname = ircNickname;
+                    config.username = ircNickname;
+                    config.realname = steamDisplayName; // Keep display name as realname for human readability
+                    
+                    currentNickname.Value = ircNickname;
+                    
+                    Operator.D($"Updated IRC config with Steam ID: {ircNickname} (realname: {steamDisplayName})");
+                }
+                else
+                {
+                    // Fallback to cleaned display name if SteamID not available
+                    var cleanUsername = CleanUsernameForIRC(steamDisplayName);
+                    
+                    config.nickname = cleanUsername;
+                    config.username = cleanUsername;
+                    config.realname = steamDisplayName;
+                    
+                    currentNickname.Value = cleanUsername;
+                    
+                    Operator.D($"SteamID not available, using cleaned display name: {cleanUsername} (realname: {steamDisplayName})");
+                }
             }
             catch (OperationCanceledException)
             {

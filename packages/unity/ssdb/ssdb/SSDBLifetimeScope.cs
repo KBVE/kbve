@@ -144,10 +144,10 @@ namespace KBVE.SSDB
                     .As<IAsyncStartable>()
                     .As<IDisposable>();
 
-                builder.Register<IRCTextBox>(Lifetime.Singleton)
-                    .AsSelf()
-                    .As<IAsyncStartable>()
-                    .As<IDisposable>();
+                // builder.Register<IRCTextBox>(Lifetime.Singleton)
+                //     .AsSelf()
+                //     .As<IAsyncStartable>()
+                //     .As<IDisposable>();
                 
                 // Register the IRC bridge reference if provided
                 if (ircBridge != null)
