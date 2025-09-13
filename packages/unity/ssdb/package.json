@@ -1,7 +1,7 @@
 {
 	"name": "com.kbve.ssdb",
 	"displayName": "SSDB",
-	"version": "0.0.34",
+	"version": "0.0.35",
 	"description": "A SteamWorks & Heathen Wrapper",
 	"unity": "2023.1",
 	"author": {
