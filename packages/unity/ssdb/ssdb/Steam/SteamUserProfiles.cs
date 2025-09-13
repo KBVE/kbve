@@ -3,6 +3,8 @@
 using System;
 using System.Threading;
 using System.Linq;
+using System.Collections.Generic;
+using System.Collections.Concurrent;
 using Cysharp.Threading.Tasks;
 //using Cysharp.Threading.Tasks.Addressables;
 using UnityEngine;
@@ -64,6 +66,21 @@ namespace KBVE.SSDB.Steam
             public event Action<string> OnUserNameChanged;
             public event Action<string> OnUserStatusChanged;
             public event Action<Texture2D> OnAvatarLoaded;
+            
+            // Steam ID to Username cache
+            private readonly ConcurrentDictionary<ulong, CachedUserInfo> _userCache = new();
+            private readonly TimeSpan _cacheExpiration = TimeSpan.FromMinutes(30); // Cache for 30 minutes
+            
+            // Cached user info structure
+            private class CachedUserInfo
+            {
+                public string Username { get; set; }
+                public string DisplayName { get; set; }
+                public DateTime CachedAt { get; set; }
+                public bool IsLoading { get; set; }
+                
+                public bool IsExpired => DateTime.UtcNow - CachedAt > TimeSpan.FromMinutes(30);
+            }
 
             [Inject]
             public void Construct(SteamworksService steamworksService)
@@ -251,6 +268,163 @@ namespace KBVE.SSDB.Steam
             }
 
 
+            /// <summary>
+            /// Async method to get username from Steam ID with caching
+            /// </summary>
+            /// <param name="steamId">The Steam ID (can be with or without 'S' prefix)</param>
+            /// <returns>The username or null if not found</returns>
+            public async UniTask<string> GetUsernameFromSteamIdAsync(string steamId, CancellationToken cancellationToken = default)
+            {
+                try
+                {
+                    // Clean the Steam ID (remove 'S' prefix if present)
+                    var cleanId = steamId.StartsWith("S") ? steamId.Substring(1) : steamId;
+                    
+                    // Parse the Steam ID
+                    if (!ulong.TryParse(cleanId, out var steamIdNum))
+                    {
+                        Debug.LogWarning($"[SteamUserProfiles] Invalid Steam ID format: {steamId}");
+                        return null;
+                    }
+                    
+                    // Validate Steam ID format (optional but recommended)
+                    if (!IsValidSteamId(steamIdNum))
+                    {
+                        Debug.LogWarning($"[SteamUserProfiles] Steam ID doesn't match expected format (17 digits starting with 76561): {steamId}");
+                        // Continue anyway in case it's a valid but non-standard ID
+                    }
+                    
+                    // Check if it's the local user
+                    if (LocalUser.Value?.id.ToString() == cleanId)
+                    {
+                        return UserName.Value;
+                    }
+                    
+                    // Check cache first
+                    if (_userCache.TryGetValue(steamIdNum, out var cachedInfo))
+                    {
+                        if (!cachedInfo.IsExpired)
+                        {
+                            Debug.Log($"[SteamUserProfiles] Cache hit for Steam ID {steamIdNum}: {cachedInfo.DisplayName}");
+                            return cachedInfo.DisplayName;
+                        }
+                        
+                        // If expired but still loading, wait a bit
+                        if (cachedInfo.IsLoading)
+                        {
+                            await UniTask.Delay(100, cancellationToken: cancellationToken);
+                            if (_userCache.TryGetValue(steamIdNum, out cachedInfo) && !cachedInfo.IsExpired)
+                            {
+                                return cachedInfo.DisplayName;
+                            }
+                        }
+                    }
+                    
+                    // Mark as loading to prevent duplicate requests
+                    _userCache.AddOrUpdate(steamIdNum, 
+                        new CachedUserInfo { IsLoading = true, CachedAt = DateTime.UtcNow },
+                        (key, existing) => { existing.IsLoading = true; return existing; });
+                    
+                    // Fetch from Steam API off the main thread
+                    var username = await FetchUsernameFromSteamAPIAsync(steamIdNum, cancellationToken);
+                    
+                    // Update cache
+                    _userCache.AddOrUpdate(steamIdNum,
+                        new CachedUserInfo 
+                        { 
+                            Username = username ?? $"S{steamIdNum}",
+                            DisplayName = username ?? $"Unknown ({steamIdNum})",
+                            CachedAt = DateTime.UtcNow,
+                            IsLoading = false
+                        },
+                        (key, existing) => 
+                        {
+                            existing.Username = username ?? $"S{steamIdNum}";
+                            existing.DisplayName = username ?? $"Unknown ({steamIdNum})";
+                            existing.CachedAt = DateTime.UtcNow;
+                            existing.IsLoading = false;
+                            return existing;
+                        });
+                    
+                    return username;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[SteamUserProfiles] Error getting username for Steam ID {steamId}: {ex.Message}");
+                    return null;
+                }
+            }
+            
+            /// <summary>
+            /// Fetch username from Steam API (runs off main thread)
+            /// Uses simplified Steam ID approach with U64 (17-digit Steam IDs)
+            /// </summary>
+            private async UniTask<string> FetchUsernameFromSteamAPIAsync(ulong steamId, CancellationToken cancellationToken)
+            {
+                try
+                {
+                    // Switch to thread pool for Steam API call
+                    await UniTask.SwitchToThreadPool();
+                    
+                    // For now, we'll create a simple fallback system
+                    // In a full implementation, you could:
+                    // 1. Use Steam Web API (requires API key)
+                    // 2. Query friends list if they're a friend
+                    // 3. Use third-party services
+                    
+                    Debug.Log($"[SteamUserProfiles] Attempting to fetch username for Steam ID: {steamId}");
+                    
+                    // Simulate network delay
+                    await UniTask.Delay(UnityEngine.Random.Range(100, 500), cancellationToken: cancellationToken);
+                    
+                    // Switch back to main thread
+                    await UniTask.SwitchToMainThread();
+                    
+                    // For now, return null - this will trigger the "Unknown" fallback
+                    // TODO: Implement actual Steam Web API integration or friend list lookup
+                    Debug.Log($"[SteamUserProfiles] No username found for Steam ID {steamId} - using fallback");
+                    return null;
+                }
+                catch (Exception ex)
+                {
+                    Debug.LogError($"[SteamUserProfiles] Steam API error for ID {steamId}: {ex.Message}");
+                    
+                    // Make sure we're back on main thread
+                    await UniTask.SwitchToMainThread();
+                    return null;
+                }
+            }
+            
+            /// <summary>
+            /// Helper method to validate Steam ID format (17-digit U64)
+            /// </summary>
+            private bool IsValidSteamId(ulong steamId)
+            {
+                // Steam IDs are typically 17 digits and start with 76561
+                var steamIdStr = steamId.ToString();
+                return steamIdStr.Length == 17 && steamIdStr.StartsWith("76561");
+            }
+            
+            /// <summary>
+            /// Clear the username cache
+            /// </summary>
+            public void ClearUsernameCache()
+            {
+                _userCache.Clear();
+                Debug.Log("[SteamUserProfiles] Username cache cleared");
+            }
+            
+            /// <summary>
+            /// Get cache statistics for debugging
+            /// </summary>
+            public (int totalEntries, int validEntries, int expiredEntries) GetCacheStats()
+            {
+                var total = _userCache.Count;
+                var valid = _userCache.Count(kvp => !kvp.Value.IsExpired && !kvp.Value.IsLoading);
+                var expired = _userCache.Count(kvp => kvp.Value.IsExpired);
+                return (total, valid, expired);
+            }
+            
             private void LoadExtendedUserData(UserData user)
             {
                 // Get friend count from Steam API

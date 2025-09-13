@@ -15,6 +15,7 @@ using VContainer;
 using VContainer.Unity;
 using Newtonsoft.Json;
 using KBVE.MMExtensions.Orchestrator;
+using KBVE.SSDB.Steam;
 
 namespace KBVE.SSDB.IRC
 {
@@ -40,11 +41,17 @@ namespace KBVE.SSDB.IRC
 
         // Methods
         UniTask<bool> ConnectAsync(CancellationToken cancellationToken = default);
+        UniTask<bool> ReconnectAsync(CancellationToken cancellationToken = default);
         void Disconnect();
         void SendMessage(string channel, string message);
         void SendRawCommand(string command);
         void JoinChannel(string channel);
         void LeaveChannel(string channel);
+        
+        // Message collection access
+        IRCMessage[] GetRecentMessages(int count = 50);
+        int GetMessageCount();
+        IRCMessage GetLatestMessage();
     }
 
     public enum ConnectionState
@@ -177,6 +184,7 @@ namespace KBVE.SSDB.IRC
     public class IRCService : IIRCService, IAsyncStartable, IDisposable
     {
         private readonly IRCConfig config;
+        private readonly SteamUserProfiles _steamUserProfiles;
 
         // R3 Thread-safe Reactive Properties using SynchronizedReactiveProperty
         private readonly SynchronizedReactiveProperty<bool> isConnected = new(false);
@@ -230,9 +238,10 @@ namespace KBVE.SSDB.IRC
         public Observable<string> OnRawMessageReceived => rawMessageSubject.AsObservable();
 
         [Inject]
-        public IRCService(IRCConfig config)
+        public IRCService(IRCConfig config, SteamUserProfiles steamUserProfiles = null)
         {
             this.config = config ?? throw new ArgumentNullException(nameof(config));
+            this._steamUserProfiles = steamUserProfiles;
 
             // Set initial values
             currentChannel.Value = config.defaultChannel ?? string.Empty;
@@ -250,6 +259,17 @@ namespace KBVE.SSDB.IRC
                 effectiveToken.ThrowIfCancellationRequested();
                 
                 Operator.D("IRCService starting...");
+                
+                // Wait for Steam to be ready before connecting IRC
+                if (_steamUserProfiles != null)
+                {
+                    await WaitForSteamReadyAsync(effectiveToken);
+                    Operator.D("Steam is ready, configuring IRC with Steam username");
+                }
+                else
+                {
+                    Operator.D("No Steam integration, using configured nickname");
+                }
                 
                 // Start message processing loop on main thread
                 StartMessageProcessingLoop(effectiveToken).Forget();
@@ -271,6 +291,116 @@ namespace KBVE.SSDB.IRC
             {
                 Operator.D($"IRCService startup failed: {ex.Message}");
             }
+        }
+        
+        private async UniTask WaitForSteamReadyAsync(CancellationToken cancellationToken)
+        {
+            if (_steamUserProfiles == null) return;
+            
+            Operator.D("Waiting for Steam username to be available...");
+            
+            try
+            {
+                // Use UniTask.WaitUntil with timeout for better async handling
+                // Wait for both UserName and UserSteamId to be available
+                var steamReadyTask = UniTask.WaitUntil(
+                    () => !string.IsNullOrEmpty(_steamUserProfiles.UserName.Value) && 
+                          !string.IsNullOrEmpty(_steamUserProfiles.UserSteamId.Value),
+                    cancellationToken: cancellationToken
+                );
+                
+                var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(30), cancellationToken: cancellationToken);
+                
+                // Wait for either Steam to be ready or timeout
+                var completedTaskIndex = await UniTask.WhenAny(steamReadyTask, timeoutTask);
+                
+                if (completedTaskIndex == 1) // Timeout occurred
+                {
+                    Operator.D("Timeout waiting for Steam username, proceeding with configured nickname");
+                    return;
+                }
+                
+                // Steam is ready, update IRC config with SteamID
+                var steamDisplayName = _steamUserProfiles.UserName.Value;
+                var steamId = _steamUserProfiles.UserSteamId.Value;
+                
+                if (!string.IsNullOrEmpty(steamId))
+                {
+                    // Create IRC nickname using "S" + SteamID format
+                    var ircNickname = $"S{steamId}";
+                    
+                    config.nickname = ircNickname;
+                    config.username = ircNickname;
+                    config.realname = steamDisplayName; // Keep display name as realname for human readability
+                    
+                    currentNickname.Value = ircNickname;
+                    
+                    Operator.D($"Updated IRC config with Steam ID: {ircNickname} (realname: {steamDisplayName})");
+                }
+                else
+                {
+                    // Fallback to cleaned display name if SteamID not available
+                    var cleanUsername = CleanUsernameForIRC(steamDisplayName);
+                    
+                    config.nickname = cleanUsername;
+                    config.username = cleanUsername;
+                    config.realname = steamDisplayName;
+                    
+                    currentNickname.Value = cleanUsername;
+                    
+                    Operator.D($"SteamID not available, using cleaned display name: {cleanUsername} (realname: {steamDisplayName})");
+                }
+            }
+            catch (OperationCanceledException)
+            {
+                Operator.D("Steam wait cancelled, proceeding with configured nickname");
+            }
+        }
+        
+        private static string CleanUsernameForIRC(string steamUsername)
+        {
+            if (string.IsNullOrEmpty(steamUsername))
+                return $"GuestAnon{UnityEngine.Random.Range(100000, 999999)}";
+            
+            // IRC nicknames rules:
+            // - Max 30 characters (but often limited to 16 or 9)
+            // - Start with letter or special chars: [ ] \ ` _ ^ { | }
+            // - Can contain letters, numbers, hyphens, and those special chars
+            // - Cannot contain spaces, @, #, :, etc.
+            
+            var cleaned = steamUsername
+                .Replace(" ", "_")           // Spaces to underscores
+                .Replace("@", "at")          // @ symbol
+                .Replace("#", "hash")        // # symbol
+                .Replace(":", "_")           // : symbol
+                .Replace("!", "_")           // ! symbol
+                .Replace("?", "_")           // ? symbol
+                .Replace("*", "_")           // * symbol
+                .Replace(",", "_")           // , symbol
+                .Replace(".", "_");          // . symbol
+            
+            // Remove any other non-alphanumeric chars except allowed ones
+            cleaned = System.Text.RegularExpressions.Regex.Replace(cleaned, @"[^a-zA-Z0-9_\-\[\]\\`^{|}]", "_");
+            
+            // Ensure it starts with a letter or allowed special char
+            if (cleaned.Length > 0 && !char.IsLetter(cleaned[0]) && !"[]\\`_^{|}".Contains(cleaned[0]))
+            {
+                cleaned = "Steam_" + cleaned;
+            }
+            
+            // Limit length to 16 characters (common IRC limit)
+            if (cleaned.Length > 16)
+            {
+                cleaned = cleaned.Substring(0, 16);
+            }
+            
+            // Ensure it's not empty
+            if (string.IsNullOrEmpty(cleaned))
+            {
+                cleaned = $"SteamUser{UnityEngine.Random.Range(100, 999)}";
+            }
+            
+            return cleaned;
         }
 
         public async UniTask<bool> ConnectAsync(CancellationToken cancellationToken = default)
@@ -362,6 +492,79 @@ namespace KBVE.SSDB.IRC
             }
         }
 
+        public async UniTask<bool> ReconnectAsync(CancellationToken cancellationToken = default)
+        {
+            try
+            {
+                Debug.Log("[IRCService] Starting reconnection process...");
+                
+                lock (_connectionLock)
+                {
+                    // If already connected, gracefully disconnect first
+                    if (isConnected.Value)
+                    {
+                        Debug.Log("[IRCService] Disconnecting before reconnection...");
+                        
+                        // Cancel current connection operations
+                        _connectionCts?.Cancel();
+                        
+                        // Clean up connection resources
+                        CleanupConnection();
+                        
+                        // Reset connection state but KEEP shouldReconnect as true
+                        connectionState.Value = ConnectionState.Disconnected;
+                        isConnected.Value = false;
+                        isRegistered = false;
+                        isConnecting = false;
+                        
+                        // Clear queues
+                        lock (outgoingCommands.SyncRoot)
+                        {
+                            outgoingCommands.Clear();
+                        }
+                        
+                        lock (incomingMessages.SyncRoot)
+                        {
+                            incomingMessages.Clear();
+                            pendingMessages.Value = 0;
+                        }
+                    }
+                    
+                    // Ensure reconnection is enabled
+                    shouldReconnect = true;
+                }
+                
+                // Wait a moment for cleanup to complete
+                await UniTask.Delay(1000, cancellationToken: cancellationToken);
+                
+                // Now attempt to connect
+                Debug.Log("[IRCService] Attempting to reconnect...");
+                var result = await ConnectAsync(cancellationToken);
+                
+                if (result)
+                {
+                    Debug.Log("[IRCService] Reconnection successful");
+                }
+                else
+                {
+                    Debug.LogWarning("[IRCService] Reconnection failed");
+                }
+                
+                return result;
+            }
+            catch (OperationCanceledException)
+            {
+                Debug.Log("[IRCService] Reconnection cancelled");
+                return false;
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"[IRCService] Reconnection error: {ex.Message}");
+                errorSubject.OnNext($"Reconnection failed: {ex.Message}");
+                return false;
+            }
+        }
+
         public void SendMessage(string channel, string message)
         {
             if (!isConnected.Value)
@@ -409,6 +612,60 @@ namespace KBVE.SSDB.IRC
             if (currentChannel.Value == channel)
                 currentChannel.Value = string.Empty;
         }
+        
+        #region Message Collection Access
+        
+        /// <summary>
+        /// Get recent messages from the collection
+        /// </summary>
+        public IRCMessage[] GetRecentMessages(int count = 50)
+        {
+            lock (incomingMessages.SyncRoot)
+            {
+                if (incomingMessages.Count == 0)
+                    return new IRCMessage[0];
+                
+                // Get the most recent messages up to the specified count
+                var messagesToTake = Math.Min(count, incomingMessages.Count);
+                var messages = new IRCMessage[messagesToTake];
+                
+                // Copy from the end of the buffer (most recent)
+                for (int i = 0; i < messagesToTake; i++)
+                {
+                    var index = incomingMessages.Count - messagesToTake + i;
+                    messages[i] = incomingMessages[index];
+                }
+                
+                return messages;
+            }
+        }
+        
+        /// <summary>
+        /// Get total count of messages in the buffer
+        /// </summary>
+        public int GetMessageCount()
+        {
+            lock (incomingMessages.SyncRoot)
+            {
+                return incomingMessages.Count;
+            }
+        }
+        
+        /// <summary>
+        /// Get the latest (most recent) message
+        /// </summary>
+        public IRCMessage GetLatestMessage()
+        {
+            lock (incomingMessages.SyncRoot)
+            {
+                if (incomingMessages.Count == 0)
+                    return null;
+                
+                return incomingMessages[incomingMessages.Count - 1];
+            }
+        }
+        
+        #endregion
 
         private void ValidateConfig()
         {
