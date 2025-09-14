@@ -934,6 +934,34 @@ public partial class IRCBridge : MonoBehaviour, IInitializable
         {
             _ircService.SendMessage(JsCurrentChannel, message);
             Debug.Log($"[IRCBridge] Sent message to {JsCurrentChannel}: {message}");
+
+            // Add the sent message to local message history immediately
+            // This ensures the user sees their own messages in the chat
+            var sentMessage = new IRCMessage
+            {
+                message = message,
+                nickname = JsCurrentNickname,
+                channel = JsCurrentChannel,
+                timestamp = DateTime.Now,
+                isChannelMessage = true,
+                command = "PRIVMSG"
+            };
+
+            // Add formatted message to the local list
+            var formattedMessage = FormatMessage(sentMessage);
+            JsMessagesList.Add(formattedMessage);
+            JsLatestMessage = sentMessage;
+
+            // Trim old messages if we exceed the limit
+            while (JsMessagesList.Count > maxMessages)
+            {
+                JsMessagesList.RemoveAt(0);
+            }
+
+            // Update message count
+            JsMessageCount = JsMessagesList.Count;
+
+            Debug.Log($"[IRCBridge] Added sent message to local history. Total messages: {JsMessageCount}");
         }
         else
         {
@@ -950,6 +978,36 @@ public partial class IRCBridge : MonoBehaviour, IInitializable
         {
             _ircService.SendMessage(channel, message);
             Debug.Log($"[IRCBridge] Sent message to {channel}: {message}");
+
+            // Add the sent message to local message history if it's the current channel
+            if (string.Equals(channel, JsCurrentChannel, StringComparison.OrdinalIgnoreCase))
+            {
+                var sentMessage = new IRCMessage
+                {
+                    message = message,
+                    nickname = JsCurrentNickname,
+                    channel = channel,
+                    timestamp = DateTime.Now,
+                    isChannelMessage = true,
+                    command = "PRIVMSG"
+                };
+
+                // Add formatted message to the local list
+                var formattedMessage = FormatMessage(sentMessage);
+                JsMessagesList.Add(formattedMessage);
+                JsLatestMessage = sentMessage;
+
+                // Trim old messages if we exceed the limit
+                while (JsMessagesList.Count > maxMessages)
+                {
+                    JsMessagesList.RemoveAt(0);
+                }
+
+                // Update message count
+                JsMessageCount = JsMessagesList.Count;
+
+                Debug.Log($"[IRCBridge] Added sent message to local history. Total messages: {JsMessageCount}");
+            }
         }
     }
     
