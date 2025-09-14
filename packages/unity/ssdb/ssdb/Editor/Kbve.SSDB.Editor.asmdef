@@ -3,6 +3,7 @@
   "rootNamespace": "KBVE.SSDB",
   "references": [
     "Kbve.MMExtensions",
+    "Kbve.MMExtensions.Editor",
     "Kbve.SSDB",
     "UnityEditor",
     "UnityEngine",
@@ -16,7 +17,6 @@
     "Puerts",
     "R3",
     "ObservableCollections",
-
     "Unity.EditorCoroutines.Editor",
     "Unity.Addressables.Editor",
     "MoreMountains.InventoryEngine",
