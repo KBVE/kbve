@@ -30,6 +30,9 @@ namespace KBVE.SSDB
 
         [SerializeField, Header("OneJS Integration")]
         private SteamBridge steamBridge;
+        
+        [SerializeField]
+        private IRCBridge ircBridge;
 
         [SerializeField, Header("Script Engine")]
         private GameObject oneJSPersistentPrefab;
@@ -43,18 +46,19 @@ namespace KBVE.SSDB
                 Destroy(gameObject);
                 return;
             }
-            
+
             _instance = this;
             base.Awake();
             DontDestroyOnLoad(this.gameObject);
-            
+
             // Instantiate OneJS persistent prefab if provided
-            if (oneJSPersistentPrefab != null)
-            {
-                var oneJSInstance = Instantiate(oneJSPersistentPrefab, transform);
-                oneJSInstance.name = "OneJSPersistent";
-                Debug.Log("[SSDBLifetimeScope] OneJS persistent components instantiated.");
-            }
+            //     if (oneJSPersistentPrefab != null)
+            //     {
+            //         var oneJSInstance = Instantiate(oneJSPersistentPrefab, transform);
+            //         oneJSInstance.name = "OneJSPersistent";
+            //         Debug.Log("[SSDBLifetimeScope] OneJS persistent components instantiated.");
+            //     }
+            // 
         }
         
         protected override void OnDestroy()
@@ -92,10 +96,11 @@ namespace KBVE.SSDB
                 .As<IAsyncStartable>()
                 .As<IDisposable>();
 
-                // Register the bridge reference if provided
+                // Register the bridge component if provided
+                // Use RegisterComponent to ensure dependency injection
                 if (steamBridge != null)
                 {
-                    builder.RegisterInstance(steamBridge);
+                    builder.RegisterComponent(steamBridge);
                 }
 
             }
@@ -144,6 +149,14 @@ namespace KBVE.SSDB
                     .AsSelf()
                     .As<IAsyncStartable>()
                     .As<IDisposable>();
+                
+                // Register the IRC bridge component if provided
+                // Use RegisterComponent to ensure dependency injection
+                if (ircBridge != null)
+                {
+                    builder.RegisterComponent(ircBridge)
+                        .As<IInitializable>();
+                }
             }
 
         }

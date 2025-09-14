@@ -1,0 +1,40 @@
+{
+  "name": "Kbve.SSDB.Editor",
+  "rootNamespace": "KBVE.SSDB",
+  "references": [
+    "Kbve.MMExtensions",
+    "Kbve.SSDB",
+    "UnityEditor",
+    "UnityEngine",
+    "UnityEngine.TilemapModule",
+    "Unity.Addressables",
+    "UniTask",
+    "OneJS",
+    "OneJS.Runtime",
+    "com.tencent.puerts.core",
+    "com.tencent.puerts.core.Editor",
+    "Puerts",
+    "R3",
+    "ObservableCollections",
+
+    "Unity.EditorCoroutines.Editor",
+    "Unity.Addressables.Editor",
+    "MoreMountains.InventoryEngine",
+    "MoreMountains.Tools",
+    "MoreMountains.Feedbacks",
+    "MoreMountains.TopDownEngine",
+    "UnityEngine.Physics2DModule",
+    "Newtonsoft.Json"
+  ],
+  "includePlatforms": ["Editor"],
+  "excludePlatforms": [],
+  "allowUnsafeCode": false,
+  "overrideReferences": false,
+  "precompiledReferences": [],
+  "autoReferenced": true,
+  "defineConstraints": [
+     "UNITY_2021_3_OR_NEWER"
+  ],
+  "versionDefines": [],
+  "noEngineReferences": false
+}
