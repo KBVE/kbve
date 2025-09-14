@@ -20,6 +20,7 @@ namespace KBVE.MMExtensions.Ai
 
         public Weapon initialWeapon;
         private CharacterHandleWeapon handleWeapon;
+        private CharacterOrientation2D characterOrientation;
         public LayerMask dashCheckLayerMask;
         public float dashObstacleCheckDistance;
         public float dashTargetCheckDistance;
@@ -58,6 +59,7 @@ namespace KBVE.MMExtensions.Ai
             gameObject.MMGetOrAddComponent<Rigidbody2D>().sharedMaterial =
                 CreateFrictionlessPhysicsMaterial();
             handleWeapon = gameObject.MMGetOrAddComponent<CharacterHandleWeapon>();
+            characterOrientation = gameObject.MMGetOrAddComponent<CharacterOrientation2D>();
             handleWeapon.InitialWeapon = initialWeapon;
             SetupDecisionsHealer();
             SetupDecisionsAttacker();
@@ -74,9 +76,19 @@ namespace KBVE.MMExtensions.Ai
         public void ToggleAI(bool aiControl)
         {
             handleWeapon.ForceWeaponAimControl = true;
-            handleWeapon.ForcedWeaponAimControl = aiControl ? aiPassiveForcedWeaponAimControl : playerForcedWeaponAimControl;
-            if(aiControl) handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
-            else handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
+            handleWeapon.ForcedWeaponAimControl = aiControl ? aiAimingForcedWeaponAimControl : playerForcedWeaponAimControl;
+            if(aiControl)
+            {
+                characterOrientation.FacingMode = CharacterOrientation2D.FacingModes.Both;
+                characterOrientation.FacingBase = CharacterOrientation2D.FacingBases.WeaponAngle;
+                handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
+            }
+            else
+            {
+                characterOrientation.FacingMode = CharacterOrientation2D.FacingModes.WeaponDirection;
+                handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
+            }
+
             if(handleWeapon.WeaponAimComponent != null)
             {
                 handleWeapon.WeaponAimComponent.AimControl = handleWeapon.ForcedWeaponAimControl;
