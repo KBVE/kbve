@@ -134,6 +134,11 @@ namespace KBVE.SSDB
             .As<IAsyncStartable>()
             .As<IDisposable>();
 
+            builder.Register<SupabaseWebServer>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
             // IRC Services - Register at the end after all other services
             if (ircConfig != null)
             {

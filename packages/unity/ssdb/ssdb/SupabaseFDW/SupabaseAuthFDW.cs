@@ -16,6 +16,7 @@ namespace KBVE.SSDB.SupabaseFDW
     public class SupabaseAuthFDW : IAsyncStartable, IDisposable
     {
         private readonly ISupabaseInstance _supabaseInstance;
+        private readonly SupabaseWebServer _webServer;
         private readonly CompositeDisposable _disposables = new();
         private readonly CancellationTokenSource _cts = new();
         
@@ -23,9 +24,10 @@ namespace KBVE.SSDB.SupabaseFDW
         public ReactiveProperty<string> ErrorMessage { get; } = new(string.Empty);
         
         [Inject]
-        public SupabaseAuthFDW(ISupabaseInstance supabaseInstance)
+        public SupabaseAuthFDW(ISupabaseInstance supabaseInstance, SupabaseWebServer webServer)
         {
             _supabaseInstance = supabaseInstance;
+            _webServer = webServer;
         }
         
         public async UniTask StartAsync(CancellationToken cancellationToken)
@@ -113,9 +115,47 @@ namespace KBVE.SSDB.SupabaseFDW
             }
         }
         
+        /// <summary>
+        /// Sign in with GitHub using OAuth flow
+        /// </summary>
+        public async UniTask<bool> SignInWithGithubAsync(CancellationToken cancellationToken = default)
+        {
+            return await PerformOAuthSignInAsync(() => _webServer.SignInWithGithubAsync(cancellationToken), "GitHub");
+        }
+
+        /// <summary>
+        /// Sign in with Discord using OAuth flow
+        /// </summary>
+        public async UniTask<bool> SignInWithDiscordAsync(CancellationToken cancellationToken = default)
+        {
+            return await PerformOAuthSignInAsync(() => _webServer.SignInWithDiscordAsync(cancellationToken), "Discord");
+        }
+
+        /// <summary>
+        /// Sign in with Twitch using OAuth flow
+        /// </summary>
+        public async UniTask<bool> SignInWithTwitchAsync(CancellationToken cancellationToken = default)
+        {
+            return await PerformOAuthSignInAsync(() => _webServer.SignInWithTwitchAsync(cancellationToken), "Twitch");
+        }
+
+        /// <summary>
+        /// Sign in with OAuth using the specified provider (backwards compatibility)
+        /// </summary>
         public async UniTask<bool> SignInWithOAuthAsync(Constants.Provider provider, CancellationToken cancellationToken = default)
         {
-            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _cts.Token))
+            return provider switch
+            {
+                Constants.Provider.Github => await SignInWithGithubAsync(cancellationToken),
+                Constants.Provider.Discord => await SignInWithDiscordAsync(cancellationToken),
+                Constants.Provider.Twitch => await SignInWithTwitchAsync(cancellationToken),
+                _ => throw new ArgumentException($"OAuth provider {provider} is not supported", nameof(provider))
+            };
+        }
+
+        private async UniTask<bool> PerformOAuthSignInAsync(Func<Task<Session>> oauthMethod, string providerName)
+        {
+            using (var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_cts.Token))
             {
                 try
                 {
@@ -124,21 +164,30 @@ namespace KBVE.SSDB.SupabaseFDW
                         ErrorMessage.Value = "Supabase client not initialized";
                         return false;
                     }
-                    
-                    linkedCts.Token.ThrowIfCancellationRequested();
-                    var providerAuth = await _supabaseInstance.Client.Auth.SignIn(provider);
-                    return providerAuth != null;
+
+                    Operator.D($"Starting {providerName} OAuth sign-in");
+                    var session = await oauthMethod();
+
+                    if (session?.User != null)
+                    {
+                        ErrorMessage.Value = string.Empty;
+                        Operator.D($"{providerName} OAuth sign-in successful for user: {session.User.Email}");
+                        return true;
+                    }
+
+                    ErrorMessage.Value = $"{providerName} OAuth sign-in failed: No session created";
+                    return false;
                 }
                 catch (OperationCanceledException)
                 {
                     ErrorMessage.Value = "Operation cancelled";
-                    Operator.D("OAuth SignIn cancelled");
+                    Operator.D($"{providerName} OAuth SignIn cancelled");
                     return false;
                 }
                 catch (Exception ex)
                 {
-                    ErrorMessage.Value = ex.Message;
-                    Operator.D($"OAuth SignIn failed: {ex.Message}");
+                    ErrorMessage.Value = $"{providerName} OAuth sign-in failed: {ex.Message}";
+                    Operator.D($"{providerName} OAuth SignIn failed: {ex.Message}");
                     return false;
                 }
             }
