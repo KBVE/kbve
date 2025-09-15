@@ -897,6 +897,87 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     }
 
     /// <summary>
+    /// Sign in with GitHub OAuth
+    /// </summary>
+    public async UniTask<bool> JsSignInWithGithubAsync()
+    {
+        if (_authFDW == null)
+        {
+            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            JsLastError = "Authentication service not available";
+            return false;
+        }
+
+        try
+        {
+            Debug.Log("[SupabaseBridge] Signing in with GitHub");
+            var result = await _authFDW.SignInWithGithubAsync(this.GetCancellationTokenOnDestroy());
+            Debug.Log($"[SupabaseBridge] GitHub sign in result: {result}");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[SupabaseBridge] GitHub sign in failed: {ex.Message}");
+            JsLastError = ex.Message;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Sign in with Discord OAuth
+    /// </summary>
+    public async UniTask<bool> JsSignInWithDiscordAsync()
+    {
+        if (_authFDW == null)
+        {
+            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            JsLastError = "Authentication service not available";
+            return false;
+        }
+
+        try
+        {
+            Debug.Log("[SupabaseBridge] Signing in with Discord");
+            var result = await _authFDW.SignInWithDiscordAsync(this.GetCancellationTokenOnDestroy());
+            Debug.Log($"[SupabaseBridge] Discord sign in result: {result}");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[SupabaseBridge] Discord sign in failed: {ex.Message}");
+            JsLastError = ex.Message;
+            return false;
+        }
+    }
+
+    /// <summary>
+    /// Sign in with Twitch OAuth
+    /// </summary>
+    public async UniTask<bool> JsSignInWithTwitchAsync()
+    {
+        if (_authFDW == null)
+        {
+            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            JsLastError = "Authentication service not available";
+            return false;
+        }
+
+        try
+        {
+            Debug.Log("[SupabaseBridge] Signing in with Twitch");
+            var result = await _authFDW.SignInWithTwitchAsync(this.GetCancellationTokenOnDestroy());
+            Debug.Log($"[SupabaseBridge] Twitch sign in result: {result}");
+            return result;
+        }
+        catch (Exception ex)
+        {
+            Debug.LogError($"[SupabaseBridge] Twitch sign in failed: {ex.Message}");
+            JsLastError = ex.Message;
+            return false;
+        }
+    }
+
+    /// <summary>
     /// Check if user is authenticated
     /// </summary>
     public bool JsIsUserAuthenticated()

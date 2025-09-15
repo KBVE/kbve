@@ -30,9 +30,12 @@ namespace KBVE.SSDB
 
         [SerializeField, Header("OneJS Integration")]
         private SteamBridge steamBridge;
-        
+
         [SerializeField]
         private IRCBridge ircBridge;
+
+        [SerializeField]
+        private SupabaseBridge supabaseBridge;
 
         [SerializeField, Header("Script Engine")]
         private GameObject oneJSPersistentPrefab;
@@ -138,6 +141,14 @@ namespace KBVE.SSDB
             .AsSelf()
             .As<IAsyncStartable>()
             .As<IDisposable>();
+
+            // Register the Supabase bridge component if provided
+            // Use RegisterComponent to ensure dependency injection
+            if (supabaseBridge != null)
+            {
+                builder.RegisterComponent(supabaseBridge)
+                    .As<IInitializable>();
+            }
 
             // IRC Services - Register at the end after all other services
             if (ircConfig != null)
