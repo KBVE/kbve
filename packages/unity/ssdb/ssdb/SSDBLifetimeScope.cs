@@ -6,6 +6,7 @@ using VContainer.Unity;
 using KBVE.SSDB;
 using KBVE.SSDB.Steam;
 using KBVE.SSDB.SupabaseFDW;
+using KBVE.SSDB.SupabaseFDW.UIUX;
 using KBVE.SSDB.IRC;
 #endif
 using System;
@@ -118,6 +119,11 @@ namespace KBVE.SSDB
             .As<IDisposable>();
 
             builder.Register<SupabaseAuthFDW>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
+            builder.Register<SupabaseUIUX>(Lifetime.Singleton)
             .AsSelf()
             .As<IAsyncStartable>()
             .As<IDisposable>();
