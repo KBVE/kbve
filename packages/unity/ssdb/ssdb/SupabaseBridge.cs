@@ -96,7 +96,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     // Connection State
     [EventfulProperty] bool _jsIsInitialized = false;
     [EventfulProperty] bool _jsIsOnline = false;
-    [EventfulProperty] string _jsConnectionStatus = "Initializing";
+    [EventfulProperty] string _jsConnectionStatus = "Disconnected";
 
     // Real-time State
     [EventfulProperty] bool _jsIsRealtimeConnected = false;
@@ -106,7 +106,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
     // UI State (from SupabaseUIUX)
     [EventfulProperty] bool _jsIsLoading = false;
-    [EventfulProperty] string _jsCurrentUIState = "Initializing";
+    [EventfulProperty] string _jsCurrentUIState = "SignedOut";
     [EventfulProperty] string _jsStatusMessage = string.Empty;
     [EventfulProperty] bool _jsShowLoginForm = true;
 
@@ -200,12 +200,12 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
         if (_supabaseInstance != null)
         {
-            Debug.Log("[SupabaseBridge] Supabase services available, initializing with injected services");
+            LogDiagnostic("Supabase services available, initializing with injected services");
             InitializeWithInjectedServices().Forget();
         }
         else
         {
-            Debug.LogWarning("[SupabaseBridge] Supabase services not available after VContainer initialization, will fall back to manual search");
+            LogDiagnosticWarning("Supabase services not available after VContainer initialization, will fall back to manual search");
         }
     }
 
@@ -218,7 +218,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         // Fallback if VContainer initialization didn't work
         if (_supabaseInstance == null)
         {
-            Debug.LogWarning("[SupabaseBridge] Supabase services not available, attempting manual search");
+            LogDiagnosticWarning("Supabase services not available, attempting manual search");
             InitializeSupabaseConnection().Forget();
         }
     }
@@ -235,11 +235,11 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
             InitializeBindings();
 
-            Debug.Log("[SupabaseBridge] Successfully initialized with injected services");
+            LogDiagnostic("Successfully initialized with injected services");
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Initialization error: {ex.Message}");
+            LogDiagnosticError($"Initialization error: {ex.Message}");
         }
     }
 
@@ -261,11 +261,11 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         }
         catch (OperationCanceledException)
         {
-            Debug.LogWarning("[SupabaseBridge] Supabase connection initialization was cancelled or timed out");
+            LogDiagnosticWarning("Supabase connection initialization was cancelled or timed out");
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Failed to initialize Supabase connection: {ex.Message}");
+            LogDiagnosticError($"Failed to initialize Supabase connection: {ex.Message}");
         }
     }
 
@@ -275,7 +275,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
         try
         {
-            Debug.Log("[SupabaseBridge] Starting async search for Supabase services...");
+            LogDiagnostic("Starting async search for Supabase services...");
 
             // Run diagnostics to help troubleshoot container issues
             DiagnoseContainerState();
@@ -288,7 +288,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
             if (completedTaskIndex == 1) // Timeout
             {
-                Debug.LogWarning("[SupabaseBridge] Timeout finding Supabase services");
+                LogDiagnosticWarning("Timeout finding Supabase services");
                 return;
             }
 
@@ -301,7 +301,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         }
         catch (OperationCanceledException)
         {
-            Debug.Log("[SupabaseBridge] Service search cancelled");
+            LogDiagnostic("Service search cancelled");
         }
     }
 
@@ -314,37 +314,37 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
                 // First try to use injected container if available
                 if (_container != null)
                 {
-                    Debug.Log("[SupabaseBridge] Using injected container for service resolution");
+                    LogDiagnostic("Using injected container for service resolution");
 
                     // Try to resolve all Supabase services
                     if (_supabaseInstance == null && _container.TryResolve<ISupabaseInstance>(out var supabaseInstance))
                     {
                         _supabaseInstance = supabaseInstance;
-                        Debug.Log("[SupabaseBridge] Found ISupabaseInstance through injected container");
+                        LogDiagnostic("Found ISupabaseInstance through injected container");
                     }
 
                     if (_authFDW == null && _container.TryResolve<SupabaseAuthFDW>(out var authFDW))
                     {
                         _authFDW = authFDW;
-                        Debug.Log("[SupabaseBridge] Found SupabaseAuthFDW through injected container");
+                        LogDiagnostic("Found SupabaseAuthFDW through injected container");
                     }
 
                     if (_realtimeFDW == null && _container.TryResolve<SupabaseRealtimeFDW>(out var realtimeFDW))
                     {
                         _realtimeFDW = realtimeFDW;
-                        Debug.Log("[SupabaseBridge] Found SupabaseRealtimeFDW through injected container");
+                        LogDiagnostic("Found SupabaseRealtimeFDW through injected container");
                     }
 
                     if (_broadcastFDW == null && _container.TryResolve<SupabaseBroadcastFDW>(out var broadcastFDW))
                     {
                         _broadcastFDW = broadcastFDW;
-                        Debug.Log("[SupabaseBridge] Found SupabaseBroadcastFDW through injected container");
+                        LogDiagnostic("Found SupabaseBroadcastFDW through injected container");
                     }
 
                     if (_uiux == null && _container.TryResolve<SupabaseUIUX>(out var uiux))
                     {
                         _uiux = uiux;
-                        Debug.Log("[SupabaseBridge] Found SupabaseUIUX through injected container");
+                        LogDiagnostic("Found SupabaseUIUX through injected container");
                     }
 
                     // Return true when we have at least the core service
@@ -355,37 +355,37 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
                 var ssdbScope = FindAnyObjectByType<SSDBLifetimeScope>();
                 if (ssdbScope != null && ssdbScope.Container != null)
                 {
-                    Debug.Log("[SupabaseBridge] Using SSDBLifetimeScope container for service resolution");
+                    LogDiagnostic("Using SSDBLifetimeScope container for service resolution");
 
                     // Find all Supabase services
                     if (_supabaseInstance == null && ssdbScope.Container.TryResolve<ISupabaseInstance>(out var supabaseInstance))
                     {
                         _supabaseInstance = supabaseInstance;
-                        Debug.Log("[SupabaseBridge] Found ISupabaseInstance through SSDBLifetimeScope");
+                        LogDiagnostic("Found ISupabaseInstance through SSDBLifetimeScope");
                     }
 
                     if (_authFDW == null && ssdbScope.Container.TryResolve<SupabaseAuthFDW>(out var authFDW))
                     {
                         _authFDW = authFDW;
-                        Debug.Log("[SupabaseBridge] Found SupabaseAuthFDW through SSDBLifetimeScope");
+                        LogDiagnostic("Found SupabaseAuthFDW through SSDBLifetimeScope");
                     }
 
                     if (_realtimeFDW == null && ssdbScope.Container.TryResolve<SupabaseRealtimeFDW>(out var realtimeFDW))
                     {
                         _realtimeFDW = realtimeFDW;
-                        Debug.Log("[SupabaseBridge] Found SupabaseRealtimeFDW through SSDBLifetimeScope");
+                        LogDiagnostic("Found SupabaseRealtimeFDW through SSDBLifetimeScope");
                     }
 
                     if (_broadcastFDW == null && ssdbScope.Container.TryResolve<SupabaseBroadcastFDW>(out var broadcastFDW))
                     {
                         _broadcastFDW = broadcastFDW;
-                        Debug.Log("[SupabaseBridge] Found SupabaseBroadcastFDW through SSDBLifetimeScope");
+                        LogDiagnostic("Found SupabaseBroadcastFDW through SSDBLifetimeScope");
                     }
 
                     if (_uiux == null && ssdbScope.Container.TryResolve<SupabaseUIUX>(out var uiux))
                     {
                         _uiux = uiux;
-                        Debug.Log("[SupabaseBridge] Found SupabaseUIUX through SSDBLifetimeScope");
+                        LogDiagnostic("Found SupabaseUIUX through SSDBLifetimeScope");
                     }
 
                     // Return true when we have at least the core service
@@ -396,7 +396,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[SupabaseBridge] Error in service search: {ex.Message}");
+                LogDiagnosticWarning($"Error in service search: {ex.Message}");
                 return false;
             }
         }, cancellationToken: cancellationToken);
@@ -406,7 +406,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_supabaseInstance == null) return;
 
-        Debug.Log("[SupabaseBridge] Waiting for Supabase to be initialized...");
+        LogDiagnostic("Waiting for Supabase to be initialized...");
 
         try
         {
@@ -422,16 +422,16 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
             if (completedTaskIndex == 0) // Initialized
             {
-                Debug.Log($"[SupabaseBridge] Supabase initialized successfully!");
+                LogDiagnostic($"Supabase initialized successfully!");
             }
             else
             {
-                Debug.LogWarning("[SupabaseBridge] Supabase initialization timeout");
+                LogDiagnosticWarning("Supabase initialization timeout");
             }
         }
         catch (OperationCanceledException)
         {
-            Debug.Log("[SupabaseBridge] Supabase initialization wait cancelled");
+            LogDiagnostic("Supabase initialization wait cancelled");
         }
     }
 
@@ -442,38 +442,38 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         try
         {
-            Debug.Log("[SupabaseBridge] === VContainer Diagnostics ===");
+            LogDiagnostic("=== VContainer Diagnostics ===");
 
             // Check injected container
             if (_container != null)
             {
-                Debug.Log("[SupabaseBridge] ✓ IObjectResolver was injected successfully");
-                Debug.Log($"[SupabaseBridge] Container type: {_container.GetType().Name}");
+                LogDiagnostic("✓ IObjectResolver was injected successfully");
+                LogDiagnostic($"Container type: {_container.GetType().Name}");
             }
             else
             {
-                Debug.LogWarning("[SupabaseBridge] ✗ IObjectResolver was NOT injected");
+                LogDiagnosticWarning("✗ IObjectResolver was NOT injected");
             }
 
             // Check all LifetimeScopes in scene
             var allScopes = FindObjectsByType<LifetimeScope>(FindObjectsSortMode.None);
-            Debug.Log($"[SupabaseBridge] Found {allScopes.Length} LifetimeScopes in scene:");
+            LogDiagnostic($"Found {allScopes.Length} LifetimeScopes in scene:");
 
             foreach (var scope in allScopes)
             {
-                Debug.Log($"[SupabaseBridge]   - {scope.name} ({scope.GetType().Name})");
+                LogDiagnostic($"  - {scope.name} ({scope.GetType().Name})");
                 if (scope.Container != null)
                 {
                     var hasSupabase = scope.Container.TryResolve<ISupabaseInstance>(out _);
                     var hasAuth = scope.Container.TryResolve<SupabaseAuthFDW>(out _);
                     var hasRealtime = scope.Container.TryResolve<SupabaseRealtimeFDW>(out _);
-                    Debug.Log($"[SupabaseBridge]     Supabase Instance: {(hasSupabase ? "✓" : "✗")}");
-                    Debug.Log($"[SupabaseBridge]     Auth FDW: {(hasAuth ? "✓" : "✗")}");
-                    Debug.Log($"[SupabaseBridge]     Realtime FDW: {(hasRealtime ? "✓" : "✗")}");
+                    LogDiagnostic($"    Supabase Instance: {(hasSupabase ? "✓" : "✗")}");
+                    LogDiagnostic($"    Auth FDW: {(hasAuth ? "✓" : "✗")}");
+                    LogDiagnostic($"    Realtime FDW: {(hasRealtime ? "✓" : "✗")}");
                 }
                 else
                 {
-                    Debug.LogWarning($"[SupabaseBridge]     Container is NULL");
+                    LogDiagnosticWarning($"    Container is NULL");
                 }
             }
 
@@ -481,26 +481,26 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
             var ssdbScope = FindAnyObjectByType<SSDBLifetimeScope>();
             if (ssdbScope != null)
             {
-                Debug.Log($"[SupabaseBridge] ✓ Found SSDBLifetimeScope: {ssdbScope.name}");
+                LogDiagnostic($"✓ Found SSDBLifetimeScope: {ssdbScope.name}");
                 if (ssdbScope.Container != null)
                 {
-                    Debug.Log("[SupabaseBridge] ✓ SSDBLifetimeScope has active container");
+                    LogDiagnostic("✓ SSDBLifetimeScope has active container");
                 }
                 else
                 {
-                    Debug.LogWarning("[SupabaseBridge] ✗ SSDBLifetimeScope container is NULL");
+                    LogDiagnosticWarning("✗ SSDBLifetimeScope container is NULL");
                 }
             }
             else
             {
-                Debug.LogWarning("[SupabaseBridge] ✗ SSDBLifetimeScope not found in scene");
+                LogDiagnosticWarning("✗ SSDBLifetimeScope not found in scene");
             }
 
-            Debug.Log("[SupabaseBridge] === End Diagnostics ===");
+            LogDiagnostic("=== End Diagnostics ===");
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Error during diagnostics: {ex.Message}");
+            LogDiagnosticError($"Error during diagnostics: {ex.Message}");
         }
     }
 
@@ -512,28 +512,28 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_supabaseInstance == null)
         {
-            Debug.LogError("[SupabaseBridge] Cannot initialize bindings - ISupabaseInstance is null!");
+            LogDiagnosticError("Cannot initialize bindings - ISupabaseInstance is null!");
             return;
         }
 
-        Debug.Log("[SupabaseBridge] ✓ Initializing OneJS bindings with Supabase services");
+        LogDiagnostic("✓ Initializing OneJS bindings with Supabase services");
 
         // Subscribe to Supabase Instance properties
         _supabaseInstance.Initialized.Subscribe(value =>
         {
-            Debug.Log($"[SupabaseBridge] Supabase Initialized state changed: {value}");
+            LogDiagnostic($"Supabase Initialized state changed: {value}");
             JsIsInitialized = value; // Auto-generated property
         }).AddTo(_disposables);
 
         _supabaseInstance.Online.Subscribe(value =>
         {
-            Debug.Log($"[SupabaseBridge] Supabase Online state changed: {value}");
+            LogDiagnostic($"Supabase Online state changed: {value}");
             JsIsOnline = value; // Auto-generated property
         }).AddTo(_disposables);
 
         _supabaseInstance.CurrentUser.Subscribe(user =>
         {
-            Debug.Log($"[SupabaseBridge] Current user changed: {user?.Email ?? "null"}");
+            LogDiagnostic($"Current user changed: {user?.Email ?? "null"}");
             JsCurrentUserEmail = user?.Email ?? string.Empty;
             JsCurrentUserId = user?.Id ?? string.Empty;
             // Extract role from user metadata if available
@@ -542,14 +542,14 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
         _supabaseInstance.CurrentSession.Subscribe(session =>
         {
-            Debug.Log($"[SupabaseBridge] Current session changed: {(session != null ? "Active" : "None")}");
+            LogDiagnostic($"Current session changed: {(session != null ? "Active" : "None")}");
             // Session changes are primarily handled through user changes
         }).AddTo(_disposables);
 
         // Subscribe to auth state changes
         _supabaseInstance.AuthStateStream.Subscribe(authEvent =>
         {
-            Debug.Log($"[SupabaseBridge] Auth state changed: {authEvent.State}");
+            LogDiagnostic($"Auth state changed: {authEvent.State}");
             HandleAuthStateChange(authEvent);
         }).AddTo(_disposables);
 
@@ -558,13 +558,13 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         {
             _authFDW.IsAuthenticated.Subscribe(value =>
             {
-                Debug.Log($"[SupabaseBridge] Auth FDW authenticated state changed: {value}");
+                LogDiagnostic($"Auth FDW authenticated state changed: {value}");
                 JsIsAuthenticated = value; // Auto-generated property
             }).AddTo(_disposables);
 
             _authFDW.ErrorMessage.Subscribe(error =>
             {
-                Debug.Log($"[SupabaseBridge] Auth FDW error: {error}");
+                LogDiagnostic($"Auth FDW error: {error}");
                 JsAuthError = error;
                 if (!string.IsNullOrEmpty(error))
                 {
@@ -578,19 +578,19 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         {
             _realtimeFDW.IsConnected.Subscribe(value =>
             {
-                Debug.Log($"[SupabaseBridge] Realtime connected state changed: {value}");
+                LogDiagnostic($"Realtime connected state changed: {value}");
                 JsIsRealtimeConnected = value; // Auto-generated property
             }).AddTo(_disposables);
 
             _realtimeFDW.ConnectionState.Subscribe(state =>
             {
-                Debug.Log($"[SupabaseBridge] Realtime connection state changed: {state}");
+                LogDiagnostic($"Realtime connection state changed: {state}");
                 JsRealtimeConnectionState = state; // Auto-generated property
             }).AddTo(_disposables);
 
             _realtimeFDW.ErrorMessage.Subscribe(error =>
             {
-                Debug.Log($"[SupabaseBridge] Realtime FDW error: {error}");
+                LogDiagnostic($"Realtime FDW error: {error}");
                 JsRealtimeError = error;
                 if (!string.IsNullOrEmpty(error))
                 {
@@ -607,19 +607,19 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         {
             _broadcastFDW.IsBroadcasting.Subscribe(value =>
             {
-                Debug.Log($"[SupabaseBridge] Broadcasting state changed: {value}");
+                LogDiagnostic($"Broadcasting state changed: {value}");
                 JsIsBroadcasting = value; // Auto-generated property
             }).AddTo(_disposables);
 
             _broadcastFDW.SessionId.Subscribe(sessionId =>
             {
-                Debug.Log($"[SupabaseBridge] Session ID changed: {sessionId}");
+                LogDiagnostic($"Session ID changed: {sessionId}");
                 JsSessionId = sessionId; // Auto-generated property
             }).AddTo(_disposables);
 
             _broadcastFDW.BroadcastChannelName.Subscribe(channelName =>
             {
-                Debug.Log($"[SupabaseBridge] Broadcast channel name changed: {channelName}");
+                LogDiagnostic($"Broadcast channel name changed: {channelName}");
                 JsBroadcastChannelName = channelName; // Auto-generated property
             }).AddTo(_disposables);
         }
@@ -629,25 +629,25 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         {
             _uiux.IsLoading.Subscribe(value =>
             {
-                Debug.Log($"[SupabaseBridge] UIUX loading state changed: {value}");
+                LogDiagnostic($"UIUX loading state changed: {value}");
                 JsIsLoading = value; // Auto-generated property
             }).AddTo(_disposables);
 
             _uiux.CurrentAuthState.Subscribe(state =>
             {
-                Debug.Log($"[SupabaseBridge] Auth state changed: {state}");
+                LogDiagnostic($"Auth state changed: {state}");
                 JsCurrentUIState = state.ToString(); // Auto-generated property
             }).AddTo(_disposables);
 
             _uiux.StatusMessage.Subscribe(message =>
             {
-                Debug.Log($"[SupabaseBridge] UIUX status message changed: {message}");
+                LogDiagnostic($"UIUX status message changed: {message}");
                 JsStatusMessage = message; // Auto-generated property
             }).AddTo(_disposables);
 
             _uiux.ShowLoginForm.Subscribe(value =>
             {
-                Debug.Log($"[SupabaseBridge] UIUX show login form changed: {value}");
+                LogDiagnostic($"UIUX show login form changed: {value}");
                 JsShowLoginForm = value; // Auto-generated property
             }).AddTo(_disposables);
 
@@ -683,9 +683,16 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         JsCurrentUserEmail = _supabaseInstance.CurrentUser.Value?.Email ?? string.Empty;
         JsCurrentUserId = _supabaseInstance.CurrentUser.Value?.Id ?? string.Empty;
 
+        // Check both AuthFDW and the actual session for authentication state
         if (_authFDW != null)
         {
             JsIsAuthenticated = _authFDW.IsAuthenticated.Value;
+        }
+        else if (_supabaseInstance?.CurrentSession?.Value != null)
+        {
+            // Fallback: check the session directly if AuthFDW isn't available
+            JsIsAuthenticated = true;
+            LogDiagnostic("Set JsIsAuthenticated=true based on existing session");
         }
 
         if (_realtimeFDW != null)
@@ -717,7 +724,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         // Set initial connection status
         UpdateConnectionStatus();
 
-        Debug.Log($"[SupabaseBridge] ✓ Initial values set - Initialized: {JsIsInitialized}, Online: {JsIsOnline}, Authenticated: {JsIsAuthenticated}");
+        LogDiagnostic($"✓ Initial values set - Initialized: {JsIsInitialized}, Online: {JsIsOnline}, Authenticated: {JsIsAuthenticated}");
     }
 
     private void HandleAuthStateChange(AuthStateChangedEvent authEvent)
@@ -725,27 +732,31 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         switch (authEvent.State)
         {
             case Supabase.Gotrue.Constants.AuthState.SignedIn:
-                Debug.Log("[SupabaseBridge] User signed in");
+                LogDiagnostic("User signed in");
                 JsAuthError = string.Empty;
+                // Explicitly set authenticated state
+                JsIsAuthenticated = true;
                 UpdateConnectionStatus();
                 break;
 
             case Supabase.Gotrue.Constants.AuthState.SignedOut:
-                Debug.Log("[SupabaseBridge] User signed out");
+                LogDiagnostic("User signed out");
                 JsAuthError = string.Empty;
+                // Explicitly set authenticated state
+                JsIsAuthenticated = false;
                 UpdateConnectionStatus();
                 break;
 
             case Supabase.Gotrue.Constants.AuthState.UserUpdated:
-                Debug.Log("[SupabaseBridge] User updated");
+                LogDiagnostic("User updated");
                 break;
 
             case Supabase.Gotrue.Constants.AuthState.PasswordRecovery:
-                Debug.Log("[SupabaseBridge] Password recovery initiated");
+                LogDiagnostic("Password recovery initiated");
                 break;
 
             case Supabase.Gotrue.Constants.AuthState.TokenRefreshed:
-                Debug.Log("[SupabaseBridge] Token refreshed");
+                LogDiagnostic("Token refreshed");
                 break;
         }
     }
@@ -779,11 +790,11 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
                 var channels = _realtimeFDW.GetAllChannels();
                 JsActiveChannelCount = channels.Count;
                 JsActiveChannels = new List<string>(channels.Keys);
-                Debug.Log($"[SupabaseBridge] Updated active channels: {JsActiveChannelCount} channels");
+                LogDiagnostic($"Updated active channels: {JsActiveChannelCount} channels");
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[SupabaseBridge] Error updating channel info: {ex.Message}");
+                LogDiagnosticWarning($"Error updating channel info: {ex.Message}");
             }
         }
     }
@@ -799,21 +810,22 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_authFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            LogDiagnosticError("Auth FDW not available");
             JsLastError = "Authentication service not available";
             return false;
         }
 
         try
         {
-            Debug.Log($"[SupabaseBridge] Signing in user: {email}");
+            LogDiagnostic($"Signing in user: {email}");
             var result = await _authFDW.SignInWithEmailAsync(email, password, this.GetCancellationTokenOnDestroy());
-            Debug.Log($"[SupabaseBridge] Sign in result: {result}");
+            LogDiagnostic($"Sign in result: {result}");
+            if (result) JsRefreshAuthState();
             return result;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Sign in failed: {ex.Message}");
+            LogDiagnosticError($"Sign in failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -826,21 +838,22 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_authFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            LogDiagnosticError("Auth FDW not available");
             JsLastError = "Authentication service not available";
             return false;
         }
 
         try
         {
-            Debug.Log($"[SupabaseBridge] Signing up user: {email}");
+            LogDiagnostic($"Signing up user: {email}");
             var result = await _authFDW.SignUpWithEmailAsync(email, password, this.GetCancellationTokenOnDestroy());
-            Debug.Log($"[SupabaseBridge] Sign up result: {result}");
+            LogDiagnostic($"Sign up result: {result}");
+            if (result) JsRefreshAuthState();
             return result;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Sign up failed: {ex.Message}");
+            LogDiagnosticError($"Sign up failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -853,21 +866,21 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_authFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            LogDiagnosticError("Auth FDW not available");
             JsLastError = "Authentication service not available";
             return false;
         }
 
         try
         {
-            Debug.Log("[SupabaseBridge] Signing out user");
+            LogDiagnostic("Signing out user");
             var result = await _authFDW.SignOutAsync(this.GetCancellationTokenOnDestroy());
-            Debug.Log($"[SupabaseBridge] Sign out result: {result}");
+            LogDiagnostic($"Sign out result: {result}");
             return result;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Sign out failed: {ex.Message}");
+            LogDiagnosticError($"Sign out failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -880,23 +893,62 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_authFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            LogDiagnosticError("Auth FDW not available");
             JsLastError = "Authentication service not available";
             return false;
         }
 
         try
         {
-            Debug.Log("[SupabaseBridge] Refreshing session");
+            LogDiagnostic("Refreshing session");
             var result = await _authFDW.RefreshSessionAsync(this.GetCancellationTokenOnDestroy());
-            Debug.Log($"[SupabaseBridge] Session refresh result: {result}");
+            LogDiagnostic($"Session refresh result: {result}");
             return result;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Session refresh failed: {ex.Message}");
+            LogDiagnosticError($"Session refresh failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
+        }
+    }
+
+    /// <summary>
+    /// Manually refresh the authentication state from the current session
+    /// </summary>
+    public void JsRefreshAuthState()
+    {
+        try
+        {
+            LogDiagnostic("Manually refreshing auth state");
+
+            // Check the current session
+            var hasSession = _supabaseInstance?.CurrentSession?.Value != null;
+            var hasUser = _supabaseInstance?.CurrentUser?.Value != null;
+
+            // Update authentication state
+            JsIsAuthenticated = hasSession && hasUser;
+
+            // Update user information
+            if (hasUser)
+            {
+                var user = _supabaseInstance.CurrentUser.Value;
+                JsCurrentUserEmail = user.Email ?? string.Empty;
+                JsCurrentUserId = user.Id ?? string.Empty;
+                JsCurrentUserRole = user.UserMetadata?.TryGetValue("role", out var role) == true ? role.ToString() : string.Empty;
+            }
+
+            // Also sync with AuthFDW if available
+            if (_authFDW != null)
+            {
+                JsIsAuthenticated = _authFDW.IsAuthenticated.Value;
+            }
+
+            LogDiagnostic($"Auth state refreshed - Authenticated: {JsIsAuthenticated}, User: {JsCurrentUserEmail}");
+        }
+        catch (Exception ex)
+        {
+            LogDiagnosticError($"Failed to refresh auth state: {ex.Message}");
         }
     }
 
@@ -907,14 +959,14 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_authFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            LogDiagnosticError("Auth FDW not available");
             JsLastError = "Authentication service not available";
             return false;
         }
 
         try
         {
-            Debug.Log($"[SupabaseBridge] Signing in with OAuth: {provider}");
+            LogDiagnostic($"Signing in with OAuth: {provider}");
 
             // Parse provider string to enum
             if (!Enum.TryParse<Supabase.Gotrue.Constants.Provider>(provider, true, out var providerEnum))
@@ -924,12 +976,13 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
             }
 
             var result = await _authFDW.SignInWithOAuthAsync(providerEnum, this.GetCancellationTokenOnDestroy());
-            Debug.Log($"[SupabaseBridge] OAuth sign in result: {result}");
+            LogDiagnostic($"OAuth sign in result: {result}");
+            if (result) JsRefreshAuthState();
             return result;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] OAuth sign in failed: {ex.Message}");
+            LogDiagnosticError($"OAuth sign in failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -942,21 +995,22 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_authFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            LogDiagnosticError("Auth FDW not available");
             JsLastError = "Authentication service not available";
             return false;
         }
 
         try
         {
-            Debug.Log("[SupabaseBridge] Signing in with GitHub");
+            LogDiagnostic("Signing in with GitHub");
             var result = await _authFDW.SignInWithGithubAsync(this.GetCancellationTokenOnDestroy());
-            Debug.Log($"[SupabaseBridge] GitHub sign in result: {result}");
+            LogDiagnostic($"GitHub sign in result: {result}");
+            if (result) JsRefreshAuthState();
             return result;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] GitHub sign in failed: {ex.Message}");
+            LogDiagnosticError($"GitHub sign in failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -969,21 +1023,22 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_authFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            LogDiagnosticError("Auth FDW not available");
             JsLastError = "Authentication service not available";
             return false;
         }
 
         try
         {
-            Debug.Log("[SupabaseBridge] Signing in with Discord");
+            LogDiagnostic("Signing in with Discord");
             var result = await _authFDW.SignInWithDiscordAsync(this.GetCancellationTokenOnDestroy());
-            Debug.Log($"[SupabaseBridge] Discord sign in result: {result}");
+            LogDiagnostic($"Discord sign in result: {result}");
+            if (result) JsRefreshAuthState();
             return result;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Discord sign in failed: {ex.Message}");
+            LogDiagnosticError($"Discord sign in failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -996,21 +1051,22 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_authFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Auth FDW not available");
+            LogDiagnosticError("Auth FDW not available");
             JsLastError = "Authentication service not available";
             return false;
         }
 
         try
         {
-            Debug.Log("[SupabaseBridge] Signing in with Twitch");
+            LogDiagnostic("Signing in with Twitch");
             var result = await _authFDW.SignInWithTwitchAsync(this.GetCancellationTokenOnDestroy());
-            Debug.Log($"[SupabaseBridge] Twitch sign in result: {result}");
+            LogDiagnostic($"Twitch sign in result: {result}");
+            if (result) JsRefreshAuthState();
             return result;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Twitch sign in failed: {ex.Message}");
+            LogDiagnosticError($"Twitch sign in failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -1059,26 +1115,26 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_realtimeFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Realtime FDW not available");
+            LogDiagnosticError("Realtime FDW not available");
             JsLastError = "Realtime service not available";
             return false;
         }
 
         try
         {
-            Debug.Log($"[SupabaseBridge] Creating broadcast channel: {channelName}");
+            LogDiagnostic($"Creating broadcast channel: {channelName}");
 
             // Create a generic broadcast channel
             var broadcast = await _realtimeFDW.CreateBroadcastAsync<BaseBroadcast>(
                 channelName,
                 payload => {
-                    Debug.Log($"[SupabaseBridge] Received broadcast on {channelName}: {payload}");
+                    LogDiagnostic($"Received broadcast on {channelName}: {payload}");
                 },
                 this.GetCancellationTokenOnDestroy()
             );
 
             var success = broadcast != null;
-            Debug.Log($"[SupabaseBridge] Broadcast channel creation result: {success}");
+            LogDiagnostic($"Broadcast channel creation result: {success}");
 
             if (success)
             {
@@ -1089,7 +1145,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Failed to create broadcast channel: {ex.Message}");
+            LogDiagnosticError($"Failed to create broadcast channel: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -1102,21 +1158,21 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_realtimeFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Realtime FDW not available");
+            LogDiagnosticError("Realtime FDW not available");
             JsLastError = "Realtime service not available";
             return false;
         }
 
         try
         {
-            Debug.Log($"[SupabaseBridge] Subscribing to database channel: {channelName}, table: {schema}.{table}");
+            LogDiagnostic($"Subscribing to database channel: {channelName}, table: {schema}.{table}");
 
             var channel = await _realtimeFDW.SubscribeToDatabaseChannelAsync(
                 channelName, schema, table, column, value, this.GetCancellationTokenOnDestroy()
             );
 
             var success = channel != null;
-            Debug.Log($"[SupabaseBridge] Database channel subscription result: {success}");
+            LogDiagnostic($"Database channel subscription result: {success}");
 
             if (success)
             {
@@ -1127,7 +1183,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Failed to subscribe to database channel: {ex.Message}");
+            LogDiagnosticError($"Failed to subscribe to database channel: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -1140,17 +1196,17 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_realtimeFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Realtime FDW not available");
+            LogDiagnosticError("Realtime FDW not available");
             JsLastError = "Realtime service not available";
             return false;
         }
 
         try
         {
-            Debug.Log($"[SupabaseBridge] Unsubscribing from channel: {channelName}");
+            LogDiagnostic($"Unsubscribing from channel: {channelName}");
 
             var result = await _realtimeFDW.UnsubscribeFromChannelAsync(channelName, this.GetCancellationTokenOnDestroy());
-            Debug.Log($"[SupabaseBridge] Unsubscribe result: {result}");
+            LogDiagnostic($"Unsubscribe result: {result}");
 
             if (result)
             {
@@ -1161,7 +1217,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Failed to unsubscribe from channel: {ex.Message}");
+            LogDiagnosticError($"Failed to unsubscribe from channel: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -1174,21 +1230,21 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_realtimeFDW == null)
         {
-            Debug.LogError("[SupabaseBridge] Realtime FDW not available");
+            LogDiagnosticError("Realtime FDW not available");
             JsLastError = "Realtime service not available";
             return false;
         }
 
         try
         {
-            Debug.Log("[SupabaseBridge] Disconnecting from realtime");
+            LogDiagnostic("Disconnecting from realtime");
             await _realtimeFDW.DisconnectAsync(this.GetCancellationTokenOnDestroy());
             UpdateActiveChannelsInfo();
             return true;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Failed to disconnect from realtime: {ex.Message}");
+            LogDiagnosticError($"Failed to disconnect from realtime: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -1222,11 +1278,11 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         if (_uiux != null)
         {
             _uiux.ToggleFormMode();
-            Debug.Log($"[SupabaseBridge] Form mode toggled to: {(JsShowLoginForm ? "Login" : "Register")}");
+            LogDiagnostic($"Form mode toggled to: {(JsShowLoginForm ? "Login" : "Register")}");
         }
         else
         {
-            Debug.LogWarning("[SupabaseBridge] UIUX service not available");
+            LogDiagnosticWarning("UIUX service not available");
         }
     }
 
@@ -1237,20 +1293,20 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_uiux == null)
         {
-            Debug.LogError("[SupabaseBridge] UIUX service not available");
+            LogDiagnosticError("UIUX service not available");
             JsLastError = "UI service not available";
             return false;
         }
 
         try
         {
-            Debug.Log("[SupabaseBridge] Handling login via UIUX");
+            LogDiagnostic("Handling login via UIUX");
             await _uiux.HandleLoginAsync(this.GetCancellationTokenOnDestroy());
             return JsIsAuthenticated;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Login handling failed: {ex.Message}");
+            LogDiagnosticError($"Login handling failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -1263,20 +1319,20 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_uiux == null)
         {
-            Debug.LogError("[SupabaseBridge] UIUX service not available");
+            LogDiagnosticError("UIUX service not available");
             JsLastError = "UI service not available";
             return false;
         }
 
         try
         {
-            Debug.Log("[SupabaseBridge] Handling registration via UIUX");
+            LogDiagnostic("Handling registration via UIUX");
             await _uiux.HandleRegisterAsync(this.GetCancellationTokenOnDestroy());
             return JsIsAuthenticated;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Registration handling failed: {ex.Message}");
+            LogDiagnosticError($"Registration handling failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -1289,20 +1345,20 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_uiux == null)
         {
-            Debug.LogError("[SupabaseBridge] UIUX service not available");
+            LogDiagnosticError("UIUX service not available");
             JsLastError = "UI service not available";
             return false;
         }
 
         try
         {
-            Debug.Log("[SupabaseBridge] Handling logout via UIUX");
+            LogDiagnostic("Handling logout via UIUX");
             await _uiux.HandleLogoutAsync(this.GetCancellationTokenOnDestroy());
             return !JsIsAuthenticated;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] Logout handling failed: {ex.Message}");
+            LogDiagnosticError($"Logout handling failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
@@ -1315,14 +1371,14 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
     {
         if (_uiux == null)
         {
-            Debug.LogError("[SupabaseBridge] UIUX service not available");
+            LogDiagnosticError("UIUX service not available");
             JsLastError = "UI service not available";
             return false;
         }
 
         try
         {
-            Debug.Log($"[SupabaseBridge] Handling OAuth login via UIUX: {provider}");
+            LogDiagnostic($"Handling OAuth login via UIUX: {provider}");
 
             // Parse provider string to enum
             if (!Enum.TryParse<Supabase.Gotrue.Constants.Provider>(provider, true, out var providerEnum))
@@ -1336,7 +1392,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SupabaseBridge] OAuth login handling failed: {ex.Message}");
+            LogDiagnosticError($"OAuth login handling failed: {ex.Message}");
             JsLastError = ex.Message;
             return false;
         }
