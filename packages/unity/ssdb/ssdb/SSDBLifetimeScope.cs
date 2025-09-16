@@ -6,6 +6,7 @@ using VContainer.Unity;
 using KBVE.SSDB;
 using KBVE.SSDB.Steam;
 using KBVE.SSDB.SupabaseFDW;
+using KBVE.SSDB.SupabaseFDW.UIUX;
 using KBVE.SSDB.IRC;
 #endif
 using System;
@@ -30,9 +31,12 @@ namespace KBVE.SSDB
 
         [SerializeField, Header("OneJS Integration")]
         private SteamBridge steamBridge;
-        
+
         [SerializeField]
         private IRCBridge ircBridge;
+
+        [SerializeField]
+        private SupabaseBridge supabaseBridge;
 
         [SerializeField, Header("Script Engine")]
         private GameObject oneJSPersistentPrefab;
@@ -119,6 +123,11 @@ namespace KBVE.SSDB
             .As<IAsyncStartable>()
             .As<IDisposable>();
 
+            builder.Register<SupabaseUIUX>(Lifetime.Singleton)
+            .AsSelf()
+            .As<IAsyncStartable>()
+            .As<IDisposable>();
+
             builder.Register<SupabaseRealtimeFDW>(Lifetime.Singleton)
             .AsSelf()
             .As<IAsyncStartable>()
@@ -139,6 +148,14 @@ namespace KBVE.SSDB
             .As<IAsyncStartable>()
             .As<IDisposable>();
 
+            // Register the Supabase bridge component if provided
+            // Use RegisterComponent to ensure dependency injection
+            if (supabaseBridge != null)
+            {
+                builder.RegisterComponent(supabaseBridge)
+                    .As<IInitializable>();
+            }
+
             // IRC Services - Register at the end after all other services
             if (ircConfig != null)
             {
@@ -150,11 +167,12 @@ namespace KBVE.SSDB
                     .As<IAsyncStartable>()
                     .As<IDisposable>();
 
-                builder.Register<IRCTextBox>(Lifetime.Singleton)
-                    .AsSelf()
-                    .As<IAsyncStartable>()
-                    .As<IDisposable>();
-                
+                // [Disabled] -> UnityUI IRC ChatBox
+                // builder.Register<IRCTextBox>(Lifetime.Singleton)
+                //     .AsSelf()
+                //     .As<IAsyncStartable>()
+                //     .As<IDisposable>();
+
                 // Register the IRC bridge component if provided
                 // Use RegisterComponent to ensure dependency injection
                 if (ircBridge != null)
