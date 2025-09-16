@@ -46,6 +46,42 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
     private readonly CompositeDisposable _disposables = new();
 
+    [Header("Debug Settings")]
+    [SerializeField] private bool enableDiagnostics = false;
+
+    /// <summary>
+    /// Helper method to log diagnostic messages only when diagnostics are enabled
+    /// </summary>
+    private void LogDiagnostic(string message)
+    {
+        if (enableDiagnostics)
+        {
+            Debug.Log($"[SupabaseBridge] {message}");
+        }
+    }
+
+    /// <summary>
+    /// Helper method to log diagnostic warnings only when diagnostics are enabled
+    /// </summary>
+    private void LogDiagnosticWarning(string message)
+    {
+        if (enableDiagnostics)
+        {
+            Debug.LogWarning($"[SupabaseBridge] {message}");
+        }
+    }
+
+    /// <summary>
+    /// Helper method to log diagnostic errors only when diagnostics are enabled
+    /// </summary>
+    private void LogDiagnosticError(string message)
+    {
+        if (enableDiagnostics)
+        {
+            Debug.LogError($"[SupabaseBridge] {message}");
+        }
+    }
+
     #region OneJS EventfulProperty Fields
 
     // EventfulProperty fields for OneJS bidirectional binding
@@ -102,23 +138,26 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
     public void Initialize()
     {
-        Debug.Log("[SupabaseBridge] VContainer Initialize() called");
+        LogDiagnostic("VContainer Initialize() called");
 
-        // Run diagnostics first to understand the container state
-        DiagnoseContainerState();
+        // Run diagnostics first to understand the container state (only if enabled)
+        if (enableDiagnostics)
+        {
+            DiagnoseContainerState();
+        }
 
         // Try to resolve services through injected container if injection didn't work
         if (_supabaseInstance == null && _container != null)
         {
-            Debug.Log("[SupabaseBridge] Attempting to resolve ISupabaseInstance through injected container");
+            LogDiagnostic("Attempting to resolve ISupabaseInstance through injected container");
             if (_container.TryResolve<ISupabaseInstance>(out var supabaseInstance))
             {
                 _supabaseInstance = supabaseInstance;
-                Debug.Log("[SupabaseBridge] ✓ Successfully resolved ISupabaseInstance through injected container");
+                LogDiagnostic("✓ Successfully resolved ISupabaseInstance through injected container");
             }
             else
             {
-                Debug.LogWarning("[SupabaseBridge] ✗ Failed to resolve ISupabaseInstance through injected container");
+                LogDiagnosticWarning("✗ Failed to resolve ISupabaseInstance through injected container");
             }
         }
 
@@ -128,7 +167,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
             if (_container.TryResolve<SupabaseAuthFDW>(out var authFDW))
             {
                 _authFDW = authFDW;
-                Debug.Log("[SupabaseBridge] ✓ Successfully resolved SupabaseAuthFDW");
+                LogDiagnostic("✓ Successfully resolved SupabaseAuthFDW");
             }
         }
 
@@ -137,7 +176,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
             if (_container.TryResolve<SupabaseRealtimeFDW>(out var realtimeFDW))
             {
                 _realtimeFDW = realtimeFDW;
-                Debug.Log("[SupabaseBridge] ✓ Successfully resolved SupabaseRealtimeFDW");
+                LogDiagnostic("✓ Successfully resolved SupabaseRealtimeFDW");
             }
         }
 
@@ -146,7 +185,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
             if (_container.TryResolve<SupabaseBroadcastFDW>(out var broadcastFDW))
             {
                 _broadcastFDW = broadcastFDW;
-                Debug.Log("[SupabaseBridge] ✓ Successfully resolved SupabaseBroadcastFDW");
+                LogDiagnostic("✓ Successfully resolved SupabaseBroadcastFDW");
             }
         }
 
@@ -155,7 +194,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
             if (_container.TryResolve<SupabaseUIUX>(out var uiux))
             {
                 _uiux = uiux;
-                Debug.Log("[SupabaseBridge] ✓ Successfully resolved SupabaseUIUX");
+                LogDiagnostic("✓ Successfully resolved SupabaseUIUX");
             }
         }
 
@@ -594,9 +633,9 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
                 JsIsLoading = value; // Auto-generated property
             }).AddTo(_disposables);
 
-            _uiux.CurrentUIState.Subscribe(state =>
+            _uiux.CurrentAuthState.Subscribe(state =>
             {
-                Debug.Log($"[SupabaseBridge] UIUX state changed: {state}");
+                Debug.Log($"[SupabaseBridge] Auth state changed: {state}");
                 JsCurrentUIState = state.ToString(); // Auto-generated property
             }).AddTo(_disposables);
 
@@ -665,7 +704,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
         if (_uiux != null)
         {
             JsIsLoading = _uiux.IsLoading.Value;
-            JsCurrentUIState = _uiux.CurrentUIState.Value.ToString();
+            JsCurrentUIState = _uiux.CurrentAuthState.Value.ToString();
             JsStatusMessage = _uiux.StatusMessage.Value;
             JsShowLoginForm = _uiux.ShowLoginForm.Value;
             JsEmailInput = _uiux.EmailInput.Value;

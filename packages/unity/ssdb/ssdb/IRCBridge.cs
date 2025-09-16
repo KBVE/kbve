@@ -35,7 +35,21 @@ public partial class IRCBridge : MonoBehaviour, IInitializable
     private IObjectResolver _container;
     
     private readonly CompositeDisposable _disposables = new();
-    
+
+    [Header("Debug Settings")]
+    [SerializeField] private bool enableDiagnostics = false;
+
+    /// <summary>
+    /// Helper method to log diagnostic messages only when diagnostics are enabled
+    /// </summary>
+    private void LogDiagnostic(string message)
+    {
+        if (enableDiagnostics)
+        {
+            Debug.Log($"[IRCBridge] {message}");
+        }
+    }
+
     #region OneJS EventfulProperty Fields
     
     // EventfulProperty fields for OneJS bidirectional binding
@@ -79,10 +93,13 @@ public partial class IRCBridge : MonoBehaviour, IInitializable
     
     public void Initialize()
     {
-        Debug.Log("[IRCBridge] VContainer Initialize() called");
-        
-        // Run diagnostics first to understand the container state
-        DiagnoseContainerState();
+        LogDiagnostic("VContainer Initialize() called");
+
+        // Run diagnostics first to understand the container state (only if enabled)
+        if (enableDiagnostics)
+        {
+            DiagnoseContainerState();
+        }
         
         // Try to resolve services through injected container if injection didn't work
         if (_ircService == null && _container != null)

@@ -13,16 +13,6 @@ using KBVE.MMExtensions.Orchestrator;
 
 namespace KBVE.SSDB.SupabaseFDW.UIUX
 {
-    public enum UIState
-    {
-        Initializing,
-        LoggedOut,
-        LoggingIn,
-        LoggedIn,
-        Registering,
-        Error
-    }
-
     public class SupabaseUIUX : IAsyncStartable, IDisposable
     {
         private readonly ISupabaseInstance _supabaseInstance;
@@ -36,7 +26,7 @@ namespace KBVE.SSDB.SupabaseFDW.UIUX
         public ReactiveProperty<string> EmailInput { get; } = new(string.Empty);
         public ReactiveProperty<string> PasswordInput { get; } = new(string.Empty);
         public ReactiveProperty<string> StatusMessage { get; } = new(string.Empty);
-        public ReactiveProperty<UIState> CurrentUIState { get; } = new(UIState.Initializing);
+        public ReactiveProperty<Constants.AuthState> CurrentAuthState { get; } = new(Constants.AuthState.SignedOut);
         
         // Validation Properties
         public ReactiveProperty<bool> IsEmailValid { get; } = new(false);
@@ -82,7 +72,6 @@ namespace KBVE.SSDB.SupabaseFDW.UIUX
                     .Subscribe(error =>
                     {
                         StatusMessage.Value = error;
-                        CurrentUIState.Value = UIState.Error;
                         IsLoading.Value = false;
                         Operator.D($"Auth error: {error}");
                     })
@@ -127,7 +116,6 @@ namespace KBVE.SSDB.SupabaseFDW.UIUX
                     }
 
                     IsLoading.Value = true;
-                    CurrentUIState.Value = UIState.LoggingIn;
                     StatusMessage.Value = "Logging in...";
                     
                     linkedCts.Token.ThrowIfCancellationRequested();
@@ -147,19 +135,16 @@ namespace KBVE.SSDB.SupabaseFDW.UIUX
                     else
                     {
                         StatusMessage.Value = "Login failed. Please check your credentials.";
-                        CurrentUIState.Value = UIState.LoggedOut;
                     }
                 }
                 catch (OperationCanceledException)
                 {
                     StatusMessage.Value = "Login cancelled";
-                    CurrentUIState.Value = UIState.LoggedOut;
                     Operator.D("Login operation cancelled");
                 }
                 catch (Exception ex)
                 {
                     StatusMessage.Value = $"Login error: {ex.Message}";
-                    CurrentUIState.Value = UIState.Error;
                     Operator.D($"Login exception: {ex.Message}");
                 }
                 finally
@@ -182,7 +167,6 @@ namespace KBVE.SSDB.SupabaseFDW.UIUX
                     }
 
                     IsLoading.Value = true;
-                    CurrentUIState.Value = UIState.Registering;
                     StatusMessage.Value = "Creating account...";
                     
                     linkedCts.Token.ThrowIfCancellationRequested();
@@ -202,19 +186,16 @@ namespace KBVE.SSDB.SupabaseFDW.UIUX
                     else
                     {
                         StatusMessage.Value = "Registration failed. This email may already be registered.";
-                        CurrentUIState.Value = UIState.LoggedOut;
                     }
                 }
                 catch (OperationCanceledException)
                 {
                     StatusMessage.Value = "Registration cancelled";
-                    CurrentUIState.Value = UIState.LoggedOut;
                     Operator.D("Registration operation cancelled");
                 }
                 catch (Exception ex)
                 {
                     StatusMessage.Value = $"Registration error: {ex.Message}";
-                    CurrentUIState.Value = UIState.Error;
                     Operator.D($"Registration exception: {ex.Message}");
                 }
                 finally
@@ -240,7 +221,6 @@ namespace KBVE.SSDB.SupabaseFDW.UIUX
                     if (success)
                     {
                         StatusMessage.Value = "Logged out successfully";
-                        CurrentUIState.Value = UIState.LoggedOut;
                         ClearInputs();
                         Operator.D("User logged out successfully");
                     }
@@ -273,7 +253,6 @@ namespace KBVE.SSDB.SupabaseFDW.UIUX
                 try
                 {
                     IsLoading.Value = true;
-                    CurrentUIState.Value = UIState.LoggingIn;
                     StatusMessage.Value = $"Logging in with {provider}...";
                     
                     linkedCts.Token.ThrowIfCancellationRequested();
@@ -288,19 +267,16 @@ namespace KBVE.SSDB.SupabaseFDW.UIUX
                     else
                     {
                         StatusMessage.Value = "OAuth login failed";
-                        CurrentUIState.Value = UIState.LoggedOut;
                     }
                 }
                 catch (OperationCanceledException)
                 {
                     StatusMessage.Value = "OAuth login cancelled";
-                    CurrentUIState.Value = UIState.LoggedOut;
                     Operator.D("OAuth login cancelled");
                 }
                 catch (Exception ex)
                 {
                     StatusMessage.Value = $"OAuth error: {ex.Message}";
-                    CurrentUIState.Value = UIState.Error;
                     Operator.D($"OAuth exception: {ex.Message}");
                 }
                 finally
@@ -362,33 +338,31 @@ namespace KBVE.SSDB.SupabaseFDW.UIUX
         {
             if (!_supabaseInstance.Initialized.Value)
             {
-                CurrentUIState.Value = UIState.Initializing;
                 StatusMessage.Value = "Initializing...";
             }
             else if (_authFDW.IsAuthenticated.Value)
             {
-                CurrentUIState.Value = UIState.LoggedIn;
                 StatusMessage.Value = $"Welcome, {_supabaseInstance.CurrentUser.Value?.Email ?? "User"}";
             }
             else
             {
-                CurrentUIState.Value = UIState.LoggedOut;
                 StatusMessage.Value = "Please log in";
             }
         }
 
         private void HandleAuthStateChange(AuthStateChangedEvent authEvent)
         {
+            // Updated to use official AuthState without conversion
+            CurrentAuthState.Value = authEvent.State;
+
             switch (authEvent.State)
             {
                 case Constants.AuthState.SignedIn:
-                    CurrentUIState.Value = UIState.LoggedIn;
                     StatusMessage.Value = "Welcome back!";
                     Operator.D("Auth state: Signed in");
                     break;
 
                 case Constants.AuthState.SignedOut:
-                    CurrentUIState.Value = UIState.LoggedOut;
                     StatusMessage.Value = "You have been logged out";
                     Operator.D("Auth state: Signed out");
                     break;

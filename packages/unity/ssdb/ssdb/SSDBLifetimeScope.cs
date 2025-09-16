@@ -167,11 +167,12 @@ namespace KBVE.SSDB
                     .As<IAsyncStartable>()
                     .As<IDisposable>();
 
-                builder.Register<IRCTextBox>(Lifetime.Singleton)
-                    .AsSelf()
-                    .As<IAsyncStartable>()
-                    .As<IDisposable>();
-                
+                // [Disabled] -> UnityUI IRC ChatBox
+                // builder.Register<IRCTextBox>(Lifetime.Singleton)
+                //     .AsSelf()
+                //     .As<IAsyncStartable>()
+                //     .As<IDisposable>();
+
                 // Register the IRC bridge component if provided
                 // Use RegisterComponent to ensure dependency injection
                 if (ircBridge != null)
