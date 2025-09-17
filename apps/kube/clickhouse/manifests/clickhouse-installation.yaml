@@ -25,6 +25,10 @@ spec:
       default/fallback_to_stale_replicas_for_distributed_queries: "1"
       default/distributed_replica_error_half_life: "60"
       default/distributed_replica_error_cap: "1000"
+      # Performance settings (moved from cluster settings)
+      default/max_concurrent_queries: "100"
+      default/uncompressed_cache_size: "8589934592"
+      default/mark_cache_size: "5368709120"
     quotas:
       default/interval/duration: "3600"
       default/interval/queries: "0"
@@ -45,12 +49,9 @@ spec:
           zookeeper/node[2]/port: "2181"
           zookeeper/node[3]/host: "chk-clickhouse-keeper-keeper-0-2.clickhouse.svc.cluster.local"
           zookeeper/node[3]/port: "2181"
-          # Performance settings
+          # Server-level performance settings only
           max_connections: "4096"
           keep_alive_timeout: "3"
-          max_concurrent_queries: "100"
-          uncompressed_cache_size: "8589934592"
-          mark_cache_size: "5368709120"
           # Metrics and monitoring
           prometheus/endpoint: "/metrics"
           prometheus/port: "9363"
