@@ -9,17 +9,12 @@ spec:
       - name: keeper
         layout:
           replicasCount: 3
-        settings:
-          # Minimal configuration - let operator handle defaults
-          keeper_server/tcp_port: "9181"
   defaults:
     templates:
-      dataVolumeClaimTemplate: longhorn-storage
-      podTemplate: clickhouse-keeper-pod
-      serviceTemplate: clickhouse-keeper-service
+      dataVolumeClaimTemplate: keeper-storage
   templates:
     volumeClaimTemplates:
-      - name: longhorn-storage
+      - name: keeper-storage
         spec:
           accessModes:
             - ReadWriteOnce
@@ -27,57 +22,3 @@ spec:
             requests:
               storage: 5Gi
           storageClassName: longhorn
-    podTemplates:
-      - name: clickhouse-keeper-pod
-        metadata:
-          labels:
-            app: clickhouse-keeper
-        spec:
-          containers:
-            - name: clickhouse-keeper
-              ports:
-                - name: client
-                  containerPort: 9181
-                - name: raft
-                  containerPort: 9234
-                - name: prometheus
-                  containerPort: 7000
-              resources:
-                requests:
-                  memory: "512Mi"
-                  cpu: "200m"
-                limits:
-                  memory: "1Gi"
-                  cpu: "500m"
-              readinessProbe:
-                tcpSocket:
-                  port: 9181
-                initialDelaySeconds: 10
-                periodSeconds: 5
-              livenessProbe:
-                tcpSocket:
-                  port: 9181
-                initialDelaySeconds: 30
-                periodSeconds: 30
-          securityContext:
-            runAsUser: 101
-            runAsGroup: 101
-            fsGroup: 101
-    serviceTemplates:
-      - name: clickhouse-keeper-service
-        metadata:
-          labels:
-            app: clickhouse-keeper
-        spec:
-          ports:
-            - name: client
-              port: 9181
-              targetPort: 9181
-            - name: raft
-              port: 9234
-              targetPort: 9234
-            - name: prometheus
-              port: 7000
-              targetPort: 7000
-          selector:
-            app: clickhouse-keeper
