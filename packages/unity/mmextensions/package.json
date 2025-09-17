@@ -1,7 +1,7 @@
 {
 	"name": "com.kbve.mmextensions",
 	"displayName": "MMExtensions",
-	"version": "0.0.5",
+	"version": "0.0.6",
 	"description": "A TopDownEngine Extension for Unity by KBVE",
 	"unity": "2023.1",
 	"author": {
