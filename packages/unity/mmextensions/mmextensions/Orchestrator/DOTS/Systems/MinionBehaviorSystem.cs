@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Burst;
 using Unity.Collections;
+using KBVE.MMExtensions.Orchestrator.DOTS.Utilities;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -33,67 +34,100 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             float elapsedTime = (float)SystemAPI.Time.ElapsedTime;
             var randomLocal = _random;
 
-            // Target acquisition for hostile minions
+            // Target acquisition for hostile minions using enhanced spatial queries
             var minionDataLookup = SystemAPI.GetComponentLookup<MinionData>(true);
-            var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
 
-            Entities
+            var targetAcquisitionJob = Entities
                 .WithName("AcquireTargets")
                 .WithReadOnly(minionDataLookup)
-                .WithReadOnly(transformLookup)
                 .ForEach((Entity entity,
                     ref CombatTarget combatTarget,
                     ref MinionData minion,
                     in LocalTransform transform,
                     in DynamicBuffer<SpatialQueryResult> queryResults) =>
                 {
-                    // Skip if already has valid target
-                    if (combatTarget.HasTarget && combatTarget.TimeSinceTargetSeen < 2f)
+                    // Update time since last target seen
+                    combatTarget.TimeSinceTargetSeen += deltaTime;
+
+                    // Check if current target is still valid
+                    if (combatTarget.HasTarget)
                     {
-                        return;
+                        bool targetStillValid = false;
+                        float currentTargetDistance = float.MaxValue;
+
+                        // Look for current target in spatial results
+                        foreach (var result in queryResults)
+                        {
+                            if (result.TargetEntity == combatTarget.CurrentTarget)
+                            {
+                                targetStillValid = true;
+                                currentTargetDistance = result.Distance;
+                                combatTarget.TargetDistance = result.Distance;
+                                combatTarget.TargetLastKnownPosition = result.Position;
+                                combatTarget.TimeSinceTargetSeen = 0f;
+                                break;
+                            }
+                        }
+
+                        // Keep current target if still valid and in range
+                        if (targetStillValid && currentTargetDistance <= minion.DetectionRange)
+                        {
+                            return; // Keep current target
+                        }
+
+                        // Lose target if not seen for too long or out of range
+                        if (combatTarget.TimeSinceTargetSeen > 3f || currentTargetDistance > minion.DetectionRange * 1.2f)
+                        {
+                            combatTarget.LoseTarget();
+                            minion.StateFlags &= ~MinionStateFlags.Aggro;
+                        }
                     }
 
+                    // Find new target using threat assessment
                     Entity bestTarget = Entity.Null;
-                    float bestDistance = minion.DetectionRange;
+                    float bestThreatLevel = 0f;
+                    float3 bestTargetPosition = float3.zero;
 
-                    // Check spatial query results for enemies
                     foreach (var result in queryResults)
                     {
                         if (result.TargetEntity == entity) continue;
 
-                        // Check if valid target based on faction
                         if (minionDataLookup.HasComponent(result.TargetEntity))
                         {
                             var targetMinion = minionDataLookup[result.TargetEntity];
 
                             if (IsHostileFaction(minion.Faction, targetMinion.Faction))
                             {
-                                if (result.Distance < bestDistance)
+                                // Calculate threat level instead of just distance
+                                float threatLevel = CombatUtilities.CalculateThreatLevel(
+                                    result.Distance,
+                                    targetMinion.Health,
+                                    targetMinion.AttackDamage,
+                                    minion.DetectionRange
+                                );
+
+                                if (threatLevel > bestThreatLevel)
                                 {
-                                    bestDistance = result.Distance;
+                                    bestThreatLevel = threatLevel;
                                     bestTarget = result.TargetEntity;
+                                    bestTargetPosition = result.Position;
                                 }
                             }
                         }
                     }
 
-                    // Set new target
-                    if (bestTarget != Entity.Null)
+                    // Set new target if threat level is significant
+                    if (bestTarget != Entity.Null && bestThreatLevel > 0.3f)
                     {
-                        var targetTransform = transformLookup[bestTarget];
-                        combatTarget.SetTarget(bestTarget, targetTransform.Position, bestDistance);
+                        combatTarget.SetTarget(bestTarget, bestTargetPosition, math.distance(transform.Position, bestTargetPosition));
                         minion.StateFlags |= MinionStateFlags.Aggro;
                     }
-                    else
-                    {
-                        combatTarget.LoseTarget();
-                        minion.StateFlags &= ~MinionStateFlags.Aggro;
-                    }
-                })
-                .ScheduleParallel();
+                });
+
+            targetAcquisitionJob.ScheduleParallel();
 
             // Update movement based on combat state
-            Entities
+            var combatMovementJob = Entities
                 .WithName("CombatMovement")
                 .ForEach((Entity entity,
                     ref MinionMovementTarget movementTarget,
@@ -110,30 +144,36 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                     float distanceToTarget = combatTarget.TargetDistance;
 
-                    // Different behavior based on minion type
+                    // Use optimized attack positioning based on minion type
+                    float3 optimalPosition = CombatUtilities.GetOptimalAttackPosition(
+                        combatTarget.TargetLastKnownPosition,
+                        transform.Position,
+                        minion.Type,
+                        minion.AttackRange
+                    );
+
+                    // Type-specific behavior modifications
                     switch (minion.Type)
                     {
                         case MinionType.Ranged:
-                            // Keep distance from target
-                            if (distanceToTarget < minion.AttackRange * 0.8f)
+                            // Maintain optimal range and avoid clustering
+                            if (distanceToTarget < minion.AttackRange * 0.7f)
                             {
-                                // Too close, back away
-                                float3 awayDir = math.normalize(transform.Position - combatTarget.TargetLastKnownPosition);
-                                movementTarget.SetTarget(transform.Position + awayDir * 2f);
+                                minion.StateFlags |= MinionStateFlags.Fleeing;
                             }
-                            else if (distanceToTarget > minion.AttackRange * 0.9f)
+                            else if (distanceToTarget > minion.AttackRange * 1.1f)
                             {
-                                // Too far, move closer
-                                movementTarget.SetTarget(combatTarget.TargetLastKnownPosition, minion.AttackRange * 0.85f);
+                                minion.StateFlags &= ~MinionStateFlags.Fleeing;
+                                movementTarget.SetTarget(optimalPosition, minion.AttackRange * 0.1f);
                             }
                             break;
 
                         case MinionType.Tank:
-                            // Charge directly at target
-                            if (distanceToTarget > minion.AttackRange)
+                            // Aggressive charging behavior
+                            if (distanceToTarget > minion.AttackRange * 0.5f)
                             {
-                                movementTarget.SetTarget(combatTarget.TargetLastKnownPosition, minion.AttackRange * 0.9f);
                                 minion.StateFlags |= MinionStateFlags.Charging;
+                                movementTarget.SetTarget(optimalPosition, minion.AttackRange * 0.2f);
                             }
                             else
                             {
@@ -142,41 +182,46 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                             break;
 
                         case MinionType.Fast:
-                            // Hit and run tactics
+                            // Dynamic hit-and-run tactics
                             if ((minion.StateFlags & MinionStateFlags.Fleeing) != 0)
                             {
-                                // Run away after hitting
                                 float3 fleeDir = math.normalize(transform.Position - combatTarget.TargetLastKnownPosition);
-                                movementTarget.SetTarget(transform.Position + fleeDir * 5f);
+                                movementTarget.SetTarget(transform.Position + fleeDir * 6f, 1f);
 
-                                // Stop fleeing after a moment
-                                if (distanceToTarget > minion.AttackRange * 2f)
+                                // Stop fleeing when far enough
+                                if (distanceToTarget > minion.AttackRange * 2.5f)
                                 {
                                     minion.StateFlags &= ~MinionStateFlags.Fleeing;
                                 }
                             }
-                            else if (distanceToTarget > minion.AttackRange)
-                            {
-                                // Move in to attack
-                                movementTarget.SetTarget(combatTarget.TargetLastKnownPosition, minion.AttackRange * 0.9f);
-                            }
                             else
                             {
-                                // Start fleeing after attack
-                                minion.StateFlags |= MinionStateFlags.Fleeing;
+                                movementTarget.SetTarget(optimalPosition, minion.AttackRange * 0.3f);
+
+                                // Start fleeing after getting close
+                                if (distanceToTarget <= minion.AttackRange * 1.2f)
+                                {
+                                    minion.StateFlags |= MinionStateFlags.Fleeing;
+                                }
                             }
                             break;
 
+                        case MinionType.Flying:
+                            // Aerial attack positioning with height advantage
+                            movementTarget.SetTarget(optimalPosition, minion.AttackRange * 0.2f);
+                            break;
+
                         default:
-                            // Basic minions just move to attack range
-                            if (distanceToTarget > minion.AttackRange)
+                            // Basic minions use straightforward approach
+                            if (distanceToTarget > minion.AttackRange * 0.9f)
                             {
-                                movementTarget.SetTarget(combatTarget.TargetLastKnownPosition, minion.AttackRange * 0.9f);
+                                movementTarget.SetTarget(optimalPosition, minion.AttackRange * 0.1f);
                             }
                             break;
                     }
-                })
-                .ScheduleParallel();
+                });
+
+            combatMovementJob.ScheduleParallel();
 
             // Boss behavior patterns
             Entities
@@ -206,6 +251,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 .ScheduleParallel();
 
             // Swarm behavior for basic minions
+            var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
+
             Entities
                 .WithName("SwarmBehavior")
                 .WithReadOnly(minionDataLookup)
