@@ -1,0 +1,53 @@
+# ClickHouse Operator Helm Values
+# Configure the operator for production deployment
+
+operator:
+  image:
+    repository: altinity/clickhouse-operator
+    tag: 0.25.3
+    pullPolicy: IfNotPresent
+
+  # Resource limits for the operator
+  resources:
+    requests:
+      memory: "128Mi"
+      cpu: "100m"
+    limits:
+      memory: "512Mi"
+      cpu: "500m"
+
+  # Watch specific namespaces (empty means all namespaces)
+  watchNamespaces: []
+
+  # Enable metrics
+  metrics:
+    enabled: true
+    port: 8888
+
+# Security context
+securityContext:
+  runAsNonRoot: true
+  runAsUser: 1001
+  fsGroup: 1001
+
+# Service account
+serviceAccount:
+  create: true
+  annotations: {}
+
+# Default storage class for ClickHouse volumes
+clickhouse:
+  # Default storage configuration
+  storage:
+    storageClassName: "longhorn"
+    accessModes:
+      - ReadWriteOnce
+    size: "10Gi"
+
+# Logging configuration
+logging:
+  level: "info"
+
+# Enable RBAC
+rbac:
+  create: true
