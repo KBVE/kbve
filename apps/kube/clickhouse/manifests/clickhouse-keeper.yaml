@@ -6,9 +6,8 @@ metadata:
 spec:
   configuration:
     clusters:
-      - name: keeper-cluster
+      - name: keeper
         layout:
-          shardsCount: 1
           replicasCount: 3
         settings:
           keeper_server/coordination_settings/operation_timeout_ms: "10000"

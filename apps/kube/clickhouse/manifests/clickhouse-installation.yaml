@@ -28,7 +28,7 @@ spec:
       default/interval/read_rows: "0"
       default/interval/execution_time: "0"
     clusters:
-      - name: clickhouse-cluster
+      - name: cluster
         layout:
           shardsCount: 2
           replicasCount: 2
