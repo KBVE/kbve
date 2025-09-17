@@ -6,44 +6,15 @@ metadata:
 spec:
   configuration:
     clusters:
-      - name: keeper-cluster
+      - name: keeper
         layout:
-          shardsCount: 1
           replicasCount: 3
-        settings:
-          keeper_server/coordination_settings/operation_timeout_ms: "10000"
-          keeper_server/coordination_settings/session_timeout_ms: "30000"
-          keeper_server/coordination_settings/dead_session_check_period_ms: "500"
-          keeper_server/coordination_settings/heart_beat_interval_ms: "500"
-          keeper_server/coordination_settings/election_timeout_lower_bound_ms: "1000"
-          keeper_server/coordination_settings/election_timeout_upper_bound_ms: "2000"
-          keeper_server/coordination_settings/rotate_log_storage_interval: "100000"
-          keeper_server/coordination_settings/reserved_log_items: "100000"
-          keeper_server/coordination_settings/snapshot_distance: "100000"
-          keeper_server/coordination_settings/snapshots_to_keep: "3"
-          keeper_server/coordination_settings/stale_log_gap: "10000"
-          keeper_server/coordination_settings/fresh_log_gap: "200"
-          keeper_server/coordination_settings/max_requests_batch_size: "100"
-          keeper_server/coordination_settings/force_sync: "true"
-          keeper_server/coordination_settings/quorum_reads: "false"
-          keeper_server/coordination_settings/raft_logs_level: "warning"
-          keeper_server/coordination_settings/auto_forwarding: "true"
-          keeper_server/coordination_settings/shutdown_timeout: "5000"
-          keeper_server/coordination_settings/startup_timeout: "30000"
-          prometheus/endpoint: "/metrics"
-          prometheus/port: "7000"
-          prometheus/metrics: "true"
-          prometheus/events: "true"
-          prometheus/errors: "true"
-          prometheus/asynchronous_metrics: "false"
   defaults:
     templates:
-      dataVolumeClaimTemplate: longhorn-storage
-      podTemplate: clickhouse-keeper-pod
-      serviceTemplate: clickhouse-keeper-service
+      dataVolumeClaimTemplate: keeper-storage
   templates:
     volumeClaimTemplates:
-      - name: longhorn-storage
+      - name: keeper-storage
         spec:
           accessModes:
             - ReadWriteOnce
@@ -51,58 +22,3 @@ spec:
             requests:
               storage: 5Gi
           storageClassName: longhorn
-    podTemplates:
-      - name: clickhouse-keeper-pod
-        metadata:
-          labels:
-            app: clickhouse-keeper
-        spec:
-          containers:
-            - name: clickhouse-keeper
-              image: clickhouse/clickhouse-keeper:23.8
-              ports:
-                - name: client
-                  containerPort: 9181
-                - name: raft
-                  containerPort: 9234
-                - name: prometheus
-                  containerPort: 7000
-              resources:
-                requests:
-                  memory: "512Mi"
-                  cpu: "200m"
-                limits:
-                  memory: "1Gi"
-                  cpu: "500m"
-              readinessProbe:
-                tcpSocket:
-                  port: 9181
-                initialDelaySeconds: 10
-                periodSeconds: 5
-              livenessProbe:
-                tcpSocket:
-                  port: 9181
-                initialDelaySeconds: 30
-                periodSeconds: 30
-          securityContext:
-            runAsUser: 101
-            runAsGroup: 101
-            fsGroup: 101
-    serviceTemplates:
-      - name: clickhouse-keeper-service
-        metadata:
-          labels:
-            app: clickhouse-keeper
-        spec:
-          ports:
-            - name: client
-              port: 9181
-              targetPort: 9181
-            - name: raft
-              port: 9234
-              targetPort: 9234
-            - name: prometheus
-              port: 7000
-              targetPort: 7000
-          selector:
-            app: clickhouse-keeper

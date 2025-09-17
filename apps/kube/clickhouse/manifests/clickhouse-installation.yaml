@@ -10,62 +10,22 @@ spec:
       admin/networks/ip:
         - "::/0"
       admin/profile: "default"
-      admin/access_management: "1"
-    profiles:
-      default/max_memory_usage: "10000000000"
-      default/use_uncompressed_cache: "0"
-      default/load_balancing: "random"
-      default/background_pool_size: "32"
-      default/background_schedule_pool_size: "16"
-      default/background_fetches_pool_size: "8"
-      default/background_move_pool_size: "8"
-      default/background_common_pool_size: "8"
-    quotas:
-      default/interval/duration: "3600"
-      default/interval/queries: "0"
-      default/interval/errors: "0"
-      default/interval/result_rows: "0"
-      default/interval/read_rows: "0"
-      default/interval/execution_time: "0"
     clusters:
-      - name: clickhouse-cluster
+      - name: cluster
         layout:
           shardsCount: 2
           replicasCount: 2
         settings:
-          # ClickHouse Keeper configuration (instead of ZooKeeper)
-          keeper_server/tcp_port: "9181"
-          keeper_server/server_id_from_k8s_node_name: "true"
-          # Use ClickHouse Keeper service
-          zookeeper/nodes/node/host: "clickhouse-keeper-client.clickhouse.svc.cluster.local"
-          zookeeper/nodes/node/port: "9181"
-          # Performance settings
-          max_connections: "4096"
-          keep_alive_timeout: "3"
-          max_concurrent_queries: "100"
-          uncompressed_cache_size: "8589934592"
-          mark_cache_size: "5368709120"
-          # Replication settings
-          max_replica_delay_for_distributed_queries: "300"
-          fallback_to_stale_replicas_for_distributed_queries: "1"
-          distributed_replica_error_half_life: "60"
-          distributed_replica_error_cap: "1000"
-          # Metrics and monitoring
-          prometheus/endpoint: "/metrics"
-          prometheus/port: "9363"
-          prometheus/metrics: "true"
-          prometheus/events: "true"
-          prometheus/errors: "true"
-          prometheus/asynchronous_metrics: "true"
+          # Simple ZooKeeper configuration for replication
+          zookeeper/nodes/node/host: "chk-clickhouse-keeper-keeper-0-0.clickhouse.svc.cluster.local"
+          zookeeper/nodes/node/port: "2181"
   defaults:
     templates:
-      dataVolumeClaimTemplate: longhorn-storage
-      logVolumeClaimTemplate: longhorn-logs
-      podTemplate: clickhouse-pod
-      serviceTemplate: clickhouse-service
+      dataVolumeClaimTemplate: data-storage
+      logVolumeClaimTemplate: log-storage
   templates:
     volumeClaimTemplates:
-      - name: longhorn-storage
+      - name: data-storage
         spec:
           accessModes:
             - ReadWriteOnce
@@ -73,7 +33,7 @@ spec:
             requests:
               storage: 50Gi
           storageClassName: longhorn
-      - name: longhorn-logs
+      - name: log-storage
         spec:
           accessModes:
             - ReadWriteOnce
@@ -81,70 +41,3 @@ spec:
             requests:
               storage: 10Gi
           storageClassName: longhorn
-    podTemplates:
-      - name: clickhouse-pod
-        metadata:
-          labels:
-            app: clickhouse
-        spec:
-          containers:
-            - name: clickhouse
-              image: clickhouse/clickhouse-server:25.6
-              ports:
-                - name: http
-                  containerPort: 8123
-                - name: client
-                  containerPort: 9000
-                - name: interserver
-                  containerPort: 9009
-                - name: prometheus
-                  containerPort: 9363
-              resources:
-                requests:
-                  memory: "2Gi"
-                  cpu: "500m"
-                limits:
-                  memory: "8Gi"
-                  cpu: "2000m"
-              readinessProbe:
-                httpGet:
-                  path: /ping
-                  port: 8123
-                initialDelaySeconds: 10
-                periodSeconds: 5
-              livenessProbe:
-                httpGet:
-                  path: /ping
-                  port: 8123
-                initialDelaySeconds: 30
-                periodSeconds: 30
-              volumeMounts:
-                - name: longhorn-storage
-                  mountPath: /var/lib/clickhouse
-                - name: longhorn-logs
-                  mountPath: /var/log/clickhouse-server
-          securityContext:
-            runAsUser: 101
-            runAsGroup: 101
-            fsGroup: 101
-    serviceTemplates:
-      - name: clickhouse-service
-        metadata:
-          labels:
-            app: clickhouse
-        spec:
-          ports:
-            - name: http
-              port: 8123
-              targetPort: 8123
-            - name: client
-              port: 9000
-              targetPort: 9000
-            - name: interserver
-              port: 9009
-              targetPort: 9009
-            - name: prometheus
-              port: 9363
-              targetPort: 9363
-          selector:
-            app: clickhouse
