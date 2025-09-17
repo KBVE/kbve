@@ -104,11 +104,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
         {
             get
             {
-#if ENABLE_UNITY_COLLECTIONS_CHECKS
-                return m_Safety.IsValid() && m_Buffer != null;
-#else
                 return m_Buffer != null;
-#endif
             }
         }
 
@@ -344,7 +340,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
             {
                 UnsafeUtility.Free(m_Buffer, m_AllocatorLabel);
                 m_Buffer = null;
-                m_Capacity = 0;
                 m_NumEntries = 0;
             }
         }
