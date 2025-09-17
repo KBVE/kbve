@@ -49,7 +49,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         Neutral = 0,
         Player = 1,
         Enemy = 2,
-        Ally = 3
+        Ally = 3,
+        Wildlife = 4,
+        Undead = 5,
+        Demon = 6,
+        All = 255 // For AoE that affects everyone
     }
 
     /// <summary>
@@ -66,6 +70,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         Invisible = 1 << 4,
         Aggro = 1 << 5,
         Fleeing = 1 << 6,
-        Dead = 1 << 7
+        Dead = 1 << 7,
+        Rooted = 1 << 8,
+        Defending = 1 << 9,
+        Spawning = 1 << 10,
+        Despawning = 1 << 11,
+        Enraged = 1 << 12,
+        Charging = 1 << 13
     }
 }
