@@ -10,18 +10,8 @@ spec:
         layout:
           replicasCount: 3
         settings:
-          # Basic Keeper server configuration
+          # Minimal configuration - let operator handle defaults
           keeper_server/tcp_port: "9181"
-          keeper_server/server_id_from_k8s_node_name: "true"
-          # Essential coordination settings only
-          keeper_server/coordination_settings/operation_timeout_ms: "10000"
-          keeper_server/coordination_settings/session_timeout_ms: "30000"
-          keeper_server/coordination_settings/election_timeout_lower_bound_ms: "1000"
-          keeper_server/coordination_settings/election_timeout_upper_bound_ms: "2000"
-          # Metrics
-          prometheus/endpoint: "/metrics"
-          prometheus/port: "7000"
-          prometheus/metrics: "true"
   defaults:
     templates:
       dataVolumeClaimTemplate: longhorn-storage
@@ -45,7 +35,7 @@ spec:
         spec:
           containers:
             - name: clickhouse-keeper
-              image: clickhouse/clickhouse-keeper:23.8
+              image: clickhouse/clickhouse-keeper:25.8
               ports:
                 - name: client
                   containerPort: 9181
