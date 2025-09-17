@@ -28,3 +28,15 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/template/spec/containers/0/env/5/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/0/env/6/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/0/env/7/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/0/env/8/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/1/env/5/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/1/env/6/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/1/env/7/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/1/env/8/valueFrom/resourceFieldRef/divisor

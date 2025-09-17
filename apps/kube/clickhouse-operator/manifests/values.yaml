@@ -16,11 +16,6 @@ operator:
       memory: "512Mi"
       cpu: "500m"
 
-  # Environment variable resource references without divisor
-  env:
-    resourceFieldRef:
-      divisor: ""
-
   # Watch specific namespaces (empty means all namespaces)
   watchNamespaces: []
 
