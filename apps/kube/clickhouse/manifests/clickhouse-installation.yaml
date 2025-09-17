@@ -39,12 +39,12 @@ spec:
           replicasCount: 2
         settings:
           # ClickHouse Keeper configuration (replaces ZooKeeper)
-          zookeeper/node[1]/host: "chk-keeper-0-0.clickhouse.svc.cluster.local"
-          zookeeper/node[1]/port: "9181"
-          zookeeper/node[2]/host: "chk-keeper-0-1.clickhouse.svc.cluster.local"
-          zookeeper/node[2]/port: "9181"
-          zookeeper/node[3]/host: "chk-keeper-0-2.clickhouse.svc.cluster.local"
-          zookeeper/node[3]/port: "9181"
+          zookeeper/node[1]/host: "chk-clickhouse-keeper-keeper-0-0.clickhouse.svc.cluster.local"
+          zookeeper/node[1]/port: "2181"
+          zookeeper/node[2]/host: "chk-clickhouse-keeper-keeper-0-1.clickhouse.svc.cluster.local"
+          zookeeper/node[2]/port: "2181"
+          zookeeper/node[3]/host: "chk-clickhouse-keeper-keeper-0-2.clickhouse.svc.cluster.local"
+          zookeeper/node[3]/port: "2181"
           # Performance settings
           max_connections: "4096"
           keep_alive_timeout: "3"
