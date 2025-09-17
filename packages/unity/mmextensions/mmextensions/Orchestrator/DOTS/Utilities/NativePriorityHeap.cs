@@ -5,10 +5,19 @@ using Unity.Mathematics;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
 {
-    public enum HeapComparison
+    public enum HeapComparison : byte
     {
         Min,
         Max
+    }
+
+    /// <summary>
+    /// Unity-compatible comparison enum alias
+    /// </summary>
+    public enum Comparison : byte
+    {
+        Min = HeapComparison.Min,
+        Max = HeapComparison.Max
     }
 
     /// <summary>
@@ -22,8 +31,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
     {
         [NativeDisableUnsafePtrRestriction]
         T* m_Buffer;
-        int m_Capacity;
-        Allocator m_AllocatorLabel;
+        readonly int m_Capacity;
+        readonly Allocator m_AllocatorLabel;
 
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
         AtomicSafetyHandle m_Safety;
@@ -31,7 +40,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
 #endif
 
         int m_NumEntries;
-        int m_CompareMultiplier;
+        readonly int m_CompareMultiplier;
 
         public NativePriorityHeap(int capacity, Allocator allocator, HeapComparison comparison = HeapComparison.Min)
         {
@@ -53,6 +62,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
             m_NumEntries = 0;
 
             m_CompareMultiplier = comparison == HeapComparison.Min ? 1 : -1;
+        }
+
+        /// <summary>
+        /// Unity-compatible constructor overload
+        /// </summary>
+        public NativePriorityHeap(int capacity, Allocator allocator, Comparison comparison)
+            : this(capacity, allocator, (HeapComparison)comparison)
+        {
         }
 
         public int Count
@@ -79,6 +96,21 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
 
         public bool IsEmpty => Count == 0;
         public bool IsFull => Count == m_Capacity;
+
+        /// <summary>
+        /// Check if the heap has been created/initialized
+        /// </summary>
+        public bool IsCreated
+        {
+            get
+            {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+                return m_Safety.IsValid() && m_Buffer != null;
+#else
+                return m_Buffer != null;
+#endif
+            }
+        }
 
         /// <summary>
         /// Push an element onto the heap
@@ -141,6 +173,39 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
             AtomicSafetyHandle.CheckWriteAndThrow(m_Safety);
 #endif
             m_NumEntries = 0;
+        }
+
+        /// <summary>
+        /// Get direct access to the underlying array (advanced users only)
+        /// </summary>
+        public unsafe NativeArray<T> AsArray()
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+#endif
+            var array = NativeArrayUnsafeUtility.ConvertExistingDataToNativeArray<T>(
+                m_Buffer, m_NumEntries, m_AllocatorLabel);
+
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            NativeArrayUnsafeUtility.SetAtomicSafetyHandle(ref array, m_Safety);
+#endif
+            return array;
+        }
+
+        /// <summary>
+        /// Check if the heap contains a specific element (O(n) operation)
+        /// </summary>
+        public bool Contains(T item)
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+#endif
+            for (int i = 0; i < m_NumEntries; i++)
+            {
+                if (m_Buffer[i].CompareTo(item) == 0)
+                    return true;
+            }
+            return false;
         }
 
         /// <summary>
@@ -217,6 +282,58 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
             return a.CompareTo(b) * m_CompareMultiplier;
         }
 
+        /// <summary>
+        /// Validate heap property (for debugging/testing)
+        /// </summary>
+        public bool IsValidHeap()
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+#endif
+            for (int i = 0; i < m_NumEntries; i++)
+            {
+                int leftChild = 2 * i + 1;
+                int rightChild = 2 * i + 2;
+
+                if (leftChild < m_NumEntries && Compare(m_Buffer[i], m_Buffer[leftChild]) > 0)
+                    return false;
+
+                if (rightChild < m_NumEntries && Compare(m_Buffer[i], m_Buffer[rightChild]) > 0)
+                    return false;
+            }
+            return true;
+        }
+
+        /// <summary>
+        /// Get all elements as a sorted array (creates a copy)
+        /// </summary>
+        public NativeArray<T> ToSortedArray(Allocator allocator)
+        {
+#if ENABLE_UNITY_COLLECTIONS_CHECKS
+            AtomicSafetyHandle.CheckReadAndThrow(m_Safety);
+#endif
+            var result = new NativeArray<T>(m_NumEntries, allocator);
+
+            // Create a temporary heap to avoid modifying original
+            var tempHeap = new NativePriorityHeap<T>(m_Capacity, Allocator.Temp,
+                m_CompareMultiplier == 1 ? HeapComparison.Min : HeapComparison.Max);
+
+            // Copy all elements
+            for (int i = 0; i < m_NumEntries; i++)
+            {
+                tempHeap.Push(m_Buffer[i]);
+            }
+
+            // Pop elements in sorted order
+            for (int i = 0; i < m_NumEntries; i++)
+            {
+                result[i] = tempHeap.Pop();
+            }
+
+            tempHeap.Dispose();
+            return result;
+        }
+
         public void Dispose()
         {
 #if ENABLE_UNITY_COLLECTIONS_CHECKS
@@ -228,6 +345,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
                 UnsafeUtility.Free(m_Buffer, m_AllocatorLabel);
                 m_Buffer = null;
                 m_Capacity = 0;
+                m_NumEntries = 0;
             }
         }
     }
