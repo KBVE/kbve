@@ -18,9 +18,6 @@ spec:
     - repoURL: https://github.com/kbve/kbve
       targetRevision: main
       ref: values
-    - repoURL: https://github.com/kbve/kbve
-      targetRevision: main
-      path: apps/kube/clickhouse-operator/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: clickhouse

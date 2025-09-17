@@ -1,5 +1,0 @@
-apiVersion: kustomize.config.k8s.io/v1beta1
-kind: Kustomization
-
-# No resources needed - this directory only contains Helm values
-# The values.yaml file is referenced by the ArgoCD Application's helm.valueFiles
