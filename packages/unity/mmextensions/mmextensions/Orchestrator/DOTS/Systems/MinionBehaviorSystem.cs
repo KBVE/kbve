@@ -14,12 +14,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     [UpdateBefore(typeof(MinionCombatSystem))]
     public partial class MinionBehaviorSystem : SystemBase
     {
-        private Unity.Mathematics.Random _random;
+        private Random _random;
         private EntityQuery _playerQuery;
 
         protected override void OnCreate()
         {
-            _random = new Unity.Mathematics.Random((uint)System.DateTime.Now.Ticks);
+            _random = new Random((uint)System.DateTime.Now.Ticks);
 
             // Query for player entities
             _playerQuery = GetEntityQuery(
@@ -36,8 +36,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             // Target acquisition for hostile minions using enhanced spatial queries
             var minionDataLookup = SystemAPI.GetComponentLookup<MinionData>(true);
+            var localDeltaTime = deltaTime;
 
-            var targetAcquisitionJob = Entities
+            Entities
                 .WithName("AcquireTargets")
                 .WithReadOnly(minionDataLookup)
                 .ForEach((Entity entity,
@@ -47,7 +48,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     in DynamicBuffer<SpatialQueryResult> queryResults) =>
                 {
                     // Update time since last target seen
-                    combatTarget.TimeSinceTargetSeen += deltaTime;
+                    combatTarget.TimeSinceTargetSeen += localDeltaTime;
 
                     // Check if current target is still valid
                     if (combatTarget.HasTarget)
@@ -98,13 +99,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                             if (IsHostileFaction(minion.Faction, targetMinion.Faction))
                             {
-                                // Calculate threat level instead of just distance
-                                float threatLevel = CombatUtilities.CalculateThreatLevel(
-                                    result.Distance,
-                                    targetMinion.Health,
-                                    targetMinion.AttackDamage,
-                                    minion.DetectionRange
-                                );
+                                // Calculate threat level based on distance (simplified for now)
+                                float threatLevel = result.Distance <= minion.DetectionRange
+                                    ? 1f - (result.Distance / minion.DetectionRange)
+                                    : 0f;
 
                                 if (threatLevel > bestThreatLevel)
                                 {
@@ -122,12 +120,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         combatTarget.SetTarget(bestTarget, bestTargetPosition, math.distance(transform.Position, bestTargetPosition));
                         minion.StateFlags |= MinionStateFlags.Aggro;
                     }
-                });
-
-            targetAcquisitionJob.ScheduleParallel();
+                }).ScheduleParallel();
 
             // Update movement based on combat state
-            var combatMovementJob = Entities
+            var localElapsedTime = elapsedTime;
+
+            Entities
                 .WithName("CombatMovement")
                 .ForEach((Entity entity,
                     ref MinionMovementTarget movementTarget,
@@ -138,19 +136,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     if (!combatTarget.HasTarget)
                     {
                         // Patrol behavior when no target
-                        PatrolBehavior(ref movementTarget, ref minion, transform.Position, elapsedTime);
+                        PatrolBehavior(ref movementTarget, ref minion, transform.Position, localElapsedTime);
                         return;
                     }
 
                     float distanceToTarget = combatTarget.TargetDistance;
 
-                    // Use optimized attack positioning based on minion type
-                    float3 optimalPosition = CombatUtilities.GetOptimalAttackPosition(
-                        combatTarget.TargetLastKnownPosition,
-                        transform.Position,
-                        minion.Type,
-                        minion.AttackRange
-                    );
+                    // Calculate attack positioning based on minion type (simplified for now)
+                    float3 direction = math.normalize(combatTarget.TargetLastKnownPosition - transform.Position);
+                    float3 optimalPosition = combatTarget.TargetLastKnownPosition - direction * (minion.AttackRange * 0.8f);
 
                     // Type-specific behavior modifications
                     switch (minion.Type)
@@ -208,7 +202,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                         case MinionType.Flying:
                             // Aerial attack positioning with height advantage
-                            movementTarget.SetTarget(optimalPosition, minion.AttackRange * 0.2f);
+                            float3 flyingPosition = optimalPosition;
+                            flyingPosition.y += 3f;
+                            movementTarget.SetTarget(flyingPosition, minion.AttackRange * 0.2f);
                             break;
 
                         default:
@@ -219,14 +215,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                             }
                             break;
                     }
-                });
-
-            combatMovementJob.ScheduleParallel();
+                }).ScheduleParallel();
 
             // Boss behavior patterns
             Entities
                 .WithName("BossBehavior")
-                .ForEach((Entity entity,
+                .ForEach((
+                    Entity entity,
                     ref MinionData minion,
                     ref CombatTarget target,
                     in LocalTransform transform) =>
@@ -247,8 +242,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         // Spawn adds or trigger special attacks
                         // This would trigger spawn events
                     }
-                })
-                .ScheduleParallel();
+                }).ScheduleParallel();
 
             // Swarm behavior for basic minions
             var transformLookup = SystemAPI.GetComponentLookup<LocalTransform>(true);
@@ -257,7 +251,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 .WithName("SwarmBehavior")
                 .WithReadOnly(minionDataLookup)
                 .WithReadOnly(transformLookup)
-                .ForEach((Entity entity,
+                .ForEach((
+                    Entity entity,
                     ref MinionMovementTarget movementTarget,
                     in MinionData minion,
                     in LocalTransform transform,
@@ -292,8 +287,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     {
                         movementTarget.SetTarget(swarmCenter, 3f);
                     }
-                })
-                .ScheduleParallel();
+                }).ScheduleParallel();
 
             _random = randomLocal;
         }
@@ -306,7 +300,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             // Simple circular patrol
             float radius = 10f;
-            float3 patrolTarget = new float3(
+            var patrolTarget = new float3(
                 math.sin(time * 0.5f) * radius,
                 currentPosition.y,
                 math.cos(time * 0.5f) * radius
@@ -350,7 +344,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Flying minion behavior - height variation
             Entities
                 .WithName("FlyingBehavior")
-                .ForEach((ref LocalTransform transform,
+                .ForEach((
+                    ref LocalTransform transform,
                     ref MinionData minion) =>
                 {
                     if (minion.Type != MinionType.Flying) return;
@@ -361,14 +356,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     {
                         transform.Position.y = math.lerp(transform.Position.y, targetHeight, deltaTime);
                     }
-                })
-                .ScheduleParallel();
+                }).ScheduleParallel();
 
             // Defensive behavior for tanks
             Entities
                 .WithName("DefensiveBehavior")
                 .WithReadOnly(minionDataLookup)
-                .ForEach((ref MinionData minion,
+                .ForEach((
+                    ref MinionData minion,
                     ref DamageTaker taker,
                     in DynamicBuffer<SpatialQueryResult> nearbyAllies) =>
                 {
@@ -399,8 +394,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         minion.StateFlags &= ~MinionStateFlags.Defending;
                         taker.DamageReduction = math.max(0f, taker.DamageReduction - 0.2f);
                     }
-                })
-                .ScheduleParallel();
+                }).ScheduleParallel();
         }
     }
 }
