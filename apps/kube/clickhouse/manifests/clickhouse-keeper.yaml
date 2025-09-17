@@ -35,7 +35,6 @@ spec:
         spec:
           containers:
             - name: clickhouse-keeper
-              image: clickhouse/clickhouse-keeper:25.8
               ports:
                 - name: client
                   containerPort: 9181
