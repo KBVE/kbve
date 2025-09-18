@@ -38,7 +38,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             _ecbSystem = World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
 
             // Don't require any entities to exist for this system to run
-            RequireForUpdate(GetEntityQuery(ComponentType.ReadOnly<MinionSpawningSystem>()));
+            RequireForUpdate(GetEntityQuery(ComponentType.ReadOnly<MinionSpawningSystemTag>()));
         }
 
         protected override void OnStartRunning()
@@ -130,24 +130,76 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         private void SpawnWaveAtLocation(float3 center)
         {
-            // Use the existing DOTSSingleton spawning system
             for (int i = 0; i < _config.zombiesPerWave; i++)
             {
-                // Calculate position in a circle around the center
-                float angle = (float)i / _config.zombiesPerWave * math.PI * 2f;
-                float3 offset = new float3(
-                    math.cos(angle) * _config.waveRadius,
-                    0,
-                    math.sin(angle) * _config.waveRadius
-                );
+                float3 spawnPosition;
 
-                float3 spawnPosition = center + offset;
+                if (_config.spawnWithinGrid)
+                {
+                    // Use grid-based spawning
+                    spawnPosition = GetRandomGridPosition();
+                }
+                else
+                {
+                    // Use circular pattern around center
+                    float angle = (float)i / _config.zombiesPerWave * math.PI * 2f;
+                    float3 offset = new float3(
+                        math.cos(angle) * _config.waveRadius,
+                        0,
+                        math.sin(angle) * _config.waveRadius
+                    );
+                    spawnPosition = center + offset;
+                }
 
-                // Spawn using DOTSSingleton (which handles the archetype creation)
-                DOTSSingleton.RequestSingleSpawn(spawnPosition, _config.spawnType, _config.spawnFaction);
+                // Spawn zombie using existing system
+                SpawnZombieWithPathfinding(spawnPosition);
             }
 
-            Debug.Log($"[ZombieWaveSpawnSystem] Spawned {_config.zombiesPerWave} zombies at {center}");
+            string spawnMethod = _config.spawnWithinGrid ? "grid" : "circular";
+            Debug.Log($"[ZombieWaveSpawnSystem] Spawned {_config.zombiesPerWave} zombies using {spawnMethod} pattern");
+        }
+
+        private float3 GetRandomGridPosition()
+        {
+            var gridMin = new float2(_config.gridTopLeft.x, _config.gridBottomRight.y);
+            var gridMax = new float2(_config.gridBottomRight.x, _config.gridTopLeft.y);
+
+            // Check if we should spawn at edges
+            if (_config.allowEdgeSpawning && UnityEngine.Random.value < _config.edgeSpawnProbability)
+            {
+                return GetEdgeSpawnPosition(gridMin, gridMax);
+            }
+
+            // Random position within grid
+            float x = UnityEngine.Random.Range(gridMin.x, gridMax.x);
+            float z = UnityEngine.Random.Range(gridMin.y, gridMax.y);
+
+            return new float3(x, 0, z);
+        }
+
+        private float3 GetEdgeSpawnPosition(float2 gridMin, float2 gridMax)
+        {
+            // Choose random edge: 0=top, 1=right, 2=bottom, 3=left
+            int edge = UnityEngine.Random.Range(0, 4);
+
+            return edge switch
+            {
+                0 => new float3(UnityEngine.Random.Range(gridMin.x, gridMax.x), 0, gridMax.y), // Top edge
+                1 => new float3(gridMax.x, 0, UnityEngine.Random.Range(gridMin.y, gridMax.y)), // Right edge
+                2 => new float3(UnityEngine.Random.Range(gridMin.x, gridMax.x), 0, gridMin.y), // Bottom edge
+                3 => new float3(gridMin.x, 0, UnityEngine.Random.Range(gridMin.y, gridMax.y)), // Left edge
+                _ => new float3(gridMin.x + (gridMax.x - gridMin.x) * 0.5f, 0, gridMin.y + (gridMax.y - gridMin.y) * 0.5f) // Center fallback
+            };
+        }
+
+        private void SpawnZombieWithPathfinding(float3 position)
+        {
+            // For now, use the existing spawn system
+            // The pathfinding components will be added by MinionAuthoring when prefabs are used
+            DOTSSingleton.RequestSingleSpawn(position, _config.spawnType, _config.spawnFaction);
+
+            // TODO: When we integrate with MinionPrefabManager, we can add pathfinding components here
+            // For entities spawned through archetype system, we'd need to add the components manually
         }
 
         protected override void OnStopRunning()

@@ -1,6 +1,8 @@
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
+using Cysharp.Threading.Tasks;
+using Unity.Entities;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -52,9 +54,32 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             builder.UseDefaultWorld(systems =>
             {
                 systems.Add<ZombieWaveSpawnSystem>();
+                systems.Add<KBVE.MMExtensions.Orchestrator.DOTS.Systems.ZombieTargetingSystem>();
             });
 
-            Debug.Log("[DOTSLifetimeScope] Registered ZombieWaveSpawnSystem with VContainer ECS integration");
+            // Create the required MinionSpawningSystem entity after systems are registered
+            CreateMinionSpawningEntityDelayedAsync().Forget();
+
+            Debug.Log("[DOTSLifetimeScope] Registered zombie spawning and targeting systems with VContainer ECS integration");
+        }
+
+        private async UniTaskVoid CreateMinionSpawningEntityDelayedAsync()
+        {
+            // Wait a bit for DOTS to be fully initialized
+            await UniTask.Delay(100); // 100ms
+
+            // Retry until default world is available
+            while (World.DefaultGameObjectInjectionWorld == null)
+            {
+                Debug.LogWarning("[DOTSLifetimeScope] Default DOTS world not yet available, retrying in 0.5s");
+                await UniTask.Delay(500); // 500ms
+            }
+
+            // Create entity with MinionSpawningSystemTag component to satisfy ZombieWaveSpawnSystem requirements
+            var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
+            var entity = entityManager.CreateEntity();
+            entityManager.AddComponentData(entity, new MinionSpawningSystemTag { isActive = true });
+            Debug.Log("[DOTSLifetimeScope] Created MinionSpawningSystem entity for zombie wave spawning");
         }
 
         protected override void Awake()
@@ -181,15 +206,42 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [Range(1f, 20f)]
         public float waveRadius = 5f;
 
+        [Header("Grid Spawn Boundaries")]
+        [Tooltip("Top-left corner of the spawn grid")]
+        public UnityEngine.Vector2 gridTopLeft = new UnityEngine.Vector2(17.4f, 5.6f);
+        [Tooltip("Bottom-right corner of the spawn grid")]
+        public UnityEngine.Vector2 gridBottomRight = new UnityEngine.Vector2(74.7f, -36.1f);
+        [Tooltip("Spawn zombies randomly within the grid boundaries")]
+        public bool spawnWithinGrid = true;
+        [Tooltip("Allow spawning at grid edges for dramatic effect")]
+        public bool allowEdgeSpawning = true;
+        [Tooltip("Probability of edge spawning (0-1)")]
+        [Range(0f, 1f)]
+        public float edgeSpawnProbability = 0.3f;
+
         [Header("Spawn Locations")]
-        [Tooltip("Predefined spawn locations for waves")]
+        [Tooltip("Fallback predefined spawn locations (used when grid spawning disabled)")]
         public UnityEngine.Vector3[] spawnPositions = new UnityEngine.Vector3[]
         {
-            new UnityEngine.Vector3(10, 0, 10),
-            new UnityEngine.Vector3(-10, 0, 10),
-            new UnityEngine.Vector3(10, 0, -10),
-            new UnityEngine.Vector3(-10, 0, -10)
+            new UnityEngine.Vector3(46f, 0, -15f), // Center of grid
+            new UnityEngine.Vector3(25f, 0, 0f),   // Left side
+            new UnityEngine.Vector3(65f, 0, 0f),   // Right side
+            new UnityEngine.Vector3(46f, 0, -25f)  // Bottom center
         };
+
+        [Header("Pathfinding Settings")]
+        [Tooltip("Enable A* pathfinding for spawned zombies")]
+        public bool enableZombiePathfinding = true;
+        [Tooltip("Base movement speed for zombies")]
+        [Range(0.5f, 10f)]
+        public float zombieMoveSpeed = 2f;
+        [Tooltip("Target detection range for zombies")]
+        [Range(5f, 50f)]
+        public float zombieTargetRange = 15f;
+        [Tooltip("Enable collision avoidance between zombies")]
+        public bool enableZombieRVO = true;
+        [Tooltip("Layer mask for detecting player targets")]
+        public LayerMask playerLayerMask = 1 << 8; // Default to layer 8
 
         [Header("Testing Options")]
         [Tooltip("Spawn initial wave immediately on start")]
@@ -206,6 +258,20 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public static SpawnTestingConfiguration CreateDefault()
         {
             return new SpawnTestingConfiguration();
+        }
+    }
+
+    /// <summary>
+    /// Tag component to enable minion spawning systems
+    /// Required by ZombieWaveSpawnSystem to run
+    /// </summary>
+    public struct MinionSpawningSystemTag : IComponentData
+    {
+        public bool isActive;
+
+        public static MinionSpawningSystemTag Create()
+        {
+            return new MinionSpawningSystemTag { isActive = true };
         }
     }
 

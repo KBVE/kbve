@@ -41,6 +41,29 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public Material[] materialVariants;
         public float scale = 1f;
 
+        [Header("Pathfinding Settings")]
+        [Tooltip("Enable A* pathfinding for this minion")]
+        public bool enablePathfinding = true;
+        [Tooltip("Movement speed in units per second")]
+        [Range(0.5f, 20f)]
+        public float moveSpeed = 3f;
+        [Tooltip("Distance to stop from target")]
+        [Range(0.1f, 5f)]
+        public float stoppingDistance = 1.5f;
+        [Tooltip("Agent radius for pathfinding collision")]
+        [Range(0.1f, 2f)]
+        public float agentRadius = 0.5f;
+        [Tooltip("Agent height for pathfinding")]
+        [Range(0.5f, 5f)]
+        public float agentHeight = 2f;
+        [Tooltip("Enable RVO collision avoidance")]
+        public bool enableCollisionAvoidance = true;
+        [Tooltip("Radius for detecting targets to chase")]
+        [Range(5f, 50f)]
+        public float targetDetectionRadius = 15f;
+        [Tooltip("Layer mask for ground detection")]
+        public LayerMask groundLayerMask = -1;
+
         [Header("Debug")]
         public bool showGizmos = true;
         public Color gizmoColor = Color.red;
@@ -131,6 +154,66 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             // Add buffer for spatial query results
             AddBuffer<SpatialQueryResult>(entity);
+
+            // Add A* Pathfinding ECS components if enabled
+            if (authoring.enablePathfinding)
+            {
+                AddComponent(entity, new Pathfinding.ECS.DestinationPoint
+                {
+                    destination = new float3(authoring.transform.position.x, authoring.transform.position.y, authoring.transform.position.z),
+                    facingDirection = float3.zero
+                });
+
+                AddComponent(entity, new Pathfinding.ECS.MovementSettings
+                {
+                    follower = new Pathfinding.PID.PIDMovement
+                    {
+                        speed = authoring.moveSpeed,
+                        rotationSpeed = 360f, // degrees per second
+                        maxRotationSpeed = 400f, // slightly higher than rotationSpeed
+                        maxOnSpotRotationSpeed = 720f, // fast rotation when turning on spot
+                        slowdownTime = 0.5f,
+                        slowdownTimeWhenTurningOnSpot = 0.2f,
+                        desiredWallDistance = authoring.agentRadius * 1.5f,
+                        leadInRadiusWhenApproachingDestination = 2f,
+                        allowRotatingOnSpot = true // Enable rotation on spot
+                    },
+                    stopDistance = authoring.stoppingDistance,
+                    rotationSmoothing = 0.1f,
+                    positionSmoothing = 0f,
+                    groundMask = authoring.groundLayerMask,
+                    isStopped = false
+                });
+
+                AddComponent(entity, new Pathfinding.ECS.MovementState());
+
+                AddComponent(entity, new Pathfinding.ECS.AgentCylinderShape
+                {
+                    radius = authoring.agentRadius,
+                    height = authoring.agentHeight
+                });
+
+                AddComponent(entity, new Pathfinding.ECS.SimulateMovement());
+                AddComponent(entity, new Pathfinding.ECS.AgentMovementPlane());
+                AddComponent(entity, new Pathfinding.ECS.SearchState());
+
+                // Add RVO collision avoidance if enabled
+                if (authoring.enableCollisionAvoidance)
+                {
+                    AddComponent(entity, new Pathfinding.ECS.RVO.RVOAgent
+                    {
+                        agentTimeHorizon = 2f,
+                        obstacleTimeHorizon = 1f,
+                        maxNeighbours = 10,
+                        layer = Pathfinding.RVO.RVOLayer.DefaultAgent,
+                        collidesWith = Pathfinding.RVO.RVOLayer.DefaultAgent,
+                        priority = 0.5f,
+                        priorityMultiplier = 1f,
+                        flowFollowingStrength = 0f,
+                        locked = false
+                    });
+                }
+            }
         }
     }
 
