@@ -4,6 +4,7 @@ using VContainer;
 using VContainer.Unity;
 using KBVE.MMExtensions.Orchestrator.DOTS.Spatial;
 using KBVE.MMExtensions.Orchestrator.DOTS.Utilities;
+using KBVE.MMExtensions.Orchestrator.DOTS.Hybrid;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -30,6 +31,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             // Register utility classes
             RegisterUtilities(builder);
+
+            // Register DOTS bridge for NPC integration
+            RegisterDOTSBridge(builder);
 
             // Use VContainer's ECS integration for proper DOTS system management
             RegisterDOTSWorld(builder);
@@ -63,22 +67,39 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             builder.Register<IPriorityHeapFactory, PriorityHeapFactory>(Lifetime.Singleton);
         }
 
+        private void RegisterDOTSBridge(IContainerBuilder builder)
+        {
+            // Register the DOTS bridge for NPC system integration
+            builder.Register<DOTSNPCBridge>(Lifetime.Singleton)
+                .AsImplementedInterfaces()
+                .AsSelf();
+        }
+
         private void RegisterDOTSWorld(IContainerBuilder builder)
         {
             // Use VContainer's default world integration for DOTS systems
             builder.UseDefaultWorld(systems =>
             {
+                // Core spawning systems
+                systems.Add<MinionSpawningSystem>();
+                systems.Add<MinionSpawnRequestSystem>();
+
+                // Movement and behavior systems
+                systems.Add<MinionMovementSystem>();
+                systems.Add<MinionBehaviorSystem>();
+                systems.Add<AdvancedMinionBehaviorSystem>();
+
                 // Core spatial systems (order is critical)
                 systems.Add<SpatialIndexingSystem>();
                 systems.Add<SpatialQuerySystem>();
                 systems.Add<HighPrioritySpatialQuerySystem>();
 
-                // Behavior systems
-                systems.Add<MinionBehaviorSystem>();
-                systems.Add<AdvancedMinionBehaviorSystem>();
-
                 // Combat systems
                 systems.Add<MinionCombatSystem>();
+                systems.Add<MinionDestructionSystem>();
+
+                // Debug systems (conditional registration could be added here)
+                systems.Add<MinionDebugSystem>();
             });
         }
 

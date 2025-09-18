@@ -243,12 +243,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public AnimationLayer Layer;
         public bool IsTransitioning;
 
-        // Common animation hashes (cached for performance)
-        public static readonly int IdleHash = Animator.StringToHash("Idle");
-        public static readonly int MoveHash = Animator.StringToHash("Move");
-        public static readonly int AttackHash = Animator.StringToHash("Attack");
-        public static readonly int HitHash = Animator.StringToHash("Hit");
-        public static readonly int DeathHash = Animator.StringToHash("Death");
+        // Animation state identifiers using bitwise values for simplicity
+        // Much easier to manage than hash codes
+        public const int IdleHash = 0;      // 0000
+        public const int MoveHash = 1;      // 0001
+        public const int AttackHash = 2;    // 0010
+        public const int HitHash = 4;       // 0100
+        public const int DeathHash = 8;     // 1000
+
+        // Can also combine states if needed using bitwise OR
+        // e.g., const int AttackWhileMoving = MoveHash | AttackHash;
 
         public void TransitionTo(int newStateHash, float duration = 0.25f)
         {
