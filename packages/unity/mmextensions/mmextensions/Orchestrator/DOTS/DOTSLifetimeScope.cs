@@ -14,11 +14,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [SerializeField] private DOTSConfiguration _dotsConfig;
         [SerializeField] private SpatialIndexConfiguration _spatialConfig;
         [SerializeField] private CombatConfiguration _combatConfig;
+        [SerializeField] private SpawnTestingConfiguration _spawnTestingConfig;
 
         protected override void Configure(IContainerBuilder builder)
         {
-            // Only register configuration objects
+            // Register configuration objects
             RegisterConfigurations(builder);
+
+            // Register ECS systems with VContainer if spawn testing is enabled
+            if (_spawnTestingConfig?.enableAutoSpawn == true)
+            {
+                RegisterECSSystems(builder);
+            }
         }
 
         private void RegisterConfigurations(IContainerBuilder builder)
@@ -30,10 +37,24 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 _spatialConfig = SpatialIndexConfiguration.CreateDefault();
             if (_combatConfig == null)
                 _combatConfig = CombatConfiguration.CreateDefault();
+            if (_spawnTestingConfig == null)
+                _spawnTestingConfig = SpawnTestingConfiguration.CreateDefault();
 
             builder.RegisterInstance(_dotsConfig).AsSelf();
             builder.RegisterInstance(_spatialConfig).AsSelf();
             builder.RegisterInstance(_combatConfig).AsSelf();
+            builder.RegisterInstance(_spawnTestingConfig).AsSelf();
+        }
+
+        private void RegisterECSSystems(IContainerBuilder builder)
+        {
+            // Use VContainer ECS integration to register systems
+            builder.UseDefaultWorld(systems =>
+            {
+                systems.Add<ZombieWaveSpawnSystem>();
+            });
+
+            Debug.Log("[DOTSLifetimeScope] Registered ZombieWaveSpawnSystem with VContainer ECS integration");
         }
 
         protected override void Awake()
@@ -55,6 +76,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             Debug.Log($"[DOTSLifetimeScope] DOTS Configuration: {_dotsConfig != null}");
             Debug.Log($"[DOTSLifetimeScope] Spatial Configuration: {_spatialConfig != null}");
             Debug.Log($"[DOTSLifetimeScope] Combat Configuration: {_combatConfig != null}");
+            Debug.Log($"[DOTSLifetimeScope] Spawn Testing Configuration: {_spawnTestingConfig != null}");
+            Debug.Log($"[DOTSLifetimeScope] Auto Spawn Enabled: {_spawnTestingConfig?.enableAutoSpawn}");
         }
     }
 
@@ -125,6 +148,64 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public static CombatConfiguration CreateDefault()
         {
             return new CombatConfiguration();
+        }
+    }
+
+    /// <summary>
+    /// Configuration for spawn testing system
+    /// </summary>
+    [System.Serializable]
+    public class SpawnTestingConfiguration
+    {
+        [Header("Testing Control")]
+        [Tooltip("Enable automatic zombie wave spawning for testing")]
+        public bool enableAutoSpawn = false;
+
+        [Header("Spawn Settings")]
+        [Tooltip("Type of minion to spawn (Tank = Zombie in current setup)")]
+        public MinionType spawnType = MinionType.Tank; // Zombie is mapped to Tank type
+
+        [Tooltip("Faction of spawned minions")]
+        public FactionType spawnFaction = FactionType.Enemy;
+
+        [Header("Wave Configuration")]
+        [Tooltip("Number of zombies to spawn per wave")]
+        [Range(1, 20)]
+        public int zombiesPerWave = 3;
+
+        [Tooltip("Time between wave spawns (seconds)")]
+        [Range(1f, 60f)]
+        public float spawnInterval = 5f;
+
+        [Tooltip("Radius for wave spawn pattern")]
+        [Range(1f, 20f)]
+        public float waveRadius = 5f;
+
+        [Header("Spawn Locations")]
+        [Tooltip("Predefined spawn locations for waves")]
+        public UnityEngine.Vector3[] spawnPositions = new UnityEngine.Vector3[]
+        {
+            new UnityEngine.Vector3(10, 0, 10),
+            new UnityEngine.Vector3(-10, 0, 10),
+            new UnityEngine.Vector3(10, 0, -10),
+            new UnityEngine.Vector3(-10, 0, -10)
+        };
+
+        [Header("Testing Options")]
+        [Tooltip("Spawn initial wave immediately on start")]
+        public bool spawnOnStart = true;
+
+        [Tooltip("Maximum number of waves to spawn (0 = unlimited)")]
+        [Range(0, 100)]
+        public int maxWaves = 10;
+
+        [Tooltip("Delay before first spawn (seconds)")]
+        [Range(0f, 10f)]
+        public float initialDelay = 2f;
+
+        public static SpawnTestingConfiguration CreateDefault()
+        {
+            return new SpawnTestingConfiguration();
         }
     }
 

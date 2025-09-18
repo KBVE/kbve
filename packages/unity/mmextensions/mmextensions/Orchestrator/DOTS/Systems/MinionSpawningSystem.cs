@@ -262,10 +262,17 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     public partial class MinionSpawnRequestSystem : SystemBase
     {
         private EntityCommandBufferSystem _ecbSystem;
+        private MinionPrefabManager _prefabManager;
 
         protected override void OnCreate()
         {
             _ecbSystem = World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
+        }
+
+        protected override void OnStartRunning()
+        {
+            // Get reference to the prefab manager
+            _prefabManager = MinionPrefabManager.Instance;
         }
 
         public Entity RequestBulkSpawn(in float3 position, int count, MinionType type, FactionType faction)
@@ -298,10 +305,41 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             });
         }
 
+        /// <summary>
+        /// Request spawn with entity prefab support
+        /// </summary>
+        public async void RequestPrefabSpawn(float3 position, MinionType type, FactionType faction)
+        {
+            if (_prefabManager != null && _prefabManager.IsPrefabLoaded(type))
+            {
+                // Use prefab manager for spawning
+                await _prefabManager.SpawnMinionAsync(type, position, faction);
+            }
+            else
+            {
+                // Fallback to archetype spawning
+                RequestSingleSpawn(position, type, faction);
+            }
+        }
+
         protected override void OnUpdate()
         {
-            // This system primarily provides API methods
-            // Actual update logic can be added here if needed
+            // Process spawn requests with loaded prefabs if available
+            var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
+
+            Entities
+                .WithName("ProcessSpawnRequestsWithPrefabs")
+                .ForEach((Entity entity, int entityInQueryIndex, in SpawnRequest request) =>
+                {
+                    // Check if we should use prefab spawning
+                    // For now, we'll use the archetype system and let the prefab manager handle visual instantiation
+
+                    // Remove the request entity after processing
+                    ecb.DestroyEntity(entityInQueryIndex, entity);
+                })
+                .ScheduleParallel();
+
+            _ecbSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }
