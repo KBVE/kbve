@@ -3,6 +3,7 @@ using Unity.Mathematics;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
+    
     /// <summary>
     /// Component for spatial indexing and efficient queries
     /// Used by KDTree and spatial hash grid systems
@@ -22,7 +23,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float LastMoveDistance;
         public bool RequiresIndexUpdate;
 
-        public static SpatialPosition Create(float3 position)
+        public static SpatialPosition Create(in float3 position)
         {
             return new SpatialPosition
             {
@@ -37,7 +38,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             };
         }
 
-        public void UpdatePosition(float3 newPosition)
+        public void UpdatePosition(in float3 newPosition)
         {
             PreviousPosition = Position;
             Position = newPosition;
@@ -78,9 +79,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         All = Neutral | Player | Enemy | Ally
     }
 
+    // Register the generic buffer type for DOTS compilation
+
     /// <summary>
     /// Results buffer for spatial queries
     /// </summary>
+    [InternalBufferCapacity(0)]
     public struct SpatialQueryResult : IBufferElementData
     {
         public Entity TargetEntity;

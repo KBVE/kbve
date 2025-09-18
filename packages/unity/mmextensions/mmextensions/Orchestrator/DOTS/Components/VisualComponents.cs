@@ -19,7 +19,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float StartTime;
         public int EffectIndex; // Index into effect prefab array
 
-        public static VisualEventData CreateHitEffect(float3 position, float3 hitDirection)
+        public static VisualEventData CreateHitEffect(in float3 position, in float3 hitDirection)
         {
             return new VisualEventData
             {
@@ -34,7 +34,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             };
         }
 
-        public static VisualEventData CreateDeathEffect(float3 position)
+        public static VisualEventData CreateDeathEffect(in float3 position)
         {
             return new VisualEventData
             {
@@ -112,7 +112,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float Lifetime;
         public float CreationTime;
 
-        public static DamageNumberRequest CreateNormal(float damage, float3 position)
+        public static DamageNumberRequest CreateNormal(float damage, in float3 position)
         {
             return new DamageNumberRequest
             {
@@ -127,7 +127,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             };
         }
 
-        public static DamageNumberRequest CreateCritical(float damage, float3 position)
+        public static DamageNumberRequest CreateCritical(float damage, in float3 position)
         {
             return new DamageNumberRequest
             {
@@ -142,7 +142,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             };
         }
 
-        public static DamageNumberRequest CreateHeal(float amount, float3 position)
+        public static DamageNumberRequest CreateHeal(float amount, in float3 position)
         {
             return new DamageNumberRequest
             {
@@ -243,12 +243,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public AnimationLayer Layer;
         public bool IsTransitioning;
 
-        // Common animation hashes (cached for performance)
-        public static readonly int IdleHash = Animator.StringToHash("Idle");
-        public static readonly int MoveHash = Animator.StringToHash("Move");
-        public static readonly int AttackHash = Animator.StringToHash("Attack");
-        public static readonly int HitHash = Animator.StringToHash("Hit");
-        public static readonly int DeathHash = Animator.StringToHash("Death");
+        // Animation state identifiers using bitwise values for simplicity
+        // Much easier to manage than hash codes
+        public const int IdleHash = 0;      // 0000
+        public const int MoveHash = 1;      // 0001
+        public const int AttackHash = 2;    // 0010
+        public const int HitHash = 4;       // 0100
+        public const int DeathHash = 8;     // 1000
+
+        // Can also combine states if needed using bitwise OR
+        // e.g., const int AttackWhileMoving = MoveHash | AttackHash;
 
         public void TransitionTo(int newStateHash, float duration = 0.25f)
         {
@@ -317,11 +321,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         public static UIOverlayData CreateBossHealth(string name, float health, float maxHealth)
         {
+            // Use FixedString formatting for Burst compatibility
+            var healthText = new FixedString128Bytes();
+            healthText.Append("Health: ");
+            healthText.Append((int)health);
+            healthText.Append("/");
+            healthText.Append((int)maxHealth);
+
             return new UIOverlayData
             {
                 Type = UIOverlayType.BossHealth,
                 Title = new FixedString64Bytes(name),
-                Description = new FixedString128Bytes($"Health: {health:0}/{maxHealth:0}"),
+                Description = healthText,
                 Value = health,
                 MaxValue = maxHealth,
                 IsVisible = true,

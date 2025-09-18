@@ -64,7 +64,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [System.Serializable]
         public class WaveConfig
         {
-            public string waveName = "Wave";
             public int minionCount = 10;
             public MinionType minionType = MinionType.Basic;
             public float difficultyMultiplier = 1f;
