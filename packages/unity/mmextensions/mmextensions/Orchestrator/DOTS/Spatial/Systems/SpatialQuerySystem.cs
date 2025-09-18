@@ -23,7 +23,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
             _spatialIndexing = World.GetOrCreateSystemManaged<SpatialIndexingSystem>();
 
             _queryRequestsQuery = GetEntityQuery(
-                ComponentType.ReadWrite<DynamicBuffer<SpatialQueryResult>>(),
+                ComponentType.ReadWrite<SpatialQueryResult>(),
                 ComponentType.ReadOnly<SpatialQueryRequest>(),
                 ComponentType.ReadOnly<SpatialPosition>()
             );

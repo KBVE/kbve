@@ -48,16 +48,24 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
         [BurstCompile]
         public static bool HasResistance(DamageType type, DamageResistance resistances)
         {
-            return type switch
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (type)
             {
-                DamageType.Physical => (resistances & DamageResistance.Physical) != 0,
-                DamageType.Magical => (resistances & DamageResistance.Magical) != 0,
-                DamageType.Fire => (resistances & DamageResistance.Fire) != 0,
-                DamageType.Ice => (resistances & DamageResistance.Ice) != 0,
-                DamageType.Lightning => (resistances & DamageResistance.Lightning) != 0,
-                DamageType.Poison => (resistances & DamageResistance.Poison) != 0,
-                _ => false
-            };
+                case DamageType.Physical:
+                    return (resistances & DamageResistance.Physical) != 0;
+                case DamageType.Magical:
+                    return (resistances & DamageResistance.Magical) != 0;
+                case DamageType.Fire:
+                    return (resistances & DamageResistance.Fire) != 0;
+                case DamageType.Ice:
+                    return (resistances & DamageResistance.Ice) != 0;
+                case DamageType.Lightning:
+                    return (resistances & DamageResistance.Lightning) != 0;
+                case DamageType.Poison:
+                    return (resistances & DamageResistance.Poison) != 0;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>
@@ -104,15 +112,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
         /// Calculate knockback force based on damage and entity properties
         /// </summary>
         [BurstCompile]
-        public static float3 CalculateKnockback(
-            float3 attackerPosition,
-            float3 targetPosition,
+        public static void CalculateKnockback(
+            in float3 attackerPosition,
+            in float3 targetPosition,
             float knockbackForce,
             float damage,
-            MinionType targetType)
+            MinionType targetType,
+            out float3 knockback)
         {
             if (knockbackForce <= 0f)
-                return float3.zero;
+            {
+                knockback = float3.zero;
+                return;
+            }
 
             // Calculate direction
             float3 direction = math.normalize(targetPosition - attackerPosition);
@@ -121,22 +133,31 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
             float damageMultiplier = math.sqrt(damage / 10f); // Diminishing returns
 
             // Apply type-based resistance
-            float typeResistance = targetType switch
+            float typeResistance = 1f; // default
+            switch (targetType)
             {
-                MinionType.Tank => 0.3f,    // Tanks resist knockback
-                MinionType.Flying => 0.7f,  // Flying units less affected
-                MinionType.Boss => 0.1f,    // Bosses heavily resist
-                _ => 1f
-            };
+                case MinionType.Tank:
+                    typeResistance = 0.3f;    // Tanks resist knockback
+                    break;
+                case MinionType.Flying:
+                    typeResistance = 0.7f;    // Flying units less affected
+                    break;
+                case MinionType.Boss:
+                    typeResistance = 0.1f;    // Bosses heavily resist
+                    break;
+                default:
+                    typeResistance = 1f;
+                    break;
+            }
 
-            return direction * knockbackForce * damageMultiplier * typeResistance;
+            knockback = direction * knockbackForce * damageMultiplier * typeResistance;
         }
 
         /// <summary>
         /// Calculate line of sight between two positions (simple version)
         /// </summary>
         [BurstCompile]
-        public static bool HasLineOfSight(float3 from, float3 to, float maxDistance = 100f)
+        public static bool HasLineOfSight(in float3 from, in float3 to, float maxDistance = 100f)
         {
             float distance = math.distance(from, to);
             return distance <= maxDistance; // Simplified - in full version would raycast
@@ -172,116 +193,139 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
         /// Get optimal attack position relative to target (for different minion types)
         /// </summary>
         [BurstCompile]
-        public static float3 GetOptimalAttackPosition(
-            float3 targetPosition,
-            float3 currentPosition,
+        public static void GetOptimalAttackPosition(
+            in float3 targetPosition,
+            in float3 currentPosition,
             MinionType attackerType,
-            float attackRange)
+            float attackRange,
+            out float3 attackPosition)
         {
-            return attackerType switch
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (attackerType)
             {
-                MinionType.Ranged => GetRangedAttackPosition(targetPosition, currentPosition, attackRange),
-                MinionType.Tank => GetTankAttackPosition(targetPosition, currentPosition, attackRange),
-                MinionType.Fast => GetHitAndRunPosition(targetPosition, currentPosition, attackRange),
-                MinionType.Flying => GetFlyingAttackPosition(targetPosition, currentPosition, attackRange),
-                _ => GetMeleeAttackPosition(targetPosition, currentPosition, attackRange)
-            };
+                case MinionType.Ranged:
+                    GetRangedAttackPosition(in targetPosition, in currentPosition, attackRange, out attackPosition);
+                    break;
+                case MinionType.Tank:
+                    GetTankAttackPosition(in targetPosition, in currentPosition, attackRange, out attackPosition);
+                    break;
+                case MinionType.Fast:
+                    GetHitAndRunPosition(in targetPosition, in currentPosition, attackRange, out attackPosition);
+                    break;
+                case MinionType.Flying:
+                    GetFlyingAttackPosition(in targetPosition, in currentPosition, attackRange, out attackPosition);
+                    break;
+                default:
+                    GetMeleeAttackPosition(in targetPosition, in currentPosition, attackRange, out attackPosition);
+                    break;
+            }
         }
 
         [BurstCompile]
-        private static float3 GetMeleeAttackPosition(float3 target, float3 current, float range)
+        private static void GetMeleeAttackPosition(in float3 target, in float3 current, float range, out float3 position)
         {
             float3 direction = math.normalize(target - current);
-            return target - direction * (range * 0.8f); // Get close but not too close
+            position = target - direction * (range * 0.8f); // Get close but not too close
         }
 
         [BurstCompile]
-        private static float3 GetRangedAttackPosition(float3 target, float3 current, float range)
+        private static void GetRangedAttackPosition(in float3 target, in float3 current, float range, out float3 position)
         {
             float3 direction = math.normalize(target - current);
-            return target - direction * (range * 0.9f); // Stay at max range
+            position = target - direction * (range * 0.9f); // Stay at max range
         }
 
         [BurstCompile]
-        private static float3 GetTankAttackPosition(float3 target, float3 current, float range)
+        private static void GetTankAttackPosition(in float3 target, in float3 current, float range, out float3 position)
         {
             // Tanks charge directly at the target
             float3 direction = math.normalize(target - current);
-            return target - direction * (range * 0.5f); // Get very close
+            position = target - direction * (range * 0.5f); // Get very close
         }
 
         [BurstCompile]
-        private static float3 GetHitAndRunPosition(float3 target, float3 current, float range)
+        private static void GetHitAndRunPosition(in float3 target, in float3 current, float range, out float3 position)
         {
             // Fast units hit from the side when possible
             float3 toTarget = target - current;
             float3 sideDirection = new float3(-toTarget.z, toTarget.y, toTarget.x); // Perpendicular
             sideDirection = math.normalize(sideDirection);
 
-            return target + sideDirection * (range * 0.7f);
+            position = target + sideDirection * (range * 0.7f);
         }
 
         [BurstCompile]
-        private static float3 GetFlyingAttackPosition(float3 target, float3 current, float range)
+        private static void GetFlyingAttackPosition(in float3 target, in float3 current, float range, out float3 position)
         {
             // Flying units attack from above when possible
             float3 direction = math.normalize(target - current);
-            float3 attackPos = target - direction * (range * 0.8f);
-            attackPos.y += 3f; // Add height advantage
-            return attackPos;
+            position = target - direction * (range * 0.8f);
+            position.y += 3f; // Add height advantage
         }
 
         /// <summary>
         /// Calculate formation position for group movement
         /// </summary>
         [BurstCompile]
-        public static float3 CalculateFormationPosition(
-            float3 leaderPosition,
-            float3 leaderDirection,
+        public static void CalculateFormationPosition(
+            in float3 leaderPosition,
+            in float3 leaderDirection,
             int unitIndex,
             int totalUnits,
-            FormationType formation)
+            FormationType formation,
+            out float3 formationPosition)
         {
-            return formation switch
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (formation)
             {
-                FormationType.Line => CalculateLineFormation(leaderPosition, leaderDirection, unitIndex, totalUnits),
-                FormationType.Wedge => CalculateWedgeFormation(leaderPosition, leaderDirection, unitIndex, totalUnits),
-                FormationType.Circle => CalculateCircleFormation(leaderPosition, unitIndex, totalUnits),
-                FormationType.Column => CalculateColumnFormation(leaderPosition, leaderDirection, unitIndex),
-                _ => leaderPosition
-            };
+                case FormationType.Line:
+                    CalculateLineFormation(in leaderPosition, in leaderDirection, unitIndex, totalUnits, out formationPosition);
+                    break;
+                case FormationType.Wedge:
+                    CalculateWedgeFormation(in leaderPosition, in leaderDirection, unitIndex, totalUnits, out formationPosition);
+                    break;
+                case FormationType.Circle:
+                    CalculateCircleFormation(in leaderPosition, unitIndex, totalUnits, out formationPosition);
+                    break;
+                case FormationType.Column:
+                    CalculateColumnFormation(in leaderPosition, in leaderDirection, unitIndex, out formationPosition);
+                    break;
+                default:
+                    formationPosition = leaderPosition;
+                    break;
+            }
         }
 
         [BurstCompile]
-        private static float3 CalculateLineFormation(float3 leader, float3 direction, int index, int total)
+        private static void CalculateLineFormation(in float3 leader, in float3 direction, int index, int total, out float3 position)
         {
             float3 right = math.cross(direction, math.up());
             float spacing = 2f;
             float offset = (index - total / 2f) * spacing;
-            return leader + right * offset - direction * 2f;
+            position = leader + right * offset - direction * 2f;
         }
 
         [BurstCompile]
-        private static float3 CalculateWedgeFormation(float3 leader, float3 direction, int index, int total)
+        private static void CalculateWedgeFormation(in float3 leader, in float3 direction, int index, int total, out float3 position)
         {
             float3 right = math.cross(direction, math.up());
             float row = index / 2;
             float side = (index % 2 == 0) ? -1f : 1f;
-            return leader + right * (side * (row + 1) * 1.5f) - direction * (row * 2f);
+            position = leader + right * (side * (row + 1) * 1.5f) - direction * (row * 2f);
         }
 
         [BurstCompile]
-        private static float3 CalculateCircleFormation(float3 leader, int index, int total)
+        private static void CalculateCircleFormation(in float3 leader, int index, int total, out float3 position)
         {
             float angle = (index / (float)total) * 2f * math.PI;
             float radius = 3f;
-            return leader + new float3(math.cos(angle) * radius, 0, math.sin(angle) * radius);
+            position = leader + new float3(math.cos(angle) * radius, 0, math.sin(angle) * radius);
         }
 
         [BurstCompile]
-        private static float3 CalculateColumnFormation(float3 leader, float3 direction, int index)
+        private static void CalculateColumnFormation(in float3 leader, in float3 direction, int index, out float3 position)
         {
-            return leader - direction * (index * 2f);
+            position = leader - direction * (index * 2f);
         }
     }
 
