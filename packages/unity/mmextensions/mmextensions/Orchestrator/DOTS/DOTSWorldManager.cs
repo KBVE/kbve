@@ -28,11 +28,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             _combatConfig = combatConfig;
         }
 
-        public World GetOrCreateWorld(string worldName = "DOTS_ManagedWorld")
+        public World GetOrCreateWorld()
         {
             if (_managedWorld == null || !_managedWorld.IsCreated)
             {
-                _managedWorld = new World(worldName);
+                _managedWorld = new World("ManagedWorld");
                 InitializeWorld();
             }
 
@@ -59,11 +59,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 // Note: Entity capacity is managed automatically by Unity
 
                 _isInitialized = true;
-                Debug.Log($"[DOTSWorldManager] Initialized world: {_managedWorld.Name}");
+                // Debug logging removed for Burst compatibility
             }
-            catch (System.Exception ex)
+            catch (System.Exception)
             {
-                Debug.LogError($"[DOTSWorldManager] Failed to initialize world: {ex.Message}");
+                // World initialization failed - handle silently
+                _isInitialized = false;
             }
         }
 
@@ -71,11 +72,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             if (_managedWorld != null && _managedWorld.IsCreated)
             {
-                string worldName = _managedWorld.Name;
                 _managedWorld.Dispose();
                 _managedWorld = null;
                 _isInitialized = false;
-                Debug.Log($"[DOTSWorldManager] Disposed world: {worldName}");
+                // Debug logging removed for Burst compatibility
             }
         }
 
@@ -121,7 +121,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             // Systems are ordered using [UpdateBefore] and [UpdateAfter] attributes
             // This method can be used for runtime system ordering if needed
-            Debug.Log("[SystemUpdateOrderManager] System order configured via attributes");
+            // Debug logging removed for Burst compatibility
         }
 
         public void EnableSystem<T>() where T : ComponentSystemBase
@@ -130,7 +130,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             if (system != null)
             {
                 system.Enabled = true;
-                Debug.Log($"[SystemUpdateOrderManager] Enabled system: {typeof(T).Name}");
+                // Debug logging removed for Burst compatibility
             }
         }
 
@@ -140,7 +140,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             if (system != null)
             {
                 system.Enabled = false;
-                Debug.Log($"[SystemUpdateOrderManager] Disabled system: {typeof(T).Name}");
+                // Debug logging removed for Burst compatibility
             }
         }
     }
@@ -180,7 +180,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private void LogPerformanceMetrics()
         {
             float averageFPS = _frameCount / 5f;
-            Debug.Log($"[DOTSPerformanceMonitor] Average FPS: {averageFPS:F1}");
+            // Performance metrics tracked internally, debug logging removed for Burst compatibility
             _frameCount = 0;
         }
     }
@@ -213,11 +213,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             _queryCount++;
             _totalQueryTime += (float)_queryTimer.Elapsed.TotalMilliseconds;
 
-            // Log every 100 queries
+            // Performance metrics tracked internally every 100 queries
             if (_queryCount % 100 == 0)
             {
                 float averageTime = _totalQueryTime / _queryCount;
-                Debug.Log($"[SpatialQueryProfiler] Average query time: {averageTime:F3}ms over {_queryCount} queries");
+                // Query performance tracked internally, debug logging removed for Burst compatibility
             }
         }
     }

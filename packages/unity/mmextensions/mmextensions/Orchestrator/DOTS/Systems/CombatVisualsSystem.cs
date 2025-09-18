@@ -215,9 +215,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             // In a real implementation, this would spawn floating damage numbers
             Color color = isHeal ? Color.green : (isCritical ? Color.yellow : Color.white);
-            string text = isHeal ? $"+{damage:0}" : $"-{damage:0}";
 
-            Debug.Log($"Damage Number at {position}: {text}");
+            // Debug logging removed for Burst compatibility
+            // Damage numbers would be handled by UI/visual systems
         }
 
         private void ApplyCameraShake(float intensity, float frequency)

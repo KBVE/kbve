@@ -48,16 +48,24 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
         [BurstCompile]
         public static bool HasResistance(DamageType type, DamageResistance resistances)
         {
-            return type switch
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (type)
             {
-                DamageType.Physical => (resistances & DamageResistance.Physical) != 0,
-                DamageType.Magical => (resistances & DamageResistance.Magical) != 0,
-                DamageType.Fire => (resistances & DamageResistance.Fire) != 0,
-                DamageType.Ice => (resistances & DamageResistance.Ice) != 0,
-                DamageType.Lightning => (resistances & DamageResistance.Lightning) != 0,
-                DamageType.Poison => (resistances & DamageResistance.Poison) != 0,
-                _ => false
-            };
+                case DamageType.Physical:
+                    return (resistances & DamageResistance.Physical) != 0;
+                case DamageType.Magical:
+                    return (resistances & DamageResistance.Magical) != 0;
+                case DamageType.Fire:
+                    return (resistances & DamageResistance.Fire) != 0;
+                case DamageType.Ice:
+                    return (resistances & DamageResistance.Ice) != 0;
+                case DamageType.Lightning:
+                    return (resistances & DamageResistance.Lightning) != 0;
+                case DamageType.Poison:
+                    return (resistances & DamageResistance.Poison) != 0;
+                default:
+                    return false;
+            }
         }
 
         /// <summary>
@@ -121,13 +129,22 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
             float damageMultiplier = math.sqrt(damage / 10f); // Diminishing returns
 
             // Apply type-based resistance
-            float typeResistance = targetType switch
+            float typeResistance = 1f; // default
+            switch (targetType)
             {
-                MinionType.Tank => 0.3f,    // Tanks resist knockback
-                MinionType.Flying => 0.7f,  // Flying units less affected
-                MinionType.Boss => 0.1f,    // Bosses heavily resist
-                _ => 1f
-            };
+                case MinionType.Tank:
+                    typeResistance = 0.3f;    // Tanks resist knockback
+                    break;
+                case MinionType.Flying:
+                    typeResistance = 0.7f;    // Flying units less affected
+                    break;
+                case MinionType.Boss:
+                    typeResistance = 0.1f;    // Bosses heavily resist
+                    break;
+                default:
+                    typeResistance = 1f;
+                    break;
+            }
 
             return direction * knockbackForce * damageMultiplier * typeResistance;
         }
@@ -178,14 +195,20 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
             MinionType attackerType,
             float attackRange)
         {
-            return attackerType switch
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (attackerType)
             {
-                MinionType.Ranged => GetRangedAttackPosition(targetPosition, currentPosition, attackRange),
-                MinionType.Tank => GetTankAttackPosition(targetPosition, currentPosition, attackRange),
-                MinionType.Fast => GetHitAndRunPosition(targetPosition, currentPosition, attackRange),
-                MinionType.Flying => GetFlyingAttackPosition(targetPosition, currentPosition, attackRange),
-                _ => GetMeleeAttackPosition(targetPosition, currentPosition, attackRange)
-            };
+                case MinionType.Ranged:
+                    return GetRangedAttackPosition(targetPosition, currentPosition, attackRange);
+                case MinionType.Tank:
+                    return GetTankAttackPosition(targetPosition, currentPosition, attackRange);
+                case MinionType.Fast:
+                    return GetHitAndRunPosition(targetPosition, currentPosition, attackRange);
+                case MinionType.Flying:
+                    return GetFlyingAttackPosition(targetPosition, currentPosition, attackRange);
+                default:
+                    return GetMeleeAttackPosition(targetPosition, currentPosition, attackRange);
+            }
         }
 
         [BurstCompile]
@@ -242,14 +265,20 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
             int totalUnits,
             FormationType formation)
         {
-            return formation switch
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (formation)
             {
-                FormationType.Line => CalculateLineFormation(leaderPosition, leaderDirection, unitIndex, totalUnits),
-                FormationType.Wedge => CalculateWedgeFormation(leaderPosition, leaderDirection, unitIndex, totalUnits),
-                FormationType.Circle => CalculateCircleFormation(leaderPosition, unitIndex, totalUnits),
-                FormationType.Column => CalculateColumnFormation(leaderPosition, leaderDirection, unitIndex),
-                _ => leaderPosition
-            };
+                case FormationType.Line:
+                    return CalculateLineFormation(leaderPosition, leaderDirection, unitIndex, totalUnits);
+                case FormationType.Wedge:
+                    return CalculateWedgeFormation(leaderPosition, leaderDirection, unitIndex, totalUnits);
+                case FormationType.Circle:
+                    return CalculateCircleFormation(leaderPosition, unitIndex, totalUnits);
+                case FormationType.Column:
+                    return CalculateColumnFormation(leaderPosition, leaderDirection, unitIndex);
+                default:
+                    return leaderPosition;
+            }
         }
 
         [BurstCompile]

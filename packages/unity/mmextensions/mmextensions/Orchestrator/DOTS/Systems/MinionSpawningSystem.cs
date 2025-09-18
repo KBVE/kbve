@@ -209,29 +209,53 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             return positions;
         }
 
-        private static float GetHealthForType(MinionType type) => type switch
+        private static float GetHealthForType(MinionType type)
         {
-            MinionType.Tank => 200f,
-            MinionType.Boss => 500f,
-            MinionType.Fast => 50f,
-            _ => 100f
-        };
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (type)
+            {
+                case MinionType.Tank:
+                    return 200f;
+                case MinionType.Boss:
+                    return 500f;
+                case MinionType.Fast:
+                    return 50f;
+                default:
+                    return 100f;
+            }
+        }
 
-        private static float GetSpeedForType(MinionType type) => type switch
+        private static float GetSpeedForType(MinionType type)
         {
-            MinionType.Fast => 8f,
-            MinionType.Flying => 6f,
-            MinionType.Tank => 2f,
-            _ => 4f
-        };
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (type)
+            {
+                case MinionType.Fast:
+                    return 8f;
+                case MinionType.Flying:
+                    return 6f;
+                case MinionType.Tank:
+                    return 2f;
+                default:
+                    return 4f;
+            }
+        }
 
-        private static float GetDamageForType(MinionType type) => type switch
+        private static float GetDamageForType(MinionType type)
         {
-            MinionType.Boss => 50f,
-            MinionType.Tank => 20f,
-            MinionType.Ranged => 15f,
-            _ => 10f
-        };
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (type)
+            {
+                case MinionType.Boss:
+                    return 50f;
+                case MinionType.Tank:
+                    return 20f;
+                case MinionType.Ranged:
+                    return 15f;
+                default:
+                    return 10f;
+            }
+        }
     }
 
     /// <summary>

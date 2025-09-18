@@ -15,6 +15,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
     {
         [SerializeField] private bool useDefaultWorld = true;
         [SerializeField] private bool enableSpatialSystems = true;
+
+        private World _customMinionWorld;
         [SerializeField] private bool enableDebugSystems = false;
 
         protected override void Configure(IContainerBuilder builder)
@@ -59,19 +61,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
             // Create a custom world for minions
             builder.RegisterBuildCallback(container =>
             {
-                var world = new World("Minion World");
-                World.DefaultGameObjectInjectionWorld = world;
+                _customMinionWorld = new World("Minion World");
+                World.DefaultGameObjectInjectionWorld = _customMinionWorld;
 
                 // Create system groups
-                var initGroup = world.GetOrCreateSystemManaged<InitializationSystemGroup>();
-                var simGroup = world.GetOrCreateSystemManaged<SimulationSystemGroup>();
-                var presentGroup = world.GetOrCreateSystemManaged<PresentationSystemGroup>();
+                var initGroup = _customMinionWorld.GetOrCreateSystemManaged<InitializationSystemGroup>();
+                var simGroup = _customMinionWorld.GetOrCreateSystemManaged<SimulationSystemGroup>();
+                var presentGroup = _customMinionWorld.GetOrCreateSystemManaged<PresentationSystemGroup>();
 
                 // Register systems
-                RegisterSystems(world);
+                RegisterSystems(_customMinionWorld);
 
                 // Start world update
-                ScriptBehaviourUpdateOrder.AppendWorldToCurrentPlayerLoop(world);
+                ScriptBehaviourUpdateOrder.AppendWorldToCurrentPlayerLoop(_customMinionWorld);
             });
         }
 
@@ -115,14 +117,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
         private void OnDestroy()
         {
             // Clean up custom world if created
-            if (!useDefaultWorld)
+            if (!useDefaultWorld && _customMinionWorld != null)
             {
-                var world = World.DefaultGameObjectInjectionWorld;
-                if (world != null && world.Name == "Minion World")
+                // Use object reference instead of string comparison for Burst compatibility
+                if (_customMinionWorld.IsCreated)
                 {
-                    world.Dispose();
+                    _customMinionWorld.Dispose();
                     Debug.Log("[MinionWorldLifetimeScope] Minion world disposed");
                 }
+                _customMinionWorld = null;
             }
         }
     }

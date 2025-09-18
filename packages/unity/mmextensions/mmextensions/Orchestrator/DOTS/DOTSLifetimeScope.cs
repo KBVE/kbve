@@ -19,9 +19,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [SerializeField] private SpatialIndexConfiguration _spatialConfig;
         [SerializeField] private CombatConfiguration _combatConfig;
 
-        [Header("Scene Management")]
-        [SerializeField] private bool _autoActivateInGameScenes = true;
-        [SerializeField] private string[] _gameSceneNames = { "GameScene", "CombatScene", "MainLevel" };
 
         private World _dotsWorld;
         private bool _isInitialized;
@@ -101,29 +98,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             base.Awake();
 
-            // Check if we should be active in this scene
-            if (_autoActivateInGameScenes && !IsGameScene())
-            {
-                gameObject.SetActive(false);
-                return;
-            }
-
-            // VContainer will handle world initialization through UseNewWorld
-            Debug.Log("[DOTSLifetimeScope] Initialized for game scene");
+            // DOTSLifetimeScope is only placed in scenes that need DOTS
+            Debug.Log("[DOTSLifetimeScope] Initialized DOTS systems");
         }
 
-        private bool IsGameScene()
-        {
-            string currentScene = UnityEngine.SceneManagement.SceneManager.GetActiveScene().name;
-
-            foreach (string sceneName in _gameSceneNames)
-            {
-                if (currentScene.Contains(sceneName))
-                    return true;
-            }
-
-            return false;
-        }
 
         protected override void OnDestroy()
         {

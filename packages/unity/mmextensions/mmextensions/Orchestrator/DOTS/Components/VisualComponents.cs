@@ -317,11 +317,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         public static UIOverlayData CreateBossHealth(string name, float health, float maxHealth)
         {
+            // Use FixedString formatting for Burst compatibility
+            var healthText = new FixedString128Bytes();
+            healthText.Append("Health: ");
+            healthText.Append((int)health);
+            healthText.Append("/");
+            healthText.Append((int)maxHealth);
+
             return new UIOverlayData
             {
                 Type = UIOverlayType.BossHealth,
                 Title = new FixedString64Bytes(name),
-                Description = new FixedString128Bytes($"Health: {health:0}/{maxHealth:0}"),
+                Description = healthText,
                 Value = health,
                 MaxValue = maxHealth,
                 IsVisible = true,

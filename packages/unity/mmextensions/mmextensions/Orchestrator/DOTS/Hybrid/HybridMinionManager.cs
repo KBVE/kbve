@@ -296,15 +296,25 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
             }
         }
 
-        private string GetNPCIdForMinionType(MinionType type) => type switch
+        private string GetNPCIdForMinionType(MinionType type)
         {
-            MinionType.Tank => "enemy_tank",
-            MinionType.Fast => "enemy_fast",
-            MinionType.Ranged => "enemy_ranged",
-            MinionType.Flying => "enemy_flying",
-            MinionType.Boss => "boss_basic",
-            _ => "enemy_basic"
-        };
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (type)
+            {
+                case MinionType.Tank:
+                    return "enemy_tank";
+                case MinionType.Fast:
+                    return "enemy_fast";
+                case MinionType.Ranged:
+                    return "enemy_ranged";
+                case MinionType.Flying:
+                    return "enemy_flying";
+                case MinionType.Boss:
+                    return "boss_basic";
+                default:
+                    return "enemy_basic";
+            }
+        }
 
         private async UniTaskVoid StartOptimizationLoop()
         {
