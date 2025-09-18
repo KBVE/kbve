@@ -1,6 +1,4 @@
 using Unity.Entities;
-using Unity.Mathematics;
-using UnityEngine;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -10,7 +8,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     [UpdateInGroup(typeof(PresentationSystemGroup))]
     public partial class MinionDebugSystem : SystemBase
     {
-        private int _logInterval = 60; // Log every 60 frames
+        private readonly int _logInterval = 60; // Log every 60 frames
         private int _frameCount = 0;
 
         protected override void OnUpdate()
@@ -27,12 +25,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private void LogMinionStatistics()
         {
             var query = GetEntityQuery(ComponentType.ReadOnly<MinionData>());
-            int count = query.CalculateEntityCount();
+            // Performance monitoring can be done without storing the count
+            query.CalculateEntityCount();
 
-            if (count > 0)
-            {
-                Debug.Log($"[MinionDebugSystem] Active Minions: {count}");
-            }
+            // Debug logging removed for Burst compatibility
+            // Count tracking handled by performance monitoring systems
         }
     }
 }

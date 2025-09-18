@@ -43,7 +43,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             float deltaTime = SystemAPI.Time.DeltaTime;
             float currentTime = (float)SystemAPI.Time.ElapsedTime;
 
+            // Create Burst-compatible random for this frame
+            var random = new Unity.Mathematics.Random((uint)(currentTime * 1000000 + 1));
+
             // Process dead minions
+            var localRandom = random; // Capture for lambda
             Entities
                 .WithName("ProcessDeadMinions")
                 .ForEach((Entity entity, int entityInQueryIndex, ref MinionData minion) =>
@@ -54,18 +58,50 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         minion.StateFlags |= MinionStateFlags.Dead;
 
                         // Add death timer component for delayed destruction
-                        ecb.AddComponent(entityInQueryIndex, entity, new DeathTimer
+                        ecb.AddComponent(entity.Index, entity, new DeathTimer
                         {
                             DeathTime = currentTime,
                             Duration = 2f // 2 seconds for death animation
                         });
 
-                        // Optional: Spawn death particles or loot
-                        if (ShouldDropLoot(minion.Type, minion.Level))
+                        // Optional: Spawn death particles or loot (inline Burst-compatible logic)
+                        bool shouldDropLoot = false;
+
+                        // Boss always drops loot
+                        if (minion.Type == MinionType.Boss)
                         {
-                            ecb.AddComponent(entityInQueryIndex, entity, new LootDropRequest
+                            shouldDropLoot = true;
+                        }
+                        else
+                        {
+                            // Higher level minions have better drop chance
+                            float dropChance = 0.1f + (minion.Level * 0.05f);
+                            shouldDropLoot = localRandom.NextFloat() < dropChance;
+                        }
+
+                        if (shouldDropLoot)
+                        {
+                            // Replace switch expression with traditional switch statement for Burst compatibility
+                            float lootDropChance = 0.1f; // default
+                            switch (minion.Type)
                             {
-                                DropChance = GetLootDropChance(minion.Type),
+                                case MinionType.Boss:
+                                    lootDropChance = 1.0f;
+                                    break;
+                                case MinionType.Tank:
+                                    lootDropChance = 0.3f;
+                                    break;
+                                case MinionType.Ranged:
+                                    lootDropChance = 0.2f;
+                                    break;
+                                default:
+                                    lootDropChance = 0.1f;
+                                    break;
+                            }
+
+                            ecb.AddComponent(entity.Index, entity, new LootDropRequest
+                            {
+                                DropChance = lootDropChance,
                                 LootTier = minion.Level
                             });
                         }
@@ -81,7 +117,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 {
                     if (currentTime >= lifetime.SpawnTime + lifetime.MaxLifetime)
                     {
-                        ecb.DestroyEntity(entityInQueryIndex, entity);
+                        ecb.DestroyEntity(entity.Index, entity);
                     }
                 })
                 .ScheduleParallel();
@@ -95,7 +131,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 {
                     if (currentTime >= deathTimer.DeathTime + deathTimer.Duration)
                     {
-                        ecb.DestroyEntity(entityInQueryIndex, entity);
+                        ecb.DestroyEntity(entity.Index, entity);
                     }
                 })
                 .ScheduleParallel();
@@ -110,14 +146,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     // Destroy if fallen below kill plane
                     if (transform.Position.y < -100f)
                     {
-                        ecb.DestroyEntity(entityInQueryIndex, entity);
+                        ecb.DestroyEntity(entity.Index, entity);
                     }
 
                     // Destroy if too far from origin (cleanup stragglers)
                     float distanceSq = math.lengthsq(transform.Position);
                     if (distanceSq > 500f * 500f) // 500 unit radius
                     {
-                        ecb.DestroyEntity(entityInQueryIndex, entity);
+                        ecb.DestroyEntity(entity.Index, entity);
                     }
                 })
                 .ScheduleParallel();
@@ -125,23 +161,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             _ecbSystem.AddJobHandleForProducer(Dependency);
         }
 
-        private static bool ShouldDropLoot(MinionType type, int level)
-        {
-            // Boss always drops loot
-            if (type == MinionType.Boss) return true;
-
-            // Higher level minions have better drop chance
-            float dropChance = 0.1f + (level * 0.05f);
-            return UnityEngine.Random.value < dropChance;
-        }
-
-        private static float GetLootDropChance(MinionType type) => type switch
-        {
-            MinionType.Boss => 1.0f,
-            MinionType.Tank => 0.3f,
-            MinionType.Ranged => 0.2f,
-            _ => 0.1f
-        };
     }
 
     /// <summary>

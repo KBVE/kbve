@@ -22,7 +22,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public bool UseJobSystem;
         public bool EnableSpatialOptimization;
 
-        public static BulkSpawnConfig CreateDefault(float3 center, int count)
+        public static BulkSpawnConfig CreateDefault(in float3 center, int count)
         {
             return new BulkSpawnConfig
             {

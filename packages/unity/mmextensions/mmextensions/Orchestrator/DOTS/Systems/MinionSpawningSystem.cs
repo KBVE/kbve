@@ -53,11 +53,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     toSpawn = math.min(toSpawn, config.MaxPerFrame);
 
                     // Calculate spawn positions based on pattern
-                    var positions = CalculateSpawnPositions(
-                        config.SpawnCenter,
+                    var positions = new NativeArray<float3>(toSpawn, Allocator.Temp);
+                    CalculateSpawnPositions(
+                        in config.SpawnCenter,
                         config.SpawnRadius,
                         toSpawn,
-                        config.Pattern
+                        config.Pattern,
+                        positions
                     );
 
                     // Spawn minions in batch
@@ -149,11 +151,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             _ecbSystem.AddJobHandleForProducer(Dependency);
         }
 
-        private static NativeArray<float3> CalculateSpawnPositions(
-            float3 center, float radius, int count, SpawnPattern pattern)
+        private static void CalculateSpawnPositions(
+            in float3 center, float radius, int count, SpawnPattern pattern, NativeArray<float3> positions)
         {
-            var positions = new NativeArray<float3>(count, Allocator.Temp);
-
             switch (pattern)
             {
                 case SpawnPattern.Circle:
@@ -205,33 +205,55 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     }
                     break;
             }
-
-            return positions;
         }
 
-        private static float GetHealthForType(MinionType type) => type switch
+        private static float GetHealthForType(MinionType type)
         {
-            MinionType.Tank => 200f,
-            MinionType.Boss => 500f,
-            MinionType.Fast => 50f,
-            _ => 100f
-        };
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (type)
+            {
+                case MinionType.Tank:
+                    return 200f;
+                case MinionType.Boss:
+                    return 500f;
+                case MinionType.Fast:
+                    return 50f;
+                default:
+                    return 100f;
+            }
+        }
 
-        private static float GetSpeedForType(MinionType type) => type switch
+        private static float GetSpeedForType(MinionType type)
         {
-            MinionType.Fast => 8f,
-            MinionType.Flying => 6f,
-            MinionType.Tank => 2f,
-            _ => 4f
-        };
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (type)
+            {
+                case MinionType.Fast:
+                    return 8f;
+                case MinionType.Flying:
+                    return 6f;
+                case MinionType.Tank:
+                    return 2f;
+                default:
+                    return 4f;
+            }
+        }
 
-        private static float GetDamageForType(MinionType type) => type switch
+        private static float GetDamageForType(MinionType type)
         {
-            MinionType.Boss => 50f,
-            MinionType.Tank => 20f,
-            MinionType.Ranged => 15f,
-            _ => 10f
-        };
+            // Replace switch expression with traditional switch statement for Burst compatibility
+            switch (type)
+            {
+                case MinionType.Boss:
+                    return 50f;
+                case MinionType.Tank:
+                    return 20f;
+                case MinionType.Ranged:
+                    return 15f;
+                default:
+                    return 10f;
+            }
+        }
     }
 
     /// <summary>
@@ -240,13 +262,20 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     public partial class MinionSpawnRequestSystem : SystemBase
     {
         private EntityCommandBufferSystem _ecbSystem;
+        private MinionPrefabManager _prefabManager;
 
         protected override void OnCreate()
         {
             _ecbSystem = World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
         }
 
-        public Entity RequestBulkSpawn(float3 position, int count, MinionType type, FactionType faction)
+        protected override void OnStartRunning()
+        {
+            // Get reference to the prefab manager
+            _prefabManager = MinionPrefabManager.Instance;
+        }
+
+        public Entity RequestBulkSpawn(in float3 position, int count, MinionType type, FactionType faction)
         {
             var ecb = _ecbSystem.CreateCommandBuffer();
             var spawner = ecb.CreateEntity();
@@ -257,7 +286,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             return spawner;
         }
 
-        public void RequestSingleSpawn(float3 position, MinionType type, FactionType faction)
+        public void RequestSingleSpawn(in float3 position, MinionType type, FactionType faction)
         {
             var ecb = _ecbSystem.CreateCommandBuffer();
             var request = ecb.CreateEntity();
@@ -276,10 +305,41 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             });
         }
 
+        /// <summary>
+        /// Request spawn with entity prefab support
+        /// </summary>
+        public async void RequestPrefabSpawn(float3 position, MinionType type, FactionType faction)
+        {
+            if (_prefabManager != null && _prefabManager.IsPrefabLoaded(type))
+            {
+                // Use prefab manager for spawning
+                await _prefabManager.SpawnMinionAsync(type, position, faction);
+            }
+            else
+            {
+                // Fallback to archetype spawning
+                RequestSingleSpawn(position, type, faction);
+            }
+        }
+
         protected override void OnUpdate()
         {
-            // This system primarily provides API methods
-            // Actual update logic can be added here if needed
+            // Process spawn requests with loaded prefabs if available
+            var ecb = _ecbSystem.CreateCommandBuffer().AsParallelWriter();
+
+            Entities
+                .WithName("ProcessSpawnRequestsWithPrefabs")
+                .ForEach((Entity entity, int entityInQueryIndex, in SpawnRequest request) =>
+                {
+                    // Check if we should use prefab spawning
+                    // For now, we'll use the archetype system and let the prefab manager handle visual instantiation
+
+                    // Remove the request entity after processing
+                    ecb.DestroyEntity(entityInQueryIndex, entity);
+                })
+                .ScheduleParallel();
+
+            _ecbSystem.AddJobHandleForProducer(Dependency);
         }
     }
 }
