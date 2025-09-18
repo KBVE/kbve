@@ -53,11 +53,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     toSpawn = math.min(toSpawn, config.MaxPerFrame);
 
                     // Calculate spawn positions based on pattern
-                    var positions = CalculateSpawnPositions(
-                        config.SpawnCenter,
+                    var positions = new NativeArray<float3>(toSpawn, Allocator.Temp);
+                    CalculateSpawnPositions(
+                        in config.SpawnCenter,
                         config.SpawnRadius,
                         toSpawn,
-                        config.Pattern
+                        config.Pattern,
+                        positions
                     );
 
                     // Spawn minions in batch
@@ -149,11 +151,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             _ecbSystem.AddJobHandleForProducer(Dependency);
         }
 
-        private static NativeArray<float3> CalculateSpawnPositions(
-            float3 center, float radius, int count, SpawnPattern pattern)
+        private static void CalculateSpawnPositions(
+            in float3 center, float radius, int count, SpawnPattern pattern, NativeArray<float3> positions)
         {
-            var positions = new NativeArray<float3>(count, Allocator.Temp);
-
             switch (pattern)
             {
                 case SpawnPattern.Circle:
@@ -205,8 +205,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     }
                     break;
             }
-
-            return positions;
         }
 
         private static float GetHealthForType(MinionType type)
@@ -270,7 +268,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             _ecbSystem = World.GetOrCreateSystemManaged<EndSimulationEntityCommandBufferSystem>();
         }
 
-        public Entity RequestBulkSpawn(float3 position, int count, MinionType type, FactionType faction)
+        public Entity RequestBulkSpawn(in float3 position, int count, MinionType type, FactionType faction)
         {
             var ecb = _ecbSystem.CreateCommandBuffer();
             var spawner = ecb.CreateEntity();
@@ -281,7 +279,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             return spawner;
         }
 
-        public void RequestSingleSpawn(float3 position, MinionType type, FactionType faction)
+        public void RequestSingleSpawn(in float3 position, MinionType type, FactionType faction)
         {
             var ecb = _ecbSystem.CreateCommandBuffer();
             var request = ecb.CreateEntity();

@@ -1,6 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
+using KBVE.MMExtensions.Orchestrator.DOTS.Spatial;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {

@@ -11,13 +11,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
 {
     /// <summary>
     /// Bridge between traditional NPCSystemManager and DOTS minion systems
-    /// Allows NPCSystemManager to leverage ECS for bulk spawning
+    /// Uses DOTSSingleton for reliable DOTS world access
     /// </summary>
     public class DOTSNPCBridge : IInitializable
     {
-        private World _minionWorld;
-        private EntityManager _entityManager;
-        private MinionSpawnRequestSystem _spawnRequestSystem;
         private NPCSystemManager _npcSystemManager;
 
         [Inject]
@@ -28,25 +25,21 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
 
         public void Initialize()
         {
-            // Get or create the minion world
-            _minionWorld = World.DefaultGameObjectInjectionWorld;
-            if (_minionWorld == null)
+            if (!DOTSSingleton.IsInitialized)
             {
-                Debug.LogError("[DOTSNPCBridge] Failed to get default world");
+                Debug.LogError("[DOTSNPCBridge] DOTS world not ready. Ensure DOTSSingleton is initialized first.");
                 return;
             }
 
-            _entityManager = _minionWorld.EntityManager;
-
-            // Get spawn request system
-            _spawnRequestSystem = _minionWorld.GetExistingSystemManaged<MinionSpawnRequestSystem>();
-            if (_spawnRequestSystem == null)
+            // Verify systems are available
+            var spawnSystem = DOTSSingleton.GetSystem<MinionSpawnRequestSystem>();
+            if (spawnSystem == null)
             {
-                Debug.LogWarning("[DOTSNPCBridge] MinionSpawnRequestSystem not found, creating it");
-                _spawnRequestSystem = _minionWorld.CreateSystemManaged<MinionSpawnRequestSystem>();
+                Debug.LogError("[DOTSNPCBridge] MinionSpawnRequestSystem not found in DOTS world");
+                return;
             }
 
-            Debug.Log("[DOTSNPCBridge] Successfully initialized DOTS bridge");
+            Debug.Log("[DOTSNPCBridge] Successfully initialized DOTS bridge with static access");
         }
 
         /// <summary>
@@ -54,13 +47,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
         /// </summary>
         public Entity SpawnMinionWave(Vector3 center, int count, float radius, MinionType type = MinionType.Basic)
         {
-            var faction = FactionType.Enemy; // Default to enemy
-            return _spawnRequestSystem.RequestBulkSpawn(
-                new float3(center.x, center.y, center.z),
-                count,
-                type,
-                faction
-            );
+            if (!DOTSSingleton.IsInitialized)
+            {
+                Debug.LogError("[DOTSNPCBridge] Cannot spawn minions - DOTS world not ready");
+                return Entity.Null;
+            }
+
+            var position = new float3(center.x, center.y, center.z);
+            return DOTSSingleton.RequestBulkSpawn(in position, count, type, FactionType.Enemy);
         }
 
         /// <summary>
@@ -68,11 +62,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
         /// </summary>
         public void SpawnMinion(Vector3 position, MinionType type = MinionType.Basic)
         {
-            _spawnRequestSystem.RequestSingleSpawn(
-                new float3(position.x, position.y, position.z),
-                type,
-                FactionType.Enemy
-            );
+            if (!DOTSSingleton.IsInitialized)
+            {
+                Debug.LogError("[DOTSNPCBridge] Cannot spawn minion - DOTS world not ready");
+                return;
+            }
+
+            var pos = new float3(position.x, position.y, position.z);
+            DOTSSingleton.RequestSingleSpawn(in pos, type, FactionType.Enemy);
         }
 
         /// <summary>
@@ -81,7 +78,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
         public List<Entity> QueryMobsInRadius(Vector3 center, float radius)
         {
             var results = new List<Entity>();
-            var query = _entityManager.CreateEntityQuery(
+
+            if (!DOTSSingleton.IsInitialized)
+            {
+                Debug.LogWarning("[DOTSNPCBridge] Cannot query - DOTS world not ready");
+                return results;
+            }
+
+            var entityManager = DOTSSingleton.GetEntityManager();
+            var query = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<MinionData>(),
                 ComponentType.ReadOnly<SpatialPosition>()
             );
@@ -113,7 +118,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
         public List<(Entity entity, float distance)> GetNearestMobs(Vector3 position, int count)
         {
             var results = new List<(Entity, float)>();
-            var query = _entityManager.CreateEntityQuery(
+
+            if (!DOTSSingleton.IsInitialized)
+            {
+                Debug.LogWarning("[DOTSNPCBridge] Cannot query - DOTS world not ready");
+                return results;
+            }
+
+            var entityManager = DOTSSingleton.GetEntityManager();
+            var query = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<MinionData>(),
                 ComponentType.ReadOnly<SpatialPosition>()
             );
@@ -123,7 +136,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
 
             float3 queryPos = new float3(position.x, position.y, position.z);
 
-            // Simple implementation - for production, use KDTree
+            // Simple implementation - for production, use KDTree via spatial systems
             var distances = new List<(Entity entity, float dist)>();
             for (int i = 0; i < entities.Length; i++)
             {
@@ -149,7 +162,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
         /// </summary>
         public int GetMinionCount()
         {
-            var query = _entityManager.CreateEntityQuery(
+            if (!DOTSSingleton.IsInitialized)
+                return 0;
+
+            var entityManager = DOTSSingleton.GetEntityManager();
+            var query = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<MinionData>()
             );
             return query.CalculateEntityCount();
@@ -160,10 +177,17 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
         /// </summary>
         public void ClearAllMinions()
         {
-            var query = _entityManager.CreateEntityQuery(
+            if (!DOTSSingleton.IsInitialized)
+            {
+                Debug.LogWarning("[DOTSNPCBridge] Cannot clear minions - DOTS world not ready");
+                return;
+            }
+
+            var entityManager = DOTSSingleton.GetEntityManager();
+            var query = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<MinionData>()
             );
-            _entityManager.DestroyEntity(query);
+            entityManager.DestroyEntity(query);
         }
 
         /// <summary>
@@ -171,8 +195,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Hybrid
         /// </summary>
         public MinionStatistics GetStatistics()
         {
-            var stats = new MinionStatistics();
-            var query = _entityManager.CreateEntityQuery(
+            var stats = new MinionStatistics(true);
+
+            if (!DOTSSingleton.IsInitialized)
+            {
+                Debug.LogWarning("[DOTSNPCBridge] Cannot get statistics - DOTS world not ready");
+                return stats;
+            }
+
+            var entityManager = DOTSSingleton.GetEntityManager();
+            var query = entityManager.CreateEntityQuery(
                 ComponentType.ReadOnly<MinionData>()
             );
 

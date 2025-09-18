@@ -128,7 +128,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public Entity Target;
         public float Timestamp;
 
-        public static CombatEventBuffer CreateHitEvent(float damage, float3 position, Entity source, Entity target)
+        public static CombatEventBuffer CreateHitEvent(float damage, in float3 position, Entity source, Entity target)
         {
             return new CombatEventBuffer
             {
@@ -214,7 +214,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         public bool HasTarget => CurrentTarget != Entity.Null;
 
-        public void SetTarget(Entity target, float3 position, float distance)
+        public void SetTarget(Entity target, in float3 position, float distance)
         {
             LastTarget = CurrentTarget;
             CurrentTarget = target;

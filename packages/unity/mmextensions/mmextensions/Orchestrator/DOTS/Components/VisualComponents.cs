@@ -19,7 +19,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float StartTime;
         public int EffectIndex; // Index into effect prefab array
 
-        public static VisualEventData CreateHitEffect(float3 position, float3 hitDirection)
+        public static VisualEventData CreateHitEffect(in float3 position, in float3 hitDirection)
         {
             return new VisualEventData
             {
@@ -34,7 +34,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             };
         }
 
-        public static VisualEventData CreateDeathEffect(float3 position)
+        public static VisualEventData CreateDeathEffect(in float3 position)
         {
             return new VisualEventData
             {
@@ -112,7 +112,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float Lifetime;
         public float CreationTime;
 
-        public static DamageNumberRequest CreateNormal(float damage, float3 position)
+        public static DamageNumberRequest CreateNormal(float damage, in float3 position)
         {
             return new DamageNumberRequest
             {
@@ -127,7 +127,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             };
         }
 
-        public static DamageNumberRequest CreateCritical(float damage, float3 position)
+        public static DamageNumberRequest CreateCritical(float damage, in float3 position)
         {
             return new DamageNumberRequest
             {
@@ -142,7 +142,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             };
         }
 
-        public static DamageNumberRequest CreateHeal(float amount, float3 position)
+        public static DamageNumberRequest CreateHeal(float amount, in float3 position)
         {
             return new DamageNumberRequest
             {

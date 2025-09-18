@@ -1,48 +1,24 @@
-using Unity.Entities;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
-using KBVE.MMExtensions.Orchestrator.DOTS.Spatial;
-using KBVE.MMExtensions.Orchestrator.DOTS.Utilities;
-using KBVE.MMExtensions.Orchestrator.DOTS.Hybrid;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     /// <summary>
-    /// VContainer lifetime scope for DOTS systems
-    /// Manages spatial indexing, AI behavior, and combat systems
-    /// Only active during gameplay scenes
+    /// Minimal VContainer scope for DOTS configuration only
+    /// All DOTS systems are managed by DOTSSingleton - no DI integration
     /// </summary>
     public class DOTSLifetimeScope : LifetimeScope
     {
-        [Header("DOTS Configuration")]
+        [Header("Configuration Objects")]
         [SerializeField] private DOTSConfiguration _dotsConfig;
         [SerializeField] private SpatialIndexConfiguration _spatialConfig;
         [SerializeField] private CombatConfiguration _combatConfig;
 
-
-        private World _dotsWorld;
-        private bool _isInitialized;
-
         protected override void Configure(IContainerBuilder builder)
         {
-            // Register configuration objects
+            // Only register configuration objects
             RegisterConfigurations(builder);
-
-            // Register utility classes
-            RegisterUtilities(builder);
-
-            // Register DOTS bridge for NPC integration
-            RegisterDOTSBridge(builder);
-
-            // Use VContainer's ECS integration for proper DOTS system management
-            RegisterDOTSWorld(builder);
-
-            // Register world management
-            RegisterWorldManagement(builder);
-
-            // Register performance monitoring
-            RegisterPerformanceMonitoring(builder);
         }
 
         private void RegisterConfigurations(IContainerBuilder builder)
@@ -60,85 +36,25 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             builder.RegisterInstance(_combatConfig).AsSelf();
         }
 
-        private void RegisterUtilities(IContainerBuilder builder)
-        {
-            // Register spatial data structure factories
-            builder.Register<ISpatialIndexFactory, SpatialIndexFactory>(Lifetime.Singleton);
-            builder.Register<IPriorityHeapFactory, PriorityHeapFactory>(Lifetime.Singleton);
-        }
-
-        private void RegisterDOTSBridge(IContainerBuilder builder)
-        {
-            // Register the DOTS bridge for NPC system integration
-            builder.Register<DOTSNPCBridge>(Lifetime.Singleton)
-                .AsImplementedInterfaces()
-                .AsSelf();
-        }
-
-        private void RegisterDOTSWorld(IContainerBuilder builder)
-        {
-            // Use VContainer's default world integration for DOTS systems
-            builder.UseDefaultWorld(systems =>
-            {
-                // Core spawning systems
-                systems.Add<MinionSpawningSystem>();
-                systems.Add<MinionSpawnRequestSystem>();
-
-                // Movement and behavior systems
-                systems.Add<MinionMovementSystem>();
-                systems.Add<MinionBehaviorSystem>();
-                systems.Add<AdvancedMinionBehaviorSystem>();
-
-                // Core spatial systems (order is critical)
-                systems.Add<SpatialIndexingSystem>();
-                systems.Add<SpatialQuerySystem>();
-                systems.Add<HighPrioritySpatialQuerySystem>();
-
-                // Combat systems
-                systems.Add<MinionCombatSystem>();
-                systems.Add<MinionDestructionSystem>();
-
-                // Debug systems (conditional registration could be added here)
-                systems.Add<MinionDebugSystem>();
-            });
-        }
-
-        private void RegisterWorldManagement(IContainerBuilder builder)
-        {
-            builder.Register<DOTSWorldManager>(Lifetime.Singleton);
-            builder.Register<SystemUpdateOrderManager>(Lifetime.Singleton);
-        }
-
-        private void RegisterPerformanceMonitoring(IContainerBuilder builder)
-        {
-            builder.Register<DOTSPerformanceMonitor>(Lifetime.Singleton);
-            builder.Register<SpatialQueryProfiler>(Lifetime.Singleton);
-        }
-
         protected override void Awake()
         {
             base.Awake();
-
-            // DOTSLifetimeScope is only placed in scenes that need DOTS
-            Debug.Log("[DOTSLifetimeScope] Initialized DOTS systems");
+            Debug.Log("[DOTSLifetimeScope] Minimal configuration scope initialized");
         }
-
 
         protected override void OnDestroy()
         {
-            // VContainer will handle world cleanup automatically
             base.OnDestroy();
         }
 
-        // Debug and development helpers
-        [ContextMenu("Log VContainer Status")]
-        private void LogVContainerStatus()
+        // Debug helper
+        [ContextMenu("Log Configuration Status")]
+        private void LogConfigurationStatus()
         {
             Debug.Log($"[DOTSLifetimeScope] VContainer scope active: {Container != null}");
-            if (Container != null)
-            {
-                Debug.Log($"[DOTSLifetimeScope] Container has {Container.GetType().Name} configuration");
-            }
+            Debug.Log($"[DOTSLifetimeScope] DOTS Configuration: {_dotsConfig != null}");
+            Debug.Log($"[DOTSLifetimeScope] Spatial Configuration: {_spatialConfig != null}");
+            Debug.Log($"[DOTSLifetimeScope] Combat Configuration: {_combatConfig != null}");
         }
     }
 
@@ -182,7 +98,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         [Header("Priority Heap Settings")]
         public int heapInitialCapacity = 64;
-        public HeapComparison defaultHeapComparison = HeapComparison.Min;
+        public int defaultHeapComparison = 0; // 0 = Min, 1 = Max
 
         public static SpatialIndexConfiguration CreateDefault()
         {
@@ -211,4 +127,5 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             return new CombatConfiguration();
         }
     }
+
 }

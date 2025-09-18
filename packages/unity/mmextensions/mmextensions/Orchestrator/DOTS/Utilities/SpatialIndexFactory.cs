@@ -68,7 +68,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
         public NativePriorityHeap<PriorityHeapEntry> CreatePriorityHeap(int capacity, Allocator allocator)
         {
             int heapCapacity = capacity > 0 ? capacity : _config.heapInitialCapacity;
-            var comparison = _config.defaultHeapComparison;
+            var comparison = (HeapComparison)_config.defaultHeapComparison;
             return new NativePriorityHeap<PriorityHeapEntry>(heapCapacity, allocator, comparison);
         }
     }
