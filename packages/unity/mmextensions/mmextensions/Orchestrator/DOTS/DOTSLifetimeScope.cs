@@ -55,7 +55,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             {
                 systems.Add<ZombieWaveSpawnSystem>();
                 systems.Add<KBVE.MMExtensions.Orchestrator.DOTS.Systems.ZombieTargetingSystem>();
-                systems.Add<KBVE.MMExtensions.Orchestrator.DOTS.Systems.SimpleVisualizationSystem>();
             });
 
             // Create the required MinionSpawningSystem entity after systems are registered

@@ -26,14 +26,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             _ecbSystem = World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
-            // Create minion archetype for efficient spawning with simple rendering tag
+            // Create minion archetype for efficient spawning
             _minionArchetype = EntityManager.CreateArchetype(
                 typeof(MinionData),
                 typeof(SpatialPosition),
                 typeof(LocalTransform),
-                typeof(LocalToWorld),
-                // Simple rendering tag - we'll use a hybrid system for now
-                typeof(NeedsVisualization)
+                typeof(LocalToWorld)
             );
 
             _currentGroupId = 0;
@@ -98,13 +96,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         ecb.SetComponent(entityInQueryIndex, minion,
                             SpatialPosition.Create(positions[i]));
 
-                        // Set visualization request
-                        ecb.SetComponent(entityInQueryIndex, minion, new NeedsVisualization
-                        {
-                            VisualType = config.MinionType,
-                            IsVisualized = false
-                        });
-
                         // Track spawned entity
                         spawnedBuffer.Add(new SpawnedMinionBuffer
                         {
@@ -154,13 +145,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                     ecb.SetComponent(entityInQueryIndex, minion,
                         SpatialPosition.Create(request.Position));
-
-                    // Set visualization request
-                    ecb.SetComponent(entityInQueryIndex, minion, new NeedsVisualization
-                    {
-                        VisualType = request.Type,
-                        IsVisualized = false
-                    });
 
                     // Destroy the request
                     ecb.DestroyEntity(entityInQueryIndex, requestEntity);

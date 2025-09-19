@@ -6,6 +6,9 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Cysharp.Threading.Tasks;
+#if UNITY_EDITOR
+using UnityEditor;
+#endif
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -164,7 +167,33 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 }
                 else
                 {
-                    Debug.LogError($"[MinionPrefabManager] Failed to load {type} from address: {address}");
+                    Debug.LogWarning($"[MinionPrefabManager] Failed to load {type} from address: {address}, trying direct asset path");
+
+                    // Fallback to direct asset loading for development
+                    GameObject fallbackPrefab = null;
+
+#if UNITY_EDITOR
+                    // Try to load from known asset paths
+                    if (type == MinionType.Tank) // Zombie uses Tank type
+                    {
+                        fallbackPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Dungeon/ECS/ECS_Zombie.prefab");
+                        if (fallbackPrefab == null)
+                            fallbackPrefab = UnityEditor.AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Sprites/Characters/Zombie/NewZombie.prefab");
+                    }
+#endif
+
+                    if (fallbackPrefab != null)
+                    {
+                        _loadedPrefabs[type] = fallbackPrefab;
+                        ConvertToEntityPrefab(type, fallbackPrefab);
+
+                        if (enableDebugLogging)
+                            Debug.Log($"[MinionPrefabManager] Loaded {type} prefab from fallback asset path");
+
+                        return fallbackPrefab;
+                    }
+
+                    Debug.LogError($"[MinionPrefabManager] Failed to load {type} from both addressables and fallback paths");
                     return null;
                 }
             }
@@ -175,17 +204,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         }
 
         /// <summary>
-        /// Convert a GameObject prefab to an Entity prefab
+        /// Register GameObject prefab for Unity's baking system
+        /// The actual entity prefab will be created when we instantiate it
         /// </summary>
         private void ConvertToEntityPrefab(MinionType type, GameObject prefab)
         {
             if (!DOTSSingleton.IsInitialized)
             {
-                Debug.LogWarning("[MinionPrefabManager] DOTS not initialized, cannot convert to entity prefab");
+                Debug.LogWarning("[MinionPrefabManager] DOTS not initialized, cannot register prefab");
                 return;
             }
-
-            var entityManager = DOTSSingleton.GetEntityManager();
 
             // Check if prefab has MinionAuthoring component
             var authoring = prefab.GetComponent<MinionAuthoring>();
@@ -195,14 +223,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 return;
             }
 
-            // Store reference for entity instantiation
-            // The actual conversion happens through the Baker when instantiated
+            // In Unity Entities 1.0+, we don't manually convert prefabs
+            // Instead, we rely on Unity's baking system to automatically convert
+            // prefabs with Baker components when they're instantiated
+
             if (enableDebugLogging)
-                Debug.Log($"[MinionPrefabManager] Prepared {type} for entity conversion");
+                Debug.Log($"[MinionPrefabManager] Registered {type} prefab for automatic baking: {prefab.name}");
         }
 
         /// <summary>
-        /// Spawn a minion entity at a position
+        /// Spawn a minion entity at a position using Unity's GameObject instantiation + baking
         /// </summary>
         public async UniTask<Entity> SpawnMinionAsync(MinionType type, float3 position, FactionType faction = FactionType.Enemy)
         {
@@ -220,13 +250,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 return Entity.Null;
             }
 
-            // Get the entity manager
-            var entityManager = DOTSSingleton.GetEntityManager();
-
-            // Check if we have an entity prefab cached
-            if (_entityPrefabs.TryGetValue(type, out var entityPrefab))
+            // Check if we have an entity prefab cached from previous conversion
+            if (_entityPrefabs.TryGetValue(type, out var entityPrefab) && entityPrefab != Entity.Null)
             {
-                // Instantiate from entity prefab
+                var entityManager = DOTSSingleton.GetEntityManager();
+
+                // Instantiate from cached entity prefab
                 var entity = entityManager.Instantiate(entityPrefab);
 
                 // Set position
@@ -245,15 +274,29 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     entityManager.SetComponentData(entity, minionData);
                 }
 
+                if (enableDebugLogging)
+                    Debug.Log($"[MinionPrefabManager] Spawned {type} entity from cached prefab at {position}");
+
                 return entity;
             }
             else
             {
-                // Fallback to spawn request system
-                if (enableDebugLogging)
-                    Debug.Log($"[MinionPrefabManager] Using spawn request system for {type}");
+                // Use GameObject instantiation - Unity will automatically convert via Baker
+                var gameObjectInstance = Object.Instantiate(prefab, new Vector3(position.x, position.y, position.z), Quaternion.identity);
 
-                DOTSSingleton.RequestSingleSpawn(position, type, faction);
+                // Update MinionAuthoring faction before baking
+                var authoring = gameObjectInstance.GetComponent<MinionAuthoring>();
+                if (authoring != null)
+                {
+                    authoring.faction = faction;
+                }
+
+                if (enableDebugLogging)
+                    Debug.Log($"[MinionPrefabManager] Spawned {type} GameObject (will be auto-converted to entity) at {position}");
+
+                // The entity will be created automatically by Unity's baking system
+                // We could return the entity reference here, but for now return null
+                // since the baking happens asynchronously
                 return Entity.Null;
             }
         }

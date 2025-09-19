@@ -103,12 +103,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
     /// <summary>
     /// Baker to convert MinionAuthoring to ECS components
+    /// Following Unity's official ECS prefab baking pattern
     /// </summary>
     public class MinionBaker : Unity.Entities.Baker<MinionAuthoring>
     {
         public override void Bake(MinionAuthoring authoring)
         {
-            var entity = GetEntity(TransformUsageFlags.Dynamic);
+            // Get entity with Dynamic transform for runtime spawning AND Renderable for visual components
+            var entity = GetEntity(TransformUsageFlags.Dynamic | TransformUsageFlags.Renderable);
 
             // Add core minion data
             AddComponent(entity, new MinionData
@@ -142,12 +144,28 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 });
             }
 
-            // Add visual reference if exists
+            // Register this entity as an EntityPrefab following Unity's pattern
+            AddComponent(entity, new EntityPrefabComponent
+            {
+                Value = entity
+            });
+
+            // Add visual reference for scale and additional model if exists
             if (authoring.modelPrefab != null)
             {
+                // Additional model prefab reference
                 AddComponent(entity, new MinionVisualReference
                 {
                     PrefabReference = GetEntity(authoring.modelPrefab, TransformUsageFlags.Renderable),
+                    Scale = authoring.scale
+                });
+            }
+            else
+            {
+                // Self-reference for scale
+                AddComponent(entity, new MinionVisualReference
+                {
+                    PrefabReference = entity,
                     Scale = authoring.scale
                 });
             }

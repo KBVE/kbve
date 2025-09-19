@@ -192,14 +192,30 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             };
         }
 
-        private void SpawnZombieWithPathfinding(float3 position)
+        private async void SpawnZombieWithPathfinding(float3 position)
         {
-            // For now, use the existing spawn system
-            // The pathfinding components will be added by MinionAuthoring when prefabs are used
-            DOTSSingleton.RequestSingleSpawn(position, _config.spawnType, _config.spawnFaction);
-
-            // TODO: When we integrate with MinionPrefabManager, we can add pathfinding components here
-            // For entities spawned through archetype system, we'd need to add the components manually
+            // Use MinionPrefabManager for proper prefab-based spawning with full rendering
+            var prefabManager = MinionPrefabManager.Instance;
+            if (prefabManager != null)
+            {
+                var entity = await prefabManager.SpawnMinionAsync(_config.spawnType, position, _config.spawnFaction);
+                if (entity != Entity.Null)
+                {
+                    Debug.Log($"[ZombieWaveSpawnSystem] Spawned {_config.spawnType} entity via MinionPrefabManager at {position}");
+                }
+                else
+                {
+                    // Entity.Null is expected when using GameObject instantiation (auto-baking)
+                    // The GameObject will be automatically converted to entity by Unity's baking system
+                    Debug.Log($"[ZombieWaveSpawnSystem] Spawned {_config.spawnType} GameObject via MinionPrefabManager at {position} (auto-converting to entity)");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[ZombieWaveSpawnSystem] MinionPrefabManager not available, using direct spawn");
+                // Fallback to direct spawn if manager not available
+                DOTSSingleton.RequestSingleSpawn(position, _config.spawnType, _config.spawnFaction);
+            }
         }
 
         protected override void OnStopRunning()
