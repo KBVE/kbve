@@ -20,23 +20,25 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private EntityArchetype _minionArchetype;
         private int _currentGroupId;
 
+        // Note: Rendering assets are now managed by DOTSSingleton
+
         protected override void OnCreate()
         {
             _ecbSystem = World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
-            // Create minion archetype for efficient spawning with 2D sprite rendering
+            // Create minion archetype for efficient spawning with simple rendering tag
             _minionArchetype = EntityManager.CreateArchetype(
                 typeof(MinionData),
                 typeof(SpatialPosition),
                 typeof(LocalTransform),
                 typeof(LocalToWorld),
-                // 2D Sprite rendering components
-                typeof(Sprite2DRenderer),
-                typeof(SpriteRenderTag)
+                // Simple rendering tag - we'll use a hybrid system for now
+                typeof(NeedsVisualization)
             );
 
             _currentGroupId = 0;
         }
+
 
         protected override void OnUpdate()
         {
@@ -96,16 +98,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         ecb.SetComponent(entityInQueryIndex, minion,
                             SpatialPosition.Create(positions[i]));
 
-                        // Set sprite rendering data
-                        ecb.SetComponent(entityInQueryIndex, minion, new Sprite2DRenderer
+                        // Set visualization request
+                        ecb.SetComponent(entityInQueryIndex, minion, new NeedsVisualization
                         {
-                            SpriteID = GetSpriteIDForType(config.MinionType),
-                            Size = new float2(1f, 1f),
-                            Color = new float4(1f, 1f, 1f, 1f),
-                            SortingLayer = 0,
-                            SortingOrder = 0,
-                            FlipX = false,
-                            FlipY = false
+                            VisualType = config.MinionType,
+                            IsVisualized = false
                         });
 
                         // Track spawned entity
@@ -158,16 +155,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     ecb.SetComponent(entityInQueryIndex, minion,
                         SpatialPosition.Create(request.Position));
 
-                    // Set sprite rendering data
-                    ecb.SetComponent(entityInQueryIndex, minion, new Sprite2DRenderer
+                    // Set visualization request
+                    ecb.SetComponent(entityInQueryIndex, minion, new NeedsVisualization
                     {
-                        SpriteID = GetSpriteIDForType(request.Type),
-                        Size = new float2(1f, 1f),
-                        Color = new float4(1f, 1f, 1f, 1f),
-                        SortingLayer = 0,
-                        SortingOrder = 0,
-                        FlipX = false,
-                        FlipY = false
+                        VisualType = request.Type,
+                        IsVisualized = false
                     });
 
                     // Destroy the request
@@ -234,28 +226,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             }
         }
 
-        // Helper method to get sprite ID for minion type
-        [BurstCompile]
-        private static int GetSpriteIDForType(MinionType type)
-        {
-            // Map minion types to sprite IDs
-            // These would correspond to sprite indices in your sprite atlas
-            switch (type)
-            {
-                case MinionType.Tank: // Zombie
-                    return 0;
-                case MinionType.Fast:
-                    return 1;
-                case MinionType.Ranged:
-                    return 2;
-                case MinionType.Flying:
-                    return 3;
-                case MinionType.Boss:
-                    return 4;
-                default:
-                    return 0; // Default sprite
-            }
-        }
 
         private static float GetHealthForType(MinionType type)
         {

@@ -32,6 +32,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private static MinionCombatSystem _combatSystem;
         private static MinionBatchDestructionSystem _destructionSystem;
 
+        // Sprite rendering components
+        private static Mesh _spriteMesh;
+        private static Material[] _spriteMaterials;
+
         #region Static Properties
 
         /// <summary>
@@ -176,6 +180,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 // Cache system references for performance
                 CacheSystemReferences();
 
+                // Initialize sprite rendering
+                InitializeSpriteRendering();
+
                 _isInitialized = true;
 
                 if (Instance != null && Instance._enableDebugLogging)
@@ -217,6 +224,127 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             _spatialQuerySystem = null;
             _combatSystem = null;
             _destructionSystem = null;
+
+            // Clean up sprite rendering assets
+            CleanupSpriteRendering();
+        }
+
+        /// <summary>
+        /// Clean up sprite rendering assets
+        /// </summary>
+        private static void CleanupSpriteRendering()
+        {
+            if (_spriteMesh != null)
+            {
+                UnityEngine.Object.DestroyImmediate(_spriteMesh);
+                _spriteMesh = null;
+            }
+
+            if (_spriteMaterials != null)
+            {
+                foreach (var material in _spriteMaterials)
+                {
+                    if (material != null)
+                    {
+                        UnityEngine.Object.DestroyImmediate(material);
+                    }
+                }
+                _spriteMaterials = null;
+            }
+        }
+
+        #endregion
+
+        #region Sprite Rendering
+
+        /// <summary>
+        /// Initialize sprite rendering assets
+        /// </summary>
+        private static void InitializeSpriteRendering()
+        {
+            try
+            {
+                // Create quad mesh for sprites
+                _spriteMesh = CreateSpriteMesh();
+
+                // Create materials for each minion type
+                _spriteMaterials = new Material[5];
+                var shader = Shader.Find("Sprites/Default") ?? Shader.Find("Unlit/Color") ?? Shader.Find("Unlit/Texture");
+
+                if (shader != null)
+                {
+                    Color[] colors = { Color.red, Color.green, Color.blue, Color.yellow, Color.magenta };
+
+                    for (int i = 0; i < 5; i++)
+                    {
+                        _spriteMaterials[i] = new Material(shader);
+                        _spriteMaterials[i].color = colors[i];
+                        _spriteMaterials[i].name = $"Minion Sprite Material {i}";
+                    }
+
+                    Debug.Log("[DOTSSingleton] Sprite rendering initialized");
+                }
+                else
+                {
+                    Debug.LogError("[DOTSSingleton] Could not find suitable shader for sprite rendering");
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[DOTSSingleton] Failed to initialize sprite rendering: {ex.Message}");
+            }
+        }
+
+        /// <summary>
+        /// Create a simple quad mesh for sprite rendering
+        /// </summary>
+        private static Mesh CreateSpriteMesh()
+        {
+            var mesh = new Mesh();
+            mesh.name = "Sprite Quad";
+
+            var vertices = new Vector3[]
+            {
+                new Vector3(-0.5f, -0.5f, 0),
+                new Vector3(0.5f, -0.5f, 0),
+                new Vector3(0.5f, 0.5f, 0),
+                new Vector3(-0.5f, 0.5f, 0)
+            };
+
+            var triangles = new int[] { 0, 2, 1, 0, 3, 2 };
+            var uvs = new Vector2[] { new Vector2(0, 0), new Vector2(1, 0), new Vector2(1, 1), new Vector2(0, 1) };
+
+            mesh.vertices = vertices;
+            mesh.triangles = triangles;
+            mesh.uv = uvs;
+            mesh.RecalculateNormals();
+            mesh.RecalculateBounds();
+
+            return mesh;
+        }
+
+        /// <summary>
+        /// Get sprite mesh for rendering
+        /// </summary>
+        public static Mesh GetSpriteMesh()
+        {
+            return _spriteMesh;
+        }
+
+        /// <summary>
+        /// Get sprite material for a minion type
+        /// </summary>
+        public static Material GetSpriteMaterial(MinionType type)
+        {
+            if (_spriteMaterials == null) return null;
+
+            int index = (int)type;
+            if (index >= 0 && index < _spriteMaterials.Length)
+            {
+                return _spriteMaterials[index];
+            }
+
+            return _spriteMaterials[0]; // Default material
         }
 
         #endregion

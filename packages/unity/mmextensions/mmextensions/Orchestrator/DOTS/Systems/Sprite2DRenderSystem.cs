@@ -26,17 +26,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
         // Batching data structures
         private Dictionary<int, List<Matrix4x4>> _batchMatrices;
-        private Dictionary<int, List<Vector4>> _batchUVs;
-        private Dictionary<int, List<Vector4>> _batchColors;
 
-        // Material property blocks for instancing
-        private MaterialPropertyBlock _propertyBlock;
+        // Removed MaterialPropertyBlock to avoid array size issues
 
         // Constants
         private const int MAX_INSTANCES_PER_BATCH = 1023; // Unity's limit for instancing
-        private static readonly int _MainTexProperty = Shader.PropertyToID("_MainTex");
-        private static readonly int _ColorProperty = Shader.PropertyToID("_Color");
-        private static readonly int _UVProperty = Shader.PropertyToID("_UV");
 
         protected override void OnCreate()
         {
@@ -47,9 +41,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             _materials = new Dictionary<int, Material>();
             _spriteTextures = new Dictionary<int, Texture2D>();
             _batchMatrices = new Dictionary<int, List<Matrix4x4>>();
-            _batchUVs = new Dictionary<int, List<Vector4>>();
-            _batchColors = new Dictionary<int, List<Vector4>>();
-            _propertyBlock = new MaterialPropertyBlock();
 
             // Load default sprite material
             LoadDefaultSpriteMaterial();
@@ -65,14 +56,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             {
                 batch.Clear();
             }
-            foreach (var batch in _batchUVs.Values)
-            {
-                batch.Clear();
-            }
-            foreach (var batch in _batchColors.Values)
-            {
-                batch.Clear();
-            }
 
             // Collect sprite data for batching
             Entities
@@ -84,8 +67,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     if (!_batchMatrices.ContainsKey(sprite.SpriteID))
                     {
                         _batchMatrices[sprite.SpriteID] = new List<Matrix4x4>();
-                        _batchUVs[sprite.SpriteID] = new List<Vector4>();
-                        _batchColors[sprite.SpriteID] = new List<Vector4>();
                     }
 
                     // Create transform matrix for sprite
@@ -97,8 +78,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
                     // Add to batch
                     _batchMatrices[sprite.SpriteID].Add(matrix);
-                    _batchUVs[sprite.SpriteID].Add(GetUVForSprite(sprite.SpriteID));
-                    _batchColors[sprite.SpriteID].Add(sprite.Color);
                 })
                 .WithoutBurst() // Needed for dictionary access
                 .Run();
@@ -120,9 +99,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
                 if (matrices.Count == 0) continue;
 
-                // Get material for this sprite type
-                if (!_materials.TryGetValue(0, out Material material)) // Using default material for now
-                    continue;
+                // Get material for this sprite type - try to get specific material first
+                if (!_materials.TryGetValue(spriteID, out Material material))
+                {
+                    // Fallback to default material
+                    if (!_materials.TryGetValue(0, out material))
+                        continue;
+                }
+
+                // Set the appropriate texture for this sprite type
+                if (_spriteTextures.TryGetValue(spriteID, out Texture2D texture))
+                {
+                    material.mainTexture = texture;
+                }
 
                 // Process in chunks if exceeding max instances
                 int batchCount = Mathf.CeilToInt((float)matrices.Count / MAX_INSTANCES_PER_BATCH);
@@ -139,34 +128,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                         batchMatrixArray[i] = matrices[startIndex + i];
                     }
 
-                    // Set material properties if we have custom UV/colors
-                    if (_batchUVs.ContainsKey(spriteID) && _batchColors.ContainsKey(spriteID))
-                    {
-                        var uvs = _batchUVs[spriteID];
-                        var colors = _batchColors[spriteID];
-
-                        // Create arrays for GPU
-                        var uvArray = new Vector4[count];
-                        var colorArray = new Vector4[count];
-
-                        for (int i = 0; i < count; i++)
-                        {
-                            uvArray[i] = uvs[startIndex + i];
-                            colorArray[i] = colors[startIndex + i];
-                        }
-
-                        _propertyBlock.SetVectorArray(_UVProperty, uvArray);
-                        _propertyBlock.SetVectorArray(_ColorProperty, colorArray);
-                    }
-
-                    // Draw instanced mesh
+                    // Use simple instancing without property blocks to avoid array size issues
                     Graphics.DrawMeshInstanced(
                         _quadMesh,
                         0,
                         material,
                         batchMatrixArray,
                         count,
-                        _propertyBlock,
+                        null, // No property block for now
                         ShadowCastingMode.Off,
                         false,
                         0, // Default layer
@@ -218,17 +187,29 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
         private void LoadDefaultSpriteMaterial()
         {
             // Try to load from Resources or create a simple unlit material
-            var shader = Shader.Find("Sprites/Default") ?? Shader.Find("Unlit/Transparent");
+            var shader = Shader.Find("Sprites/Default") ?? Shader.Find("Unlit/Transparent") ?? Shader.Find("Unlit/Texture");
             if (shader != null)
             {
-                var material = new Material(shader);
-                material.name = "Sprite Instance Material";
-                material.enableInstancing = true;
-                _materials[0] = material;
+                // Create a default material
+                var defaultMaterial = new Material(shader);
+                defaultMaterial.name = "Default Sprite Material";
+                defaultMaterial.enableInstancing = true;
+                _materials[0] = defaultMaterial;
+
+                // Create materials for each sprite type
+                for (int i = 0; i < 5; i++)
+                {
+                    var material = new Material(shader);
+                    material.name = $"Sprite Material {i}";
+                    material.enableInstancing = true;
+                    _materials[i] = material;
+                }
+
+                Debug.Log($"[Sprite2DRenderSystem] Created materials with shader: {shader.name}");
             }
             else
             {
-                Debug.LogError("[Sprite2DRenderSystem] Could not find sprite shader!");
+                Debug.LogError("[Sprite2DRenderSystem] Could not find any sprite shader!");
             }
         }
 
@@ -262,20 +243,20 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 _spriteTextures[i] = tex;
             }
 
-            // Set the texture on the material
-            if (_materials.TryGetValue(0, out Material mat) && _spriteTextures.Count > 0)
+            // Set textures on their respective materials
+            foreach (var kvp in _spriteTextures)
             {
-                // For simple testing, use first texture
-                mat.mainTexture = _spriteTextures[0];
+                int spriteID = kvp.Key;
+                var texture = kvp.Value;
+
+                if (_materials.TryGetValue(spriteID, out Material mat))
+                {
+                    mat.mainTexture = texture;
+                    Debug.Log($"[Sprite2DRenderSystem] Set texture for sprite {spriteID}");
+                }
             }
         }
 
-        private Vector4 GetUVForSprite(int spriteID)
-        {
-            // For now, return full UV (0,0,1,1)
-            // In production, this would return the UV rect for the sprite in an atlas
-            return new Vector4(0, 0, 1, 1);
-        }
 
         protected override void OnDestroy()
         {
