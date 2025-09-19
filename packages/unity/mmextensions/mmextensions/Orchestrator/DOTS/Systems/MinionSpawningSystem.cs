@@ -24,12 +24,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             _ecbSystem = World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
 
-            // Create minion archetype for efficient spawning
+            // Create minion archetype for efficient spawning with 2D sprite rendering
             _minionArchetype = EntityManager.CreateArchetype(
                 typeof(MinionData),
                 typeof(SpatialPosition),
                 typeof(LocalTransform),
-                typeof(LocalToWorld)
+                typeof(LocalToWorld),
+                // 2D Sprite rendering components
+                typeof(Sprite2DRenderer),
+                typeof(SpriteRenderTag)
             );
 
             _currentGroupId = 0;
@@ -93,6 +96,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         ecb.SetComponent(entityInQueryIndex, minion,
                             SpatialPosition.Create(positions[i]));
 
+                        // Set sprite rendering data
+                        ecb.SetComponent(entityInQueryIndex, minion, new Sprite2DRenderer
+                        {
+                            SpriteID = GetSpriteIDForType(config.MinionType),
+                            Size = new float2(1f, 1f),
+                            Color = new float4(1f, 1f, 1f, 1f),
+                            SortingLayer = 0,
+                            SortingOrder = 0,
+                            FlipX = false,
+                            FlipY = false
+                        });
+
                         // Track spawned entity
                         spawnedBuffer.Add(new SpawnedMinionBuffer
                         {
@@ -142,6 +157,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                     ecb.SetComponent(entityInQueryIndex, minion,
                         SpatialPosition.Create(request.Position));
+
+                    // Set sprite rendering data
+                    ecb.SetComponent(entityInQueryIndex, minion, new Sprite2DRenderer
+                    {
+                        SpriteID = GetSpriteIDForType(request.Type),
+                        Size = new float2(1f, 1f),
+                        Color = new float4(1f, 1f, 1f, 1f),
+                        SortingLayer = 0,
+                        SortingOrder = 0,
+                        FlipX = false,
+                        FlipY = false
+                    });
 
                     // Destroy the request
                     ecb.DestroyEntity(entityInQueryIndex, requestEntity);
@@ -204,6 +231,29 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         positions[i] = center + new float3(randomPoint.x, 0, randomPoint.y);
                     }
                     break;
+            }
+        }
+
+        // Helper method to get sprite ID for minion type
+        [BurstCompile]
+        private static int GetSpriteIDForType(MinionType type)
+        {
+            // Map minion types to sprite IDs
+            // These would correspond to sprite indices in your sprite atlas
+            switch (type)
+            {
+                case MinionType.Tank: // Zombie
+                    return 0;
+                case MinionType.Fast:
+                    return 1;
+                case MinionType.Ranged:
+                    return 2;
+                case MinionType.Flying:
+                    return 3;
+                case MinionType.Boss:
+                    return 4;
+                default:
+                    return 0; // Default sprite
             }
         }
 

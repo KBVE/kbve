@@ -54,7 +54,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             builder.UseDefaultWorld(systems =>
             {
                 systems.Add<ZombieWaveSpawnSystem>();
-                systems.Add<KBVE.MMExtensions.Orchestrator.DOTS.Systems.ZombieTargetingSystem>();
+                systems.Add<Systems.ZombieTargetingSystem>();
+                systems.Add<Systems.Sprite2DRenderSystem>();
             });
 
             // Create the required MinionSpawningSystem entity after systems are registered
