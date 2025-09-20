@@ -157,8 +157,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     _loadedPrefabs[type] = prefab;
                     _loadingHandles[address] = handle;
 
-                    // Convert to entity prefab
-                    ConvertToEntityPrefab(type, prefab);
+                    // Note: We'll cache the entity prefab when Unity bakes the first GameObject
 
                     if (enableDebugLogging)
                         Debug.Log($"[MinionPrefabManager] Successfully loaded {type} prefab");
@@ -185,7 +184,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     if (fallbackPrefab != null)
                     {
                         _loadedPrefabs[type] = fallbackPrefab;
-                        ConvertToEntityPrefab(type, fallbackPrefab);
+                        // Note: We'll cache the entity prefab when Unity bakes the first GameObject
 
                         if (enableDebugLogging)
                             Debug.Log($"[MinionPrefabManager] Loaded {type} prefab from fallback asset path");
@@ -203,60 +202,26 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             }
         }
 
-        /// <summary>
-        /// Register GameObject prefab for Unity's baking system
-        /// The actual entity prefab will be created when we instantiate it
-        /// </summary>
-        private void ConvertToEntityPrefab(MinionType type, GameObject prefab)
-        {
-            if (!DOTSSingleton.IsInitialized)
-            {
-                Debug.LogWarning("[MinionPrefabManager] DOTS not initialized, cannot register prefab");
-                return;
-            }
-
-            // Check if prefab has MinionAuthoring component
-            var authoring = prefab.GetComponent<MinionAuthoring>();
-            if (authoring == null)
-            {
-                Debug.LogWarning($"[MinionPrefabManager] Prefab for {type} missing MinionAuthoring component");
-                return;
-            }
-
-            // In Unity Entities 1.0+, we don't manually convert prefabs
-            // Instead, we rely on Unity's baking system to automatically convert
-            // prefabs with Baker components when they're instantiated
-
-            if (enableDebugLogging)
-                Debug.Log($"[MinionPrefabManager] Registered {type} prefab for automatic baking: {prefab.name}");
-        }
 
         /// <summary>
-        /// Spawn a minion entity at a position using Unity's GameObject instantiation + baking
+        /// Spawn a minion entity using SubScene baked prefab (preferred) or fallback methods
         /// </summary>
         public async UniTask<Entity> SpawnMinionAsync(MinionType type, float3 position, FactionType faction = FactionType.Enemy)
         {
-            // Ensure prefab is loaded
-            var prefab = await LoadPrefabAsync(type);
-            if (prefab == null)
-            {
-                Debug.LogError($"[MinionPrefabManager] Cannot spawn {type} - prefab not found");
-                return Entity.Null;
-            }
-
             if (!DOTSSingleton.IsInitialized)
             {
                 Debug.LogError("[MinionPrefabManager] Cannot spawn - DOTS not initialized");
                 return Entity.Null;
             }
 
-            // Check if we have an entity prefab cached from previous conversion
-            if (_entityPrefabs.TryGetValue(type, out var entityPrefab) && entityPrefab != Entity.Null)
-            {
-                var entityManager = DOTSSingleton.GetEntityManager();
+            var entityManager = DOTSSingleton.GetEntityManager();
 
-                // Instantiate from cached entity prefab
-                var entity = entityManager.Instantiate(entityPrefab);
+            // First, try to find the SubScene baked prefab (fastest and preferred)
+            var bakedPrefab = FindSubSceneBakedPrefab(type);
+            if (bakedPrefab != Entity.Null)
+            {
+                // Ultra-fast path: Use SubScene baked entity prefab
+                var entity = entityManager.Instantiate(bakedPrefab);
 
                 // Set position
                 entityManager.SetComponentData(entity, new LocalTransform
@@ -274,30 +239,162 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     entityManager.SetComponentData(entity, minionData);
                 }
 
-                if (enableDebugLogging)
-                    Debug.Log($"[MinionPrefabManager] Spawned {type} entity from cached prefab at {position}");
-
+                Debug.Log($"[MinionPrefabManager] SubScene prefab spawn {type} at {position}");
                 return entity;
             }
-            else
-            {
-                // Use GameObject instantiation - Unity will automatically convert via Baker
-                var gameObjectInstance = Object.Instantiate(prefab, new Vector3(position.x, position.y, position.z), Quaternion.identity);
 
-                // Update MinionAuthoring faction before baking
-                var authoring = gameObjectInstance.GetComponent<MinionAuthoring>();
-                if (authoring != null)
+            // Fallback: Check if we have a cached Unity-baked entity prefab from GameObject conversion
+            if (_entityPrefabs.TryGetValue(type, out var cachedPrefab) && cachedPrefab != Entity.Null)
+            {
+                // Fast path: Use cached Unity-baked entity
+                var entity = entityManager.Instantiate(cachedPrefab);
+
+                // Set position
+                entityManager.SetComponentData(entity, new LocalTransform
                 {
-                    authoring.faction = faction;
+                    Position = position,
+                    Rotation = quaternion.identity,
+                    Scale = 1f
+                });
+
+                // Update faction if needed
+                if (entityManager.HasComponent<MinionData>(entity))
+                {
+                    var minionData = entityManager.GetComponentData<MinionData>(entity);
+                    minionData.Faction = faction;
+                    entityManager.SetComponentData(entity, minionData);
                 }
 
-                if (enableDebugLogging)
-                    Debug.Log($"[MinionPrefabManager] Spawned {type} GameObject (will be auto-converted to entity) at {position}");
+                Debug.Log($"[MinionPrefabManager] Cached prefab spawn {type} at {position}");
+                return entity;
+            }
 
-                // The entity will be created automatically by Unity's baking system
-                // We could return the entity reference here, but for now return null
-                // since the baking happens asynchronously
+            // Last resort: GameObject spawning (creates visible entities but slower)
+            var prefab = await LoadPrefabAsync(type);
+            if (prefab == null)
+            {
+                Debug.LogError($"[MinionPrefabManager] Cannot spawn {type} - no prefab available");
                 return Entity.Null;
+            }
+
+            var gameObjectInstance = Object.Instantiate(prefab, new Vector3(position.x, position.y, position.z), Quaternion.identity);
+
+            // Update MinionAuthoring faction before baking
+            var authoring = gameObjectInstance.GetComponent<MinionAuthoring>();
+            if (authoring != null)
+            {
+                authoring.faction = faction;
+            }
+
+            Debug.Log($"[MinionPrefabManager] GameObject fallback spawn {type} at {position}");
+
+            // Schedule detection of the baked entity to cache it for future use
+            DetectAndCacheUnityBakedEntity(type).Forget();
+
+            return Entity.Null; // Unity's baking is asynchronous
+        }
+
+        /// <summary>
+        /// Find a baked entity prefab from SubScene (ECS_Zombie prefab)
+        /// </summary>
+        private Entity FindSubSceneBakedPrefab(MinionType type)
+        {
+            if (!DOTSSingleton.IsInitialized)
+                return Entity.Null;
+
+            var entityManager = DOTSSingleton.GetEntityManager();
+
+            // Look for entities with MinionData of the matching type
+            // Prefer entities with Prefab component (indicating they're templates)
+            var query = entityManager.CreateEntityQuery(typeof(MinionData));
+            var entities = query.ToEntityArray(Unity.Collections.Allocator.TempJob);
+
+            Entity bestCandidate = Entity.Null;
+
+            foreach (var entity in entities)
+            {
+                var minionData = entityManager.GetComponentData<MinionData>(entity);
+
+                if (minionData.Type == type)
+                {
+                    // Prefer entities with Prefab component (they're templates)
+                    if (entityManager.HasComponent<Prefab>(entity))
+                    {
+                        entities.Dispose();
+                        Debug.Log($"[MinionPrefabManager] Found SubScene baked prefab with Prefab tag for {type}: {entity}");
+                        return entity;
+                    }
+
+                    // Otherwise, store as potential candidate
+                    if (bestCandidate == Entity.Null)
+                    {
+                        bestCandidate = entity;
+                    }
+                }
+            }
+
+            entities.Dispose();
+
+            if (bestCandidate != Entity.Null)
+            {
+                Debug.Log($"[MinionPrefabManager] Found SubScene baked entity for {type}: {bestCandidate}");
+                return bestCandidate;
+            }
+
+            return Entity.Null;
+        }
+
+        /// <summary>
+        /// Detect when Unity bakes a GameObject to entity and cache the result
+        /// </summary>
+        private async UniTaskVoid DetectAndCacheUnityBakedEntity(MinionType type)
+        {
+            if (_entityPrefabs.ContainsKey(type))
+                return; // Already cached
+
+            var entityManager = DOTSSingleton.GetEntityManager();
+
+            // Wait a few frames for Unity's baking to complete
+            await UniTask.DelayFrame(5);
+
+            try
+            {
+                // Look for entities with MinionData of the right type
+                // This is a simple approach - in production you might want more sophisticated detection
+                var query = entityManager.CreateEntityQuery(typeof(MinionData));
+                var entities = query.ToEntityArray(Unity.Collections.Allocator.TempJob);
+
+                foreach (var entity in entities)
+                {
+                    var minionData = entityManager.GetComponentData<MinionData>(entity);
+                    if (minionData.Type == type)
+                    {
+                        // Found a Unity-baked entity of this type
+                        // Create a prefab copy of it
+                        var prefabEntity = entityManager.Instantiate(entity);
+
+                        // Mark it as a prefab (remove any runtime-specific components)
+                        if (entityManager.HasComponent<LocalToWorld>(prefabEntity))
+                        {
+                            entityManager.SetComponentData(prefabEntity, LocalTransform.Identity);
+                        }
+
+                        // Add prefab tag
+                        entityManager.AddComponent<Prefab>(prefabEntity);
+
+                        // Cache it
+                        _entityPrefabs[type] = prefabEntity;
+
+                        Debug.Log($"[MinionPrefabManager] Detected and cached Unity-baked entity prefab for {type}: {prefabEntity}");
+                        break;
+                    }
+                }
+
+                entities.Dispose();
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"[MinionPrefabManager] Failed to detect Unity-baked entity for {type}: {ex.Message}");
             }
         }
 

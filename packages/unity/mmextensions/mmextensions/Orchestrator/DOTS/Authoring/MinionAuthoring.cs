@@ -2,6 +2,8 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using KBVE.MMExtensions.Orchestrator.DOTS.Spatial;
+using NSprites;
+using NSprites.Authoring;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -36,10 +38,23 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [Range(1f, 300f)]
         public float lifetime = 60f;
 
-        [Header("Visuals")]
-        public GameObject modelPrefab;
-        public Material[] materialVariants;
-        public float scale = 1f;
+        [Header("NSprites Foundation Rendering")]
+        public Sprite minionSprite;
+        [SerializeField] public RegisterSpriteAuthoringModule RegisterSpriteData;
+        [SerializeField] public SpriteSettingsAuthoringModule RenderSettings = new SpriteSettingsAuthoringModule
+        {
+            Pivot = new Unity.Mathematics.float2(0.5f, 0.5f), // Center pivot
+            Size = new Unity.Mathematics.float2(1f, 1f), // Default size
+            DrawMode = SpriteSettingsAuthoringModule.DrawModeType.Simple,
+            TilingAndOffset = new Unity.Mathematics.float4(1f, 1f, 0f, 0f), // No tiling/offset
+            Flip = new Unity.Mathematics.bool2(false, false) // No flipping
+        };
+        [SerializeField] public SortingAuthoringModule Sorting = new SortingAuthoringModule
+        {
+            StaticSorting = false,
+            SortingIndex = 0,
+            SortingLayer = 0  // Must be 0-3 due to NSprites Foundation limit
+        };
 
         [Header("Pathfinding Settings")]
         [Tooltip("Enable A* pathfinding for this minion")]
@@ -99,6 +114,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Ensure ranges make sense
             detectionRange = Mathf.Max(attackRange + 1f, detectionRange);
         }
+
     }
 
     /// <summary>
@@ -109,11 +125,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     {
         public override void Bake(MinionAuthoring authoring)
         {
-            // Get entity with Dynamic transform for runtime spawning AND Renderable for visual components
-            var entity = GetEntity(TransformUsageFlags.Dynamic | TransformUsageFlags.Renderable);
+            // Create main entity with Dynamic transform for runtime movement and gameplay
+            var gameplayEntity = GetEntity(TransformUsageFlags.Dynamic);
 
-            // Add core minion data
-            AddComponent(entity, new MinionData
+            // Add core minion data to main entity
+            AddComponent(gameplayEntity, new MinionData
             {
                 Health = authoring.health,
                 MaxHealth = authoring.health,
@@ -128,7 +144,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             });
 
             // Add spatial position
-            AddComponent(entity, SpatialPosition.Create(
+            AddComponent(gameplayEntity, SpatialPosition.Create(
                 new float3(authoring.transform.position.x,
                           authoring.transform.position.y,
                           authoring.transform.position.z)
@@ -137,7 +153,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Add lifetime if configured
             if (authoring.hasLifetime)
             {
-                AddComponent(entity, new MinionLifetime
+                AddComponent(gameplayEntity, new MinionLifetime
                 {
                     SpawnTime = 0f, // Will be set at spawn time
                     MaxLifetime = authoring.lifetime
@@ -145,44 +161,27 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             }
 
             // Register this entity as an EntityPrefab following Unity's pattern
-            AddComponent(entity, new EntityPrefabComponent
+            AddComponent(gameplayEntity, new EntityPrefabComponent
             {
-                Value = entity
+                Value = gameplayEntity
             });
 
-            // Add visual reference for scale and additional model if exists
-            if (authoring.modelPrefab != null)
-            {
-                // Additional model prefab reference
-                AddComponent(entity, new MinionVisualReference
-                {
-                    PrefabReference = GetEntity(authoring.modelPrefab, TransformUsageFlags.Renderable),
-                    Scale = authoring.scale
-                });
-            }
-            else
-            {
-                // Self-reference for scale
-                AddComponent(entity, new MinionVisualReference
-                {
-                    PrefabReference = entity,
-                    Scale = authoring.scale
-                });
-            }
-
             // Add buffer for spatial query results
-            AddBuffer<SpatialQueryResult>(entity);
+            AddBuffer<SpatialQueryResult>(gameplayEntity);
+
+            // Add NSprites Foundation rendering components using proper workflow
+            AddNSpritesFoundationRendering(authoring);
 
             // Add A* Pathfinding ECS components if enabled
             if (authoring.enablePathfinding)
             {
-                AddComponent(entity, new Pathfinding.ECS.DestinationPoint
+                AddComponent(gameplayEntity, new Pathfinding.ECS.DestinationPoint
                 {
                     destination = new float3(authoring.transform.position.x, authoring.transform.position.y, authoring.transform.position.z),
                     facingDirection = float3.zero
                 });
 
-                AddComponent(entity, new Pathfinding.ECS.MovementSettings
+                AddComponent(gameplayEntity, new Pathfinding.ECS.MovementSettings
                 {
                     follower = new Pathfinding.PID.PIDMovement
                     {
@@ -203,22 +202,22 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     isStopped = false
                 });
 
-                AddComponent(entity, new Pathfinding.ECS.MovementState());
+                AddComponent(gameplayEntity, new Pathfinding.ECS.MovementState());
 
-                AddComponent(entity, new Pathfinding.ECS.AgentCylinderShape
+                AddComponent(gameplayEntity, new Pathfinding.ECS.AgentCylinderShape
                 {
                     radius = authoring.agentRadius,
                     height = authoring.agentHeight
                 });
 
-                AddComponent(entity, new Pathfinding.ECS.SimulateMovement());
-                AddComponent(entity, new Pathfinding.ECS.AgentMovementPlane());
-                AddComponent(entity, new Pathfinding.ECS.SearchState());
+                AddComponent(gameplayEntity, new Pathfinding.ECS.SimulateMovement());
+                AddComponent(gameplayEntity, new Pathfinding.ECS.AgentMovementPlane());
+                AddComponent(gameplayEntity, new Pathfinding.ECS.SearchState());
 
                 // Add RVO collision avoidance if enabled
                 if (authoring.enableCollisionAvoidance)
                 {
-                    AddComponent(entity, new Pathfinding.ECS.RVO.RVOAgent
+                    AddComponent(gameplayEntity, new Pathfinding.ECS.RVO.RVOAgent
                     {
                         agentTimeHorizon = 2f,
                         obstacleTimeHorizon = 1f,
@@ -233,16 +232,103 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 }
             }
         }
+
+        private void AddNSpritesFoundationRendering(MinionAuthoring authoring)
+        {
+            if (authoring.minionSprite == null)
+            {
+                Debug.LogWarning($"[MinionBaker] No sprite assigned to {authoring.name}. NSprites rendering will not work.");
+                return;
+            }
+
+            // Validate Foundation modules are set up
+            if (!authoring.RegisterSpriteData.IsValid(out var message))
+            {
+                Debug.LogError($"[MinionBaker] RegisterSpriteData not valid on {authoring.name}: {message}");
+                return;
+            }
+
+            // Create sprite entity using Foundation's exact pattern
+            var spriteEntity = GetEntity(TransformUsageFlags.None);
+            DependsOn(authoring);
+
+            // Manual implementation following Foundation's BakeSpriteBase pattern
+            var renderData = authoring.RegisterSpriteData.SpriteRenderData;
+            if (authoring.minionSprite.texture != null)
+            {
+                // Create material with overridden texture
+                var material = new Material(renderData.Material);
+                material.SetTexture("_MainTex", authoring.minionSprite.texture);
+                renderData = new SpriteRenderData
+                {
+                    Material = material,
+                    PropertiesSet = renderData.PropertiesSet
+                };
+            }
+
+            // Add the critical registration component
+            AddComponentObject(spriteEntity, new SpriteRenderDataToRegister { data = renderData });
+
+            // Add all required NSprites components manually (following BakeSpriteRender pattern)
+            var uvAtlas = (float4)NSpritesUtils.GetTextureST(authoring.minionSprite);
+            var nativeSize = authoring.minionSprite.GetNativeSize(uvAtlas.xy);
+
+            AddComponent(spriteEntity, new UVAtlas { value = uvAtlas });
+            AddComponent(spriteEntity, new UVTilingAndOffset { value = authoring.RenderSettings.TilingAndOffset });
+            AddComponent(spriteEntity, new Pivot { value = authoring.RenderSettings.Pivot });
+            AddComponent(spriteEntity, new Scale2D { value = authoring.RenderSettings.Size * nativeSize });
+            AddComponent(spriteEntity, new Flip { Value = new(authoring.RenderSettings.Flip.x ? -1 : 0, authoring.RenderSettings.Flip.y ? -1 : 0) });
+
+            // Add LocalToWorld - required by PropertiesManifest for "_positionBuffer"
+            AddComponent(spriteEntity, new Unity.Transforms.LocalToWorld
+            {
+                Value = authoring.transform.localToWorldMatrix
+            });
+
+            // Add SortingData - required by PropertiesManifest for "_sortingDataBuffer"
+            AddComponent(spriteEntity, new SortingData(authoring.Sorting.SortingLayer, authoring.Sorting.SortingIndex));
+
+            // Add sprite render components (this should add SpriteRenderID and other core components)
+            this.AddSpriteRenderComponents(spriteEntity, renderData.ID);
+
+            Debug.Log($"[MinionBaker] Added NSprites Foundation rendering to {authoring.name} with sprite {authoring.minionSprite.name}");
+        }
+
+    }
+
+
+
+    /// <summary>
+    /// Component for spawning waves of zombies in SubScene
+    /// </summary>
+    public struct ZombieWaveSpawner : IComponentData
+    {
+        public MinionType spawnType;
+        public FactionType spawnFaction;
+        public int zombiesPerWave;
+        public float spawnInterval;
+        public float waveRadius;
+        public float2 gridTopLeft;
+        public float2 gridBottomRight;
+        public bool spawnWithinGrid;
+        public bool allowEdgeSpawning;
+        public float edgeSpawnProbability;
+        public bool spawnOnStart;
+        public int maxWaves;
+        public float initialDelay;
     }
 
     /// <summary>
-    /// Component to reference visual prefab
+    /// Component for tracking spawn timing
     /// </summary>
-    public struct MinionVisualReference : IComponentData
+    public struct SpawnTimer : IComponentData
     {
-        public Entity PrefabReference;
-        public float Scale;
+        public float lastSpawnTime;
+        public int wavesSpawned;
+        public bool hasSpawnedInitial;
+        public bool isInitialized;
     }
+
 
     /// <summary>
     /// Utility class for runtime minion creation

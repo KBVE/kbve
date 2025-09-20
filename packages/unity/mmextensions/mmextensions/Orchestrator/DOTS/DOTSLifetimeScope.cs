@@ -53,33 +53,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Use VContainer ECS integration to register systems
             builder.UseDefaultWorld(systems =>
             {
-                systems.Add<ZombieWaveSpawnSystem>();
                 systems.Add<KBVE.MMExtensions.Orchestrator.DOTS.Systems.ZombieTargetingSystem>();
             });
 
-            // Create the required MinionSpawningSystem entity after systems are registered
-            CreateMinionSpawningEntityDelayedAsync().Forget();
-
-            Debug.Log("[DOTSLifetimeScope] Registered zombie spawning and targeting systems with VContainer ECS integration");
-        }
-
-        private async UniTaskVoid CreateMinionSpawningEntityDelayedAsync()
-        {
-            // Wait a bit for DOTS to be fully initialized
-            await UniTask.Delay(100); // 100ms
-
-            // Retry until default world is available
-            while (World.DefaultGameObjectInjectionWorld == null)
-            {
-                Debug.LogWarning("[DOTSLifetimeScope] Default DOTS world not yet available, retrying in 0.5s");
-                await UniTask.Delay(500); // 500ms
-            }
-
-            // Create entity with MinionSpawningSystemTag component to satisfy ZombieWaveSpawnSystem requirements
-            var entityManager = World.DefaultGameObjectInjectionWorld.EntityManager;
-            var entity = entityManager.CreateEntity();
-            entityManager.AddComponentData(entity, new MinionSpawningSystemTag { isActive = true });
-            Debug.Log("[DOTSLifetimeScope] Created MinionSpawningSystem entity for zombie wave spawning");
+            Debug.Log("[DOTSLifetimeScope] Registered zombie targeting system with VContainer ECS integration");
         }
 
         protected override void Awake()
@@ -261,18 +238,5 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         }
     }
 
-    /// <summary>
-    /// Tag component to enable minion spawning systems
-    /// Required by ZombieWaveSpawnSystem to run
-    /// </summary>
-    public struct MinionSpawningSystemTag : IComponentData
-    {
-        public bool isActive;
-
-        public static MinionSpawningSystemTag Create()
-        {
-            return new MinionSpawningSystemTag { isActive = true };
-        }
-    }
 
 }
