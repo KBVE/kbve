@@ -62,5 +62,6 @@
       "khash",
       "plpgsql"
     ],
-    "godotTools.editorPath.godot4": "/Applications/Godot.app"
+    "godotTools.editorPath.godot4": "/Applications/Godot.app",
+     "rust-analyzer.initializeStopped": true
 }
