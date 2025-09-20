@@ -22,6 +22,14 @@ import { Adsense, Tasks } from '@kbve/astropad';
 	This is still on the gameobject side and we will have to figure out the best course of action for handling this.
 	I am glad that we are finally twitch streaming as well, making it easier to save the session as a youtube video.
 
+-	07:16PM
+
+	Psychotic updated the Character Orientation 2D to override the one that More Mountains provides.
+	While he is tackling that issue, I am doing some research into the Age of Sprites and trying to resolve our ECS deployment of the units.
+	We will have a hybrid setup for the game but we need to make sure that the ECS side works , giving us the freedom to move units out of the gameobject area and into the entity system.
+	My plan is to have the minions be within the ECS eco-system and have the main boss be a gameobject itself.
+	I believe we can achieve this through a strong centralized event system, which the MMEvents is already becoming.
+
 ## 2024
 
 **Kilobase**

@@ -4,7 +4,7 @@ using Unity.Collections;
 using Unity.Burst;
 using Unity.Transforms;
 using UnityEngine;
-using NSprites;
+using KBVE.MMExtensions.Orchestrator.DOTS;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 {
@@ -136,6 +136,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             var entityManager = state.EntityManager;
             var random = new Unity.Mathematics.Random((uint)(SystemAPI.Time.ElapsedTime * 1000) + 1);
 
+            UnityEngine.Debug.Log($"[SubSceneSpawningSystem] Starting wave spawn - Count: {spawner.zombiesPerWave}, Center: {center}");
+
+            // Batch instantiation following Age-of-Sprites pattern
+            var zombieEntities = new NativeArray<Entity>(spawner.zombiesPerWave, Allocator.Temp);
+            entityManager.Instantiate(zombiePrefab, zombieEntities);
+
             for (int i = 0; i < spawner.zombiesPerWave; i++)
             {
                 float3 spawnPosition;
@@ -156,8 +162,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     spawnPosition = center + offset;
                 }
 
-                // Instantiate the baked zombie prefab
-                var zombieEntity = entityManager.Instantiate(zombiePrefab);
+                // Get the entity from batch
+                var zombieEntity = zombieEntities[i];
 
                 // Add random offset to prevent stacking
                 float3 randomOffset = new float3(
@@ -188,6 +194,22 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     Value = float4x4.TRS(finalPosition, quaternion.identity, new float3(1f))
                 });
 
+                // Add WorldPosition2D for NSprites rendering
+                if (!entityManager.HasComponent<WorldPosition2D>(zombieEntity))
+                {
+                    entityManager.AddComponentData(zombieEntity, new WorldPosition2D
+                    {
+                        Value = new float2(finalPosition.x, finalPosition.z)
+                    });
+                }
+                else
+                {
+                    entityManager.SetComponentData(zombieEntity, new WorldPosition2D
+                    {
+                        Value = new float2(finalPosition.x, finalPosition.z)
+                    });
+                }
+
                 // Update faction and assign unique instance ID
                 if (entityManager.HasComponent<MinionData>(zombieEntity))
                 {
@@ -203,7 +225,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     entityManager.RemoveComponent<Prefab>(zombieEntity);
                 }
 
+                UnityEngine.Debug.Log($"[SubSceneSpawningSystem] Spawned zombie {i+1}/{spawner.zombiesPerWave} at position {finalPosition}, Entity: {zombieEntity.Index}");
             }
+
+            UnityEngine.Debug.Log($"[SubSceneSpawningSystem] Wave spawn complete - Spawned {spawner.zombiesPerWave} zombies");
+
+            // Dispose the NativeArray
+            zombieEntities.Dispose();
         }
 
         [BurstCompile]
