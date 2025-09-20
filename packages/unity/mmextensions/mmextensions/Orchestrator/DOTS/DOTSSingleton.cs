@@ -25,12 +25,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private static bool _isInitialized;
 
         // Cached system references for performance
-        private static MinionSpawningSystem _spawningSystem;
         private static MinionSpawnRequestSystem _spawnRequestSystem;
-        private static SpatialIndexingSystem _spatialIndexingSystem;
-        private static SpatialQuerySystem _spatialQuerySystem;
-        private static MinionCombatSystem _combatSystem;
         private static MinionBatchDestructionSystem _destructionSystem;
+
 
         #region Static Properties
 
@@ -198,11 +195,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             if (_dotsWorld == null || !_dotsWorld.IsCreated)
                 return;
 
-            _spawningSystem = _dotsWorld.GetExistingSystemManaged<MinionSpawningSystem>();
             _spawnRequestSystem = _dotsWorld.GetExistingSystemManaged<MinionSpawnRequestSystem>();
-            _spatialIndexingSystem = _dotsWorld.GetExistingSystemManaged<SpatialIndexingSystem>();
-            _spatialQuerySystem = _dotsWorld.GetExistingSystemManaged<SpatialQuerySystem>();
-            _combatSystem = _dotsWorld.GetExistingSystemManaged<MinionCombatSystem>();
             _destructionSystem = _dotsWorld.GetExistingSystemManaged<MinionBatchDestructionSystem>();
         }
 
@@ -211,13 +204,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// </summary>
         private static void ClearCachedSystems()
         {
-            _spawningSystem = null;
             _spawnRequestSystem = null;
-            _spatialIndexingSystem = null;
-            _spatialQuerySystem = null;
-            _combatSystem = null;
             _destructionSystem = null;
         }
+
 
         #endregion
 
@@ -253,7 +243,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         /// <summary>
         /// Request bulk minion spawn
+        /// DEPRECATED: Use SubScene-based spawning with ZombieWaveSpawnerAuthoring instead
         /// </summary>
+        [System.Obsolete("Use SubScene-based spawning with ZombieWaveSpawnerAuthoring instead")]
         public static Entity RequestBulkSpawn(in float3 position, int count, MinionType type, FactionType faction)
         {
             if (_spawnRequestSystem == null)
@@ -271,7 +263,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         /// <summary>
         /// Request single minion spawn
+        /// DEPRECATED: Use SubScene-based spawning with ZombieWaveSpawnerAuthoring instead
         /// </summary>
+        [System.Obsolete("Use SubScene-based spawning with ZombieWaveSpawnerAuthoring instead")]
         public static void RequestSingleSpawn(in float3 position, MinionType type, FactionType faction)
         {
             if (_spawnRequestSystem == null)
@@ -304,6 +298,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             _destructionSystem.DestroyInRadius(center, radius);
         }
+
 
         /// <summary>
         /// Get world statistics for debugging

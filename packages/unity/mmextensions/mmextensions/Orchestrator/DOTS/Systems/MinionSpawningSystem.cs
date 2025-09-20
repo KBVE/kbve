@@ -20,6 +20,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private EntityArchetype _minionArchetype;
         private int _currentGroupId;
 
+        // Note: Rendering assets are now managed by DOTSSingleton
+
         protected override void OnCreate()
         {
             _ecbSystem = World.GetOrCreateSystemManaged<BeginSimulationEntityCommandBufferSystem>();
@@ -34,6 +36,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             _currentGroupId = 0;
         }
+
 
         protected override void OnUpdate()
         {
@@ -206,6 +209,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     break;
             }
         }
+
 
         private static float GetHealthForType(MinionType type)
         {

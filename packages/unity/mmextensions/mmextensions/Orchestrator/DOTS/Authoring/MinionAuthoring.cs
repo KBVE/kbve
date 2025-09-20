@@ -2,6 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using KBVE.MMExtensions.Orchestrator.DOTS.Spatial;
+using NSprites;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -36,10 +37,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [Range(1f, 300f)]
         public float lifetime = 60f;
 
-        [Header("Visuals")]
-        public GameObject modelPrefab;
-        public Material[] materialVariants;
-        public float scale = 1f;
+        [Header("Visual Rendering")]
+        [Tooltip("Foundation's sprite renderer component that handles all rendering")]
+        public SpriteRendererAuthoring spriteRenderer;
 
         [Header("Pathfinding Settings")]
         [Tooltip("Enable A* pathfinding for this minion")]
@@ -99,15 +99,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Ensure ranges make sense
             detectionRange = Mathf.Max(attackRange + 1f, detectionRange);
         }
+
     }
 
     /// <summary>
     /// Baker to convert MinionAuthoring to ECS components
+    /// Following Unity's official ECS prefab baking pattern
     /// </summary>
     public class MinionBaker : Unity.Entities.Baker<MinionAuthoring>
     {
         public override void Bake(MinionAuthoring authoring)
         {
+            // Use single entity with Dynamic transform for both gameplay AND rendering
+            // This is what Foundation expects and allows movement + sprite rendering
             var entity = GetEntity(TransformUsageFlags.Dynamic);
 
             // Add core minion data
@@ -142,18 +146,17 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 });
             }
 
-            // Add visual reference if exists
-            if (authoring.modelPrefab != null)
+            // Register this entity as an EntityPrefab following Unity's pattern
+            AddComponent(entity, new EntityPrefabComponent
             {
-                AddComponent(entity, new MinionVisualReference
-                {
-                    PrefabReference = GetEntity(authoring.modelPrefab, TransformUsageFlags.Renderable),
-                    Scale = authoring.scale
-                });
-            }
+                Value = entity
+            });
 
             // Add buffer for spatial query results
             AddBuffer<SpatialQueryResult>(entity);
+
+            // Foundation's SpriteRendererAuthoring handles all sprite setup automatically
+            // No manual integration needed - Foundation bakes its own components
 
             // Add A* Pathfinding ECS components if enabled
             if (authoring.enablePathfinding)
@@ -215,16 +218,43 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 }
             }
         }
+
+
+    }
+
+
+
+    /// <summary>
+    /// Component for spawning waves of zombies in SubScene
+    /// </summary>
+    public struct ZombieWaveSpawner : IComponentData
+    {
+        public MinionType spawnType;
+        public FactionType spawnFaction;
+        public int zombiesPerWave;
+        public float spawnInterval;
+        public float waveRadius;
+        public float2 gridTopLeft;
+        public float2 gridBottomRight;
+        public bool spawnWithinGrid;
+        public bool allowEdgeSpawning;
+        public float edgeSpawnProbability;
+        public bool spawnOnStart;
+        public int maxWaves;
+        public float initialDelay;
     }
 
     /// <summary>
-    /// Component to reference visual prefab
+    /// Component for tracking spawn timing
     /// </summary>
-    public struct MinionVisualReference : IComponentData
+    public struct SpawnTimer : IComponentData
     {
-        public Entity PrefabReference;
-        public float Scale;
+        public float lastSpawnTime;
+        public int wavesSpawned;
+        public bool hasSpawnedInitial;
+        public bool isInitialized;
     }
+
 
     /// <summary>
     /// Utility class for runtime minion creation

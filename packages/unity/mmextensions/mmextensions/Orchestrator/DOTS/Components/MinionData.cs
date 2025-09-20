@@ -24,6 +24,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         // State flags packed into single int for efficiency
         public MinionStateFlags StateFlags;
 
+        // Unique instance identifier to differentiate spawned entities
+        public int InstanceID;
+
         public bool IsAlive => Health > 0;
         public float HealthPercentage => Health / MaxHealth;
     }
