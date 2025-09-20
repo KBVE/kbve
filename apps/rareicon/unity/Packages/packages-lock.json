@@ -7,21 +7,33 @@
       "dependencies": {},
       "hash": "99f96a7bdb1ee66381517d8c8b6d1b526e47019f"
     },
-    "com.tonymax.nsprites": {
-      "version": "file:com.nsprites",
+    "com.singtaa.onejs": {
+      "version": "https://github.com/Singtaa/OneJS.git",
       "depth": 0,
-      "source": "embedded",
+      "source": "git",
+      "dependencies": {
+        "com.unity.mathematics": "1.2.6",
+        "com.unity.burst": "1.8.4"
+      },
+      "hash": "7fa82d83e85633dfd362058cda2d47a835ac55bf"
+    },
+    "com.tonymax.nsprites": {
+      "version": "https://github.com/Antoshidza/NSprites.git",
+      "depth": 0,
+      "source": "git",
       "dependencies": {
         "com.unity.entities": "1.0.0-pre.65"
-      }
+      },
+      "hash": "8e6a8f0a88398e18bed376d0ee09ec2059fb1bfa"
     },
     "com.tonymax.nsprites.foundation": {
-      "version": "file:com.nsprites.foundation",
+      "version": "https://github.com/Antoshidza/NSprites-Foundation.git",
       "depth": 0,
-      "source": "embedded",
+      "source": "git",
       "dependencies": {
         "com.unity.entities": "1.0.0-pre.65"
-      }
+      },
+      "hash": "e5257fa47a94299366ee68d9ce11b751033ff35d"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
