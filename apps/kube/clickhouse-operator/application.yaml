@@ -1,0 +1,42 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: clickhouse-operator
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "2"
+spec:
+  project: default
+  sources:
+    - repoURL: https://docs.altinity.com/clickhouse-operator/
+      targetRevision: 0.25.3
+      chart: altinity-clickhouse-operator
+      helm:
+        releaseName: clickhouse-operator
+        valueFiles:
+          - $values/apps/kube/clickhouse-operator/manifests/values.yaml
+    - repoURL: https://github.com/kbve/kbve
+      targetRevision: main
+      ref: values
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: clickhouse
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true
+  ignoreDifferences:
+    - group: apps
+      kind: Deployment
+      jsonPointers:
+        - /spec/template/spec/containers/0/env/5/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/0/env/6/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/0/env/7/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/0/env/8/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/1/env/5/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/1/env/6/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/1/env/7/valueFrom/resourceFieldRef/divisor
+        - /spec/template/spec/containers/1/env/8/valueFrom/resourceFieldRef/divisor

@@ -1,0 +1,43 @@
+apiVersion: clickhouse.altinity.com/v1
+kind: ClickHouseInstallation
+metadata:
+  name: clickhouse-cluster
+  namespace: clickhouse
+spec:
+  configuration:
+    users:
+      admin/password_sha256_hex: "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"  # "hello"
+      admin/networks/ip:
+        - "::/0"
+      admin/profile: "default"
+    clusters:
+      - name: cluster
+        layout:
+          shardsCount: 2
+          replicasCount: 2
+        settings:
+          # Simple ZooKeeper configuration for replication
+          zookeeper/nodes/node/host: "chk-clickhouse-keeper-keeper-0-0.clickhouse.svc.cluster.local"
+          zookeeper/nodes/node/port: "2181"
+  defaults:
+    templates:
+      dataVolumeClaimTemplate: data-storage
+      logVolumeClaimTemplate: log-storage
+  templates:
+    volumeClaimTemplates:
+      - name: data-storage
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 50Gi
+          storageClassName: longhorn
+      - name: log-storage
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 10Gi
+          storageClassName: longhorn

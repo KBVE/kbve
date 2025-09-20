@@ -1,0 +1,10 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - namespace.yaml
+  # Remote CRDs from clickhouse-operator repository
+  - https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/helm/clickhouse-operator/crds/CustomResourceDefinition-clickhouseinstallations.clickhouse.altinity.com.yaml
+  - https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/helm/clickhouse-operator/crds/CustomResourceDefinition-clickhouseinstallationtemplates.clickhouse.altinity.com.yaml
+  - https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/helm/clickhouse-operator/crds/CustomResourceDefinition-clickhousekeeperinstallations.clickhouse-keeper.altinity.com.yaml
+  - https://raw.githubusercontent.com/Altinity/clickhouse-operator/master/deploy/helm/clickhouse-operator/crds/CustomResourceDefinition-clickhouseoperatorconfigurations.clickhouse.altinity.com.yaml

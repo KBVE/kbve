@@ -1,0 +1,23 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: clickhouse-crds
+  namespace: argocd
+  annotations:
+    argocd.argoproj.io/sync-wave: "1"
+spec:
+  project: default
+  sources:
+    - repoURL: https://github.com/kbve/kbve
+      targetRevision: main
+      path: apps/kube/clickhouse-crds/manifests
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: clickhouse
+  syncPolicy:
+    automated:
+      selfHeal: true
+      prune: true
+    syncOptions:
+      - CreateNamespace=true
+      - ServerSideApply=true

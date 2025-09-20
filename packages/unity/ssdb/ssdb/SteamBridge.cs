@@ -23,7 +23,43 @@ public partial class SteamBridge : MonoBehaviour
 {
     private SteamUserProfiles _steamUserProfiles;
     private readonly CompositeDisposable _disposables = new();
-    
+
+    [Header("Debug Settings")]
+    [SerializeField] private bool enableDiagnostics = false;
+
+    /// <summary>
+    /// Helper method to log diagnostic messages only when diagnostics are enabled
+    /// </summary>
+    private void LogDiagnostic(string message)
+    {
+        if (enableDiagnostics)
+        {
+            Debug.Log($"[SteamBridge] {message}");
+        }
+    }
+
+    /// <summary>
+    /// Helper method to log diagnostic warnings only when diagnostics are enabled
+    /// </summary>
+    private void LogDiagnosticWarning(string message)
+    {
+        if (enableDiagnostics)
+        {
+            Debug.LogWarning($"[SteamBridge] {message}");
+        }
+    }
+
+    /// <summary>
+    /// Helper method to log diagnostic errors only when diagnostics are enabled
+    /// </summary>
+    private void LogDiagnosticError(string message)
+    {
+        if (enableDiagnostics)
+        {
+            Debug.LogError($"[SteamBridge] {message}");
+        }
+    }
+
     #region OneJS EventfulProperty Fields
     
     // EventfulProperty fields for OneJS bidirectional binding
@@ -71,11 +107,11 @@ public partial class SteamBridge : MonoBehaviour
         }
         catch (OperationCanceledException)
         {
-            Debug.LogWarning("[SteamBridge] Steam connection initialization was cancelled or timed out");
+            LogDiagnosticWarning("Steam connection initialization was cancelled or timed out");
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SteamBridge] Failed to initialize Steam connection: {ex.Message}");
+            LogDiagnosticError($"Failed to initialize Steam connection: {ex.Message}");
         }
     }
     
@@ -91,7 +127,7 @@ public partial class SteamBridge : MonoBehaviour
             destroyCancellationToken
         );
         
-        Debug.Log("[SteamBridge] Starting async search for SteamUserProfiles...");
+        LogDiagnostic("Starting async search for SteamUserProfiles...");
         
         while (_steamUserProfiles == null)
         {
@@ -106,7 +142,7 @@ public partial class SteamBridge : MonoBehaviour
                     if (lifetimeScope.Container.TryResolve<SteamUserProfiles>(out var steamProfiles))
                     {
                         _steamUserProfiles = steamProfiles;
-                        Debug.Log("[SteamBridge] Found SteamUserProfiles through VContainer");
+                        LogDiagnostic("Found SteamUserProfiles through VContainer");
                         InitializeBindings();
                         return;
                     }
@@ -117,14 +153,14 @@ public partial class SteamBridge : MonoBehaviour
                 if (steamProfilesComponent != null)
                 {
                     _steamUserProfiles = steamProfilesComponent;
-                    Debug.Log("[SteamBridge] Found SteamUserProfiles as scene component");
+                    LogDiagnostic("Found SteamUserProfiles as scene component");
                     InitializeBindings();
                     return;
                 }
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"[SteamBridge] Error finding SteamUserProfiles: {ex.Message}");
+                LogDiagnosticWarning($"Error finding SteamUserProfiles: {ex.Message}");
             }
             
             // Non-blocking delay using UniTask
@@ -140,7 +176,7 @@ public partial class SteamBridge : MonoBehaviour
     {
         if (_steamUserProfiles == null) return;
         
-        Debug.Log("[SteamBridge] Initializing OneJS bindings with SteamUserProfiles");
+        LogDiagnostic("Initializing OneJS bindings with SteamUserProfiles");
         
         // Subscribe to all reactive properties from SteamUserProfiles
         // Use auto-generated properties from EventfulProperty
@@ -225,7 +261,7 @@ public partial class SteamBridge : MonoBehaviour
     {
         // This would need to be implemented with achievement checking
         // For now, return false as placeholder
-        Debug.Log($"[SteamBridge] Checking achievement: {achievementId}");
+        LogDiagnostic($"Checking achievement: {achievementId}");
         return false;
     }
     
@@ -278,12 +314,12 @@ public partial class SteamBridge : MonoBehaviour
         if (string.IsNullOrEmpty(loadingSceneName))
         {
             MMSceneLoadingManager.LoadScene(sceneName);
-            Debug.Log($"[SteamBridge] Loading scene: {sceneName}");
+            LogDiagnostic($"Loading scene: {sceneName}");
         }
         else
         {
             MMSceneLoadingManager.LoadScene(sceneName, loadingSceneName);
-            Debug.Log($"[SteamBridge] Loading scene: {sceneName} with loading screen: {loadingSceneName}");
+            LogDiagnostic($"Loading scene: {sceneName} with loading screen: {loadingSceneName}");
         }
     }
     
@@ -301,7 +337,7 @@ public partial class SteamBridge : MonoBehaviour
         };
         
         MMAdditiveSceneLoadingManager.LoadScene(sceneName, settings);
-        Debug.Log($"[SteamBridge] Loading scene additively: {sceneName}");
+        LogDiagnostic($"Loading scene additively: {sceneName}");
     }
     
     /// <summary>
@@ -324,7 +360,7 @@ public partial class SteamBridge : MonoBehaviour
         };
         
         MMAdditiveSceneLoadingManager.LoadScene(sceneName, settings);
-        Debug.Log($"[SteamBridge] Loading scene additively (advanced): {sceneName}, unload active: {unloadActiveScene}");
+        LogDiagnostic($"Loading scene additively (advanced): {sceneName}, unload active: {unloadActiveScene}");
     }
     
     /// <summary>
@@ -336,24 +372,24 @@ public partial class SteamBridge : MonoBehaviour
     {
         try
         {
-            Debug.Log($"[SteamBridge] Starting async load of scene: {sceneName}");
+            LogDiagnostic($"Starting async load of scene: {sceneName}");
             
             var operation = UnityEngine.SceneManagement.SceneManager.LoadSceneAsync(sceneName);
             if (operation == null)
             {
-                Debug.LogError($"[SteamBridge] Failed to start loading scene: {sceneName}");
+                LogDiagnosticError($"Failed to start loading scene: {sceneName}");
                 return false;
             }
             
             // Wait for the scene to load
             await operation.ToUniTask();
             
-            Debug.Log($"[SteamBridge] Successfully loaded scene: {sceneName}");
+            LogDiagnostic($"Successfully loaded scene: {sceneName}");
             return true;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SteamBridge] Error loading scene {sceneName}: {ex.Message}");
+            LogDiagnosticError($"Error loading scene {sceneName}: {ex.Message}");
             return false;
         }
     }
@@ -367,24 +403,24 @@ public partial class SteamBridge : MonoBehaviour
     {
         try
         {
-            Debug.Log($"[SteamBridge] Starting async unload of scene: {sceneName}");
+            LogDiagnostic($"Starting async unload of scene: {sceneName}");
             
             var operation = UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(sceneName);
             if (operation == null)
             {
-                Debug.LogError($"[SteamBridge] Failed to start unloading scene: {sceneName}");
+                LogDiagnosticError($"Failed to start unloading scene: {sceneName}");
                 return false;
             }
             
             // Wait for the scene to unload
             await operation.ToUniTask();
             
-            Debug.Log($"[SteamBridge] Successfully unloaded scene: {sceneName}");
+            LogDiagnostic($"Successfully unloaded scene: {sceneName}");
             return true;
         }
         catch (Exception ex)
         {
-            Debug.LogError($"[SteamBridge] Error unloading scene {sceneName}: {ex.Message}");
+            LogDiagnosticError($"Error unloading scene {sceneName}: {ex.Message}");
             return false;
         }
     }
