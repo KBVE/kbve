@@ -3,7 +3,6 @@ using Unity.Mathematics;
 using UnityEngine;
 using KBVE.MMExtensions.Orchestrator.DOTS.Spatial;
 using NSprites;
-using NSprites.Authoring;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -38,23 +37,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [Range(1f, 300f)]
         public float lifetime = 60f;
 
-        [Header("NSprites Foundation Rendering")]
-        public Sprite minionSprite;
-        [SerializeField] public RegisterSpriteAuthoringModule RegisterSpriteData;
-        [SerializeField] public SpriteSettingsAuthoringModule RenderSettings = new SpriteSettingsAuthoringModule
-        {
-            Pivot = new Unity.Mathematics.float2(0.5f, 0.5f), // Center pivot
-            Size = new Unity.Mathematics.float2(1f, 1f), // Default size
-            DrawMode = SpriteSettingsAuthoringModule.DrawModeType.Simple,
-            TilingAndOffset = new Unity.Mathematics.float4(1f, 1f, 0f, 0f), // No tiling/offset
-            Flip = new Unity.Mathematics.bool2(false, false) // No flipping
-        };
-        [SerializeField] public SortingAuthoringModule Sorting = new SortingAuthoringModule
-        {
-            StaticSorting = false,
-            SortingIndex = 0,
-            SortingLayer = 0  // Must be 0-3 due to NSprites Foundation limit
-        };
+        [Header("Visual Rendering")]
+        [Tooltip("Foundation's sprite renderer component that handles all rendering")]
+        public SpriteRendererAuthoring spriteRenderer;
 
         [Header("Pathfinding Settings")]
         [Tooltip("Enable A* pathfinding for this minion")]
@@ -170,8 +155,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Add buffer for spatial query results
             AddBuffer<SpatialQueryResult>(entity);
 
-            // Let Foundation handle ALL sprite rendering setup
-            AddNSpritesFoundationRendering(authoring);
+            // Foundation's SpriteRendererAuthoring handles all sprite setup automatically
+            // No manual integration needed - Foundation bakes its own components
 
             // Add A* Pathfinding ECS components if enabled
             if (authoring.enablePathfinding)
@@ -234,39 +219,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             }
         }
 
-        private void AddNSpritesFoundationRendering(MinionAuthoring authoring)
-        {
-            if (authoring.minionSprite == null)
-            {
-                Debug.LogWarning($"[MinionBaker] No sprite assigned to {authoring.name}. NSprites rendering will not work.");
-                return;
-            }
-
-            // Validate Foundation modules are set up
-            if (!authoring.RegisterSpriteData.IsValid(out var message))
-            {
-                Debug.LogError($"[MinionBaker] RegisterSpriteData not valid on {authoring.name}: {message}");
-                return;
-            }
-
-            // Let Foundation handle EVERYTHING - this is the pure Foundation approach
-            DependsOn(authoring);
-
-            // Register sprite data - Foundation handles entity management internally
-            authoring.RegisterSpriteData.Bake(this, authoring.minionSprite.texture);
-
-            // Calculate UV and size data for Foundation modules
-            var uvAtlas = (float4)NSpritesUtils.GetTextureST(authoring.minionSprite);
-            var nativeSize = authoring.minionSprite.GetNativeSize(uvAtlas.xy);
-
-            // Use Foundation's rendering settings module - adds all sprite components
-            authoring.RenderSettings.Bake(this, authoring, nativeSize, uvAtlas);
-
-            // Use Foundation's sorting module - handles sorting components
-            authoring.Sorting.Bake(this);
-
-            Debug.Log($"[MinionBaker] Foundation handled all sprite rendering for {authoring.name} with sprite {authoring.minionSprite.name}");
-        }
 
     }
 

@@ -22,9 +22,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            // Query for zombie prefabs (baked entities with MinionData - no Prefab component needed)
+            // Query for zombie prefabs - entities with MinionData that are prefabs
+            // Foundation's SpriteRendererAuthoring will add its own components automatically
             _zombiePrefabQuery = SystemAPI.QueryBuilder()
-                .WithAll<MinionData>()
+                .WithAll<MinionData, EntityPrefabComponent>()
                 .Build();
 
             // Query for spawner entities
@@ -41,14 +42,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             var deltaTime = SystemAPI.Time.DeltaTime;
             var elapsedTime = (float)SystemAPI.Time.ElapsedTime;
 
-            // Debug: Count entities (only log once at start)
-            var totalEntities = _zombiePrefabQuery.CalculateEntityCount();
-            var spawnerCount = _spawnerQuery.CalculateEntityCount();
-
-            if (elapsedTime > 2f && elapsedTime < 2.1f) // Log only once after 2 seconds
-            {
-                UnityEngine.Debug.Log($"[SubSceneSpawningSystem] System active - {totalEntities} MinionData entities, {spawnerCount} spawner entities");
-            }
 
             // Find zombie prefab entity once
             var zombiePrefab = FindZombiePrefab(ref state);
@@ -69,6 +62,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
         {
             var zombieEntities = _zombiePrefabQuery.ToEntityArray(Allocator.Temp);
 
+
             foreach (var entity in zombieEntities)
             {
                 if (SystemAPI.HasComponent<MinionData>(entity))
@@ -82,6 +76,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 }
             }
 
+            UnityEngine.Debug.LogWarning("[SubSceneSpawningSystem] No zombie prefab found with Type = Tank!");
             zombieEntities.Dispose();
             return Entity.Null;
         }
@@ -93,7 +88,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             {
                 timer.isInitialized = true;
                 timer.lastSpawnTime = elapsedTime;
-                UnityEngine.Debug.Log("[SubSceneSpawningSystem] Initialized spawner");
             }
 
             // Handle initial spawn
@@ -103,7 +97,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 timer.hasSpawnedInitial = true;
                 timer.lastSpawnTime = elapsedTime;
                 timer.wavesSpawned++;
-                UnityEngine.Debug.Log("[SubSceneSpawningSystem] Spawned initial wave");
                 return;
             }
 
@@ -117,7 +110,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 SpawnWave(ref state, ref spawner, zombiePrefab, GetSpawnCenter(ref spawner));
                 timer.lastSpawnTime = elapsedTime;
                 timer.wavesSpawned++;
-                UnityEngine.Debug.Log($"[SubSceneSpawningSystem] Spawned wave {timer.wavesSpawned}");
             }
         }
 
@@ -167,19 +159,41 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 // Instantiate the baked zombie prefab
                 var zombieEntity = entityManager.Instantiate(zombiePrefab);
 
-                // Set position
+                // Add random offset to prevent stacking
+                float3 randomOffset = new float3(
+                    random.NextFloat(-2f, 2f),
+                    0f,
+                    random.NextFloat(-2f, 2f)
+                );
+                float3 finalPosition = spawnPosition + randomOffset;
+
+                // Set position with random offset
                 entityManager.SetComponentData(zombieEntity, new LocalTransform
                 {
-                    Position = spawnPosition,
+                    Position = finalPosition,
                     Rotation = quaternion.identity,
                     Scale = 1f
                 });
 
-                // Update faction if needed
+                // Force LocalToWorld update for NSprites rendering
+                if (!entityManager.HasComponent<LocalToWorld>(zombieEntity))
+                {
+                    UnityEngine.Debug.LogWarning($"[SubSceneSpawningSystem] Entity {zombieEntity.Index} missing LocalToWorld! Adding it.");
+                    entityManager.AddComponent<LocalToWorld>(zombieEntity);
+                }
+
+                // Update LocalToWorld directly to ensure sprite position
+                entityManager.SetComponentData(zombieEntity, new LocalToWorld
+                {
+                    Value = float4x4.TRS(finalPosition, quaternion.identity, new float3(1f))
+                });
+
+                // Update faction and assign unique instance ID
                 if (entityManager.HasComponent<MinionData>(zombieEntity))
                 {
                     var minionData = entityManager.GetComponentData<MinionData>(zombieEntity);
                     minionData.Faction = spawner.spawnFaction;
+                    minionData.InstanceID = i; // Assign unique ID based on spawn index
                     entityManager.SetComponentData(zombieEntity, minionData);
                 }
 
@@ -189,24 +203,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     entityManager.RemoveComponent<Prefab>(zombieEntity);
                 }
 
-                // Debug what components this entity has
-                var componentTypes = entityManager.GetComponentTypes(zombieEntity, Unity.Collections.Allocator.Temp);
-                UnityEngine.Debug.Log($"[SubSceneSpawningSystem] Spawned zombie {zombieEntity} at {spawnPosition} with {componentTypes.Length} components");
-
-                // List some key components
-                bool hasTransform = entityManager.HasComponent<LocalTransform>(zombieEntity);
-                bool hasMinionData = entityManager.HasComponent<MinionData>(zombieEntity);
-                bool hasLocalToWorld = entityManager.HasComponent<LocalToWorld>(zombieEntity);
-
-                // Check for NSprites rendering components
-                bool hasSpriteRenderID = entityManager.HasComponent<NSprites.SpriteRenderID>(zombieEntity);
-                bool hasUVAtlas = entityManager.HasComponent<NSprites.UVAtlas>(zombieEntity);
-                bool hasScale2D = entityManager.HasComponent<NSprites.Scale2D>(zombieEntity);
-
-                UnityEngine.Debug.Log($"[SubSceneSpawningSystem] Entity has - Transform: {hasTransform}, MinionData: {hasMinionData}, LocalToWorld: {hasLocalToWorld}");
-                UnityEngine.Debug.Log($"[SubSceneSpawningSystem] NSprites components - SpriteRenderID: {hasSpriteRenderID}, UVAtlas: {hasUVAtlas}, Scale2D: {hasScale2D}");
-
-                componentTypes.Dispose();
             }
         }
 
