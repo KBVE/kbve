@@ -1,11 +1,11 @@
-
 using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using MoreMountains.Tools;
+using MoreMountains.TopDownEngine;
 
-namespace MoreMountains.TopDownEngine
+namespace KBVE.MMExtensions.Abilities
 {
   /// <summary>
   /// Add this ability to a character and it'll rotate or flip to face the direction of movement or the weapon's, or both, or none
