@@ -136,11 +136,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                           authoring.transform.position.z)
             ));
 
-            // Add WorldPosition2D for NSprites rendering compatibility
-            AddComponent(entity, new WorldPosition2D
-            {
-                Value = new float2(authoring.transform.position.x, authoring.transform.position.z)
-            });
+            // Foundation's SpriteRendererAuthoring handles all rendering automatically
 
             // Add lifetime if configured
             if (authoring.hasLifetime)

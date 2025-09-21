@@ -4,30 +4,23 @@ using Unity.Mathematics;
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     /// <summary>
-    /// Factory data for spawning entities at regular intervals
-    /// Based on Age-of-Sprites FactoryData pattern
+    /// Factory data for spawning entities - exact match to Age-of-Sprites
     /// </summary>
     public struct FactoryData : IComponentData
     {
         public Entity prefab;
-        public float2 instantiatePos;
         public int count;
         public float duration;
+        public float2 instantiatePos;
+        public int wavesSpawned;
+        public int maxWaves;
     }
 
     /// <summary>
-    /// Timer component for factory spawning
-    /// Based on Age-of-Sprites FactoryTimer pattern
+    /// Timer component for factory spawning - exact match to Age-of-Sprites
     /// </summary>
     public struct FactoryTimer : IComponentData
     {
         public float value;
-    }
-
-    /// <summary>
-    /// Tag component to identify cave spawners
-    /// </summary>
-    public struct CaveSpawnerTag : IComponentData
-    {
     }
 }
