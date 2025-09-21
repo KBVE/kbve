@@ -136,6 +136,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                           authoring.transform.position.z)
             ));
 
+            // Foundation's SpriteRendererAuthoring handles all rendering automatically
+
             // Add lifetime if configured
             if (authoring.hasLifetime)
             {
