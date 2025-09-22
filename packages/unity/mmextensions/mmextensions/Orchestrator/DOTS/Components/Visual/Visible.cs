@@ -36,5 +36,5 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// Performance note: IEnableableComponent has zero memory overhead when disabled
     /// and enables efficient chunk-based filtering in queries.
     /// </remarks>
-    public struct Visible : IEnableableComponent { }
+    public struct Visible : IComponentData, IEnableableComponent { }
 }

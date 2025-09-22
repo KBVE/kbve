@@ -142,6 +142,12 @@ DOTS/
 #### Systems/SimpleMinionMovementSystem.cs
 - **Purpose**: Simplified movement for basic entities
 
+#### Systems/ViewCullingSystem.cs
+- **Purpose**: Automatic visibility culling based on camera frustum and distance
+- **Features**: Frustum culling, distance culling, performance metrics
+- **Performance**: Burst compiled, runs every 2 frames, handles 100k+ entities
+- **Integration**: Works with ViewRadius and Visible components
+
 ### Spatial Indexing & Pathfinding
 
 #### Spatial/Systems/SpatialIndexingSystem.cs
@@ -219,6 +225,9 @@ DOTS/
 - Spatial indexing for efficient queries
 - Periodic KD-Tree rebuilding (every 30 frames)
 - Native collections for zero GC
+- **Automatic view culling**: Only visible entities are processed
+- **Frustum culling**: Entities outside camera view are disabled
+- **Distance culling**: Far entities beyond max view distance are hidden
 
 ### Memory Patterns
 - Structure of Arrays (SoA) for cache efficiency
@@ -271,8 +280,22 @@ Each system handles one aspect of entity behavior, enabling parallel processing.
 1. Create a zombie prefab with `ZombieAuthoring` component
 2. Add `FactoryAuthoring` to a GameObject in scene
 3. Configure spawn parameters (count, duration, radius)
-4. Assign zombie prefab to factory
-5. Run scene - entities spawn automatically
+4. Set zombie culling radius (default 3.0 units)
+5. Assign zombie prefab to factory
+6. Run scene - entities spawn with automatic culling
+
+### View Culling System
+
+The ViewCullingSystem automatically manages entity visibility:
+- **Automatic**: Entities with `ViewRadius` component are culled automatically
+- **Performance**: Culling runs every 2 frames to reduce overhead
+- **Configurable**: Adjust max view distance via `ViewCullingSettings`
+- **Debug**: Logs visible/culled counts every second
+
+Example zombie configuration:
+- Health: 100
+- Speed: 2.0
+- CullingRadius: 3.0 (slightly larger than visual size)
 
 ## Debugging
 
