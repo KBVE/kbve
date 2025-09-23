@@ -28,7 +28,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
 
         public KDTreeAdvanced(int capacity, int leafSize = 16, Allocator allocator = Allocator.Persistent)
         {
-            Nodes = new NativeArray<TreeNode>(capacity * 2, allocator);
+            // Optimize node allocation - typically need fewer nodes than 2x entries
+            int estimatedNodes = math.min(capacity * 2, capacity / leafSize * 4);
+            Nodes = new NativeArray<TreeNode>(estimatedNodes, allocator);
             Entries = new NativeArray<Entry>(capacity, allocator);
             IndexMapping = new NativeArray<int>(capacity, allocator);
             EntryCount = 0;
@@ -445,6 +447,26 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
 
         private void QuickSortByAxis(int left, int right, int axis)
         {
+            // Use iterative quicksort to avoid stack overflow with 100k+ entities
+            if (right - left <= 10)
+            {
+                // Use insertion sort for small arrays (better cache performance)
+                for (int i = left + 1; i <= right; i++)
+                {
+                    int key = IndexMapping[i];
+                    float keyValue = Entries[key].Position[axis];
+                    int j = i - 1;
+
+                    while (j >= left && Entries[IndexMapping[j]].Position[axis] > keyValue)
+                    {
+                        IndexMapping[j + 1] = IndexMapping[j];
+                        j--;
+                    }
+                    IndexMapping[j + 1] = key;
+                }
+                return;
+            }
+
             if (left < right)
             {
                 int pivot = PartitionByAxis(left, right, axis);

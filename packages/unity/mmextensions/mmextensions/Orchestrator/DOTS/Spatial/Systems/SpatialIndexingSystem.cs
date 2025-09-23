@@ -17,10 +17,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
     {
         private KDTreeAdvanced _kdTree;
         private int _framesSinceRebuild;
-        private const int RebuildInterval = 30; // Rebuild every 30 frames
+        private const int RebuildInterval = 60; // Reduced frequency - rebuild every 60 frames (1 second at 60 FPS)
         private const int InitialCapacity = 150000; // Support 150k entities (more than current 100k)
-        private const int LeafSize = 16; // Optimal for cache performance
+        private const int LeafSize = 32; // Increased for better performance with 100k entities
         private JobHandle _buildJobHandle;
+
+        // Performance metrics
+        private float _lastBuildTime;
+        private int _lastEntityCount;
+        private int _rebuildCount;
 
         // Public accessor for checking if tree is ready
         public bool IsTreeReady => _kdTree.IsBuilt && _buildJobHandle.IsCompleted;
@@ -29,6 +34,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
         {
             _kdTree = new KDTreeAdvanced(InitialCapacity, LeafSize, Allocator.Persistent);
             _framesSinceRebuild = 0;
+            _rebuildCount = 0;
+            UnityEngine.Debug.Log($"[SpatialIndexing] System initialized with capacity {InitialCapacity}, leaf size {LeafSize}");
         }
 
         protected override void OnDestroy()
@@ -40,16 +47,28 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
 
         protected override void OnUpdate()
         {
-            // Complete previous build job if still running
-            _buildJobHandle.Complete();
-
-            _framesSinceRebuild++;
-
-            // Periodic KD-Tree rebuild for dynamic spatial indexing
+            // Only complete if we need to rebuild this frame
             if (_framesSinceRebuild >= RebuildInterval)
             {
+                // Complete previous build job if still running
+                _buildJobHandle.Complete();
+
+                var startTime = UnityEngine.Time.realtimeSinceStartup;
                 _buildJobHandle = RebuildKDTreeAsync();
                 _framesSinceRebuild = 0;
+                _rebuildCount++;
+
+                // Log performance every 10 rebuilds
+                if (_rebuildCount % 10 == 0)
+                {
+                    var buildTime = (UnityEngine.Time.realtimeSinceStartup - startTime) * 1000f;
+                    UnityEngine.Debug.Log($"[SpatialIndexing] Rebuild #{_rebuildCount}: {_lastEntityCount} entities, " +
+                                         $"Time: {buildTime:F2}ms, Tree ready: {IsTreeReady}");
+                }
+            }
+            else
+            {
+                _framesSinceRebuild++;
             }
         }
 
@@ -67,11 +86,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
             var entities = query.ToEntityArray(Allocator.TempJob);
             var spatialPositions = query.ToComponentDataArray<SpatialPosition>(Allocator.TempJob);
 
+            _lastEntityCount = entities.Length;
+
             if (entities.Length == 0)
             {
                 entities.Dispose();
                 spatialPositions.Dispose();
                 return default;
+            }
+
+            // Log if entity count changed significantly
+            if (math.abs(_lastEntityCount - entities.Length) > 1000)
+            {
+                UnityEngine.Debug.Log($"[SpatialIndexing] Entity count changed: {_lastEntityCount} -> {entities.Length}");
             }
 
             // Clear previous tree data
