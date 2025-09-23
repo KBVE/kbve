@@ -18,9 +18,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
         private KDTreeAdvanced _kdTree;
         private int _framesSinceRebuild;
         private const int RebuildInterval = 30; // Rebuild every 30 frames
-        private const int InitialCapacity = 10000;
+        private const int InitialCapacity = 150000; // Support 150k entities (more than current 100k)
         private const int LeafSize = 16; // Optimal for cache performance
         private JobHandle _buildJobHandle;
+
+        // Public accessor for checking if tree is ready
+        public bool IsTreeReady => _kdTree.IsBuilt && _buildJobHandle.IsCompleted;
 
         protected override void OnCreate()
         {
@@ -56,8 +59,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
         /// </summary>
         private JobHandle RebuildKDTreeAsync()
         {
+            // Query all entities with SpatialPosition, regardless of type
             var query = GetEntityQuery(
-                ComponentType.ReadOnly<MinionData>(),
                 ComponentType.ReadOnly<SpatialPosition>()
             );
 
