@@ -45,7 +45,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             _culledCount = new NativeArray<int>(1, Allocator.Persistent);
             _nearbyCount = new NativeArray<int>(1, Allocator.Persistent);
 
-            state.RequireForUpdate<ViewRadius>();
+            // Work with entities that have both SpatialPosition and Visible components
+            state.RequireForUpdate<SpatialPosition>();
+            state.RequireForUpdate<Visible>();
 
             Debug.Log("[ViewCullingV2] ISystem initialized - Full Burst compilation enabled");
         }
@@ -148,7 +150,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
     /// Processes entities without any memory allocations
     /// </summary>
     [BurstCompile]
-    [WithAll(typeof(ViewRadius))]
+    [WithAll(typeof(SpatialPosition), typeof(Visible))]
     public partial struct ChunkCullingJob : IJobEntity
     {
         [ReadOnly] public NativeArray<float4> FrustumPlanes;
@@ -165,7 +167,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
         [NativeDisableUnsafePtrRestriction]
         public unsafe int* NearbyCount;
 
-        public unsafe void Execute(Entity entity, in LocalTransform transform, in ViewRadius radius, EnabledRefRW<Visible> visible)
+        public unsafe void Execute(Entity entity, in LocalTransform transform, in SpatialPosition spatialPos, EnabledRefRW<Visible> visible)
         {
             var position = transform.Position;
 
@@ -181,8 +183,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 return;
             }
 
-            // Frustum culling
-            bool isVisible = IsInFrustum(position, radius.Value);
+            // Frustum culling with default radius
+            const float defaultRadius = 1.0f;
+            bool isVisible = IsInFrustum(position, defaultRadius);
+
+            // Update the Visible component based on culling result
             visible.ValueRW = isVisible;
 
             if (isVisible)

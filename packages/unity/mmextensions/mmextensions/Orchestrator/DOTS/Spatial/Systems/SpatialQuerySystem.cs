@@ -12,15 +12,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
     /// Provides efficient k-nearest neighbor and range queries
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(SpatialIndexingSystem))]
+    [UpdateAfter(typeof(Spatial.SpatialIndexingSystemV2))]
     public partial class SpatialQuerySystem : SystemBase
     {
-        private SpatialIndexingSystem _spatialIndexing;
+        private SystemHandle _spatialIndexingV2;
         private EntityQuery _queryRequestsQuery;
 
         protected override void OnCreate()
         {
-            _spatialIndexing = World.GetOrCreateSystemManaged<SpatialIndexingSystem>();
+            _spatialIndexingV2 = World.Unmanaged.GetExistingUnmanagedSystem<Spatial.SpatialIndexingSystemV2>();
 
             _queryRequestsQuery = GetEntityQuery(
                 ComponentType.ReadWrite<SpatialQueryResult>(),
@@ -33,7 +33,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
 
         protected override void OnUpdate()
         {
-            var kdTree = _spatialIndexing.GetKDTree();
+            // Get the V2 system and check if tree is ready
+            var spatialIndexingV2 = World.Unmanaged.GetUnsafeSystemRef<Spatial.SpatialIndexingSystemV2>(_spatialIndexingV2);
+            var systemState = World.Unmanaged.ResolveSystemStateRef(_spatialIndexingV2);
+
+            if (!spatialIndexingV2.IsTreeReady(ref systemState))
+                return;
+
+            var kdTree = spatialIndexingV2.GetKDTree(ref systemState);
 
             if (!kdTree.IsBuilt || kdTree.EntryCount == 0)
                 return;
@@ -260,16 +267,23 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
     [UpdateAfter(typeof(SpatialQuerySystem))]
     public partial class HighPrioritySpatialQuerySystem : SystemBase
     {
-        private SpatialIndexingSystem _spatialIndexing;
+        private SystemHandle _spatialIndexingV2;
 
         protected override void OnCreate()
         {
-            _spatialIndexing = World.GetOrCreateSystemManaged<SpatialIndexingSystem>();
+            _spatialIndexingV2 = World.Unmanaged.GetExistingUnmanagedSystem<Spatial.SpatialIndexingSystemV2>();
         }
 
         protected override void OnUpdate()
         {
-            var kdTree = _spatialIndexing.GetKDTree();
+            // Get the V2 system and check if tree is ready
+            var spatialIndexingV2 = World.Unmanaged.GetUnsafeSystemRef<Spatial.SpatialIndexingSystemV2>(_spatialIndexingV2);
+            var systemState = World.Unmanaged.ResolveSystemStateRef(_spatialIndexingV2);
+
+            if (!spatialIndexingV2.IsTreeReady(ref systemState))
+                return;
+
+            var kdTree = spatialIndexingV2.GetKDTree(ref systemState);
 
             if (!kdTree.IsBuilt)
                 return;

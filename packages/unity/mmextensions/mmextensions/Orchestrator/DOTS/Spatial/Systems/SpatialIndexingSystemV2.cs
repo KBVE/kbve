@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Burst;
+using Unity.Burst.Intrinsics;
 using Unity.Jobs;
 using Unity.Transforms;
 using UnityEngine;
@@ -26,6 +27,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
         private NativeReference<bool> _isTreeReady;
         private NativeReference<int> _entityCount;
 
+        // Component type handles for chunk access
+        private EntityTypeHandle _entityTypeHandle;
+        private ComponentTypeHandle<SpatialPosition> _spatialPositionTypeHandle;
+
         // Configuration
         private const int RebuildInterval = 120; // Rebuild every 2 seconds at 60 FPS
         private const int InitialCapacity = 150000;
@@ -40,6 +45,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
             _lastEntityCount = 0;
             _isTreeReady = new NativeReference<bool>(Allocator.Persistent);
             _entityCount = new NativeReference<int>(Allocator.Persistent);
+
+            // Initialize component type handles
+            _entityTypeHandle = state.GetEntityTypeHandle();
+            _spatialPositionTypeHandle = state.GetComponentTypeHandle<SpatialPosition>(true);
 
             Debug.Log($"[SpatialIndexingV2] ISystem initialized - Burst compiled, zero GC");
         }
@@ -86,14 +95,45 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
             _kdTree.Clear();
             _kdTree.EntryCount = 0;
 
-            // Build tree using chunk iteration (no array copies!)
-            var buildJob = new PopulateKDTreeJob
-            {
-                KDTree = _kdTree,
-                EntityCount = entityCount
-            };
+            // Build tree using chunk-based approach (no race conditions!)
+            var query = SystemAPI.QueryBuilder()
+                .WithAll<SpatialPosition>()
+                .Build();
 
-            state.Dependency = buildJob.ScheduleParallel(state.Dependency);
+            var chunkCount = query.CalculateChunkCount();
+
+            // Phase 1: Count entities per chunk (parallel)
+            var entityCounts = new NativeArray<int>(chunkCount, Allocator.TempJob);
+            var countJob = new CountEntitiesPerChunkJob
+            {
+                EntityCounts = entityCounts
+            };
+            var countJobHandle = countJob.ScheduleParallel(query, state.Dependency);
+
+            // Phase 2: Calculate starting indices for each chunk (single-threaded)
+            var startIndices = new NativeArray<int>(chunkCount, Allocator.TempJob);
+            var calcJob = new CalculateChunkStartIndicesJob
+            {
+                EntityCounts = entityCounts,
+                StartIndices = startIndices,
+                KDTree = _kdTree
+            };
+            var calcJobHandle = calcJob.Schedule(countJobHandle);
+
+            // Update component type handles
+            _entityTypeHandle.Update(ref state);
+            _spatialPositionTypeHandle.Update(ref state);
+
+            // Phase 3: Populate KD-Tree with chunk-based indexing (parallel)
+            var populateJob = new ChunkBasedPopulateJob
+            {
+                StartIndices = startIndices,
+                KDTreeEntries = _kdTree.Entries,
+                KDTreeIndexMapping = _kdTree.IndexMapping,
+                EntityTypeHandle = _entityTypeHandle,
+                SpatialPositionTypeHandle = _spatialPositionTypeHandle
+            };
+            var populateJobHandle = populateJob.ScheduleParallel(query, calcJobHandle);
 
             // Mark tree as built after job completes
             var markBuiltJob = new MarkTreeBuiltJob
@@ -101,10 +141,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
                 KDTree = _kdTree,
                 IsTreeReady = _isTreeReady,
                 RebuildCount = _rebuildCount,
-                EntityCount = _entityCount
+                EntityCount = _entityCount,
+                EntityCounts = entityCounts,
+                StartIndices = startIndices
             };
 
-            state.Dependency = markBuiltJob.Schedule(state.Dependency);
+            state.Dependency = markBuiltJob.Schedule(populateJobHandle);
         }
 
         /// <summary>
@@ -116,43 +158,98 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
             return _kdTree;
         }
 
-        public bool IsTreeReady => _isTreeReady.IsCreated && _isTreeReady.Value;
+        /// <summary>
+        /// Check if tree is ready - completes any pending jobs first
+        /// </summary>
+        public bool IsTreeReady(ref SystemState state)
+        {
+            if (!_isTreeReady.IsCreated)
+                return false;
+
+            state.CompleteDependency();
+            return _isTreeReady.Value;
+        }
     }
 
     /// <summary>
-    /// Burst-compiled job to populate KD-Tree from entity chunks
-    /// Processes entities in parallel without memory copies
+    /// Job to count entities per chunk for safe parallel processing
     /// </summary>
     [BurstCompile]
-    public partial struct PopulateKDTreeJob : IJobEntity
+    public struct CountEntitiesPerChunkJob : IJobChunk
     {
-        [NativeDisableUnsafePtrRestriction]
-        public KDTreeAdvanced KDTree;
-        public int EntityCount;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<int> EntityCounts;
 
-        public void Execute(Entity entity, in SpatialPosition spatial, in LocalTransform transform)
+        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
         {
-            // Use actual transform position for accuracy
-            var position = transform.Position;
+            EntityCounts[unfilteredChunkIndex] = chunk.Count;
+        }
+    }
 
-            // Thread-safe atomic increment to get unique index
-            int index = Interlocked.Increment(ref KDTree.EntryCount) - 1;
+    /// <summary>
+    /// Job to calculate starting indices for each chunk's range in KD-Tree
+    /// </summary>
+    [BurstCompile]
+    public struct CalculateChunkStartIndicesJob : IJob
+    {
+        [ReadOnly] public NativeArray<int> EntityCounts;
+        public NativeArray<int> StartIndices;
+        public KDTreeAdvanced KDTree;
 
-            if (index < KDTree.Entries.Length)
+        public void Execute()
+        {
+            int currentIndex = 0;
+            for (int i = 0; i < EntityCounts.Length; i++)
             {
-                // Add entry to tree
-                KDTree.Entries[index] = new Entry
+                StartIndices[i] = currentIndex;
+                currentIndex += EntityCounts[i];
+            }
+            // Update total entry count
+            KDTree.EntryCount = currentIndex;
+        }
+    }
+
+    /// <summary>
+    /// Burst-compiled chunk-based job to populate KD-Tree safely
+    /// Each chunk writes to its exclusive range - no race conditions
+    /// </summary>
+    [BurstCompile]
+    public struct ChunkBasedPopulateJob : IJobChunk
+    {
+        [ReadOnly] public NativeArray<int> StartIndices;
+
+        // Direct array access with parallel restriction disabled
+        [NativeDisableParallelForRestriction]
+        public NativeArray<Entry> KDTreeEntries;
+        [NativeDisableParallelForRestriction]
+        public NativeArray<int> KDTreeIndexMapping;
+
+        // Component type handles passed from system
+        [ReadOnly] public EntityTypeHandle EntityTypeHandle;
+        [ReadOnly] public ComponentTypeHandle<SpatialPosition> SpatialPositionTypeHandle;
+
+        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
+        {
+            var entities = chunk.GetNativeArray(EntityTypeHandle);
+            var spatialPositions = chunk.GetNativeArray(ref SpatialPositionTypeHandle);
+
+            int startIndex = StartIndices[unfilteredChunkIndex];
+            int entityCount = chunk.Count;
+
+            for (int i = 0; i < entityCount; i++)
+            {
+                int kdTreeIndex = startIndex + i;
+                var position = spatialPositions[i].Position;
+
+                // Each chunk writes to its exclusive range - thread safe!
+                KDTreeEntries[kdTreeIndex] = new Entry
                 {
-                    Entity = entity,
+                    Entity = entities[i],
                     Position = position,
-                    Index = index
+                    Index = kdTreeIndex
                 };
 
-                KDTree.IndexMapping[index] = index;
-
-                // Update bounds (note: this isn't thread-safe, but close enough for spatial bounds)
-                KDTree.BoundsMin = math.min(KDTree.BoundsMin, position);
-                KDTree.BoundsMax = math.max(KDTree.BoundsMax, position);
+                KDTreeIndexMapping[kdTreeIndex] = kdTreeIndex;
             }
         }
     }
@@ -168,6 +265,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
         public NativeReference<bool> IsTreeReady;
         public int RebuildCount;
         public NativeReference<int> EntityCount;
+
+        // Temporary arrays to dispose
+        [DeallocateOnJobCompletion] public NativeArray<int> EntityCounts;
+        [DeallocateOnJobCompletion] public NativeArray<int> StartIndices;
 
         public void Execute()
         {
