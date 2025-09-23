@@ -72,7 +72,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
         public void OnStopRunning(ref SystemState state) { }
 
-        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             _frameCounter.Value++;
@@ -81,7 +80,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             if (_frameCounter.Value % CullingInterval != 0)
                 return;
 
-            // Update camera data from main thread (only non-Burst part)
+            // Update camera data from main thread (non-Burst part)
             if (_frameCounter.Value % 30 == 0) // Update camera every 0.5 seconds
             {
                 UpdateCameraData();
@@ -89,6 +88,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
             if (!_cameraValid.Value)
                 return;
+
+            // Call Burst-compiled culling method
+            PerformCulling(ref state);
+        }
+
+        [BurstCompile]
+        private void PerformCulling(ref SystemState state)
+        {
 
             // Reset counters
             _visibleCount[0] = 0;
@@ -111,11 +118,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 state.Dependency = cullingJob.ScheduleParallel(state.Dependency);
             }
 
-            // Log performance periodically
-            if (_frameCounter.Value % 120 == 0) // Every 2 seconds
-            {
-                LogPerformance();
-            }
+            // Performance logging removed for Burst compatibility
         }
 
         private void UpdateCameraData()
@@ -140,8 +143,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
         private void LogPerformance()
         {
+            float efficiency = 0f;
+            if (_nearbyCount[0] > 0)
+            {
+                efficiency = (float)_visibleCount[0] / _nearbyCount[0] * 100f;
+            }
+
             Debug.Log($"[ViewCullingV2] Nearby: {_nearbyCount[0]}, Visible: {_visibleCount[0]}, " +
-                     $"Culled: {_culledCount[0]}, Efficiency: {(_nearbyCount[0] > 0 ? (float)_visibleCount[0] / _nearbyCount[0] * 100f : 0f):F1}%");
+                     $"Culled: {_culledCount[0]}, Efficiency: {efficiency:F1}%");
         }
     }
 
@@ -167,9 +176,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
         [NativeDisableUnsafePtrRestriction]
         public unsafe int* NearbyCount;
 
-        public unsafe void Execute(Entity entity, in LocalTransform transform, in SpatialPosition spatialPos, EnabledRefRW<Visible> visible)
+        public unsafe void Execute(Entity entity, in SpatialPosition spatialPos, EnabledRefRW<Visible> visible)
         {
-            var position = transform.Position;
+            var position = spatialPos.Position;
 
             // Count all processed entities
             Interlocked.Increment(ref *NearbyCount);
