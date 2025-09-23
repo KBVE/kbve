@@ -72,6 +72,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
             if (EntryCount == 0)
                 return dependency;
 
+            // Estimate max nodes needed (worst case is 2*N nodes for N entries)
+            NodeCount = EntryCount * 2;
+
             var buildJob = new BuildTreeJob
             {
                 Entries = Entries,
@@ -83,6 +86,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
             };
 
             var jobHandle = buildJob.Schedule(dependency);
+
+            IsBuilt = true; // Mark as built after scheduling
 
             return jobHandle;
         }
@@ -123,6 +128,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
 
             float radiusSq = radius * radius;
             GetEntriesInRangeRecursiveSimple(queryPosition, radiusSq, 0, results);
+        }
+
+        /// <summary>
+        /// Bounding box query returning all entries within rectangular bounds
+        /// Perfect for camera frustum culling queries
+        /// </summary>
+        public void GetEntriesInBounds(float3 boundsMin, float3 boundsMax, NativeList<Entry> results)
+        {
+            if (!IsBuilt || EntryCount == 0)
+                return;
+
+            GetEntriesInBoundsRecursive(boundsMin, boundsMax, 0, results);
         }
 
         private void GetEntriesInRangeRecursive(float3 queryPosition, float radiusSq, int nodeIndex,
@@ -243,6 +260,53 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial
                 if (diff * diff <= radiusSq)
                 {
                     GetEntriesInRangeRecursiveSimple(queryPosition, radiusSq, farChild, results);
+                }
+            }
+        }
+
+        private void GetEntriesInBoundsRecursive(float3 boundsMin, float3 boundsMax, int nodeIndex,
+            NativeList<Entry> results)
+        {
+            if (nodeIndex >= NodeCount)
+                return;
+
+            var node = Nodes[nodeIndex];
+
+            if (node.IsLeaf())
+            {
+                // Check all entries in leaf against bounding box
+                for (int i = node.StartIndex; i < node.StartIndex + node.Count; i++)
+                {
+                    var entry = Entries[IndexMapping[i]];
+                    var pos = entry.Position;
+
+                    // Check if point is within bounding box
+                    if (pos.x >= boundsMin.x && pos.x <= boundsMax.x &&
+                        pos.y >= boundsMin.y && pos.y <= boundsMax.y &&
+                        pos.z >= boundsMin.z && pos.z <= boundsMax.z)
+                    {
+                        results.Add(entry);
+                    }
+                }
+            }
+            else
+            {
+                // Check if bounding box intersects with split plane
+                int splitAxis = node.SplitAxis;
+                float splitValue = node.SplitValue;
+
+                // Determine which children to visit based on bounds intersection
+                bool visitLeft = boundsMin[splitAxis] <= splitValue;
+                bool visitRight = boundsMax[splitAxis] >= splitValue;
+
+                if (visitLeft && node.LeftChild >= 0)
+                {
+                    GetEntriesInBoundsRecursive(boundsMin, boundsMax, node.LeftChild, results);
+                }
+
+                if (visitRight && node.RightChild >= 0)
+                {
+                    GetEntriesInBoundsRecursive(boundsMin, boundsMax, node.RightChild, results);
                 }
             }
         }
