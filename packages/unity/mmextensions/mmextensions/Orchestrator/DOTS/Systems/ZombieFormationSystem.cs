@@ -12,6 +12,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(ZombieTargetingSystem))]
+    [BurstCompile]
     public partial class ZombieHordeFormationSystem : SystemBase
     {
         private EntityQuery _zombieQuery;
@@ -82,22 +83,58 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
         private void UpdateHordeFormations()
         {
-            // Update positions for each horde
-            foreach (var (hordeCenter, hordeSettings, hordeEntity) in SystemAPI.Query<RefRW<ZombieHordeCenter>, RefRO<ZombieHordeSettings>>().WithEntityAccess())
+            float deltaTime = SystemAPI.Time.DeltaTime;
+            float currentTime = (float)SystemAPI.Time.ElapsedTime;
+
+            // Update horde patrol movement in parallel using Burst
+            var patrolJob = new HordePatrolJob
             {
-                // Move horde center (could be toward player, random wandering, etc.)
-                // For now, just slow wandering movement
-                // You can later add targeting logic here
+                deltaTime = deltaTime,
+                currentTime = currentTime
+            };
+            Dependency = patrolJob.ScheduleParallel(Dependency);
 
-                // Update all zombies in this horde to maintain formation
-                var formationJob = new HordeFormationJob
-                {
-                    hordeEntity = hordeEntity,
-                    hordeCenter = hordeCenter.ValueRO.position,
-                    hordeSettings = hordeSettings.ValueRO
-                };
+            // Update all zombies to maintain formation with their hordes
+            var formationJob = new HordeFormationJob
+            {
+                hordeEntityLookup = SystemAPI.GetComponentLookup<ZombieHordeCenter>(true),
+                hordeSettingsLookup = SystemAPI.GetComponentLookup<ZombieHordeSettings>(true)
+            };
+            Dependency = formationJob.ScheduleParallel(_zombieQuery, Dependency);
+        }
+    }
 
-                Dependency = formationJob.ScheduleParallel(_zombieQuery, Dependency);
+    [BurstCompile]
+    partial struct HordePatrolJob : IJobEntity
+    {
+        public float deltaTime;
+        public float currentTime;
+
+        public void Execute(Entity entity, ref ZombieHordeCenter hordeCenter)
+        {
+            // Use entity index for unique patrol pattern
+            int hordeId = entity.Index;
+            float patrolRadius = 100f;  // Compact patrol area - 100 unit radius
+            float patrolFreq = 0.03f + (hordeId % 10) * 0.01f;  // Varied patrol speeds
+
+            // Calculate circular patrol position
+            float angle = currentTime * patrolFreq + (hordeId * 1.3f);
+            float3 patrolTarget = hordeCenter.spawnPosition + new float3(
+                math.cos(angle) * patrolRadius,
+                math.sin(angle) * patrolRadius,
+                0
+            );
+
+            // Update target and move towards it
+            hordeCenter.targetPosition = patrolTarget;
+
+            float3 toTarget = patrolTarget - hordeCenter.position;
+            float distanceToTarget = math.length(toTarget);
+
+            if (distanceToTarget > 3f)
+            {
+                float3 moveDirection = math.normalize(toTarget);
+                hordeCenter.position += moveDirection * hordeCenter.moveSpeed * deltaTime;
             }
         }
     }
@@ -105,22 +142,27 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
     [BurstCompile]
     partial struct HordeFormationJob : IJobEntity
     {
-        public Entity hordeEntity;
-        public float3 hordeCenter;
-        public ZombieHordeSettings hordeSettings;
+        [ReadOnly] public ComponentLookup<ZombieHordeCenter> hordeEntityLookup;
+        [ReadOnly] public ComponentLookup<ZombieHordeSettings> hordeSettingsLookup;
 
         public void Execute(
             ref ZombieDestination destination,
             in ZombieHordeMember hordeMember,
             in LocalTransform transform)
         {
-            // Only process zombies that belong to this horde
-            if (hordeMember.hordeEntity != hordeEntity || !hordeMember.isActive)
+            // Skip inactive or unassigned zombies
+            if (!hordeMember.isActive || hordeMember.hordeEntity == Entity.Null)
+                return;
+
+            // Get horde data from lookup
+            if (!hordeEntityLookup.TryGetComponent(hordeMember.hordeEntity, out var hordeCenter))
+                return;
+            if (!hordeSettingsLookup.TryGetComponent(hordeMember.hordeEntity, out var hordeSettings))
                 return;
 
             // Calculate formation position based on horde index and formation type
             float3 formationPosition;
-            GetFormationPosition(hordeMember.hordeIndex, in hordeSettings, in hordeCenter, out formationPosition);
+            GetFormationPosition(hordeMember.hordeIndex, in hordeSettings, in hordeCenter.position, out formationPosition);
 
             // Set destination to maintain formation position
             destination.targetPosition = formationPosition;
