@@ -342,39 +342,5 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Utilities
         Scatter
     }
 
-    /// <summary>
-    /// Component for advanced spatial combat queries
-    /// </summary>
-    public struct AdvancedSpatialQuery : IComponentData
-    {
-        public QueryType PrimaryQuery;
-        public QueryType SecondaryQuery;
-        public float PrimaryRadius;
-        public float SecondaryRadius;
-        public int MaxPrimaryResults;
-        public int MaxSecondaryResults;
-        public FactionFilter TargetFactions;
-        public bool RequireLineOfSight;
-        public float ThreatThreshold;
-        public float LastQueryTime;
-        public float QueryInterval;
-
-        public static AdvancedSpatialQuery CreateCombatQuery(float detectionRadius = 15f, float attackRadius = 5f)
-        {
-            return new AdvancedSpatialQuery
-            {
-                PrimaryQuery = QueryType.ClosestEnemy,
-                SecondaryQuery = QueryType.AllInRadius,
-                PrimaryRadius = detectionRadius,
-                SecondaryRadius = attackRadius,
-                MaxPrimaryResults = 1,
-                MaxSecondaryResults = 10,
-                TargetFactions = FactionFilter.Enemy,
-                RequireLineOfSight = true,
-                ThreatThreshold = 0.3f,
-                LastQueryTime = 0f,
-                QueryInterval = 0.1f // Query 10 times per second
-            };
-        }
-    }
+    // Spatial query components removed - using Unity Physics for spatial queries instead
 }

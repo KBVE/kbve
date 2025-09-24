@@ -32,4 +32,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     {
         public Unity.Mathematics.float2 value;
     }
+
+    /// <summary>
+    /// Tag component indicating this zombie should use direct movement
+    /// instead of A* pathfinding (fallback when no navmesh is available)
+    /// </summary>
+    public struct ZombieUseDirectMovement : IComponentData
+    {
+    }
 }

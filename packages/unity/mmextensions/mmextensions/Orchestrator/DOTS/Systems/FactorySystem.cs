@@ -82,6 +82,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
         }
 
         [BurstCompile]
+        public void OnDestroy(ref SystemState state)
+        {
+            // Complete any pending jobs to prevent memory leaks
+            state.CompleteDependency();
+        }
+
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
             var productionJob = new ProductionJob

@@ -3,7 +3,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Collections;
 using Unity.Burst;
-using KBVE.MMExtensions.Orchestrator.DOTS.Spatial.AStar;
+// AStar components moved to main DOTS namespace
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 {
@@ -23,7 +23,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             // Query for zombies with navigation components
             _zombieQuery = GetEntityQuery(
                 ComponentType.ReadWrite<ZombieNavigation>(),
-                ComponentType.ReadWrite<Pathfinding.ECS.DestinationPoint>(),
+                ComponentType.ReadWrite<ZombieDestination>(),
                 ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<MinionData>()
             );
@@ -76,7 +76,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
         public void Execute(
             ref ZombieNavigation navigation,
-            ref Pathfinding.ECS.DestinationPoint destination,
+            ref ZombieDestination destination,
             in LocalTransform transform,
             in MinionData minionData)
         {
@@ -138,7 +138,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 navigation.hasTarget = true;
 
                 // Update destination to target position
-                destination.destination = bestTargetPos;
+                destination.targetPosition = bestTargetPos;
                 destination.facingDirection = math.normalize(bestTargetPos - zombiePos);
             }
             else if (navigation.hasTarget)
@@ -148,7 +148,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 navigation.targetEntity = Entity.Null;
 
                 // Keep moving toward last known position
-                destination.destination = navigation.lastKnownTargetPos;
+                destination.targetPosition = navigation.lastKnownTargetPos;
             }
             else
             {
@@ -158,7 +158,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
                 // Could implement wandering behavior here
                 // For now, just stay in place
-                destination.destination = zombiePos;
+                destination.targetPosition = zombiePos;
             }
         }
 

@@ -1,5 +1,4 @@
 using Unity.Entities;
 using KBVE.MMExtensions.Orchestrator.DOTS;
 
-// Register the SpatialQueryResult buffer element for DOTS compilation
-[assembly: RegisterGenericComponentType(typeof(SpatialQueryResult))]
+// Spatial components have been removed - using Unity Physics for spatial queries instead

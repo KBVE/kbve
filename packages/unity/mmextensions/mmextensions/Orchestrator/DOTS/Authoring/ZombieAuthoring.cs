@@ -1,4 +1,8 @@
 using Unity.Entities;
+using Unity.Physics;
+using Unity.Mathematics;
+using Unity.Transforms;
+using Unity.Collections;
 using UnityEngine;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
@@ -6,7 +10,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// <summary>
     /// Simple zombie authoring component - exact match to Age-of-Sprites SoldierAuthoring pattern
     /// Attach this to prefabs with SpriteRendererAuthoring for clean ECS zombie entities
-    /// Now includes automatic view culling support for performance optimization
     /// </summary>
     public class ZombieAuthoring : MonoBehaviour
     {
@@ -24,15 +27,47 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 AddComponent(entity, new ZombieHealth { value = authoring.Health });
                 AddComponent(entity, new ZombieSpeed { value = authoring.MoveSpeed });
 
-                // Add spatial indexing component for KD-Tree queries
-                AddComponent(entity, SpatialPosition.Create(authoring.transform.position));
+                // Add ECS physics collider with collision filter
+                // Zombies MUST collide with each other to prevent stacking!
+                var filter = new Unity.Physics.CollisionFilter
+                {
+                    BelongsTo = 1u << 0,     // Zombie layer
+                    CollidesWith = uint.MaxValue, // Collide with EVERYTHING including other zombies
+                    GroupIndex = 0
+                };
 
-                // Add view culling components for automatic visibility management
-                AddComponent(entity, new ViewRadius { Value = authoring.CullingRadius });
+                AddComponent(entity, new PhysicsCollider
+                {
+                    Value = Unity.Physics.SphereCollider.Create(new SphereGeometry
+                    {
+                        Center = float3.zero,
+                        Radius = authoring.CollisionRadius
+                    }, filter)
+                });
 
-                // Add Visible component (enabled by default)
-                AddComponent<Visible>(entity);
-                SetComponentEnabled<Visible>(entity, true);
+                // Add physics mass for movement/forces
+                AddComponent(entity, PhysicsMass.CreateKinematic(MassProperties.UnitSphere));
+
+                // Add zombie navigation components for Unity DOTS movement
+                AddComponent(entity, ZombieNavigation.CreateDefault());
+                AddComponent(entity, new ZombieDestination
+                {
+                    targetPosition = GetComponent<Transform>().position,
+                    facingDirection = new float3(0, 0, 1)
+                });
+                AddComponent(entity, ZombiePathfindingConfig.CreateDefault(MinionType.Tank));
+                AddComponent(entity, new ZombiePathfindingState
+                {
+                    state = ZombiePathfindingState.PathfindingState.SearchingForTarget,
+                    lastPathCalculation = 0f,
+                    lastDestinationUpdate = 0f,
+                    pathFailures = 0,
+                    distanceToDestination = 0f,
+                    isMoving = false
+                });
+
+                // Add formation component for coordinated movement (index will be set by spawning system)
+                AddComponent(entity, ZombieFormationMember.CreateDefault(0));
             }
         }
 
@@ -43,9 +78,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [Tooltip("Zombie movement speed")]
         public float MoveSpeed = 2f;
 
-        [Header("View Culling")]
-        [Tooltip("Radius used for view frustum culling (in world units)")]
-        [Range(1f, 10f)]
-        public float CullingRadius = 3f;
+        [Header("Physics")]
+        [Tooltip("Collision radius for physics interactions")]
+        [Range(0.1f, 2f)]
+        public float CollisionRadius = 0.5f;
     }
 }
