@@ -65,6 +65,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// <summary>Target position the horde is moving towards</summary>
         public float3 targetPosition;
 
+        /// <summary>Original spawn position for patrol movement</summary>
+        public float3 spawnPosition;
+
         /// <summary>Movement speed of the horde</summary>
         public float moveSpeed;
 
@@ -74,6 +77,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             {
                 position = startPos,
                 targetPosition = startPos,
+                spawnPosition = startPos,
                 moveSpeed = 1.5f // Slightly slower than individual zombies
             };
         }

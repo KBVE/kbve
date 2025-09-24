@@ -82,12 +82,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
         private void UpdateHordeFormations()
         {
+            float deltaTime = SystemAPI.Time.DeltaTime;
+            float currentTime = (float)SystemAPI.Time.ElapsedTime;
+
             // Update positions for each horde
             foreach (var (hordeCenter, hordeSettings, hordeEntity) in SystemAPI.Query<RefRW<ZombieHordeCenter>, RefRO<ZombieHordeSettings>>().WithEntityAccess())
             {
-                // Move horde center (could be toward player, random wandering, etc.)
-                // For now, just slow wandering movement
-                // You can later add targeting logic here
+                // Implement patrol movement - each horde patrols around its spawn area
+                UpdateHordePatrolMovement(ref hordeCenter.ValueRW, currentTime, deltaTime, hordeEntity.Index);
 
                 // Update all zombies in this horde to maintain formation
                 var formationJob = new HordeFormationJob
@@ -98,6 +100,34 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 };
 
                 Dependency = formationJob.ScheduleParallel(_zombieQuery, Dependency);
+            }
+        }
+
+        private void UpdateHordePatrolMovement(ref ZombieHordeCenter hordeCenter, float currentTime, float deltaTime, int hordeId)
+        {
+            // Use unique patrol pattern for each horde based on its ID
+            float patrolRadius = 100f; // Patrol in a 100 unit radius around spawn point
+            float patrolFreq = 0.05f + (hordeId % 8) * 0.015f; // Different patrol speeds per horde
+
+            // Calculate circular patrol position around the spawn point
+            float angle = currentTime * patrolFreq + (hordeId * 1.3f); // Offset each horde's patrol cycle
+
+            float3 patrolTarget = hordeCenter.spawnPosition + new float3(
+                math.cos(angle) * patrolRadius,
+                math.sin(angle) * patrolRadius,
+                0
+            );
+
+            // Update target and move towards it
+            hordeCenter.targetPosition = patrolTarget;
+
+            float3 toTarget = patrolTarget - hordeCenter.position;
+            float distanceToTarget = math.length(toTarget);
+
+            if (distanceToTarget > 3f)
+            {
+                float3 moveDirection = math.normalize(toTarget);
+                hordeCenter.position += moveDirection * hordeCenter.moveSpeed * deltaTime;
             }
         }
     }
