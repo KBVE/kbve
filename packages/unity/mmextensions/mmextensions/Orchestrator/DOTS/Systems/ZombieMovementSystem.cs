@@ -31,6 +31,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             // Direct movement for all zombies using Unity DOTS
             Entities
                 .WithAll<ZombieTag>()
+                .WithBurst()
                 .ForEach((ref LocalTransform transform,
                          ref ZombieNavigation navigation,
                          ref ZombieDestination destination,
