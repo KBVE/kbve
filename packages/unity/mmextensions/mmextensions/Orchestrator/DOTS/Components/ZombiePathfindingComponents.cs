@@ -1,8 +1,20 @@
 using Unity.Entities;
 using Unity.Mathematics;
 
-namespace KBVE.MMExtensions.Orchestrator.DOTS.Spatial.AStar
+namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
+    /// <summary>
+    /// Simple destination component for zombie movement - replaces A* DestinationPoint
+    /// </summary>
+    public struct ZombieDestination : IComponentData
+    {
+        /// <summary>Target position the zombie is moving towards</summary>
+        public float3 targetPosition;
+
+        /// <summary>Direction the zombie should face when reaching destination</summary>
+        public float3 facingDirection;
+    }
+
     /// <summary>
     /// Component for zombie-specific navigation behavior
     /// Tracks target entities and manages zombie AI state

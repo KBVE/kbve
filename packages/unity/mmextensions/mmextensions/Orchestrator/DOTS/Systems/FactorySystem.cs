@@ -34,10 +34,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     ECB.AddComponent(chunkIndex, hordeEntity, new ZombieHordeTag());
                     ECB.AddComponent(chunkIndex, hordeEntity, new ZombieHordeSettings
                     {
-                        formation = new int2(math.min(32, factoryData.count), math.max(1, factoryData.count / 32)),
-                        spacing = 1.2f
+                        formationSize = new int2(math.min(32, factoryData.count), math.max(1, factoryData.count / 32)),
+                        zombieSpacing = new float2(4.0f, 4.0f),
+                        formationType = HordeFormationType.Grid
                     });
                     ECB.AddComponent(chunkIndex, hordeEntity, new ZombieHordeTarget { position = factoryData.instantiatePos });
+
+                    // Spread out horde centers across the map instead of clustering at spawn point
+                    float2 hordeOffset = new float2((factoryData.wavesSpawned % 4 - 1.5f) * 150f, (factoryData.wavesSpawned / 4) * 150f);
+                    float3 hordeCenter = new float3(factoryData.instantiatePos.x + hordeOffset.x, factoryData.instantiatePos.y + hordeOffset.y, 1f);
+                    ECB.AddComponent(chunkIndex, hordeEntity, ZombieHordeCenter.CreateDefault(hordeCenter));
                     var zombieBuffer = ECB.AddBuffer<ZombieLink>(chunkIndex, hordeEntity);
 
                     // Create individual zombies
@@ -47,26 +53,26 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     // Create random number generator for position offsets
                     var random = new Unity.Mathematics.Random((uint)(factoryData.prefab.Index * 1000 + chunkIndex + 1));
 
-                    for (int i = 0; i < instanceEntities.Length; i++)
+                    for (int j = 0; j < instanceEntities.Length; j++)
                     {
-                        // Formation position for massive hordes - 32 wide formations
-                        int2 gridPos = new int2(i % 32, i / 32);
-                        float2 formationOffset = new float2(gridPos.x * 1.2f - 18.6f, gridPos.y * 1.2f);
+                        // Formation position for massive hordes - 32 wide formations with better spacing
+                        int2 gridPos = new int2(j % 32, j / 32);
+                        float2 formationOffset = new float2(gridPos.x * 4.0f - 62f, gridPos.y * 4.0f);
 
                         var position = new Unity.Mathematics.float3(
-                            factoryData.instantiatePos.x + formationOffset.x,
-                            factoryData.instantiatePos.y + formationOffset.y,
+                            hordeCenter.x + formationOffset.x,
+                            hordeCenter.y + formationOffset.y,
                             1
                         );
 
-                        ECB.SetComponent(chunkIndex, instanceEntities[i], LocalTransform.FromPosition(position));
+                        ECB.SetComponent(chunkIndex, instanceEntities[j], LocalTransform.FromPosition(position));
 
                         // Give each zombie a unique movement direction
                         float2 uniqueDirection = random.NextFloat2Direction();
-                        ECB.AddComponent(chunkIndex, instanceEntities[i], new ZombieDirection { value = uniqueDirection });
+                        ECB.AddComponent(chunkIndex, instanceEntities[j], new ZombieDirection { value = uniqueDirection });
 
                         // Link zombie to horde
-                        zombieBuffer.Add(new ZombieLink { zombie = instanceEntities[i] });
+                        zombieBuffer.Add(new ZombieLink { zombie = instanceEntities[j] });
 
                     }
 
@@ -79,6 +85,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+        }
+
+        [BurstCompile]
+        public void OnDestroy(ref SystemState state)
+        {
+            // Complete any pending jobs to prevent memory leaks
+            state.CompleteDependency();
         }
 
         [BurstCompile]
