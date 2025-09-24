@@ -114,8 +114,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
         {
             // Use entity index for unique patrol pattern
             int hordeId = entity.Index;
-            float patrolRadius = 100f;
-            float patrolFreq = 0.05f + (hordeId % 8) * 0.015f;
+            float patrolRadius = 100f;  // Compact patrol area - 100 unit radius
+            float patrolFreq = 0.03f + (hordeId % 10) * 0.01f;  // Varied patrol speeds
 
             // Calculate circular patrol position
             float angle = currentTime * patrolFreq + (hordeId * 1.3f);
