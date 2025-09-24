@@ -4,77 +4,77 @@ using Unity.Mathematics;
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     /// <summary>
-    /// Component that enables zombies to participate in formation patterns
-    /// Used for coordinated movement like spelling out letters
+    /// Component that enables zombies to participate in horde formations
+    /// Used for squad-like coordinated movement and positioning
     /// </summary>
-    public struct ZombieFormationMember : IComponentData
+    public struct ZombieHordeMember : IComponentData
     {
-        /// <summary>Formation index for this zombie (determines position in formation)</summary>
-        public int formationIndex;
+        /// <summary>Index within the horde (determines position in formation)</summary>
+        public int hordeIndex;
 
-        /// <summary>Whether this zombie should participate in formations</summary>
+        /// <summary>Entity representing the horde this zombie belongs to</summary>
+        public Entity hordeEntity;
+
+        /// <summary>Whether this zombie should participate in horde formations</summary>
         public bool isActive;
 
-        /// <summary>Current formation this zombie is assigned to</summary>
-        public FormationID currentFormation;
-
-        /// <summary>Priority in formation (higher = more important positioning)</summary>
-        public float priority;
-
-        public static ZombieFormationMember CreateDefault(int index)
+        public static ZombieHordeMember CreateDefault(int index)
         {
-            return new ZombieFormationMember
+            return new ZombieHordeMember
             {
-                formationIndex = index,
-                isActive = true,
-                currentFormation = FormationID.Letters,
-                priority = 1f
+                hordeIndex = index,
+                hordeEntity = Entity.Null,
+                isActive = true
             };
         }
     }
 
     /// <summary>
-    /// Global formation controller component
-    /// Add this to a singleton entity to control all formation behavior
+    /// Settings for zombie horde formations - like squad settings in Age of Sprites
     /// </summary>
-    public struct ZombieFormationController : IComponentData
+    public struct ZombieHordeSettings : IComponentData
     {
-        /// <summary>Current active formation</summary>
-        public FormationID activeFormation;
+        /// <summary>Spacing between zombies in formation</summary>
+        public float2 zombieSpacing;
 
-        /// <summary>Current letter being spelled (0=K, 1=B, 2=V, 3=E)</summary>
-        public int currentLetter;
+        /// <summary>Formation grid size (width x height)</summary>
+        public int2 formationSize;
 
-        /// <summary>Time spent on current letter</summary>
-        public float letterTimer;
+        /// <summary>Type of formation pattern</summary>
+        public HordeFormationType formationType;
 
-        /// <summary>Duration to spend on each letter</summary>
-        public float letterDuration;
-
-        /// <summary>Center position of formations in world space</summary>
-        public float3 formationCenter;
-
-        /// <summary>Scale factor for formation size</summary>
-        public float formationScale;
-
-        /// <summary>Whether formations are currently active</summary>
-        public bool isFormationActive;
-
-        /// <summary>Smoothing factor for formation transitions</summary>
-        public float transitionSpeed;
-
-        public static ZombieFormationController CreateDefault()
+        public static ZombieHordeSettings CreateDefault(HordeFormationType type = HordeFormationType.Grid)
         {
-            return new ZombieFormationController
+            return new ZombieHordeSettings
             {
-                activeFormation = FormationID.Letters,
-                currentLetter = 0,
-                letterTimer = 0f,
-                letterDuration = 15f, // Medium duration for formation
-                formationCenter = new float3(0, 0, 1),
-                formationScale = 150f, // Very large scale for loose formations
-                isFormationActive = true,
-                transitionSpeed = 1f
+                zombieSpacing = new float2(2f, 2f), // 2 unit spacing between zombies
+                formationSize = new int2(10, 10),   // 10x10 grid formation
+                formationType = type
+            };
+        }
+    }
+
+    /// <summary>
+    /// Component for horde center position and movement
+    /// </summary>
+    public struct ZombieHordeCenter : IComponentData
+    {
+        /// <summary>Current center position of the horde</summary>
+        public float3 position;
+
+        /// <summary>Target position the horde is moving towards</summary>
+        public float3 targetPosition;
+
+        /// <summary>Movement speed of the horde</summary>
+        public float moveSpeed;
+
+        public static ZombieHordeCenter CreateDefault(float3 startPos)
+        {
+            return new ZombieHordeCenter
+            {
+                position = startPos,
+                targetPosition = startPos,
+                moveSpeed = 1.5f // Slightly slower than individual zombies
             };
         }
     }
@@ -105,28 +105,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     }
 
     /// <summary>
-    /// Available formation types
+    /// Available horde formation types - practical formations for gameplay
     /// </summary>
-    public enum FormationID : byte
+    public enum HordeFormationType : byte
     {
         None = 0,
-        Letters = 1,        // K, B, V, E sequence
-        Circle = 2,         // Circular formation
-        Line = 3,           // Line formation
-        Grid = 4,           // Grid pattern
-        Spiral = 5,         // Spiral pattern
-        Custom = 255        // Custom formation pattern
-    }
-
-    /// <summary>
-    /// Formation transition states
-    /// </summary>
-    public enum FormationState : byte
-    {
-        Idle = 0,
-        Forming = 1,
-        Holding = 2,
-        Transitioning = 3,
-        Dispersing = 4
+        Grid = 1,           // Rectangular grid formation
+        Wedge = 2,          // V-shaped wedge formation
+        Line = 3,           // Single line formation
+        Column = 4,         // Column formation
+        Circle = 5,         // Circular formation
+        Blob = 6            // Loose blob/cluster formation
     }
 }

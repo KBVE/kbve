@@ -12,7 +12,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(ZombieTargetingSystem))]
-    [UpdateAfter(typeof(ZombieFormationSystem))]
+    [UpdateAfter(typeof(ZombieHordeFormationSystem))]
     public partial class ZombieMovementSystem : SystemBase
     {
         private Unity.Mathematics.Random _random;

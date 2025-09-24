@@ -1,4 +1,5 @@
 using Unity.Entities;
+using Unity.Entities.Baking;
 using Unity.Physics;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -66,8 +67,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     isMoving = false
                 });
 
-                // Add formation component for coordinated movement (index will be set by spawning system)
-                AddComponent(entity, ZombieFormationMember.CreateDefault(0));
+                // Add horde member component for squad-like coordinated movement (index will be set by spawning system)
+                AddComponent(entity, ZombieHordeMember.CreateDefault(0));
             }
         }
 

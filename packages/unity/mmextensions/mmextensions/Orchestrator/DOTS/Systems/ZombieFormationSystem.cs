@@ -7,266 +7,226 @@ using Unity.Collections;
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 {
     /// <summary>
-    /// System that gently biases zombie movement toward letter shapes (K, B, V, E)
-    /// Applies very light influence to wandering behavior to create loose formations
-    /// Zombies maintain natural distribution while subtly trending toward letters
+    /// System that organizes zombies into horde formations like squads in Age of Sprites
+    /// Automatically groups zombies and arranges them in practical formation patterns
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(ZombieTargetingSystem))]
-    public partial class ZombieFormationSystem : SystemBase
+    public partial class ZombieHordeFormationSystem : SystemBase
     {
         private EntityQuery _zombieQuery;
-        private EntityQuery _controllerQuery;
-        private Entity _controllerEntity;
-        private Unity.Mathematics.Random _random;
+        private EntityQuery _hordeQuery;
 
         protected override void OnCreate()
         {
             _zombieQuery = GetEntityQuery(
-                ComponentType.ReadWrite<ZombieNavigation>(),
                 ComponentType.ReadWrite<ZombieDestination>(),
-                ComponentType.ReadWrite<ZombieFormationMember>(),
+                ComponentType.ReadWrite<ZombieHordeMember>(),
                 ComponentType.ReadOnly<LocalTransform>(),
                 ComponentType.ReadOnly<ZombieTag>()
             );
 
-            _controllerQuery = GetEntityQuery(ComponentType.ReadWrite<ZombieFormationController>());
-            _random = new Unity.Mathematics.Random(1337);
+            _hordeQuery = GetEntityQuery(
+                ComponentType.ReadWrite<ZombieHordeCenter>(),
+                ComponentType.ReadOnly<ZombieHordeSettings>()
+            );
 
             RequireForUpdate(_zombieQuery);
         }
 
         protected override void OnUpdate()
         {
-            // Create formation controller if it doesn't exist
-            if (_controllerQuery.IsEmpty)
-            {
-                _controllerEntity = EntityManager.CreateEntity();
-                EntityManager.AddComponentData(_controllerEntity, ZombieFormationController.CreateDefault());
-                EntityManager.AddComponentData(_controllerEntity, new ZombieFormationStats());
-            }
-            else
-            {
-                _controllerEntity = _controllerQuery.GetSingletonEntity();
-            }
+            // Auto-create horde groups if needed
+            CreateHordeGroupsIfNeeded();
 
-            var controller = EntityManager.GetComponentData<ZombieFormationController>(_controllerEntity);
-
-            // Update formation controller timing - longer durations for gradual formation
-            controller.letterTimer += SystemAPI.Time.DeltaTime;
-            if (controller.letterTimer >= controller.letterDuration)
-            {
-                controller.letterTimer = 0f;
-                controller.currentLetter = (controller.currentLetter + 1) % 4; // Cycle through K, B, V, E
-            }
-
-            // Get zombie count for calculations
-            int zombieCount = _zombieQuery.CalculateEntityCount();
-
-            if (zombieCount > 0)
-            {
-                // Apply gentle formation bias - don't force tight formations
-                var driftJob = new ZombieDriftJob
-                {
-                    currentLetter = controller.currentLetter,
-                    formationCenter = controller.formationCenter,
-                    formationScale = controller.formationScale * 2f, // Much larger scale to spread zombies out
-                    totalZombies = zombieCount,
-                    currentTime = (float)SystemAPI.Time.ElapsedTime,
-                    driftStrength = 0.1f, // Very light influence - just a gentle bias
-                    random = _random
-                };
-
-                Dependency = driftJob.ScheduleParallel(_zombieQuery, Dependency);
-                _random = driftJob.random;
-            }
-
-            // Update controller
-            EntityManager.SetComponentData(_controllerEntity, controller);
+            // Update zombie positions within their hordes
+            UpdateHordeFormations();
         }
-    }
 
-    [BurstCompile]
-    partial struct ZombieDriftJob : IJobEntity
-    {
-        public int currentLetter;
-        public float3 formationCenter;
-        public float formationScale;
-        public int totalZombies;
-        public float currentTime;
-        public float driftStrength;
-        public Unity.Mathematics.Random random;
-
-        public void Execute(
-            ref ZombieNavigation navigation,
-            ref ZombieDestination destination,
-            ref ZombieFormationMember formation,
-            in LocalTransform transform)
+        private void CreateHordeGroupsIfNeeded()
         {
-            // Only apply formation if zombie doesn't have a target and formation is active
-            if (navigation.hasTarget || navigation.isActivelySearching || !formation.isActive)
-                return;
-
-            // Get the ideal position for this zombie's formation index
-            GetLetterPosition(currentLetter, formation.formationIndex, totalZombies, out float2 idealPos);
-            float3 idealWorldPos = formationCenter + new float3(
-                idealPos.x * formationScale,
-                idealPos.y * formationScale,
-                0
-            );
-
-            float3 currentPos = transform.Position;
-            float3 toIdeal = idealWorldPos - currentPos;
-            float distanceToIdeal = math.length(toIdeal);
-
-            // Apply gentle bias toward formation - don't override wandering completely
-            if (distanceToIdeal < formationScale * 1.5f && distanceToIdeal > 5f) // Only influence if reasonably close
+            // Count zombies without hordes
+            var zombiesWithoutHorde = 0;
+            foreach (var (hordeMember, entity) in SystemAPI.Query<RefRW<ZombieHordeMember>>().WithEntityAccess())
             {
-                // Get current destination from wandering
-                float3 currentDestination = destination.targetPosition;
-
-                // Create a biased destination that's partly toward ideal position
-                float3 toDestination = currentDestination - currentPos;
-                float3 biasedDirection = math.normalize(math.lerp(toDestination, toIdeal, driftStrength));
-
-                // Only update destination with gentle bias, don't force exact positioning
-                float3 biasedDestination = currentPos + biasedDirection * math.length(toDestination);
-
-                // Only update if the change is meaningful but not too drastic
-                if (math.distance(biasedDestination, currentDestination) > 2f &&
-                    math.distance(biasedDestination, currentDestination) < 15f)
+                if (hordeMember.ValueRO.hordeEntity == Entity.Null)
                 {
-                    destination.targetPosition = biasedDestination;
-                    destination.facingDirection = biasedDirection;
+                    zombiesWithoutHorde++;
+                }
+            }
+
+            // Create new horde groups for unassigned zombies (100 zombies per horde)
+            const int zombiesPerHorde = 100;
+            int hordesToCreate = zombiesWithoutHorde / zombiesPerHorde;
+
+            for (int i = 0; i < hordesToCreate; i++)
+            {
+                // Create horde entity
+                var hordeEntity = EntityManager.CreateEntity();
+                EntityManager.AddComponentData(hordeEntity, ZombieHordeSettings.CreateDefault(HordeFormationType.Grid));
+                EntityManager.AddComponentData(hordeEntity, ZombieHordeCenter.CreateDefault(new float3(0, 0, 1)));
+
+                // Assign zombies to this horde
+                int assignedCount = 0;
+                foreach (var (hordeMember, entity) in SystemAPI.Query<RefRW<ZombieHordeMember>>().WithEntityAccess())
+                {
+                    if (hordeMember.ValueRO.hordeEntity == Entity.Null && assignedCount < zombiesPerHorde)
+                    {
+                        hordeMember.ValueRW.hordeEntity = hordeEntity;
+                        hordeMember.ValueRW.hordeIndex = assignedCount;
+                        assignedCount++;
+                    }
                 }
             }
         }
 
-        [BurstCompile]
-        private static void GetLetterPosition(int letter, int zombieIndex, int totalZombies, out float2 position)
+        private void UpdateHordeFormations()
         {
-            // Distribute zombies across the letter pattern
-            float t = (float)zombieIndex / totalZombies;
-
-            switch (letter)
+            // Update positions for each horde
+            foreach (var (hordeCenter, hordeSettings, hordeEntity) in SystemAPI.Query<RefRW<ZombieHordeCenter>, RefRO<ZombieHordeSettings>>().WithEntityAccess())
             {
-                case 0:
-                    GetLetterK(t, out position);
+                // Move horde center (could be toward player, random wandering, etc.)
+                // For now, just slow wandering movement
+                // You can later add targeting logic here
+
+                // Update all zombies in this horde to maintain formation
+                var formationJob = new HordeFormationJob
+                {
+                    hordeEntity = hordeEntity,
+                    hordeCenter = hordeCenter.ValueRO.position,
+                    hordeSettings = hordeSettings.ValueRO
+                };
+
+                Dependency = formationJob.ScheduleParallel(_zombieQuery, Dependency);
+            }
+        }
+    }
+
+    [BurstCompile]
+    partial struct HordeFormationJob : IJobEntity
+    {
+        public Entity hordeEntity;
+        public float3 hordeCenter;
+        public ZombieHordeSettings hordeSettings;
+
+        public void Execute(
+            ref ZombieDestination destination,
+            in ZombieHordeMember hordeMember,
+            in LocalTransform transform)
+        {
+            // Only process zombies that belong to this horde
+            if (hordeMember.hordeEntity != hordeEntity || !hordeMember.isActive)
+                return;
+
+            // Calculate formation position based on horde index and formation type
+            float3 formationPosition;
+            GetFormationPosition(hordeMember.hordeIndex, in hordeSettings, in hordeCenter, out formationPosition);
+
+            // Set destination to maintain formation position
+            destination.targetPosition = formationPosition;
+            destination.facingDirection = math.normalize(formationPosition - transform.Position);
+        }
+
+        [BurstCompile]
+        private static void GetFormationPosition(int index, in ZombieHordeSettings settings, in float3 center, out float3 position)
+        {
+            switch (settings.formationType)
+            {
+                case HordeFormationType.Grid:
+                    GetGridPosition(index, in settings, in center, out position);
                     break;
-                case 1:
-                    GetLetterB(t, out position);
+                case HordeFormationType.Line:
+                    GetLinePosition(index, in settings, in center, out position);
                     break;
-                case 2:
-                    GetLetterV(t, out position);
+                case HordeFormationType.Wedge:
+                    GetWedgePosition(index, in settings, in center, out position);
                     break;
-                case 3:
-                    GetLetterE(t, out position);
+                case HordeFormationType.Circle:
+                    GetCirclePosition(index, in settings, in center, out position);
+                    break;
+                case HordeFormationType.Column:
+                    GetColumnPosition(index, in settings, in center, out position);
                     break;
                 default:
-                    position = float2.zero;
+                    GetBlobPosition(index, in settings, in center, out position);
                     break;
             }
         }
 
         [BurstCompile]
-        private static void GetLetterK(float t, out float2 position)
+        private static void GetGridPosition(int index, in ZombieHordeSettings settings, in float3 center, out float3 position)
         {
-            // Letter K: vertical line + two diagonal lines
-            if (t < 0.4f) // Vertical line
-            {
-                float y = math.lerp(-1f, 1f, t / 0.4f);
-                position = new float2(-0.5f, y);
-            }
-            else if (t < 0.7f) // Upper diagonal
-            {
-                float progress = (t - 0.4f) / 0.3f;
-                float x = math.lerp(-0.5f, 0.5f, progress);
-                float y = math.lerp(0f, 1f, progress);
-                position = new float2(x, y);
-            }
-            else // Lower diagonal
-            {
-                float progress = (t - 0.7f) / 0.3f;
-                float x = math.lerp(-0.5f, 0.5f, progress);
-                float y = math.lerp(0f, -1f, progress);
-                position = new float2(x, y);
-            }
+            int row = index / settings.formationSize.x;
+            int col = index % settings.formationSize.x;
+
+            float3 offset = new float3(
+                (col - settings.formationSize.x * 0.5f) * settings.zombieSpacing.x,
+                (row - settings.formationSize.y * 0.5f) * settings.zombieSpacing.y,
+                0
+            );
+
+            position = center + offset;
         }
 
         [BurstCompile]
-        private static void GetLetterB(float t, out float2 position)
+        private static void GetLinePosition(int index, in ZombieHordeSettings settings, in float3 center, out float3 position)
         {
-            // Letter B: vertical line + two bumps
-            if (t < 0.3f) // Vertical line
-            {
-                float y = math.lerp(-1f, 1f, t / 0.3f);
-                position = new float2(-0.5f, y);
-            }
-            else if (t < 0.65f) // Upper bump
-            {
-                float progress = (t - 0.3f) / 0.35f;
-                float angle = progress * math.PI;
-                float x = -0.5f + 0.4f * (1f - math.cos(angle));
-                float y = 0.5f + 0.5f * math.sin(angle);
-                position = new float2(x, y);
-            }
-            else // Lower bump
-            {
-                float progress = (t - 0.65f) / 0.35f;
-                float angle = progress * math.PI;
-                float x = -0.5f + 0.4f * (1f - math.cos(angle));
-                float y = -0.5f - 0.5f * math.sin(angle);
-                position = new float2(x, y);
-            }
+            float3 offset = new float3((index - 50) * settings.zombieSpacing.x, 0, 0);
+            position = center + offset;
         }
 
         [BurstCompile]
-        private static void GetLetterV(float t, out float2 position)
+        private static void GetWedgePosition(int index, in ZombieHordeSettings settings, in float3 center, out float3 position)
         {
-            // Letter V: two diagonal lines meeting at bottom
-            if (t < 0.5f) // Left diagonal
-            {
-                float progress = t / 0.5f;
-                float x = math.lerp(-0.5f, 0f, progress);
-                float y = math.lerp(1f, -1f, progress);
-                position = new float2(x, y);
-            }
-            else // Right diagonal
-            {
-                float progress = (t - 0.5f) / 0.5f;
-                float x = math.lerp(0f, 0.5f, progress);
-                float y = math.lerp(-1f, 1f, progress);
-                position = new float2(x, y);
-            }
+            int row = (int)math.sqrt(index);
+            int posInRow = index - row * row;
+
+            float3 offset = new float3(
+                (posInRow - row * 0.5f) * settings.zombieSpacing.x,
+                -row * settings.zombieSpacing.y,
+                0
+            );
+
+            position = center + offset;
         }
 
         [BurstCompile]
-        private static void GetLetterE(float t, out float2 position)
+        private static void GetCirclePosition(int index, in ZombieHordeSettings settings, in float3 center, out float3 position)
         {
-            // Letter E: vertical line + three horizontal lines
-            if (t < 0.4f) // Vertical line
-            {
-                float y = math.lerp(-1f, 1f, t / 0.4f);
-                position = new float2(-0.5f, y);
-            }
-            else if (t < 0.6f) // Top horizontal
-            {
-                float progress = (t - 0.4f) / 0.2f;
-                float x = math.lerp(-0.5f, 0.3f, progress);
-                position = new float2(x, 1f);
-            }
-            else if (t < 0.8f) // Middle horizontal
-            {
-                float progress = (t - 0.6f) / 0.2f;
-                float x = math.lerp(-0.5f, 0.2f, progress);
-                position = new float2(x, 0f);
-            }
-            else // Bottom horizontal
-            {
-                float progress = (t - 0.8f) / 0.2f;
-                float x = math.lerp(-0.5f, 0.3f, progress);
-                position = new float2(x, -1f);
-            }
+            float angle = (index / 100f) * 2f * math.PI;
+            float radius = 5f + (index / 20) * 2f; // Expanding circles
+
+            float3 offset = new float3(
+                math.cos(angle) * radius,
+                math.sin(angle) * radius,
+                0
+            );
+
+            position = center + offset;
+        }
+
+        [BurstCompile]
+        private static void GetColumnPosition(int index, in ZombieHordeSettings settings, in float3 center, out float3 position)
+        {
+            float3 offset = new float3(0, (index - 50) * settings.zombieSpacing.y, 0);
+            position = center + offset;
+        }
+
+        [BurstCompile]
+        private static void GetBlobPosition(int index, in ZombieHordeSettings settings, in float3 center, out float3 position)
+        {
+            // Loose blob formation with some randomness
+            Unity.Mathematics.Random rand = new Unity.Mathematics.Random((uint)(index + 1));
+            float radius = rand.NextFloat(5f, 15f);
+            float angle = rand.NextFloat(0f, 2f * math.PI);
+
+            float3 offset = new float3(
+                math.cos(angle) * radius,
+                math.sin(angle) * radius,
+                0
+            );
+
+            position = center + offset;
         }
     }
 }

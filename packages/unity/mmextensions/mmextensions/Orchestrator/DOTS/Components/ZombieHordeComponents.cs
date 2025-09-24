@@ -10,14 +10,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     {
     }
 
-    /// <summary>
-    /// Horde formation settings - similar to Age-of-Sprites SquadSettings
-    /// </summary>
-    public struct ZombieHordeSettings : IComponentData
-    {
-        public int2 formation; // Grid formation (width x height)
-        public float spacing;  // Distance between zombies
-    }
 
     /// <summary>
     /// Link from horde to individual zombie - like Age-of-Sprites SoldierLink
