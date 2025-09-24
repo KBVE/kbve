@@ -200,7 +200,7 @@ jobs:
                     "project_path": "azure-rareicon",
                     "azure_repo_url": "dev.azure.com/kbve/rareicon/_git/rareicon",
                     "unity_version": "6000.0.25f1",
-                    "target_platforms": "[\"StandaloneWindows64\", \"WebGL\"]",
+                    "target_platforms": "[\"StandaloneWindows64\"]",
                     "deploy_to_itch": true,
                     "itch_username": "kbve",
                     "itch_gameid": "rareicon",
