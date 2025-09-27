@@ -11,6 +11,8 @@
       "Unity.Mathematics",
       "Unity.Burst",
       "Unity.Entities",
+      "Unity.Physics",
+      "Unity.Entities.Baking",
       "Unity.Entities.Hybrid",
       "Unity.Entities.Graphics",
       "NSprites",

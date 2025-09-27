@@ -2,53 +2,54 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Collections;
 using UnityEngine;
+/*
+
+                 ."-,.__
+                 `.     `.  ,
+              .--'  .._,'"-' `.
+             .    .'         `'
+             `.   /          ,'
+               `  '--.   ,-"'
+                `"`   |  \
+                   -. \, |
+                    `--Y.'      ___.
+                         \     L._, \
+               _.,        `.   <  <\                _
+             ,' '           `, `.   | \            ( `
+          ../, `.            `  |    .\`.           \ \_
+         ,' ,..  .           _.,'    ||\l            )  '".
+        , ,'   \           ,'.-.`-._,'  |           .  _._`.
+      ,' /      \ \        `' ' `--/   | \          / /   ..\
+    .'  /        \ .         |\__ - _ ,'` `        / /     `.`.
+    |  '          ..         `-...-"  |  `-'      / /        . `.
+    | /           |L__           |    |          / /          `. `.
+   , /            .   .          |    |         / /             ` `
+  / /          ,. ,`._ `-_       |    |  _   ,-' /               ` \
+ / .           \"`_/. `-_ \_,.  ,'    +-' `-'  _,        ..,-.    \`.
+.  '         .-f    ,'   `    '.       \__.---'     _   .'   '     \ \
+' /          `.'    l     .' /          \..      ,_|/   `.  ,'`     L`
+|'      _.-""` `.    \ _,'  `            \ `.___`.'"`-.  , |   |    | \
+||    ,'      `. `.   '       _,...._        `  |    `/ '  |   '     .|
+||  ,'          `. ;.,.---' ,'       `.   `.. `-'  .-' /_ .'    ;_   ||
+|| '              V      / /           `   | `   ,'   ,' '.    !  `. ||
+||/            _,-------7 '              . |  `-'    l         /    `||
+. |          ,' .-   ,' ||               | .-.        `.      .'     ||
+ `'        ,'    `".'    |               |    `.        '. -.'       `'
+          /      ,'      |               |,'    \-.._,.'/'
+          .     /        .               .       \    .''
+        .`.    |         `.             /         :_,'.'
+          \ `...\   _     ,'-.        .'         /_.-'
+           `-.__ `,  `'   .  _.>----''.  _  __  /
+                .'        /"'          |  "'   '_
+               /_|.-'\ ,".             '.'`__'-( \
+                 / ,"'"\,'               `/  `-.|" mh
+
+*/
+// WARNING: Components marked with [Obsolete] in this file are scheduled for deletion in a future update.
+// VisualEventData is not actively used - CombatVisualsSystem uses CombatEventBuffer instead.
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
-    /// <summary>
-    /// Component for visual effects requests
-    /// </summary>
-    public struct VisualEventData : IComponentData
-    {
-        public VisualEventType EventType;
-        public float3 Position;
-        public float3 Direction;
-        public float Scale;
-        public Color32 Color;
-        public float Duration;
-        public float StartTime;
-        public int EffectIndex; // Index into effect prefab array
-
-        public static VisualEventData CreateHitEffect(in float3 position, in float3 hitDirection)
-        {
-            return new VisualEventData
-            {
-                EventType = VisualEventType.Hit,
-                Position = position,
-                Direction = hitDirection,
-                Scale = 1f,
-                Color = new Color32(255, 255, 255, 255),
-                Duration = 0.5f,
-                StartTime = 0f,
-                EffectIndex = 0
-            };
-        }
-
-        public static VisualEventData CreateDeathEffect(in float3 position)
-        {
-            return new VisualEventData
-            {
-                EventType = VisualEventType.Death,
-                Position = position,
-                Direction = float3.zero,
-                Scale = 2f,
-                Color = new Color32(255, 0, 0, 255),
-                Duration = 2f,
-                StartTime = 0f,
-                EffectIndex = 0
-            };
-        }
-    }
 
     /// <summary>
     /// Component for health bar display
