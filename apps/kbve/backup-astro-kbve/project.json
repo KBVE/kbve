@@ -1,14 +1,14 @@
 {
-    "name": "astro-kbve",
+    "name": "backup-astro-kbve",
     "$schema": "../../../node_modules/nx/schemas/project-schema.json",
     "projectType": "application",
-    "sourceRoot": "apps/kbve/astro-kbve/src",
+    "sourceRoot": "apps/kbve/backup-astro-kbve/src",
     "tags": [],
     "targets": {
       "dev": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "apps/kbve/astro-kbve",
+          "cwd": "apps/kbve/backup-astro-kbve",
           "commands": [
             "nx exec -- astro dev --host"
           ],
@@ -18,7 +18,7 @@
       "build": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "apps/kbve/astro-kbve",
+          "cwd": "apps/kbve/backup-astro-kbve",
           "commands": [
             "nx exec -- astro build"
           ],
@@ -28,7 +28,7 @@
       "preview": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "apps/kbve/astro-kbve",
+          "cwd": "apps/kbve/backup-astro-kbve",
           "commands": [
             "nx exec -- astro build",
             "nx exec -- astro preview --host"
@@ -57,7 +57,7 @@
       "check": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "apps/kbve/astro-kbve",
+          "cwd": "apps/kbve/backup-astro-kbve",
           "commands": [
             "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro check"
           ],
@@ -72,8 +72,8 @@
         "options": {
           "commands": [
             "nx build droid --emptyOutDir",
-            "rm -rf apps/kbve/astro-kbve/public/workers",
-            "cp -r dist/packages/npm/droid/workers apps/kbve/astro-kbve/public/workers"
+            "rm -rf apps/kbve/backup-astro-kbve/public/workers",
+            "cp -r dist/packages/npm/droid/workers apps/kbve/backup-astro-kbve/public/workers"
           ],
           "parallel": false
         }
@@ -81,7 +81,7 @@
       "sync": {
         "executor": "nx:run-commands",
         "options": {
-          "cwd": "apps/kbve/astro-kbve",
+          "cwd": "apps/kbve/backup-astro-kbve",
           "commands": [
             "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro sync"
           ],
