@@ -1,6 +1,0 @@
-defaultNamespace: rareicon
-helm:
-    chart: ./gameserver
-    releaseName: rareicon-release
-    valuesFiles:
-        - gameserver/values.yaml
