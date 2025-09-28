@@ -1,37 +1,30 @@
 ---
 import MobileMenuToggle from '@astrojs/starlight/components/MobileMenuToggle.astro';
-import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
+//import AsideBar from 'src/layouts/components/dashboard/aside/AsideBar.astro';
 
 const { hasSidebar } = Astro.locals.starlightRoute;
 ---
 
 <div class="page sl-flex">
 	<header class="header">
-        
-        <slot name="header" />
-
-    
-    </header>
+		<slot name="header" />
+	</header>
 	{
 		hasSidebar && (
-			<nav class="sidebar print:hidden" aria-label={Astro.locals.t('sidebarNav.accessibleLabel')}>
+			<nav
+				class="sidebar print:hidden"
+				aria-label={Astro.locals.t('sidebarNav.accessibleLabel')}>
 				<MobileMenuToggle />
 				<div id="starlight__sidebar" class="sidebar-pane">
-
 					<div class="sidebar-content sl-flex">
 						<slot name="sidebar" />
-						<AsideBar />
 					</div>
-                    
 				</div>
 			</nav>
 		)
 	}
 	<div class="main-frame"><slot /></div>
-		
 </div>
-
-
 
 <style>
 	@layer starlight.core {
@@ -55,7 +48,8 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 
 		:global([data-has-sidebar]) .header {
 			padding-inline-end: calc(
-				var(--sl-nav-gap) + var(--sl-nav-pad-x) + var(--sl-menu-button-size)
+				var(--sl-nav-gap) + var(--sl-nav-pad-x) +
+					var(--sl-menu-button-size)
 			);
 		}
 
@@ -90,7 +84,9 @@ const { hasSidebar } = Astro.locals.starlightRoute;
 		}
 
 		.main-frame {
-			padding-top: calc(var(--sl-nav-height) + var(--sl-mobile-toc-height));
+			padding-top: calc(
+				var(--sl-nav-height) + var(--sl-mobile-toc-height)
+			);
 			padding-inline-start: var(--sl-content-inline-start);
 		}
 
