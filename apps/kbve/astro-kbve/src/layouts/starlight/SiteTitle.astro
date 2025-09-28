@@ -1,22 +1,14 @@
 ---
-import docsLogo from 'src/layouts/starlight/images/docs_logo.svg?raw';
-import type { Props } from '@astrojs/starlight/props';
 import StarlightNav from './navigation/StarlightNav.astro';
-// import ReactSidebarNav from "./ReactStarlightNav";
-
-const main = '/';
-const locale = Astro.props.locale ? Astro.props.locale + '/' : '';
-const docs = '/docs';
 ---
 
 <span class="site-title flex">
-	<!--  <a class="main-logo" href={main} set:html={mainLogo} aria-label="KBVE Logo" /> -->
 	<a href="/" data-astro-prefetch>
-		<img src="/assets/images/brand/letter_logo.png" />
+		<img
+			src="/assets/images/brand/letter_logo.png"
+			aria-label="KBVE Logo"
+		/>
 	</a>
-	<!-- <a class="docs-logo" href={docs} data-astro-prefetch set:html={docsLogo} aria-label="KBVE Docs" /> -->
-
-	<!-- <ReactSidebarNav client:only="react" /> -->
 </span>
 <div class="flex overflow-visible">
 	<StarlightNav />

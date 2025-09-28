@@ -2,13 +2,12 @@ import { defineConfig } from 'astro/config';
 import svelte, { vitePreprocess } from '@astrojs/svelte';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
-import tailwindcss from "@tailwindcss/vite";
+//import tailwindcss from "@tailwindcss/vite";
 import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
 import starlightSiteGraph from 'starlight-site-graph';
 import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
-import compressor from "astro-compressor";
 import AstroPWA from '@vite-pwa/astro'
 
 export default defineConfig({
@@ -336,9 +335,7 @@ export default defineConfig({
         },
         vite: {
             plugins: [
-                tailwindcss(),
-
-              
+                //tailwindcss(),
             ]
             ,
         },
