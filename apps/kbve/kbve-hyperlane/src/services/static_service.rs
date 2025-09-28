@@ -1,7 +1,9 @@
 use std::sync::Arc;
 use std::time::Duration;
+use std::path::PathBuf;
 
 use axum::{
+    body::Body,
     extract::{Request, State},
     http::{header, StatusCode, HeaderMap, HeaderValue},
     response::{IntoResponse, Response},
@@ -14,7 +16,7 @@ use tower_http::{
     compression::CompressionLayer,
     cors::CorsLayer,
 };
-use tracing::{debug, warn};
+use tracing::{debug, warn, info};
 
 use crate::services::{
     states::AppState,
@@ -182,6 +184,36 @@ fn has_hash_in_filename(path: &str) -> bool {
 }
 
 // ============================================================================
+// 404 Handler
+// ============================================================================
+
+/// Serve the 404.html file when a route is not found
+pub async fn handle_404(base_dir: &str) -> impl IntoResponse {
+    let not_found_path = PathBuf::from(base_dir).join("404.html");
+
+    debug!("Serving 404 page from: {:?}", not_found_path);
+
+    if not_found_path.exists() {
+        match tokio::fs::read(&not_found_path).await {
+            Ok(contents) => {
+                let mut headers = HeaderMap::new();
+                headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("text/html"));
+                headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache, no-store, must-revalidate"));
+
+                (StatusCode::NOT_FOUND, headers, contents).into_response()
+            }
+            Err(e) => {
+                warn!("Failed to read 404.html: {}", e);
+                (StatusCode::NOT_FOUND, "404 - Page Not Found").into_response()
+            }
+        }
+    } else {
+        warn!("404.html not found at: {:?}", not_found_path);
+        (StatusCode::NOT_FOUND, "404 - Page Not Found").into_response()
+    }
+}
+
+// ============================================================================
 // Health Check Handler
 // ============================================================================
 
@@ -199,12 +231,47 @@ pub async fn health_check() -> impl IntoResponse {
 // Router Configuration
 // ============================================================================
 
-/// Create a router for serving static files  
+/// Create a router for serving static files with 404 fallback
 pub fn static_router(config: StaticConfig) -> Router {
+    let assets_dir = config.assets_dir.clone();
+    let fallback_file = config.fallback_file.clone();
+
     let serve_dir = ServeDir::new(&config.assets_dir)
         .precompressed_gzip()
-        .precompressed_br();
-    
+        .precompressed_br()
+        .not_found_service(tower::service_fn(move |_req: Request| {
+            let dir = assets_dir.clone();
+            let fallback = fallback_file.clone();
+            async move {
+                // Check if we should serve 404.html or index.html as fallback
+                let fallback_path = if fallback == Some("404.html".to_string()) {
+                    PathBuf::from(&dir).join("404.html")
+                } else {
+                    PathBuf::from(&dir).join(fallback.unwrap_or_else(|| "index.html".to_string()))
+                };
+
+                if fallback_path.exists() {
+                    match tokio::fs::read(&fallback_path).await {
+                        Ok(contents) => {
+                            let mut headers = HeaderMap::new();
+                            headers.insert(header::CONTENT_TYPE, HeaderValue::from_static("text/html"));
+                            headers.insert(header::CACHE_CONTROL, HeaderValue::from_static("no-cache, no-store, must-revalidate"));
+
+                            Ok::<_, std::convert::Infallible>(
+                                (StatusCode::NOT_FOUND, headers, contents).into_response()
+                            )
+                        }
+                        Err(e) => {
+                            warn!("Failed to read fallback file: {}", e);
+                            Ok((StatusCode::NOT_FOUND, "404 - Page Not Found").into_response())
+                        }
+                    }
+                } else {
+                    Ok((StatusCode::NOT_FOUND, "404 - Page Not Found").into_response())
+                }
+            }
+        }));
+
     Router::new()
         .route("/health", get(health_check))
         .fallback_service(serve_dir)
@@ -222,17 +289,27 @@ pub fn assets_router(assets_dir: impl Into<String>) -> Router {
     static_router(config)
 }
 
-/// Create a router for SPA (Single Page Application) serving
+/// Create a router for SPA (Single Page Application) serving with 404 fallback
 pub fn spa_router(
-    build_dir: impl Into<String>, 
+    build_dir: impl Into<String>,
     index_file: Option<String>
 ) -> Router {
-    let config = StaticConfig::new(build_dir)
+    let build_dir_string = build_dir.into();
+    let assets_dir = build_dir_string.clone();
+
+    // Check if 404.html exists, if so use it as fallback, otherwise use index.html
+    let fallback_file = if PathBuf::from(&assets_dir).join("404.html").exists() {
+        Some("404.html".to_string())
+    } else {
+        index_file.or_else(|| Some("index.html".to_string()))
+    };
+
+    let config = StaticConfig::new(build_dir_string)
         .with_max_age(Duration::from_secs(300)) // 5 minutes for HTML
         .with_precompression(true)
         .with_directory_listing(false)
-        .with_fallback(index_file.or_else(|| Some("index.html".to_string())));
-    
+        .with_fallback(fallback_file);
+
     static_router(config)
 }
 
