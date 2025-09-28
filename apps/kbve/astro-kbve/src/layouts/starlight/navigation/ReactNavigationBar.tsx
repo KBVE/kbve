@@ -1,3 +1,5 @@
+// Needs a rewrite - https://github.com/KBVE/kbve/issues/6416
+
 import React, { useEffect, useState, useMemo } from 'react';
 import { userClientService } from '@kbve/astropad';
 import {
