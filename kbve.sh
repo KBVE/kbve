@@ -231,6 +231,22 @@ atomic_function() {
     # Always start from a fresh dev branch to avoid any local divergence
     echo "Setting up fresh dev branch..."
     
+    # Get current branch name
+    current_branch=$(git branch --show-current)
+    
+    # If we're currently on dev, switch to main or staging first
+    if [ "$current_branch" = "dev" ]; then
+        echo "Currently on dev branch, switching away first..."
+        if git show-ref --verify --quiet refs/heads/main; then
+            git switch main
+        elif git show-ref --verify --quiet refs/heads/staging; then
+            git switch staging
+        else
+            # If neither main nor staging exists locally, create a temporary branch
+            git switch -c temp-branch
+        fi
+    fi
+    
     # Delete local dev if it exists (to avoid any divergence issues)
     if git show-ref --verify --quiet refs/heads/dev; then
         echo "Deleting local dev branch to start fresh..."
