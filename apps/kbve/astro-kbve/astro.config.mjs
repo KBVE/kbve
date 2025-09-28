@@ -2,7 +2,7 @@ import { defineConfig } from 'astro/config';
 import svelte, { vitePreprocess } from '@astrojs/svelte';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
-import tailwindcss from "@tailwindcss/vite";
+//import tailwindcss from "@tailwindcss/vite";
 import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
 import starlightSiteGraph from 'starlight-site-graph';
@@ -335,7 +335,7 @@ export default defineConfig({
         },
         vite: {
             plugins: [
-                tailwindcss(),
+                //tailwindcss(),
             ]
             ,
         },
