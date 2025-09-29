@@ -1,5 +1,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using System.Runtime.InteropServices;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -16,6 +17,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public Entity hordeEntity;
 
         /// <summary>Whether this zombie should participate in horde formations</summary>
+        [MarshalAs(UnmanagedType.U1)]
         public bool isActive;
 
         public static ZombieHordeMember CreateDefault(int index)
