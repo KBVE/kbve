@@ -2,6 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Collections;
 using Unity.Burst;
+using System.Runtime.InteropServices;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -51,7 +52,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public int accessCount;
     }
 
-    [InternalBufferCapacity(2500)]
+    [InternalBufferCapacity(64)]
     public struct FlowFieldDirection : IBufferElementData
     {
         public byte direction;
@@ -101,6 +102,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public int toSectorIndex;
         public float lastUsedTime;
         public int useCount;
+        [MarshalAs(UnmanagedType.U1)]
         public bool isValid;
     }
 
@@ -119,7 +121,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public Entity requester;
         public float requestTime;
         public byte priority;
+        [MarshalAs(UnmanagedType.U1)]
         public bool allowCaching;
+        [MarshalAs(UnmanagedType.U1)]
         public bool isGroupRequest;
     }
 
@@ -179,6 +183,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public int sectorIndex;
         public int2 targetCell;
         public float priority;
+        [MarshalAs(UnmanagedType.U1)]
         public bool generateImmediate;
     }
 
@@ -188,6 +193,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public int maxCachedPaths;
         public float cacheEvictionTime;
         public float pathRecalculationInterval;
+        [MarshalAs(UnmanagedType.U1)]
         public bool enableCollisionAvoidance;
         public float collisionAvoidanceRadius;
         public float separationForce;

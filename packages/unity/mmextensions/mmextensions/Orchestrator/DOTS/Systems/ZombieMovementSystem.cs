@@ -12,7 +12,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
     /// Eliminates SystemBase overhead and per-frame allocations for 10k+ entities
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(FlowFieldGenerationSystem))]
+    [UpdateAfter(typeof(WaypointMovementSystem))]
     [UpdateAfter(typeof(ZombieTargetingSystem))]
     [BurstCompile]
     public partial struct ZombieMovementSystem : ISystem
@@ -81,7 +81,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 sectorNav = sectorNav,
                 sectorPositions = _sectorPositions,
                 avoidanceRadius = config.collisionAvoidanceRadius,
-                updateInterval = 0.1f // Update avoidance every 100ms
+                updateInterval = 0.1f, // Update avoidance every 100ms
+                // Frame-based staggering for 100k entity scalability
+                frameStagger = (uint)(currentTime * 60f) % 5 // Spread avoidance across 5 frames
             };
 
             // Schedule jobs with proper dependency chain - NO MORE Dependency.Complete()!
@@ -112,8 +114,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             [ReadOnly] public NativeParallelMultiHashMap<int2, float3> sectorPositions;
             [ReadOnly] public float avoidanceRadius;
             [ReadOnly] public float updateInterval;
+            [ReadOnly] public uint frameStagger;
 
-            public void Execute(ref LocalTransform transform,
+            public void Execute([EntityIndexInQuery] int entityIndex,
+                              ref LocalTransform transform,
                               ref ZombieDestination destination,
                               ref ZombiePathfindingState pathState,
                               ref LocalAvoidanceData avoidance,
@@ -123,11 +127,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 float3 currentPos = transform.Position;
                 float3 targetPos = destination.targetPosition;
 
-                // Update avoidance vector (staggered updates for performance)
-                bool shouldUpdateAvoidance = (currentTime - avoidance.lastAvoidanceUpdate) >
-                                            (updateInterval + avoidance.updateOffset * 0.033f);
+                // Improved staggering - update every 2 frames instead of 5 for better coordination
+                bool staggerFrame = (entityIndex + frameStagger) % 2 == 0;
+                bool timingUpdate = (currentTime - avoidance.lastAvoidanceUpdate) >
+                                   (updateInterval + avoidance.updateOffset * 0.033f);
 
-                if (shouldUpdateAvoidance)
+                if (staggerFrame && timingUpdate)
                 {
                     avoidance.avoidanceVector = CalculateLocalAvoidance(currentPos, sectorNav,
                                                                         avoidance.personalSpace);
@@ -144,29 +149,59 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     moveTarget = GetSectorGateway(currentSector, targetSector, sectorNav);
                 }
 
-                // Apply movement with avoidance
+                // Apply movement with avoidance and destination offsetting
                 float3 toTarget = moveTarget - currentPos;
                 float distance = math.length(toTarget);
                 pathState.distanceToDestination = distance;
+
+                // Add destination offsetting to prevent stacking - each unit gets unique arrival point
+                float arrivalRadius = math.max(config.stoppingDistance, 2f);
+                bool nearDestination = distance < arrivalRadius * 3f;
 
                 if (distance > config.stoppingDistance)
                 {
                     float3 desiredDirection = math.normalize(toTarget);
 
-                    // Blend desired movement with avoidance
-                    float3 finalDirection = math.normalize(desiredDirection + avoidance.avoidanceVector * 0.5f);
+                    // Apply destination offsetting when near target to spread units out
+                    if (nearDestination)
+                    {
+                        // Create unique offset based on entity characteristics
+                        float offsetAngle = (entityIndex * 2.4f) + (avoidance.updateOffset * 6.28f);
+                        float offsetRadius = arrivalRadius * 0.8f;
+                        float3 offset = new float3(
+                            math.cos(offsetAngle) * offsetRadius,
+                            math.sin(offsetAngle) * offsetRadius,
+                            0
+                        );
+
+                        // Blend towards offset position when close to destination
+                        float offsetBlend = math.saturate(1f - distance / (arrivalRadius * 3f));
+                        float3 offsetTarget = moveTarget + offset;
+                        desiredDirection = math.normalize(math.lerp(toTarget, offsetTarget - currentPos, offsetBlend));
+                    }
+
+                    // Stronger avoidance when near destination to prevent clustering
+                    float avoidanceStrength = nearDestination ? 1.2f : 0.5f;
+                    float3 finalDirection = math.normalize(desiredDirection + avoidance.avoidanceVector * avoidanceStrength);
 
                     // Apply speed variation for natural movement
                     float actualSpeed = speed.value * avoidance.speedVariation;
+
+                    // Slow down when approaching destination and crowded
+                    if (nearDestination && math.length(avoidance.avoidanceVector) > 0.3f)
+                    {
+                        actualSpeed *= 0.7f; // Slow down in crowds
+                    }
 
                     // Smooth movement
                     float3 movement = finalDirection * actualSpeed * deltaTime;
                     transform.Position += movement;
 
-                    // Add slight random drift for natural movement
+                    // Reduced drift when near destination for precision
+                    float driftScale = nearDestination ? 0.005f : 0.01f;
                     float3 drift = new float3(
-                        math.sin(currentTime * 2f + avoidance.updateOffset) * 0.01f,
-                        math.cos(currentTime * 2f + avoidance.updateOffset) * 0.01f,
+                        math.sin(currentTime * 2f + avoidance.updateOffset) * driftScale,
+                        math.cos(currentTime * 2f + avoidance.updateOffset) * driftScale,
                         0
                     );
                     transform.Position += drift;
@@ -189,7 +224,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 int2 currentSector = sectorNav.GetSectorCoordinates(position);
                 int neighborCount = 0;
 
-                // Check current and adjacent sectors
+                float personalSpaceSq = personalSpace * personalSpace * 4f;
+
+                // Check all 8 surrounding sectors for proper avoidance (fixes stacking!)
                 for (int dx = -1; dx <= 1; dx++)
                 {
                     for (int dy = -1; dy <= 1; dy++)
@@ -201,32 +238,37 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                             do
                             {
                                 float3 toNeighbor = position - neighborPos;
-                                float distance = math.length(toNeighbor);
+                                float distanceSq = math.lengthsq(toNeighbor);
 
-                                if (distance > 0.01f && distance < personalSpace * 2f)
+                                // Use squared distance for performance
+                                if (distanceSq > 0.0001f && distanceSq < personalSpaceSq)
                                 {
-                                    // Stronger repulsion when closer
-                                    float strength = math.saturate(1f - distance / (personalSpace * 2f));
-                                    avoidanceForce += math.normalize(toNeighbor) * strength;
+                                    float invDistance = math.rsqrt(distanceSq);
+                                    float3 direction = toNeighbor * invDistance;
+                                    float strength = math.saturate(1f - distanceSq / personalSpaceSq);
+
+                                    avoidanceForce += direction * strength;
                                     neighborCount++;
 
-                                    if (neighborCount >= 5) // Limit for performance
+                                    // Increased neighbor limit for better crowd behavior
+                                    if (neighborCount >= 8)
                                         break;
                                 }
-                            } while (sectorPositions.TryGetNextValue(out neighborPos, ref iterator) && neighborCount < 5);
+                            } while (sectorPositions.TryGetNextValue(out neighborPos, ref iterator) && neighborCount < 8);
                         }
 
-                        if (neighborCount >= 5)
+                        if (neighborCount >= 8)
                             break;
                     }
 
-                    if (neighborCount >= 5)
+                    if (neighborCount >= 8)
                         break;
                 }
 
+                // Better force scaling to prevent oscillation
                 if (neighborCount > 0)
                 {
-                    avoidanceForce = math.normalize(avoidanceForce) * math.min(1f, neighborCount * 0.3f);
+                    avoidanceForce = math.normalize(avoidanceForce) * math.min(1f, neighborCount * 0.15f);
                 }
 
                 return avoidanceForce;

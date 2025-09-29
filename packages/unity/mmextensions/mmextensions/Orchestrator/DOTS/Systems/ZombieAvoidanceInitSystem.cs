@@ -46,10 +46,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             };
 
             var jobHandle = initJob.ScheduleParallel(_zombieQuery, state.Dependency);
+
+            // Wait for job to complete before ECB operations
             jobHandle.Complete();
 
+            // Playback and dispose ECB synchronously (runs infrequently, so acceptable)
             ecb.Playback(state.EntityManager);
             ecb.Dispose();
+
+            state.Dependency = jobHandle;
 
             _randomSeed += 1000; // Update for next batch
         }
