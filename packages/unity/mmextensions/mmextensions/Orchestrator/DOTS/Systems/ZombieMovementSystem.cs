@@ -19,6 +19,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
     {
         private EntityQuery _zombieQuery;
         private NativeParallelMultiHashMap<int2, float3> _sectorPositions;
+        private float _lastSectorRebuildTime;
 
         public void OnCreate(ref SystemState state)
         {
@@ -64,15 +65,23 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             float currentTime = (float)SystemAPI.Time.ElapsedTime;
             float deltaTime = SystemAPI.Time.DeltaTime;
 
-            // Clear and rebuild sector positions for local avoidance - no more per-frame resizing
-            _sectorPositions.Clear();
+            // Only rebuild sector positions periodically (every 200ms instead of every frame)
+            bool shouldRebuildSectors = (currentTime - _lastSectorRebuildTime) > 0.2f;
+            JobHandle collectHandle = state.Dependency;
 
-            // First pass: Collect positions by sector for efficient neighbor queries
-            var collectJob = new CollectPositionsBySectorJob
+            if (shouldRebuildSectors)
             {
-                sectorNav = sectorNav,
-                writer = _sectorPositions.AsParallelWriter()
-            };
+                _lastSectorRebuildTime = currentTime;
+                _sectorPositions.Clear();
+
+                // Collect positions by sector for efficient neighbor queries
+                var collectJob = new CollectPositionsBySectorJob
+                {
+                    sectorNav = sectorNav,
+                    writer = _sectorPositions.AsParallelWriter()
+                };
+                collectHandle = collectJob.ScheduleParallel(_zombieQuery, state.Dependency);
+            }
 
             var moveJob = new ZombieMovementWithLocalAvoidanceJob
             {
@@ -81,13 +90,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 sectorNav = sectorNav,
                 sectorPositions = _sectorPositions,
                 avoidanceRadius = config.collisionAvoidanceRadius,
-                updateInterval = 0.1f, // Update avoidance every 100ms
-                // Frame-based staggering for 100k entity scalability
-                frameStagger = (uint)(currentTime * 60f) % 5 // Spread avoidance across 5 frames
+                updateInterval = 0.2f, // Update avoidance every 200ms instead of 100ms
+                frameStagger = (uint)(currentTime * 10f) % 10 // Spread updates across 10 frames instead of 5
             };
 
-            // Schedule jobs with proper dependency chain - NO MORE Dependency.Complete()!
-            var collectHandle = collectJob.ScheduleParallel(_zombieQuery, state.Dependency);
+            // Schedule jobs with proper dependency chain
             state.Dependency = moveJob.ScheduleParallel(_zombieQuery, collectHandle);
         }
 
@@ -127,12 +134,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 float3 currentPos = transform.Position;
                 float3 targetPos = destination.targetPosition;
 
-                // Improved staggering - update every 2 frames instead of 5 for better coordination
-                bool staggerFrame = (entityIndex + frameStagger) % 2 == 0;
-                bool timingUpdate = (currentTime - avoidance.lastAvoidanceUpdate) >
-                                   (updateInterval + avoidance.updateOffset * 0.033f);
+                // Much more aggressive staggering - each entity only updates avoidance every 10th frame
+                // This spreads the computational load across frames
+                uint entityGroup = (uint)entityIndex % 10;
+                bool isMyUpdateFrame = entityGroup == frameStagger;
+                bool needsUpdate = (currentTime - avoidance.lastAvoidanceUpdate) > updateInterval;
 
-                if (staggerFrame && timingUpdate)
+                if (isMyUpdateFrame && needsUpdate)
                 {
                     avoidance.avoidanceVector = CalculateLocalAvoidance(currentPos, sectorNav,
                                                                         avoidance.personalSpace);
@@ -226,43 +234,67 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
                 float personalSpaceSq = personalSpace * personalSpace * 4f;
 
-                // Check all 8 surrounding sectors for proper avoidance (fixes stacking!)
-                for (int dx = -1; dx <= 1; dx++)
+                // Only check current sector and immediately adjacent ones (5 sectors instead of 9)
+                // And limit to 4 neighbors instead of 8 for performance
+                const int maxNeighbors = 4;
+
+                // Check current sector first
+                if (sectorPositions.TryGetFirstValue(currentSector, out float3 neighborPos, out var iterator))
                 {
-                    for (int dy = -1; dy <= 1; dy++)
+                    do
                     {
-                        int2 checkSector = currentSector + new int2(dx, dy);
+                        float3 toNeighbor = position - neighborPos;
+                        float distanceSq = math.lengthsq(toNeighbor);
 
-                        if (sectorPositions.TryGetFirstValue(checkSector, out float3 neighborPos, out var iterator))
+                        if (distanceSq > 0.0001f && distanceSq < personalSpaceSq)
                         {
-                            do
-                            {
-                                float3 toNeighbor = position - neighborPos;
-                                float distanceSq = math.lengthsq(toNeighbor);
+                            float invDistance = math.rsqrt(distanceSq);
+                            float3 direction = toNeighbor * invDistance;
+                            float strength = math.saturate(1f - distanceSq / personalSpaceSq);
 
-                                // Use squared distance for performance
-                                if (distanceSq > 0.0001f && distanceSq < personalSpaceSq)
-                                {
-                                    float invDistance = math.rsqrt(distanceSq);
-                                    float3 direction = toNeighbor * invDistance;
-                                    float strength = math.saturate(1f - distanceSq / personalSpaceSq);
+                            avoidanceForce += direction * strength;
+                            neighborCount++;
 
-                                    avoidanceForce += direction * strength;
-                                    neighborCount++;
-
-                                    // Increased neighbor limit for better crowd behavior
-                                    if (neighborCount >= 8)
-                                        break;
-                                }
-                            } while (sectorPositions.TryGetNextValue(out neighborPos, ref iterator) && neighborCount < 8);
+                            if (neighborCount >= maxNeighbors)
+                                break;
                         }
+                    } while (sectorPositions.TryGetNextValue(out neighborPos, ref iterator) && neighborCount < maxNeighbors);
+                }
 
-                        if (neighborCount >= 8)
-                            break;
+                // Only check 4 adjacent sectors if needed (not diagonals)
+                if (neighborCount < maxNeighbors)
+                {
+                    // Check each adjacent sector directly without managed arrays
+                    for (int i = 0; i < 4 && neighborCount < maxNeighbors; i++)
+                    {
+                        int2 checkSector = i switch
+                        {
+                            0 => currentSector + new int2(1, 0),   // Right
+                            1 => currentSector + new int2(-1, 0),  // Left
+                            2 => currentSector + new int2(0, 1),   // Up
+                            3 => currentSector + new int2(0, -1),  // Down
+                            _ => currentSector
+                        };
+
+                        if (sectorPositions.TryGetFirstValue(checkSector, out neighborPos, out iterator))
+                        {
+                            float3 toNeighbor = position - neighborPos;
+                            float distanceSq = math.lengthsq(toNeighbor);
+
+                            if (distanceSq > 0.0001f && distanceSq < personalSpaceSq)
+                            {
+                                float invDistance = math.rsqrt(distanceSq);
+                                float3 direction = toNeighbor * invDistance;
+                                float strength = math.saturate(1f - distanceSq / personalSpaceSq);
+
+                                avoidanceForce += direction * strength;
+                                neighborCount++;
+
+                                if (neighborCount >= maxNeighbors)
+                                    break;
+                            }
+                        }
                     }
-
-                    if (neighborCount >= 8)
-                        break;
                 }
 
                 // Better force scaling to prevent oscillation

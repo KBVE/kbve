@@ -39,15 +39,21 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             state.RequireForUpdate(_waypointNetworkQuery);
         }
 
+        private float _lastWaypointUpdate;
+
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // Early exit if no waypoint network exists
-            if (_waypointNetworkQuery.IsEmpty)
+            float currentTime = (float)SystemAPI.Time.ElapsedTime;
+
+            // Only update waypoints every 500ms, not every frame
+            if (currentTime - _lastWaypointUpdate < 0.5f)
                 return;
 
-            // Get waypoint network data - use CalculateEntityCount to ensure we have exactly one
-            if (_waypointNetworkQuery.CalculateEntityCount() != 1)
+            _lastWaypointUpdate = currentTime;
+
+            // Early exit if no waypoint network exists
+            if (_waypointNetworkQuery.IsEmpty)
                 return;
 
             var networkEntity = _waypointNetworkQuery.GetSingletonEntity();
@@ -64,7 +70,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 return;
             var trafficManager = SystemAPI.GetComponent<WaypointTrafficManager>(networkEntity);
 
-            float currentTime = (float)SystemAPI.Time.ElapsedTime;
             float deltaTime = SystemAPI.Time.DeltaTime;
 
             // Path planning job - finds waypoint routes for entities that need them
