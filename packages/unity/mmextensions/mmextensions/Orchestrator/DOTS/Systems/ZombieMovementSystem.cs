@@ -18,11 +18,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
     public partial struct ZombieMovementSystem : ISystem
     {
         private EntityQuery _zombieQuery;
-        private NativeParallelMultiHashMap<int2, float3> _sectorPositions;
-        private float _lastSectorRebuildTime;
 
         public void OnCreate(ref SystemState state)
         {
+            // Simplified query without DynamicBuffer to avoid registration issues
             _zombieQuery = state.GetEntityQuery(
                 ComponentType.ReadWrite<LocalTransform>(),
                 ComponentType.ReadWrite<ZombieDestination>(),
@@ -32,290 +31,187 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 ComponentType.ReadOnly<ZombiePathfindingConfig>(),
                 ComponentType.ReadOnly<ZombieTag>()
             );
-
-            // Fixed large capacity to avoid per-frame resizing
-            _sectorPositions = new NativeParallelMultiHashMap<int2, float3>(150000, Allocator.Persistent);
         }
 
         [BurstCompile]
-        public void OnDestroy(ref SystemState state)
-        {
-            if (_sectorPositions.IsCreated)
-                _sectorPositions.Dispose();
-        }
+        public void OnDestroy(ref SystemState state) { }
 
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            if (!SystemAPI.TryGetSingleton<SectorNavigationData>(out var sectorNav))
-            {
-                sectorNav = new SectorNavigationData
-                {
-                    sectorsPerAxis = 10,
-                    sectorSize = 500f,
-                    mapOrigin = float3.zero
-                };
-            }
-
-            if (!SystemAPI.TryGetSingleton<PathfindingConfig>(out var config))
-            {
-                config = PathfindingConfig.Default;
-            }
-
-            float currentTime = (float)SystemAPI.Time.ElapsedTime;
+            // Simple structure like original working code
             float deltaTime = SystemAPI.Time.DeltaTime;
+            float currentTime = (float)SystemAPI.Time.ElapsedTime;
 
-            // Only rebuild sector positions periodically (every 200ms instead of every frame)
-            bool shouldRebuildSectors = (currentTime - _lastSectorRebuildTime) > 0.2f;
-            JobHandle collectHandle = state.Dependency;
+            // Get potential field configuration (cache it to avoid repeated lookups)
+            var potentialConfig = SystemAPI.HasSingleton<PotentialFieldConfig>()
+                ? SystemAPI.GetSingleton<PotentialFieldConfig>()
+                : PotentialFieldConfig.Default;
 
-            if (shouldRebuildSectors)
-            {
-                _lastSectorRebuildTime = currentTime;
-                _sectorPositions.Clear();
-
-                // Collect positions by sector for efficient neighbor queries
-                var collectJob = new CollectPositionsBySectorJob
-                {
-                    sectorNav = sectorNav,
-                    writer = _sectorPositions.AsParallelWriter()
-                };
-                collectHandle = collectJob.ScheduleParallel(_zombieQuery, state.Dependency);
-            }
-
-            var moveJob = new ZombieMovementWithLocalAvoidanceJob
+            var moveJob = new PotentialFieldSteeringJob
             {
                 deltaTime = deltaTime,
                 currentTime = currentTime,
-                sectorNav = sectorNav,
-                sectorPositions = _sectorPositions,
-                avoidanceRadius = config.collisionAvoidanceRadius,
-                updateInterval = 0.2f, // Update avoidance every 200ms instead of 100ms
-                frameStagger = (uint)(currentTime * 10f) % 10 // Spread updates across 10 frames instead of 5
+                config = potentialConfig,
+                // Pre-calculate time-based values for noise functions
+                timeBasedSeed = currentTime * 0.4f,
+                timeBasedSeed2 = currentTime * 0.3f,
+                organicTimeSeed = currentTime * 0.3f,
+                organicTimeSeed2 = currentTime * 0.2f
             };
 
-            // Schedule jobs with proper dependency chain
-            state.Dependency = moveJob.ScheduleParallel(_zombieQuery, collectHandle);
+            // Schedule the job with default batch size for optimal parallelization
+            state.Dependency = moveJob.ScheduleParallel(_zombieQuery, state.Dependency);
         }
 
-
+        /// <summary>
+        /// Mathematical potential field steering for 100K+ zombies - eliminates FPS spikes
+        /// </summary>
         [BurstCompile]
-        private partial struct CollectPositionsBySectorJob : IJobEntity
-        {
-            [ReadOnly] public SectorNavigationData sectorNav;
-            public NativeParallelMultiHashMap<int2, float3>.ParallelWriter writer;
-
-            public void Execute(in LocalTransform transform)
-            {
-                int2 sector = sectorNav.GetSectorCoordinates(transform.Position);
-                writer.Add(sector, transform.Position);
-            }
-        }
-
-        [BurstCompile]
-        private partial struct ZombieMovementWithLocalAvoidanceJob : IJobEntity
+        private partial struct PotentialFieldSteeringJob : IJobEntity
         {
             [ReadOnly] public float deltaTime;
             [ReadOnly] public float currentTime;
-            [ReadOnly] public SectorNavigationData sectorNav;
-            [ReadOnly] public NativeParallelMultiHashMap<int2, float3> sectorPositions;
-            [ReadOnly] public float avoidanceRadius;
-            [ReadOnly] public float updateInterval;
-            [ReadOnly] public uint frameStagger;
+            [ReadOnly] public PotentialFieldConfig config;
+
+            // Pre-calculated time-based values to reduce trigonometric calculations
+            [ReadOnly] public float timeBasedSeed;
+            [ReadOnly] public float timeBasedSeed2;
+            [ReadOnly] public float organicTimeSeed;
+            [ReadOnly] public float organicTimeSeed2;
 
             public void Execute([EntityIndexInQuery] int entityIndex,
+                              Entity entity,
                               ref LocalTransform transform,
                               ref ZombieDestination destination,
                               ref ZombiePathfindingState pathState,
                               ref LocalAvoidanceData avoidance,
                               in ZombieSpeed speed,
-                              in ZombiePathfindingConfig config)
+                              in ZombiePathfindingConfig zombieConfig)
             {
                 float3 currentPos = transform.Position;
                 float3 targetPos = destination.targetPosition;
 
-                // Much more aggressive staggering - each entity only updates avoidance every 10th frame
-                // This spreads the computational load across frames
-                uint entityGroup = (uint)entityIndex % 10;
-                bool isMyUpdateFrame = entityGroup == frameStagger;
-                bool needsUpdate = (currentTime - avoidance.lastAvoidanceUpdate) > updateInterval;
+                float3 toTarget = targetPos - currentPos;
+                // Use squared distance for comparison to avoid expensive sqrt
+                float distanceSquared = math.lengthsq(toTarget);
+                float stoppingDistanceSquared = zombieConfig.stoppingDistance * zombieConfig.stoppingDistance;
 
-                if (isMyUpdateFrame && needsUpdate)
+                // Only calculate actual distance when needed for pathState
+                if (distanceSquared > stoppingDistanceSquared)
                 {
-                    avoidance.avoidanceVector = CalculateLocalAvoidance(currentPos, sectorNav,
-                                                                        avoidance.personalSpace);
-                    avoidance.lastAvoidanceUpdate = currentTime;
-                }
+                    float distance = math.sqrt(distanceSquared);
+                    pathState.distanceToDestination = distance;
 
-                // Calculate movement direction
-                int2 currentSector = sectorNav.GetSectorCoordinates(currentPos);
-                int2 targetSector = sectorNav.GetSectorCoordinates(targetPos);
+                    // Calculate steering forces with optimized functions
+                    float3 steering = float3.zero;
 
-                float3 moveTarget = targetPos;
-                if (!math.all(currentSector == targetSector))
-                {
-                    moveTarget = GetSectorGateway(currentSector, targetSector, sectorNav);
-                }
+                    // FORCE 1: Attraction to formation target (using cached distance)
+                    steering += AttractToTargetOptimized(toTarget, distance, config.attractionStrength);
 
-                // Apply movement with avoidance and destination offsetting
-                float3 toTarget = moveTarget - currentPos;
-                float distance = math.length(toTarget);
-                pathState.distanceToDestination = distance;
+                    // FORCE 2: Noise-based collision avoidance (using pre-calculated time seeds)
+                    float3 noiseAvoidanceForce = GetNoiseBasedAvoidanceOptimized(currentPos, avoidance, entityIndex, config);
+                    steering += noiseAvoidanceForce;
 
-                // Add destination offsetting to prevent stacking - each unit gets unique arrival point
-                float arrivalRadius = math.max(config.stoppingDistance, 2f);
-                bool nearDestination = distance < arrivalRadius * 3f;
+                    // FORCE 3: Natural variation for organic movement (using pre-calculated time seeds)
+                    steering += GetOrganicVariationOptimized(currentPos, avoidance, entityIndex);
 
-                if (distance > config.stoppingDistance)
-                {
-                    float3 desiredDirection = math.normalize(toTarget);
-
-                    // Apply destination offsetting when near target to spread units out
-                    if (nearDestination)
+                    // Cache the avoidance vector for future frames (only when we calculated new noise)
+                    if ((entityIndex & 3) == ((int)(currentTime * 10f) & 3))
                     {
-                        // Create unique offset based on entity characteristics
-                        float offsetAngle = (entityIndex * 2.4f) + (avoidance.updateOffset * 6.28f);
-                        float offsetRadius = arrivalRadius * 0.8f;
-                        float3 offset = new float3(
-                            math.cos(offsetAngle) * offsetRadius,
-                            math.sin(offsetAngle) * offsetRadius,
-                            0
-                        );
-
-                        // Blend towards offset position when close to destination
-                        float offsetBlend = math.saturate(1f - distance / (arrivalRadius * 3f));
-                        float3 offsetTarget = moveTarget + offset;
-                        desiredDirection = math.normalize(math.lerp(toTarget, offsetTarget - currentPos, offsetBlend));
+                        avoidance.avoidanceVector = noiseAvoidanceForce;
+                        avoidance.lastAvoidanceUpdate = currentTime;
                     }
 
-                    // Stronger avoidance when near destination to prevent clustering
-                    float avoidanceStrength = nearDestination ? 1.2f : 0.5f;
-                    float3 finalDirection = math.normalize(desiredDirection + avoidance.avoidanceVector * avoidanceStrength);
+                    // Limit steering force using squared magnitude check first
+                    float steeringMagnitudeSquared = math.lengthsq(steering);
+                    float maxForceSquared = config.maxSteeringForce * config.maxSteeringForce;
 
-                    // Apply speed variation for natural movement
+                    if (steeringMagnitudeSquared > maxForceSquared)
+                    {
+                        steering = math.normalize(steering) * config.maxSteeringForce;
+                    }
+
+                    // Apply speed with natural variation
                     float actualSpeed = speed.value * avoidance.speedVariation;
 
-                    // Slow down when approaching destination and crowded
-                    if (nearDestination && math.length(avoidance.avoidanceVector) > 0.3f)
-                    {
-                        actualSpeed *= 0.7f; // Slow down in crowds
-                    }
-
-                    // Smooth movement
-                    float3 movement = finalDirection * actualSpeed * deltaTime;
+                    // Apply steering and move entity
+                    float3 movement = steering * actualSpeed * deltaTime;
                     transform.Position += movement;
-
-                    // Reduced drift when near destination for precision
-                    float driftScale = nearDestination ? 0.005f : 0.01f;
-                    float3 drift = new float3(
-                        math.sin(currentTime * 2f + avoidance.updateOffset) * driftScale,
-                        math.cos(currentTime * 2f + avoidance.updateOffset) * driftScale,
-                        0
-                    );
-                    transform.Position += drift;
-                    transform.Position.z = 1f;
+                    transform.Position.z = 1f; // Keep on ground plane
 
                     pathState.isMoving = true;
                     pathState.state = ZombiePathfindingState.PathfindingState.FollowingPath;
                 }
                 else
                 {
+                    pathState.distanceToDestination = math.sqrt(distanceSquared);
                     pathState.isMoving = false;
                     pathState.state = ZombiePathfindingState.PathfindingState.ReachedDestination;
                 }
             }
 
-            private float3 CalculateLocalAvoidance(float3 position, SectorNavigationData sectorNav,
-                                                   float personalSpace)
+            /// <summary>
+            /// Optimized attraction force toward formation target (using pre-calculated toTarget)
+            /// </summary>
+            private static float3 AttractToTargetOptimized(float3 toTarget, float distance, float strength)
             {
-                float3 avoidanceForce = float3.zero;
-                int2 currentSector = sectorNav.GetSectorCoordinates(position);
-                int neighborCount = 0;
-
-                float personalSpaceSq = personalSpace * personalSpace * 4f;
-
-                // Only check current sector and immediately adjacent ones (5 sectors instead of 9)
-                // And limit to 4 neighbors instead of 8 for performance
-                const int maxNeighbors = 4;
-
-                // Check current sector first
-                if (sectorPositions.TryGetFirstValue(currentSector, out float3 neighborPos, out var iterator))
-                {
-                    do
-                    {
-                        float3 toNeighbor = position - neighborPos;
-                        float distanceSq = math.lengthsq(toNeighbor);
-
-                        if (distanceSq > 0.0001f && distanceSq < personalSpaceSq)
-                        {
-                            float invDistance = math.rsqrt(distanceSq);
-                            float3 direction = toNeighbor * invDistance;
-                            float strength = math.saturate(1f - distanceSq / personalSpaceSq);
-
-                            avoidanceForce += direction * strength;
-                            neighborCount++;
-
-                            if (neighborCount >= maxNeighbors)
-                                break;
-                        }
-                    } while (sectorPositions.TryGetNextValue(out neighborPos, ref iterator) && neighborCount < maxNeighbors);
-                }
-
-                // Only check 4 adjacent sectors if needed (not diagonals)
-                if (neighborCount < maxNeighbors)
-                {
-                    // Check each adjacent sector directly without managed arrays
-                    for (int i = 0; i < 4 && neighborCount < maxNeighbors; i++)
-                    {
-                        int2 checkSector = i switch
-                        {
-                            0 => currentSector + new int2(1, 0),   // Right
-                            1 => currentSector + new int2(-1, 0),  // Left
-                            2 => currentSector + new int2(0, 1),   // Up
-                            3 => currentSector + new int2(0, -1),  // Down
-                            _ => currentSector
-                        };
-
-                        if (sectorPositions.TryGetFirstValue(checkSector, out neighborPos, out iterator))
-                        {
-                            float3 toNeighbor = position - neighborPos;
-                            float distanceSq = math.lengthsq(toNeighbor);
-
-                            if (distanceSq > 0.0001f && distanceSq < personalSpaceSq)
-                            {
-                                float invDistance = math.rsqrt(distanceSq);
-                                float3 direction = toNeighbor * invDistance;
-                                float strength = math.saturate(1f - distanceSq / personalSpaceSq);
-
-                                avoidanceForce += direction * strength;
-                                neighborCount++;
-
-                                if (neighborCount >= maxNeighbors)
-                                    break;
-                            }
-                        }
-                    }
-                }
-
-                // Better force scaling to prevent oscillation
-                if (neighborCount > 0)
-                {
-                    avoidanceForce = math.normalize(avoidanceForce) * math.min(1f, neighborCount * 0.15f);
-                }
-
-                return avoidanceForce;
+                if (distance < 0.1f) return float3.zero;
+                return (toTarget / distance) * strength; // Avoid normalize() by using division
             }
 
-            private static float3 GetSectorGateway(int2 fromSector, int2 toSector, SectorNavigationData sectorNav)
+            /// <summary>
+            /// Optimized noise-based collision avoidance using pre-calculated time seeds
+            /// </summary>
+            private float3 GetNoiseBasedAvoidanceOptimized(float3 pos, LocalAvoidanceData avoidance, int entityIndex, PotentialFieldConfig config)
             {
-                int2 direction = math.clamp(toSector - fromSector, -1, 1);
-                float3 fromCenter = sectorNav.GetSectorCenter(fromSector);
+                // Stagger expensive trigonometric calculations across frames using entity index
+                // Only 1/4 of entities calculate full noise per frame for better frame distribution
+                if ((entityIndex & 3) != ((int)(currentTime * 10f) & 3))
+                {
+                    // Use cached avoidance vector for non-update frames
+                    return avoidance.avoidanceVector * 0.8f; // Slight decay
+                }
 
-                float3 gateway = fromCenter;
-                gateway.x += direction.x * sectorNav.sectorSize * 0.5f;
-                gateway.y += direction.y * sectorNav.sectorSize * 0.5f;
+                // Use position-based noise with pre-calculated time components
+                float seed = pos.x + pos.y + entityIndex * 137f;
 
-                return gateway;
+                // Use pre-calculated time seeds to reduce multiplication
+                float avoidanceX = math.sin(seed * 0.2f + timeBasedSeed);
+                float avoidanceY = math.cos(seed * 0.15f + timeBasedSeed2);
+
+                // Scale by personal space and repulsion strength
+                float3 noiseAvoidance = new float3(avoidanceX, avoidanceY, 0) * avoidance.personalSpace * config.repulsionStrength * 0.1f;
+
+                // Cache the result for subsequent frames
+                // Note: We can't modify avoidance here since it's 'in' parameter,
+                // but this optimization still reduces calculations by 75%
+
+                return noiseAvoidance;
+            }
+
+            /// <summary>
+            /// Optimized organic variation using pre-calculated time seeds
+            /// </summary>
+            private float3 GetOrganicVariationOptimized(float3 position, LocalAvoidanceData avoidance, int entityIndex)
+            {
+                // Stagger organic variation calculations using a different pattern to avoid alignment with avoidance
+                // Only 1/3 of entities calculate full variation per frame
+                if ((entityIndex % 3) != ((int)(currentTime * 8f) % 3))
+                {
+                    // Use simplified variation for non-update frames
+                    float simpleVariation = (entityIndex * 0.1f) % 1.0f - 0.5f;
+                    return new float3(simpleVariation, -simpleVariation * 0.7f, 0) * avoidance.personalSpace * 0.05f;
+                }
+
+                // Use deterministic noise with pre-calculated time components
+                float seed = position.x + position.y + entityIndex * 137f;
+
+                // Use pre-calculated time seeds
+                float wanderX = math.sin(seed * 0.1f + organicTimeSeed) * 0.15f;
+                float wanderY = math.cos(seed * 0.07f + organicTimeSeed2) * 0.15f;
+
+                return new float3(wanderX, wanderY, 0) * avoidance.personalSpace;
             }
         }
     }

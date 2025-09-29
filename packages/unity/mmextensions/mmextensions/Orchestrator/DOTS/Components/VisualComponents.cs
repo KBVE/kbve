@@ -2,6 +2,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Collections;
 using UnityEngine;
+using System.Runtime.InteropServices;
 /*
 
                  ."-,.__
@@ -56,6 +57,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// </summary>
     public struct HealthBarData : IComponentData
     {
+        [MarshalAs(UnmanagedType.U1)]
         public bool IsVisible;
         public float VisibilityTimer;
         public float BarWidth;
@@ -63,6 +65,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float3 WorldOffset;
         public Color32 BarColor;
         public Color32 BackgroundColor;
+        [MarshalAs(UnmanagedType.U1)]
         public bool ShowText;
         public HealthBarStyle Style;
 
@@ -169,7 +172,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float Progress; // 0-1
         public Color32 DissolveColor;
         public float DissolveSpeed;
+        [MarshalAs(UnmanagedType.U1)]
         public bool SpawnParticles;
+        [MarshalAs(UnmanagedType.U1)]
         public bool PlaySound;
         public int SoundIndex;
 
@@ -214,7 +219,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public int AnimationHash;
         public float NormalizedTime;
         public float Speed;
+        [MarshalAs(UnmanagedType.U1)]
         public bool TriggerOnce;
+        [MarshalAs(UnmanagedType.U1)]
         public bool HasTriggered;
 
         public static AnimationEventBuffer CreateTrigger(AnimationEventType type, int hash)
@@ -242,6 +249,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float TransitionDuration;
         public float TransitionProgress;
         public AnimationLayer Layer;
+        [MarshalAs(UnmanagedType.U1)]
         public bool IsTransitioning;
 
         // Animation state identifiers using bitwise values for simplicity
@@ -317,6 +325,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public FixedString128Bytes Description;
         public float Value; // 0-1 for progress bars
         public float MaxValue;
+        [MarshalAs(UnmanagedType.U1)]
         public bool IsVisible;
         public float FadeTimer;
 

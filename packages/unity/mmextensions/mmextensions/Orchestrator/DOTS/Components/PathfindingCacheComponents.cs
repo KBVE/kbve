@@ -233,4 +233,38 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             };
         }
     }
+
+    /// <summary>
+    /// Simple obstacle data for potential field repulsion
+    /// </summary>
+    public struct ObstacleData : IComponentData
+    {
+        public float3 position;
+        public float radius;
+        public float repulsionStrength;
+    }
+
+
+    /// <summary>
+    /// Potential field steering forces configuration
+    /// </summary>
+    public struct PotentialFieldConfig : IComponentData
+    {
+        public float attractionStrength;
+        public float repulsionStrength;
+        public float repulsionRadius;
+        public float obstacleRepulsionStrength;
+        public float maxSteeringForce;
+        public float neighborDetectionRadius;
+
+        public static PotentialFieldConfig Default => new PotentialFieldConfig
+        {
+            attractionStrength = 2.0f,
+            repulsionStrength = 5.0f,
+            repulsionRadius = 3.0f,
+            obstacleRepulsionStrength = 8.0f,
+            maxSteeringForce = 10.0f,
+            neighborDetectionRadius = 5.0f
+        };
+    }
 }
