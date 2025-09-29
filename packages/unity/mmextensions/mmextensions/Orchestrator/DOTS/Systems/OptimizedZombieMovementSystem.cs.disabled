@@ -9,7 +9,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(FlowFieldGenerationSystem))]
     [UpdateAfter(typeof(ZombieTargetingSystem))]
-    [UpdateAfter(typeof(ZombieHordeFormationSystem))]
     public partial class ZombieMovementSystem : SystemBase
     {
         private EntityQuery _zombieQuery;
@@ -98,9 +97,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             if (distance > stoppingDistance)
             {
                 float3 direction = math.normalize(toTarget);
-                float3 movement = direction * moveSpeed * deltaTime;
-                transform.Position = currentPos + movement;
+
+                // Smooth movement with maximum speed constraint
+                float actualSpeed = math.min(moveSpeed, distance / deltaTime);
+                float3 movement = direction * actualSpeed * deltaTime;
+
+                // Apply movement with slight damping for smoother motion
+                transform.Position = math.lerp(currentPos, currentPos + movement, 0.95f);
                 transform.Position.z = 1f;
+
                 pathState.isMoving = true;
                 pathState.state = ZombiePathfindingState.PathfindingState.FollowingPath;
             }

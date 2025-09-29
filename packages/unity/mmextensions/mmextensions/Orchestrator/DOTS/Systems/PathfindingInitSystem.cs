@@ -25,6 +25,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             var config = PathfindingConfig.Default;
             config.maxCachedFlowFields = mapSettings.zonesPerAxis * 3;
             config.flowFieldCellSize = mapSettings.mapSize / (mapSettings.zonesPerAxis * 50f);
+            config.enableCollisionAvoidance = true;
+            config.collisionAvoidanceRadius = 3f;
+            config.separationForce = 2f;
             EntityManager.CreateSingleton(config);
 
             var sectorNav = new SectorNavigationData
@@ -37,7 +40,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
             EntityManager.CreateSingleton<PathfindingStats>();
 
-            Debug.Log($"[Pathfinding] Initialized: {sectorNav.sectorsPerAxis}x{sectorNav.sectorsPerAxis} sectors, cache size: {config.maxCachedFlowFields}");
+            Debug.Log($"[Pathfinding] Initialized: {sectorNav.sectorsPerAxis}x{sectorNav.sectorsPerAxis} sectors, collision avoidance: {config.enableCollisionAvoidance}");
 
             Enabled = false;
         }

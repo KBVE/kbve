@@ -188,8 +188,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public int maxCachedPaths;
         public float cacheEvictionTime;
         public float pathRecalculationInterval;
-        public bool enableHordeOptimization;
-        public int minHordeSize;
+        public bool enableCollisionAvoidance;
+        public float collisionAvoidanceRadius;
+        public float separationForce;
         public float flowFieldCellSize;
 
         public static PathfindingConfig Default => new PathfindingConfig
@@ -198,9 +199,32 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             maxCachedPaths = 100,
             cacheEvictionTime = 30f,
             pathRecalculationInterval = 1f,
-            enableHordeOptimization = true,
-            minHordeSize = 5,
+            enableCollisionAvoidance = true,
+            collisionAvoidanceRadius = 2f,
+            separationForce = 1.5f,
             flowFieldCellSize = 10f
         };
+    }
+
+    public struct LocalAvoidanceData : IComponentData
+    {
+        public float personalSpace;
+        public float lastAvoidanceUpdate;
+        public float3 avoidanceVector;
+        public float speedVariation;
+        public int updateOffset; // For staggered updates
+
+        public static LocalAvoidanceData CreateRandom(uint seed)
+        {
+            var random = new Unity.Mathematics.Random(seed);
+            return new LocalAvoidanceData
+            {
+                personalSpace = random.NextFloat(0.8f, 1.5f),
+                lastAvoidanceUpdate = 0f,
+                avoidanceVector = float3.zero,
+                speedVariation = random.NextFloat(0.95f, 1.05f),
+                updateOffset = random.NextInt(0, 3)
+            };
+        }
     }
 }
