@@ -21,14 +21,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
         public void OnCreate(ref SystemState state)
         {
-            // Simplified query without DynamicBuffer to avoid registration issues
+            // Simplified query using new consolidated components
             _zombieQuery = state.GetEntityQuery(
                 ComponentType.ReadWrite<LocalTransform>(),
-                ComponentType.ReadWrite<ZombieDestination>(),
-                ComponentType.ReadWrite<ZombiePathfindingState>(),
-                ComponentType.ReadWrite<LocalAvoidanceData>(),
-                ComponentType.ReadOnly<ZombieSpeed>(),
-                ComponentType.ReadOnly<ZombiePathfindingConfig>(),
+                ComponentType.ReadWrite<Movement>(),
+                ComponentType.ReadWrite<EntityState>(),
+                ComponentType.ReadWrite<AvoidanceData>(),
+                ComponentType.ReadOnly<EntityCore>(),
+                ComponentType.ReadOnly<NavigationData>(),
                 ComponentType.ReadOnly<ZombieTag>()
             );
         }
@@ -83,28 +83,126 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             public void Execute([EntityIndexInQuery] int entityIndex,
                               Entity entity,
                               ref LocalTransform transform,
-                              ref ZombieDestination destination,
-                              ref ZombiePathfindingState pathState,
-                              ref LocalAvoidanceData avoidance,
-                              in ZombieSpeed speed,
-                              in ZombiePathfindingConfig zombieConfig)
+                              ref Movement movement,
+                              ref EntityState entityState,
+                              ref AvoidanceData avoidance,
+                              in EntityCore core,
+                              in NavigationData navigation)
             {
                 float3 currentPos = transform.Position;
-                float3 targetPos = destination.targetPosition;
+                float3 targetPos = movement.destination;
 
                 float3 toTarget = targetPos - currentPos;
                 // Use squared distance for comparison to avoid expensive sqrt
                 float distanceSquared = math.lengthsq(toTarget);
-                float stoppingDistanceSquared = zombieConfig.stoppingDistance * zombieConfig.stoppingDistance;
+                float stoppingDistanceSquared = movement.stoppingDistance * movement.stoppingDistance;
 
-                // Only calculate actual distance when needed for pathState
-                if (distanceSquared > stoppingDistanceSquared)
+                float distance = math.sqrt(distanceSquared);
+
+                // Calculate steering forces with optimized functions
+                float3 steering = float3.zero;
+
+                // Check if we're close to destination for special behavior
+                if (distanceSquared <= stoppingDistanceSquared)
                 {
-                    float distance = math.sqrt(distanceSquared);
-                    pathState.distanceToDestination = distance;
+                    // NEAR DESTINATION: Handle differently based on state flags
 
-                    // Calculate steering forces with optimized functions
-                    float3 steering = float3.zero;
+                    // Check if entity is patrolling
+                    if (StateHelpers.IsPatrolling(entityState))
+                    {
+                        // PATROL MODE: Generate new waypoint immediately to keep moving
+                        float2 currentPos2D = currentPos.xy;
+                        float2 mapCenter = float2.zero;
+
+                        // Use entity index to create unique patrol patterns for each zombie
+                        // This prevents them from all converging on the same point
+                        float baseAngle = (entityIndex * 2.39996f); // Golden angle for distribution
+                        float timeOffset = entityState.lastStateChange * 0.2f; // Use state change time for variation
+                        float angle = baseAngle + timeOffset;
+
+                        // Vary radius based on entity index to create concentric patrol rings
+                        float baseRadius = 100f + (entityIndex % 5) * 30f; // 100, 130, 160, 190, 220
+                        float radiusWobble = math.sin(currentTime * 0.1f + entityIndex) * 20f;
+                        float patrolRadius = baseRadius + radiusWobble;
+
+                        // Calculate new patrol point
+                        float2 patrolPoint = mapCenter + new float2(
+                            math.cos(angle) * patrolRadius,
+                            math.sin(angle) * patrolRadius
+                        );
+
+                        // Update movement destination
+                        movement.destination = new float3(patrolPoint.x, patrolPoint.y, currentPos.z);
+                        movement.facingDirection = math.normalize(patrolPoint - currentPos2D);
+
+                        // Keep patrolling state active
+                        StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Patrolling, currentTime);
+                    }
+                    else
+                    {
+                        // Original orbiting behavior for when chasing actual targets
+                        // Calculate orbital position around target
+                        float orbitRadius = movement.stoppingDistance + avoidance.personalSpace;
+                        float orbitSpeed = 0.5f + (entityIndex * 0.1f) % 0.5f; // Vary orbit speed by entity
+                        float orbitAngle = currentTime * orbitSpeed + entityIndex * 2.39996f; // Golden angle for distribution
+
+                        // Desired orbital position
+                        float3 orbitOffset = new float3(
+                            math.cos(orbitAngle) * orbitRadius,
+                            math.sin(orbitAngle) * orbitRadius,
+                            0
+                        );
+                        float3 desiredPos = targetPos + orbitOffset;
+
+                        // Soft attraction to orbital position
+                        float3 toOrbit = desiredPos - currentPos;
+                        float orbitDistance = math.length(toOrbit);
+                        if (orbitDistance > 0.1f)
+                        {
+                            steering += (toOrbit / orbitDistance) * config.attractionStrength * 0.3f;
+                        }
+
+                        // Maintain collision avoidance even at destination
+                        float3 noiseAvoidanceForce = GetNoiseBasedAvoidanceOptimized(currentPos, avoidance, entityIndex, config);
+                        steering += noiseAvoidanceForce * 1.5f; // Stronger avoidance at destination
+
+                        // Add slight repulsion from exact center to prevent clustering
+                        if (distance < movement.stoppingDistance * 0.5f)
+                        {
+                            steering -= (toTarget / distance) * config.repulsionStrength * 0.5f;
+                        }
+
+                        // Cache avoidance vector
+                        if ((entityIndex & 3) == ((int)(currentTime * 10f) & 3))
+                        {
+                            avoidance.avoidanceVector = noiseAvoidanceForce;
+                            avoidance.lastAvoidanceUpdate = currentTime;
+                        }
+
+                        // Apply reduced speed near destination
+                        float actualSpeed = core.speed * avoidance.speedVariation * 0.4f;
+
+                        // Limit steering force
+                        float steeringMagnitudeSquared = math.lengthsq(steering);
+                        float maxForceSquared = config.maxSteeringForce * config.maxSteeringForce * 0.25f;
+
+                        if (steeringMagnitudeSquared > maxForceSquared)
+                        {
+                            steering = math.normalize(steering) * config.maxSteeringForce * 0.5f;
+                        }
+
+                        // Apply movement
+                        float3 movementDelta = steering * actualSpeed * deltaTime;
+                        transform.Position += movementDelta;
+                        transform.Position.z = 1f;
+
+                        // Update state to orbiting
+                        StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Orbiting, currentTime);
+                    }
+                }
+                else
+                {
+                    // FAR FROM DESTINATION: Normal pathfinding behavior
 
                     // FORCE 1: Attraction to formation target (using cached distance)
                     steering += AttractToTargetOptimized(toTarget, distance, config.attractionStrength);
@@ -133,21 +231,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     }
 
                     // Apply speed with natural variation
-                    float actualSpeed = speed.value * avoidance.speedVariation;
+                    float actualSpeed = core.speed * avoidance.speedVariation;
 
                     // Apply steering and move entity
-                    float3 movement = steering * actualSpeed * deltaTime;
-                    transform.Position += movement;
+                    float3 movementDelta = steering * actualSpeed * deltaTime;
+                    transform.Position += movementDelta;
                     transform.Position.z = 1f; // Keep on ground plane
 
-                    pathState.isMoving = true;
-                    pathState.state = ZombiePathfindingState.PathfindingState.FollowingPath;
-                }
-                else
-                {
-                    pathState.distanceToDestination = math.sqrt(distanceSquared);
-                    pathState.isMoving = false;
-                    pathState.state = ZombiePathfindingState.PathfindingState.ReachedDestination;
+                    // Update state to moving
+                    StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Moving, currentTime);
                 }
             }
 
@@ -163,7 +255,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             /// <summary>
             /// Optimized noise-based collision avoidance using pre-calculated time seeds
             /// </summary>
-            private float3 GetNoiseBasedAvoidanceOptimized(float3 pos, LocalAvoidanceData avoidance, int entityIndex, PotentialFieldConfig config)
+            private float3 GetNoiseBasedAvoidanceOptimized(float3 pos, AvoidanceData avoidance, int entityIndex, PotentialFieldConfig config)
             {
                 // Stagger expensive trigonometric calculations across frames using entity index
                 // Only 1/4 of entities calculate full noise per frame for better frame distribution
@@ -193,7 +285,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             /// <summary>
             /// Optimized organic variation using pre-calculated time seeds
             /// </summary>
-            private float3 GetOrganicVariationOptimized(float3 position, LocalAvoidanceData avoidance, int entityIndex)
+            private float3 GetOrganicVariationOptimized(float3 position, AvoidanceData avoidance, int entityIndex)
             {
                 // Stagger organic variation calculations using a different pattern to avoid alignment with avoidance
                 // Only 1/3 of entities calculate full variation per frame

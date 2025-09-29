@@ -24,9 +24,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 // Add zombie tag for identification
                 AddComponent<ZombieTag>(entity);
 
-                // Add zombie data components
-                AddComponent(entity, new ZombieHealth { value = authoring.Health });
-                AddComponent(entity, new ZombieSpeed { value = authoring.MoveSpeed });
+                // Note: Health and speed are now in EntityCore component
 
                 // Add ECS physics collider with collision filter
                 // Zombies MUST collide with each other to prevent stacking!
@@ -49,23 +47,21 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 // Add physics mass for movement/forces
                 AddComponent(entity, PhysicsMass.CreateKinematic(MassProperties.UnitSphere));
 
-                // Add zombie navigation components for Unity DOTS movement
-                AddComponent(entity, ZombieNavigation.CreateDefault());
-                AddComponent(entity, new ZombieDestination
-                {
-                    targetPosition = GetComponent<Transform>().position,
-                    facingDirection = new float3(0, 0, 1)
-                });
-                AddComponent(entity, ZombiePathfindingConfig.CreateDefault(MinionType.Tank));
-                AddComponent(entity, new ZombiePathfindingState
-                {
-                    state = ZombiePathfindingState.PathfindingState.SearchingForTarget,
-                    lastPathCalculation = 0f,
-                    lastDestinationUpdate = 0f,
-                    pathFailures = 0,
-                    distanceToDestination = 0f,
-                    isMoving = false
-                });
+                // Add new consolidated components for Unity DOTS movement
+                var initialState = EntityState.CreateDefault();
+                // Start in patrolling state
+                initialState.flags = EntityStateFlags.Patrolling | EntityStateFlags.SearchingTarget;
+                AddComponent(entity, initialState);
+
+                AddComponent(entity, EntityCore.CreateZombie(authoring.Health, authoring.MoveSpeed));
+
+                // Initialize movement with current position as destination
+                var movement = Movement.CreateDefault(2f);
+                movement.destination = GetComponent<Transform>().position;
+                AddComponent(entity, movement);
+
+                AddComponent(entity, NavigationData.CreateDefault(15f));
+                AddComponent(entity, AvoidanceData.CreateDefault(2f));
 
                 // Add horde member component for squad-like coordinated movement (index will be set by spawning system)
                 AddComponent(entity, ZombieHordeMember.CreateDefault(0));

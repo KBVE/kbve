@@ -45,6 +45,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [MarshalAs(UnmanagedType.U1)]
         public bool isActivelySearching;
 
+        /// <summary>Whether the zombie is currently patrolling (no target)</summary>
+        [MarshalAs(UnmanagedType.U1)]
+        public bool isPatrolling;
+
         /// <summary>Minimum distance to maintain from target</summary>
         public float minTargetDistance;
 
@@ -59,6 +63,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 lastTargetUpdate = 0f,
                 hasTarget = false,
                 isActivelySearching = true,
+                isPatrolling = false,
                 minTargetDistance = 1.5f
             };
         }

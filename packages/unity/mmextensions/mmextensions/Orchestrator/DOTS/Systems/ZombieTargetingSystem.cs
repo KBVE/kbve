@@ -27,12 +27,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
         public void OnCreate(ref SystemState state)
         {
-            // Query for zombies with navigation components
+            // Query for zombies using new consolidated components
             _zombieQuery = state.GetEntityQuery(
-                ComponentType.ReadWrite<ZombieNavigation>(),
-                ComponentType.ReadWrite<ZombieDestination>(),
+                ComponentType.ReadWrite<NavigationData>(),
+                ComponentType.ReadWrite<Movement>(),
+                ComponentType.ReadWrite<EntityState>(),
                 ComponentType.ReadOnly<LocalTransform>(),
-                ComponentType.ReadOnly<MinionData>()
+                ComponentType.ReadOnly<EntityCore>()
             );
 
             // Query for potential targets (players, etc.)
@@ -117,10 +118,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
         public void Execute(
             [EntityIndexInQuery] int entityIndex,
-            ref ZombieNavigation navigation,
-            ref ZombieDestination destination,
+            ref NavigationData navigation,
+            ref Movement movement,
+            ref EntityState entityState,
             in LocalTransform transform,
-            in MinionData minionData)
+            in EntityCore core)
         {
             // Staggered updates for 100k entity scalability
             // Only process 1/30th of entities per frame = 3333 entities at 60fps
@@ -128,16 +130,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 return;
 
             // Realistic targeting intervals - enemies don't retarget instantly
-            float baseInterval = navigation.targetUpdateInterval;
+            float baseInterval = navigation.updateInterval;
             float adaptiveInterval = math.lerp(baseInterval, baseInterval * 3f, targetEntities.Length / 10000f);
 
-            if (currentTime - navigation.lastTargetUpdate < adaptiveInterval)
+            if (currentTime - navigation.lastUpdate < adaptiveInterval)
                 return;
 
-            navigation.lastTargetUpdate = currentTime;
+            navigation.lastUpdate = currentTime;
 
             // Skip if not actively searching and has valid target
-            if (!navigation.isActivelySearching && navigation.hasTarget && navigation.targetEntity != Entity.Null)
+            bool hasTarget = StateHelpers.HasFlag(entityState, EntityStateFlags.HasTarget);
+            bool isSearching = StateHelpers.HasFlag(entityState, EntityStateFlags.SearchingTarget);
+
+            if (!isSearching && hasTarget && navigation.targetEntity != Entity.Null)
                 return;
 
             // Find the best target
@@ -149,7 +154,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             float3 zombiePos = transform.Position;
 
             // Spatial optimization: Early distance culling using squared distance (faster)
-            float scanRadiusSq = navigation.targetScanRadius * navigation.targetScanRadius;
+            float scanRadiusSq = navigation.scanRadius * navigation.scanRadius;
             int maxTargetsToCheck = math.min(targetEntities.Length, 20); // Limit checks for 100k scale
 
             for (int i = 0; i < maxTargetsToCheck; i++)
@@ -157,7 +162,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 var target = targetData[i];
 
                 // Skip if target is not detectable or wrong faction
-                if (!target.isDetectable || !IsValidTarget(target.faction, minionData.Faction))
+                if (!target.isDetectable || !IsValidTarget(target.faction, core.faction))
                     continue;
 
                 float3 targetPos = targetTransforms[i].Position;
@@ -191,31 +196,90 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 // Found a valid target
                 navigation.targetEntity = bestTarget;
                 navigation.lastKnownTargetPos = bestTargetPos;
-                navigation.hasTarget = true;
+
+                // Update state flags
+                StateHelpers.AddFlag(ref entityState, EntityStateFlags.HasTarget);
+                StateHelpers.RemoveFlag(ref entityState, EntityStateFlags.SearchingTarget);
+                StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Pursuing, currentTime);
 
                 // Update destination to target position
-                destination.targetPosition = bestTargetPos;
-                destination.facingDirection = math.normalize(bestTargetPos - zombiePos);
+                movement.destination = bestTargetPos;
+                float2 zombiePos2D = zombiePos.xy;
+                movement.facingDirection = math.normalize(bestTargetPos.xy - zombiePos2D);
             }
-            else if (navigation.hasTarget)
+            else if (hasTarget)
             {
                 // Lost target, but remember last position for a while
-                navigation.hasTarget = false;
                 navigation.targetEntity = Entity.Null;
 
+                // Update state flags
+                StateHelpers.RemoveFlag(ref entityState, EntityStateFlags.HasTarget);
+                StateHelpers.AddFlag(ref entityState, EntityStateFlags.TargetLost);
+                StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Moving, currentTime);
+
                 // Keep moving toward last known position
-                destination.targetPosition = navigation.lastKnownTargetPos;
+                movement.destination = navigation.lastKnownTargetPos;
             }
             else
             {
-                // No target and no memory, stop or wander
-                navigation.hasTarget = false;
+                // No target and no memory, patrol around map center
                 navigation.targetEntity = Entity.Null;
 
-                // Could implement wandering behavior here
-                // For now, just stay in place
-                destination.targetPosition = zombiePos;
+                // Update state flags for patrolling
+                StateHelpers.RemoveFlag(ref entityState, EntityStateFlags.HasTarget);
+                StateHelpers.AddFlag(ref entityState, EntityStateFlags.SearchingTarget);
+                StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Patrolling, currentTime);
+
+                // Generate patrol waypoint around map center
+                GeneratePatrolWaypoint(ref movement, in zombiePos, entityIndex, currentTime);
             }
+        }
+
+        [BurstCompile]
+        private static void GeneratePatrolWaypoint(ref Movement movement, in float3 currentPos, int entityIndex, float currentTime)
+        {
+            // Work in 2D for efficiency
+            float2 currentPos2D = currentPos.xy;
+            float2 mapCenter = float2.zero; // Assuming map is centered at origin
+
+            // Check if zombie is far from patrol area - bring them back
+            float distanceFromCenter = math.length(currentPos2D - mapCenter);
+            if (distanceFromCenter > 300f)
+            {
+                // Return to patrol area
+                float2 directionToCenter = math.normalize(mapCenter - currentPos2D);
+                float2 targetPos2D = mapCenter + directionToCenter * 150f;
+
+                movement.destination = new float3(targetPos2D.x, targetPos2D.y, currentPos.z);
+                movement.facingDirection = directionToCenter;
+                return;
+            }
+
+            // IMPROVED PATROL LOGIC: Create unique circular paths for each zombie
+            // Each zombie gets a unique angle based on entity index
+            float baseAngle = (entityIndex * 2.39996f); // Golden angle for even distribution
+
+            // Add time-based rotation that's unique per zombie
+            float rotationSpeed = 0.3f + (entityIndex % 7) * 0.1f; // Vary speed: 0.3 to 0.9
+            float angle = baseAngle + currentTime * rotationSpeed;
+
+            // Create concentric rings of patrol paths
+            float ringIndex = entityIndex % 5; // 5 different rings
+            float baseRadius = 80f + ringIndex * 40f; // 80, 120, 160, 200, 240
+
+            // Add some wobble to make it organic
+            float wobble = math.sin(currentTime * 0.2f + entityIndex * 0.5f) * 15f;
+            float patrolRadius = baseRadius + wobble;
+
+            // Calculate patrol waypoint
+            float2 patrolPoint2D = mapCenter + new float2(
+                math.cos(angle) * patrolRadius,
+                math.sin(angle) * patrolRadius
+            );
+
+            // Always update destination for continuous movement
+            movement.destination = new float3(patrolPoint2D.x, patrolPoint2D.y, currentPos.z);
+            movement.facingDirection = math.normalize(patrolPoint2D - currentPos2D);
         }
 
         [BurstCompile]

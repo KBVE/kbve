@@ -93,10 +93,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
                         ECB.SetComponent(chunkIndex, instanceEntities[j], LocalTransform.FromPosition(position));
 
-                        // Give each zombie a unique movement direction
-                        float2 uniqueDirection = random.NextFloat2Direction();
-                        ECB.AddComponent(chunkIndex, instanceEntities[j], new ZombieDirection { value = uniqueDirection });
-
                         // Link zombie to horde
                         zombieBuffer.Add(new ZombieLink { zombie = instanceEntities[j] });
 
