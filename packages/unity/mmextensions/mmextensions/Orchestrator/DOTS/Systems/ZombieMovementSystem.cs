@@ -7,17 +7,22 @@ using Unity.Jobs;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 {
+    /// <summary>
+    /// High-performance zombie movement system using ISystem with burst compilation
+    /// Eliminates SystemBase overhead and per-frame allocations for 10k+ entities
+    /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(FlowFieldGenerationSystem))]
     [UpdateAfter(typeof(ZombieTargetingSystem))]
-    public partial class ZombieMovementSystem : SystemBase
+    [BurstCompile]
+    public partial struct ZombieMovementSystem : ISystem
     {
         private EntityQuery _zombieQuery;
         private NativeParallelMultiHashMap<int2, float3> _sectorPositions;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
-            _zombieQuery = GetEntityQuery(
+            _zombieQuery = state.GetEntityQuery(
                 ComponentType.ReadWrite<LocalTransform>(),
                 ComponentType.ReadWrite<ZombieDestination>(),
                 ComponentType.ReadWrite<ZombiePathfindingState>(),
@@ -27,17 +32,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 ComponentType.ReadOnly<ZombieTag>()
             );
 
-            // Large initial capacity to handle many zombies
-            _sectorPositions = new NativeParallelMultiHashMap<int2, float3>(100000, Allocator.Persistent);
+            // Fixed large capacity to avoid per-frame resizing
+            _sectorPositions = new NativeParallelMultiHashMap<int2, float3>(150000, Allocator.Persistent);
         }
 
-        protected override void OnDestroy()
+        [BurstCompile]
+        public void OnDestroy(ref SystemState state)
         {
             if (_sectorPositions.IsCreated)
                 _sectorPositions.Dispose();
         }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             if (!SystemAPI.TryGetSingleton<SectorNavigationData>(out var sectorNav))
             {
@@ -57,17 +64,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             float currentTime = (float)SystemAPI.Time.ElapsedTime;
             float deltaTime = SystemAPI.Time.DeltaTime;
 
-            // Check if we need to resize the HashMap
-            int zombieCount = _zombieQuery.CalculateEntityCount();
-            int requiredCapacity = zombieCount * 2; // Buffer for safety
-
-            if (_sectorPositions.Capacity < requiredCapacity)
-            {
-                _sectorPositions.Dispose();
-                _sectorPositions = new NativeParallelMultiHashMap<int2, float3>(requiredCapacity + 10000, Allocator.Persistent);
-            }
-
-            // Clear and rebuild sector positions for local avoidance
+            // Clear and rebuild sector positions for local avoidance - no more per-frame resizing
             _sectorPositions.Clear();
 
             // First pass: Collect positions by sector for efficient neighbor queries
@@ -87,10 +84,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 updateInterval = 0.1f // Update avoidance every 100ms
             };
 
-            // Schedule jobs
-            Dependency = collectJob.ScheduleParallel(Dependency);
-            Dependency.Complete(); // Need to complete before reading in next job
-            Dependency = moveJob.ScheduleParallel(Dependency);
+            // Schedule jobs with proper dependency chain - NO MORE Dependency.Complete()!
+            var collectHandle = collectJob.ScheduleParallel(_zombieQuery, state.Dependency);
+            state.Dependency = moveJob.ScheduleParallel(_zombieQuery, collectHandle);
         }
 
 

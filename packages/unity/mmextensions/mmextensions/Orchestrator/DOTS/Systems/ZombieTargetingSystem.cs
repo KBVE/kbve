@@ -3,25 +3,25 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Collections;
 using Unity.Burst;
-// AStar components moved to main DOTS namespace
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 {
     /// <summary>
-    /// System responsible for zombie target detection and tracking
-    /// Finds nearest players and updates zombie navigation targets
+    /// High-performance zombie targeting system using ISystem and zero-allocation queries
+    /// Finds nearest players and updates zombie navigation targets efficiently
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateBefore(typeof(Pathfinding.ECS.AIMovementSystemGroup))]
-    public partial class ZombieTargetingSystem : SystemBase
+    [BurstCompile]
+    public partial struct ZombieTargetingSystem : ISystem
     {
         private EntityQuery _zombieQuery;
         private EntityQuery _targetQuery;
 
-        protected override void OnCreate()
+        public void OnCreate(ref SystemState state)
         {
             // Query for zombies with navigation components
-            _zombieQuery = GetEntityQuery(
+            _zombieQuery = state.GetEntityQuery(
                 ComponentType.ReadWrite<ZombieNavigation>(),
                 ComponentType.ReadWrite<ZombieDestination>(),
                 ComponentType.ReadOnly<LocalTransform>(),
@@ -29,25 +29,25 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             );
 
             // Query for potential targets (players, etc.)
-            _targetQuery = GetEntityQuery(
+            _targetQuery = state.GetEntityQuery(
                 ComponentType.ReadOnly<ZombieTarget>(),
                 ComponentType.ReadOnly<LocalTransform>()
             );
 
             // Require zombies to exist for this system to run
-            RequireForUpdate(_zombieQuery);
+            state.RequireForUpdate(_zombieQuery);
         }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             float currentTime = (float)SystemAPI.Time.ElapsedTime;
 
-            // Get all potential targets
+            // Get target data once for all zombies to use
             var targetEntities = _targetQuery.ToEntityArray(Allocator.TempJob);
             var targetTransforms = _targetQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
             var targetData = _targetQuery.ToComponentDataArray<ZombieTarget>(Allocator.TempJob);
 
-            // Process zombie targeting
             var targetingJob = new ZombieTargetingJob
             {
                 currentTime = currentTime,
@@ -56,12 +56,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 targetData = targetData
             };
 
-            Dependency = targetingJob.ScheduleParallel(_zombieQuery, Dependency);
+            var jobHandle = targetingJob.ScheduleParallel(_zombieQuery, state.Dependency);
 
-            // Dispose temporary arrays
-            Dependency = targetEntities.Dispose(Dependency);
-            Dependency = targetTransforms.Dispose(Dependency);
-            Dependency = targetData.Dispose(Dependency);
+            // Dispose arrays after job completes
+            jobHandle = targetEntities.Dispose(jobHandle);
+            jobHandle = targetTransforms.Dispose(jobHandle);
+            state.Dependency = targetData.Dispose(jobHandle);
+        }
+
+        [BurstCompile]
+        public void OnDestroy(ref SystemState state)
+        {
+            // Cleanup if needed
         }
     }
 
