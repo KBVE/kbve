@@ -1,6 +1,7 @@
 using Unity.Entities;
 using Unity.Burst;
 using Unity.Collections;
+using Unity.Mathematics;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 {
@@ -22,7 +23,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             // Only run when there are zombies without avoidance data
             _zombieQuery = state.GetEntityQuery(
                 ComponentType.ReadOnly<ZombieTag>(),
-                ComponentType.Exclude<LocalAvoidanceData>()
+                ComponentType.Exclude<AvoidanceData>()
             );
 
             state.RequireForUpdate(_zombieQuery);
@@ -82,7 +83,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             entitySeed = entitySeed * 1664525u + 1013904223u; // LCG for distribution
 
             // Create randomized avoidance data
-            var avoidanceData = LocalAvoidanceData.CreateRandom(entitySeed);
+            // Use simple random variation for personal space and speed
+            Unity.Mathematics.Random random = new Unity.Mathematics.Random(entitySeed);
+            var avoidanceData = new AvoidanceData
+            {
+                personalSpace = 1.5f + random.NextFloat(0f, 1f),
+                avoidanceVector = Unity.Mathematics.float3.zero,
+                speedVariation = 0.8f + random.NextFloat(0f, 0.4f),
+                lastAvoidanceUpdate = 0f
+            };
 
             ECB.AddComponent(chunkIndex, entity, avoidanceData);
         }

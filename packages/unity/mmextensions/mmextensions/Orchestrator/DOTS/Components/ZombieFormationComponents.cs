@@ -5,18 +5,55 @@ using System.Runtime.InteropServices;
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     /// <summary>
-    /// Component that enables zombies to participate in horde formations
+    /// Tag to identify formation/horde entities (replaces ZombieHordeTag)
+    /// A formation with type != None is considered active
+    /// </summary>
+    public struct ZombieFormationEntity : IComponentData
+    {
+        public HordeFormationType formationType;
+    }
+
+    /// <summary>
+    /// Link from formation to individual zombies (replaces ZombieLink from ZombieHordeComponents)
+    /// </summary>
+    public struct FormationMemberLink : IBufferElementData
+    {
+        public Entity zombie;
+    }
+
+    /// <summary>
+    /// Component that enables zombies to participate in formations
     /// Used for squad-like coordinated movement and positioning
     /// </summary>
+    public struct ZombieFormationMember : IComponentData
+    {
+        /// <summary>Index within the formation (determines position in formation)</summary>
+        public int formationIndex;
+
+        /// <summary>Entity representing the formation this zombie belongs to</summary>
+        public Entity formationEntity;
+
+        /// <summary>Whether this zombie should participate in formations</summary>
+        [MarshalAs(UnmanagedType.U1)]
+        public bool isActive;
+
+        public static ZombieFormationMember CreateDefault(int index)
+        {
+            return new ZombieFormationMember
+            {
+                formationIndex = index,
+                formationEntity = Entity.Null,
+                isActive = true
+            };
+        }
+    }
+
+    // Keep old name as alias for backward compatibility during migration
+    [System.Obsolete("Use ZombieFormationMember instead")]
     public struct ZombieHordeMember : IComponentData
     {
-        /// <summary>Index within the horde (determines position in formation)</summary>
         public int hordeIndex;
-
-        /// <summary>Entity representing the horde this zombie belongs to</summary>
         public Entity hordeEntity;
-
-        /// <summary>Whether this zombie should participate in horde formations</summary>
         [MarshalAs(UnmanagedType.U1)]
         public bool isActive;
 
@@ -32,9 +69,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     }
 
     /// <summary>
-    /// Settings for zombie horde formations - like squad settings in Age of Sprites
+    /// Settings for zombie formations - like squad settings in Age of Sprites
     /// </summary>
-    public struct ZombieHordeSettings : IComponentData
+    public struct ZombieFormationSettings : IComponentData
     {
         /// <summary>Spacing between zombies in formation</summary>
         public float2 zombieSpacing;
@@ -45,9 +82,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// <summary>Type of formation pattern</summary>
         public HordeFormationType formationType;
 
-        public static ZombieHordeSettings CreateDefault(HordeFormationType type = HordeFormationType.Grid)
+        public static ZombieFormationSettings CreateDefault(HordeFormationType type = HordeFormationType.Grid)
         {
-            return new ZombieHordeSettings
+            return new ZombieFormationSettings
             {
                 zombieSpacing = new float2(2f, 2f), // 2 unit spacing between zombies
                 formationSize = new int2(10, 10),   // 10x10 grid formation
@@ -57,9 +94,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     }
 
     /// <summary>
-    /// Component for horde center position and movement
+    /// Component for formation center position and movement
     /// </summary>
-    public struct ZombieHordeCenter : IComponentData
+    public struct ZombieFormationCenter : IComponentData
     {
         /// <summary>Current center position of the horde</summary>
         public float3 position;
@@ -73,9 +110,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// <summary>Movement speed of the horde</summary>
         public float moveSpeed;
 
-        public static ZombieHordeCenter CreateDefault(float3 startPos)
+        public static ZombieFormationCenter CreateDefault(float3 startPos)
         {
-            return new ZombieHordeCenter
+            return new ZombieFormationCenter
             {
                 position = startPos,
                 targetPosition = startPos,
@@ -116,11 +153,44 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     public enum HordeFormationType : byte
     {
         None = 0,
-        Grid = 1,           // Rectangular grid formation
+        Grid = 1,           // Rectangular grid formation (default horde behavior)
         Wedge = 2,          // V-shaped wedge formation
         Line = 3,           // Single line formation
         Column = 4,         // Column formation
         Circle = 5,         // Circular formation
         Blob = 6            // Loose blob/cluster formation
+    }
+
+    // Backward compatibility aliases (from old ZombieHordeComponents.cs)
+    [System.Obsolete("Use ZombieFormationEntity instead")]
+    public struct ZombieHordeTag : IComponentData { }
+
+    [System.Obsolete("Use FormationMemberLink instead")]
+    public struct ZombieLink : IBufferElementData
+    {
+        public Entity zombie;
+    }
+
+    [System.Obsolete("Use ZombieFormationCenter.targetPosition instead")]
+    public struct ZombieHordeTarget : IComponentData
+    {
+        public float2 position;
+    }
+
+    [System.Obsolete("Use ZombieFormationSettings instead")]
+    public struct ZombieHordeSettings : IComponentData
+    {
+        public float2 zombieSpacing;
+        public int2 formationSize;
+        public HordeFormationType formationType;
+    }
+
+    [System.Obsolete("Use ZombieFormationCenter instead")]
+    public struct ZombieHordeCenter : IComponentData
+    {
+        public float3 position;
+        public float3 targetPosition;
+        public float3 spawnPosition;
+        public float moveSpeed;
     }
 }
