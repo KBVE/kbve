@@ -116,44 +116,22 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     // Check if entity is patrolling
                     if (StateHelpers.IsPatrolling(entityState))
                     {
-                        // PATROL MODE: Generate new waypoint when reaching destination
-                        // Simple approach: each zombie patrols around its own "home" area
+                        // PATROL MODE: Mark as needing new waypoint
+                        // The targeting system will pick a new waypoint on next update
+                        // For now, just maintain patrolling state and wait
+                        StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Patrolling | EntityStateFlags.SearchingTarget, currentTime);
 
-                        // Each zombie gets a unique home position based on entity index
-                        float homeAngle = (entityIndex * 2.39996f); // Golden angle
-                        float homeRadius = (entityIndex % 10) * (mapSettings.mapSize * 0.08f);
-                        float2 homePosition = new float2(
-                            math.cos(homeAngle) * homeRadius,
-                            math.sin(homeAngle) * homeRadius
+                        // Small idle movement to prevent complete stop
+                        float idleRadius = 5f;
+                        float angle = currentTime * 0.5f + entityIndex * 2.39996f;
+                        float3 idleOffset = new float3(
+                            math.cos(angle) * idleRadius,
+                            math.sin(angle) * idleRadius,
+                            0
                         );
 
-                        // Generate new patrol waypoint around home
-                        // Change waypoint periodically for movement
-                        int timeSegment = (int)(currentTime / 3f);
-                        Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)(entityIndex * 31u + timeSegment));
-
-                        float patrolAngle = random.NextFloat(0f, math.PI * 2f);
-                        float patrolDistance = random.NextFloat(
-                            mapSettings.defaultPatrolRadius * 0.3f,
-                            mapSettings.defaultPatrolRadius
-                        );
-
-                        float2 patrolPoint = homePosition + new float2(
-                            math.cos(patrolAngle) * patrolDistance,
-                            math.sin(patrolAngle) * patrolDistance
-                        );
-
-                        // Update destination
-                        movement.destination = new float3(patrolPoint.x, patrolPoint.y, currentPos.z);
-                        float2 currentPos2D = currentPos.xy;
-                        float2 direction = patrolPoint - currentPos2D;
-                        if (math.lengthsq(direction) > 0.01f)
-                        {
-                            movement.facingDirection = math.normalize(direction);
-                        }
-
-                        // Keep patrolling state active
-                        StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Patrolling, currentTime);
+                        // Gentle drift around current position
+                        steering += idleOffset * 0.1f;
                     }
                     else
                     {
@@ -180,8 +158,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                         }
 
                         // Maintain collision avoidance even at destination
-                        float3 noiseAvoidanceForce = GetNoiseBasedAvoidanceOptimized(currentPos, avoidance, entityIndex, config);
-                        steering += noiseAvoidanceForce * 1.5f; // Stronger avoidance at destination
+                        // Use real avoidance from nearby zombies
+                        steering += avoidance.avoidanceVector * 3f; // Extra strong at destination to prevent stacking
+
+                        // Add small noise for variation
+                        float3 noiseAvoidanceForce = GetNoiseBasedAvoidanceOptimized(currentPos, avoidance, entityIndex, entity, config);
+                        steering += noiseAvoidanceForce * 0.3f;
 
                         // Add slight repulsion from exact center to prevent clustering
                         if (distance < movement.stoppingDistance * 0.5f)
@@ -224,9 +206,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     // FORCE 1: Attraction to formation target (using cached distance)
                     steering += AttractToTargetOptimized(toTarget, distance, config.attractionStrength);
 
-                    // FORCE 2: Noise-based collision avoidance (using pre-calculated time seeds)
-                    float3 noiseAvoidanceForce = GetNoiseBasedAvoidanceOptimized(currentPos, avoidance, entityIndex, config);
-                    steering += noiseAvoidanceForce;
+                    // FORCE 2: Real collision avoidance from nearby zombies
+                    // Use the avoidance vector calculated by ZombieCollisionAvoidanceSystem
+                    steering += avoidance.avoidanceVector * 2f; // Strong avoidance force
+
+                    // Add small noise for organic movement (much less than before)
+                    float3 noiseAvoidanceForce = GetNoiseBasedAvoidanceOptimized(currentPos, avoidance, entityIndex, entity, config);
+                    steering += noiseAvoidanceForce * 0.2f; // Reduced noise influence
 
                     // FORCE 3: Natural variation for organic movement (using pre-calculated time seeds)
                     steering += GetOrganicVariationOptimized(currentPos, avoidance, entityIndex);
@@ -270,33 +256,56 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             }
 
             /// <summary>
-            /// Optimized noise-based collision avoidance using pre-calculated time seeds
+            /// Optimized collision avoidance using spatial hashing and noise
             /// </summary>
-            private float3 GetNoiseBasedAvoidanceOptimized(float3 pos, AvoidanceData avoidance, int entityIndex, PotentialFieldConfig config)
+            private float3 GetNoiseBasedAvoidanceOptimized(float3 pos, AvoidanceData avoidance, int entityIndex, Entity entity, PotentialFieldConfig config)
             {
-                // Stagger expensive trigonometric calculations across frames using entity index
-                // Only 1/4 of entities calculate full noise per frame for better frame distribution
+                // Stagger expensive calculations across frames
+                // Only 1/4 of entities calculate per frame for better frame distribution
                 if ((entityIndex & 3) != ((int)(currentTime * 10f) & 3))
                 {
                     // Use cached avoidance vector for non-update frames
-                    return avoidance.avoidanceVector * 0.8f; // Slight decay
+                    return avoidance.avoidanceVector * 0.9f; // Slight decay
                 }
 
-                // Use position-based noise with pre-calculated time components
+                // OPTIMIZED: Use spatial hash-based pseudo-separation instead of physics queries
+                // This gives the appearance of collision avoidance without expensive physics calls
+
+                // Create spatial hash from position (grid-based)
+                float gridSize = config.repulsionRadius;
+                int2 gridPos = new int2(
+                    (int)(pos.x / gridSize),
+                    (int)(pos.y / gridSize)
+                );
+
+                // Generate pseudo-random offset based on grid position and entity
+                // This ensures zombies in the same grid cell get different offsets
+                uint hash = (uint)(gridPos.x * 73856093u ^ gridPos.y * 19349663u ^ entityIndex * 83492791u);
+
+                // Use hash to generate consistent avoidance direction for this grid cell
+                float angle = (hash % 360u) * (math.PI / 180f);
+                float2 avoidDir = new float2(math.cos(angle), math.sin(angle));
+
+                // Calculate how "crowded" this grid cell likely is based on position variance
+                float localDensity = math.frac(pos.x * 0.1f + pos.y * 0.1f + currentTime * 0.01f);
+
+                // Combine spatial hash avoidance with time-based noise
+                float2 spatialAvoidance = avoidDir * localDensity * config.repulsionStrength;
+
+                // Add organic noise for natural movement
                 float seed = pos.x + pos.y + entityIndex * 137f;
+                float noiseX = math.sin(seed * 0.2f + timeBasedSeed);
+                float noiseY = math.cos(seed * 0.15f + timeBasedSeed2);
+                float2 noiseAvoidance = new float2(noiseX, noiseY) * avoidance.personalSpace * 0.3f;
 
-                // Use pre-calculated time seeds to reduce multiplication
-                float avoidanceX = math.sin(seed * 0.2f + timeBasedSeed);
-                float avoidanceY = math.cos(seed * 0.15f + timeBasedSeed2);
+                // Combine spatial and noise avoidance
+                float3 totalAvoidance = new float3(
+                    spatialAvoidance.x + noiseAvoidance.x,
+                    spatialAvoidance.y + noiseAvoidance.y,
+                    0
+                );
 
-                // Scale by personal space and repulsion strength
-                float3 noiseAvoidance = new float3(avoidanceX, avoidanceY, 0) * avoidance.personalSpace * config.repulsionStrength * 0.1f;
-
-                // Cache the result for subsequent frames
-                // Note: We can't modify avoidance here since it's 'in' parameter,
-                // but this optimization still reduces calculations by 75%
-
-                return noiseAvoidance;
+                return totalAvoidance;
             }
 
             /// <summary>

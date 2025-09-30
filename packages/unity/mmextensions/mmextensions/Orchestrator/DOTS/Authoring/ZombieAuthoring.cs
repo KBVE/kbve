@@ -63,8 +63,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 AddComponent(entity, NavigationData.CreateDefault(15f));
                 AddComponent(entity, AvoidanceData.CreateDefault(2f));
 
-                // Add horde member component for squad-like coordinated movement (index will be set by spawning system)
-                AddComponent(entity, ZombieHordeMember.CreateDefault(0));
+                // Add formation member component for squad-like coordinated movement (index will be set by spawning system)
+                AddComponent(entity, ZombieFormationMember.CreateDefault(0));
             }
         }
 
