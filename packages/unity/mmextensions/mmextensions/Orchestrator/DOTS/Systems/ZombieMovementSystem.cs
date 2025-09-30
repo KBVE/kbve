@@ -43,16 +43,21 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             float deltaTime = SystemAPI.Time.DeltaTime;
             float currentTime = (float)SystemAPI.Time.ElapsedTime;
 
-            // Get potential field configuration (cache it to avoid repeated lookups)
+            // Get configurations (cache them to avoid repeated lookups)
             var potentialConfig = SystemAPI.HasSingleton<PotentialFieldConfig>()
                 ? SystemAPI.GetSingleton<PotentialFieldConfig>()
                 : PotentialFieldConfig.Default;
+
+            var mapSettings = SystemAPI.HasSingleton<MapSettings>()
+                ? SystemAPI.GetSingleton<MapSettings>()
+                : MapSettings.CreateDefault();
 
             var moveJob = new PotentialFieldSteeringJob
             {
                 deltaTime = deltaTime,
                 currentTime = currentTime,
                 config = potentialConfig,
+                mapSettings = mapSettings,
                 // Pre-calculate time-based values for noise functions
                 timeBasedSeed = currentTime * 0.4f,
                 timeBasedSeed2 = currentTime * 0.3f,
@@ -73,6 +78,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             [ReadOnly] public float deltaTime;
             [ReadOnly] public float currentTime;
             [ReadOnly] public PotentialFieldConfig config;
+            [ReadOnly] public MapSettings mapSettings;
 
             // Pre-calculated time-based values to reduce trigonometric calculations
             [ReadOnly] public float timeBasedSeed;
@@ -110,30 +116,41 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     // Check if entity is patrolling
                     if (StateHelpers.IsPatrolling(entityState))
                     {
-                        // PATROL MODE: Generate new waypoint immediately to keep moving
-                        float2 currentPos2D = currentPos.xy;
-                        float2 mapCenter = float2.zero;
+                        // PATROL MODE: Generate new waypoint when reaching destination
+                        // Simple approach: each zombie patrols around its own "home" area
 
-                        // Use entity index to create unique patrol patterns for each zombie
-                        // This prevents them from all converging on the same point
-                        float baseAngle = (entityIndex * 2.39996f); // Golden angle for distribution
-                        float timeOffset = entityState.lastStateChange * 0.2f; // Use state change time for variation
-                        float angle = baseAngle + timeOffset;
-
-                        // Vary radius based on entity index to create concentric patrol rings
-                        float baseRadius = 100f + (entityIndex % 5) * 30f; // 100, 130, 160, 190, 220
-                        float radiusWobble = math.sin(currentTime * 0.1f + entityIndex) * 20f;
-                        float patrolRadius = baseRadius + radiusWobble;
-
-                        // Calculate new patrol point
-                        float2 patrolPoint = mapCenter + new float2(
-                            math.cos(angle) * patrolRadius,
-                            math.sin(angle) * patrolRadius
+                        // Each zombie gets a unique home position based on entity index
+                        float homeAngle = (entityIndex * 2.39996f); // Golden angle
+                        float homeRadius = (entityIndex % 10) * (mapSettings.mapSize * 0.08f);
+                        float2 homePosition = new float2(
+                            math.cos(homeAngle) * homeRadius,
+                            math.sin(homeAngle) * homeRadius
                         );
 
-                        // Update movement destination
+                        // Generate new patrol waypoint around home
+                        // Change waypoint periodically for movement
+                        int timeSegment = (int)(currentTime / 3f);
+                        Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)(entityIndex * 31u + timeSegment));
+
+                        float patrolAngle = random.NextFloat(0f, math.PI * 2f);
+                        float patrolDistance = random.NextFloat(
+                            mapSettings.defaultPatrolRadius * 0.3f,
+                            mapSettings.defaultPatrolRadius
+                        );
+
+                        float2 patrolPoint = homePosition + new float2(
+                            math.cos(patrolAngle) * patrolDistance,
+                            math.sin(patrolAngle) * patrolDistance
+                        );
+
+                        // Update destination
                         movement.destination = new float3(patrolPoint.x, patrolPoint.y, currentPos.z);
-                        movement.facingDirection = math.normalize(patrolPoint - currentPos2D);
+                        float2 currentPos2D = currentPos.xy;
+                        float2 direction = patrolPoint - currentPos2D;
+                        if (math.lengthsq(direction) > 0.01f)
+                        {
+                            movement.facingDirection = math.normalize(direction);
+                        }
 
                         // Keep patrolling state active
                         StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Patrolling, currentTime);

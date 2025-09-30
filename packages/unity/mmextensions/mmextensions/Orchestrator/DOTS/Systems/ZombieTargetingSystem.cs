@@ -62,6 +62,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 _lastTargetCacheUpdate = currentTime;
             }
 
+            // Get map settings for patrol configuration
+            var mapSettings = SystemAPI.HasSingleton<MapSettings>()
+                ? SystemAPI.GetSingleton<MapSettings>()
+                : MapSettings.CreateDefault();
+
             // Use cached data - zero allocations per frame!
             var targetingJob = new ZombieTargetingJob
             {
@@ -69,6 +74,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 targetEntities = _cachedTargetEntities,
                 targetTransforms = _cachedTargetTransforms,
                 targetData = _cachedTargetData,
+                mapSettings = mapSettings,
                 // Reduced staggering for better responsiveness
                 frameStagger = (uint)(currentTime * 60f) % 10 // Spread across 10 frames instead of 30
             };
@@ -111,6 +117,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
     {
         public float currentTime;
         public uint frameStagger;
+        public MapSettings mapSettings;
 
         [ReadOnly] public NativeArray<Entity> targetEntities;
         [ReadOnly] public NativeArray<LocalTransform> targetTransforms;
@@ -230,56 +237,72 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 StateHelpers.AddFlag(ref entityState, EntityStateFlags.SearchingTarget);
                 StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Patrolling, currentTime);
 
-                // Generate patrol waypoint around map center
-                GeneratePatrolWaypoint(ref movement, in zombiePos, entityIndex, currentTime);
+                // Generate patrol waypoint using map settings
+                GeneratePatrolWaypoint(ref movement, in zombiePos, entityIndex, currentTime, mapSettings);
             }
         }
 
         [BurstCompile]
-        private static void GeneratePatrolWaypoint(ref Movement movement, in float3 currentPos, int entityIndex, float currentTime)
+        private static void GeneratePatrolWaypoint(ref Movement movement, in float3 currentPos, int entityIndex, float currentTime, in MapSettings mapSettings)
         {
-            // Work in 2D for efficiency
+            // SIMPLE DISTRIBUTED PATROL: Each zombie gets a random waypoint in the map
+            // This avoids complex zone calculations that might cause clustering
+
             float2 currentPos2D = currentPos.xy;
-            float2 mapCenter = float2.zero; // Assuming map is centered at origin
 
-            // Check if zombie is far from patrol area - bring them back
-            float distanceFromCenter = math.length(currentPos2D - mapCenter);
-            if (distanceFromCenter > 300f)
+            // Use entity index to seed random but stable patrol area
+            Unity.Mathematics.Random random = new Unity.Mathematics.Random((uint)(entityIndex * 73856093u + 1));
+
+            // Each zombie gets a "home" position based on its entity index
+            // This spreads them across the entire map
+            float homeAngle = (entityIndex * 2.39996f); // Golden angle for distribution
+            float homeRadius = (entityIndex % 10) * (mapSettings.mapSize * 0.08f); // Varying distances from center
+
+            float2 homePosition = new float2(
+                math.cos(homeAngle) * homeRadius,
+                math.sin(homeAngle) * homeRadius
+            );
+
+            // Check if zombie is too far from its home area (prevents wandering off)
+            float distanceFromHome = math.length(currentPos2D - homePosition);
+            if (distanceFromHome > mapSettings.defaultPatrolRadius * 3f)
             {
-                // Return to patrol area
-                float2 directionToCenter = math.normalize(mapCenter - currentPos2D);
-                float2 targetPos2D = mapCenter + directionToCenter * 150f;
-
-                movement.destination = new float3(targetPos2D.x, targetPos2D.y, currentPos.z);
-                movement.facingDirection = directionToCenter;
+                // Guide back toward home area
+                float2 directionToHome = math.normalize(homePosition - currentPos2D);
+                movement.destination = new float3(
+                    homePosition.x + random.NextFloat(-50f, 50f),
+                    homePosition.y + random.NextFloat(-50f, 50f),
+                    currentPos.z
+                );
+                movement.facingDirection = directionToHome;
                 return;
             }
 
-            // IMPROVED PATROL LOGIC: Create unique circular paths for each zombie
-            // Each zombie gets a unique angle based on entity index
-            float baseAngle = (entityIndex * 2.39996f); // Golden angle for even distribution
+            // Generate next patrol waypoint around home position
+            // Changes every few seconds to create movement
+            int timeSegment = (int)(currentTime / 3f); // New waypoint every 3 seconds
+            random = new Unity.Mathematics.Random((uint)(entityIndex * 19u + timeSegment));
 
-            // Add time-based rotation that's unique per zombie
-            float rotationSpeed = 0.3f + (entityIndex % 7) * 0.1f; // Vary speed: 0.3 to 0.9
-            float angle = baseAngle + currentTime * rotationSpeed;
+            // Random offset from home position
+            float patrolAngle = random.NextFloat(0f, math.PI * 2f);
+            float patrolDistance = random.NextFloat(mapSettings.defaultPatrolRadius * 0.3f, mapSettings.defaultPatrolRadius);
 
-            // Create concentric rings of patrol paths
-            float ringIndex = entityIndex % 5; // 5 different rings
-            float baseRadius = 80f + ringIndex * 40f; // 80, 120, 160, 200, 240
-
-            // Add some wobble to make it organic
-            float wobble = math.sin(currentTime * 0.2f + entityIndex * 0.5f) * 15f;
-            float patrolRadius = baseRadius + wobble;
-
-            // Calculate patrol waypoint
-            float2 patrolPoint2D = mapCenter + new float2(
-                math.cos(angle) * patrolRadius,
-                math.sin(angle) * patrolRadius
+            float2 patrolOffset = new float2(
+                math.cos(patrolAngle) * patrolDistance,
+                math.sin(patrolAngle) * patrolDistance
             );
 
-            // Always update destination for continuous movement
-            movement.destination = new float3(patrolPoint2D.x, patrolPoint2D.y, currentPos.z);
-            movement.facingDirection = math.normalize(patrolPoint2D - currentPos2D);
+            float2 targetPos = homePosition + patrolOffset;
+
+            // Set the destination
+            movement.destination = new float3(targetPos.x, targetPos.y, currentPos.z);
+
+            // Set facing direction
+            float2 direction = targetPos - currentPos2D;
+            if (math.lengthsq(direction) > 0.01f)
+            {
+                movement.facingDirection = math.normalize(direction);
+            }
         }
 
         [BurstCompile]
