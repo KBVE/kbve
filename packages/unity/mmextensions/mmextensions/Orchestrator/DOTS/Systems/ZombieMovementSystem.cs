@@ -118,20 +118,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     {
                         // PATROL MODE: Mark as needing new waypoint
                         // The targeting system will pick a new waypoint on next update
-                        // For now, just maintain patrolling state and wait
                         StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Patrolling | EntityStateFlags.SearchingTarget, currentTime);
 
-                        // Small idle movement to prevent complete stop
-                        float idleRadius = 5f;
-                        float angle = currentTime * 0.5f + entityIndex * 2.39996f;
-                        float3 idleOffset = new float3(
-                            math.cos(angle) * idleRadius,
-                            math.sin(angle) * idleRadius,
+                        // REDUCED idle movement - just a tiny drift to look natural
+                        // Much smaller to prevent bouncing
+                        float driftScale = 0.02f;
+                        steering = new float3(
+                            math.sin(currentTime * 0.3f + entityIndex) * driftScale,
+                            math.cos(currentTime * 0.3f + entityIndex * 1.5f) * driftScale,
                             0
                         );
-
-                        // Gentle drift around current position
-                        steering += idleOffset * 0.1f;
                     }
                     else
                     {
@@ -157,13 +153,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                             steering += (toOrbit / orbitDistance) * config.attractionStrength * 0.3f;
                         }
 
-                        // Maintain collision avoidance even at destination
-                        // Use real avoidance from nearby zombies
-                        steering += avoidance.avoidanceVector * 3f; // Extra strong at destination to prevent stacking
-
-                        // Add small noise for variation
-                        float3 noiseAvoidanceForce = GetNoiseBasedAvoidanceOptimized(currentPos, avoidance, entityIndex, entity, config);
-                        steering += noiseAvoidanceForce * 0.3f;
+                        // Gentle separation at destination
+                        float3 separationForce = GetSimplifiedSeparation(currentPos, entityIndex, config);
+                        steering += separationForce * 0.3f; // Gentle force to prevent stacking
 
                         // Add slight repulsion from exact center to prevent clustering
                         if (distance < movement.stoppingDistance * 0.5f)
@@ -171,10 +163,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                             steering -= (toTarget / distance) * config.repulsionStrength * 0.5f;
                         }
 
-                        // Cache avoidance vector
+                        // Update cached separation for next frame
                         if ((entityIndex & 3) == ((int)(currentTime * 10f) & 3))
                         {
-                            avoidance.avoidanceVector = noiseAvoidanceForce;
+                            avoidance.avoidanceVector = separationForce;
                             avoidance.lastAvoidanceUpdate = currentTime;
                         }
 
@@ -203,26 +195,26 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 {
                     // FAR FROM DESTINATION: Normal pathfinding behavior
 
-                    // FORCE 1: Attraction to formation target (using cached distance)
-                    steering += AttractToTargetOptimized(toTarget, distance, config.attractionStrength);
+                    // SIMPLIFIED FORCE CALCULATION - Reduce conflicting forces
 
-                    // FORCE 2: Real collision avoidance from nearby zombies
-                    // Use the avoidance vector calculated by ZombieCollisionAvoidanceSystem
-                    steering += avoidance.avoidanceVector * 2f; // Strong avoidance force
+                    // Primary: Move toward target
+                    steering = AttractToTargetOptimized(toTarget, distance, config.attractionStrength);
 
-                    // Add small noise for organic movement (much less than before)
-                    float3 noiseAvoidanceForce = GetNoiseBasedAvoidanceOptimized(currentPos, avoidance, entityIndex, entity, config);
-                    steering += noiseAvoidanceForce * 0.2f; // Reduced noise influence
-
-                    // FORCE 3: Natural variation for organic movement (using pre-calculated time seeds)
-                    steering += GetOrganicVariationOptimized(currentPos, avoidance, entityIndex);
-
-                    // Cache the avoidance vector for future frames (only when we calculated new noise)
-                    if ((entityIndex & 3) == ((int)(currentTime * 10f) & 3))
+                    // Secondary: Add separation (only if close to destination to prevent fighting with attraction)
+                    if (distance < 20f)
                     {
-                        avoidance.avoidanceVector = noiseAvoidanceForce;
-                        avoidance.lastAvoidanceUpdate = currentTime;
+                        float3 separationForce = GetSimplifiedSeparation(currentPos, entityIndex, config);
+                        steering += separationForce * 0.5f; // Gentle separation
                     }
+
+                    // Tiny bit of noise for organic feel (much reduced)
+                    float noiseScale = 0.1f;
+                    float3 noise = new float3(
+                        math.sin(currentTime * 0.5f + entityIndex * 1.23f) * noiseScale,
+                        math.cos(currentTime * 0.5f + entityIndex * 2.34f) * noiseScale,
+                        0
+                    );
+                    steering += noise;
 
                     // Limit steering force using squared magnitude check first
                     float steeringMagnitudeSquared = math.lengthsq(steering);
@@ -236,10 +228,25 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     // Apply speed with natural variation
                     float actualSpeed = core.speed * avoidance.speedVariation;
 
-                    // Apply steering and move entity
-                    float3 movementDelta = steering * actualSpeed * deltaTime;
+                    // VELOCITY DAMPING - Smooth out movement to prevent jitter
+                    // Blend current velocity with new steering for smoother transitions
+                    float2 currentVelocity = movement.velocity;
+                    float2 targetVelocity = steering.xy * actualSpeed;
+
+                    // Smooth interpolation (higher value = more damping, smoother movement)
+                    float damping = 0.15f; // Adjust between 0 (no damping) and 1 (full damping)
+                    movement.velocity = math.lerp(targetVelocity, currentVelocity, damping);
+
+                    // Apply smoothed velocity
+                    float3 movementDelta = new float3(movement.velocity * deltaTime, 0);
                     transform.Position += movementDelta;
                     transform.Position.z = 1f; // Keep on ground plane
+
+                    // Update facing direction based on velocity
+                    if (math.lengthsq(movement.velocity) > 0.01f)
+                    {
+                        movement.facingDirection = math.normalize(movement.velocity);
+                    }
 
                     // Update state to moving
                     StateHelpers.SetMovementState(ref entityState, EntityStateFlags.Moving, currentTime);
@@ -256,56 +263,37 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             }
 
             /// <summary>
-            /// Optimized collision avoidance using spatial hashing and noise
+            /// Simplified separation force - consistent and stable
             /// </summary>
-            private float3 GetNoiseBasedAvoidanceOptimized(float3 pos, AvoidanceData avoidance, int entityIndex, Entity entity, PotentialFieldConfig config)
+            private float3 GetSimplifiedSeparation(float3 pos, int entityIndex, PotentialFieldConfig config)
             {
-                // Stagger expensive calculations across frames
-                // Only 1/4 of entities calculate per frame for better frame distribution
-                if ((entityIndex & 3) != ((int)(currentTime * 10f) & 3))
-                {
-                    // Use cached avoidance vector for non-update frames
-                    return avoidance.avoidanceVector * 0.9f; // Slight decay
-                }
+                // Use entity index to create unique but stable offset pattern
+                // This prevents zombies from stacking without complex calculations
 
-                // OPTIMIZED: Use spatial hash-based pseudo-separation instead of physics queries
-                // This gives the appearance of collision avoidance without expensive physics calls
+                float separationRadius = config.repulsionRadius;
 
-                // Create spatial hash from position (grid-based)
-                float gridSize = config.repulsionRadius;
-                int2 gridPos = new int2(
-                    (int)(pos.x / gridSize),
-                    (int)(pos.y / gridSize)
-                );
+                // Create a unique angle for this zombie that doesn't change over time
+                float baseAngle = (entityIndex * 2.39996f) % (math.PI * 2f); // Golden angle distribution
 
-                // Generate pseudo-random offset based on grid position and entity
-                // This ensures zombies in the same grid cell get different offsets
-                uint hash = (uint)(gridPos.x * 73856093u ^ gridPos.y * 19349663u ^ entityIndex * 83492791u);
+                // Only apply separation in crowded areas (determined by grid position)
+                float gridSize = separationRadius * 2f;
+                int2 gridPos = new int2((int)(pos.x / gridSize), (int)(pos.y / gridSize));
 
-                // Use hash to generate consistent avoidance direction for this grid cell
-                float angle = (hash % 360u) * (math.PI / 180f);
-                float2 avoidDir = new float2(math.cos(angle), math.sin(angle));
+                // Simple hash to determine if this grid cell should have separation
+                uint gridHash = (uint)(gridPos.x * 73856093 ^ gridPos.y * 19349663);
+                float crowdingFactor = (gridHash % 100) / 100f; // 0 to 1 based on grid
 
-                // Calculate how "crowded" this grid cell likely is based on position variance
-                float localDensity = math.frac(pos.x * 0.1f + pos.y * 0.1f + currentTime * 0.01f);
+                // Generate stable separation direction
+                float2 separationDir = new float2(math.cos(baseAngle), math.sin(baseAngle));
 
-                // Combine spatial hash avoidance with time-based noise
-                float2 spatialAvoidance = avoidDir * localDensity * config.repulsionStrength;
-
-                // Add organic noise for natural movement
-                float seed = pos.x + pos.y + entityIndex * 137f;
-                float noiseX = math.sin(seed * 0.2f + timeBasedSeed);
-                float noiseY = math.cos(seed * 0.15f + timeBasedSeed2);
-                float2 noiseAvoidance = new float2(noiseX, noiseY) * avoidance.personalSpace * 0.3f;
-
-                // Combine spatial and noise avoidance
-                float3 totalAvoidance = new float3(
-                    spatialAvoidance.x + noiseAvoidance.x,
-                    spatialAvoidance.y + noiseAvoidance.y,
+                // Apply separation force scaled by crowding
+                float3 separation = new float3(
+                    separationDir.x * crowdingFactor * separationRadius * 0.5f,
+                    separationDir.y * crowdingFactor * separationRadius * 0.5f,
                     0
                 );
 
-                return totalAvoidance;
+                return separation;
             }
 
             /// <summary>

@@ -259,12 +259,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         public static PotentialFieldConfig Default => new PotentialFieldConfig
         {
-            attractionStrength = 2.0f,
-            repulsionStrength = 5.0f,
-            repulsionRadius = 3.0f,
-            obstacleRepulsionStrength = 8.0f,
-            maxSteeringForce = 10.0f,
-            neighborDetectionRadius = 5.0f
+            attractionStrength = 1.5f,      // Reduced from 2.0f for smoother movement
+            repulsionStrength = 2.0f,       // Reduced from 5.0f to prevent bouncing
+            repulsionRadius = 3.0f,         // Keep the same
+            obstacleRepulsionStrength = 4.0f, // Reduced from 8.0f
+            maxSteeringForce = 5.0f,       // Reduced from 10.0f to prevent jitter
+            neighborDetectionRadius = 5.0f  // Keep the same
         };
     }
 }
