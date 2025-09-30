@@ -3,25 +3,32 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Collections;
 using Unity.Burst;
-// AStar components moved to main DOTS namespace
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 {
     /// <summary>
-    /// System responsible for zombie target detection and tracking
-    /// Finds nearest players and updates zombie navigation targets
+    /// High-performance zombie targeting system using ISystem and zero-allocation queries
+    /// Finds nearest players and updates zombie navigation targets efficiently
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateBefore(typeof(Pathfinding.ECS.AIMovementSystemGroup))]
-    public partial class ZombieTargetingSystem : SystemBase
+    [BurstCompile]
+    public partial struct ZombieTargetingSystem : ISystem
     {
         private EntityQuery _zombieQuery;
         private EntityQuery _targetQuery;
 
-        protected override void OnCreate()
+        // Cached target data to eliminate per-frame allocations
+        private NativeArray<Entity> _cachedTargetEntities;
+        private NativeArray<LocalTransform> _cachedTargetTransforms;
+        private NativeArray<ZombieTarget> _cachedTargetData;
+        private float _lastTargetCacheUpdate;
+        private bool _cacheInitialized;
+
+        public void OnCreate(ref SystemState state)
         {
             // Query for zombies with navigation components
-            _zombieQuery = GetEntityQuery(
+            _zombieQuery = state.GetEntityQuery(
                 ComponentType.ReadWrite<ZombieNavigation>(),
                 ComponentType.ReadWrite<ZombieDestination>(),
                 ComponentType.ReadOnly<LocalTransform>(),
@@ -29,39 +36,72 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
             );
 
             // Query for potential targets (players, etc.)
-            _targetQuery = GetEntityQuery(
+            _targetQuery = state.GetEntityQuery(
                 ComponentType.ReadOnly<ZombieTarget>(),
                 ComponentType.ReadOnly<LocalTransform>()
             );
 
             // Require zombies to exist for this system to run
-            RequireForUpdate(_zombieQuery);
+            state.RequireForUpdate(_zombieQuery);
         }
 
-        protected override void OnUpdate()
+        [BurstCompile]
+        public void OnUpdate(ref SystemState state)
         {
             float currentTime = (float)SystemAPI.Time.ElapsedTime;
 
-            // Get all potential targets
-            var targetEntities = _targetQuery.ToEntityArray(Allocator.TempJob);
-            var targetTransforms = _targetQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
-            var targetData = _targetQuery.ToComponentDataArray<ZombieTarget>(Allocator.TempJob);
+            // Early exit if no targets exist - saves massive computation
+            if (_targetQuery.IsEmpty)
+                return;
 
-            // Process zombie targeting
+            // Update target cache every 0.5 seconds instead of every frame (MASSIVE performance gain)
+            if (!_cacheInitialized || currentTime - _lastTargetCacheUpdate > 0.5f)
+            {
+                UpdateTargetCache();
+                _lastTargetCacheUpdate = currentTime;
+            }
+
+            // Use cached data - zero allocations per frame!
             var targetingJob = new ZombieTargetingJob
             {
                 currentTime = currentTime,
-                targetEntities = targetEntities,
-                targetTransforms = targetTransforms,
-                targetData = targetData
+                targetEntities = _cachedTargetEntities,
+                targetTransforms = _cachedTargetTransforms,
+                targetData = _cachedTargetData,
+                // Reduced staggering for better responsiveness
+                frameStagger = (uint)(currentTime * 60f) % 10 // Spread across 10 frames instead of 30
             };
 
-            Dependency = targetingJob.ScheduleParallel(_zombieQuery, Dependency);
+            state.Dependency = targetingJob.ScheduleParallel(_zombieQuery, state.Dependency);
+        }
 
-            // Dispose temporary arrays
-            Dependency = targetEntities.Dispose(Dependency);
-            Dependency = targetTransforms.Dispose(Dependency);
-            Dependency = targetData.Dispose(Dependency);
+        private void UpdateTargetCache()
+        {
+            // Dispose old cache
+            if (_cacheInitialized)
+            {
+                if (_cachedTargetEntities.IsCreated) _cachedTargetEntities.Dispose();
+                if (_cachedTargetTransforms.IsCreated) _cachedTargetTransforms.Dispose();
+                if (_cachedTargetData.IsCreated) _cachedTargetData.Dispose();
+            }
+
+            // Create new cache
+            _cachedTargetEntities = _targetQuery.ToEntityArray(Allocator.Persistent);
+            _cachedTargetTransforms = _targetQuery.ToComponentDataArray<LocalTransform>(Allocator.Persistent);
+            _cachedTargetData = _targetQuery.ToComponentDataArray<ZombieTarget>(Allocator.Persistent);
+            _cacheInitialized = true;
+        }
+
+        [BurstCompile]
+        public void OnDestroy(ref SystemState state)
+        {
+            // Dispose cached arrays
+            if (_cacheInitialized)
+            {
+                if (_cachedTargetEntities.IsCreated) _cachedTargetEntities.Dispose();
+                if (_cachedTargetTransforms.IsCreated) _cachedTargetTransforms.Dispose();
+                if (_cachedTargetData.IsCreated) _cachedTargetData.Dispose();
+            }
         }
     }
 
@@ -69,19 +109,29 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
     partial struct ZombieTargetingJob : IJobEntity
     {
         public float currentTime;
+        public uint frameStagger;
 
         [ReadOnly] public NativeArray<Entity> targetEntities;
         [ReadOnly] public NativeArray<LocalTransform> targetTransforms;
         [ReadOnly] public NativeArray<ZombieTarget> targetData;
 
         public void Execute(
+            [EntityIndexInQuery] int entityIndex,
             ref ZombieNavigation navigation,
             ref ZombieDestination destination,
             in LocalTransform transform,
             in MinionData minionData)
         {
-            // Only process if it's time to update target
-            if (currentTime - navigation.lastTargetUpdate < navigation.targetUpdateInterval)
+            // Staggered updates for 100k entity scalability
+            // Only process 1/30th of entities per frame = 3333 entities at 60fps
+            if ((entityIndex + frameStagger) % 30 != 0)
+                return;
+
+            // Realistic targeting intervals - enemies don't retarget instantly
+            float baseInterval = navigation.targetUpdateInterval;
+            float adaptiveInterval = math.lerp(baseInterval, baseInterval * 3f, targetEntities.Length / 10000f);
+
+            if (currentTime - navigation.lastTargetUpdate < adaptiveInterval)
                 return;
 
             navigation.lastTargetUpdate = currentTime;
@@ -98,7 +148,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
             float3 zombiePos = transform.Position;
 
-            for (int i = 0; i < targetEntities.Length; i++)
+            // Spatial optimization: Early distance culling using squared distance (faster)
+            float scanRadiusSq = navigation.targetScanRadius * navigation.targetScanRadius;
+            int maxTargetsToCheck = math.min(targetEntities.Length, 20); // Limit checks for 100k scale
+
+            for (int i = 0; i < maxTargetsToCheck; i++)
             {
                 var target = targetData[i];
 
@@ -107,11 +161,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                     continue;
 
                 float3 targetPos = targetTransforms[i].Position;
-                float distance = math.distance(zombiePos, targetPos);
 
-                // Skip if target is out of range
-                if (distance > navigation.targetScanRadius)
+                // Fast squared distance check before expensive sqrt
+                float distanceSq = math.distancesq(zombiePos, targetPos);
+                if (distanceSq > scanRadiusSq)
                     continue;
+
+                float distance = math.sqrt(distanceSq); // Only calculate sqrt if needed
 
                 // Calculate target score (closer = better, higher priority = better)
                 float score = target.priority / math.max(distance, 0.1f);

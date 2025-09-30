@@ -1,5 +1,6 @@
 using Unity.Entities;
 using Unity.Mathematics;
+using System.Runtime.InteropServices;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -37,9 +38,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float lastTargetUpdate;
 
         /// <summary>Whether the zombie currently has a valid target</summary>
+        [MarshalAs(UnmanagedType.U1)]
         public bool hasTarget;
 
         /// <summary>Whether the zombie should actively search for targets</summary>
+        [MarshalAs(UnmanagedType.U1)]
         public bool isActivelySearching;
 
         /// <summary>Minimum distance to maintain from target</summary>
@@ -77,12 +80,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float pathUpdateInterval;
 
         /// <summary>Whether to use RVO collision avoidance</summary>
+        [MarshalAs(UnmanagedType.U1)]
         public bool enableRVO;
 
         /// <summary>How aggressively to pursue targets (0-1)</summary>
         public float aggressionLevel;
 
         /// <summary>Whether zombie can lose target if out of range</summary>
+        [MarshalAs(UnmanagedType.U1)]
         public bool canLoseTarget;
 
         /// <summary>Time to remember last target position when lost</summary>
@@ -136,6 +141,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float priority;
 
         /// <summary>Whether this target can be detected by zombies</summary>
+        [MarshalAs(UnmanagedType.U1)]
         public bool isDetectable;
 
         /// <summary>Faction of this target</summary>
@@ -154,7 +160,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
     /// <summary>
     /// Component to track zombie pathfinding state and performance
-    /// Useful for debugging and optimization
+    /// Enhanced with waypoint navigation support
     /// </summary>
     public struct ZombiePathfindingState : IComponentData
     {
@@ -174,7 +180,23 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float distanceToDestination;
 
         /// <summary>Whether zombie is currently moving</summary>
+        [MarshalAs(UnmanagedType.U1)]
         public bool isMoving;
+
+        // Waypoint navigation fields
+        /// <summary>Index of current waypoint being followed</summary>
+        public int nextWaypointIndex;
+
+        /// <summary>Index of final destination waypoint</summary>
+        public int finalWaypointIndex;
+
+        /// <summary>Whether entity has a valid waypoint path</summary>
+        [MarshalAs(UnmanagedType.U1)]
+        public bool hasValidPath;
+
+        /// <summary>Whether destination has changed since last path calculation</summary>
+        [MarshalAs(UnmanagedType.U1)]
+        public bool destinationChanged;
 
         public enum PathfindingState : byte
         {
