@@ -2,7 +2,6 @@ using Unity.Entities;
 using Unity.Mathematics;
 using UnityEngine;
 using UnityEngine.Serialization;
-
 using KBVE.MMExtensions.Orchestrator.DOTS.Systems;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
