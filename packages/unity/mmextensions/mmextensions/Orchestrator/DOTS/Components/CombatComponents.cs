@@ -1,6 +1,7 @@
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Collections;
+using System.Runtime.InteropServices;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -9,25 +10,28 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// </summary>
     public struct DamageDealer : IComponentData
     {
+        // 8-byte aligned fields first
+        public Entity LastTarget; // Track last hit to prevent double hits
+
+        // 4-byte aligned fields
         public float BaseDamage;
         public float DamageRadius; // 0 for melee, >0 for AoE
-        public DamageType Type;
         public float KnockbackForce;
         public float AttackCooldown;
         public float LastAttackTime;
-        public Entity LastTarget; // Track last hit to prevent double hits
+        public DamageType Type;
 
         public static DamageDealer CreateMelee(float damage, float knockback = 5f)
         {
             return new DamageDealer
             {
+                LastTarget = Entity.Null,
                 BaseDamage = damage,
                 DamageRadius = 0f,
-                Type = DamageType.Physical,
                 KnockbackForce = knockback,
                 AttackCooldown = 1f,
                 LastAttackTime = 0f,
-                LastTarget = Entity.Null
+                Type = DamageType.Physical
             };
         }
 
@@ -35,13 +39,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             return new DamageDealer
             {
+                LastTarget = Entity.Null,
                 BaseDamage = damage,
                 DamageRadius = radius,
-                Type = DamageType.Projectile,
                 KnockbackForce = 3f,
                 AttackCooldown = 2f,
                 LastAttackTime = 0f,
-                LastTarget = Entity.Null
+                Type = DamageType.Projectile
             };
         }
     }
@@ -51,26 +55,29 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// </summary>
     public struct DamageTaker : IComponentData
     {
+        // 8-byte aligned fields first
+        public Entity LastAttacker;
+
+        // 4-byte aligned fields
         public float Defense;
         public float DamageReduction; // 0-1 percentage
-        public DamageResistance Resistances;
         public float InvulnerabilityTimer;
         public float LastDamageTime;
-        public Entity LastAttacker;
         public float StunDuration;
+        public DamageResistance Resistances;
         public bool IsInvulnerable => InvulnerabilityTimer > 0f;
 
         public static DamageTaker CreateDefault(float defense = 0f)
         {
             return new DamageTaker
             {
+                LastAttacker = Entity.Null,
                 Defense = defense,
                 DamageReduction = 0f,
-                Resistances = DamageResistance.None,
                 InvulnerabilityTimer = 0f,
                 LastDamageTime = 0f,
-                LastAttacker = Entity.Null,
-                StunDuration = 0f
+                StunDuration = 0f,
+                Resistances = DamageResistance.None
             };
         }
     }
@@ -84,6 +91,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float TargetRotation;
         public float CurrentRotation;
         public float RotationSpeed;
+        [MarshalAs(UnmanagedType.U1)]
         public bool FlipSprite; // For 2D sprites
         public OrientationMode Mode;
 
@@ -210,6 +218,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public float3 TargetLastKnownPosition;
         public float TimeSinceTargetSeen;
         public float AggroLevel; // 0-100
+        [MarshalAs(UnmanagedType.U1)]
         public bool HasLineOfSight;
 
         public bool HasTarget => CurrentTarget != Entity.Null;
