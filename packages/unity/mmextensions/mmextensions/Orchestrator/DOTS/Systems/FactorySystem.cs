@@ -59,18 +59,17 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                         hordeCenter = new float3(factoryData.instantiatePos.x + hordeOffset.x, factoryData.instantiatePos.y + hordeOffset.y, 1f);
                     }
 
-                    // Create zombie horde entity
-                    var hordeEntity = ECB.CreateEntity(chunkIndex);
-                    ECB.AddComponent(chunkIndex, hordeEntity, new ZombieHordeTag());
-                    ECB.AddComponent(chunkIndex, hordeEntity, new ZombieHordeSettings
+                    // Create formation entity (Grid formation = traditional horde)
+                    var formationEntity = ECB.CreateEntity(chunkIndex);
+                    ECB.AddComponent(chunkIndex, formationEntity, new ZombieFormationEntity { formationType = HordeFormationType.Grid });
+                    ECB.AddComponent(chunkIndex, formationEntity, new ZombieFormationSettings
                     {
                         formationSize = new int2(math.min(32, factoryData.count), math.max(1, factoryData.count / 32)),
                         zombieSpacing = new float2(2.5f, 2.5f),
                         formationType = HordeFormationType.Grid
                     });
-                    ECB.AddComponent(chunkIndex, hordeEntity, new ZombieHordeTarget { position = hordeCenter.xy });
-                    ECB.AddComponent(chunkIndex, hordeEntity, ZombieHordeCenter.CreateDefault(hordeCenter));
-                    var zombieBuffer = ECB.AddBuffer<ZombieLink>(chunkIndex, hordeEntity);
+                    ECB.AddComponent(chunkIndex, formationEntity, ZombieFormationCenter.CreateDefault(hordeCenter));
+                    var zombieBuffer = ECB.AddBuffer<FormationMemberLink>(chunkIndex, formationEntity);
 
                     // Create individual zombies
                     var instanceEntities = new NativeArray<Entity>(factoryData.count, Allocator.Temp);
@@ -93,12 +92,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 
                         ECB.SetComponent(chunkIndex, instanceEntities[j], LocalTransform.FromPosition(position));
 
-                        // Give each zombie a unique movement direction
-                        float2 uniqueDirection = random.NextFloat2Direction();
-                        ECB.AddComponent(chunkIndex, instanceEntities[j], new ZombieDirection { value = uniqueDirection });
-
-                        // Link zombie to horde
-                        zombieBuffer.Add(new ZombieLink { zombie = instanceEntities[j] });
+                        // Link zombie to formation
+                        zombieBuffer.Add(new FormationMemberLink { zombie = instanceEntities[j] });
 
                     }
 
