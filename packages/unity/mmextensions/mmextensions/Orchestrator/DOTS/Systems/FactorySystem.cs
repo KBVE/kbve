@@ -4,10 +4,12 @@ using Unity.Entities;
 using Unity.Transforms;
 using Unity.Mathematics;
 
+/// DOTS v2 - PREPARING
+
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
 {
     /// <summary>
-    /// Factory system for spawning entities - exact match to Age-of-Sprites pattern
+    /// Factory system for spawning entities , preparing for DOTS v2
     /// Clean, simple, proven implementation
     /// </summary>
     [BurstCompile]
@@ -135,7 +137,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
                 AvailableSpawnPoints = spawnPoints
             };
 
-            state.Dependency = productionJob.ScheduleParallel(state.Dependency);
+            state.Dependency = productionJob.ScheduleParallelByRef(state.Dependency);
             spawnPoints.Dispose(state.Dependency);
         }
     }
