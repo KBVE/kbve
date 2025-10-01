@@ -6,8 +6,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
 
     /// <summary>
-    /// Factory authoring component - exact match to Age-of-Sprites pattern
-    /// Place this on GameObjects to create spawning factories
+    /// Factory authoring component , will be replaced by the HordeAuthoring.
     /// </summary>
     [DisallowMultipleComponent]
     [RequireComponent(typeof(Transform))]
