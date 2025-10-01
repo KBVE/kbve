@@ -1,5 +1,7 @@
 using Unity.Entities;
+using Unity.Mathematics;
 using UnityEngine;
+using UnityEngine.Serialization;
 using KBVE.MMExtensions.Orchestrator.DOTS.Systems;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
@@ -24,6 +26,26 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [Tooltip("Default patrol radius for hordes")]
         [Range(50f, 500f)]
         public float defaultPatrolRadius = 150f;
+
+
+        class Baker : Baker<MapSettingsAuthoring>
+        {
+            public override void Bake(MapSettingsAuthoring authoring)
+            {
+                var entity = GetEntity(TransformUsageFlags.None);
+
+                AddComponent(entity, new MapSettings
+                {
+                    mapSize = authoring.mapSize,
+                    zonesPerAxis = authoring.zonesPerAxis,
+                    hordeSpawnPointsPerZone = authoring.hordeSpawnPointsPerZone,
+                    defaultPatrolRadius = authoring.defaultPatrolRadius
+                });
+            }
+        }
+
+                
+#if UNITY_EDITOR
 
         private void OnDrawGizmosSelected()
         {
@@ -71,21 +93,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 }
             }
         }
-
-        class Baker : Baker<MapSettingsAuthoring>
-        {
-            public override void Bake(MapSettingsAuthoring authoring)
-            {
-                var entity = GetEntity(TransformUsageFlags.None);
-
-                AddComponent(entity, new MapSettings
-                {
-                    mapSize = authoring.mapSize,
-                    zonesPerAxis = authoring.zonesPerAxis,
-                    hordeSpawnPointsPerZone = authoring.hordeSpawnPointsPerZone,
-                    defaultPatrolRadius = authoring.defaultPatrolRadius
-                });
-            }
-        }
+#endif
     }
 }
