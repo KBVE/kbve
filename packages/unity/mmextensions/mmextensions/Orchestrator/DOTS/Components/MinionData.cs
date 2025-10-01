@@ -45,21 +45,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     }
 
     /// <summary>
-    /// Faction types matching the existing system
-    /// </summary>
-    public enum FactionType : byte
-    {
-        Neutral = 0,
-        Player = 1,
-        Enemy = 2,
-        Ally = 3,
-        Wildlife = 4,
-        Undead = 5,
-        Demon = 6,
-        All = 255 // For AoE that affects everyone
-    }
-
-    /// <summary>
     /// State flags for efficient state management
     /// </summary>
     [System.Flags]
