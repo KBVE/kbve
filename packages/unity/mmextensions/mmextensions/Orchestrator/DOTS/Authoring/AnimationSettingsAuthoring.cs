@@ -40,9 +40,9 @@ namespace NSprites
                     // to speed up runtime animation lookups.
                     IdleHash   = Animator.StringToHash("idle"),
                     WalkHash   = Animator.StringToHash("walk"),
-                    DeathHash  = Animator.StringToHash("death"),
-                    AttackHash = Animator.StringToHash("attack"),
-                    HurtHash   = Animator.StringToHash("hurt")
+                    // DeathHash  = Animator.StringToHash("death"),
+                    // AttackHash = Animator.StringToHash("attack"),
+                    // HurtHash   = Animator.StringToHash("hurt")
                 });
             }
         }
