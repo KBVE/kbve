@@ -19,7 +19,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             public override void Bake(MinionAuthoring authoring)
             {
                 var entity = GetEntity(TransformUsageFlags.None);
-                AddComponent<ZombieTag>(entity);
+                AddComponent<MinionTag>(entity);
                 AddComponent<MovingTag>(entity);
                 SetComponentEnabled<MovingTag>(entity, false);
                 AddComponent<Destination>(entity);
