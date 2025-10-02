@@ -1,14 +1,10 @@
-using NSprites;
+﻿using NSprites;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
 
-
-/// DOTS v2 - PREPARING
-
-namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
+namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
-
     [BurstCompile]
     [UpdateBefore(typeof(SpriteUVAnimationSystem))]
     public partial struct MovableAnimationControlSystem : ISystem

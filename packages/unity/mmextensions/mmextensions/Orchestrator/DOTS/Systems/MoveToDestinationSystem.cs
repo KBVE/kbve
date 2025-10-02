@@ -1,15 +1,12 @@
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
-using KBVE.MMExtensions.Orchestrator.DOTS;
 
-/// DOTS v2 - PREPARING
-
-namespace KBVE.MMExtensions.Orchestrator.DOTS.Systems
+namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     [BurstCompile]
     public partial struct MoveToDestinationSystem : ISystem
