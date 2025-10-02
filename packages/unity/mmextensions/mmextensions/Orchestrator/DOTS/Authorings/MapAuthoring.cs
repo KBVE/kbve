@@ -32,7 +32,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [FormerlySerializedAs("_gizmoColor ")] public Color GizmoColor = Color.green;
         [Space]
 
-        [FormerlySerializedAs("_rect")] public float2x2 Rect;
+        [FormerlySerializedAs("_rect")]
+        public float2x2 Rect = new float2x2(
+            new float2(-25f, -25f), // bottom-left
+            new float2(25f, 25f)    // top-right
+        );
+
         [FormerlySerializedAs("_rockCount")] public int RockCount;
         [FormerlySerializedAs("_rockPrefabs")] public GameObject[] RockPrefabs;
 
