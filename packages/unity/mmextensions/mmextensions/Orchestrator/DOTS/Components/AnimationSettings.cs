@@ -22,20 +22,20 @@ namespace NSprites
         /// </summary>
         public int WalkHash;
 
-        /// <summary>
-        /// Hash for the death animation (when the entity is defeated).
-        /// </summary>
-        public int DeathHash;
+        // /// <summary>
+        // /// Hash for the death animation (when the entity is defeated).
+        // /// </summary>
+        // public int DeathHash;
 
 
-        /// <summary>
-        /// Hash for the attack animation (when the entity performs an attack).
-        /// </summary>
-        public int AttackHash;
+        // /// <summary>
+        // /// Hash for the attack animation (when the entity performs an attack).
+        // /// </summary>
+        // public int AttackHash;
 
-        /// <summary>
-        /// Hash for the hurt animation (when the entity takes damage but survives).
-        /// </summary>
-        public int HurtHash;
+        // /// <summary>
+        // /// Hash for the hurt animation (when the entity takes damage but survives).
+        // /// </summary>
+        // public int HurtHash;
     }
 }
