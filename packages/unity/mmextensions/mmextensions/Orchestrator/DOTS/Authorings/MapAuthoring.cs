@@ -33,6 +33,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [Space]
 
         [FormerlySerializedAs("_rect")]
+        [Tooltip("Defines the world bounds as (MinXY, MaxXY). Default is -25 to 25 grid.")]
         public float2x2 Rect = new float2x2(
             new float2(-25f, -25f), // bottom-left
             new float2(25f, 25f)    // top-right
