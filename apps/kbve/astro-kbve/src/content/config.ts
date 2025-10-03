@@ -73,4 +73,5 @@ export const collections = {
 	itemdb: itemdb,
 	questdb: questdb,
 	application: application,
+	mapdb: mapdb,
 };
