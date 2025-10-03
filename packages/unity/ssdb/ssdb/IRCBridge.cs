@@ -105,7 +105,7 @@ public partial class IRCBridge : MonoBehaviour, IInitializable
     [SerializeField] private string server = "irc.lewdchat.com"; // irc.kbve.com
     [SerializeField] private int port = 6697;
     [SerializeField] private bool useSsl = true;
-    [SerializeField] private string defaultChannel = "#nudes"; // # general
+    [SerializeField] private string defaultChannel = "#lewd"; // # general
     [SerializeField] private bool autoConnect = false;
     [SerializeField] private int maxMessages = 500; // Maximum messages to keep in memory
     

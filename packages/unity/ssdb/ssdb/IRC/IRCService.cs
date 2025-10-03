@@ -73,7 +73,7 @@ namespace KBVE.SSDB.IRC
         public string username;
         public string realname;
         public string password;
-        public string defaultChannel = "#nudes"; // general
+        public string defaultChannel = "#lewd"; // general
         public bool autoReconnect = true;
         public int reconnectDelayMs = 5000;
         public int pingTimeoutMs = 60000; // IRC servers typically have longer timeouts
