@@ -10,14 +10,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             public override void Bake(ResourceAuthoring authoring)
             {
                 var entity = GetEntity(TransformUsageFlags.Dynamic);
-                
+
                 // Build flags
                 var flags = ResourceFlags.None;
                 if (authoring.IsHarvestable)
                     flags |= ResourceFlags.IsHarvestable;
                 if (authoring.IsDepleted)
                     flags |= ResourceFlags.IsDepleted;
-                
+
                 AddComponent(entity, new Resource
                 {
                     type = authoring.Type,
@@ -27,8 +27,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     harvestYield = (ushort)authoring.HarvestYield,
                     harvestTime = authoring.HarvestTime
                 });
+
+                AddComponent(entity, new ResourceID
+                {
+                    ulid = Ulid.ToBytes(authoring.ResourceULID)
+                });
+                
+                
             }
         }
+
+        [Header("Resource Identity")]
+        [Tooltip("ULID from the resource definition (e.g., 01JCKH7M9K2XQZW3P4R5S6T7V8)")]
+        public string ResourceULID = "";
 
         [Header("Resource Type")]
         [Tooltip("What type of resource this is")]

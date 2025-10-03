@@ -58,7 +58,9 @@ const BaseMapObjectSchema = z.object({
     
     // Rendering
     sortingLayer: z.string().default('Foreground'),
-    sortingOrderOffset: z.number().int().default(0),
+    sortingIndex: z.number().int().default(0),
+    staticSorting: z.boolean().default(true),
+
     
     // Animation (optional)
     animation: IAnimationDataSchema.optional(),
