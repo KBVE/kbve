@@ -1,0 +1,141 @@
+---
+interface Props {
+  /** Discord Server ID (enable “Server Widget” in Discord → Settings → Widget) */
+  serverId: string;
+
+  /** 'dark' | 'light' | 'auto' */
+  theme?: 'dark' | 'light' | 'auto';
+
+  /** Optional invite link (for <noscript> and visible fallback) */
+  inviteUrl?: string;
+
+  /** Sizing */
+  width?: number | string;   // default: 100%
+  height?: number | string;  // used only when not using aspect-ratio classes
+  class?: string;            // extra classes on the outer wrapper
+
+  /** A11y title for the iframe(s) */
+  title?: string;
+
+  /** Visible fallback text inside <noscript> */
+  fallbackText?: string;
+
+  /** Use aspect ratio wrapper (recommended for RWD). Provide tailwind classes e.g. "aspect-[4/5] lg:aspect-[16/9]" */
+  aspect?: string;
+}
+
+const {
+  serverId,
+  theme = 'auto',
+  inviteUrl = `https://discord.com/invite/${serverId}`,
+  width = '100%',
+  height = 500,
+  class: klass = '',
+  title = 'Discord server widget',
+  fallbackText = 'Open Discord server',
+  aspect = 'aspect-[4/5] sm:aspect-[3/4] lg:aspect-[16/9]',
+} = Astro.props;
+
+const darkSrc  = `https://discord.com/widget?id=${serverId}&theme=dark`;
+const lightSrc = `https://discord.com/widget?id=${serverId}&theme=light`;
+
+const style = typeof width === 'number'
+  ? `width:${width}px;${aspect ? '' : `height:${typeof height === 'number' ? `${height}px` : height};`}`
+  : `width:${width};${aspect ? '' : `height:${typeof height === 'number' ? `${height}px` : height};`}`;
+---
+
+<!--
+  Card wrapper:
+  - Subtle gradient border
+  - Inner shadow “3D” depth
+  - Uses Starlight CSS vars to match theme
+-->
+<div
+  data-discord-embed
+  class={`group relative ${klass}`}
+  style={style}
+>
+  <div
+    class={`
+      ${aspect ? `relative ${aspect}` : 'relative'}
+      rounded-2xl p-[1px]
+      bg-gradient-to-br from-[color:var(--sl-color-accent)]/30 via-zinc-700/40 to-zinc-800/40
+      ring-1 ring-zinc-700/60
+      shadow-[0_8px_30px_rgba(0,0,0,0.25)]
+      backdrop-blur-sm
+    `}
+  >
+    <div
+      class="
+        relative w-full h-full rounded-2xl overflow-hidden
+        bg-[color:var(--sl-color-bg)]
+        shadow-inner
+        ring-1 ring-zinc-800/60
+      "
+    >
+      <!-- Soft inner glow for depth -->
+      <div
+        class="
+          pointer-events-none absolute inset-0
+          bg-[radial-gradient(60%_40%_at_50%_0%,rgba(56,189,248,0.12),transparent_60%)]
+          opacity-70
+        "
+        aria-hidden="true"
+      ></div>
+
+      <!-- Skeleton -->
+      <div
+        class="
+          absolute inset-0
+          bg-gradient-to-b from-zinc-800/40 to-zinc-900/50
+          animate-pulse
+          motion-reduce:animate-none
+        "
+        aria-hidden="true"
+      ></div>
+
+      <!-- Light iframe -->
+      <iframe
+        src={lightSrc}
+        title={title}
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-same-origin"
+        class={`relative w-full h-full ${theme === 'dark' ? 'hidden' : 'block'} ${theme === 'auto' ? 'dark:hidden' : ''}`}
+        onload="this.closest('[data-discord-embed]')?.setAttribute('data-loaded','')"
+      ></iframe>
+
+      <!-- Dark iframe -->
+      <iframe
+        src={darkSrc}
+        title={title}
+        loading="lazy"
+        referrerpolicy="no-referrer-when-downgrade"
+        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-same-origin"
+        class={`relative w-full h-full ${theme === 'light' ? 'hidden' : 'block'} ${theme === 'auto' ? 'hidden dark:block' : ''}`}
+        onload="this.closest('[data-discord-embed]')?.setAttribute('data-loaded','')"
+      ></iframe>
+
+      <!-- noscript fallback -->
+      <noscript>
+        <a
+          href={inviteUrl}
+          target="_blank" rel="noopener noreferrer"
+          class="absolute inset-0 flex items-center justify-center text-cyan-400 underline"
+        >
+          {fallbackText}
+        </a>
+      </noscript>
+
+      <!-- Focus ring for accessibility when wrapper is focused via JS or container link -->
+      <div class="pointer-events-none absolute inset-0 rounded-2xl ring-0 ring-cyan-400/0 group-focus-within:ring-2 group-focus-within:ring-cyan-400/40 transition-all" aria-hidden="true"></div>
+    </div>
+  </div>
+</div>
+
+<style>
+/* Hide skeleton once an iframe reports loaded */
+[data-discord-embed][data-loaded] .animate-pulse {
+  display: none;
+}
+</style>

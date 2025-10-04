@@ -201,7 +201,7 @@ jobs:
                     "azure_repo_url": "dev.azure.com/kbve/rareicon/_git/rareicon",
                     "unity_version": "6000.2.6f2",
                     "target_platforms": "[\"StandaloneWindows64\"]",
-                    "deploy_to_itch": true,
+                    "deploy_to_itch": false,
                     "itch_username": "kbve",
                     "itch_gameid": "rareicon",
                     "gh_pages_repo": "KBVE/unity.rareicon.com",
