@@ -246,11 +246,37 @@ namespace KBVE.MMExtensions.Database
             return AssetDatabase.LoadAssetAtPath<GameObject>(prefabPath);
         }
 
+        // private static bool SortingLayerExists(string name)
+        // {
+        //     foreach (var layer in SortingLayer.layers)
+        //         if (layer.name == name)
+        //             return true;
+        //     return false;
+        // }
+
         private static bool SortingLayerExists(string name)
         {
-            foreach (var layer in SortingLayer.layers)
+            if (string.IsNullOrEmpty(name))
+                return false;
+
+        #if UNITY_2022_1_OR_NEWER
+            var layers = UnityEngine.SortingLayer.layers;
+            foreach (var layer in layers)
+            {
                 if (layer.name == name)
                     return true;
+            }
+        #else
+            // Fallback for older Unity versions
+            System.Type sortingLayerType = typeof(UnityEditorInternal.InternalEditorUtility);
+            var sortingLayersProperty = sortingLayerType.GetProperty("sortingLayerNames", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
+            string[] sortingLayers = (string[])sortingLayersProperty.GetValue(null);
+            foreach (string layer in sortingLayers)
+            {
+                if (layer == name)
+                    return true;
+            }
+        #endif
             return false;
         }
 
