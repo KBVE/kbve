@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import clsx from 'clsx';
+import type { DiscordTheme } from './DiscordService';
 import {
-  DiscordTheme,
   createWidgetSrc,
   resolveInitialTheme,
   subscribeToAutoTheme,
