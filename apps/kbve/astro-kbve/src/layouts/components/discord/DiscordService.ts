@@ -1,5 +1,13 @@
+/**
+ * Supported theme options for Discord widget
+ * @type {'dark' | 'light' | 'auto'}
+ */
 export type DiscordTheme = 'dark' | 'light' | 'auto';
 
+/**
+ * Configuration options for Discord widget
+ * @interface DiscordWidgetOptions
+ */
 export interface DiscordWidgetOptions {
   serverId: string;
   theme?: DiscordTheme;
@@ -7,6 +15,13 @@ export interface DiscordWidgetOptions {
 
 const DISCORD_WIDGET_BASE_URL = 'https://discord.com/widget';
 
+/**
+ * Creates the Discord widget iframe source URL with proper encoding
+ * @param {string} serverId - Discord server ID
+ * @param {'dark' | 'light'} theme - Theme for the widget
+ * @returns {string} Complete Discord widget URL
+ * @description Ensures proper URL encoding for security and accessibility
+ */
 export const createWidgetSrc = (serverId: string, theme: 'dark' | 'light'): string => {
   const encodedId = encodeURIComponent(serverId.trim());
   return `${DISCORD_WIDGET_BASE_URL}?id=${encodedId}&theme=${theme}`;
@@ -55,6 +70,14 @@ export const resolveInitialTheme = (
   return prefersDark(targetWindow) ? 'dark' : fallback;
 };
 
+/**
+ * Subscribes to system theme changes for auto-theme support
+ * @param {DiscordTheme} theme - Current theme setting
+ * @param {Function} handler - Callback when theme changes
+ * @param {Window} targetWindow - Target window object
+ * @returns {Function | undefined} Cleanup function to unsubscribe
+ * @description Respects user's system preferences for accessibility (prefers-color-scheme)
+ */
 export const subscribeToAutoTheme = (
   theme: DiscordTheme,
   handler: (theme: 'dark' | 'light') => void,
