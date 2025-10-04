@@ -102,12 +102,19 @@ const ReactDiscordEmbed = ({
   const frameSrc = useMemo(() => createWidgetSrc(serverId, activeTheme), [serverId, activeTheme]);
 
   return (
-    <div ref={hostRef} className="relative flex h-full w-full flex-col">
+    <div
+      ref={hostRef}
+      className="relative flex h-full w-full flex-col p-2 pb-6"
+      role="application"
+      aria-label={`Interactive Discord server widget for ${serverId}`}
+      aria-busy={!isLoaded}
+      aria-live="polite"
+    >
       {isVisible ? (
         <iframe
           key={`${serverId}-${activeTheme}`}
           src={frameSrc}
-          title={title}
+          title={`${title} - Interactive Discord server widget`}
           loading="lazy"
           referrerPolicy="no-referrer-when-downgrade"
           sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-same-origin"
@@ -117,10 +124,24 @@ const ReactDiscordEmbed = ({
             frameClassName
           )}
           onLoad={() => setIsLoaded(true)}
+          aria-label={`Discord server ${serverId} embedded widget`}
+          aria-describedby="discord-widget-description"
+          tabIndex={0}
         />
       ) : (
-        <span className="sr-only">Loading Discord widget…</span>
+        <span
+          className="sr-only"
+          role="status"
+          aria-live="polite"
+          aria-label="Discord widget loading status"
+        >
+          Loading Discord widget for server {serverId}…
+        </span>
       )}
+      <span id="discord-widget-description" className="sr-only">
+        This is an embedded Discord server widget showing online members and server information.
+        Use arrow keys to navigate within the widget.
+      </span>
     </div>
   );
 };

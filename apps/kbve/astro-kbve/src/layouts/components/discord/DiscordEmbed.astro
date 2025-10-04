@@ -54,11 +54,15 @@ const inlineStyle = createInlineStyle(width, height, aspect);
   data-theme={theme}
   class={`group relative isolate ${klass}`}
   style={inlineStyle}
+  role="region"
+  aria-label={`Discord server widget for server ${serverId}`}
+  aria-live="polite"
+  aria-busy="false"
 >
   <div
     class={`
       ${aspect ? `relative ${aspect}` : 'relative'}
-      rounded-2xl p-[1px]
+      rounded-2xl
       bg-gradient-to-br from-[color:var(--sl-color-accent)]/30 via-zinc-700/40 to-zinc-800/40
       ring-1 ring-zinc-700/60
       shadow-[0_8px_30px_rgba(0,0,0,0.25)]
@@ -72,6 +76,8 @@ const inlineStyle = createInlineStyle(width, height, aspect);
         shadow-inner
         ring-1 ring-zinc-800/60
       "
+      role="presentation"
+      aria-label="Discord widget container"
     >
       <!-- Soft inner glow for depth -->
       <div
@@ -93,8 +99,12 @@ const inlineStyle = createInlineStyle(width, height, aspect);
           transition-opacity duration-500
           group-data-[loaded]:opacity-0
         "
+        role="status"
+        aria-label="Loading Discord widget"
         aria-hidden="true"
-      ></div>
+      >
+        <span class="sr-only">Loading Discord server widget...</span>
+      </div>
 
       <ReactDiscordEmbed
         client:visible
@@ -110,29 +120,15 @@ const inlineStyle = createInlineStyle(width, height, aspect);
         aria-hidden="true"
       ></div>
 
-      <!-- Action button appears once the iframe has loaded -->
-      <a
-        href={inviteUrl}
-        target="_blank"
-        rel="noopener noreferrer"
-        class="
-          pointer-events-none absolute bottom-5 left-1/2 z-10
-          w-[calc(100%-3rem)] max-w-[260px] -translate-x-1/2
-          rounded-full bg-cyan-500/15 px-4 py-2 text-center text-sm font-semibold uppercase tracking-wide text-cyan-100
-          shadow-lg ring-1 ring-cyan-500/30 backdrop-blur transition-all duration-300 ease-out
-          translate-y-3 opacity-0
-          group-data-[loaded]:pointer-events-auto group-data-[loaded]:translate-y-0 group-data-[loaded]:opacity-100
-        "
-      >
-        {fallbackText}
-      </a>
 
       <!-- noscript fallback -->
       <noscript>
         <a
           href={inviteUrl}
-          target="_blank" rel="noopener noreferrer"
-          class="absolute inset-0 flex items-center justify-center bg-[color:var(--sl-color-bg)] text-cyan-400 underline"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="absolute inset-0 flex items-center justify-center bg-[color:var(--sl-color-bg)] text-cyan-400 underline focus:outline-none focus:ring-2 focus:ring-cyan-400 focus:ring-offset-2"
+          aria-label={`Join Discord server ${serverId} (opens in new tab)`}
         >
           {fallbackText}
         </a>
