@@ -102,7 +102,7 @@ const ReactDiscordEmbed = ({
   const frameSrc = useMemo(() => createWidgetSrc(serverId, activeTheme), [serverId, activeTheme]);
 
   return (
-    <div ref={hostRef} className="relative flex h-full w-full flex-col p-2 pb-4">
+    <div ref={hostRef} className="relative flex h-full w-full flex-col p-2 pb-6">
       {isVisible ? (
         <iframe
           key={`${serverId}-${activeTheme}`}
