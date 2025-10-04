@@ -1,10 +1,14 @@
 ---
+import ReactDiscordEmbed from './ReactDiscordEmbed';
+import type { DiscordTheme } from './DiscordService';
+import { createInlineStyle } from './DiscordService';
+
 interface Props {
   /** Discord Server ID (enable “Server Widget” in Discord → Settings → Widget) */
   serverId: string;
 
   /** 'dark' | 'light' | 'auto' */
-  theme?: 'dark' | 'light' | 'auto';
+  theme?: DiscordTheme;
 
   /** Optional invite link (for <noscript> and visible fallback) */
   inviteUrl?: string;
@@ -36,12 +40,7 @@ const {
   aspect = 'aspect-[4/5] sm:aspect-[3/4] lg:aspect-[16/9]',
 } = Astro.props;
 
-const darkSrc  = `https://discord.com/widget?id=${serverId}&theme=dark`;
-const lightSrc = `https://discord.com/widget?id=${serverId}&theme=light`;
-
-const style = typeof width === 'number'
-  ? `width:${width}px;${aspect ? '' : `height:${typeof height === 'number' ? `${height}px` : height};`}`
-  : `width:${width};${aspect ? '' : `height:${typeof height === 'number' ? `${height}px` : height};`}`;
+const inlineStyle = createInlineStyle(width, height, aspect);
 ---
 
 <!--
@@ -52,8 +51,9 @@ const style = typeof width === 'number'
 -->
 <div
   data-discord-embed
-  class={`group relative ${klass}`}
-  style={style}
+  data-theme={theme}
+  class={`group relative isolate ${klass}`}
+  style={inlineStyle}
 >
   <div
     class={`
@@ -67,7 +67,7 @@ const style = typeof width === 'number'
   >
     <div
       class="
-        relative w-full h-full rounded-2xl overflow-hidden
+        relative flex h-full w-full overflow-hidden rounded-2xl
         bg-[color:var(--sl-color-bg)]
         shadow-inner
         ring-1 ring-zinc-800/60
@@ -76,9 +76,10 @@ const style = typeof width === 'number'
       <!-- Soft inner glow for depth -->
       <div
         class="
-          pointer-events-none absolute inset-0
+          pointer-events-none absolute inset-0 rounded-2xl
           bg-[radial-gradient(60%_40%_at_50%_0%,rgba(56,189,248,0.12),transparent_60%)]
-          opacity-70
+          opacity-70 transition-opacity duration-500
+          group-data-[loaded]:opacity-0
         "
         aria-hidden="true"
       ></div>
@@ -86,56 +87,56 @@ const style = typeof width === 'number'
       <!-- Skeleton -->
       <div
         class="
-          absolute inset-0
-          bg-gradient-to-b from-zinc-800/40 to-zinc-900/50
-          animate-pulse
-          motion-reduce:animate-none
+          absolute inset-0 rounded-2xl
+          bg-gradient-to-b from-zinc-800/40 to-zinc-900/60
+          animate-pulse motion-reduce:animate-none
+          transition-opacity duration-500
+          group-data-[loaded]:opacity-0
         "
         aria-hidden="true"
       ></div>
 
-      <!-- Light iframe -->
-      <iframe
-        src={lightSrc}
+      <ReactDiscordEmbed
+        client:visible
+        serverId={serverId}
+        theme={theme}
         title={title}
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-same-origin"
-        class={`relative w-full h-full ${theme === 'dark' ? 'hidden' : 'block'} ${theme === 'auto' ? 'dark:hidden' : ''}`}
-        onload="this.closest('[data-discord-embed]')?.setAttribute('data-loaded','')"
-      ></iframe>
+        frameClassName="rounded-2xl"
+      />
 
-      <!-- Dark iframe -->
-      <iframe
-        src={darkSrc}
-        title={title}
-        loading="lazy"
-        referrerpolicy="no-referrer-when-downgrade"
-        sandbox="allow-scripts allow-popups allow-popups-to-escape-sandbox allow-same-origin"
-        class={`relative w-full h-full ${theme === 'light' ? 'hidden' : 'block'} ${theme === 'auto' ? 'hidden dark:block' : ''}`}
-        onload="this.closest('[data-discord-embed]')?.setAttribute('data-loaded','')"
-      ></iframe>
+      <!-- Focus ring for accessibility when wrapper is focused via JS or container link -->
+      <div
+        class="pointer-events-none absolute inset-0 rounded-2xl ring-0 ring-cyan-400/0 group-focus-within:ring-2 group-focus-within:ring-cyan-400/40 transition-all"
+        aria-hidden="true"
+      ></div>
+
+      <!-- Action button appears once the iframe has loaded -->
+      <a
+        href={inviteUrl}
+        target="_blank"
+        rel="noopener noreferrer"
+        class="
+          pointer-events-none absolute bottom-5 left-1/2 z-10
+          w-[calc(100%-3rem)] max-w-[260px] -translate-x-1/2
+          rounded-full bg-cyan-500/15 px-4 py-2 text-center text-sm font-semibold uppercase tracking-wide text-cyan-100
+          shadow-lg ring-1 ring-cyan-500/30 backdrop-blur transition-all duration-300 ease-out
+          translate-y-3 opacity-0
+          group-data-[loaded]:pointer-events-auto group-data-[loaded]:translate-y-0 group-data-[loaded]:opacity-100
+        "
+      >
+        {fallbackText}
+      </a>
 
       <!-- noscript fallback -->
       <noscript>
         <a
           href={inviteUrl}
           target="_blank" rel="noopener noreferrer"
-          class="absolute inset-0 flex items-center justify-center text-cyan-400 underline"
+          class="absolute inset-0 flex items-center justify-center bg-[color:var(--sl-color-bg)] text-cyan-400 underline"
         >
           {fallbackText}
         </a>
       </noscript>
-
-      <!-- Focus ring for accessibility when wrapper is focused via JS or container link -->
-      <div class="pointer-events-none absolute inset-0 rounded-2xl ring-0 ring-cyan-400/0 group-focus-within:ring-2 group-focus-within:ring-cyan-400/40 transition-all" aria-hidden="true"></div>
     </div>
   </div>
 </div>
-
-<style>
-/* Hide skeleton once an iframe reports loaded */
-[data-discord-embed][data-loaded] .animate-pulse {
-  display: none;
-}
-</style>
