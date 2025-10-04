@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: kbve-hyperlane
-        image: kbve/kbve-hyperlane:1.2.2
+        image: kbve/kbve-hyperlane:1.2.3
         ports:
         - containerPort: 3000
           protocol: TCP
