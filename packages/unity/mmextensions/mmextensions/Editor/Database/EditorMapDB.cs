@@ -144,22 +144,6 @@ namespace KBVE.MMExtensions.Database
             // Create new GameObject
             GameObject go = new GameObject(resource.name);
 
-            // Add SpriteRenderer
-            var renderer = go.AddComponent<SpriteRenderer>();
-            renderer.sprite = sprite;
-            
-            // Set sorting layer
-            if (SortingLayerExists(resource.sortingLayer))
-            {
-                renderer.sortingLayerName = resource.sortingLayer;
-            }
-            else
-            {
-                Debug.LogWarning($"Sorting layer '{resource.sortingLayer}' not found. Defaulting to 'Foreground'.");
-                renderer.sortingLayerName = "Foreground";
-            }
-            renderer.sortingOrder = resource.sortingOrderOffset;
-
             var spriteRendererAuthoring = go.AddComponent<NSprites.SpriteRendererAuthoring>();
             spriteRendererAuthoring.Sprite = sprite;
             //spriteRendererAuthoring.RegisterSpriteData.SpriteRenderData.Material = "";
@@ -261,7 +245,8 @@ namespace KBVE.MMExtensions.Database
             public float pivotX = 0.5f;
             public float pivotY = 0.5f;
             public string sortingLayer = "Foreground";
-            public int sortingOrderOffset = 0;
+            public int sortingIndex = 0;
+            public bool staticStoring = true;
             public int amount;
             public int maxAmount;
             public int harvestYield;
