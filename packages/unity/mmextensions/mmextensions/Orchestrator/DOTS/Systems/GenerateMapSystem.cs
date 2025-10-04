@@ -17,7 +17,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             public EntityCommandBuffer.ParallelWriter ECB;
             public float2x2 MapSize;
-            [ReadOnly] public NativeArray<Entity> Rocks;
+            [ReadOnly] public NativeArray<Entity> Resources;
             [NativeDisableParallelForRestriction] public NativeArray<Random> PosRands;
             [NativeSetThreadIndex] private int _threadIndex;
 
@@ -26,12 +26,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 for (int i = startIndex; i < startIndex + count; i++)
                 {
                     var rand = PosRands[_threadIndex];
-                    var rockEntity = ECB.Instantiate(i, Rocks[rand.NextInt(0, Rocks.Length)]);
-                    ECB.SetComponent(i, rockEntity, LocalTransform.FromPosition(rand.NextFloat2(MapSize.c0, MapSize.c1).ToFloat3()));
+                    var resourceEntity = ECB.Instantiate(i, Resources[rand.NextInt(0, Resources.Length)]);
+                    ECB.SetComponent(i, resourceEntity, LocalTransform.FromPosition(rand.NextFloat2(MapSize.c0, MapSize.c1).ToFloat3()));
                     PosRands[_threadIndex] = rand;
                 }
             }
         }
+        
         private struct SystemData : IComponentData
         {
             public Random Rand;
@@ -50,6 +51,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             if (!SystemAPI.TryGetSingleton<MapSettings>(out var mapSettings))
                 return;
 
+            // Check if we have resources to spawn
+            if (mapSettings.resourceCollectionLink == Entity.Null || mapSettings.resourceCount <= 0)
+            {
+                state.Enabled = false;
+                return;
+            }
+
             var systemData = SystemAPI.GetComponent<SystemData>(state.SystemHandle);
             var posRands = new NativeArray<Random>(JobsUtility.MaxJobThreadCount, Allocator.TempJob);
             for (int i = 0; i < posRands.Length; i++)
@@ -60,9 +68,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 ECB = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
                 MapSize = mapSettings.size,
                 PosRands = posRands,
-                Rocks = state.EntityManager.GetBuffer<PrefabLink>(mapSettings.rockCollectionLink).Reinterpret<Entity>().AsNativeArray()
+                Resources = state.EntityManager.GetBuffer<PrefabLink>(mapSettings.resourceCollectionLink).Reinterpret<Entity>().AsNativeArray()
             };
-            state.Dependency = generateMapJob.ScheduleBatch(mapSettings.rockCount, 32, state.Dependency);
+            state.Dependency = generateMapJob.ScheduleBatch(mapSettings.resourceCount, 32, state.Dependency);
             _ = posRands.Dispose(state.Dependency);
 
             SystemAPI.SetComponent(state.SystemHandle, systemData);
