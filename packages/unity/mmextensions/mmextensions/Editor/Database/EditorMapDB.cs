@@ -56,8 +56,8 @@ namespace KBVE.MMExtensions.Database
             }
 
             var wrapper = JsonConvert.DeserializeObject<ResourceListWrapper>(request.downloadHandler.text);
-            
-            if (wrapper?.resources == null || wrapper.resources.Count == 0)
+
+            if (wrapper == null || wrapper.Items == null || wrapper.Items.Count == 0)
             {
                 Debug.LogWarning("No resources found in MapDB response.");
                 yield break;
@@ -66,9 +66,8 @@ namespace KBVE.MMExtensions.Database
             Directory.CreateDirectory(SpriteFolder);
             Directory.CreateDirectory(PrefabFolder);
 
-            Debug.Log($"Processing {wrapper.resources.Count} resources...");
-
-            foreach (var resource in wrapper.resources)
+            Debug.Log($"Processing {wrapper.Items.Count} resources...");
+            foreach (var resource in wrapper.Items)
             {
                 yield return ProcessResource(resource, baseImageUrl);
             }
@@ -110,10 +109,31 @@ namespace KBVE.MMExtensions.Database
             {
                 importer.textureType = TextureImporterType.Sprite;
                 importer.spriteImportMode = SpriteImportMode.Single;
+                
+                // Pixels per unit
                 importer.spritePixelsPerUnit = resource.pixelsPerUnit > 0 ? resource.pixelsPerUnit : 16;
+                
+                // Mesh type (FullRect | Tight) from schema
+                //importer.spriteMeshType = ParseSpriteMeshType(resource.meshType);
+                var settings = new TextureImporterSettings();
+                importer.ReadTextureSettings(settings);
+                settings.spriteMeshType = ParseSpriteMeshType(resource.meshType);
+                importer.SetTextureSettings(settings);
+
+                // Extrude edges (pixels) from schema (default 1)
+                importer.spriteExtrude = Mathf.Max(0, resource.extrudeEdges);
+
+                // Wrap Mode
+                importer.wrapMode = ParseWrapMode(resource.wrapMode);
+
+
+                importer.spriteAlignment = ParseSpriteAlignment(resource.pivot);
+                if (importer.spriteAlignment == (int)SpriteAlignment.Custom)
+                    importer.spritePivot = new Vector2(resource.pivotX, resource.pivotY);
+
                 importer.mipmapEnabled = false;
                 importer.alphaIsTransparency = true;
-                importer.spritePivot = new Vector2(resource.pivotX, resource.pivotY);
+                //importer.spritePivot = new Vector2(resource.pivotX, resource.pivotY);
                 importer.filterMode = FilterMode.Point; // Pixel-perfect rendering
                 importer.textureCompression = TextureImporterCompression.Uncompressed;
                 importer.SaveAndReimport();
@@ -214,6 +234,56 @@ namespace KBVE.MMExtensions.Database
             };
         }
 
+        // Parse Sprite Mesh Type
+        private static SpriteMeshType ParseSpriteMeshType(string meshType)
+        {
+            if (string.IsNullOrEmpty(meshType))
+                return SpriteMeshType.FullRect;
+
+            switch (meshType.Trim().ToLowerInvariant())
+            {
+                case "tight":    return SpriteMeshType.Tight;
+                case "fullrect": return SpriteMeshType.FullRect;
+                default:         return SpriteMeshType.FullRect;
+            }
+        }
+        // Helper function for Sprite Alignment
+
+        private static SpriteAlignment ParseSpriteAlignment(string pivot)
+        {
+            if (string.IsNullOrEmpty(pivot)) return SpriteAlignment.Center;
+
+            switch (pivot.ToLowerInvariant())
+            {
+                case "topleft": return SpriteAlignment.TopLeft;
+                case "top": return SpriteAlignment.TopCenter;
+                case "topright": return SpriteAlignment.TopRight;
+                case "left": return SpriteAlignment.LeftCenter;
+                case "center": return SpriteAlignment.Center;
+                case "right": return SpriteAlignment.RightCenter;
+                case "bottomleft": return SpriteAlignment.BottomLeft;
+                case "bottom": return SpriteAlignment.BottomCenter;
+                case "bottomright": return SpriteAlignment.BottomRight;
+                case "custom": return SpriteAlignment.Custom;
+                default: return SpriteAlignment.Center;
+            }
+        }
+
+        private static TextureWrapMode ParseWrapMode(string wrap)
+        {
+            if (string.IsNullOrEmpty(wrap)) return TextureWrapMode.Clamp;
+
+            switch (wrap.Trim().ToLowerInvariant())
+            {
+                case "repeat":      return TextureWrapMode.Repeat;
+                case "clamp":       return TextureWrapMode.Clamp;
+                case "mirror":      return TextureWrapMode.Mirror;
+                case "mirroronce":  return TextureWrapMode.MirrorOnce;
+                default:            return TextureWrapMode.Clamp;
+            }
+        }
+
+
         private static bool SortingLayerExists(string name)
         {
             if (string.IsNullOrEmpty(name))
@@ -244,8 +314,15 @@ namespace KBVE.MMExtensions.Database
         [System.Serializable]
         public class ResourceListWrapper
         {
+            // Legacy payload
             public List<ResourceEntry> resources;
+            // New payload (your current JSON)
+            public List<ResourceEntry> mapObjects;
+
             public Dictionary<string, int> index;
+
+            [Newtonsoft.Json.JsonIgnore]
+            public List<ResourceEntry> Items => mapObjects ?? resources ?? new List<ResourceEntry>();
         }
 
         [System.Serializable]
@@ -260,8 +337,12 @@ namespace KBVE.MMExtensions.Database
             public string resourceType;
             public string imagePath;
             public int pixelsPerUnit = 16;
+            public string pivot = "Center";
             public float pivotX = 0.5f;
-            public float pivotY = 0.5f;
+            public float pivotY = 0.5f;            
+            public string meshType = "FullRect";   // Added — matches SpriteMeshTypeEnum
+            public int extrudeEdges = 1;           // Added — pixel extrusion for sprite edges
+            public string wrapMode = "Clamp";      // Added — matches TextureWrapModeEnum
             public string sortingLayer = "Foreground";
             public int sortingIndex = 0;
             public bool staticSorting = false;
