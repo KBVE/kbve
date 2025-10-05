@@ -59,8 +59,37 @@ const ReactTwitchChat: React.FC<ReactTwitchChatProps> = ({
   }, [autosize]);
 
   useEffect(() => {
-    // Determine parent domain
-    const parentDomain = typeof window !== 'undefined' ? window.location.hostname : 'localhost';
+    // Get all parent domains
+    const getParentDomains = (): string[] => {
+      if (typeof window === 'undefined') {
+        return ['localhost', 'kbve.com'];
+      }
+
+      const hostname = window.location.hostname;
+      const parents: string[] = [hostname];
+
+      // Add common variations
+      if (hostname === 'localhost' || hostname === '127.0.0.1') {
+        parents.push('localhost', '127.0.0.1');
+      } else {
+        // Add base domain and www variant
+        const isWww = hostname.startsWith('www.');
+        const baseDomain = isWww ? hostname.substring(4) : hostname;
+
+        parents.push(baseDomain);
+        if (!isWww) {
+          parents.push(`www.${baseDomain}`);
+        }
+
+        // Add common subdomains for kbve.com
+        if (baseDomain === 'kbve.com' || hostname.endsWith('.kbve.com')) {
+          parents.push('kbve.com', 'www.kbve.com', 'app.kbve.com', 'dev.kbve.com');
+        }
+      }
+
+      // Remove duplicates
+      return [...new Set(parents)];
+    };
 
     // Resolve theme
     const resolvedTheme = theme === 'auto'
@@ -69,8 +98,13 @@ const ReactTwitchChat: React.FC<ReactTwitchChatProps> = ({
 
     // Build chat URL
     const params = new URLSearchParams({
-      parent: parentDomain,
       darkpopout: (darkpopout || resolvedTheme === 'dark') ? 'true' : 'false'
+    });
+
+    // Add all parent domains
+    const parents = getParentDomains();
+    parents.forEach(parent => {
+      params.append('parent', parent);
     });
 
     setChatUrl(`https://www.twitch.tv/embed/${channel}/chat?${params.toString()}`);
