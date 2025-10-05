@@ -191,15 +191,15 @@ const AuthProcessor = React.memo(() => {
 
 	// Reusable redirect functions
 	const redirectToProfile = useCallback((delay: number = 2000) => {
-		// setTimeout(() => {
-		// 	window.location.href = `${window.location.origin}/profile/`;
-		// }, delay);
+		setTimeout(() => {
+			window.location.href = '/profile';
+		}, delay);
 	}, []);
 
 	const redirectToLogin = useCallback((delay: number = 3000) => {
-		// setTimeout(() => {
-		// 	window.location.href = `${window.location.origin}/login/`;
-		// }, delay);
+		setTimeout(() => {
+			window.location.href = '/login';
+		}, delay);
 	}, []);
 
 	// Primary OAuth callback processing
@@ -386,6 +386,14 @@ const AuthProcessor = React.memo(() => {
 			}
 		};
 	}, [handleCallback, fallbackAuthSubscription]);
+
+	// Handle success state - redirect to profile
+	useEffect(() => {
+		if (success) {
+			// Redirect to profile when authentication succeeds
+			redirectToProfile();
+		}
+	}, [success, redirectToProfile]);
 
 	// Handle error state - start fallback sequence
 	useEffect(() => {

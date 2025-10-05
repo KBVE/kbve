@@ -1,5 +1,5 @@
 ---
-import { ReactCallback } from '@kbve/astropad';
+import { ReactCallbackSimple } from '@kbve/astropad';
 ---
 
 <style>
@@ -38,7 +38,7 @@ import { ReactCallback } from '@kbve/astropad';
 	}
 </style>
 
-<section class="py-4 min-h-[600px]">
+<section class="py-4 min-h-[600px]" role="region" aria-label="OAuth authentication callback">
 	<div
 		data-neoglass-panel
 		class="mx-auto max-w-md relative flex flex-col rounded-3xl backdrop-blur-md ring-1
@@ -49,7 +49,9 @@ import { ReactCallback } from '@kbve/astropad';
 		style="
 			background-color: var(--panel-bg);
 			border-color: var(--panel-border);
-		">
+		"
+		role="main"
+		aria-live="polite">
 		<!-- Inner Block with Enhanced Glow -->
 		<div
 			data-neoglass-glow
@@ -67,11 +69,15 @@ import { ReactCallback } from '@kbve/astropad';
 			<!-- Skeleton Loader -->
 			<div
 				data-skeleton="callback"
-				class="flex flex-col items-center justify-center min-h-[200px]">
+				class="flex flex-col items-center justify-center min-h-[200px]"
+				role="status"
+				aria-live="polite"
+				aria-busy="true">
 				<div
 					class="w-12 h-12 border-4 border-transparent rounded-full mb-4 animate-spin
             bg-gradient-to-r from-cyan-500 via-blue-500 to-purple-500 bg-clip-border
             relative overflow-hidden"
+					aria-hidden="true"
 					style="
               background: linear-gradient(90deg, var(--sl-color-accent), var(--sl-color-white), var(--sl-color-accent));
               background-size: 200% 100%;
@@ -82,17 +88,18 @@ import { ReactCallback } from '@kbve/astropad';
 						style="background-color: var(--panel-bg);">
 					</div>
 				</div>
-				<div class="text-lg font-semibold mb-2" style="color: var(--sl-color-white);">
+				<div class="text-lg font-semibold mb-2" style="color: var(--sl-color-white);" id="callback-status">
 					Processing OAuth callback...
 				</div>
-				<div class="text-sm opacity-60" style="color: var(--sl-color-white);">
+				<div class="text-sm opacity-60" style="color: var(--sl-color-white);" aria-describedby="callback-status">
 					Please wait while we complete your authentication.
 				</div>
+				<span class="sr-only">Loading authentication callback</span>
 			</div>
 
 			<!-- React Component Container -->
 			<div class="flex-1">
-				<ReactCallback client:only="react" />
+				<ReactCallbackSimple client:only="react" />
 			</div>
 		</div>
 	</div>

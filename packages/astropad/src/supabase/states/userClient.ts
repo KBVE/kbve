@@ -165,6 +165,7 @@ class UserClientService {
 
   /**
    * Fetch and sync user balance from Supabase
+   * NOTE: Temporarily disabled - RPC function removed from backend
    */
   public async syncUserBalance(identifier: string, useCache = true): Promise<void> {
     if (!identifier) {
@@ -172,6 +173,9 @@ class UserClientService {
       return;
     }
 
+    // TODO: Re-enable when get_user_balance_context RPC is restored
+    // Commenting out to prevent CORS errors blocking auth flow
+    /*
     try {
       const { data, error } = await supabase.rpc('get_user_balance_context', {
         p_identifier: identifier,
@@ -188,6 +192,10 @@ class UserClientService {
       console.error('[syncUserBalance] Error:', error.message);
       this.userBalanceAtom.set(undefined);
     }
+    */
+
+    // Set to undefined for now
+    this.userBalanceAtom.set(undefined);
   }
 
   /**
@@ -274,8 +282,10 @@ class UserClientService {
    */
   private async doInitialize(): Promise<void> {
     await this.syncSupabaseUser();
-    
+
     // Auto-sync balance if user is logged in
+    // TODO: Re-enable when get_user_balance_context RPC is restored
+    /*
     const user = this.userAtom.get();
     if (user) {
       const identifier = this.usernameAtom.get() || user.email || user.id;
@@ -283,6 +293,7 @@ class UserClientService {
         await this.syncUserBalance(identifier);
       }
     }
+    */
   }
 
   /**
