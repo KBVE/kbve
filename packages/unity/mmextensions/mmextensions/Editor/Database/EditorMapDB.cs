@@ -132,41 +132,59 @@ namespace KBVE.MMExtensions.Database
 
         private static void CreateOrUpdateResourcePrefab(ResourceEntry resource, Sprite sprite)
         {
-            string prefabPath = $"{PrefabFolder}{resource.id}.prefab";
-            
-            // Delete old prefab if exists (for clean update)
+            //string prefabPath = $"{PrefabFolder}{resource.id}.prefab";
+            string sanitizedName = resource.name.ToLower().Replace(" ", "-");
+            string prefabPath = $"{PrefabFolder}{sanitizedName}.prefab";
+    
             if (File.Exists(prefabPath))
             {
                 AssetDatabase.DeleteAsset(prefabPath);
                 Debug.Log($"Deleted old prefab: {prefabPath}");
             }
 
-            // Create new GameObject
-            GameObject go = new GameObject(resource.name);
+            // Load and instantiate template
+            GameObject template = AssetDatabase.LoadAssetAtPath<GameObject>($"{TemplateFolder}ResourceTemplate.prefab");
+            if (template == null)
+            {
+                Debug.LogError("ResourceTemplate.prefab not found at: " + TemplateFolder + "ResourceTemplate.prefab");
+                Debug.LogError("Create a template prefab with SpriteRendererAuthoring and ResourceAuthoring configured.");
+                return;
+            }
+            
+            GameObject go = GameObject.Instantiate(template);
+            go.name = resource.name;
+            
+            // Update NSprites sprite and sorting
+            var spriteRendererAuthoring = go.GetComponent<SpriteRendererAuthoring>();
+            if (spriteRendererAuthoring != null)
+            {
+                spriteRendererAuthoring.Sprite = sprite;
+                spriteRendererAuthoring.Sorting.SortingLayer = GetSortingLayerID(resource.sortingLayer);
+                spriteRendererAuthoring.Sorting.SortingIndex = resource.sortingIndex;
+                spriteRendererAuthoring.Sorting.StaticSorting = resource.staticSorting;
+            }
+            else
+            {
+                Debug.LogWarning($"Template missing SpriteRendererAuthoring component for {resource.name}");
+            }
 
-            var spriteRendererAuthoring = go.AddComponent<NSprites.SpriteRendererAuthoring>();
-            spriteRendererAuthoring.Sprite = sprite;
-            //spriteRendererAuthoring.RegisterSpriteData.SpriteRenderData.Material = "";
-            //spriteRendererAuthoring.RegisterSpriteData.SpriteRenderData.PropertiesSet = "";
-            // spriteRendererAuthoring.Sorting.SortingLayer = 0;
-            spriteRendererAuthoring.Sorting.SortingIndex = 0;
-            spriteRendererAuthoring.Sorting.StaticSorting = false;
-
-
-            // Add ResourceAuthoring component
-            var resourceAuthoring = go.AddComponent<ResourceAuthoring>();
-            resourceAuthoring.ResourceULID = resource.id;
-            resourceAuthoring.Type = ParseResourceType(resource.resourceType);
-            resourceAuthoring.Amount = resource.amount;
-            resourceAuthoring.MaxAmount = resource.maxAmount;
-            resourceAuthoring.HarvestYield = resource.harvestYield;
-            resourceAuthoring.HarvestTime = resource.harvestTime;
-            resourceAuthoring.IsHarvestable = resource.isHarvestable;
-            resourceAuthoring.IsDepleted = resource.isDepleted;
-
-            // Add collider for interaction (optional, adjust as needed)
-            var collider = go.AddComponent<BoxCollider2D>();
-            collider.isTrigger = false; // Resources are solid objects
+            // Update ResourceAuthoring
+            var resourceAuthoring = go.GetComponent<ResourceAuthoring>();
+            if (resourceAuthoring != null)
+            {
+                resourceAuthoring.ResourceULID = resource.id;
+                resourceAuthoring.Type = ParseResourceType(resource.resourceType);
+                resourceAuthoring.Amount = resource.amount;
+                resourceAuthoring.MaxAmount = resource.maxAmount;
+                resourceAuthoring.HarvestYield = resource.harvestYield;
+                resourceAuthoring.HarvestTime = resource.harvestTime;
+                resourceAuthoring.IsHarvestable = resource.isHarvestable;
+                resourceAuthoring.IsDepleted = resource.isDepleted;
+            }
+            else
+            {
+                Debug.LogWarning($"Template missing ResourceAuthoring component for {resource.name}");
+            }
             
             // Save as prefab
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
@@ -201,14 +219,14 @@ namespace KBVE.MMExtensions.Database
             if (string.IsNullOrEmpty(name))
                 return false;
 
-        #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
             var layers = UnityEngine.SortingLayer.layers;
             foreach (var layer in layers)
             {
                 if (layer.name == name)
                     return true;
             }
-        #else
+#else
             // Fallback for older Unity versions
             System.Type sortingLayerType = typeof(UnityEditorInternal.InternalEditorUtility);
             var sortingLayersProperty = sortingLayerType.GetProperty("sortingLayerNames", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
@@ -218,7 +236,7 @@ namespace KBVE.MMExtensions.Database
                 if (layer == name)
                     return true;
             }
-        #endif
+#endif
             return false;
         }
         // === JSON Structures ===
@@ -246,7 +264,7 @@ namespace KBVE.MMExtensions.Database
             public float pivotY = 0.5f;
             public string sortingLayer = "Foreground";
             public int sortingIndex = 0;
-            public bool staticStoring = true;
+            public bool staticSorting = false;
             public int amount;
             public int maxAmount;
             public int harvestYield;
@@ -295,17 +313,70 @@ namespace KBVE.MMExtensions.Database
             public int count;
         }
 
-        private static int GetSortingIndexForLayer(string layerName)
+        // private static int GetSortingIndexForLayer(string layerName)
+        // {
+        //     return layerName switch
+        //     {
+        //         "Default" => 0,
+        //         "Background" => 1,
+        //         "Ground" => 2,
+        //         "Foreground" => 3,
+        //         _ => 0
+        //     };
+        // }
+
+        private static int GetSortingLayerID(string layerName)
         {
-            return layerName switch
+            if (string.IsNullOrEmpty(layerName))
+                return 0;
+
+            try
             {
-                "Default" => 0,
-                "Background" => 1,
-                "Ground" => 2,
-                "Foreground" => 3,
-                _ => 0
-            };
+                // Try modern public API first (Unity 2021+)
+                var nameToID = typeof(UnityEngine.SortingLayer).GetMethod(
+                    "NameToID",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public
+                );
+                if (nameToID != null)
+                {
+                    int id = (int)nameToID.Invoke(null, new object[] { layerName });
+                    if (id != 0)
+                        return id;
+                }
+
+                // Fallback for older Unity (access internal editor data)
+                var internalUtil = typeof(UnityEditorInternal.InternalEditorUtility);
+                var sortingLayerNamesProp = internalUtil.GetProperty(
+                    "sortingLayerNames",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic
+                );
+                var sortingLayerUniqueIDsProp = internalUtil.GetProperty(
+                    "sortingLayerUniqueIDs",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic
+                );
+
+                if (sortingLayerNamesProp != null && sortingLayerUniqueIDsProp != null)
+                {
+                    string[] names = (string[])sortingLayerNamesProp.GetValue(null);
+                    int[] ids = (int[])sortingLayerUniqueIDsProp.GetValue(null);
+                    for (int i = 0; i < names.Length; i++)
+                    {
+                        if (names[i] == layerName)
+                            return ids[i];
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"GetSortingLayerID failed: {ex.Message}");
+            }
+
+            Debug.LogWarning($"Sorting layer '{layerName}' not found, using Default.");
+            return 0;
         }
+
+
+
     }
 }
 #endif
