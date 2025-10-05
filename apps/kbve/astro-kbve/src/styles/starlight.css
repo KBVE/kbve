@@ -204,6 +204,7 @@ starlight-tabs [role="tabpanel"] {
   background: var(--sl-color-bg);
 }
 
+/* Active Panel */
 starlight-tabs [role="tabpanel"]:not([hidden]) {
   background: color-mix(in oklab, var(--sl-color-bg) 80%, var(--sl-color-accent-low) 20%);
   backdrop-filter: blur(12px) saturate(1.2);
@@ -211,6 +212,18 @@ starlight-tabs [role="tabpanel"]:not([hidden]) {
   box-shadow: 0 0 12px -4px color-mix(in oklab, var(--sl-color-accent) 35%, transparent);
   opacity: 0.96;
   transition: all 0.25s ease;
+}
+
+/* Top accent bar */
+starlight-tabs [role="tabpanel"]:not([hidden])::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;  /* full-width top */
+  height: 2px;
+  background: var(--sl-color-accent);
+  opacity: .6;           /* bump to .8 for stronger color */
+  border-top-left-radius: inherit;
+  border-top-right-radius: inherit;
 }
 
 /* Prefers-reduced-motion */
