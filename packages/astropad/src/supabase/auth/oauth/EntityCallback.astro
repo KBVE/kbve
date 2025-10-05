@@ -1,5 +1,5 @@
 ---
-import { ReactCallback } from '@kbve/astropad';
+import { ReactCallbackSimple } from '@kbve/astropad';
 ---
 
 <style>
@@ -92,7 +92,7 @@ import { ReactCallback } from '@kbve/astropad';
 
 			<!-- React Component Container -->
 			<div class="flex-1">
-				<ReactCallback client:only="react" />
+				<ReactCallbackSimple client:only="react" />
 			</div>
 		</div>
 	</div>
