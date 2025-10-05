@@ -6,6 +6,8 @@ metadata:
     annotations:
         cert-manager.io/cluster-issuer: letsencrypt-http
         nginx.ingress.kubernetes.io/backend-protocol: 'HTTP'
+        nginx.ingress.kubernetes.io/proxy-hide-headers: X-Frame-Options
+
 spec:
     ingressClassName: nginx
     tls:
