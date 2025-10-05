@@ -76,13 +76,20 @@ class TwitchService {
       // Autoplay only works when muted (browser policy)
       const canAutoplay = autoplay && muted;
 
+      // Get all possible parent domains
+      const parents = this.getParentDomains();
+
       const params = new URLSearchParams({
         channel: channel,
         theme: resolvedTheme,
-        parent: typeof window !== 'undefined' ? window.location.hostname : 'localhost',
         muted: muted ? 'true' : 'false',
         autoplay: canAutoplay ? 'true' : 'false',
         allowfullscreen: 'true'
+      });
+
+      // Add all parent domains
+      parents.forEach(parent => {
+        params.append('parent', parent);
       });
 
       return `https://player.twitch.tv/?${params.toString()}`;
@@ -96,9 +103,17 @@ class TwitchService {
       if (!channel) return null;
 
       const resolvedTheme = this.resolveTheme(theme);
+
+      // Get all possible parent domains
+      const parents = this.getParentDomains();
+
       const params = new URLSearchParams({
-        parent: typeof window !== 'undefined' ? window.location.hostname : 'localhost',
         darkpopout: resolvedTheme === 'dark' ? 'true' : 'false'
+      });
+
+      // Add all parent domains
+      parents.forEach(parent => {
+        params.append('parent', parent);
       });
 
       return `https://www.twitch.tv/embed/${channel}/chat?${params.toString()}`;
@@ -163,6 +178,40 @@ class TwitchService {
    */
   public toggleFullscreen(): void {
     this.isFullscreenAtom.set(!this.isFullscreenAtom.get());
+  }
+
+  /**
+   * Get all parent domains for Twitch embed
+   */
+  private getParentDomains(): string[] {
+    if (typeof window === 'undefined') {
+      return ['localhost', 'kbve.com'];
+    }
+
+    const hostname = window.location.hostname;
+    const parents: string[] = [hostname];
+
+    // Add common variations
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      parents.push('localhost', '127.0.0.1');
+    } else {
+      // Add base domain and www variant
+      const isWww = hostname.startsWith('www.');
+      const baseDomain = isWww ? hostname.substring(4) : hostname;
+
+      parents.push(baseDomain);
+      if (!isWww) {
+        parents.push(`www.${baseDomain}`);
+      }
+
+      // Add common subdomains for kbve.com
+      if (baseDomain === 'kbve.com' || hostname.endsWith('.kbve.com')) {
+        parents.push('kbve.com', 'www.kbve.com', 'app.kbve.com', 'dev.kbve.com');
+      }
+    }
+
+    // Remove duplicates
+    return [...new Set(parents)];
   }
 
   /**

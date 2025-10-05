@@ -9,3 +9,4 @@ This is the official deployment of the KBVE website + gateways.
 | v1.2.2. | Preparing the next astro build                    |
 | v1.2.3  | Updated footer and navigation bar                 |
 | v1.2.4  | Added updated twitch page                         |
+| v1.2.5  | Added basic chat page                             |
