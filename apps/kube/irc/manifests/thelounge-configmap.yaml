@@ -16,7 +16,7 @@ data:
         name: "KBVE Network",
         host: "ergo-irc-service",
         port: 6667,
-        password: "",
+        password: "-",
         tls: false,
         rejectUnauthorized: false,
         nick: "kbve-user-%%",
