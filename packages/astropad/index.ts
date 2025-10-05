@@ -31,6 +31,8 @@ export { userProfileService } from './src/supabase/users/profile/ServiceUserProf
 export { ReactLogin } from './src/supabase/auth/login/ReactLogin';
 export { ReactOAuth } from './src/supabase/auth/oauth/ReactOAuth';
 export { ReactCallback } from './src/supabase/auth/oauth/ReactCallback';
+export { ReactCallbackProfessional } from './src/supabase/auth/oauth/ReactCallbackProfessional';
+export { ReactCallbackSimple } from './src/supabase/auth/oauth/ReactCallbackSimple';
 export { ReactRegister } from './src/supabase/auth/register/ReactRegister';
 export { ReactLogout } from './src/supabase/auth/logout/ReactLogout';
 export { ReactUserProfile } from './src/supabase/users/profile/ReactUserProfile';
