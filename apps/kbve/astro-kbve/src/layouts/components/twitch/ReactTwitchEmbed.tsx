@@ -11,6 +11,8 @@ export interface ReactTwitchEmbedProps {
   showControls?: boolean;
   autoplay?: boolean;
   muted?: boolean;
+  height?: number | string;
+  autosize?: boolean;
 }
 
 const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
@@ -22,6 +24,8 @@ const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
   showControls = true,
   autoplay = false,
   muted = true,
+  height,
+  autosize = false,
 }) => {
   const containerRef = useRef<HTMLDivElement | null>(null);
   const streamFrameRef = useRef<HTMLIFrameElement | null>(null);
@@ -35,10 +39,10 @@ const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
   const isMuted = useStore(twitchService.mutedAtom);
   const isFullscreen = useStore(twitchService.isFullscreenAtom);
 
-  const [isVisible, setIsVisible] = useState(false);
   const [streamLoaded, setStreamLoaded] = useState(false);
   const [chatLoaded, setChatLoaded] = useState(false);
   const [activeTheme, setActiveTheme] = useState<'dark' | 'light'>('dark');
+
 
   // Initialize service on mount
   useEffect(() => {
@@ -84,34 +88,6 @@ const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
     }
   }, [streamLoaded, chatLoaded, type]);
 
-  // Intersection observer for lazy loading
-  useEffect(() => {
-    if (typeof window === 'undefined') return;
-
-    const container = containerRef.current;
-    if (!container) return;
-
-    if (!('IntersectionObserver' in window)) {
-      setIsVisible(true);
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries.some((entry) => entry.isIntersecting)) {
-          setIsVisible(true);
-          observer.disconnect();
-        }
-      },
-      { threshold: 0.1 }
-    );
-
-    observer.observe(container);
-
-    return () => {
-      observer.disconnect();
-    };
-  }, []);
 
   // Handle stream load
   const handleStreamLoad = useCallback(() => {
@@ -151,7 +127,7 @@ const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
     if (!showControls || type === 'chat') return null;
 
     return (
-      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 z-10 pointer-events-none">
+      <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/80 to-transparent p-4 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none">
         <div className="flex items-center justify-between pointer-events-auto">
           <div className="flex items-center gap-2">
             {/* Mute Toggle */}
@@ -227,26 +203,19 @@ const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
   }
 
   return (
-    <div ref={containerRef} className="relative h-full w-full flex group">
-      {isVisible ? (
-        <>
-          {/* Stream Embed */}
-          {(type === 'stream' || type === 'both') && embedUrl && (
-            <div className={`${type === 'both' && chatEnabled ? 'flex-1' : 'w-full'} relative overflow-hidden isolate`}>
+    <div ref={containerRef} className="relative w-full h-full flex group">
+      <>
+        {/* Stream Embed */}
+        {(type === 'stream' || type === 'both') && embedUrl && (
+            <div className={`${type === 'both' && chatEnabled ? 'flex-1' : 'w-full'} relative h-full`}>
               <iframe
                 ref={streamFrameRef}
                 src={embedUrl}
                 title={`${title} - Twitch stream`}
-                className={`absolute inset-0 w-full h-full border-0 ${frameClassName || (type === 'both' ? 'rounded-l-2xl' : 'rounded-2xl')}`}
+                className={`w-full h-full border-0 ${frameClassName || (type === 'both' ? 'rounded-l-2xl' : 'rounded-2xl')}`}
                 allowFullScreen
-                loading="lazy"
                 sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox allow-presentation"
                 onLoad={handleStreamLoad}
-                style={{
-                  opacity: streamLoaded ? 1 : 0,
-                  transition: 'opacity 0.5s ease-out',
-                  zIndex: 1,
-                }}
               />
               {renderControls()}
             </div>
@@ -254,20 +223,15 @@ const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
 
           {/* Chat Embed */}
           {type === 'both' && chatEnabled && chatUrl && (
-            <div className="w-[340px] relative overflow-hidden flex-shrink-0 isolate" style={{ zIndex: 2 }}>
+            <div className="w-[340px] h-full flex-shrink-0">
               <iframe
                 ref={chatFrameRef}
                 src={chatUrl}
                 title={`${title} - Twitch chat`}
-                className="absolute inset-0 w-full h-full border-0 rounded-r-2xl"
+                className="w-full h-full border-0 rounded-r-2xl"
                 allowFullScreen
-                loading="lazy"
                 sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
                 onLoad={handleChatLoad}
-                style={{
-                  opacity: chatLoaded ? 1 : 0,
-                  transition: 'opacity 0.5s ease-out',
-                }}
               />
             </div>
           )}
@@ -279,21 +243,11 @@ const ReactTwitchEmbed: React.FC<ReactTwitchEmbedProps> = ({
               src={chatUrl}
               title={`${title} - Twitch chat`}
               className={`w-full h-full border-0 ${frameClassName || 'rounded-2xl'}`}
-              loading="lazy"
               sandbox="allow-scripts allow-same-origin allow-popups allow-popups-to-escape-sandbox"
               onLoad={handleChatLoad}
-              style={{
-                opacity: chatLoaded ? 1 : 0,
-                transition: 'opacity 0.5s ease-out',
-              }}
             />
           )}
-        </>
-      ) : (
-        <div className="flex items-center justify-center h-full w-full">
-          <span className="sr-only">Loading Twitch embed...</span>
-        </div>
-      )}
+      </>
     </div>
   );
 };

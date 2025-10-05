@@ -32,6 +32,9 @@ interface Props {
 
   /** Use aspect ratio wrapper. Provide tailwind classes e.g. "aspect-video" or "aspect-[16/9]" */
   aspect?: string;
+
+  /** Automatically size to available container space */
+  autosize?: boolean;
 }
 
 const {
@@ -46,6 +49,7 @@ const {
   autoplay = false,
   muted = true,
   aspect = 'aspect-video',
+  autosize = false,
 } = Astro.props;
 
 const inlineStyle = createInlineStyle(width, height, aspect);
@@ -79,15 +83,7 @@ const inlineStyle = createInlineStyle(width, height, aspect);
     display: none;
   }
 
-  /* Smooth transition for loaded state */
-  [data-twitch-embed] .twitch-embed-container {
-    opacity: 0;
-    transition: opacity 0.5s ease-out;
-  }
-
-  [data-twitch-embed][data-loaded] .twitch-embed-container {
-    opacity: 1;
-  }
+  /* Remove opacity transitions that might interfere with chat */
 </style>
 
 <div
@@ -110,7 +106,7 @@ const inlineStyle = createInlineStyle(width, height, aspect);
   >
     <!-- Loading Skeleton -->
     <div
-      class="twitch-skeleton-container absolute inset-0 rounded-2xl overflow-hidden"
+      class="twitch-skeleton-container absolute inset-0 rounded-2xl overflow-hidden pointer-events-none"
       aria-hidden="true"
     >
       <!-- Stream skeleton -->
@@ -192,6 +188,8 @@ const inlineStyle = createInlineStyle(width, height, aspect);
         showControls={showControls}
         autoplay={autoplay}
         muted={muted}
+        height={height}
+        autosize={autosize}
       />
     </div>
   </div>

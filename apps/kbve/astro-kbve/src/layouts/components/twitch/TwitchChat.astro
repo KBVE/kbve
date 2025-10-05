@@ -19,6 +19,9 @@ interface Props {
 
   /** Container styles */
   style?: string;
+
+  /** Automatically size to available container space */
+  autosize?: boolean;
 }
 
 const {
@@ -28,6 +31,7 @@ const {
   darkpopout = true,
   class: className = '',
   style = '',
+  autosize = false,
 } = Astro.props;
 
 const heightValue = typeof height === 'number' ? `${height}px` : height;
@@ -51,14 +55,7 @@ const heightValue = typeof height === 'number' ? `${height}px` : height;
     display: none;
   }
 
-  [data-twitch-chat] .chat-embed-container {
-    opacity: 0;
-    transition: opacity 0.5s ease-out;
-  }
-
-  [data-twitch-chat][data-loaded] .chat-embed-container {
-    opacity: 1;
-  }
+  /* Remove opacity transitions that interfere with chat */
 </style>
 
 <div
@@ -72,7 +69,7 @@ const heightValue = typeof height === 'number' ? `${height}px` : height;
 >
   <!-- Loading Skeleton -->
   <div
-    class="chat-skeleton-container absolute inset-0 rounded-2xl overflow-hidden bg-zinc-900 ring-1 ring-zinc-800"
+    class="chat-skeleton-container absolute inset-0 rounded-2xl overflow-hidden bg-zinc-900 ring-1 ring-zinc-800 pointer-events-none"
     aria-hidden="true"
   >
     <!-- Chat header -->
@@ -118,6 +115,7 @@ const heightValue = typeof height === 'number' ? `${height}px` : height;
       theme={theme}
       height={height}
       darkpopout={darkpopout}
+      autosize={autosize}
     />
   </div>
 </div>
