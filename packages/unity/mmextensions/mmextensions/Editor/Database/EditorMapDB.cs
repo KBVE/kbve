@@ -113,27 +113,29 @@ namespace KBVE.MMExtensions.Database
                 // Pixels per unit
                 importer.spritePixelsPerUnit = resource.pixelsPerUnit > 0 ? resource.pixelsPerUnit : 16;
                 
-                // Mesh type (FullRect | Tight) from schema
-                //importer.spriteMeshType = ParseSpriteMeshType(resource.meshType);
+                   
+                // Get and modify settings
                 var settings = new TextureImporterSettings();
                 importer.ReadTextureSettings(settings);
+
                 settings.spriteMeshType = ParseSpriteMeshType(resource.meshType);
-                importer.SetTextureSettings(settings);
 
                 // Extrude edges (pixels) from schema (default 1)
-                importer.spriteExtrude = Mathf.Max(0, resource.extrudeEdges);
+                settings.spriteExtrude = (uint)Mathf.Max(0, resource.extrudeEdges);
 
-                // Wrap Mode
+                // Sprite alignment
+                settings.spriteAlignment = (int)ParseSpriteAlignment(resource.pivot);
+                if (settings.spriteAlignment == (int)SpriteAlignment.Custom)
+                    settings.spritePivot = new Vector2(resource.pivotX, resource.pivotY);
+                
+                // Apply settings
+                importer.SetTextureSettings(settings);
+
+                // Wrap Mode (this one is directly on importer)
                 importer.wrapMode = ParseWrapMode(resource.wrapMode);
-
-
-                importer.spriteAlignment = ParseSpriteAlignment(resource.pivot);
-                if (importer.spriteAlignment == (int)SpriteAlignment.Custom)
-                    importer.spritePivot = new Vector2(resource.pivotX, resource.pivotY);
 
                 importer.mipmapEnabled = false;
                 importer.alphaIsTransparency = true;
-                //importer.spritePivot = new Vector2(resource.pivotX, resource.pivotY);
                 importer.filterMode = FilterMode.Point; // Pixel-perfect rendering
                 importer.textureCompression = TextureImporterCompression.Uncompressed;
                 importer.SaveAndReimport();
