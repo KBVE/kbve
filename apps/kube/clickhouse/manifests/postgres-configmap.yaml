@@ -12,7 +12,7 @@ data:
           <port>5432</port>
           <database>supabase</database>
           <user_from_env>CLICKHOUSE_POSTGRES_USER</user_from_env>
-          <password_file>/etc/clickhouse-server/secrets/postgres-password</password_file>
+          <password_file>/etc/clickhouse-server/secrets/password</password_file>
         </supabase_postgres>
       </named_collections>
     </yandex>
