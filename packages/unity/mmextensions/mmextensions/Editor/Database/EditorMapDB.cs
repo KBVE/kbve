@@ -56,8 +56,8 @@ namespace KBVE.MMExtensions.Database
             }
 
             var wrapper = JsonConvert.DeserializeObject<ResourceListWrapper>(request.downloadHandler.text);
-            
-            if (wrapper?.resources == null || wrapper.resources.Count == 0)
+
+            if (wrapper == null || wrapper.Items == null || wrapper.Items.Count == 0)
             {
                 Debug.LogWarning("No resources found in MapDB response.");
                 yield break;
@@ -66,9 +66,8 @@ namespace KBVE.MMExtensions.Database
             Directory.CreateDirectory(SpriteFolder);
             Directory.CreateDirectory(PrefabFolder);
 
-            Debug.Log($"Processing {wrapper.resources.Count} resources...");
-
-            foreach (var resource in wrapper.resources)
+            Debug.Log($"Processing {wrapper.Items.Count} resources...");
+            foreach (var resource in wrapper.Items)
             {
                 yield return ProcessResource(resource, baseImageUrl);
             }
@@ -110,10 +109,33 @@ namespace KBVE.MMExtensions.Database
             {
                 importer.textureType = TextureImporterType.Sprite;
                 importer.spriteImportMode = SpriteImportMode.Single;
+                
+                // Pixels per unit
                 importer.spritePixelsPerUnit = resource.pixelsPerUnit > 0 ? resource.pixelsPerUnit : 16;
+                
+                   
+                // Get and modify settings
+                var settings = new TextureImporterSettings();
+                importer.ReadTextureSettings(settings);
+
+                settings.spriteMeshType = ParseSpriteMeshType(resource.meshType);
+
+                // Extrude edges (pixels) from schema (default 1)
+                settings.spriteExtrude = (uint)Mathf.Max(0, resource.extrudeEdges);
+
+                // Sprite alignment
+                settings.spriteAlignment = (int)ParseSpriteAlignment(resource.pivot);
+                if (settings.spriteAlignment == (int)SpriteAlignment.Custom)
+                    settings.spritePivot = new Vector2(resource.pivotX, resource.pivotY);
+                
+                // Apply settings
+                importer.SetTextureSettings(settings);
+
+                // Wrap Mode (this one is directly on importer)
+                importer.wrapMode = ParseWrapMode(resource.wrapMode);
+
                 importer.mipmapEnabled = false;
                 importer.alphaIsTransparency = true;
-                importer.spritePivot = new Vector2(resource.pivotX, resource.pivotY);
                 importer.filterMode = FilterMode.Point; // Pixel-perfect rendering
                 importer.textureCompression = TextureImporterCompression.Uncompressed;
                 importer.SaveAndReimport();
@@ -132,41 +154,59 @@ namespace KBVE.MMExtensions.Database
 
         private static void CreateOrUpdateResourcePrefab(ResourceEntry resource, Sprite sprite)
         {
-            string prefabPath = $"{PrefabFolder}{resource.id}.prefab";
-            
-            // Delete old prefab if exists (for clean update)
+            //string prefabPath = $"{PrefabFolder}{resource.id}.prefab";
+            string sanitizedName = resource.name.ToLower().Replace(" ", "-");
+            string prefabPath = $"{PrefabFolder}{sanitizedName}.prefab";
+    
             if (File.Exists(prefabPath))
             {
                 AssetDatabase.DeleteAsset(prefabPath);
                 Debug.Log($"Deleted old prefab: {prefabPath}");
             }
 
-            // Create new GameObject
-            GameObject go = new GameObject(resource.name);
+            // Load and instantiate template
+            GameObject template = AssetDatabase.LoadAssetAtPath<GameObject>($"{TemplateFolder}ResourceTemplate.prefab");
+            if (template == null)
+            {
+                Debug.LogError("ResourceTemplate.prefab not found at: " + TemplateFolder + "ResourceTemplate.prefab");
+                Debug.LogError("Create a template prefab with SpriteRendererAuthoring and ResourceAuthoring configured.");
+                return;
+            }
+            
+            GameObject go = GameObject.Instantiate(template);
+            go.name = resource.name;
+            
+            // Update NSprites sprite and sorting
+            var spriteRendererAuthoring = go.GetComponent<SpriteRendererAuthoring>();
+            if (spriteRendererAuthoring != null)
+            {
+                spriteRendererAuthoring.Sprite = sprite;
+                spriteRendererAuthoring.Sorting.SortingLayer = GetSortingLayerID(resource.sortingLayer);
+                spriteRendererAuthoring.Sorting.SortingIndex = resource.sortingIndex;
+                spriteRendererAuthoring.Sorting.StaticSorting = resource.staticSorting;
+            }
+            else
+            {
+                Debug.LogWarning($"Template missing SpriteRendererAuthoring component for {resource.name}");
+            }
 
-            var spriteRendererAuthoring = go.AddComponent<NSprites.SpriteRendererAuthoring>();
-            spriteRendererAuthoring.Sprite = sprite;
-            //spriteRendererAuthoring.RegisterSpriteData.SpriteRenderData.Material = "";
-            //spriteRendererAuthoring.RegisterSpriteData.SpriteRenderData.PropertiesSet = "";
-            // spriteRendererAuthoring.Sorting.SortingLayer = 0;
-            spriteRendererAuthoring.Sorting.SortingIndex = 0;
-            spriteRendererAuthoring.Sorting.StaticSorting = false;
-
-
-            // Add ResourceAuthoring component
-            var resourceAuthoring = go.AddComponent<ResourceAuthoring>();
-            resourceAuthoring.ResourceULID = resource.id;
-            resourceAuthoring.Type = ParseResourceType(resource.resourceType);
-            resourceAuthoring.Amount = resource.amount;
-            resourceAuthoring.MaxAmount = resource.maxAmount;
-            resourceAuthoring.HarvestYield = resource.harvestYield;
-            resourceAuthoring.HarvestTime = resource.harvestTime;
-            resourceAuthoring.IsHarvestable = resource.isHarvestable;
-            resourceAuthoring.IsDepleted = resource.isDepleted;
-
-            // Add collider for interaction (optional, adjust as needed)
-            var collider = go.AddComponent<BoxCollider2D>();
-            collider.isTrigger = false; // Resources are solid objects
+            // Update ResourceAuthoring
+            var resourceAuthoring = go.GetComponent<ResourceAuthoring>();
+            if (resourceAuthoring != null)
+            {
+                resourceAuthoring.ResourceULID = resource.id;
+                resourceAuthoring.Type = ParseResourceType(resource.resourceType);
+                resourceAuthoring.Amount = resource.amount;
+                resourceAuthoring.MaxAmount = resource.maxAmount;
+                resourceAuthoring.HarvestYield = resource.harvestYield;
+                resourceAuthoring.HarvestTime = resource.harvestTime;
+                resourceAuthoring.IsHarvestable = resource.isHarvestable;
+                resourceAuthoring.IsDepleted = resource.isDepleted;
+            }
+            else
+            {
+                Debug.LogWarning($"Template missing ResourceAuthoring component for {resource.name}");
+            }
             
             // Save as prefab
             GameObject prefab = PrefabUtility.SaveAsPrefabAsset(go, prefabPath);
@@ -196,19 +236,69 @@ namespace KBVE.MMExtensions.Database
             };
         }
 
+        // Parse Sprite Mesh Type
+        private static SpriteMeshType ParseSpriteMeshType(string meshType)
+        {
+            if (string.IsNullOrEmpty(meshType))
+                return SpriteMeshType.FullRect;
+
+            switch (meshType.Trim().ToLowerInvariant())
+            {
+                case "tight":    return SpriteMeshType.Tight;
+                case "fullrect": return SpriteMeshType.FullRect;
+                default:         return SpriteMeshType.FullRect;
+            }
+        }
+        // Helper function for Sprite Alignment
+
+        private static SpriteAlignment ParseSpriteAlignment(string pivot)
+        {
+            if (string.IsNullOrEmpty(pivot)) return SpriteAlignment.Center;
+
+            switch (pivot.ToLowerInvariant())
+            {
+                case "topleft": return SpriteAlignment.TopLeft;
+                case "top": return SpriteAlignment.TopCenter;
+                case "topright": return SpriteAlignment.TopRight;
+                case "left": return SpriteAlignment.LeftCenter;
+                case "center": return SpriteAlignment.Center;
+                case "right": return SpriteAlignment.RightCenter;
+                case "bottomleft": return SpriteAlignment.BottomLeft;
+                case "bottom": return SpriteAlignment.BottomCenter;
+                case "bottomright": return SpriteAlignment.BottomRight;
+                case "custom": return SpriteAlignment.Custom;
+                default: return SpriteAlignment.Center;
+            }
+        }
+
+        private static TextureWrapMode ParseWrapMode(string wrap)
+        {
+            if (string.IsNullOrEmpty(wrap)) return TextureWrapMode.Clamp;
+
+            switch (wrap.Trim().ToLowerInvariant())
+            {
+                case "repeat":      return TextureWrapMode.Repeat;
+                case "clamp":       return TextureWrapMode.Clamp;
+                case "mirror":      return TextureWrapMode.Mirror;
+                case "mirroronce":  return TextureWrapMode.MirrorOnce;
+                default:            return TextureWrapMode.Clamp;
+            }
+        }
+
+
         private static bool SortingLayerExists(string name)
         {
             if (string.IsNullOrEmpty(name))
                 return false;
 
-        #if UNITY_2022_1_OR_NEWER
+#if UNITY_2022_1_OR_NEWER
             var layers = UnityEngine.SortingLayer.layers;
             foreach (var layer in layers)
             {
                 if (layer.name == name)
                     return true;
             }
-        #else
+#else
             // Fallback for older Unity versions
             System.Type sortingLayerType = typeof(UnityEditorInternal.InternalEditorUtility);
             var sortingLayersProperty = sortingLayerType.GetProperty("sortingLayerNames", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic);
@@ -218,7 +308,7 @@ namespace KBVE.MMExtensions.Database
                 if (layer == name)
                     return true;
             }
-        #endif
+#endif
             return false;
         }
         // === JSON Structures ===
@@ -226,8 +316,15 @@ namespace KBVE.MMExtensions.Database
         [System.Serializable]
         public class ResourceListWrapper
         {
+            // Legacy payload
             public List<ResourceEntry> resources;
+            // New payload (your current JSON)
+            public List<ResourceEntry> mapObjects;
+
             public Dictionary<string, int> index;
+
+            [Newtonsoft.Json.JsonIgnore]
+            public List<ResourceEntry> Items => mapObjects ?? resources ?? new List<ResourceEntry>();
         }
 
         [System.Serializable]
@@ -242,11 +339,15 @@ namespace KBVE.MMExtensions.Database
             public string resourceType;
             public string imagePath;
             public int pixelsPerUnit = 16;
+            public string pivot = "Center";
             public float pivotX = 0.5f;
-            public float pivotY = 0.5f;
+            public float pivotY = 0.5f;            
+            public string meshType = "FullRect";   // Added — matches SpriteMeshTypeEnum
+            public int extrudeEdges = 1;           // Added — pixel extrusion for sprite edges
+            public string wrapMode = "Clamp";      // Added — matches TextureWrapModeEnum
             public string sortingLayer = "Foreground";
             public int sortingIndex = 0;
-            public bool staticStoring = true;
+            public bool staticSorting = false;
             public int amount;
             public int maxAmount;
             public int harvestYield;
@@ -295,17 +396,70 @@ namespace KBVE.MMExtensions.Database
             public int count;
         }
 
-        private static int GetSortingIndexForLayer(string layerName)
+        // private static int GetSortingIndexForLayer(string layerName)
+        // {
+        //     return layerName switch
+        //     {
+        //         "Default" => 0,
+        //         "Background" => 1,
+        //         "Ground" => 2,
+        //         "Foreground" => 3,
+        //         _ => 0
+        //     };
+        // }
+
+        private static int GetSortingLayerID(string layerName)
         {
-            return layerName switch
+            if (string.IsNullOrEmpty(layerName))
+                return 0;
+
+            try
             {
-                "Default" => 0,
-                "Background" => 1,
-                "Ground" => 2,
-                "Foreground" => 3,
-                _ => 0
-            };
+                // Try modern public API first (Unity 2021+)
+                var nameToID = typeof(UnityEngine.SortingLayer).GetMethod(
+                    "NameToID",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.Public
+                );
+                if (nameToID != null)
+                {
+                    int id = (int)nameToID.Invoke(null, new object[] { layerName });
+                    if (id != 0)
+                        return id;
+                }
+
+                // Fallback for older Unity (access internal editor data)
+                var internalUtil = typeof(UnityEditorInternal.InternalEditorUtility);
+                var sortingLayerNamesProp = internalUtil.GetProperty(
+                    "sortingLayerNames",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic
+                );
+                var sortingLayerUniqueIDsProp = internalUtil.GetProperty(
+                    "sortingLayerUniqueIDs",
+                    System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic
+                );
+
+                if (sortingLayerNamesProp != null && sortingLayerUniqueIDsProp != null)
+                {
+                    string[] names = (string[])sortingLayerNamesProp.GetValue(null);
+                    int[] ids = (int[])sortingLayerUniqueIDsProp.GetValue(null);
+                    for (int i = 0; i < names.Length; i++)
+                    {
+                        if (names[i] == layerName)
+                            return ids[i];
+                    }
+                }
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogWarning($"GetSortingLayerID failed: {ex.Message}");
+            }
+
+            Debug.LogWarning($"Sorting layer '{layerName}' not found, using Default.");
+            return 0;
         }
+
+
+
     }
 }
 #endif

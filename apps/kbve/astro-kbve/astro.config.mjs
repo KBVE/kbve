@@ -119,6 +119,12 @@ export default defineConfig({
                 },
 
                 {
+                    label: 'MapDB',
+                    collapsed: true,
+                    autogenerate: { directory: 'mapdb' },
+                },
+
+                {
                     label: 'Blog',
                     autogenerate: { directory: 'blog' },
                 },

@@ -6,6 +6,17 @@ import { ULID, GUID } from 'src/data/types';
 export const ResourceTypeEnum = z.enum(['none', 'wood', 'stone', 'metal', 'food']);
 export const StructureTypeEnum = z.enum(['building', 'wall', 'tower', 'decoration']);
 export const MapObjectTypeEnum = z.enum(['resource', 'structure']);
+export const SpriteMeshTypeEnum = z.enum(['FullRect', 'Tight']);
+
+export const PivotAlignmentEnum = z.enum([
+  'Center',
+  'TopLeft', 'Top', 'TopRight',
+  'Left',           'Right',
+  'BottomLeft', 'Bottom', 'BottomRight',
+  'Custom', // uses pivotX/pivotY
+]);
+
+export const TextureWrapModeEnum = z.enum(['Clamp', 'Repeat', 'Mirror', 'MirrorOnce']);
 
 // Animation schemas
 export const ISpriteAnimationFrameSchema = z.object({
@@ -53,15 +64,21 @@ const BaseMapObjectSchema = z.object({
     // Visual properties
     imagePath: z.string(), // Static sprite or sprite sheet
     pixelsPerUnit: z.number().int().positive().default(16),
+    pivot: PivotAlignmentEnum.default('Center'),
     pivotX: z.number().min(0).max(1).default(0.5),
-    pivotY: z.number().min(0).max(1).default(0),
+    pivotY: z.number().min(0).max(1).default(0.5),
     
+    // NEW (import-time)
+    meshType: SpriteMeshTypeEnum.default('FullRect'),
+    extrudeEdges: z.number().int().min(0).max(32).default(1),
+
     // Rendering
     sortingLayer: z.string().default('Foreground'),
     sortingIndex: z.number().int().default(0),
     staticSorting: z.boolean().default(true),
 
-    
+    wrapMode: TextureWrapModeEnum.default('Clamp'),
+
     // Animation (optional)
     animation: IAnimationDataSchema.optional(),
 });
