@@ -20,6 +20,7 @@ import { Adsense, Tasks } from '@kbve/astropad';
 
     I have to add back the KBVE credits, we have two sql files in the past that had everything already setup for the credit system!
     I am going to take both of those and try to create a 3rd all in one sql file that will hold everything for our khash system, maybe even create a new schema around it.
+    The credits will still be 1 million per $1, which we want to automate to a certain extent in terms of payouts and purchases, both would also need audit logs and security.
     
 ### Twitch Stream
 
@@ -33,6 +34,15 @@ import { Adsense, Tasks } from '@kbve/astropad';
 
     One of the pieces that we are missing in our setup is the MapSettings authoring script, which will take each of the prefabs that we create and build an internal database for it.
     This is going to be important when we are looking to automate some of the map generation in the future.
+
+### Argo IRC
+
+-   11:36AM
+    
+    Looks like argo's deployment of the irc server is stuck in a processing stage, going to try and resolve it!
+    The irc server is operational but the hang is a bit concerning, so I might as well address that right now.
+    The hang is coming from the SSL cert generation and the cert manager, both of these can be addressed in our current unity pipeline.
+    Let me push this fix up and then handle some of the click house issues!
 
 ## 2024
 
