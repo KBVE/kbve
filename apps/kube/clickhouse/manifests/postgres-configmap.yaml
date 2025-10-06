@@ -1,0 +1,18 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: clickhouse-postgres-config
+  namespace: clickhouse
+data:
+  postgresql.xml: |
+    <yandex>
+      <named_collections>
+        <supabase_postgres>
+          <host>supabase-cluster-rw.kilobase.svc.cluster.local</host>
+          <port>5432</port>
+          <database>supabase</database>
+          <user_from_env>CLICKHOUSE_POSTGRES_USER</user_from_env>
+          <password_file>/etc/clickhouse-server/secrets/postgres-password</password_file>
+        </supabase_postgres>
+      </named_collections>
+    </yandex>
