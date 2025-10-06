@@ -4,3 +4,4 @@ kind: Kustomization
 resources:
   - clickhouse-keeper.yaml
   - clickhouse-installation.yaml
+  - postgres-externalsecret.yaml
