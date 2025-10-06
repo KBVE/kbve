@@ -5,6 +5,9 @@ metadata:
   namespace: clickhouse
 spec:
   configuration:
+    files:
+      postgresql.xml: |
+        <!-- Populated via the clickhouse-postgres-config ConfigMap mount. -->
     users:
       admin/password_sha256_hex: "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"  # "hello"
       admin/networks/ip:
@@ -23,7 +26,40 @@ spec:
     templates:
       dataVolumeClaimTemplate: data-storage
       logVolumeClaimTemplate: log-storage
+      podTemplate: clickhouse-with-postgres
   templates:
+    podTemplates:
+      - name: clickhouse-with-postgres
+        spec:
+          containers:
+            - name: clickhouse
+              env:
+                - name: CLICKHOUSE_POSTGRES_USER
+                  valueFrom:
+                    secretKeyRef:
+                      name: clickhouse-postgres-credentials
+                      key: username
+              volumeMounts:
+                - name: clickhouse-postgres-config
+                  mountPath: /etc/clickhouse-server/config.d/postgresql.xml
+                  subPath: postgresql.xml
+                - name: clickhouse-postgres-credentials
+                  mountPath: /etc/clickhouse-server/secrets/postgres-password
+                  subPath: password
+                  readOnly: true
+          volumes:
+            - name: clickhouse-postgres-config
+              configMap:
+                name: clickhouse-postgres-config
+                items:
+                  - key: postgresql.xml
+                    path: postgresql.xml
+            - name: clickhouse-postgres-credentials
+              secret:
+                secretName: clickhouse-postgres-credentials
+                items:
+                  - key: password
+                    path: password
     volumeClaimTemplates:
       - name: data-storage
         spec:
