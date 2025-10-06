@@ -12,6 +12,22 @@ spec:
       - http01:
           ingress:
             class: nginx
+            ingressTemplate:
+              metadata:
+                annotations:
+                  nginx.ingress.kubernetes.io/rewrite-target: /
+              spec:
+                ingressClassName: nginx
+                rules:
+                  - http:
+                      paths:
+                        - path: /.well-known/acme-challenge
+                          pathType: Prefix
+                          backend:
+                            service:
+                              name: cm-acme-http-solver
+                              port:
+                                number: 8089
 
 ---
 apiVersion: cert-manager.io/v1
