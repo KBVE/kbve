@@ -5,4 +5,5 @@ resources:
   - clickhouse-keeper.yaml
   - clickhouse-installation.yaml
   - postgres-configmap.yaml
+  - external-secrets-rbac.yaml
   - postgres-externalsecret.yaml
