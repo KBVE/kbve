@@ -35,7 +35,7 @@ spec:
               command: ['sh', '-c']
               args:
                 - |
-                  cp /postgres-config/* /shared/
+                  cp /postgres-config/zzz-postgres.xml /shared/zzz-postgres.xml
               volumeMounts:
                 - name: clickhouse-postgres-config
                   mountPath: /postgres-config/
@@ -57,7 +57,8 @@ spec:
                       key: password
               volumeMounts:
                 - name: shared-config
-                  mountPath: /etc/clickhouse-server/config.d/postgres/
+                  mountPath: /etc/clickhouse-server/config.d/zzz-postgres.xml
+                  subPath: zzz-postgres.xml
                 - name: clickhouse-postgres-credentials
                   mountPath: /etc/clickhouse-server/secrets/
                   readOnly: true
