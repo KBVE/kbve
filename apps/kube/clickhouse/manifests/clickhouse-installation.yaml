@@ -15,17 +15,14 @@ spec:
         layout:
           shardsCount: 2
           replicasCount: 2
-    # ZooKeeper configuration - define all 3 keeper nodes
-    zookeeper:
-      nodes:
-        - host: chk-clickhouse-keeper-keeper-0-0.clickhouse.svc.cluster.local
-          port: 2181
-        - host: chk-clickhouse-keeper-keeper-0-1.clickhouse.svc.cluster.local
-          port: 2181
-        - host: chk-clickhouse-keeper-keeper-0-2.clickhouse.svc.cluster.local
-          port: 2181
-      session_timeout_ms: 30000
-      operation_timeout_ms: 10000
+        # Use zkHost to reference the keeper installation
+        zookeeper:
+          # This tells the operator to use the ClickHouseKeeperInstallation
+          install: clickhouse-keeper
+          # Alternative: use service name
+          # nodes:
+          #   - host: chk-clickhouse-keeper-keeper.clickhouse.svc.cluster.local
+          #     port: 2181
   defaults:
     templates:
       dataVolumeClaimTemplate: data-storage
@@ -50,15 +47,10 @@ spec:
                       name: clickhouse-postgres-credentials
                       key: password
               volumeMounts:
-                - name: clickhouse-postgres-config
-                  mountPath: /etc/clickhouse-server/config.d/
                 - name: clickhouse-postgres-credentials
                   mountPath: /etc/clickhouse-server/secrets/
                   readOnly: true
           volumes:
-            - name: clickhouse-postgres-config
-              configMap:
-                name: clickhouse-postgres-config
             - name: clickhouse-postgres-credentials
               secret:
                 secretName: clickhouse-postgres-credentials
