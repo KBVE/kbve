@@ -17,7 +17,7 @@ spec:
           replicasCount: 2
         settings:
           # Simple ZooKeeper configuration for replication
-          zookeeper/nodes/node/host: "keeper-clickhouse-keeper.clickhouse.svc.cluster.local"
+          zookeeper/nodes/node/host: "chk-clickhouse-keeper-keeper-0-0.clickhouse.svc.cluster.local"
           zookeeper/nodes/node/port: "2181"
   defaults:
     templates:
