@@ -37,6 +37,11 @@ spec:
                     secretKeyRef:
                       name: clickhouse-postgres-credentials
                       key: username
+                - name: CLICKHOUSE_POSTGRES_PASSWORD
+                  valueFrom:
+                    secretKeyRef:
+                      name: clickhouse-postgres-credentials
+                      key: password
               volumeMounts:
                 - name: clickhouse-postgres-config
                   mountPath: /etc/clickhouse-server/config.d/
