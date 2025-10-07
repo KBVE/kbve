@@ -4,7 +4,7 @@ metadata:
   name: clickhouse-postgres-config
   namespace: clickhouse
 data:
-  postgresql.xml: |
+  zzz-postgres.xml: |
     <clickhouse>
       <named_collections>
         <supabase_postgres>
