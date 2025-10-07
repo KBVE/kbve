@@ -12,7 +12,7 @@ data:
           <port>5432</port>
           <database>supabase</database>
           <user_from_env>CLICKHOUSE_POSTGRES_USER</user_from_env>
-          <password_from_env>CLICKHOUSE_POSTGRES_PASSWORD</password_from_env>
+          <password from_env="CLICKHOUSE_POSTGRES_PASSWORD"/>
         </supabase_postgres>
       </named_collections>
     </yandex>
