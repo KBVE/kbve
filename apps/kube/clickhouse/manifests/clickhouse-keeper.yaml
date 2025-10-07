@@ -12,7 +12,14 @@ spec:
   defaults:
     templates:
       dataVolumeClaimTemplate: keeper-storage
+      podTemplate: clickhouse-keeper-pod
   templates:
+    podTemplates:
+      - name: clickhouse-keeper-pod
+        spec:
+          containers:
+            - name: clickhouse-keeper
+              image: clickhouse/clickhouse-keeper:25.8.4
     volumeClaimTemplates:
       - name: keeper-storage
         spec:
