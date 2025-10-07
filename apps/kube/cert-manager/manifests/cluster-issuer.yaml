@@ -17,12 +17,9 @@ spec:
                   ingress:
                       ingressClassName: nginx
                       ingressTemplate:
-                          spec:
-                              rules:
-                                  - http:
-                                        paths:
-                                            - path: /.well-known/acme-challenge
-                                              pathType: Prefix
+                          metadata:
+                              annotations:
+                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
 
             # --- Solver 2: DISCORD.SH domains ---
             - selector:
@@ -32,12 +29,9 @@ spec:
                   ingress:
                       ingressClassName: nginx
                       ingressTemplate:
-                          spec:
-                              rules:
-                                  - http:
-                                        paths:
-                                            - path: /.well-known/acme-challenge
-                                              pathType: Prefix
+                          metadata:
+                              annotations:
+                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
