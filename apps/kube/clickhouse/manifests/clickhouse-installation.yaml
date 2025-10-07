@@ -15,6 +15,15 @@ spec:
       nodes:
         - host: keeper-clickhouse-keeper.clickhouse.svc.cluster.local
           port: 2181
+    # Named collections configuration for secure postgres access
+    named_collections:
+      - name: supabase_postgres
+        host: supabase-cluster-rw.kilobase.svc.cluster.local
+        port: 5432
+        database: supabase
+        user: "${CLICKHOUSE_POSTGRES_USER}"
+        password: "${CLICKHOUSE_POSTGRES_PASSWORD}"
+        sslmode: disable
     clusters:
       - name: cluster
         layout:
@@ -29,18 +38,6 @@ spec:
     podTemplates:
       - name: clickhouse-with-postgres
         spec:
-          initContainers:
-            - name: setup-postgres-config
-              image: busybox:1.35
-              command: ['sh', '-c']
-              args:
-                - |
-                  cp /postgres-config/zzz-postgres.xml /shared/zzz-postgres.xml
-              volumeMounts:
-                - name: clickhouse-postgres-config
-                  mountPath: /postgres-config/
-                - name: shared-config
-                  mountPath: /shared/
           containers:
             - name: clickhouse
               image: clickhouse/clickhouse-server:25.8.4
@@ -56,18 +53,10 @@ spec:
                       name: clickhouse-postgres-credentials
                       key: password
               volumeMounts:
-                - name: shared-config
-                  mountPath: /etc/clickhouse-server/config.d/zzz-postgres.xml
-                  subPath: zzz-postgres.xml
                 - name: clickhouse-postgres-credentials
                   mountPath: /etc/clickhouse-server/secrets/
                   readOnly: true
           volumes:
-            - name: clickhouse-postgres-config
-              configMap:
-                name: clickhouse-postgres-config
-            - name: shared-config
-              emptyDir: {}
             - name: clickhouse-postgres-credentials
               secret:
                 secretName: clickhouse-postgres-credentials
