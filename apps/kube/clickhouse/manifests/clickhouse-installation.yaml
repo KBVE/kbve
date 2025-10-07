@@ -15,10 +15,17 @@ spec:
         layout:
           shardsCount: 2
           replicasCount: 2
-        settings:
-          # Simple ZooKeeper configuration for replication
-          zookeeper/nodes/node/host: "chk-clickhouse-keeper-keeper-0-0.clickhouse.svc.cluster.local"
-          zookeeper/nodes/node/port: "2181"
+    # ZooKeeper configuration - define all 3 keeper nodes
+    zookeeper:
+      nodes:
+        - host: chk-clickhouse-keeper-keeper-0-0.clickhouse.svc.cluster.local
+          port: 2181
+        - host: chk-clickhouse-keeper-keeper-0-1.clickhouse.svc.cluster.local
+          port: 2181
+        - host: chk-clickhouse-keeper-keeper-0-2.clickhouse.svc.cluster.local
+          port: 2181
+      session_timeout_ms: 30000
+      operation_timeout_ms: 10000
   defaults:
     templates:
       dataVolumeClaimTemplate: data-storage
