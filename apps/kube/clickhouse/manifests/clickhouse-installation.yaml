@@ -10,19 +10,16 @@ spec:
       admin/networks/ip:
         - "::/0"
       admin/profile: "default"
+    # Top-level ZooKeeper configuration - references the keeper service
+    zookeeper:
+      nodes:
+        - host: keeper-clickhouse-keeper.clickhouse.svc.cluster.local
+          port: 2181
     clusters:
       - name: cluster
         layout:
           shardsCount: 2
           replicasCount: 2
-        # Use zkHost to reference the keeper installation
-        zookeeper:
-          # This tells the operator to use the ClickHouseKeeperInstallation
-          install: clickhouse-keeper
-          # Alternative: use service name
-          # nodes:
-          #   - host: chk-clickhouse-keeper-keeper.clickhouse.svc.cluster.local
-          #     port: 2181
   defaults:
     templates:
       dataVolumeClaimTemplate: data-storage
