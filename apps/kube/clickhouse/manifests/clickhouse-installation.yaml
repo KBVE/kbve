@@ -13,8 +13,8 @@ spec:
     clusters:
       - name: cluster
         layout:
-          shardsCount: 1
-          replicasCount: 1
+          shardsCount: 2
+          replicasCount: 2
         settings:
           # Simple ZooKeeper configuration for replication
           zookeeper/nodes/node/host: "chk-clickhouse-keeper-keeper-0-0.clickhouse.svc.cluster.local"
@@ -30,7 +30,7 @@ spec:
         spec:
           containers:
             - name: clickhouse
-              image: clickhouse/clickhouse-server:latest
+              image: clickhouse/clickhouse-server:25.8.4
               env:
                 - name: CLICKHOUSE_POSTGRES_USER
                   valueFrom:
