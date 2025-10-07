@@ -11,7 +11,7 @@ data:
           <host>supabase-cluster-rw.kilobase.svc.cluster.local</host>
           <port>5432</port>
           <database>supabase</database>
-          <user_from_env>CLICKHOUSE_POSTGRES_USER</user_from_env>
+          <user from_env="CLICKHOUSE_POSTGRES_USER"/>
           <password from_env="CLICKHOUSE_POSTGRES_PASSWORD"/>
         </supabase_postgres>
       </named_collections>
