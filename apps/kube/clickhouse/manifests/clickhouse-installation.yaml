@@ -15,15 +15,20 @@ spec:
       nodes:
         - host: keeper-clickhouse-keeper.clickhouse.svc.cluster.local
           port: 2181
-    # Named collections configuration for secure postgres access
-    named_collections:
-      - name: supabase_postgres
-        host: supabase-cluster-rw.kilobase.svc.cluster.local
-        port: 5432
-        database: supabase
-        user: "${CLICKHOUSE_POSTGRES_USER}"
-        password: "${CLICKHOUSE_POSTGRES_PASSWORD}"
-        sslmode: disable
+    files:
+      config.d/zzz-postgres.xml: |
+        <clickhouse>
+          <named_collections>
+            <supabase_postgres>
+              <host>supabase-cluster-rw.kilobase.svc.cluster.local</host>
+              <port>5432</port>
+              <database>supabase</database>
+              <user from_env="CLICKHOUSE_POSTGRES_USER"/>
+              <password from_env="CLICKHOUSE_POSTGRES_PASSWORD"/>
+              <sslmode>disable</sslmode>
+            </supabase_postgres>
+          </named_collections>
+        </clickhouse>
     clusters:
       - name: cluster
         layout:
