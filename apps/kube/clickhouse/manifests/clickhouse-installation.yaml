@@ -29,6 +29,19 @@ spec:
     podTemplates:
       - name: clickhouse-with-postgres
         spec:
+          initContainers:
+            - name: setup-postgres-config
+              image: busybox:1.35
+              command: ['sh', '-c']
+              args:
+                - |
+                  mkdir -p /shared/config.d
+                  cp /postgres-config/* /shared/config.d/
+              volumeMounts:
+                - name: clickhouse-postgres-config
+                  mountPath: /postgres-config/
+                - name: shared-config
+                  mountPath: /shared/
           containers:
             - name: clickhouse
               image: clickhouse/clickhouse-server:25.8.4
@@ -44,9 +57,8 @@ spec:
                       name: clickhouse-postgres-credentials
                       key: password
               volumeMounts:
-                - name: clickhouse-postgres-config
-                  mountPath: /etc/clickhouse-server/users.d/zzz-postgres.xml
-                  subPath: zzz-postgres.xml
+                - name: shared-config
+                  mountPath: /etc/clickhouse-server/config.d/postgres/
                 - name: clickhouse-postgres-credentials
                   mountPath: /etc/clickhouse-server/secrets/
                   readOnly: true
@@ -54,6 +66,8 @@ spec:
             - name: clickhouse-postgres-config
               configMap:
                 name: clickhouse-postgres-config
+            - name: shared-config
+              emptyDir: {}
             - name: clickhouse-postgres-credentials
               secret:
                 secretName: clickhouse-postgres-credentials
