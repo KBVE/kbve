@@ -4,7 +4,7 @@
 operator:
   image:
     repository: altinity/clickhouse-operator
-    tag: 0.25.3
+    tag: 0.25.4
     pullPolicy: IfNotPresent
 
   # Resource limits for the operator
