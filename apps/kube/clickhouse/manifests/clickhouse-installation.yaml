@@ -25,7 +25,6 @@ spec:
               <database>supabase</database>
               <user from_env="CLICKHOUSE_POSTGRES_USER"/>
               <password from_env="CLICKHOUSE_POSTGRES_PASSWORD"/>
-              <sslmode>disable</sslmode>
             </supabase_postgres>
           </named_collections>
         </clickhouse>
