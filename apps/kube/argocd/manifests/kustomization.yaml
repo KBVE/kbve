@@ -3,5 +3,8 @@ kind: Kustomization
 resources:
   - https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
   - ingress.yaml
-patchesStrategicMerge:
-  - patch-argocd-cm-cert-health.yaml
+patches:
+  - path: patch-argocd-cm-cert-health.yaml
+    target:
+      kind: ConfigMap
+      name: argocd-cm
