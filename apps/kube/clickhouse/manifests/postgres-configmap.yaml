@@ -5,7 +5,7 @@ metadata:
   namespace: clickhouse
 data:
   postgresql.xml: |
-    <yandex>
+    <clickhouse>
       <named_collections>
         <supabase_postgres>
           <host>supabase-cluster-rw.kilobase.svc.cluster.local</host>
@@ -15,4 +15,4 @@ data:
           <password from_env="CLICKHOUSE_POSTGRES_PASSWORD"/>
         </supabase_postgres>
       </named_collections>
-    </yandex>
+    </clickhouse>
