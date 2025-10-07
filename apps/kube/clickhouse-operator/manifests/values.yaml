@@ -51,3 +51,11 @@ logging:
 # Enable RBAC
 rbac:
   create: true
+
+# Deployment strategy
+deployment:
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 1
+      maxSurge: 1
