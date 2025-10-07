@@ -44,10 +44,16 @@ spec:
                       name: clickhouse-postgres-credentials
                       key: password
               volumeMounts:
+                - name: clickhouse-postgres-config
+                  mountPath: /etc/clickhouse-server/config.d/postgres/postgres.xml
+                  subPath: postgresql.xml
                 - name: clickhouse-postgres-credentials
                   mountPath: /etc/clickhouse-server/secrets/
                   readOnly: true
           volumes:
+            - name: clickhouse-postgres-config
+              configMap:
+                name: clickhouse-postgres-config
             - name: clickhouse-postgres-credentials
               secret:
                 secretName: clickhouse-postgres-credentials
