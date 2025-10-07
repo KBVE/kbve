@@ -35,8 +35,7 @@ spec:
               command: ['sh', '-c']
               args:
                 - |
-                  mkdir -p /shared/config.d
-                  cp /postgres-config/* /shared/config.d/
+                  cp /postgres-config/* /shared/
               volumeMounts:
                 - name: clickhouse-postgres-config
                   mountPath: /postgres-config/
