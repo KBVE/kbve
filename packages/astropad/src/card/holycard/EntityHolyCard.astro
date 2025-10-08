@@ -1,3 +1,221 @@
 ---
+import type { HolyCardProps } from './ServiceHolyCard';
+import { ReactHolyCard } from './ReactHolyCard';
 
+export interface Props extends HolyCardProps {
+  id?: string;
+  className?: string;
+}
+
+const {
+  backgroundImage,
+  title,
+  description,
+  buttonName,
+  link,
+  id = 'holy-card',
+  className = ''
+} = Astro.props;
+
+const cardProps: HolyCardProps = {
+  backgroundImage,
+  title,
+  description,
+  buttonName,
+  link
+};
 ---
+
+<style>
+	@keyframes shimmer {
+		0% {
+			background-position: -200% 0;
+		}
+		100% {
+			background-position: 200% 0;
+		}
+	}
+
+	/* Custom properties for theming */
+	[data-neoglass-panel] {
+		--panel-bg: color-mix(in srgb, var(--sl-color-white) 5%, transparent);
+		--panel-border: color-mix(
+			in srgb,
+			var(--sl-color-white) 10%,
+			transparent
+		);
+		--panel-hover-bg: color-mix(
+			in srgb,
+			var(--sl-color-white) 8%,
+			transparent
+		);
+		--panel-hover-ring: color-mix(
+			in srgb,
+			var(--sl-color-accent) 30%,
+			transparent
+		);
+		--glow-border: color-mix(
+			in srgb,
+			var(--sl-color-accent) 10%,
+			transparent
+		);
+		--glow-hover-border: color-mix(
+			in srgb,
+			var(--sl-color-accent) 30%,
+			transparent
+		);
+		--drop-shadow-color: color-mix(
+			in srgb,
+			var(--sl-color-accent) 60%,
+			transparent
+		);
+	}
+
+	/* Dark theme adjustments */
+	[data-theme='dark'] [data-neoglass-panel] {
+		--drop-shadow-color: color-mix(
+			in srgb,
+			var(--sl-color-accent) 80%,
+			rgba(255, 255, 255, 0.1)
+		);
+	}
+
+	[data-neoglass-panel]:hover {
+		background-color: var(--panel-hover-bg);
+		border-color: var(--panel-hover-ring);
+	}
+
+	[data-neoglass-panel]:hover [data-neoglass-glow] {
+		border-color: var(--glow-hover-border);
+	}
+
+	.holy-card {
+		position: relative;
+		width: 100%;
+		max-width: 400px;
+		aspect-ratio: 16/9;
+		border-radius: 1rem;
+		overflow: hidden;
+		cursor: pointer;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		background-color: var(--panel-bg);
+		border: 1px solid var(--panel-border);
+		backdrop-filter: blur(12px);
+		-webkit-backdrop-filter: blur(12px);
+	}
+
+	.holy-card-background {
+		position: absolute;
+		inset: 0;
+		background-size: cover;
+		background-position: center;
+		background-repeat: no-repeat;
+		transition: transform 0.3s ease;
+	}
+
+	.holy-card-overlay {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			135deg,
+			rgba(0, 0, 0, 0.2) 0%,
+			rgba(0, 0, 0, 0.4) 50%,
+			rgba(0, 0, 0, 0.7) 100%
+		);
+	}
+
+	.holy-card-content {
+		position: relative;
+		z-index: 10;
+		height: 100%;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		padding: 1.5rem;
+		color: white;
+	}
+
+	.holy-card-title {
+		font-size: 1.5rem;
+		font-weight: 700;
+		margin-bottom: 0.5rem;
+		line-height: 1.2;
+		text-shadow: 0 2px 4px rgba(0, 0, 0, 0.5);
+	}
+
+	.holy-card-description {
+		font-size: 0.875rem;
+		line-height: 1.4;
+		margin-bottom: 1rem;
+		opacity: 0.9;
+		text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+	}
+
+	.holy-card-button {
+		align-self: flex-start;
+		background: var(--sl-color-accent);
+		color: white;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		border: none;
+		font-weight: 600;
+		font-size: 0.875rem;
+		transition: all 0.2s ease;
+		text-decoration: none;
+		display: inline-block;
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+	}
+
+	.holy-card-button:hover {
+		background: color-mix(in srgb, var(--sl-color-accent) 90%, white);
+		transform: translateY(-1px);
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
+
+	.holy-card:hover .holy-card-background {
+		transform: scale(1.05);
+	}
+
+	.holy-card-glow {
+		position: absolute;
+		inset: -2px;
+		background: linear-gradient(45deg, var(--glow-border), transparent, var(--glow-border));
+		border-radius: 1rem;
+		opacity: 0;
+		transition: opacity 0.3s ease;
+		z-index: -1;
+	}
+
+	.holy-card:hover .holy-card-glow {
+		opacity: 1;
+	}
+</style>
+
+<div
+	class={`holy-card ${className}`}
+	id={id}
+	data-neoglass-panel
+	data-background-image={backgroundImage}
+	data-link={link}
+>
+	<div class="holy-card-glow" data-neoglass-glow></div>
+	<div
+		class="holy-card-background"
+		style={`background-image: url(${backgroundImage})`}
+	></div>
+	<div class="holy-card-overlay"></div>
+	<div class="holy-card-content">
+		<h3 class="holy-card-title">{title}</h3>
+		<p class="holy-card-description">{description}</p>
+		<a
+			href={link}
+			class="holy-card-button"
+			target="_blank"
+			rel="noopener noreferrer"
+		>
+			{buttonName}
+		</a>
+	</div>
+</div>
+
+<ReactHolyCard client:only="react" cardId={id} initialProps={cardProps} />

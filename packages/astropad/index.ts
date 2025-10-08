@@ -37,6 +37,9 @@ export { ReactRegister } from './src/supabase/auth/register/ReactRegister';
 export { ReactLogout } from './src/supabase/auth/logout/ReactLogout';
 export { ReactUserProfile } from './src/supabase/users/profile/ReactUserProfile';
 
+//  [Card]
+export { default as AstroHolyCard } from './src/card/holycard/EntityHolyCard.astro';
+
 //  [Astro OAuth Components]
 export { default as AstroOAuth } from './src/supabase/auth/oauth/EntityOAuth.astro';
 export { default as AstroCallback } from './src/supabase/auth/oauth/EntityCallback.astro';

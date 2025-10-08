@@ -1,0 +1,53 @@
+---
+title: Settings
+description: |
+    KBVE Settings Page
+tableOfContents: false
+template: splash
+graph:
+   visible: false
+sidebar:
+    label: Settings
+    order: 3
+unsplash: 1522071820081-009f0129c71c
+img: https://images.unsplash.com/photo-1522071820081-009f0129c71c?fit=crop&w=1400&h=700&q=75
+tags:
+    - tools
+---
+import { CardGrid } from '@astrojs/starlight/components';
+import { AstroHolyCard } from '@kbve/astropad';
+
+<CardGrid>
+<AstroHolyCard
+  backgroundImage={frontmatter.img}
+  title={frontmatter.title}
+  description={frontmatter.description}
+  buttonName="Open Settings"
+  link="/dashboard/settings"
+  id="settings-holy-card"
+  className="settings-card"
+/>
+
+
+<AstroHolyCard
+  backgroundImage={frontmatter.img}
+  title={frontmatter.title}
+  description={frontmatter.description}
+  buttonName="Open Settings"
+  link="/dashboard/settings"
+  id="settings-holy-card"
+  className="settings-card"
+/>
+
+
+<AstroHolyCard
+  backgroundImage={frontmatter.img}
+  title={frontmatter.title}
+  description={frontmatter.description}
+  buttonName="Open Settings"
+  link="/dashboard/settings"
+  id="settings-holy-card"
+  className="settings-card"
+/>
+
+</CardGrid>
