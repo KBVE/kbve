@@ -9,6 +9,7 @@ resources:
   - restream-service.yaml
   - restream-ingress.yaml
   - restream-configmap.yaml
+  - restream-tcp-service.yaml
 
 commonLabels:
   app: restreamer
