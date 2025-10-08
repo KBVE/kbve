@@ -1,14 +1,8 @@
 /** @jsxImportSource react */
 
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import { useStore } from '@nanostores/react';
-import {
-  holyCardState,
-  holyCardProps,
-  isCardReady,
-  holyCardService,
-  type HolyCardProps,
-} from './ServiceHolyCard';
+import { type HolyCardProps, holyCardService } from './ServiceHolyCard';
 
 interface ReactHolyCardProps {
   cardId?: string;
@@ -22,40 +16,44 @@ export const ReactHolyCard: React.FC<ReactHolyCardProps> = ({
   onCardClick,
 }) => {
   const cardRef = useRef<HTMLDivElement>(null);
-  const state = useStore(holyCardState);
-  const props = useStore(holyCardProps);
-  const ready = useStore(isCardReady);
+
+  // Initialize this card instance in the service
+  const cardInstance = holyCardService.initCard(cardId, initialProps);
+
+  // Subscribe to this specific card's state
+  const state = useStore(cardInstance.stateAtom);
+  const props = useStore(cardInstance.propsAtom);
+  const ready = useStore(cardInstance.readyComputed);
 
   useEffect(() => {
     if (initialProps) {
-      holyCardService.setProps(initialProps);
+      holyCardService.setProps(cardId, initialProps);
     }
-  }, [initialProps]);
+  }, [initialProps, cardId]);
 
   useEffect(() => {
     const cardElement = cardRef.current || document.getElementById(cardId);
     if (!cardElement) return;
 
     const handleMouseEnter = () => {
-      holyCardService.setHovered(true);
+      holyCardService.setHovered(cardId, true);
       cardElement.style.transform = 'translateY(-4px)';
       cardElement.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2)';
     };
 
     const handleMouseLeave = () => {
-      holyCardService.setHovered(false);
+      holyCardService.setHovered(cardId, false);
       cardElement.style.transform = 'translateY(0)';
       cardElement.style.boxShadow = '';
     };
 
     const handleClick = (e: Event) => {
       e.preventDefault();
-      const currentProps = holyCardProps.get();
-      if (currentProps) {
+      if (props) {
         if (onCardClick) {
-          onCardClick(currentProps);
+          onCardClick(props);
         } else {
-          holyCardService.handleCardClick();
+          holyCardService.handleCardClick(cardId);
         }
       }
     };
@@ -69,7 +67,7 @@ export const ReactHolyCard: React.FC<ReactHolyCardProps> = ({
       cardElement.removeEventListener('mouseleave', handleMouseLeave);
       cardElement.removeEventListener('click', handleClick);
     };
-  }, [cardId, onCardClick]);
+  }, [cardId, onCardClick, props]);
 
   useEffect(() => {
     const cardElement = cardRef.current || document.getElementById(cardId);
@@ -130,6 +128,13 @@ export const ReactHolyCard: React.FC<ReactHolyCardProps> = ({
       Object.assign(cardElement.style, cardStyle);
     }
   }, [cardId, cardStyle]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      holyCardService.destroyCard(cardId);
+    };
+  }, [cardId]);
 
   if (!ready && !initialProps) {
     return null;
