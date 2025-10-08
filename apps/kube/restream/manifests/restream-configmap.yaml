@@ -11,8 +11,12 @@ data:
   TZ: "UTC"
   # Log level configuration
   LOG_LEVEL: "info"
-  # Set custom domain for proper operation
-  CORE_ADDRESS: "restreamer.kbve.com"
   # Allow connections from any host
   CORE_HOST: "0.0.0.0"
   CORE_PORT: "8080"
+  # RTMP configuration
+  RTMP_ENABLE: "true"
+  RTMP_TOKEN: "true"
+  # Session configuration
+  SESSION_MAX_BITRATE_MBIT: "25"
+  SESSION_MAX_SESSIONS: "5"
