@@ -9,11 +9,11 @@ spec:
   selector:
     app: restreamer
   ports:
-  - name: web
+  - name: http
     port: 8080
     targetPort: 8080
     protocol: TCP
-  - name: api
+  - name: https
     port: 8181
     targetPort: 8181
     protocol: TCP
@@ -21,11 +21,11 @@ spec:
     port: 1935
     targetPort: 1935
     protocol: TCP
-  - name: rtmp-alt
+  - name: rtmps
     port: 1936
     targetPort: 1936
     protocol: TCP
-  - name: udp
+  - name: srt
     port: 6000
     targetPort: 6000
     protocol: UDP

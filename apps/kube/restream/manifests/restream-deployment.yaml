@@ -20,24 +20,24 @@ spec:
         image: datarhei/restreamer:latest
         ports:
         - containerPort: 8080
-          name: web
+          name: http
         - containerPort: 8181
-          name: api
+          name: https
         - containerPort: 1935
           name: rtmp
         - containerPort: 1936
-          name: rtmp-alt
+          name: rtmps
         - containerPort: 6000
-          name: udp
+          name: srt
           protocol: UDP
         volumeMounts:
         - name: config
           mountPath: /core/config
         - name: data
           mountPath: /core/data
-        env:
-        - name: TZ
-          value: "UTC"
+        envFrom:
+        - configMapRef:
+            name: restreamer-config
         resources:
           requests:
             memory: "512Mi"

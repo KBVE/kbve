@@ -6,8 +6,10 @@ metadata:
   labels:
     app: restreamer
 data:
-  # Basic configuration for restreamer
-  # These can be customized based on specific needs
-  log_level: "info"
-  # Additional environment variables can be added here
-  # and mounted as environment variables in the deployment
+  # Restreamer configuration
+  # Timezone setting
+  TZ: "UTC"
+  # Log level configuration
+  LOG_LEVEL: "info"
+  # Optional: Set custom domain if needed
+  # CORE_ADDRESS: "restreamer.kbve.com"
