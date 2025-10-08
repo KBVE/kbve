@@ -10,6 +10,7 @@ resources:
   - restream-ingress.yaml
   - restream-configmap.yaml
   - restream-tcp-service.yaml
+  - nginx-tcp-configmap.yaml
 
 commonLabels:
   app: restreamer
