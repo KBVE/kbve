@@ -1,89 +1,89 @@
 apiVersion: clickhouse.altinity.com/v1
 kind: ClickHouseInstallation
 metadata:
-  name: clickhouse-cluster
-  namespace: clickhouse
+    name: clickhouse-cluster
+    namespace: clickhouse
 spec:
-  configuration:
-    users:
-      admin/password_sha256_hex: "8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92"  # "hello"
-      admin/networks/ip:
-        - "::/0"
-      admin/profile: "default"
-    # Top-level ZooKeeper configuration - references the keeper service
-    zookeeper:
-      nodes:
-        - host: keeper-clickhouse-keeper.clickhouse.svc.cluster.local
-          port: 2181
-    files:
-      config.d/zzz-postgres.xml: |
-        <clickhouse>
-          <named_collections>
-            <supabase_postgres>
-              <host>supabase-cluster-rw.kilobase.svc.cluster.local</host>
-              <port>5432</port>
-              <database>supabase</database>
-              <user from_env="CLICKHOUSE_POSTGRES_USER"/>
-              <password from_env="CLICKHOUSE_POSTGRES_PASSWORD"/>
-            </supabase_postgres>
-          </named_collections>
-        </clickhouse>
-    clusters:
-      - name: cluster
-        layout:
-          shardsCount: 2
-          replicasCount: 2
-  defaults:
+    configuration:
+        users:
+            admin/password_sha256_hex: '8d969eef6ecad3c29a3a629280e686cf0c3f5d5a86aff3ca12020c923adc6c92' # "hello"
+            admin/networks/ip:
+                - '::/0'
+            admin/profile: 'default'
+        # Top-level ZooKeeper configuration - references the keeper service
+        zookeeper:
+            nodes:
+                - host: keeper-clickhouse-keeper.clickhouse.svc.cluster.local
+                  port: 2181
+        files:
+            config.d/zzz-postgres.xml: |
+                <clickhouse>
+                  <named_collections>
+                    <supabase_postgres>
+                      <host>supabase-cluster-rw.kilobase.svc.cluster.local</host>
+                      <port>5432</port>
+                      <database>supabase</database>
+                      <user from_env="CLICKHOUSE_POSTGRES_USER"/>
+                      <password from_env="CLICKHOUSE_POSTGRES_PASSWORD"/>
+                    </supabase_postgres>
+                  </named_collections>
+                </clickhouse>
+        clusters:
+            - name: cluster
+              layout:
+                  shardsCount: 2
+                  replicasCount: 2
+    defaults:
+        templates:
+            dataVolumeClaimTemplate: data-storage
+            logVolumeClaimTemplate: log-storage
+            podTemplate: clickhouse-with-postgres
     templates:
-      dataVolumeClaimTemplate: data-storage
-      logVolumeClaimTemplate: log-storage
-      podTemplate: clickhouse-with-postgres
-  templates:
-    podTemplates:
-      - name: clickhouse-with-postgres
-        spec:
-          containers:
-            - name: clickhouse
-              image: clickhouse/clickhouse-server:25.8.4
-              env:
-                - name: CLICKHOUSE_POSTGRES_USER
-                  valueFrom:
-                    secretKeyRef:
-                      name: clickhouse-postgres-credentials
-                      key: username
-                - name: CLICKHOUSE_POSTGRES_PASSWORD
-                  valueFrom:
-                    secretKeyRef:
-                      name: clickhouse-postgres-credentials
-                      key: password
-                - name: PGSSLMODE
-                  value: "disable"
-                - name: PGSSLCERT
-                  value: ""
-                - name: PGSSLKEY
-                  value: ""
-              volumeMounts:
-                - name: clickhouse-postgres-credentials
-                  mountPath: /etc/clickhouse-server/secrets/
-                  readOnly: true
-          volumes:
-            - name: clickhouse-postgres-credentials
-              secret:
-                secretName: clickhouse-postgres-credentials
-    volumeClaimTemplates:
-      - name: data-storage
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 50Gi
-          storageClassName: longhorn
-      - name: log-storage
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 10Gi
-          storageClassName: longhorn
+        podTemplates:
+            - name: clickhouse-with-postgres
+              spec:
+                  containers:
+                      - name: clickhouse
+                        image: clickhouse/clickhouse-server:25.8.4
+                        env:
+                            - name: CLICKHOUSE_POSTGRES_USER
+                              valueFrom:
+                                  secretKeyRef:
+                                      name: clickhouse-postgres-credentials
+                                      key: username
+                            - name: CLICKHOUSE_POSTGRES_PASSWORD
+                              valueFrom:
+                                  secretKeyRef:
+                                      name: clickhouse-postgres-credentials
+                                      key: password
+                            - name: PGSSLMODE
+                              value: 'disable'
+                            - name: PGSSLCERT
+                              value: ''
+                            - name: PGSSLKEY
+                              value: ''
+                        volumeMounts:
+                            - name: clickhouse-postgres-credentials
+                              mountPath: /etc/clickhouse-server/secrets/
+                              readOnly: true
+                  volumes:
+                      - name: clickhouse-postgres-credentials
+                        secret:
+                            secretName: clickhouse-postgres-credentials
+        volumeClaimTemplates:
+            - name: data-storage
+              spec:
+                  accessModes:
+                      - ReadWriteOnce
+                  resources:
+                      requests:
+                          storage: 50Gi
+                  storageClassName: longhorn
+            - name: log-storage
+              spec:
+                  accessModes:
+                      - ReadWriteOnce
+                  resources:
+                      requests:
+                          storage: 10Gi
+                  storageClassName: longhorn
