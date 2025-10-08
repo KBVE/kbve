@@ -11,5 +11,8 @@ data:
   TZ: "UTC"
   # Log level configuration
   LOG_LEVEL: "info"
-  # Optional: Set custom domain if needed
-  # CORE_ADDRESS: "restreamer.kbve.com"
+  # Set custom domain for proper operation
+  CORE_ADDRESS: "restreamer.kbve.com"
+  # Allow connections from any host
+  CORE_HOST: "0.0.0.0"
+  CORE_PORT: "8080"

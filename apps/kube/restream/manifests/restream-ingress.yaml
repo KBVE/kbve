@@ -26,10 +26,3 @@ spec:
                             name: restreamer
                             port:
                                 number: 8080
-                  - path: /api
-                    pathType: Prefix
-                    backend:
-                        service:
-                            name: restreamer
-                            port:
-                                number: 8181
