@@ -20,7 +20,7 @@ spec:
     port: 1936
     targetPort: 1936
     protocol: TCP
-  type: LoadBalancer
+  type: ClusterIP
 ---
 apiVersion: v1
 kind: Service
@@ -37,4 +37,4 @@ spec:
     port: 6000
     targetPort: 6000
     protocol: UDP
-  type: LoadBalancer
+  type: ClusterIP
