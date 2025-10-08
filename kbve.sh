@@ -42,8 +42,19 @@ UNITY_PLUGIN_LIBCEF_CODECS_PATH=""
 
 # Function to install and prepare Rust
 install_rust() {
+    # Check if Rust is already installed
+    if command -v rustc >/dev/null 2>&1; then
+        echo "Rust is already installed."
+        echo "Rust version: $(rustc --version)"
+        echo "Rustup version: $(rustup --version 2>/dev/null || echo 'rustup not found')"
+        return 0
+    fi
+
+    # Check if Homebrew is available
+    brew_check
+
     local session_name="rust-installation"
-    local install_command="curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+    local install_command="brew install rust"
 
     # Check if the tmux session exists
     if ! tmux has-session -t "$session_name" 2>/dev/null; then
@@ -186,6 +197,17 @@ ping_domain() {
 # Function to check if the current user is root
 check_root() {
     [ "$(id -u)" -eq 0 ] && echo "true" || echo "false"
+}
+
+# Function to check if Homebrew is installed
+brew_check() {
+    if ! command -v brew >/dev/null 2>&1; then
+        echo "Error: Homebrew is not installed. Please install Homebrew first:"
+        echo "Visit: https://brew.sh/"
+        echo "Or run: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+        exit 1
+    fi
+    echo "Homebrew is installed."
 }
 
 prepare_hyperlane_container() {
