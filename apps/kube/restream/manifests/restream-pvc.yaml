@@ -5,6 +5,8 @@ metadata:
   namespace: restream
   labels:
     app: restreamer
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=false
 spec:
   accessModes:
     - ReadWriteOnce
@@ -20,6 +22,8 @@ metadata:
   namespace: restream
   labels:
     app: restreamer
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=false
 spec:
   accessModes:
     - ReadWriteOnce
