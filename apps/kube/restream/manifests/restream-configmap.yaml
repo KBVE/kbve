@@ -18,5 +18,5 @@ data:
   RTMP_ENABLE: "true"
   RTMP_TOKEN: "true"
   # Session configuration
-  SESSION_MAX_BITRATE_MBIT: "25"
-  SESSION_MAX_SESSIONS: "5"
+  #SESSION_MAX_BITRATE_MBIT: "25"
+  #SESSION_MAX_SESSIONS: "5"
