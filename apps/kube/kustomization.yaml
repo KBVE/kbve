@@ -40,3 +40,4 @@ resources:
   - clickhouse-crds/application.yaml
   - clickhouse-operator/application.yaml
   - clickhouse/application.yaml
+  - restream/application.yaml

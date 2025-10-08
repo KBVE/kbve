@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: restreamer-config
+  namespace: restream
+  labels:
+    app: restreamer
+data:
+  # Restreamer configuration
+  # Timezone setting
+  TZ: "UTC"
+  # Log level configuration
+  LOG_LEVEL: "info"
+  # Optional: Set custom domain if needed
+  # CORE_ADDRESS: "restreamer.kbve.com"
