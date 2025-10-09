@@ -16,9 +16,22 @@ next: false
 
 import '../../styles/starlight_main.css';
 import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
+import { AstroCards } from '@kbve/astropad';
 
 <Tabs syncKey="home">
-  <TabItem label="Dev">Development and Tutorials!</TabItem>
+  <TabItem label="Dev">
+
+  Applications Resources
+
+  <AstroCards 
+  url="https://kbve.com/api/applications.json" 
+  collectionKey="applications" 
+  virtualized={true}
+  containerHeight="800px"
+  minCardWidth={320}
+  cardHeight={450}
+/>
+  </TabItem>
   <TabItem label="Gaming">Arcade and Jams!</TabItem>
   <TabItem label="Memes">Memes</TabItem>
   <TabItem label="API">API</TabItem>
