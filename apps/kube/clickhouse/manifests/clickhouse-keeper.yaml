@@ -1,31 +1,31 @@
 apiVersion: clickhouse-keeper.altinity.com/v1
 kind: ClickHouseKeeperInstallation
 metadata:
-  name: clickhouse-keeper
-  namespace: clickhouse
+    name: clickhouse-keeper
+    namespace: clickhouse
 spec:
-  configuration:
-    clusters:
-      - name: keeper
-        layout:
-          replicasCount: 3
-  defaults:
+    configuration:
+        clusters:
+            - name: keeper
+              layout:
+                  replicasCount: 3
+    defaults:
+        templates:
+            dataVolumeClaimTemplate: keeper-storage
+            podTemplate: clickhouse-keeper-pod
     templates:
-      dataVolumeClaimTemplate: keeper-storage
-      podTemplate: clickhouse-keeper-pod
-  templates:
-    podTemplates:
-      - name: clickhouse-keeper-pod
-        spec:
-          containers:
-            - name: clickhouse-keeper
-              image: clickhouse/clickhouse-keeper:25.8.4
-    volumeClaimTemplates:
-      - name: keeper-storage
-        spec:
-          accessModes:
-            - ReadWriteOnce
-          resources:
-            requests:
-              storage: 5Gi
-          storageClassName: longhorn
+        podTemplates:
+            - name: clickhouse-keeper-pod
+              spec:
+                  containers:
+                      - name: clickhouse-keeper
+                        image: clickhouse/clickhouse-keeper:25.8.4
+        volumeClaimTemplates:
+            - name: keeper-storage
+              spec:
+                  accessModes:
+                      - ReadWriteOnce
+                  resources:
+                      requests:
+                          storage: 5Gi
+                  storageClassName: longhorn
