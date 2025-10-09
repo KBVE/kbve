@@ -1,7 +1,8 @@
 /** @jsxImportSource react */
 import { useEffect, useRef, useCallback, memo, useState } from 'react';
 import { useStore } from '@nanostores/react';
-import { createLandingCardService, type LandingCardConfig } from './ServiceLandingCard';
+import { createLandingCardService, type LandingCardConfig, type LandingCardIconAction } from './ServiceLandingCard';
+import { eventEngine } from '@kbve/astropad';
 import { VariableSizeGrid as Grid, type GridChildComponentProps } from 'react-window';
 import AutoSizer from 'react-virtualized-auto-sizer';
 import {
@@ -64,16 +65,95 @@ export const ReactCard = (props: ReactCardProps) => {
         display: 'flex',
         flexDirection: 'column',
         height: '100%',
+        position: 'relative',
         boxShadow: isHovered
           ? '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(6, 182, 212, 0.3)'
           : '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(6, 182, 212, 0.1)',
     }}>
+      {/* Icons positioned above image */}
+      {icons && icons.length > 0 && (
+        <div style={{
+          position: 'absolute',
+          top: '0.5rem',
+          right: '0.5rem',
+          display: 'grid',
+          gridTemplateColumns: 'repeat(4, 2.5rem)',
+          gap: '0.5rem',
+          zIndex: 10,
+          alignItems: 'start',
+          justifyItems: 'center',
+        }}>
+          {icons.map((iconAction, index) => {
+            const IconComponent = iconMap[iconAction.icon as keyof typeof iconMap];
+            return IconComponent ? (
+              <button
+                key={index}
+                onClick={(e) => {
+                  e.preventDefault();
+                  e.stopPropagation();
+
+                  // Add click animation
+                  const button = e.currentTarget;
+                  button.style.transform = 'scale(0.9)';
+                  setTimeout(() => {
+                    button.style.transform = 'scale(1.1)';
+                    setTimeout(() => {
+                      button.style.transform = 'scale(1)';
+                    }, 100);
+                  }, 100);
+
+                  service.handleIconClick(iconAction.action, { icon: iconAction.icon });
+                }}
+                aria-label={iconAction.label}
+                title={iconAction.tooltip || iconAction.label}
+                style={{
+                  background: 'rgba(0, 0, 0, 0.7)',
+                  backdropFilter: 'blur(4px)',
+                  cursor: 'pointer',
+                  padding: '0',
+                  margin: '0',
+                  borderRadius: '50%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease',
+                  color: 'white',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  width: '2.5rem',
+                  height: '2.5rem',
+                  minWidth: '2.5rem',
+                  minHeight: '2.5rem',
+                  maxWidth: '2.5rem',
+                  maxHeight: '2.5rem',
+                  boxSizing: 'border-box',
+                  gridColumn: 'auto',
+                  gridRow: 'auto',
+                }}
+                onMouseEnter={(e) => {
+                  e.currentTarget.style.backgroundColor = 'var(--sl-color-accent)';
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.transform = 'scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                  e.currentTarget.style.color = 'white';
+                  e.currentTarget.style.transform = 'scale(1)';
+                }}
+              >
+                <IconComponent size={16} />
+              </button>
+            ) : null;
+          })}
+        </div>
+      )}
+
       {img && (
         <div style={{
           width: '100%',
           height: '200px',
           overflow: 'hidden',
           backgroundColor: 'var(--sl-color-gray-6)',
+          position: 'relative',
         }}>
           <img
             src={img}
@@ -84,6 +164,30 @@ export const ReactCard = (props: ReactCardProps) => {
               objectFit: 'cover',
             }}
           />
+
+          {/* Title positioned over bottom of image */}
+          <div style={{
+            position: 'absolute',
+            bottom: '0',
+            left: '0',
+            right: '0',
+            zIndex: 11,
+            pointerEvents: 'none',
+          }}>
+            <h3 style={{
+              color: 'white',
+              fontSize: '1.125rem',
+              fontWeight: '600',
+              margin: '0',
+              padding: '0.75rem',
+              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6), -1px -1px 0 rgba(0, 0, 0, 0.8), 1px -1px 0 rgba(0, 0, 0, 0.8), -1px 1px 0 rgba(0, 0, 0, 0.8), 1px 1px 0 rgba(0, 0, 0, 0.8)',
+              background: 'linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4), transparent)',
+              lineHeight: '1.2',
+              wordBreak: 'break-word',
+            }}>
+              {text}
+            </h3>
+          </div>
         </div>
       )}
       <div className="p-4" style={{
@@ -91,12 +195,8 @@ export const ReactCard = (props: ReactCardProps) => {
         display: 'flex',
         flexDirection: 'column',
       }}>
-        <h3 className="text-lg font-semibold" style={{
-          color: 'var(--sl-color-white)',
-          marginBottom: description ? '0.5rem' : '0',
-        }}>{text}</h3>
         {description && (
-          <div style={{ marginTop: '0.5rem' }}>
+          <div style={{ marginTop: '0' }}>
             <p style={{
               color: 'var(--sl-color-gray-1)',
               fontSize: '0.875rem',
@@ -147,56 +247,6 @@ export const ReactCard = (props: ReactCardProps) => {
                 </span>
               </button>
             )}
-          </div>
-        )}
-        {icons && icons.length > 0 && (
-          <div style={{
-            display: 'flex',
-            gap: '0.75rem',
-            marginTop: '1rem',
-            justifyContent: 'flex-end',
-            flexWrap: 'wrap',
-          }}>
-            {icons.map((iconAction, index) => {
-              const IconComponent = iconMap[iconAction.icon as keyof typeof iconMap];
-              return IconComponent ? (
-                <button
-                  key={index}
-                  onClick={(e) => {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    service.handleIconClick(iconAction.action, { icon: iconAction.icon });
-                  }}
-                  aria-label={iconAction.label}
-                  title={iconAction.tooltip || iconAction.label}
-                  style={{
-                    background: 'none',
-                    cursor: 'pointer',
-                    padding: '0.5rem',
-                    borderRadius: '0.375rem',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transition: 'all 0.2s ease',
-                    color: 'var(--sl-color-text-accent)',
-                    backgroundColor: 'var(--sl-color-gray-6)',
-                    border: '1px solid var(--sl-color-gray-5)',
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--sl-color-accent-low)';
-                    e.currentTarget.style.color = 'var(--sl-color-accent)';
-                    e.currentTarget.style.transform = 'scale(1.1)';
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.backgroundColor = 'var(--sl-color-gray-6)';
-                    e.currentTarget.style.color = 'var(--sl-color-text-accent)';
-                    e.currentTarget.style.transform = 'scale(1)';
-                  }}
-                >
-                  <IconComponent size={16} />
-                </button>
-              ) : null;
-            })}
           </div>
         )}
       </div>
@@ -643,6 +693,50 @@ export const ClientCardGrid = memo(({
   const [error, setError] = useState<string | null>(null);
   const [isVisible, setIsVisible] = useState(false);
 
+  // Add event listeners for icon actions
+  useEffect(() => {
+    const handleIconAction = (eventData: any) => {
+      console.log('Landing card icon action:', eventData);
+      // Here you can add specific handling for each action
+      switch(eventData.iconAction) {
+        case 'like':
+          console.log('Like action triggered for card:', eventData.cardId);
+          break;
+        case 'comment':
+          console.log('Comment action triggered for card:', eventData.cardId);
+          break;
+        case 'share':
+          console.log('Share action triggered for card:', eventData.cardId);
+          break;
+        case 'bookmark':
+          console.log('Bookmark action triggered for card:', eventData.cardId);
+          break;
+        default:
+          console.log('Unknown action:', eventData.iconAction);
+      }
+    };
+
+    // Register event listeners for each icon action
+    const engineInstance = (typeof window !== 'undefined' && window.eventEngine) || eventEngine;
+
+    if (engineInstance) {
+      engineInstance.on('landingcard:icon:like', handleIconAction);
+      engineInstance.on('landingcard:icon:comment', handleIconAction);
+      engineInstance.on('landingcard:icon:share', handleIconAction);
+      engineInstance.on('landingcard:icon:bookmark', handleIconAction);
+    }
+
+    return () => {
+      // Cleanup event listeners
+      if (engineInstance) {
+        engineInstance.off('landingcard:icon:like', handleIconAction);
+        engineInstance.off('landingcard:icon:comment', handleIconAction);
+        engineInstance.off('landingcard:icon:share', handleIconAction);
+        engineInstance.off('landingcard:icon:bookmark', handleIconAction);
+      }
+    };
+  }, []);
+
   useEffect(() => {
     const fetchCards = async () => {
       try {
@@ -754,6 +848,34 @@ export const ClientCardGrid = memo(({
     );
   }
 
+  // Default icons for landing cards
+  const defaultIcons: LandingCardIconAction[] = [
+    {
+      icon: 'heart',
+      label: 'Like',
+      action: 'like',
+      tooltip: 'Like this item'
+    },
+    {
+      icon: 'comment',
+      label: 'Comment',
+      action: 'comment',
+      tooltip: 'Add a comment'
+    },
+    {
+      icon: 'share',
+      label: 'Share',
+      action: 'share',
+      tooltip: 'Share this item'
+    },
+    {
+      icon: 'bookmark',
+      label: 'Bookmark',
+      action: 'bookmark',
+      tooltip: 'Bookmark this item'
+    }
+  ];
+
   // Transform cards for rendering
   const renderCards = cards.map((card: any) => {
     const cleanSlug = card.slug?.includes('index')
@@ -764,21 +886,17 @@ export const ClientCardGrid = memo(({
       ...card,
       href: cleanSlug,
       text: card.title || 'Untitled',
+      icons: card.icons || defaultIcons, // Use provided icons or default ones
     };
   });
 
   // Render virtualized or standard grid with fade-in animation
   const containerStyle = {
-    position: 'absolute' as const,
-    top: 0,
-    left: 0,
-    width: '100%',
-    height: '100%',
     opacity: isVisible ? 1 : 0,
     transition: 'opacity 500ms ease-in-out',
+    width: '100%',
+    height: '100%',
     ...(containerHeight !== 'auto' ? {
-      minHeight: containerHeight,
-      maxHeight: containerHeight,
       overflowY: 'auto' as const,
       scrollBehavior: 'smooth' as const,
       scrollbarWidth: 'thin' as const,
