@@ -1,0 +1,33 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: restreamer-config
+  namespace: restream
+  labels:
+    app: restreamer
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=false,Sync=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+  storageClassName: longhorn
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: restreamer-data
+  namespace: restream
+  labels:
+    app: restreamer
+  annotations:
+    argocd.argoproj.io/sync-options: Replace=false,Sync=false
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi
+  storageClassName: longhorn
