@@ -11,7 +11,7 @@ using VContainer.Unity;
 
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
-    public class OrchestratorNPCGlobals : IAsyncStartable
+    public class OrchestratorNPCGlobals
     {
         private readonly INPCDefinitionDatabase npcDatabase;
         private readonly Dictionary<string, Queue<GameObject>> npcPools = new();
@@ -23,7 +23,10 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             this.controller = controller;
         }
 
-         public async UniTask StartAsync(CancellationToken cancellation)
+        /// <summary>
+        /// Initialize NPC pools under the specified parent transform (called by NPCSystemManager)
+        /// </summary>
+        public async UniTask InitializeAsync(Transform parentTransform, CancellationToken cancellation = default)
         {
             await UniTask.NextFrame(cancellation); // Optional delay to let scene objects init
 
@@ -35,8 +38,9 @@ namespace KBVE.MMExtensions.Orchestrator.Core
                 return;
             }
 
+            Debug.Log($"[OrchestratorNPCGlobals] Initializing NPC pools under parent: {parentTransform.name}");
 
-                        foreach (var label in labels)
+            foreach (var label in labels)
             {
                 if (!npcPools.ContainsKey(label))
                     npcPools[label] = new Queue<GameObject>();
@@ -67,24 +71,36 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
                 for (int i = 0; i < 5; i++)
                 {
-                    var obj = UnityEngine.Object.Instantiate(prefab);
+                    var obj = UnityEngine.Object.Instantiate(prefab, parentTransform);
                     obj.SetActive(false);
                     npcPools[label].Enqueue(obj);
                 }
 
-                Debug.Log($"[NPCGlobals] Initialized pool for '{label}' with {npcPools[label].Count} instances.");
+                Debug.Log($"[NPCGlobals] Initialized pool for '{label}' with {npcPools[label].Count} instances under {parentTransform.name}.");
             }
         }
 
-        public GameObject DeployNPC(string label, Vector3 position, Quaternion rotation)
+        /// <summary>
+        /// Deploy an NPC from the pool at the specified position (optionally under a specific parent)
+        /// </summary>
+        public GameObject DeployNPC(string label, Vector3 position, Quaternion rotation, Transform parentTransform = null)
         {
             if (npcPools.TryGetValue(label, out var pool) && pool.Count > 0)
             {
                 var npc = pool.Dequeue();
+                
+                // Set parent if specified (for organization purposes)
+                if (parentTransform != null && npc.transform.parent != parentTransform)
+                {
+                    npc.transform.SetParent(parentTransform);
+                }
+                
                 npc.transform.SetPositionAndRotation(position, rotation);
                 npc.SetActive(true);
 
                 controller.RegisterNPC(npc, label);
+                
+                Debug.Log($"[OrchestratorNPCGlobals] Deployed NPC '{label}' at {position} under parent {parentTransform?.name ?? "none"}");
                 return npc;
             }
 
@@ -104,7 +120,10 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             npcPools[label].Enqueue(npc);
         }
 
-        public async UniTask PrewarmPool(string label, int count)
+        /// <summary>
+        /// Prewarm the pool for a specific label with additional instances under the parent transform
+        /// </summary>
+        public async UniTask PrewarmPool(string label, int count, Transform parentTransform, CancellationToken cancellation = default)
         {
             if (!npcPools.ContainsKey(label))
                 npcPools[label] = new Queue<GameObject>();
@@ -115,11 +134,11 @@ namespace KBVE.MMExtensions.Orchestrator.Core
             if (prefab == null)
             {
                 var handle = Addressables.LoadAssetAsync<GameObject>(label);
-                await handle.ToUniTask();
+                await handle.ToUniTask(cancellationToken: cancellation);
 
                 if (handle.Status != AsyncOperationStatus.Succeeded)
                 {
-                    Debug.LogError($"[Globals] Failed to load prefab for label '{label}' during pool prewarm.");
+                    Debug.LogError($"[OrchestratorNPCGlobals] Failed to load prefab for label '{label}' during pool prewarm.");
                     return;
                 }
 
@@ -128,18 +147,18 @@ namespace KBVE.MMExtensions.Orchestrator.Core
 
             if (prefab == null)
             {
-                Debug.LogError($"[Globals] Prefab not found for label '{label}' during pool prewarm.");
+                Debug.LogError($"[OrchestratorNPCGlobals] Prefab not found for label '{label}' during pool prewarm.");
                 return;
             }
 
             for (int i = 0; i < count; i++)
             {
-                var obj = UnityEngine.Object.Instantiate(prefab);
+                var obj = UnityEngine.Object.Instantiate(prefab, parentTransform);
                 obj.SetActive(false);
                 npcPools[label].Enqueue(obj);
             }
 
-            Debug.Log($"[Globals] Prewarmed pool for '{label}' with {count} instances.");
+            Debug.Log($"[OrchestratorNPCGlobals] Prewarmed pool for '{label}' with {count} instances under {parentTransform.name}.");
         }
 
 

@@ -1,7 +1,7 @@
 ---
 title: 'September: 11th'
 category: Daily
-date: 2024-09-11 12:00:00
+date: 2025-09-11 12:00:00
 client: Self
 unsplash: 1692653055277-acb45c75f1f
 img: https://images.unsplash.com/photo-1692653055277-acb45c75f1f?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -11,6 +11,26 @@ tags:
 ---
 
 import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2025 
+
+### Post GH Pages Fixes
+
+-   09:15PM
+
+    Cleaning up the remaining actions and finishing up the migration of the KBVE website!
+    We will have to turn the old kbve.com into a repo that is README Only, I might even move it out of the KBVE organization and into the h0lybyte profile.
+    Having my personal profile be the graveyard of the older projects would be an interesting take.
+    This could also be a security concern that we can address, making sure that nothing just suddenly breaks or have a risk of leaking our keys/tokens.
+
+-   11:45PM 
+
+    The global auth might be an issue that we need to address, ideally the global auth logout system. 
+    Currently we are using the `GlobalLogout.tsx` but I did want it to be just all within the same instance, ugh.
+    Having the logout be in multiple locations might be a pain, whereas, having a shared library would make things easier.
+    What we could do is that instead of a shared Astro library, we go ahead and do a shared tsx library, with the core logic that is within the package.
+    Then have the custom astro files within their own respective projects, thus keeping the style within the project's eco-system.
+
 
 ## 2024
 

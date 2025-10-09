@@ -94,6 +94,48 @@ export const DiscordSignInButton: React.FC = () => {
   );
 };
 
+export const TwitchSignInButton: React.FC = () => {
+  const loading = useStore(oauthService.loadingAtom);
+  const provider = useStore(oauthService.providerAtom);
+  const isLoading = loading && provider === 'twitch';
+
+  const handleClick = useCallback(() => {
+    oauthService.signInWithTwitch();
+  }, []);
+
+  return (
+    <button
+      onClick={handleClick}
+      disabled={loading}
+      className={cn(
+        "group relative overflow-hidden",
+        "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded-xl font-medium transition-all ease-out duration-300",
+        "bg-[#9146FF] hover:bg-gradient-to-r hover:from-[#9146FF] hover:to-[#7c3aed] text-white",
+        "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
+        "dark:bg-[#9146FF] dark:hover:from-[#9146FF] dark:hover:to-[#7c3aed] dark:text-white",
+        loading && "opacity-50 cursor-not-allowed"
+      )}
+      type="button"
+    >
+      <span className="absolute right-0 w-8 h-32 -mt-12 bg-white/30 dark:bg-white/20 opacity-10 rotate-12 translate-x-12 group-hover:-translate-x-40 transition-all duration-1000 ease-out pointer-events-none"></span>
+      
+      {isLoading ? (
+        <div className="relative flex items-center justify-center gap-3">
+          <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin"></div>
+          <span className="text-sm font-medium leading-relaxed">Connecting...</span>
+        </div>
+      ) : (
+        <div className="relative flex items-center justify-center gap-3">
+          <svg className="w-4 h-4 transition-transform duration-300 group-hover:scale-110 drop-shadow-sm" fill="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z"/>
+          </svg>
+          <span className="text-sm font-medium leading-relaxed">Continue with Twitch</span>
+        </div>
+      )}
+    </button>
+  );
+};
+
 export const SolanaSignInButton: React.FC<{ 
   captchaToken?: string | null; 
   captchaRef?: React.RefObject<any>;
@@ -312,6 +354,7 @@ export const SolanaSignInButton: React.FC<{
 export const ReactOAuth: React.FC<{
   showGithub?: boolean;
   showDiscord?: boolean;
+  showTwitch?: boolean;
   showSolana?: boolean;
   captchaToken?: string | null;
   captchaRef?: React.RefObject<any>;
@@ -320,6 +363,7 @@ export const ReactOAuth: React.FC<{
 }> = ({ 
   showGithub = true, 
   showDiscord = true, 
+  showTwitch = true,
   showSolana = true, 
   captchaToken, 
   captchaRef,
@@ -364,6 +408,7 @@ export const ReactOAuth: React.FC<{
       <div className="flex flex-col gap-3">
         {showGithub && <GithubSignInButton />}
         {showDiscord && <DiscordSignInButton />}
+        {showTwitch && <TwitchSignInButton />}
         {showSolana && (
           <SolanaSignInButton 
             captchaToken={captchaToken} 
@@ -379,3 +424,4 @@ export { oauthService };
 
 export const signInWithGithub = () => oauthService.signInWithGithub();
 export const signInWithDiscord = () => oauthService.signInWithDiscord();
+export const signInWithTwitch = () => oauthService.signInWithTwitch();

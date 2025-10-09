@@ -156,17 +156,6 @@ jobs:
             items: |
                 [
                     {
-                      "name": "astro_kbve",
-                      "condition": "${{ needs.alter.outputs.astro_kbve == 'true' }}",
-                      "node_version": "22",
-                      "pnpm_version": "10",
-                      "build_command": "astro-kbve:build",
-                      "source_path": "dist/apps/astro-kbve/",
-                      "destination_repo": "KBVE/kbve.com",
-                      "destination_folder": "/docs",
-                      "destination_branch": "dev"
-                    },
-                    {
                       "name": "astro_memes",
                       "condition": "${{ needs.alter.outputs.astro_memes == 'true' }}",
                       "node_version": "22",
@@ -210,9 +199,9 @@ jobs:
                     "condition": "${{ needs.alter.outputs.rareicon_unity == 'true' }}",
                     "project_path": "azure-rareicon",
                     "azure_repo_url": "dev.azure.com/kbve/rareicon/_git/rareicon",
-                    "unity_version": "6000.0.25f1",
-                    "target_platforms": "[\"StandaloneWindows64\", \"WebGL\"]",
-                    "deploy_to_itch": true,
+                    "unity_version": "6000.2.6f2",
+                    "target_platforms": "[\"StandaloneWindows64\"]",
+                    "deploy_to_itch": false,
                     "itch_username": "kbve",
                     "itch_gameid": "rareicon",
                     "gh_pages_repo": "KBVE/unity.rareicon.com",
@@ -279,7 +268,8 @@ jobs:
                 [
                   { "name": "kilobase", "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
                   { "name": "disoxide", "target": "container", "condition": "${{ needs.alter.outputs.disoxide }}" },
-                  { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" }
+                  { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" },
+                  { "name": "kbve-hyperlane", "target": "container", "condition": "${{ needs.alter.outputs.hyperlane }}" }
 
 
                 ]

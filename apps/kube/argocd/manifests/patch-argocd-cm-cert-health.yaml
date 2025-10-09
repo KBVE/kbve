@@ -1,0 +1,25 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: argocd-cm
+data:
+    resource.customizations.health.cert-manager.io_Certificate: |
+        hs = {}
+        if obj.status and obj.status.conditions then
+          for _, c in ipairs(obj.status.conditions) do
+            if c.type == "Ready" then
+              if c.status == "True" then
+                hs.status = "Healthy"
+                hs.message = c.message or "Certificate is Ready"
+                return hs
+              elseif c.status == "False" then
+                hs.status = "Degraded"
+                hs.message = c.message or "Certificate Ready=False"
+                return hs
+              end
+            end
+          end
+        end
+        hs.status = "Progressing"
+        hs.message = "Waiting for Ready=True"
+        return hs

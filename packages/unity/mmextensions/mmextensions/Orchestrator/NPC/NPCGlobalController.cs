@@ -1,9 +1,17 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-
 namespace KBVE.MMExtensions.Orchestrator.Core
 {
+    /// <summary>
+    /// Interface for NPC global controller that manages NPC registration and lifecycle
+    /// </summary>
+    public interface INPCGlobalController
+    {
+        void RegisterNPC(GameObject npc, string label);
+        void UnregisterNPC(GameObject npc, string label);
+    }
+
     public class NPCGlobalController: INPCGlobalController
     {
         private readonly Dictionary<string, List<GameObject>> activeNPCMap = new();

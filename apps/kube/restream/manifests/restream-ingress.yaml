@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: restreamer
+    namespace: restream
+    labels:
+        app: restreamer
+    annotations:
+        cert-manager.io/cluster-issuer: letsencrypt-dns
+        nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+        nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+spec:
+    ingressClassName: nginx
+    tls:
+        - hosts:
+              - restreamer.kbve.com
+          secretName: restreamer-tls
+    rules:
+        - host: restreamer.kbve.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: restreamer
+                            port:
+                                number: 8080

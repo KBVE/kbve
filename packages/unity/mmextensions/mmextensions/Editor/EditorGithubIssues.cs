@@ -10,7 +10,7 @@ namespace KBVE.MMExtensions.Editor
 {
     public static class EditorGithubIssues
     {
-        private const int IssuesPerPage = 3;
+        private const int IssuesPerPage = 6;
         private static readonly Dictionary<int, List<GithubIssue>> IssueCache = new();
         private static readonly Dictionary<string, Texture2D> AvatarCache = new();
 
@@ -158,7 +158,7 @@ namespace KBVE.MMExtensions.Editor
             var operation = request.SendWebRequest();
             operation.completed += _ =>
             {
-                if (!request.isNetworkError && !request.isHttpError)
+                if (request.result == UnityWebRequest.Result.Success)
                 {
                     Texture2D avatar = DownloadHandlerTexture.GetContent(request);
                     AvatarCache[username] = avatar;

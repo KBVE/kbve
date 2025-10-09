@@ -1,7 +1,7 @@
 {
 	"name": "com.kbve.kilonet",
 	"displayName": "Kilonet",
-	"version": "0.0.2",
+	"version": "0.0.5",
 	"description": "A KBVE Package for Unity",
 	"unity": "2023.1",
 	"author": {
@@ -18,7 +18,7 @@
 	],
 	"dependencies": {
 		"com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
-		"jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.16.8"
+		"jp.hadashikick.vcontainer": "https://github.com/hadashiA/VContainer.git?path=VContainer/Assets/VContainer#1.17.0"
 	},
 	"license": "MIT",
 	"licensesUrl": "https://kbve.com/legal/",

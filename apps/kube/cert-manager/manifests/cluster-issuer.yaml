@@ -1,49 +1,87 @@
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: letsencrypt-http
+    name: letsencrypt-http
 spec:
-  acme:
-    server: https://acme-v02.api.letsencrypt.org/directory
-    email: cert@kbve.com
-    privateKeySecretRef:
-      name: letsencrypt-http-private-key
-    solvers:
-      - http01:
-          ingress:
-            class: nginx
+    acme:
+        server: https://acme-v02.api.letsencrypt.org/directory
+        email: cert@kbve.com
+        privateKeySecretRef:
+            name: letsencrypt-http-private-key
+        solvers:
+            # --- Solver 1: KBVE.COM domains ---
+            - selector:
+                  dnsZones:
+                      - kbve.com
+              http01:
+                  ingress:
+                      ingressClassName: nginx
+                      ingressTemplate:
+                          metadata:
+                              annotations:
+                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
 
+            # --- Solver 2: DISCORD.SH domains ---
+            - selector:
+                  dnsZones:
+                      - discord.sh
+              http01:
+                  ingress:
+                      ingressClassName: nginx
+                      ingressTemplate:
+                          metadata:
+                              annotations:
+                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: selfsigned-issuer
+    name: letsencrypt-dns
 spec:
-  selfSigned: {}
-
+    acme:
+        email: cert@kbve.com
+        server: https://acme-v02.api.letsencrypt.org/directory
+        privateKeySecretRef:
+            name: letsencrypt-dns-account-key
+        solvers:
+            - selector:
+                  dnsZones:
+                      - kbve.com
+              dns01:
+                  cloudflare:
+                      apiTokenSecretRef:
+                          name: cloudflare-api-token-secret
+                          key: api-token
+                          
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
 metadata:
-  name: internal-ca-issuer
+    name: selfsigned-issuer
 spec:
-  ca:
-    secretName: internal-ca-key-pair
-
+    selfSigned: {}
+---
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+    name: internal-ca-issuer
+spec:
+    ca:
+        secretName: internal-ca-key-pair
 ---
 apiVersion: cert-manager.io/v1
 kind: Certificate
 metadata:
-  name: internal-ca
-  namespace: cert-manager
+    name: internal-ca
+    namespace: cert-manager
 spec:
-  isCA: true
-  commonName: internal-ca
-  secretName: internal-ca-key-pair
-  privateKey:
-    algorithm: ECDSA
-    size: 256
-  issuerRef:
-    name: selfsigned-issuer
-    kind: ClusterIssuer
-    group: cert-manager.io
+    isCA: true
+    commonName: internal-ca
+    secretName: internal-ca-key-pair
+    privateKey:
+        algorithm: ECDSA
+        size: 256
+    issuerRef:
+        name: selfsigned-issuer
+        kind: ClusterIssuer
+        group: cert-manager.io

@@ -10,6 +10,7 @@ using UnityEngine;
 using UnityEngine.Serialization;
 using UnityEngine.Tilemaps;
 using KBVE.MMExtensions.Weapons;
+using KBVE.MMExtensions.Actions;
 
 namespace KBVE.MMExtensions.Ai
 {
@@ -20,6 +21,7 @@ namespace KBVE.MMExtensions.Ai
 
         public Weapon initialWeapon;
         private CharacterHandleWeapon handleWeapon;
+        private CharacterOrientation2D characterOrientation;
         public LayerMask dashCheckLayerMask;
         public float dashObstacleCheckDistance;
         public float dashTargetCheckDistance;
@@ -42,7 +44,7 @@ namespace KBVE.MMExtensions.Ai
         private AIActionDash aIActionDash;
         private AiActionPathfinderToTarget2D actionPathfinder;
         private AIActionMoveTowardsTarget2D actionMoveTowardTarget;
-        private AIActionShoot2D aIActionShoot;
+        private AIActionShoot2DKBVE aIActionShoot;
         private AIActionChangeWeapon aIActionChangeWeapon;
         private WeaponAim.AimControls playerForcedWeaponAimControl = WeaponAim.AimControls.Mouse;
         private WeaponAim.AimControls aiAimingForcedWeaponAimControl = WeaponAim.AimControls.Script;
@@ -58,6 +60,7 @@ namespace KBVE.MMExtensions.Ai
             gameObject.MMGetOrAddComponent<Rigidbody2D>().sharedMaterial =
                 CreateFrictionlessPhysicsMaterial();
             handleWeapon = gameObject.MMGetOrAddComponent<CharacterHandleWeapon>();
+            characterOrientation = gameObject.MMGetOrAddComponent<CharacterOrientation2D>();
             handleWeapon.InitialWeapon = initialWeapon;
             SetupDecisionsHealer();
             SetupDecisionsAttacker();
@@ -74,9 +77,19 @@ namespace KBVE.MMExtensions.Ai
         public void ToggleAI(bool aiControl)
         {
             handleWeapon.ForceWeaponAimControl = true;
-            handleWeapon.ForcedWeaponAimControl = aiControl ? aiPassiveForcedWeaponAimControl : playerForcedWeaponAimControl;
-            if(aiControl) handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
-            else handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
+            handleWeapon.ForcedWeaponAimControl = aiControl ? aiAimingForcedWeaponAimControl : playerForcedWeaponAimControl;
+            if(aiControl)
+            {
+                characterOrientation.FacingMode = CharacterOrientation2D.FacingModes.Both;
+                characterOrientation.FacingBase = CharacterOrientation2D.FacingBases.WeaponAngle;
+                handleWeapon.OnWeaponChange += handleWeapon_OnWeaponChange;
+            }
+            else
+            {
+                characterOrientation.FacingMode = CharacterOrientation2D.FacingModes.WeaponDirection;
+                handleWeapon.OnWeaponChange -= handleWeapon_OnWeaponChange;
+            }
+
             if(handleWeapon.WeaponAimComponent != null)
             {
                 handleWeapon.WeaponAimComponent.AimControl = handleWeapon.ForcedWeaponAimControl;
@@ -174,7 +187,7 @@ namespace KBVE.MMExtensions.Ai
             actionDoNothing = gameObject.MMGetOrAddComponent<AIActionDoNothing>();
             actionPathfinder = gameObject.MMGetOrAddComponent<AiActionPathfinderToTarget2D>();
             actionMoveTowardTarget = gameObject.MMGetOrAddComponent<AIActionMoveTowardsTarget2D>();
-            aIActionShoot = gameObject.MMGetOrAddComponent<AIActionShoot2D>();
+            aIActionShoot = gameObject.MMGetOrAddComponent<AIActionShoot2DKBVE>();
             aIActionChangeWeapon = gameObject.MMGetOrAddComponent<AIActionChangeWeapon>();
             aIActionDash = gameObject.MMGetOrAddComponent<AIActionDash>();
 
@@ -431,7 +444,7 @@ namespace KBVE.MMExtensions.Ai
             AIState healState = new AIState();
             healState.StateName = "Heal";
 
-            AIActionShoot2D aIActionShoot2D = gameObject.MMGetOrAddComponent<AIActionShoot2D>();
+            AIActionShoot2DKBVE aIActionShoot2D = gameObject.MMGetOrAddComponent<AIActionShoot2DKBVE>();
             aIActionShoot2D.AimAtTarget = true;
             healState.Actions = new AIActionsList() { aIActionShoot2D };
 

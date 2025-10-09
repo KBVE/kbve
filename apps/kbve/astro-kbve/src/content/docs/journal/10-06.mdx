@@ -1,7 +1,7 @@
 ---
 title: 'October: 6th'
 category: Daily
-date: 2024-10-06 12:00:00
+date: 2025-10-06 12:00:00
 client: Self
 unsplash: 1693298661836-1206649639ef
 img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -11,6 +11,38 @@ tags:
 ---
 
 import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2025
+
+### KBVE Credits
+
+-   08:15AM
+
+    I have to add back the KBVE credits, we have two sql files in the past that had everything already setup for the credit system!
+    I am going to take both of those and try to create a 3rd all in one sql file that will hold everything for our khash system, maybe even create a new schema around it.
+    The credits will still be 1 million per $1, which we want to automate to a certain extent in terms of payouts and purchases, both would also need audit logs and security.
+    
+### Twitch Stream
+
+-   09:05AM
+
+    Getting the basics of the OBS setup going, this was long over due and honestly I think it will great to get our stream operational, even if its just for the memes.
+
+### MapSettings Author Script
+
+-   10:06AM
+
+    One of the pieces that we are missing in our setup is the MapSettings authoring script, which will take each of the prefabs that we create and build an internal database for it.
+    This is going to be important when we are looking to automate some of the map generation in the future.
+
+### Argo IRC
+
+-   11:36AM
+    
+    Looks like argo's deployment of the irc server is stuck in a processing stage, going to try and resolve it!
+    The irc server is operational but the hang is a bit concerning, so I might as well address that right now.
+    The hang is coming from the SSL cert generation and the cert manager, both of these can be addressed in our current unity pipeline.
+    Let me push this fix up and then handle some of the click house issues!
 
 ## 2024
 

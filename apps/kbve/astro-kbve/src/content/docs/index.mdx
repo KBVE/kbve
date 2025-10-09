@@ -4,30 +4,28 @@ head:
     - tag: title
       content: KiloByte Virtual Enterprise | KBVE
 description: |
-    Welcome to KBVE - Kilobyte Virtual Engine. 
+    Welcome to KBVE - Kilobyte Virtual Enterprise & Engine. 
     Discover cutting-edge software and automation solutions designed to streamline and enhance your projects.
+    Afterwards, venture into our arcade and see what our studio has been cooking up!
 template: splash
 editUrl: false
 lastUpdated: false
 next: false
-sidebar:
-    label: Webmaster
-    order: 4
 
 ---
 
 import '../../styles/starlight_main.css';
-import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
-import { AstroLottie, AstroNeoGlassPanel } from '@kbve/astropad';
+import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
 
-<AstroNeoGlassPanel />
+<Tabs syncKey="home">
+  <TabItem label="Dev">Development and Tutorials!</TabItem>
+  <TabItem label="Gaming">Arcade and Jams!</TabItem>
+  <TabItem label="Memes">Memes</TabItem>
+  <TabItem label="API">API</TabItem>
+</Tabs>
 
-<AstroLottie
-  src="https://kbve.com/assets/lottie/holydance.lottie"
-  id="my-lottie"
-  autoplay={true}
-  loop={true}
-/>
+<Tabs syncKey="home">
+  <TabItem label="Dev">
 
 <CardGrid stagger>
 
@@ -78,3 +76,136 @@ Each section provides in-depth specifications, practical usage guides, and maint
 
 </Card>
 </CardGrid>
+</TabItem>
+  <TabItem label="Gaming">
+
+<CardGrid stagger>
+
+<Card title="KBVE Arcade" icon="rocket">
+Step into our retro-inspired arcade featuring classic and modern browser games.
+Experience nostalgic gameplay with a modern twist, all playable directly in your browser without downloads or installations.
+
+<LinkCard
+  title="Play Now"
+  description="Jump straight into our collection of browser-based games, from puzzle challenges to action-packed adventures."
+  href="/arcade/"
+/>
+
+<LinkCard
+  title="Game Jams"
+  description="Participate in our community game development challenges and showcase your creative game ideas."
+  href="/games/"
+/>
+
+</Card>
+
+<Card title="RareIcon - Coming Soon" icon="star">
+Get ready for our upcoming Steam release! RareIcon is an innovative gaming experience currently in development by KBVE Studios.
+Follow our development journey and be among the first to know when we launch.
+
+<LinkCard
+  title="Development Blog"
+  description="Follow the creation of RareIcon, from concept art to gameplay mechanics."
+  href="/projects/rareicon/"
+/>
+
+<LinkCard
+  title="Wishlist on Steam"
+  description="Add RareIcon to your Steam wishlist and get notified on release day."
+  href="#"
+/>
+
+</Card>
+
+</CardGrid>
+
+  </TabItem>
+
+  <TabItem label="Memes">
+
+<CardGrid stagger>
+
+<Card title="Media Hub" icon="camera">
+Explore our creative media collection featuring original content, curated selections, and community contributions.
+From viral videos to artistic expressions, discover entertainment that resonates with internet culture.
+
+<LinkCard
+  title="Video Gallery"
+  description="Browse our collection of funny clips, creative shorts, and memorable moments."
+  href="/media/videos/"
+/>
+
+<LinkCard
+  title="Image Collection"
+  description="Discover memes, digital art, and visual content from our community."
+  href="/media/images/"
+/>
+
+</Card>
+
+<Card title="Music & Audio" icon="musical-note">
+Immerse yourself in our audio universe featuring playlists, soundtracks, and original compositions.
+Whether you're coding, gaming, or just vibing, we've got the perfect soundtrack for your day.
+
+<LinkCard
+  title="KBVE Jukebox"
+  description="Stream curated playlists and discover new music based on your mood and preferences."
+  href="/music/"
+/>
+
+<LinkCard
+  title="Podcast & Audio Shows"
+  description="Listen to tech talks, gaming discussions, and creative audio content."
+  href="/media/audio/"
+/>
+
+</Card>
+
+</CardGrid>
+
+  </TabItem>
+
+  <TabItem label="API">
+
+<CardGrid stagger>
+
+<Card title="API Status & Performance" icon="graph">
+Monitor the real-time performance and availability of KBVE APIs.
+Get insights into response times, uptime statistics, and service health across all our endpoints.
+
+<LinkCard
+  title="Status Dashboard"
+  description="View live status of all KBVE API services and historical uptime data."
+  href="/api/status/"
+/>
+
+<LinkCard
+  title="Performance Metrics"
+  description="Analyze response times, throughput, and reliability metrics for our APIs."
+  href="/api/metrics/"
+/>
+
+</Card>
+
+<Card title="Developer Documentation" icon="code">
+Access comprehensive documentation for integrating KBVE APIs into your applications.
+Find endpoints, authentication guides, code examples, and best practices for seamless integration.
+
+<LinkCard
+  title="API Reference"
+  description="Browse complete documentation for all available endpoints and parameters."
+  href="/api/docs/"
+/>
+
+<LinkCard
+  title="Quick Start Guides"
+  description="Get up and running quickly with our step-by-step integration tutorials."
+  href="/api/quickstart/"
+/>
+
+</Card>
+
+</CardGrid>
+
+  </TabItem>
+</Tabs>

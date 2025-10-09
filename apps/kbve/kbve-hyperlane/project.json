@@ -79,22 +79,22 @@
           ],
           "load": true,
           "tags": [
-            "1.4.9",
-            "1.4"
+            "1.2.6",
+            "1.2"
           ]
         },
         "configurations": {
           "local": {
             "tags": [
-              "1.4.9",
-              "1.4"
+              "1.2.6",
+              "1.2"
             ],
             "push": false
           },
           "production": {
             "tags": [
-              "1.4.9",
-              "1.4"
+              "1.2.6",
+              "1.2"
             ],
             "push": true,
             "customBuildOptions": "--push",
@@ -134,7 +134,7 @@
             "forwardAllArgs": false
           },
           {
-            "command": "docker run --env-file .env -p 3000:3000 kbve/kbve-hyperlane:1.4.9",
+            "command": "docker run --env-file .env -p 3000:3000 kbve/kbve-hyperlane:1.2.6",
             "forwardAllArgs": false
           }
         ],

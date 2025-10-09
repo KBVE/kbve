@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kbve-hyperlane
+  namespace: kbve
+  labels:
+    app: kbve-hyperlane
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kbve-hyperlane
+  template:
+    metadata:
+      labels:
+        app: kbve-hyperlane
+    spec:
+      containers:
+      - name: kbve-hyperlane
+        image: kbve/kbve-hyperlane:1.2.5
+        ports:
+        - containerPort: 3000
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "3000"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kbve-hyperlane-service
+  namespace: kbve
+  labels:
+    app: kbve-hyperlane
+spec:
+  type: ClusterIP
+  selector:
+    app: kbve-hyperlane
+  ports:
+  - port: 3000
+    targetPort: 3000
+    protocol: TCP
