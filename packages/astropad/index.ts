@@ -19,6 +19,9 @@ export { default as AstroLottie } from './src/lottie/EntityLottie.astro';
 export { supabase } from './src/supabase/states/supabaseClient';
 export { userClientService } from './src/supabase/states/userClient';
 
+//  [Event Engine]
+export { eventEngine } from './src/supabase/states/eventEngine';
+
 //  [Auth Services]
 export { loginService } from './src/supabase/auth/login/ServiceLogin';
 export { oauthService } from './src/supabase/auth/oauth/ServiceOAuth';

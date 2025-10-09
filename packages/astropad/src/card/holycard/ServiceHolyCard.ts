@@ -1,7 +1,14 @@
 import { atom, computed } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
 import type { User } from '@supabase/supabase-js';
-import { supabase, userClientService } from '@kbve/astropad';
+import { supabase, userClientService, eventEngine } from '@kbve/astropad';
+
+export interface HolyCardIconAction {
+  icon: string; // Lucide icon name
+  label: string;
+  action: string; // Action identifier
+  tooltip?: string;
+}
 
 export interface HolyCardProps {
   backgroundImage: string;
@@ -9,6 +16,7 @@ export interface HolyCardProps {
   description: string;
   buttonName: string;
   link: string;
+  icons?: HolyCardIconAction[];
 }
 
 export interface HolyCardState {
@@ -108,13 +116,6 @@ export const holyCardService = {
     }
   },
 
-  // Handle click for specific card
-  handleCardClick: (cardId: string) => {
-    const instance = cardInstances.get(cardId);
-    if (instance?.props?.link) {
-      window.open(instance.props.link, '_blank', 'noopener,noreferrer');
-    }
-  },
 
   // Reset specific card
   reset: (cardId: string) => {
@@ -139,5 +140,48 @@ export const holyCardService = {
   // Get all card IDs (useful for debugging)
   getAllCardIds: () => {
     return Array.from(cardInstances.keys());
+  },
+
+  // Handle icon click - uses global eventEngine
+  handleIconClick: (cardId: string, iconAction: string, iconData?: any) => {
+    // Use the global eventEngine to emit events
+    if (typeof window !== 'undefined' && window.eventEngine) {
+      window.eventEngine.emit(`card:icon:${iconAction}`, cardId, {
+        iconAction,
+        iconData,
+        cardId,
+      });
+    } else {
+      // Fallback for SSR or when eventEngine isn't available
+      eventEngine.emit(`card:icon:${iconAction}`, cardId, {
+        iconAction,
+        iconData,
+        cardId,
+      });
+    }
+  },
+
+  // Handle card click
+  handleCardClick: (cardId: string) => {
+    const instance = cardInstances.get(cardId);
+    if (instance?.props?.link) {
+      // Emit click event
+      if (typeof window !== 'undefined' && window.eventEngine) {
+        window.eventEngine.emit('card:click', cardId, {
+          link: instance.props.link,
+          title: instance.props.title,
+        });
+      }
+
+      // Open link
+      window.open(instance.props.link, '_blank', 'noopener,noreferrer');
+    }
+  },
+
+  // Handle card hover
+  handleCardHover: (cardId: string, isHovered: boolean) => {
+    if (typeof window !== 'undefined' && window.eventEngine) {
+      window.eventEngine.emit('card:hover', cardId, { isHovered });
+    }
   },
 };

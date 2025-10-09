@@ -2,7 +2,35 @@
 
 import React, { useEffect, useMemo, useRef } from 'react';
 import { useStore } from '@nanostores/react';
-import { type HolyCardProps, holyCardService } from './ServiceHolyCard';
+import { type HolyCardProps, type HolyCardIconAction, holyCardService } from './ServiceHolyCard';
+// Import to ensure eventEngine is initialized
+import { eventEngine } from '@kbve/astropad';
+import {
+  Heart,
+  Share2,
+  Flag,
+  Bookmark,
+  MoreHorizontal,
+  Star,
+  Download,
+  ExternalLink,
+  Eye,
+  MessageCircle
+} from 'lucide-react';
+
+// Icon mapper for string to component mapping
+const iconMap = {
+  heart: Heart,
+  share: Share2,
+  flag: Flag,
+  bookmark: Bookmark,
+  more: MoreHorizontal,
+  star: Star,
+  download: Download,
+  external: ExternalLink,
+  view: Eye,
+  comment: MessageCircle,
+} as const;
 
 interface ReactHolyCardProps {
   cardId?: string;
@@ -31,41 +59,102 @@ export const ReactHolyCard: React.FC<ReactHolyCardProps> = ({
     }
   }, [initialProps, cardId]);
 
+  // Lazy loading intersection observer
+  useEffect(() => {
+    const cardElement = cardRef.current || document.getElementById(cardId);
+    if (!cardElement) return;
+
+    const backgroundElement = cardElement.querySelector('.holy-card-background') as HTMLElement;
+    if (!backgroundElement) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            const bgSrc = backgroundElement.getAttribute('data-bg-src');
+            if (bgSrc) {
+              // Create optimized image URL for cards (smaller size)
+              const optimizedSrc = bgSrc.includes('unsplash.com')
+                ? bgSrc.replace(/w=\d+&h=\d+/, 'w=800&h=450')
+                : bgSrc;
+
+              // Preload the image
+              const img = new Image();
+              img.onload = () => {
+                backgroundElement.style.backgroundImage = `url(${optimizedSrc})`;
+                backgroundElement.classList.remove('loading');
+                backgroundElement.classList.add('loaded');
+              };
+              img.onerror = () => {
+                backgroundElement.classList.remove('loading');
+                backgroundElement.style.backgroundImage = 'none';
+                backgroundElement.style.backgroundColor = '#2a2a2a';
+              };
+              img.src = optimizedSrc;
+
+              observer.unobserve(entry.target);
+            }
+          }
+        });
+      },
+      {
+        rootMargin: '50px', // Start loading 50px before the element comes into view
+        threshold: 0.1
+      }
+    );
+
+    observer.observe(cardElement);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, [cardId]);
+
   useEffect(() => {
     const cardElement = cardRef.current || document.getElementById(cardId);
     if (!cardElement) return;
 
     const handleMouseEnter = () => {
       holyCardService.setHovered(cardId, true);
+      holyCardService.handleCardHover(cardId, true);
       cardElement.style.transform = 'translateY(-4px)';
       cardElement.style.boxShadow = '0 20px 40px rgba(0, 0, 0, 0.2)';
     };
 
     const handleMouseLeave = () => {
       holyCardService.setHovered(cardId, false);
+      holyCardService.handleCardHover(cardId, false);
       cardElement.style.transform = 'translateY(0)';
       cardElement.style.boxShadow = '';
     };
 
-    const handleClick = (e: Event) => {
-      e.preventDefault();
-      if (props) {
-        if (onCardClick) {
-          onCardClick(props);
-        } else {
-          holyCardService.handleCardClick(cardId);
-        }
-      }
+    // No card click handler - only button should be clickable
+
+    const handleFocus = () => {
+      holyCardService.setHovered(cardId, true);
+      cardElement.style.transform = 'translateY(-2px)';
+      cardElement.style.boxShadow = '0 10px 20px rgba(0, 0, 0, 0.15)';
+      cardElement.style.outline = '2px solid var(--sl-color-accent)';
+      cardElement.style.outlineOffset = '2px';
+    };
+
+    const handleBlur = () => {
+      holyCardService.setHovered(cardId, false);
+      cardElement.style.transform = 'translateY(0)';
+      cardElement.style.boxShadow = '';
+      cardElement.style.outline = 'none';
     };
 
     cardElement.addEventListener('mouseenter', handleMouseEnter);
     cardElement.addEventListener('mouseleave', handleMouseLeave);
-    cardElement.addEventListener('click', handleClick);
+    cardElement.addEventListener('focus', handleFocus);
+    cardElement.addEventListener('blur', handleBlur);
 
     return () => {
       cardElement.removeEventListener('mouseenter', handleMouseEnter);
       cardElement.removeEventListener('mouseleave', handleMouseLeave);
-      cardElement.removeEventListener('click', handleClick);
+      cardElement.removeEventListener('focus', handleFocus);
+      cardElement.removeEventListener('blur', handleBlur);
     };
   }, [cardId, onCardClick, props]);
 
@@ -133,6 +222,58 @@ export const ReactHolyCard: React.FC<ReactHolyCardProps> = ({
   useEffect(() => {
     return () => {
       holyCardService.destroyCard(cardId);
+    };
+  }, [cardId]);
+
+  // Add event listeners to static icon buttons
+  useEffect(() => {
+    const cardElement = cardRef.current || document.getElementById(cardId);
+    if (!cardElement) return;
+
+    const iconButtons = cardElement.querySelectorAll('.holy-card-icon-btn');
+
+    iconButtons.forEach((button) => {
+      const iconAction = button.getAttribute('data-action');
+      const iconType = button.getAttribute('data-icon');
+
+      const handleIconClick = (e: Event) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        // Add click animation
+        const btn = e.target as HTMLElement;
+        const buttonElement = btn.closest('.holy-card-icon-btn') as HTMLElement;
+        if (buttonElement) {
+          buttonElement.style.transform = 'scale(0.9)';
+          setTimeout(() => {
+            buttonElement.style.transform = '';
+          }, 150);
+        }
+
+        // Emit event
+        if (iconAction) {
+          holyCardService.handleIconClick(cardId, iconAction, { icon: iconType });
+        }
+      };
+
+      // Add keyboard support
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          handleIconClick(e);
+        }
+      };
+
+      button.addEventListener('click', handleIconClick);
+      button.addEventListener('keydown', handleKeyDown);
+    });
+
+    return () => {
+      // Cleanup event listeners
+      iconButtons.forEach((button) => {
+        button.removeEventListener('click', () => {});
+        button.removeEventListener('keydown', () => {});
+      });
     };
   }, [cardId]);
 
