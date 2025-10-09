@@ -20,7 +20,7 @@ spec:
         spec:
             containers:
                 - name: realtime
-                  image: ghcr.io/kbve/realtime:v2.51.5
+                  image: ghcr.io/kbve/realtime:v2.53.0
                   command: ['/bin/sh']
                   args:
                       [
@@ -137,7 +137,7 @@ spec:
 
                   volumeMounts:
                       - name: realtime-seeds
-                        mountPath: /app/lib/realtime-2.51.5/priv/repo/seeds.exs
+                        mountPath: /app/lib/realtime-2.53.0/priv/repo/seeds.exs
                         subPath: seeds.exs
 
                   livenessProbe:
