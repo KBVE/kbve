@@ -79,3 +79,7 @@ export { default as AstroRive } from './src/rive/AstroRive.astro';
 // export { default as Register } from './src/register/Register.astro';
 // Login
 // export { default as Login } from './src/login/Login.astro';
+
+// [Landing Page]
+export { ReactCard } from './src/cards/ReactCard';
+export { default as AstroCards } from './src/cards/EntityCard.astro';
