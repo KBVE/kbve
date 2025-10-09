@@ -42,8 +42,19 @@ UNITY_PLUGIN_LIBCEF_CODECS_PATH=""
 
 # Function to install and prepare Rust
 install_rust() {
+    # Check if Rust is already installed
+    if command -v rustc >/dev/null 2>&1; then
+        echo "Rust is already installed."
+        echo "Rust version: $(rustc --version)"
+        echo "Rustup version: $(rustup --version 2>/dev/null || echo 'rustup not found')"
+        return 0
+    fi
+
+    # Check if Homebrew is available
+    brew_check
+
     local session_name="rust-installation"
-    local install_command="curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh"
+    local install_command="brew install rust"
 
     # Check if the tmux session exists
     if ! tmux has-session -t "$session_name" 2>/dev/null; then
@@ -62,19 +73,52 @@ install_rust() {
 
 # Function to install and prepare NodeJS
 install_node_pnpm() {
+    # Check if Node.js is already installed
+    if command -v node >/dev/null 2>&1; then
+        echo "Node.js is already installed."
+        echo "Node.js version: $(node --version)"
+    fi
+
+    # Check if pnpm is already installed
+    if command -v pnpm >/dev/null 2>&1; then
+        echo "pnpm is already installed."
+        echo "pnpm version: $(pnpm --version)"
+    fi
+
+    # If both are installed, return early
+    if command -v node >/dev/null 2>&1 && command -v pnpm >/dev/null 2>&1; then
+        echo "Both Node.js and pnpm are already installed."
+        return 0
+    fi
+
+    # Check if Homebrew is available
+    brew_check
+
     local session_name="node-pnpm-installation"
-    local install_node_command="curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash && source ~/.nvm/nvm.sh && nvm install node"
-    local install_pnpm_command="npm install -g pnpm"
+    local install_commands=""
+
+    # Prepare installation commands based on what's missing
+    if ! command -v node >/dev/null 2>&1; then
+        install_commands="brew install node"
+        echo "Will install Node.js via Homebrew..."
+    fi
+
+    if ! command -v pnpm >/dev/null 2>&1; then
+        if [ -n "$install_commands" ]; then
+            install_commands="$install_commands && brew install pnpm"
+        else
+            install_commands="brew install pnpm"
+        fi
+        echo "Will install pnpm via Homebrew..."
+    fi
 
     # Check if the tmux session exists
     if ! tmux has-session -t "$session_name" 2>/dev/null; then
         echo "Creating a new tmux session named '$session_name' for Node.js and pnpm installation."
         tmux new-session -s "$session_name" -d
-        # Send the Node.js installation command to the session
-        tmux send-keys -t "$session_name" "$install_node_command" C-m
-        # After Node.js is installed, send the pnpm installation command
-        tmux send-keys -t "$session_name" "$install_pnpm_command" C-m
-        echo "Node.js and pnpm installation commands have been sent to the tmux session '$session_name'."
+        # Send the installation commands to the session
+        tmux send-keys -t "$session_name" "$install_commands" C-m
+        echo "Installation commands have been sent to the tmux session '$session_name'."
     else
         echo "Tmux session '$session_name' already exists."
     fi
@@ -186,6 +230,17 @@ ping_domain() {
 # Function to check if the current user is root
 check_root() {
     [ "$(id -u)" -eq 0 ] && echo "true" || echo "false"
+}
+
+# Function to check if Homebrew is installed
+brew_check() {
+    if ! command -v brew >/dev/null 2>&1; then
+        echo "Error: Homebrew is not installed. Please install Homebrew first:"
+        echo "Visit: https://brew.sh/"
+        echo "Or run: /bin/bash -c \"\$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/HEAD/install.sh)\""
+        exit 1
+    fi
+    echo "Homebrew is installed."
 }
 
 prepare_hyperlane_container() {

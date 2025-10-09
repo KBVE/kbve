@@ -12,6 +12,29 @@ tags:
 
 import { Adsense, Tasks } from '@kbve/astropad';
 
+## 2025
+
+### ClickHouse Postgres
+
+-   04:59PM
+
+    Integration is complete, we are able to query!
+    Our quick command to connect to the service is this below:
+
+    ```shell
+    talos -n clickhouse port-forward svc/clickhouse-clickhouse-cluster 9000:9000 8123:8123
+    ```
+
+    For our quick query, we will do this:
+
+    ```sql
+    SELECT *
+    FROM postgresql(supabase_postgres, schema='auth', table='identities');
+    ```
+
+    This will be a quick test case to make sure that everything works between the external secret and our current query.
+
+
 ## 2024
 
 **Unity**
