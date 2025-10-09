@@ -19,6 +19,9 @@ export { default as AstroLottie } from './src/lottie/EntityLottie.astro';
 export { supabase } from './src/supabase/states/supabaseClient';
 export { userClientService } from './src/supabase/states/userClient';
 
+//  [Event Engine]
+export { eventEngine } from './src/supabase/states/eventEngine';
+
 //  [Auth Services]
 export { loginService } from './src/supabase/auth/login/ServiceLogin';
 export { oauthService } from './src/supabase/auth/oauth/ServiceOAuth';
@@ -36,6 +39,9 @@ export { ReactCallbackSimple } from './src/supabase/auth/oauth/ReactCallbackSimp
 export { ReactRegister } from './src/supabase/auth/register/ReactRegister';
 export { ReactLogout } from './src/supabase/auth/logout/ReactLogout';
 export { ReactUserProfile } from './src/supabase/users/profile/ReactUserProfile';
+
+//  [Card]
+export { default as AstroHolyCard } from './src/card/holycard/EntityHolyCard.astro';
 
 //  [Astro OAuth Components]
 export { default as AstroOAuth } from './src/supabase/auth/oauth/EntityOAuth.astro';

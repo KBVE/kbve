@@ -1,17 +1,17 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: cert-manager
+  name: restream
   namespace: argocd
 spec:
   project: default
   source:
     repoURL: https://github.com/kbve/kbve
     targetRevision: main
-    path: apps/kube/cert-manager/manifests
+    path: apps/kube/restream/manifests
   destination:
     server: https://kubernetes.default.svc
-    namespace: cert-manager
+    namespace: restream
   syncPolicy:
     automated:
       selfHeal: true
@@ -19,9 +19,10 @@ spec:
     syncOptions:
       - CreateNamespace=true
       - ServerSideApply=true
+      - Force=true
       - RespectIgnoreDifferences=true
     retry:
-      limit: 5
+      limit: 3
       backoff:
         duration: 5s
         factor: 2
