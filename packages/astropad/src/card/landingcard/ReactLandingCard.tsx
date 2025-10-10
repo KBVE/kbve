@@ -132,6 +132,7 @@ export const ReactCard = (props: ReactCardProps) => {
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
+                         background: 'rgba(0, 0, 0, 0.7)',
                       }}
                       onClick={(e) => {
                         e.preventDefault();
@@ -151,9 +152,6 @@ export const ReactCard = (props: ReactCardProps) => {
                       }}
                       aria-label={iconAction.label}
                       title={iconAction.tooltip || iconAction.label}
-                      style={{
-                        background: 'rgba(0, 0, 0, 0.7)',
-                      }}
                       onMouseEnter={(e) => {
                         e.currentTarget.style.backgroundColor = 'var(--sl-color-accent)';
                         e.currentTarget.style.color = 'white';
