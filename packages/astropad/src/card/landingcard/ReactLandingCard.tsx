@@ -17,6 +17,12 @@ import {
   Eye,
   MessageCircle
 } from 'lucide-react';
+import { clsx } from 'clsx';
+import { twMerge } from 'tailwind-merge';
+
+const cn = (...inputs: any[]) => {
+  return twMerge(clsx(inputs));
+};
 
 // Icon mapper for string to component mapping
 const iconMap = {
@@ -55,39 +61,63 @@ export const ReactCard = (props: ReactCardProps) => {
 
   const cardContent = (
     <div
-      className="rounded-lg transition-all duration-300 hover:scale-105 overflow-hidden"
+      className={cn(
+        "rounded-lg transition-all duration-300 hover:scale-105 overflow-hidden flex flex-col h-full relative",
+        href ? "cursor-pointer" : "cursor-default"
+      )}
       onMouseEnter={() => service.setHovered(true)}
       onMouseLeave={() => service.setHovered(false)}
       style={{
         background: 'linear-gradient(135deg, var(--sl-color-accent-low) 0%, var(--sl-color-gray-6) 100%)',
         border: '1px solid var(--sl-color-gray-5)',
-        cursor: href ? 'pointer' : 'default',
-        display: 'flex',
-        flexDirection: 'column',
-        height: '100%',
-        position: 'relative',
         boxShadow: isHovered
           ? '0 20px 25px -5px rgba(0, 0, 0, 0.4), 0 10px 10px -5px rgba(0, 0, 0, 0.3), 0 0 0 1px rgba(6, 182, 212, 0.3)'
           : '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(6, 182, 212, 0.1)',
-    }}>
-      {/* Icons positioned above image */}
-      {icons && icons.length > 0 && (
-        <div style={{
-          position: 'absolute',
-          top: '0.5rem',
-          right: '0.5rem',
-          display: 'grid',
-          gridTemplateColumns: 'repeat(4, 2.5rem)',
-          gap: '0.5rem',
-          zIndex: 10,
-          alignItems: 'start',
-          justifyItems: 'center',
-        }}>
+      }}>
+      {/* Icons positioned over the image */}
+      {icons && icons.length > 0 && img && (
+        <div
+          className="z-30"
+          style={{
+            position: 'absolute',
+            top: '8px',
+            right: '8px',
+            display: 'grid',
+            gridTemplateColumns: 'repeat(4, 2.5rem)',
+            gap: '8px',
+            alignItems: 'center',
+            justifyItems: 'center',
+            zIndex: 30,
+          }}
+        >
           {icons.map((iconAction, index) => {
             const IconComponent = iconMap[iconAction.icon as keyof typeof iconMap];
             return IconComponent ? (
-              <button
+              <div
                 key={index}
+                style={{
+                  width: '2.5rem',
+                  height: '2.5rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <button
+                  className={cn(
+                    "rounded-full flex items-center justify-center transition-all duration-200 text-white border border-white/20 cursor-pointer backdrop-blur-sm"
+                  )}
+                  style={{
+                    width: '2.5rem',
+                    height: '2.5rem',
+                    padding: 0,
+                    margin: 0,
+                    lineHeight: 1,
+                    fontSize: 0,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
                 onClick={(e) => {
                   e.preventDefault();
                   e.stopPropagation();
@@ -108,26 +138,6 @@ export const ReactCard = (props: ReactCardProps) => {
                 title={iconAction.tooltip || iconAction.label}
                 style={{
                   background: 'rgba(0, 0, 0, 0.7)',
-                  backdropFilter: 'blur(4px)',
-                  cursor: 'pointer',
-                  padding: '0',
-                  margin: '0',
-                  borderRadius: '50%',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  transition: 'all 0.2s ease',
-                  color: 'white',
-                  border: '1px solid rgba(255, 255, 255, 0.2)',
-                  width: '2.5rem',
-                  height: '2.5rem',
-                  minWidth: '2.5rem',
-                  minHeight: '2.5rem',
-                  maxWidth: '2.5rem',
-                  maxHeight: '2.5rem',
-                  boxSizing: 'border-box',
-                  gridColumn: 'auto',
-                  gridRow: 'auto',
                 }}
                 onMouseEnter={(e) => {
                   e.currentTarget.style.backgroundColor = 'var(--sl-color-accent)';
@@ -140,69 +150,51 @@ export const ReactCard = (props: ReactCardProps) => {
                   e.currentTarget.style.transform = 'scale(1)';
                 }}
               >
-                <IconComponent size={16} />
+                <IconComponent size={14} className="sm:w-4 sm:h-4" />
               </button>
+              </div>
             ) : null;
           })}
         </div>
       )}
 
       {img && (
-        <div style={{
-          width: '100%',
-          height: '200px',
-          overflow: 'hidden',
-          backgroundColor: 'var(--sl-color-gray-6)',
-          position: 'relative',
-        }}>
+        <div
+          className="w-full h-40 sm:h-44 md:h-48 lg:h-52 overflow-hidden relative"
+          style={{ backgroundColor: 'var(--sl-color-gray-6)' }}
+        >
           <img
             src={img}
             alt={text}
-            style={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-            }}
+            className="w-full h-full object-cover"
           />
 
           {/* Title positioned over bottom of image */}
-          <div style={{
-            position: 'absolute',
-            bottom: '0',
-            left: '0',
-            right: '0',
-            zIndex: 11,
-            pointerEvents: 'none',
-          }}>
-            <h3 style={{
-              color: 'white',
-              fontSize: '1.125rem',
-              fontWeight: '600',
-              margin: '0',
-              padding: '0.75rem',
-              textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6), -1px -1px 0 rgba(0, 0, 0, 0.8), 1px -1px 0 rgba(0, 0, 0, 0.8), -1px 1px 0 rgba(0, 0, 0, 0.8), 1px 1px 0 rgba(0, 0, 0, 0.8)',
-              background: 'linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4), transparent)',
-              lineHeight: '1.2',
-              wordBreak: 'break-word',
-            }}>
+          <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none">
+            <h3
+              className="text-white text-lg font-semibold m-0 p-3 leading-tight break-words"
+              style={{
+                textShadow: '2px 2px 4px rgba(0, 0, 0, 0.8), 0 0 8px rgba(0, 0, 0, 0.6), -1px -1px 0 rgba(0, 0, 0, 0.8), 1px -1px 0 rgba(0, 0, 0, 0.8), -1px 1px 0 rgba(0, 0, 0, 0.8), 1px 1px 0 rgba(0, 0, 0, 0.8)',
+                background: 'linear-gradient(to top, rgba(0, 0, 0, 0.8), rgba(0, 0, 0, 0.4), transparent)',
+              }}
+            >
               {text}
             </h3>
           </div>
         </div>
       )}
-      <div className="p-4" style={{
-        flex: 1,
-        display: 'flex',
-        flexDirection: 'column',
-      }}>
+      <div className="p-4 flex-1 flex flex-col">
         {description && (
-          <div style={{ marginTop: '0' }}>
-            <p style={{
-              color: 'var(--sl-color-gray-1)',
-              fontSize: '0.875rem',
-              lineHeight: '1.5',
-              marginBottom: shouldTruncate ? '0.5rem' : '0',
-            }}>
+          <div className="mt-0">
+            <p
+              className={cn(
+                "text-sm leading-6",
+                shouldTruncate ? "mb-2" : "mb-0"
+              )}
+              style={{
+                color: 'var(--sl-color-gray-1)',
+              }}
+            >
               {displayText}
             </p>
             {shouldTruncate && (
@@ -212,14 +204,13 @@ export const ReactCard = (props: ReactCardProps) => {
                   e.stopPropagation();
                   service.toggleExpanded();
                 }}
-                className="relative px-3 py-2 overflow-hidden font-medium border rounded-lg shadow-inner group"
+                className={cn(
+                  "relative px-3 py-2 overflow-hidden font-medium border rounded-lg shadow-inner group text-xs cursor-pointer font-medium"
+                )}
                 style={{
-                  fontSize: '0.75rem',
-                  cursor: 'pointer',
                   background: 'var(--sl-color-gray-6)',
                   color: 'var(--sl-color-text)',
                   border: '1px solid var(--sl-color-gray-5)',
-                  fontWeight: '500',
                 }}
               >
                 <span
@@ -314,15 +305,13 @@ const CardCell = memo(({ columnIndex, rowIndex, style, data }: CardCellProps) =>
         }}
       >
         <div
+          className="animate-pulse rounded-lg opacity-30"
           style={{
             width: cardWidth,
             height: cardHeight,
             backgroundColor: 'var(--sl-color-gray-6)',
-            borderRadius: '0.5rem',
             border: '1px solid var(--sl-color-gray-5)',
-            opacity: 0.3,
           }}
-          className="animate-pulse"
         />
       </div>
     );
@@ -444,37 +433,20 @@ export const VirtualizedCardGrid = memo(({
 
       {/* Loading indicator */}
       {isLoading && (
-        <div
-          style={{
-            position: 'absolute',
-            bottom: '1rem',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            zIndex: 10,
-          }}
-        >
+        <div className="absolute bottom-4 left-1/2 transform -translate-x-1/2 z-10">
           <div
+            className="flex items-center gap-2 px-4 py-2 backdrop-blur-lg rounded-3xl text-sm"
             style={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.5rem 1rem',
               backgroundColor: 'var(--sl-color-gray-6)',
-              backdropFilter: 'blur(8px)',
-              borderRadius: '1.5rem',
               border: '1px solid var(--sl-color-gray-5)',
               color: 'var(--sl-color-text)',
-              fontSize: '0.875rem',
             }}
           >
             <div
+              className="w-4 h-4 rounded-full animate-spin"
               style={{
-                width: '1rem',
-                height: '1rem',
                 border: '2px solid var(--sl-color-gray-4)',
                 borderTopColor: 'var(--sl-color-accent)',
-                borderRadius: '50%',
-                animation: 'spin 1s linear infinite',
               }}
             />
             Loading more cards...
@@ -484,23 +456,13 @@ export const VirtualizedCardGrid = memo(({
 
       {/* End of results indicator */}
       {!hasMore && cards.length > 0 && (
-        <div
-          style={{
-            textAlign: 'center',
-            padding: '2rem 0',
-          }}
-        >
+        <div className="text-center py-8">
           <div
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-3xl text-sm"
             style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              gap: '0.5rem',
-              padding: '0.5rem 1rem',
               backgroundColor: 'var(--sl-color-gray-6)',
-              borderRadius: '1.5rem',
               border: '1px solid var(--sl-color-gray-5)',
               color: 'var(--sl-color-text-accent)',
-              fontSize: '0.875rem',
             }}
           >
             You've reached the end
@@ -516,76 +478,50 @@ VirtualizedCardGrid.displayName = 'VirtualizedCardGrid';
 // Loading Skeleton Component
 export const CardSkeleton = memo(() => {
   return (
-    <div className="rounded-lg overflow-hidden animate-pulse" style={{
-      background: 'linear-gradient(135deg, var(--sl-color-accent-low) 0%, var(--sl-color-gray-6) 100%)',
-      border: '1px solid var(--sl-color-gray-5)',
-      height: '100%',
-      display: 'flex',
-      flexDirection: 'column',
-    }}>
+    <div
+      className="rounded-lg overflow-hidden animate-pulse h-full flex flex-col"
+      style={{
+        background: 'linear-gradient(135deg, var(--sl-color-accent-low) 0%, var(--sl-color-gray-6) 100%)',
+        border: '1px solid var(--sl-color-gray-5)',
+      }}
+    >
       {/* Image skeleton */}
-      <div style={{
-        width: '100%',
-        height: '200px',
-        backgroundColor: 'var(--sl-color-gray-5)',
-        opacity: 0.7,
-      }} />
+      <div
+        className="w-full h-48 opacity-70"
+        style={{ backgroundColor: 'var(--sl-color-gray-5)' }}
+      />
 
       {/* Content skeleton */}
-      <div style={{ padding: '1rem', flex: 1, display: 'flex', flexDirection: 'column' }}>
+      <div className="p-4 flex-1 flex flex-col">
         {/* Title skeleton */}
-        <div style={{
-          height: '1.5rem',
-          backgroundColor: 'var(--sl-color-gray-5)',
-          borderRadius: '0.25rem',
-          marginBottom: '0.75rem',
-          width: '80%',
-          opacity: 0.8,
-        }} />
+        <div
+          className="h-6 rounded mb-3 w-4/5 opacity-80"
+          style={{ backgroundColor: 'var(--sl-color-gray-5)' }}
+        />
 
         {/* Description skeleton */}
-        <div style={{ flex: 1, marginBottom: '1rem' }}>
-          <div style={{
-            height: '1rem',
-            backgroundColor: 'var(--sl-color-gray-5)',
-            borderRadius: '0.25rem',
-            marginBottom: '0.5rem',
-            width: '100%',
-            opacity: 0.6,
-          }} />
-          <div style={{
-            height: '1rem',
-            backgroundColor: 'var(--sl-color-gray-5)',
-            borderRadius: '0.25rem',
-            marginBottom: '0.5rem',
-            width: '85%',
-            opacity: 0.6,
-          }} />
-          <div style={{
-            height: '1rem',
-            backgroundColor: 'var(--sl-color-gray-5)',
-            borderRadius: '0.25rem',
-            width: '60%',
-            opacity: 0.6,
-          }} />
+        <div className="flex-1 mb-4">
+          <div
+            className="h-4 rounded mb-2 w-full opacity-60"
+            style={{ backgroundColor: 'var(--sl-color-gray-5)' }}
+          />
+          <div
+            className="h-4 rounded mb-2 w-4/5 opacity-60"
+            style={{ backgroundColor: 'var(--sl-color-gray-5)' }}
+          />
+          <div
+            className="h-4 rounded w-3/5 opacity-60"
+            style={{ backgroundColor: 'var(--sl-color-gray-5)' }}
+          />
         </div>
 
         {/* Icons skeleton */}
-        <div style={{
-          display: 'flex',
-          gap: '0.75rem',
-          justifyContent: 'flex-end',
-        }}>
+        <div className="flex gap-3 justify-end">
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              style={{
-                width: '2rem',
-                height: '2rem',
-                backgroundColor: 'var(--sl-color-gray-5)',
-                borderRadius: '0.375rem',
-                opacity: 0.5,
-              }}
+              className="w-8 h-8 rounded-md opacity-50"
+              style={{ backgroundColor: 'var(--sl-color-gray-5)' }}
             />
           ))}
         </div>
@@ -613,30 +549,20 @@ export const GridSkeleton = memo(({
   skeletonCount = 12,
 }: GridSkeletonProps) => {
   return (
-    <div
-      style={{
-        width: '100%',
-        height: containerHeight,
-        position: 'relative',
-        overflow: 'hidden',
-      }}
-    >
+    <div className="w-full relative overflow-hidden" style={{ height: containerHeight }}>
       <AutoSizer>
         {({ width }) => {
           const effectiveWidth = width - gap;
           const columnsPerRow = Math.max(1, Math.floor(effectiveWidth / (minCardWidth + gap)));
           const cardWidth = Math.floor((effectiveWidth - (columnsPerRow - 1) * gap) / columnsPerRow);
-          const totalRows = Math.ceil(skeletonCount / columnsPerRow);
 
           return (
             <div
+              className="grid h-full overflow-y-auto"
               style={{
-                display: 'grid',
                 gridTemplateColumns: `repeat(${columnsPerRow}, 1fr)`,
                 gap: `${gap}px`,
                 padding: `${gap / 2}px`,
-                height: '100%',
-                overflowY: 'auto',
               }}
             >
               {Array.from({ length: skeletonCount }, (_, i) => (
@@ -728,11 +654,15 @@ export const ClientCardGrid = memo(({
 
     return () => {
       // Cleanup event listeners
-      if (engineInstance) {
-        engineInstance.off('landingcard:icon:like', handleIconAction);
-        engineInstance.off('landingcard:icon:comment', handleIconAction);
-        engineInstance.off('landingcard:icon:share', handleIconAction);
-        engineInstance.off('landingcard:icon:bookmark', handleIconAction);
+      if (engineInstance && typeof engineInstance.off === 'function') {
+        try {
+          engineInstance.off('landingcard:icon:like', handleIconAction);
+          engineInstance.off('landingcard:icon:comment', handleIconAction);
+          engineInstance.off('landingcard:icon:share', handleIconAction);
+          engineInstance.off('landingcard:icon:bookmark', handleIconAction);
+        } catch (error) {
+          console.warn('Error cleaning up event listeners:', error);
+        }
       }
     };
   }, []);
@@ -828,22 +758,17 @@ export const ClientCardGrid = memo(({
   // Show error state
   if (error) {
     return (
-      <div style={{
-        padding: '2rem',
-        textAlign: 'center',
-        color: 'var(--sl-color-text-accent)',
-        backgroundColor: 'var(--sl-color-gray-6)',
-        border: '1px solid var(--sl-color-gray-5)',
-        borderRadius: '0.5rem',
-        minHeight: containerHeight !== 'auto' ? containerHeight : '200px',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        flexDirection: 'column',
-        gap: '1rem',
-      }}>
-        <div style={{ fontSize: '1.25rem', fontWeight: '600' }}>Failed to load cards</div>
-        <div style={{ fontSize: '0.875rem', opacity: 0.7 }}>{error}</div>
+      <div
+        className="p-8 text-center rounded-lg flex items-center justify-center flex-col gap-4"
+        style={{
+          color: 'var(--sl-color-text-accent)',
+          backgroundColor: 'var(--sl-color-gray-6)',
+          border: '1px solid var(--sl-color-gray-5)',
+          minHeight: containerHeight !== 'auto' ? containerHeight : '200px',
+        }}
+      >
+        <div className="text-xl font-semibold">Failed to load cards</div>
+        <div className="text-sm opacity-70">{error}</div>
       </div>
     );
   }
@@ -891,13 +816,14 @@ export const ClientCardGrid = memo(({
   });
 
   // Render virtualized or standard grid with fade-in animation
+  const containerClasses = cn(
+    "w-full h-full transition-opacity duration-500 ease-in-out",
+    containerHeight !== 'auto' && "overflow-y-auto",
+    isVisible ? "opacity-100" : "opacity-0"
+  );
+
   const containerStyle = {
-    opacity: isVisible ? 1 : 0,
-    transition: 'opacity 500ms ease-in-out',
-    width: '100%',
-    height: '100%',
     ...(containerHeight !== 'auto' ? {
-      overflowY: 'auto' as const,
       scrollBehavior: 'smooth' as const,
       scrollbarWidth: 'thin' as const,
       scrollbarColor: 'var(--sl-color-gray-4) transparent',
@@ -906,7 +832,7 @@ export const ClientCardGrid = memo(({
 
   if (virtualized) {
     return (
-      <div style={containerStyle}>
+      <div className={containerClasses} style={containerStyle}>
         <VirtualizedCardGrid
           cards={renderCards}
           containerHeight={containerHeight}
@@ -919,14 +845,8 @@ export const ClientCardGrid = memo(({
 
   // Standard grid with fade-in animation
   return (
-    <div style={containerStyle}>
-      <section style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))',
-        gap: '1rem',
-        padding: '1rem',
-        height: '100%',
-      }}>
+    <div className={containerClasses} style={containerStyle}>
+      <section className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 p-4 h-full">
         {renderCards.map((card: any, index: number) => (
           <ReactCard
             key={card.id || `card-${index}`}
