@@ -1,7 +1,7 @@
 ---
 title: 'October: 8th'
 category: Daily
-date: 2024-10-08 12:00:00
+date: 2025-10-08 12:00:00
 client: Self
 unsplash: 1693298661836-1206649639ef
 img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -11,6 +11,26 @@ tags:
 ---
 
 import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2025
+
+### Clickhouse Bi Directional
+
+-   05:35PM
+
+    The goal will be to setup a direct wire between the cnpg and clickhouse cluster!
+    Well specifically we want the ability for the the FDW on the postgres to not only read but write to the cluster, and obviously the same from the clickhouse side.
+    However we will have to make sure that the data stored in the clickhouse is shared across the replicas, so we do not waste too much of the resources by keeping multiple copies in ram.
+    This still requires some work on our end to setup without breaking anything.
+
+### Landing Card Starlight
+
+-   07:59PM
+
+    Finishing up the basic landing card for KBVE, having it utilize the starlight theme and also the virutalized list.
+    There are a couple other bugs with the card that we need to resolve, I believe the issue that has been hitting us hard is the this damn margin top that keeps appearing!
+    It just ends up offsetting every element by a specific amount and I just can not seem to figure it out.
+    Richie came in clutch with that fix, we can move forward with some of the other parts of the code that we need to adjust.
 
 ## 2024
 
