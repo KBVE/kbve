@@ -75,88 +75,7 @@ export const ReactCard = (props: ReactCardProps) => {
           : '0 4px 6px -1px rgba(0, 0, 0, 0.3), 0 2px 4px -1px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(6, 182, 212, 0.1)',
       }}>
       {/* Icons positioned over the image */}
-      {icons && icons.length > 0 && img && (
-        <div
-          className="z-30"
-          style={{
-            position: 'absolute',
-            top: '8px',
-            right: '8px',
-            display: 'grid',
-            gridTemplateColumns: 'repeat(4, 2.5rem)',
-            gap: '8px',
-            alignItems: 'center',
-            justifyItems: 'center',
-            zIndex: 30,
-          }}
-        >
-          {icons.map((iconAction, index) => {
-            const IconComponent = iconMap[iconAction.icon as keyof typeof iconMap];
-            return IconComponent ? (
-              <div
-                key={index}
-                style={{
-                  width: '2.5rem',
-                  height: '2.5rem',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <button
-                  className={cn(
-                    "rounded-full flex items-center justify-center transition-all duration-200 text-white border border-white/20 cursor-pointer backdrop-blur-sm"
-                  )}
-                  style={{
-                    width: '2.5rem',
-                    height: '2.5rem',
-                    padding: 0,
-                    margin: 0,
-                    lineHeight: 1,
-                    fontSize: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
 
-                  // Add click animation
-                  const button = e.currentTarget;
-                  button.style.transform = 'scale(0.9)';
-                  setTimeout(() => {
-                    button.style.transform = 'scale(1.1)';
-                    setTimeout(() => {
-                      button.style.transform = 'scale(1)';
-                    }, 100);
-                  }, 100);
-
-                  service.handleIconClick(iconAction.action, { icon: iconAction.icon });
-                }}
-                aria-label={iconAction.label}
-                title={iconAction.tooltip || iconAction.label}
-                style={{
-                  background: 'rgba(0, 0, 0, 0.7)',
-                }}
-                onMouseEnter={(e) => {
-                  e.currentTarget.style.backgroundColor = 'var(--sl-color-accent)';
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.transform = 'scale(1.1)';
-                }}
-                onMouseLeave={(e) => {
-                  e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
-                  e.currentTarget.style.color = 'white';
-                  e.currentTarget.style.transform = 'scale(1)';
-                }}
-              >
-                <IconComponent size={14} className="sm:w-4 sm:h-4" />
-              </button>
-              </div>
-            ) : null;
-          })}
-        </div>
-      )}
 
       {img && (
         <div
@@ -168,6 +87,92 @@ export const ReactCard = (props: ReactCardProps) => {
             alt={text}
             className="w-full h-full object-cover"
           />
+
+          {icons && icons.length > 0 && img && (
+            <div
+              className="z-30"
+              style={{
+                position: 'absolute',
+                top: '8px',
+                right: '8px',
+                display: 'grid',
+                gridTemplateColumns: 'repeat(4, 2.5rem)',
+                gap: '8px',
+                alignItems: 'center',
+                justifyItems: 'center',
+                zIndex: 30,
+                marginTop: '0px',
+              }}
+            >
+              {icons.map((iconAction, index) => {
+                const IconComponent = iconMap[iconAction.icon as keyof typeof iconMap];
+                return IconComponent ? (
+                  <div
+                    key={index}
+                    style={{
+                      width: '2.5rem',
+                      height: '2.5rem',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      marginTop: '0px',
+                    }}
+                  >
+                    <button
+                      className={cn(
+                        "rounded-full flex items-center justify-center transition-all duration-200 text-white cursor-pointer backdrop-blur-sm w-full h-full"
+                      )}
+                      style={{
+                        width: '100%',
+                        height: '100%',
+                        padding: 0,
+                        margin: 0,
+                        lineHeight: 1,
+                        fontSize: 0,
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                      }}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        e.stopPropagation();
+
+                        // Add click animation
+                        const button = e.currentTarget;
+                        button.style.transform = 'scale(0.9)';
+                        setTimeout(() => {
+                          button.style.transform = 'scale(1.1)';
+                          setTimeout(() => {
+                            button.style.transform = 'scale(1)';
+                          }, 100);
+                        }, 100);
+
+                        service.handleIconClick(iconAction.action, { icon: iconAction.icon });
+                      }}
+                      aria-label={iconAction.label}
+                      title={iconAction.tooltip || iconAction.label}
+                      style={{
+                        background: 'rgba(0, 0, 0, 0.7)',
+                      }}
+                      onMouseEnter={(e) => {
+                        e.currentTarget.style.backgroundColor = 'var(--sl-color-accent)';
+                        e.currentTarget.style.color = 'white';
+                        e.currentTarget.style.transform = 'scale(1.1)';
+                      }}
+                      onMouseLeave={(e) => {
+                        e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.7)';
+                        e.currentTarget.style.color = 'white';
+                        e.currentTarget.style.transform = 'scale(1)';
+                      }}
+                    >
+                      <IconComponent size={14} className="sm:w-4 sm:h-4" />
+                    </button>
+                  </div>
+                ) : null;
+              })}
+            </div>
+
+          )}
 
           {/* Title positioned over bottom of image */}
           <div className="absolute bottom-0 left-0 right-0 z-10 pointer-events-none">
@@ -205,7 +210,7 @@ export const ReactCard = (props: ReactCardProps) => {
                   service.toggleExpanded();
                 }}
                 className={cn(
-                  "relative px-3 py-2 overflow-hidden font-medium border rounded-lg shadow-inner group text-xs cursor-pointer font-medium"
+                  "relative px-3 py-2 overflow-hidden border rounded-lg shadow-inner group text-xs cursor-pointer font-medium"
                 )}
                 style={{
                   background: 'var(--sl-color-gray-6)',
@@ -260,7 +265,7 @@ export const ReactCard = (props: ReactCardProps) => {
   }
 
   return (
-    <div onClick={() => service.handleClick()}>
+    <div  onClick={() => service.handleClick()}>
       {cardContent}
     </div>
   );
@@ -322,6 +327,7 @@ const CardCell = memo(({ columnIndex, rowIndex, style, data }: CardCellProps) =>
       style={{
         ...style,
         padding: gap / 2,
+        marginTop: '0px',
       }}
     >
       <div style={{ width: cardWidth, height: cardHeight }}>
@@ -479,10 +485,11 @@ VirtualizedCardGrid.displayName = 'VirtualizedCardGrid';
 export const CardSkeleton = memo(() => {
   return (
     <div
-      className="rounded-lg overflow-hidden animate-pulse h-full flex flex-col"
+      className="rounded-lg overflow-hidden animate-pulse h-full flex flex-col mt-0"
       style={{
         background: 'linear-gradient(135deg, var(--sl-color-accent-low) 0%, var(--sl-color-gray-6) 100%)',
         border: '1px solid var(--sl-color-gray-5)',
+        marginTop: '0px',
       }}
     >
       {/* Image skeleton */}
@@ -624,7 +631,7 @@ export const ClientCardGrid = memo(({
     const handleIconAction = (eventData: any) => {
       console.log('Landing card icon action:', eventData);
       // Here you can add specific handling for each action
-      switch(eventData.iconAction) {
+      switch (eventData.iconAction) {
         case 'like':
           console.log('Like action triggered for card:', eventData.cardId);
           break;
