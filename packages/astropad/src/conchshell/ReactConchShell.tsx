@@ -285,7 +285,7 @@ export const ReactConchShell = memo(({
       aria-labelledby="oracle-title"
       aria-describedby="form-instructions"
     >
-      <div>
+      <div className="relative">
         <label htmlFor="conch-question" className="sr-only">
           Ask the conch shell oracle a yes or no question
         </label>
@@ -309,7 +309,7 @@ export const ReactConchShell = memo(({
           className="w-full p-3 rounded-lg resize-none transition-all duration-200 focus:outline-none focus:ring-2 focus:border-blue-500 focus:ring-blue-200"
           style={{
             backgroundColor: 'var(--sl-color-bg)',
-            border: `1px solid var(--sl-color-gray-5)`,
+            border: `1px solid ${errors.question ? 'var(--sl-color-red, #ef4444)' : 'var(--sl-color-gray-5)'}`,
             color: 'var(--sl-color-text)',
             textShadow: '1px 1px 2px rgba(0, 0, 0, 0.1)',
           }}
@@ -322,19 +322,30 @@ export const ReactConchShell = memo(({
         <div id="form-instructions" className="sr-only">
           Enter a yes or no question between 3 and 200 characters. The oracle will provide guidance.
         </div>
+
+        {/* Tooltip-style error message */}
         {errors.question && (
-          <p
+          <div
             id="question-error"
-            className="text-sm mt-1"
+            className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-full mb-2 px-3 py-2 text-sm rounded-lg shadow-lg pointer-events-none animate-in fade-in slide-in-from-top-2 duration-200"
             style={{
-              color: 'var(--sl-color-red, #ef4444)',
-              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.2)',
+              backgroundColor: 'var(--sl-color-red, #ef4444)',
+              color: 'white',
+              textShadow: '1px 1px 2px rgba(0, 0, 0, 0.5)',
+              zIndex: 1000,
+              maxWidth: '280px',
+              textAlign: 'center',
+              fontSize: '0.875rem',
+              lineHeight: '1.25rem',
+              // Tooltip arrow
+              clipPath: 'polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(50% + 8px) calc(100% - 8px), 50% 100%, calc(50% - 8px) calc(100% - 8px), 0 calc(100% - 8px))',
+              paddingBottom: '12px', // Extra padding for the arrow
             }}
             role="alert"
             aria-live="polite"
           >
             {errors.question.message}
-          </p>
+          </div>
         )}
       </div>
 
@@ -390,8 +401,105 @@ export const ReactConchShell = memo(({
     resetText,
   ]);
 
-  // Return the optimized form component
-  return FormComponent;
+  // Welcome message component
+  const WelcomeMessage = useMemo(() => {
+    if (state.isUserLoading) {
+      return (
+        <div
+          className="mt-4 text-center text-sm"
+          style={{
+            color: 'rgba(255, 255, 255, 0.8)',
+          }}
+        >
+          <span
+            className="animate-pulse font-medium"
+            style={{
+              textShadow: `
+                0 0 8px rgba(138, 43, 226, 0.6),
+                0 2px 4px rgba(0, 0, 0, 0.8),
+                1px 1px 0 rgba(0, 0, 0, 0.9),
+                -1px -1px 0 rgba(0, 0, 0, 0.9),
+                1px -1px 0 rgba(0, 0, 0, 0.9),
+                -1px 1px 0 rgba(0, 0, 0, 0.9)
+              `,
+            }}
+          >
+            Loading user...
+          </span>
+        </div>
+      );
+    }
+
+    const welcomeText = state.displayName
+      ? `Welcome back, ${state.displayName}!`
+      : 'Welcome, guest!';
+
+    return (
+      <div
+        className="mt-4 text-center text-sm"
+        role="status"
+        aria-label={`User status: ${welcomeText}`}
+      >
+        <span
+          className="px-4 py-2 rounded-full backdrop-blur-sm font-semibold tracking-wide inline-block transition-all duration-300 hover:scale-105"
+          style={{
+            background: `
+              linear-gradient(135deg,
+                rgba(255, 255, 255, 0.12) 0%,
+                rgba(255, 255, 255, 0.06) 50%,
+                rgba(255, 255, 255, 0.03) 100%
+              )
+            `,
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: `
+              inset 1px 1px 2px rgba(255, 255, 255, 0.2),
+              inset -1px -1px 2px rgba(0, 0, 0, 0.1),
+              0 4px 12px rgba(0, 0, 0, 0.15)
+            `,
+            color: state.displayName
+              ? 'rgba(255, 255, 255, 0.95)'
+              : 'rgba(255, 255, 255, 0.8)',
+            textShadow: state.displayName
+              ? `
+                  0 0 12px rgba(78, 205, 196, 0.8),
+                  0 0 8px rgba(78, 205, 196, 0.6),
+                  0 2px 4px rgba(0, 0, 0, 0.8),
+                  1px 1px 0 rgba(0, 0, 0, 0.9),
+                  -1px -1px 0 rgba(0, 0, 0, 0.9),
+                  1px -1px 0 rgba(0, 0, 0, 0.9),
+                  -1px 1px 0 rgba(0, 0, 0, 0.9)
+                `
+              : `
+                  0 0 10px rgba(150, 150, 150, 0.6),
+                  0 2px 4px rgba(0, 0, 0, 0.8),
+                  1px 1px 0 rgba(0, 0, 0, 0.9),
+                  -1px -1px 0 rgba(0, 0, 0, 0.9),
+                  1px -1px 0 rgba(0, 0, 0, 0.9),
+                  -1px 1px 0 rgba(0, 0, 0, 0.9)
+                `,
+          }}
+        >
+          <span
+            className="mr-2"
+            style={{
+              textShadow: '0 0 8px rgba(255, 206, 87, 0.8), 0 2px 4px rgba(0, 0, 0, 0.6)',
+            }}
+          >
+            ✨
+          </span>
+          {welcomeText}
+        </span>
+      </div>
+    );
+  }, [state.displayName, state.isUserLoading]);
+
+  // Return the form component with welcome message
+  return (
+    <>
+      {FormComponent}
+      {WelcomeMessage}
+    </>
+  );
 });
 
 ReactConchShell.displayName = 'ReactConchShell';

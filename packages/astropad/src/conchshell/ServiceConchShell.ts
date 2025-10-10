@@ -1,6 +1,6 @@
 import { atom } from 'nanostores';
 import { persistentAtom } from '@nanostores/persistent';
-import { eventEngine } from '@kbve/astropad';
+import { eventEngine, userClientService } from '@kbve/astropad';
 
 // Types and interfaces
 export interface ConchShellState {
@@ -14,6 +14,10 @@ export interface ConchShellState {
   // Persistent history data
   totalConsultations: number;
   sessionConsultations: number;
+  // User state
+  username: string | null;
+  displayName: string | null;
+  isUserLoading: boolean;
 }
 
 export interface ConchShellConfig {
@@ -97,6 +101,21 @@ export const consultationHistoryActions = {
 const createInitialState = (config: ConchShellConfig = {}): ConchShellState => {
   const history = consultationHistoryActions.getStats();
 
+  // Get current user state from userClientService
+  const username = userClientService.usernameAtom.get();
+  const user = userClientService.userAtom.get();
+  const isUserLoading = userClientService.userLoadingAtom.get();
+
+  // Extract display name from user metadata or use username
+  let displayName: string | null = null;
+  if (user?.user_metadata?.full_name) {
+    displayName = user.user_metadata.full_name;
+  } else if (user?.user_metadata?.name) {
+    displayName = user.user_metadata.name;
+  } else if (username) {
+    displayName = username;
+  }
+
   return {
     question: config.initialQuestion || '',
     answer: null,
@@ -107,6 +126,9 @@ const createInitialState = (config: ConchShellConfig = {}): ConchShellState => {
     animationPhase: 'idle',
     totalConsultations: history.total,
     sessionConsultations: history.session,
+    username,
+    displayName,
+    isUserLoading,
   };
 };
 
@@ -115,6 +137,9 @@ export class ConchShellService implements ConchShellActions {
   private stateAtom = atom<ConchShellState>(createInitialState());
   private config: Required<ConchShellConfig>;
   private flipTimeout: number | null = null;
+  private userUnsubscribe: (() => void) | null = null;
+  private usernameUnsubscribe: (() => void) | null = null;
+  private userLoadingUnsubscribe: (() => void) | null = null;
 
   constructor(config: ConchShellConfig = {}) {
     this.config = {
@@ -130,6 +155,9 @@ export class ConchShellService implements ConchShellActions {
 
     // Initialize state with config and current history
     this.stateAtom.set(createInitialState(this.config));
+
+    // Subscribe to user state changes
+    this.subscribeToUserState();
   }
 
   // Get reactive state atom
@@ -140,6 +168,49 @@ export class ConchShellService implements ConchShellActions {
   // Get current state (non-reactive)
   getState(): ConchShellState {
     return this.stateAtom.get();
+  }
+
+  // Subscribe to user state changes from userClientService
+  private subscribeToUserState(): void {
+    // Subscribe to username changes
+    this.usernameUnsubscribe = userClientService.usernameAtom.subscribe((username) => {
+      this.updateUserState();
+    });
+
+    // Subscribe to user object changes (for display name)
+    this.userUnsubscribe = userClientService.userAtom.subscribe((user) => {
+      this.updateUserState();
+    });
+
+    // Subscribe to loading state changes
+    this.userLoadingUnsubscribe = userClientService.userLoadingAtom.subscribe((isLoading) => {
+      this.updateUserState();
+    });
+  }
+
+  // Update user state in our atom when userClientService state changes
+  private updateUserState(): void {
+    const currentState = this.getState();
+    const username = userClientService.usernameAtom.get();
+    const user = userClientService.userAtom.get();
+    const isUserLoading = userClientService.userLoadingAtom.get();
+
+    // Extract display name from user metadata or use username
+    let displayName: string | null = null;
+    if (user?.user_metadata?.full_name) {
+      displayName = user.user_metadata.full_name;
+    } else if (user?.user_metadata?.name) {
+      displayName = user.user_metadata.name;
+    } else if (username) {
+      displayName = username;
+    }
+
+    this.stateAtom.set({
+      ...currentState,
+      username,
+      displayName,
+      isUserLoading,
+    });
   }
 
   // Actions
@@ -258,6 +329,20 @@ export class ConchShellService implements ConchShellActions {
     if (this.flipTimeout) {
       clearTimeout(this.flipTimeout);
       this.flipTimeout = null;
+    }
+
+    // Clean up user state subscriptions
+    if (this.userUnsubscribe) {
+      this.userUnsubscribe();
+      this.userUnsubscribe = null;
+    }
+    if (this.usernameUnsubscribe) {
+      this.usernameUnsubscribe();
+      this.usernameUnsubscribe = null;
+    }
+    if (this.userLoadingUnsubscribe) {
+      this.userLoadingUnsubscribe();
+      this.userLoadingUnsubscribe = null;
     }
 
     // Emit destroy event

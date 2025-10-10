@@ -214,58 +214,189 @@ const {
       <!-- React component will populate this area -->
     </div>
 
-    <!-- Enhanced History/Stats - Static structure -->
+    <!-- Enhanced History/Stats - Professional Design -->
     <div
       id="history-stats"
-      class="mt-6 pt-4 text-center text-sm border-t hidden"
-      style="border-color: var(--sl-color-gray-5); color: var(--sl-color-text-accent);"
+      class="mt-6 pt-6 text-center hidden"
       role="complementary"
       aria-label="Consultation history and statistics"
+      style="
+        border-top: 1px solid rgba(255, 255, 255, 0.15);
+        background: linear-gradient(135deg, rgba(255, 255, 255, 0.03) 0%, rgba(255, 255, 255, 0.01) 100%);
+        border-radius: 12px 12px 0 0;
+        backdrop-filter: blur(8px);
+      "
     >
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-3" role="group" aria-label="Consultation counters">
+      <!-- Stats Header -->
+      <div class="mb-4 mt-0">
+        <h3
+          class="text-sm font-bold tracking-wide mb-1 mt-0"
+          style="
+            color: rgba(255, 255, 255, 0.9);
+            text-shadow:
+              0 0 8px rgba(138, 43, 226, 0.6),
+              0 2px 4px rgba(0, 0, 0, 0.8),
+              1px 1px 0 rgba(0, 0, 0, 0.9),
+              -1px -1px 0 rgba(0, 0, 0, 0.9),
+              1px -1px 0 rgba(0, 0, 0, 0.9),
+              -1px 1px 0 rgba(0, 0, 0, 0.9);
+          "
+        >
+          📊 ORACLE STATISTICS
+        </h3>
+        <div
+          class="w-16 h-0.5 mx-auto rounded-full mt-0"
+          style="
+            background: linear-gradient(90deg,
+              rgba(138, 43, 226, 0.8) 0%,
+              rgba(78, 205, 196, 0.8) 50%,
+              rgba(255, 206, 87, 0.8) 100%
+            );
+            box-shadow: 0 0 8px rgba(138, 43, 226, 0.4);
+          "
+        ></div>
+      </div>
+
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-4" role="group" aria-label="Consultation counters">
         <!-- Session consultations -->
         <div
-          class="px-4 py-2 rounded-lg backdrop-blur-sm"
+          class="px-5 py-4 rounded-xl backdrop-blur-sm transform transition-all duration-300 hover:scale-105 mt-0"
           style="
-            background: linear-gradient(135deg, rgba(255, 107, 107, 0.1) 0%, rgba(255, 107, 107, 0.05) 100%);
-            border: 1px solid rgba(255, 107, 107, 0.2);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg,
+              rgba(255, 107, 107, 0.15) 0%,
+              rgba(255, 107, 107, 0.08) 50%,
+              rgba(255, 107, 107, 0.03) 100%
+            );
+            border: 1px solid rgba(255, 107, 107, 0.3);
+            box-shadow:
+              inset 2px 2px 4px rgba(255, 255, 255, 0.1),
+              inset -2px -2px 4px rgba(0, 0, 0, 0.1),
+              0 4px 16px rgba(255, 107, 107, 0.2);
           "
           role="status"
           aria-label="Current session consultations"
         >
-          <p style="text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-            <span class="text-orange-300" aria-hidden="true">🔮</span> Session: <span id="session-count" aria-live="polite">0</span>
-          </p>
+          <div class="flex items-center justify-center gap-3 mt-0">
+            <span
+              class="text-2xl mt-0"
+              style="
+                filter: drop-shadow(0 0 8px rgba(255, 206, 87, 0.8));
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+              "
+              aria-hidden="true"
+            >🔮</span>
+            <div class="text-left mt-0">
+              <div
+                class="text-xs font-medium uppercase tracking-wider mb-1"
+                style="
+                  color: rgba(255, 255, 255, 0.7);
+                  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                "
+              >Session</div>
+              <div
+                id="session-count"
+                class="text-2xl font-bold"
+                style="
+                  color: rgba(255, 255, 255, 0.95);
+                  text-shadow:
+                    0 0 12px rgba(255, 107, 107, 0.8),
+                    0 2px 4px rgba(0, 0, 0, 0.8),
+                    1px 1px 0 rgba(0, 0, 0, 0.9),
+                    -1px -1px 0 rgba(0, 0, 0, 0.9),
+                    1px -1px 0 rgba(0, 0, 0, 0.9),
+                    -1px 1px 0 rgba(0, 0, 0, 0.9);
+                "
+                aria-live="polite"
+              >0</div>
+            </div>
+          </div>
         </div>
 
         <!-- Total consultations -->
         <div
-          class="px-4 py-2 rounded-lg backdrop-blur-sm"
+          class="px-5 py-4 rounded-xl backdrop-blur-sm transform transition-all duration-300 hover:scale-105"
           style="
-            background: linear-gradient(135deg, rgba(78, 205, 196, 0.1) 0%, rgba(78, 205, 196, 0.05) 100%);
-            border: 1px solid rgba(78, 205, 196, 0.2);
-            box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+            background: linear-gradient(145deg,
+              rgba(78, 205, 196, 0.15) 0%,
+              rgba(78, 205, 196, 0.08) 50%,
+              rgba(78, 205, 196, 0.03) 100%
+            );
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            box-shadow:
+              inset 2px 2px 4px rgba(255, 255, 255, 0.1),
+              inset -2px -2px 4px rgba(0, 0, 0, 0.1),
+              0 4px 16px rgba(78, 205, 196, 0.2);
           "
           role="status"
           aria-label="Total lifetime consultations"
         >
-          <p style="text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.2);">
-            <span class="text-cyan-300" aria-hidden="true">✨</span> Total: <span id="total-count" aria-live="polite">0</span>
-          </p>
+          <div class="flex items-center justify-center gap-3">
+            <span
+              class="text-2xl"
+              style="
+                filter: drop-shadow(0 0 8px rgba(78, 205, 196, 0.8));
+                text-shadow: 0 2px 4px rgba(0, 0, 0, 0.6);
+              "
+              aria-hidden="true"
+            >✨</span>
+            <div class="text-left">
+              <div
+                class="text-xs font-medium uppercase tracking-wider mb-1"
+                style="
+                  color: rgba(255, 255, 255, 0.7);
+                  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+                "
+              >Total</div>
+              <div
+                id="total-count"
+                class="text-2xl font-bold"
+                style="
+                  color: rgba(255, 255, 255, 0.95);
+                  text-shadow:
+                    0 0 12px rgba(78, 205, 196, 0.8),
+                    0 2px 4px rgba(0, 0, 0, 0.8),
+                    1px 1px 0 rgba(0, 0, 0, 0.9),
+                    -1px -1px 0 rgba(0, 0, 0, 0.9),
+                    1px -1px 0 rgba(0, 0, 0, 0.9),
+                    -1px 1px 0 rgba(0, 0, 0, 0.9);
+                "
+                aria-live="polite"
+              >0</div>
+            </div>
+          </div>
         </div>
       </div>
 
       <!-- Last consultation time -->
-      <p
+      <div
         id="last-flip"
-        class="text-xs opacity-75 mt-3 hidden"
-        style="text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.1);"
+        class="text-xs mt-4 pb-2 hidden"
         role="status"
         aria-label="Time of last consultation"
       >
-        <span class="text-purple-300" aria-hidden="true">🕒</span> Last consultation: <span id="last-time"></span>
-      </p>
+        <div
+          class="inline-flex items-center gap-2 px-3 py-2 rounded-full backdrop-blur-sm"
+          style="
+            background: linear-gradient(135deg,
+              rgba(138, 43, 226, 0.1) 0%,
+              rgba(138, 43, 226, 0.05) 100%
+            );
+            border: 1px solid rgba(138, 43, 226, 0.2);
+            color: rgba(255, 255, 255, 0.8);
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+          "
+        >
+          <span
+            style="
+              filter: drop-shadow(0 0 6px rgba(138, 43, 226, 0.8));
+              text-shadow: 0 1px 2px rgba(0, 0, 0, 0.6);
+            "
+            aria-hidden="true"
+          >🕒</span>
+          <span class="font-medium">Last consultation:</span>
+          <span id="last-time" class="font-bold"></span>
+        </div>
+      </div>
     </div>
 
   </div>
