@@ -20,7 +20,7 @@ export interface ReactConchShellProps extends ConchShellConfig {
 export const ReactConchShell = memo(({
   questionPlaceholder = "Ask the conch shell a yes/no question...",
   submitText = "Flip the Coin",
-  resetText = "Ask Again",
+  resetText = "Clear",
   showHistory = true,
   ...serviceConfig
 }: ReactConchShellProps) => {
@@ -366,21 +366,19 @@ export const ReactConchShell = memo(({
           {state.isFlipping ? 'Consulting Oracle...' : submitText}
         </button>
 
-        {/* Always render reset button space to prevent layout shift */}
+        {/* Always render reset button - now always visible for clearing text */}
         <button
           type="button"
           onClick={handleReset}
-          disabled={state.isFlipping || !state.hasFlipped}
-          className={`px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
-            !state.hasFlipped ? 'invisible' : 'visible'
-          }`}
+          disabled={state.isFlipping}
+          className="px-4 py-2 rounded-lg font-medium transition-all duration-200 hover:scale-105 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
           style={{
             backgroundColor: 'var(--sl-color-gray-6)',
             color: 'var(--sl-color-text)',
             border: '1px solid var(--sl-color-gray-5)',
             textShadow: '1px 1px 2px rgba(0, 0, 0, 0.3)',
           }}
-          aria-label="Reset oracle and ask a new question"
+          aria-label="Clear the text input"
         >
           {resetText}
         </button>
