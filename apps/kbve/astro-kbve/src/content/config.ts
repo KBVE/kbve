@@ -43,6 +43,10 @@ const application = defineCollection({
 	loader: glob({ pattern: '**/*.mdx', base: './src/content/docs/application' })
 });
 
+const project = defineCollection({
+	loader: glob({ pattern: '**/*.mdx', base: './src/content/docs/project' })
+});
+
 const itemdb = defineCollection({
 	loader: glob({ pattern: '**/*.mdx', base: './src/content/docs/itemdb' }),
 	schema: IObjectSchema,
@@ -73,5 +77,6 @@ export const collections = {
 	itemdb: itemdb,
 	questdb: questdb,
 	application: application,
+	project: project,
 	mapdb: mapdb,
 };

@@ -68,9 +68,25 @@ class EventEngine {
     };
   }
 
-  // Remove all listeners for a type
-  off(type: string): void {
-    this.listeners.delete(type);
+  // Remove specific listener or all listeners for a type
+  off(type: string, listener?: EventListener): void {
+    if (!listener) {
+      // Remove all listeners for the type
+      this.listeners.delete(type);
+    } else {
+      // Remove specific listener
+      const listeners = this.listeners.get(type);
+      if (listeners) {
+        const index = listeners.indexOf(listener);
+        if (index > -1) {
+          listeners.splice(index, 1);
+          // If no listeners left, remove the type entry
+          if (listeners.length === 0) {
+            this.listeners.delete(type);
+          }
+        }
+      }
+    }
   }
 
   // Get event history (reactive)

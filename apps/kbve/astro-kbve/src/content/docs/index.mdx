@@ -11,26 +11,31 @@ template: splash
 editUrl: false
 lastUpdated: false
 next: false
-
 ---
 
 import '../../styles/starlight_main.css';
-import { Card, CardGrid, LinkCard, Tabs, TabItem } from '@astrojs/starlight/components';
+import {
+	Card,
+	CardGrid,
+	LinkCard,
+	Tabs,
+	TabItem,
+} from '@astrojs/starlight/components';
 import { AstroCards } from '@kbve/astropad';
 
 <Tabs syncKey="home">
   <TabItem label="Dev">
 
-  Applications Resources
+Applications Resources
 
   <AstroCards 
-  url="https://kbve.com/api/applications.json" 
-  collectionKey="applications" 
-  virtualized={true}
-  containerHeight="800px"
-  minCardWidth={320}
-  cardHeight={450}
-/>
+    url="https://kbve.com/api/applications.json" 
+    collectionKey="applications" 
+    virtualized={true}
+    containerHeight="800px"
+    minCardWidth={320}
+    cardHeight={450}
+  />
   </TabItem>
   <TabItem label="Gaming">Arcade and Jams!</TabItem>
   <TabItem label="Memes">Memes</TabItem>
@@ -47,15 +52,15 @@ Dive into a rich collection of developer-centric guides, from in-depth tutorials
 Whether you're just starting out or looking to deepen your expertise, our resources offer clear, step-by-step instructions and practical tips to enhance your coding journey.
 
 <LinkCard
-  title="Mastering JavaScript"
-  description="Unlock the full potential of JavaScript with our extensive guides on building dynamic applications, from client-side to server-side with NodeJS."
-  href="/application/javascript/"
+	title="Mastering JavaScript"
+	description="Unlock the full potential of JavaScript with our extensive guides on building dynamic applications, from client-side to server-side with NodeJS."
+	href="/application/javascript/"
 />
 
 <LinkCard
-  title="Docker Demystified"
-  description="Dive into our comprehensive Docker tutorials to streamline your app deployments, manage containers, and harness the power of Docker Compose."
-  href="/application/docker/"
+	title="Docker Demystified"
+	description="Dive into our comprehensive Docker tutorials to streamline your app deployments, manage containers, and harness the power of Docker Compose."
+	href="/application/docker/"
 />
 
 </Card>
@@ -65,22 +70,24 @@ Explore KBVE's extensive collection of cutting-edge tools, versatile software, a
 Each section provides in-depth specifications, practical usage guides, and essential maintenance tips to help you maximize efficiency and achieve your goals.
 
 <LinkCard
-  title="KBVE Jukebox"
-  description="Experience the ultimate music tool that curates playlists based on your favorite keywords. Enjoy a personalized musical journey with our diverse selection."
-  href="/music/"
+	title="KBVE Jukebox"
+	description="Experience the ultimate music tool that curates playlists based on your favorite keywords. Enjoy a personalized musical journey with our diverse selection."
+	href="/music/"
 />
 
 <LinkCard
-  title="Webmaster Utility"
-  description="Optimize your website with our powerful webmaster tool. From SEO enhancements to performance tracking, streamline your site management with ease."
-  href="/webmaster/"
+	title="Webmaster Utility"
+	description="Optimize your website with our powerful webmaster tool. From SEO enhancements to performance tracking, streamline your site management with ease."
+	href="/webmaster/"
 />
 
 </Card>
 
 <Card title="Assets and Investments" icon="seti:puppet">
-Discover KBVE's comprehensive guide to assets, including stocks and cryptocurrencies.
-Each section provides detailed market analysis, investment strategies, and maintenance tips to help you make informed financial decisions and maximize your portfolio's potential.
+	Discover KBVE's comprehensive guide to assets, including stocks and
+	cryptocurrencies. Each section provides detailed market analysis, investment
+	strategies, and maintenance tips to help you make informed financial
+	decisions and maximize your portfolio's potential.
 </Card>
 
 <Card title="Automation Software and Hardware" icon="seti:terraform">
@@ -90,7 +97,8 @@ Each section provides in-depth specifications, practical usage guides, and maint
 </Card>
 </CardGrid>
 </TabItem>
-  <TabItem label="Gaming">
+
+<TabItem label="Gaming">
 
 <CardGrid stagger>
 
@@ -99,15 +107,15 @@ Step into our retro-inspired arcade featuring classic and modern browser games.
 Experience nostalgic gameplay with a modern twist, all playable directly in your browser without downloads or installations.
 
 <LinkCard
-  title="Play Now"
-  description="Jump straight into our collection of browser-based games, from puzzle challenges to action-packed adventures."
-  href="/arcade/"
+	title="Play Now"
+	description="Jump straight into our collection of browser-based games, from puzzle challenges to action-packed adventures."
+	href="/arcade/"
 />
 
 <LinkCard
-  title="Game Jams"
-  description="Participate in our community game development challenges and showcase your creative game ideas."
-  href="/games/"
+	title="Game Jams"
+	description="Participate in our community game development challenges and showcase your creative game ideas."
+	href="/games/"
 />
 
 </Card>
@@ -117,24 +125,24 @@ Get ready for our upcoming Steam release! RareIcon is an innovative gaming exper
 Follow our development journey and be among the first to know when we launch.
 
 <LinkCard
-  title="Development Blog"
-  description="Follow the creation of RareIcon, from concept art to gameplay mechanics."
-  href="/projects/rareicon/"
+	title="Development Blog"
+	description="Follow the creation of RareIcon, from concept art to gameplay mechanics."
+	href="/projects/rareicon/"
 />
 
 <LinkCard
-  title="Wishlist on Steam"
-  description="Add RareIcon to your Steam wishlist and get notified on release day."
-  href="#"
+	title="Wishlist on Steam"
+	description="Add RareIcon to your Steam wishlist and get notified on release day."
+	href="#"
 />
 
 </Card>
 
 </CardGrid>
 
-  </TabItem>
+</TabItem>
 
-  <TabItem label="Memes">
+<TabItem label="Memes">
 
 <CardGrid stagger>
 
@@ -143,15 +151,15 @@ Explore our creative media collection featuring original content, curated select
 From viral videos to artistic expressions, discover entertainment that resonates with internet culture.
 
 <LinkCard
-  title="Video Gallery"
-  description="Browse our collection of funny clips, creative shorts, and memorable moments."
-  href="/media/videos/"
+	title="Video Gallery"
+	description="Browse our collection of funny clips, creative shorts, and memorable moments."
+	href="/media/videos/"
 />
 
 <LinkCard
-  title="Image Collection"
-  description="Discover memes, digital art, and visual content from our community."
-  href="/media/images/"
+	title="Image Collection"
+	description="Discover memes, digital art, and visual content from our community."
+	href="/media/images/"
 />
 
 </Card>
@@ -161,24 +169,24 @@ Immerse yourself in our audio universe featuring playlists, soundtracks, and ori
 Whether you're coding, gaming, or just vibing, we've got the perfect soundtrack for your day.
 
 <LinkCard
-  title="KBVE Jukebox"
-  description="Stream curated playlists and discover new music based on your mood and preferences."
-  href="/music/"
+	title="KBVE Jukebox"
+	description="Stream curated playlists and discover new music based on your mood and preferences."
+	href="/music/"
 />
 
 <LinkCard
-  title="Podcast & Audio Shows"
-  description="Listen to tech talks, gaming discussions, and creative audio content."
-  href="/media/audio/"
+	title="Podcast & Audio Shows"
+	description="Listen to tech talks, gaming discussions, and creative audio content."
+	href="/media/audio/"
 />
 
 </Card>
 
 </CardGrid>
 
-  </TabItem>
+</TabItem>
 
-  <TabItem label="API">
+<TabItem label="API">
 
 <CardGrid stagger>
 
@@ -187,15 +195,15 @@ Monitor the real-time performance and availability of KBVE APIs.
 Get insights into response times, uptime statistics, and service health across all our endpoints.
 
 <LinkCard
-  title="Status Dashboard"
-  description="View live status of all KBVE API services and historical uptime data."
-  href="/api/status/"
+	title="Status Dashboard"
+	description="View live status of all KBVE API services and historical uptime data."
+	href="/api/status/"
 />
 
 <LinkCard
-  title="Performance Metrics"
-  description="Analyze response times, throughput, and reliability metrics for our APIs."
-  href="/api/metrics/"
+	title="Performance Metrics"
+	description="Analyze response times, throughput, and reliability metrics for our APIs."
+	href="/api/metrics/"
 />
 
 </Card>
@@ -205,20 +213,21 @@ Access comprehensive documentation for integrating KBVE APIs into your applicati
 Find endpoints, authentication guides, code examples, and best practices for seamless integration.
 
 <LinkCard
-  title="API Reference"
-  description="Browse complete documentation for all available endpoints and parameters."
-  href="/api/docs/"
+	title="API Reference"
+	description="Browse complete documentation for all available endpoints and parameters."
+	href="/api/docs/"
 />
 
 <LinkCard
-  title="Quick Start Guides"
-  description="Get up and running quickly with our step-by-step integration tutorials."
-  href="/api/quickstart/"
+	title="Quick Start Guides"
+	description="Get up and running quickly with our step-by-step integration tutorials."
+	href="/api/quickstart/"
 />
 
 </Card>
 
 </CardGrid>
 
-  </TabItem>
+</TabItem>
+
 </Tabs>
