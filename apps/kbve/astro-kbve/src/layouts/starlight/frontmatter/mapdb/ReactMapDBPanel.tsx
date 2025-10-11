@@ -228,10 +228,57 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
     // Function to handle click events for analytics
     const handleClick = (event: MouseEvent) => {
       const target = event.target as HTMLElement;
-      const tooltipKey = target.closest('[data-tooltip]')?.getAttribute('data-tooltip');
+      const tooltipElement = target.closest('[data-tooltip]') as HTMLElement;
+      const tooltipKey = tooltipElement?.getAttribute('data-tooltip');
 
-      if (tooltipKey) {
+      if (tooltipKey && tooltipElement) {
+        // Track the specific tooltip section that was clicked
         ServiceMapDB.onObjectInteract(mapObject, 'click');
+
+        // Also track accessibility action for better UX analytics
+        ServiceMapDB.onAccessibilityAction(mapObject, 'tooltip_click', {
+          tooltipKey,
+          elementType: tooltipElement.tagName.toLowerCase(),
+          hasKeyboard: event.detail === 0 // Click via keyboard if detail is 0
+        });
+      }
+    };
+
+    // Function to handle keyboard events for accessibility
+    const handleKeyDown = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement;
+      const tooltipElement = target.closest('[data-tooltip]') as HTMLElement;
+      const tooltipKey = tooltipElement?.getAttribute('data-tooltip');
+
+      if (tooltipKey && tooltipElement && (event.key === 'Enter' || event.key === ' ')) {
+        event.preventDefault();
+
+        // Track keyboard interaction
+        ServiceMapDB.onObjectInteract(mapObject, 'keyboard');
+        ServiceMapDB.onAccessibilityAction(mapObject, 'keyboard_activate', {
+          tooltipKey,
+          key: event.key,
+          elementType: tooltipElement.tagName.toLowerCase()
+        });
+
+        // Show tooltip on keyboard activation
+        if (!showTooltip) {
+          const tooltip = TOOLTIP_MESSAGES[tooltipKey as keyof typeof TOOLTIP_MESSAGES];
+          if (tooltip) {
+            const container = document.querySelector('.relative.rounded-2xl') as HTMLElement;
+            if (container) {
+              const elementRect = tooltipElement.getBoundingClientRect();
+              const containerRect = container.getBoundingClientRect();
+              const x = elementRect.left - containerRect.left + (elementRect.width / 2);
+              const y = elementRect.top - containerRect.top;
+
+              setTooltipPosition({ x, y });
+              setTooltipContent(tooltip);
+              setShowTooltip(true);
+              ServiceMapDB.onTooltipShow(mapObject, tooltip);
+            }
+          }
+        }
       }
     };
 
@@ -242,10 +289,21 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
       element.addEventListener('mouseenter', handleMouseEnter);
       element.addEventListener('mouseleave', handleMouseLeave);
       element.addEventListener('click', handleClick);
+      element.addEventListener('keydown', handleKeyDown);
 
       // Add cursor pointer and subtle hover effect
       (element as HTMLElement).style.cursor = 'help';
-      element.classList.add('hover:bg-white/5', 'transition-colors', 'duration-200', 'rounded');
+
+      // Make elements focusable for keyboard accessibility
+      if (!(element as HTMLElement).getAttribute('tabindex')) {
+        (element as HTMLElement).setAttribute('tabindex', '0');
+      }
+
+      // Add ARIA attributes for better screen reader support
+      (element as HTMLElement).setAttribute('role', 'button');
+      (element as HTMLElement).setAttribute('aria-describedby', 'tooltip');
+
+      element.classList.add('hover:bg-white/5', 'focus:bg-white/10', 'focus:outline-none', 'focus:ring-2', 'focus:ring-cyan-400/50', 'transition-colors', 'duration-200', 'rounded');
     });
 
     // Cleanup function
@@ -256,6 +314,7 @@ const ReactMapDBPanel: React.FC<ReactMapDBPanelProps> = ({ data }) => {
         element.removeEventListener('mouseenter', handleMouseEnter);
         element.removeEventListener('mouseleave', handleMouseLeave);
         element.removeEventListener('click', handleClick);
+        element.removeEventListener('keydown', handleKeyDown);
       });
     };
   }, [mapObject]);

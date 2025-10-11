@@ -136,7 +136,17 @@ export class ServiceMapDB {
   // Event handling methods
   static emitMapDBEvent(event: MapDBEvent): void {
     try {
-      eventEngine.emit(event.type, 'mapdb', event);
+      // Use predefined event types from eventEngine
+      const eventTypeMap = {
+        'tooltip_show': eventEngine.constructor.EventTypes?.UI_TOOLTIP_SHOW || 'ui:tooltip:show',
+        'tooltip_hide': 'ui:tooltip:hide',
+        'object_focus': 'mapdb:object:focus',
+        'object_interact': 'mapdb:object:interact',
+        'accessibility_action': 'mapdb:accessibility:action'
+      };
+
+      const mappedEventType = eventTypeMap[event.type] || event.type;
+      eventEngine.emit(mappedEventType, 'mapdb', event);
     } catch (error) {
       console.warn('Failed to emit MapDB event:', error);
     }
@@ -188,23 +198,41 @@ export class ServiceMapDB {
 
   // Event listener registration helpers
   static registerEventListeners(): void {
-    // Register MapDB-specific event listeners for each event type
-    const eventTypes = ['tooltip_show', 'tooltip_hide', 'object_focus', 'object_interact', 'accessibility_action'];
+    // Register MapDB-specific event listeners for each event type using mapped event names
+    const eventTypeMap = {
+      'tooltip_show': eventEngine.constructor.EventTypes?.UI_TOOLTIP_SHOW || 'ui:tooltip:show',
+      'tooltip_hide': 'ui:tooltip:hide',
+      'object_focus': 'mapdb:object:focus',
+      'object_interact': 'mapdb:object:interact',
+      'accessibility_action': 'mapdb:accessibility:action'
+    };
 
-    eventTypes.forEach(eventType => {
+    Object.values(eventTypeMap).forEach(eventType => {
       eventEngine.on(eventType, (event) => {
         if (event.source === 'mapdb') {
           // Handle analytics, logging, or other side effects
           console.debug('MapDB Event:', event);
+
+          // Add analytics tracking for tooltip interactions
+          if (eventType.includes('tooltip')) {
+            console.info(`Tooltip ${eventType.includes('show') ? 'shown' : 'hidden'} for:`, event.data?.mapObject?.name);
+          }
         }
       });
     });
   }
 
   static unregisterEventListeners(): void {
-    // Remove listeners for all MapDB event types
-    const eventTypes = ['tooltip_show', 'tooltip_hide', 'object_focus', 'object_interact', 'accessibility_action'];
-    eventTypes.forEach(eventType => {
+    // Remove listeners for all MapDB event types using mapped event names
+    const eventTypeMap = {
+      'tooltip_show': eventEngine.constructor.EventTypes?.UI_TOOLTIP_SHOW || 'ui:tooltip:show',
+      'tooltip_hide': 'ui:tooltip:hide',
+      'object_focus': 'mapdb:object:focus',
+      'object_interact': 'mapdb:object:interact',
+      'accessibility_action': 'mapdb:accessibility:action'
+    };
+
+    Object.values(eventTypeMap).forEach(eventType => {
       eventEngine.off(eventType);
     });
   }
