@@ -20,6 +20,7 @@ use services::{
     utils::GracefulShutdown,
     static_service::{StaticConfig, assets_router, spa_router},
     astro::create_astro_app,
+    redirect_middleware,
 };
 
 // Optional jemalloc allocator
@@ -161,7 +162,8 @@ fn create_app_router(config: &AppConfig) -> Router {
     // Add global middleware layers
     router = router.layer(cors_layer())
         .layer(compression_layer())
-        .layer(tracing_layer());
+        .layer(tracing_layer())
+        .layer(axum::middleware::from_fn(redirect_middleware));
     
     router
 }
