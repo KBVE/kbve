@@ -28,19 +28,40 @@ export const GithubSignInButton: React.FC = () => {
       className={cn(
         "group relative overflow-hidden",
         "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded-xl font-medium transition-all ease-out duration-300",
-        "bg-[#f6f8fa] hover:bg-gradient-to-r hover:from-[#f6f8fa] hover:to-[#e1e4e8] text-[#24292f]",
-        "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
-        "dark:bg-[#24292f] dark:hover:from-[#24292f] dark:hover:to-[#2f363d] dark:text-white",
-        "focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2",
+        "focus:outline-none focus:ring-2 focus:ring-offset-2",
         loading && "opacity-50 cursor-not-allowed"
       )}
+      style={{
+        // Use Starlight CSS variables for proper theming
+        backgroundColor: 'var(--sl-color-gray-6)',
+        borderColor: 'var(--sl-color-gray-5)',
+        color: 'var(--sl-color-white)',
+        border: '1px solid var(--sl-color-gray-5)',
+        '--tw-ring-color': 'var(--sl-color-accent)',
+      } as React.CSSProperties}
+      onMouseEnter={(e) => {
+        const target = e.currentTarget as HTMLElement;
+        target.style.backgroundColor = 'var(--sl-color-gray-5)';
+        target.style.borderColor = 'var(--sl-color-gray-4)';
+      }}
+      onMouseLeave={(e) => {
+        const target = e.currentTarget as HTMLElement;
+        target.style.backgroundColor = 'var(--sl-color-gray-6)';
+        target.style.borderColor = 'var(--sl-color-gray-5)';
+      }}
       type="button"
     >
       <span className="absolute right-0 w-8 h-32 -mt-12 bg-white/30 dark:bg-white/20 opacity-10 rotate-12 translate-x-12 group-hover:-translate-x-40 transition-all duration-1000 ease-out pointer-events-none"></span>
       
       {isLoading ? (
         <div className="relative flex items-center justify-center gap-3">
-          <div className="w-4 h-4 border-2 border-[#24292f]/30 border-t-[#24292f] dark:border-white/30 dark:border-t-white rounded-full animate-spin"></div>
+          <div
+            className="w-4 h-4 border-2 rounded-full animate-spin"
+            style={{
+              borderColor: 'var(--sl-color-gray-3)',
+              borderTopColor: 'var(--sl-color-white)',
+            }}
+          ></div>
           <span className="text-sm font-medium leading-relaxed">Connecting...</span>
         </div>
       ) : (
@@ -77,12 +98,27 @@ export const DiscordSignInButton: React.FC = () => {
       className={cn(
         "group relative overflow-hidden",
         "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded-xl font-medium transition-all ease-out duration-300",
-        "bg-[#5865F2] hover:bg-gradient-to-r hover:from-[#5865F2] hover:to-[#4752c4] text-white",
-        "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
-        "dark:bg-[#5865F2] dark:hover:from-[#5865F2] dark:hover:to-[#4752c4] dark:text-white",
-        "focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2",
+        "focus:outline-none focus:ring-2 focus:ring-offset-2",
         loading && "opacity-50 cursor-not-allowed"
       )}
+      style={{
+        // Discord brand colors with Starlight integration
+        backgroundColor: '#5865F2',
+        borderColor: 'var(--sl-color-gray-4)',
+        color: 'var(--sl-color-white)',
+        border: '1px solid var(--sl-color-gray-4)',
+        '--tw-ring-color': 'var(--sl-color-accent)',
+      } as React.CSSProperties}
+      onMouseEnter={(e) => {
+        const target = e.currentTarget as HTMLElement;
+        target.style.backgroundColor = '#4752c4';
+        target.style.borderColor = 'var(--sl-color-accent)';
+      }}
+      onMouseLeave={(e) => {
+        const target = e.currentTarget as HTMLElement;
+        target.style.backgroundColor = '#5865F2';
+        target.style.borderColor = 'var(--sl-color-gray-4)';
+      }}
       type="button"
     >
       <span className="absolute right-0 w-8 h-32 -mt-12 bg-white/30 dark:bg-white/20 opacity-10 rotate-12 translate-x-12 group-hover:-translate-x-40 transition-all duration-1000 ease-out pointer-events-none"></span>
@@ -126,12 +162,27 @@ export const TwitchSignInButton: React.FC = () => {
       className={cn(
         "group relative overflow-hidden",
         "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[42px] rounded-xl font-medium transition-all ease-out duration-300",
-        "bg-[#9146FF] hover:bg-gradient-to-r hover:from-[#9146FF] hover:to-[#7d3ed8] text-white",
-        "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
-        "dark:bg-[#9146FF] dark:hover:from-[#9146FF] dark:hover:to-[#7d3ed8] dark:text-white",
-        "focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2",
+        "focus:outline-none focus:ring-2 focus:ring-offset-2",
         loading && "opacity-50 cursor-not-allowed"
       )}
+      style={{
+        // Twitch brand colors with Starlight integration
+        backgroundColor: '#9146FF',
+        borderColor: 'var(--sl-color-gray-4)',
+        color: 'var(--sl-color-white)',
+        border: '1px solid var(--sl-color-gray-4)',
+        '--tw-ring-color': 'var(--sl-color-accent)',
+      } as React.CSSProperties}
+      onMouseEnter={(e) => {
+        const target = e.currentTarget as HTMLElement;
+        target.style.backgroundColor = '#7d3ed8';
+        target.style.borderColor = 'var(--sl-color-accent)';
+      }}
+      onMouseLeave={(e) => {
+        const target = e.currentTarget as HTMLElement;
+        target.style.backgroundColor = '#9146FF';
+        target.style.borderColor = 'var(--sl-color-gray-4)';
+      }}
       type="button"
     >
       <span className="absolute right-0 w-8 h-32 -mt-12 bg-white/30 dark:bg-white/20 opacity-10 rotate-12 translate-x-12 group-hover:-translate-x-40 transition-all duration-1000 ease-out pointer-events-none"></span>
@@ -292,18 +343,27 @@ export const SolanaSignInButton: React.FC<{
         className={cn(
           "group relative overflow-hidden",
           "flex items-center justify-center gap-3 w-full py-2.5 px-5 min-h-[48px] rounded-xl font-semibold transition-all ease-out duration-300",
-          "text-white",
-          // Light mode
-          "bg-purple-600 hover:bg-purple-700",
-          // Dark mode
-          "dark:bg-gradient-to-r dark:from-purple-600 dark:to-green-400",
-          "dark:hover:from-purple-700 dark:hover:to-green-500",
-          // Ring and cursor
-          "hover:ring-2 hover:ring-offset-2 hover:ring-cyan-500",
+          "focus:outline-none focus:ring-2 focus:ring-offset-2",
           isDisabled && "opacity-50 cursor-not-allowed"
         )}
         style={{
+          // Solana brand gradient with Starlight integration
+          background: 'linear-gradient(135deg, #9945FF 0%, #14F195 100%)',
+          borderColor: 'var(--sl-color-gray-4)',
+          color: 'var(--sl-color-white)',
+          border: '1px solid var(--sl-color-gray-4)',
+          '--tw-ring-color': 'var(--sl-color-accent)',
           textShadow: '0 1px 2px rgba(0,0,0,0.5)'
+        } as React.CSSProperties}
+        onMouseEnter={(e) => {
+          const target = e.currentTarget as HTMLElement;
+          target.style.background = 'linear-gradient(135deg, #8438E6 0%, #12D182 100%)';
+          target.style.borderColor = 'var(--sl-color-accent)';
+        }}
+        onMouseLeave={(e) => {
+          const target = e.currentTarget as HTMLElement;
+          target.style.background = 'linear-gradient(135deg, #9945FF 0%, #14F195 100%)';
+          target.style.borderColor = 'var(--sl-color-gray-4)';
         }}
         type="button"
       >
