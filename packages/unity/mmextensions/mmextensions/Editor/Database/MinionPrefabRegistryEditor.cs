@@ -9,21 +9,21 @@ namespace KBVE.MMExtensions.Editor.Database
         public static void CreateMinionPrefabRegistry()
         {
             // Create the registry asset
-            var registry = ScriptableObject.CreateInstance<KBVE.MMExtensions.Orchestrator.DOTS.MinionPrefabRegistry>();
+            // var registry = ScriptableObject.CreateInstance<KBVE.MMExtensions.Orchestrator.DOTS.MinionPrefabRegistry>();
 
-            // Generate a unique asset path
-            string path = "Assets/MinionPrefabRegistry.asset";
-            string uniquePath = AssetDatabase.GenerateUniqueAssetPath(path);
+            // // Generate a unique asset path
+            // string path = "Assets/MinionPrefabRegistry.asset";
+            // string uniquePath = AssetDatabase.GenerateUniqueAssetPath(path);
 
-            // Create the asset
-            AssetDatabase.CreateAsset(registry, uniquePath);
-            AssetDatabase.SaveAssets();
+            // // Create the asset
+            // AssetDatabase.CreateAsset(registry, uniquePath);
+            // AssetDatabase.SaveAssets();
 
-            // Focus on the created asset
-            EditorUtility.FocusProjectWindow();
-            Selection.activeObject = registry;
+            // // Focus on the created asset
+            // EditorUtility.FocusProjectWindow();
+            // Selection.activeObject = registry;
 
-            Debug.Log($"[MinionPrefabRegistryEditor] Created MinionPrefabRegistry at: {uniquePath}");
+            //Debug.Log($"[MinionPrefabRegistryEditor] Created MinionPrefabRegistry at: {uniquePath}");
         }
     }
 }

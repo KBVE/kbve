@@ -13,6 +13,7 @@ import {
 	IBonusSchema,
 	IObjectSchema,
 	IQuestSchema,
+	IMapObjectSchema,
 } from 'src/data/schema';
 
 export function validateItemUniqueness(
@@ -42,6 +43,10 @@ const application = defineCollection({
 	loader: glob({ pattern: '**/*.mdx', base: './src/content/docs/application' })
 });
 
+const project = defineCollection({
+	loader: glob({ pattern: '**/*.mdx', base: './src/content/docs/project' })
+});
+
 const itemdb = defineCollection({
 	loader: glob({ pattern: '**/*.mdx', base: './src/content/docs/itemdb' }),
 	schema: IObjectSchema,
@@ -51,6 +56,11 @@ const questdb = defineCollection({
 	loader: glob({ pattern: '**/*.mdx', base: './src/content/docs/questdb' }),
 	schema: IQuestSchema,
 });
+const mapdb = defineCollection({
+	loader: glob({ pattern: '**/*.mdx', base: './src/content/docs/mapdb' }),
+	schema: IMapObjectSchema,
+});
+
 
 export const collections = {
 	docs: defineCollection({
@@ -59,6 +69,7 @@ export const collections = {
 				z.object({
 					itemdb: z.array(IObjectSchema).optional(),
 					questdb: z.array(IQuestSchema).optional(),
+					mapdb: z.array(IMapObjectSchema).optional(),
 				}),
 			),
 		}),
@@ -66,4 +77,6 @@ export const collections = {
 	itemdb: itemdb,
 	questdb: questdb,
 	application: application,
+	project: project,
+	mapdb: mapdb,
 };

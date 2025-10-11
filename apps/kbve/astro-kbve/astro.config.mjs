@@ -2,14 +2,14 @@ import { defineConfig } from 'astro/config';
 import svelte, { vitePreprocess } from '@astrojs/svelte';
 import react from '@astrojs/react';
 import sitemap from '@astrojs/sitemap';
-import tailwindcss from "@tailwindcss/vite";
+//import tailwindcss from "@tailwindcss/vite";
 import mdx from '@astrojs/mdx';
 import starlight from '@astrojs/starlight';
 import starlightSiteGraph from 'starlight-site-graph';
 import worker from "@astropub/worker";
 import { defineConfig as defineViteConfig } from 'vite';
-import compressor from "astro-compressor";
 import AstroPWA from '@vite-pwa/astro'
+import mermaid from 'astro-mermaid';
 
 export default defineConfig({
     site: 'https://kbve.com/',
@@ -27,6 +27,24 @@ export default defineConfig({
         },
     },
     integrations: [
+        mermaid({
+            theme: 'forest',
+            autoTheme: true,
+            mermaidConfig: {
+                flowchart: {
+                    curve: 'basis'
+                }
+            },
+            iconPacks: [
+                {
+                    name: 'logos',
+                    loader: () => fetch('https://unpkg.com/@iconify-json/logos@1/icons.json').then(res => res.json())
+                },
+                {
+                    name: 'iconoir',
+                    loader: () => fetch('https://unpkg.com/@iconify-json/iconoir@1/icons.json').then(res => res.json())
+                }]
+        }),
         starlight({
             plugins: [
                 starlightSiteGraph({
@@ -88,19 +106,19 @@ export default defineConfig({
                     autogenerate: { directory: 'arcade' },
                 },
                 {
-					label: 'Assets',
-					collapsed: true,
-					items: [
-						{
-							label: 'Crypto',
-							autogenerate: { directory: 'crypto' },
-						},
-						{
-							label: 'Stocks',
-							autogenerate: { directory: 'stock' },
-						},
-					],
-				},
+                    label: 'Assets',
+                    collapsed: true,
+                    items: [
+                        {
+                            label: 'Crypto',
+                            autogenerate: { directory: 'crypto' },
+                        },
+                        {
+                            label: 'Stocks',
+                            autogenerate: { directory: 'stock' },
+                        },
+                    ],
+                },
                 {
                     label: 'Theory',
                     collapsed: true,
@@ -117,6 +135,12 @@ export default defineConfig({
                     label: 'QuestDB',
                     collapsed: true,
                     autogenerate: { directory: 'questdb' },
+                },
+
+                {
+                    label: 'MapDB',
+                    collapsed: true,
+                    autogenerate: { directory: 'mapdb' },
                 },
 
                 {
@@ -179,12 +203,12 @@ export default defineConfig({
                 defaultLocale: 'en',
                 locales: {
                     en: 'en'
-                   
+
                 },
             },
         }),
 
-       
+
         //partytown(),
         worker(),
         react({
@@ -233,15 +257,15 @@ export default defineConfig({
                     /^\/workbox-[a-z0-9\-]+\.js$/,
                     /^\/ws$/,
                     /^\/api\/.*/,
-                     /^\/auth(?:\/.*)?$/,
-                     /^\/register(?:\/.*)?$/,
-                     /^\/login(?:\/.*)?$/,
+                    /^\/auth(?:\/.*)?$/,
+                    /^\/register(?:\/.*)?$/,
+                    /^\/login(?:\/.*)?$/,
                 ],
 
                 runtimeCaching: [
                     {
-                            urlPattern: /^\/auth(?:\/.*)?$/,
-                            handler: 'NetworkOnly',
+                        urlPattern: /^\/auth(?:\/.*)?$/,
+                        handler: 'NetworkOnly',
                     },
                     {
                         urlPattern: ({ request }) => request.mode === 'navigate',
@@ -292,7 +316,7 @@ export default defineConfig({
 
         }),
 
-        
+
     ],
 
 
@@ -306,7 +330,7 @@ export default defineConfig({
                 ignored: ['!**/node_modules/**'],
             },
         },
-         optimizeDeps: {
+        optimizeDeps: {
             include: ['comlink'],
             exclude: ['@kbve/droid']
         },
@@ -325,7 +349,7 @@ export default defineConfig({
             rollupOptions: {
                 // maxConcurrency: 2,
                 output: {
-                    
+
                 },
             },
         },
@@ -336,12 +360,10 @@ export default defineConfig({
         },
         vite: {
             plugins: [
-                tailwindcss(),
-
-              
+                //tailwindcss(),
             ]
             ,
         },
-       
+
     }),
 });

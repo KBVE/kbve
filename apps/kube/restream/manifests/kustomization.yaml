@@ -1,0 +1,20 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+namespace: restream
+
+resources:
+  - restream-pvc.yaml
+  - restream-deployment.yaml
+  - restream-service.yaml
+  - restream-ingress.yaml
+  - restream-configmap.yaml
+  - restream-tcp-service.yaml
+
+commonLabels:
+  app: restreamer
+  managed-by: argocd
+
+images:
+  - name: datarhei/restreamer
+    newTag: latest

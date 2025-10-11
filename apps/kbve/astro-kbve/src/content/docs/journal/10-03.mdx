@@ -1,7 +1,7 @@
 ---
 title: 'October: 3rd'
 category: Daily
-date: 2024-10-03 12:00:00
+date: 2025-10-03 12:00:00
 client: Self
 unsplash: 1693298661836-1206649639ef
 img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -11,6 +11,37 @@ tags:
 ---
 
 import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2025
+
+### Tracker SQL User Providers
+
+-   09:05AM
+
+    There was an issue or well a mistake in our tracker sql, we ended up creating an additional table to keep track of the user and their identities.
+    This table was under the tracker schema, `trackers.user_providers` and after building it out and making some functions for it, I figured out that the auth schema already has it.
+    Since the auth schema has an isolated table for exactly what we need, it would make more sense to just have a function compare against those!
+    Later on I will add a LRU for the application side, to help offset the queries to the sql database.
+    Anyhow, we updated the tracker sql file and dropped that useless data table and everything is good to go!
+
+### Nvidia Roll $185
+
+-   10:01AM
+    
+    Made the call to roll a couple of the $185 covered calls into next week for a quick couple thousand.
+    This is because I am not too sure if it might be worth having the assignment over the weekend, we could hold off for another week and see if that helps us out.
+    If I am correct with the planning, we might be able to move back up to $190 before the end of the month.
+
+### Resource ID ULIDs
+
+-   11:18AM
+
+    Under the common folder for DOTS, I created a basic Ulid.cs helper class.
+    I do want to swap that out with the CySharp Ulid library, yet the time is not yet here for that!
+    Maybe we do a combination of a big int and ulid, or a dual ulid, with one ulid representing the actual type and another for that exact instance of the entity on the map.
+    I will have to look at the performance concerns with this method because it could easily surpass 1,000,000 entity problems, very quickly.
+    We can see that it might be around 140MB usage when dealing with all these data points within our resource pool.
+
 
 ## 2024
 
