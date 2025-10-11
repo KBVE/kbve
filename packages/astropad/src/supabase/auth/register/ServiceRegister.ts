@@ -44,7 +44,7 @@ class RegisterService {
     };
   }
 
-  public getPasswordValidationMessage(password: string): string | true {
+  public getPasswordValidationMessage = (password: string): string | true => {
     const v = this.validatePassword(password);
     if (!v.length) return 'Password must be at least 8 characters';
     if (!v.lower) return 'Password must include a lowercase letter';
