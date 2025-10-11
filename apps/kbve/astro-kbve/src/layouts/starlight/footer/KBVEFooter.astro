@@ -1,6 +1,89 @@
 ---
 // React component for dynamic footer content
 import ReactFooter from './ReactFooter.tsx';
+
+// Legal Links
+const legalLinks = [
+  {
+    href: "/legal/privacy",
+    label: "Privacy",
+    ariaLabel: "View our privacy policy"
+  },
+  {
+    href: "/legal/tos",
+    label: "Terms",
+    ariaLabel: "Read our terms of service"
+  },
+  {
+    href: "/legal/",
+    label: "Legal/EULA",
+    ariaLabel: "View legal information and EULA"
+  }
+];
+
+// Resource Links
+const resourceLinks = [
+  {
+    href: "/docs",
+    label: "Documentation",
+    external: false,
+    ariaLabel: "View documentation and guides"
+  },
+  {
+    href: "/api",
+    label: "API Reference",
+    external: false,
+    ariaLabel: "Browse API documentation and reference"
+  },
+  {
+    href: "/community",
+    label: "Community",
+    external: true,
+    ariaLabel: "Join our community discussions (opens in new tab)"
+  },
+  {
+    href: "/blog",
+    label: "Blog",
+    external: false,
+    ariaLabel: "Read our latest blog posts and updates"
+  },
+  {
+    href: "/changelog",
+    label: "Changelog",
+    external: false,
+    ariaLabel: "View recent changes and updates"
+  }
+];
+
+// Quick Links
+const quickLinks = [
+  {
+    href: "/dashboard/",
+    label: "Dashboard",
+    ariaLabel: "Access your personal dashboard"
+  },
+  {
+    href: "/project/",
+    label: "Projects",
+    ariaLabel: "View and manage your projects"
+  },
+  {
+    href: "/analysis/",
+    label: "Analytics",
+    ariaLabel: "View analytics and insights"
+  },
+  {
+    href: "/settings/",
+    label: "Settings",
+    ariaLabel: "Manage your account settings"
+  },
+  {
+    href: "/support/",
+    label: "Support",
+    ariaLabel: "Get help and support"
+  }
+];
+
 // Social Media Links
 const socialLinks = [
   {
@@ -31,7 +114,11 @@ const socialLinks = [
 ---
 
 <footer
-	class="mt-auto border-t border-zinc-700 bg-zinc-900/50 backdrop-blur-sm">
+	class="mt-auto backdrop-blur-sm"
+	style="
+		border-top: 1px solid var(--sl-color-gray-5);
+		background-color: var(--sl-color-bg-sidebar);
+	">
 	<div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
 		<div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-8">
 			<!-- Brand Section -->
@@ -73,7 +160,7 @@ const socialLinks = [
 						KBVE
 					</span>
 				</div>
-				<p class="text-zinc-400 text-sm max-w-md leading-relaxed">
+				<p class="text-sm max-w-md leading-relaxed" style="color: var(--sl-color-gray-2);">
 					KiloByte Virtual Enterprises - Pioneering the digital
 					frontier with innovative solutions, cutting-edge technology,
 					and exceptional user experiences.
@@ -87,7 +174,10 @@ const socialLinks = [
 						rel="noopener noreferrer"
 						data-astro-prefetch
 						aria-label={label}
-						class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 group"
+						class="transition-colors duration-200 group"
+						style="color: var(--sl-color-gray-2);"
+						onmouseover="this.style.color='var(--sl-color-accent)'"
+						onmouseout="this.style.color='var(--sl-color-gray-2)'"
 						>
 						<span class="sr-only">{label}</span>
 						<img
@@ -107,9 +197,11 @@ const socialLinks = [
 			</div>
 
 			<!-- Quick Links -->
-			<div class="relative">
+			<nav aria-labelledby="quick-links-heading" class="relative">
 				<h3
-					class="text-cyan-300 font-semibold mb-4 text-sm uppercase tracking-wider">
+					id="quick-links-heading"
+					class="font-semibold mb-4 text-sm uppercase tracking-wider"
+					style="color: var(--sl-color-accent);">
 					Quick Links
 				</h3>
 				<!-- Skeleton container for dynamic quick links -->
@@ -117,47 +209,22 @@ const socialLinks = [
 					id="footer-quicklinks-skeleton"
 					data-skeleton="footer-quicklinks"
 					class="transition-opacity duration-500">
-					<ul class="space-y-3">
-						<li>
-							<a
-								href="/dashboard/"
-								data-astro-prefetch
-								class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm">
-								Dashboard
-							</a>
-						</li>
-						<li>
-							<a
-								href="/project/"
-								data-astro-prefetch
-								class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm">
-								Projects
-							</a>
-						</li>
-						<li>
-							<a
-								href="/analysis/"
-								data-astro-prefetch
-								class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm">
-								Analytics
-							</a>
-						</li>
-						<li>
-							<a
-								href="/settings/"
-								data-astro-prefetch
-								class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm">
-								Settings
-							</a>
-						</li>
-						<li>
-							<a
-								href="/support/"
-								data-astro-prefetch
-								class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm">
-								Support
-							</a>
-						</li>
+					<ul class="space-y-3" role="list">
+						{quickLinks.map((link) => (
+							<li>
+								<a
+									href={link.href}
+									data-astro-prefetch
+									aria-label={link.ariaLabel}
+									class="transition-colors duration-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+									style="color: var(--sl-color-gray-2);"
+									onmouseover="this.style.color='var(--sl-color-accent)'"
+									onmouseout="this.style.color='var(--sl-color-gray-2)'"
+								>
+									{link.label}
+								</a>
+							</li>
+						))}
 					</ul>
 				</div>
 				<!-- Dynamic content will be rendered here by React - positioned as overlay after title -->
@@ -165,103 +232,91 @@ const socialLinks = [
 					id="footer-quicklinks-content"
 					class="absolute inset-0 top-10">
 				</div>
-			</div>
+			</nav>
 
 			<!-- Resources -->
-			<div>
+			<nav aria-labelledby="resources-heading">
 				<h3
-					class="text-cyan-300 font-semibold mb-4 text-sm uppercase tracking-wider">
+					id="resources-heading"
+					class="font-semibold mb-4 text-sm uppercase tracking-wider"
+					style="color: var(--sl-color-accent);">
 					Resources
 				</h3>
-				<ul class="space-y-3">
-					<li>
-						<a
-							href="/docs"
-							data-astro-prefetch
-							class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm">
-							Documentation
-						</a>
-					</li>
-					<li>
-						<a
-							href="/api"
-							data-astro-prefetch
-							class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm">
-							API Reference
-						</a>
-					</li>
-					<li>
-						<a
-							href="/community"
-							target="_blank"
-							rel="noopener noreferrer"
-							class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm flex items-center gap-1">
-							Community
-							<svg
-								class="w-3 h-3"
-								fill="none"
-								stroke="currentColor"
-								viewBox="0 0 24 24">
-								<path
-									stroke-linecap="round"
-									stroke-linejoin="round"
-									stroke-width="2"
-									d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
-								</path>
-							</svg>
-						</a>
-					</li>
-					<li>
-						<a
-							href="/blog"
-							data-astro-prefetch
-							class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm">
-							Blog
-						</a>
-					</li>
-					<li>
-						<a
-							href="/changelog"
-							data-astro-prefetch
-							class="text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm">
-							Changelog
-						</a>
-					</li>
+				<ul class="space-y-3" role="list">
+					{resourceLinks.map((resource) => (
+						<li>
+							<a
+								href={resource.href}
+								aria-label={resource.ariaLabel}
+								{...resource.external && {
+									target: "_blank",
+									rel: "noopener noreferrer"
+								}}
+								{...!resource.external && {
+									"data-astro-prefetch": true
+								}}
+								class={resource.external
+									? "text-zinc-400 hover:text-cyan-400 transition-colors duration-200 text-sm flex items-center gap-1 focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+									: "transition-colors duration-200 text-sm focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+								}
+								{...!resource.external && {
+									style: "color: var(--sl-color-gray-2);",
+									onmouseover: "this.style.color='var(--sl-color-accent)'",
+									onmouseout: "this.style.color='var(--sl-color-gray-2)'"
+								}}
+							>
+								{resource.label}
+								{resource.external && (
+									<svg
+										class="w-3 h-3"
+										fill="none"
+										stroke="currentColor"
+										viewBox="0 0 24 24"
+										aria-hidden="true"
+									>
+										<path
+											stroke-linecap="round"
+											stroke-linejoin="round"
+											stroke-width="2"
+											d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
+										</path>
+									</svg>
+								)}
+							</a>
+						</li>
+					))}
 				</ul>
-			</div>
+			</nav>
 		</div>
 
 		<!-- Divider -->
-		<div class="mt-8 pt-6 border-t border-zinc-700">
+		<div class="mt-8 pt-6" style="border-top: 1px solid var(--sl-color-gray-5);">
 			<div
 				class="flex flex-col sm:flex-row justify-between items-center space-y-4 sm:space-y-0 gap-4">
 				<!-- Copyright -->
-				<div class="text-zinc-500 text-sm text-center sm:text-left">
+				<div class="text-sm text-center sm:text-left" style="color: var(--sl-color-gray-3);">
 					© 2025 KiloByte Virtual Enterprises. All rights reserved.
 				</div>
 
 				<!-- Legal Links -->
-				<div
-					class="flex flex-wrap justify-center sm:justify-end gap-x-6 gap-y-2">
-					<a
-						href="/legal/privacy"
-						data-astro-prefetch
-						class="text-zinc-500 hover:text-cyan-400 transition-colors duration-200 text-sm whitespace-nowrap">
-						Privacy
-					</a>
-					<a
-						href="/legal/tos"
-						data-astro-prefetch
-						class="text-zinc-500 hover:text-cyan-400 transition-colors duration-200 text-sm whitespace-nowrap">
-						Terms
-					</a>
-					<a
-						href="/legal/"
-						data-astro-prefetch
-						class="text-zinc-500 hover:text-cyan-400 transition-colors duration-200 text-sm whitespace-nowrap">
-						Legal/EULA
-					</a>
-				</div>
+				<nav aria-label="Legal information">
+					<div
+						class="flex flex-wrap justify-center sm:justify-end gap-x-6 gap-y-2">
+						{legalLinks.map((link) => (
+							<a
+								href={link.href}
+								data-astro-prefetch
+								aria-label={link.ariaLabel}
+								class="transition-colors duration-200 text-sm whitespace-nowrap focus:outline-none focus:ring-2 focus:ring-cyan-400/50 focus:ring-offset-2 focus:ring-offset-gray-900 rounded"
+								style="color: var(--sl-color-gray-3);"
+								onmouseover="this.style.color='var(--sl-color-accent)'"
+								onmouseout="this.style.color='var(--sl-color-gray-3)'"
+							>
+								{link.label}
+							</a>
+						))}
+					</div>
+				</nav>
 			</div>
 		</div>
 

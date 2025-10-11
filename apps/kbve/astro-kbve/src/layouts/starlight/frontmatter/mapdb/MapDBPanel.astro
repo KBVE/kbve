@@ -1,6 +1,7 @@
 ---
 import { IMapObjectSchema } from 'src/data/schema';
 import { z } from 'zod';
+import ReactMapDBPanel from './ReactMapDBPanel';
 
 const { data } = Astro.props;
 const mapObject = IMapObjectSchema.parse(data);
@@ -37,7 +38,7 @@ const structureTypeIcons = {
 <section class="px-6 py-6 sm:px-8 lg:px-12">
 	<div class="max-w-3xl mx-auto">
 		<div
-			class="rounded-2xl p-6 border transition duration-300 space-y-3
+			class="relative rounded-2xl p-6 border transition duration-300 space-y-3
 			backdrop-blur-md bg-white/5 dark:bg-white/10
 			border-white/10 dark:border-white/10
 			shadow-[inset_0_0_0.5px_rgba(255,255,255,0.1)]
@@ -51,11 +52,12 @@ const structureTypeIcons = {
 							src={mapObject.imagePath}
 							alt={mapObject.name}
 							class="w-16 h-16 rounded-lg object-contain bg-black/20 p-1"
+							data-tooltip="image"
 						/>
 					)
 				}
 				<div>
-					<div class="flex items-center gap-2">
+					<div class="flex items-center gap-2" data-tooltip="name">
 						<span class="text-2xl">{typeIcons[mapObject.type]}</span>
 						<h3 class="text-lg font-semibold">{mapObject.name}</h3>
 					</div>
@@ -69,7 +71,7 @@ const structureTypeIcons = {
 
 			<!-- Common Properties -->
 			<ul class="text-sm text-zinc-400 space-y-1.5">
-				<li class="flex items-center gap-2">
+				<li class="flex items-center gap-2" data-tooltip="type">
 					<strong>Type:</strong>
 					<span class="capitalize">{mapObject.type}</span>
 				</li>
@@ -86,36 +88,36 @@ const structureTypeIcons = {
 								<span>Resource Stats</span>
 							</div>
 							<ul class="text-zinc-300 space-y-1.5 ml-6">
-								<li>
+								<li data-tooltip="resourceType">
 									<strong>Resource Type:</strong>{' '}
 									<span class="capitalize text-cyan-300">{mapObject.resourceType}</span>
 								</li>
-								<li>
+								<li data-tooltip="amount">
 									<strong>Amount:</strong>{' '}
 									<span class="text-green-400">{mapObject.amount} / {mapObject.maxAmount}</span>
 								</li>
-								<li>
+								<li data-tooltip="harvestYield">
 									<strong>Harvest Yield:</strong>{' '}
 									<span class="text-yellow-400">{mapObject.harvestYield}</span> per action
 								</li>
-								<li>
+								<li data-tooltip="harvestTime">
 									<strong>Harvest Time:</strong>{' '}
 									<span class="text-orange-400">{mapObject.harvestTime}s</span>
 								</li>
-								<li>
+								<li data-tooltip="harvestable">
 									<strong>Harvestable:</strong>{' '}
 									<span class={mapObject.isHarvestable ? 'text-green-400' : 'text-red-400'}>
 										{mapObject.isHarvestable ? '✓ Yes' : '✗ No'}
 									</span>
 								</li>
 								{mapObject.spawnWeight !== undefined && (
-									<li>
+									<li data-tooltip="spawnWeight">
 										<strong>Spawn Weight:</strong>{' '}
 										<span class="text-blue-400">{(mapObject.spawnWeight * 100).toFixed(0)}%</span>
 									</li>
 								)}
 								{mapObject.spawnCount !== undefined && (
-									<li>
+									<li data-tooltip="spawnCount">
 										<strong>Spawn Count:</strong>{' '}
 										<span class="text-purple-400">{mapObject.spawnCount}</span> per map
 									</li>
@@ -137,31 +139,31 @@ const structureTypeIcons = {
 								<span>Structure Stats</span>
 							</div>
 							<ul class="text-zinc-300 space-y-1.5 ml-6">
-								<li>
+								<li data-tooltip="structureType">
 									<strong>Structure Type:</strong>{' '}
 									<span class="capitalize text-cyan-300">{mapObject.structureType}</span>
 								</li>
-								<li>
+								<li data-tooltip="footprint">
 									<strong>Footprint:</strong>{' '}
 									<span class="text-blue-400">
 										{mapObject.footprintWidth} × {mapObject.footprintHeight}
 									</span>
 								</li>
-								<li>
+								<li data-tooltip="health">
 									<strong>Max Health:</strong>{' '}
 									<span class="text-red-400">{mapObject.maxHealth} HP</span>
 								</li>
-								<li>
+								<li data-tooltip="constructionTime">
 									<strong>Construction Time:</strong>{' '}
 									<span class="text-orange-400">{mapObject.constructionTime}s</span>
 								</li>
-								<li>
+								<li data-tooltip="walkable">
 									<strong>Walkable:</strong>{' '}
 									<span class={mapObject.isWalkable ? 'text-green-400' : 'text-red-400'}>
 										{mapObject.isWalkable ? '✓ Yes' : '✗ No'}
 									</span>
 								</li>
-								<li>
+								<li data-tooltip="placement">
 									<strong>Blocks Placement:</strong>{' '}
 									<span class={mapObject.blocksPlacement ? 'text-red-400' : 'text-green-400'}>
 										{mapObject.blocksPlacement ? '✓ Yes' : '✗ No'}
@@ -226,13 +228,15 @@ const structureTypeIcons = {
 
 			<!-- Technical Details -->
 			<hr class="my-4 border-white/10" />
-			<div class="text-xs text-zinc-500 space-y-1">
+			<div class="text-xs text-zinc-500 space-y-1" data-tooltip="technical">
 				<div><strong>ID:</strong> <code class="text-zinc-400">{mapObject.id}</code></div>
 				<div><strong>GUID:</strong> <code class="text-zinc-400">{mapObject.guid}</code></div>
 				<div>
 					<strong>Rendering:</strong> Layer: {mapObject.sortingLayer}, PPU: {mapObject.pixelsPerUnit}
 				</div>
 			</div>
+			<!-- React overlay for interactive tooltips -->
+			<ReactMapDBPanel data={mapObject} client:only="react" />
 		</div>
 	</div>
 </section>
