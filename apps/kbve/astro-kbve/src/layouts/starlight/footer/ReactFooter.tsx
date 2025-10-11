@@ -96,10 +96,18 @@ const FooterLinkItem: React.FC<{ link: FooterLink; index: number }> = ({ link, i
 				target={link.external ? '_blank' : undefined}
 				rel={link.external ? 'noopener noreferrer' : undefined}
 				className={cn(
-					'text-zinc-400 hover:text-cyan-400',
 					'transition-colors duration-200 text-sm',
 					'flex items-center gap-1'
 				)}
+				style={{
+					color: 'var(--sl-color-gray-2)',
+				}}
+				onMouseEnter={(e) => {
+					e.currentTarget.style.color = 'var(--sl-color-accent)';
+				}}
+				onMouseLeave={(e) => {
+					e.currentTarget.style.color = 'var(--sl-color-gray-2)';
+				}}
 			>
 				{link.label}
 				{link.external && (
@@ -119,17 +127,32 @@ const StatusIndicator: React.FC<{ status: FooterStatus }> = ({ status }) => {
 	const colorClass = statusColors[status.status];
 
 	return (
-		<div className={cn(
-			'flex items-center space-x-2 px-3 py-1',
-			'rounded-full bg-zinc-800 border border-zinc-700',
-			'transition-all duration-300 hover:border-zinc-600'
-		)}>
+		<div
+			className={cn(
+				'flex items-center space-x-2 px-3 py-1',
+				'rounded-full transition-all duration-300'
+			)}
+			style={{
+				backgroundColor: 'var(--sl-color-gray-6)',
+				borderColor: 'var(--sl-color-gray-5)',
+				border: '1px solid var(--sl-color-gray-5)'
+			}}
+			onMouseEnter={(e) => {
+				e.currentTarget.style.borderColor = 'var(--sl-color-gray-4)';
+			}}
+			onMouseLeave={(e) => {
+				e.currentTarget.style.borderColor = 'var(--sl-color-gray-5)';
+			}}
+		>
 			<div className={cn(
 				'w-2 h-2 rounded-full',
 				colorClass,
 				status.status === 'operational' && 'animate-pulse'
 			)} />
-			<span className="text-zinc-400 text-xs font-medium">
+			<span
+				className="text-xs font-medium"
+				style={{ color: 'var(--sl-color-gray-2)' }}
+			>
 				{status.message}
 			</span>
 		</div>
