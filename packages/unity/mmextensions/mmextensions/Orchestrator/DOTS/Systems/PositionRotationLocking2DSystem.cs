@@ -7,8 +7,7 @@ using Unity.Mathematics;
 public partial struct PositionRotationLocking2DSystem : ISystem
 {
     [BurstCompile]
-    [WithAll(typeof(PhysicsVelocity))]
-    [WithAll(typeof(LocalTransform))]
+    [WithAll(typeof(PhysicsVelocity), typeof(LocalTransform))]
     private partial struct Constrain2DAxisJob : IJobEntity
     {
         private void Execute(ref PhysicsVelocity velocity, ref LocalTransform transform)
