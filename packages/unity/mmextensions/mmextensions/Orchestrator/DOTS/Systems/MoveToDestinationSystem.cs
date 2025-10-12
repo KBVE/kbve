@@ -1,10 +1,11 @@
-﻿using System.Runtime.CompilerServices;
+using System.Runtime.CompilerServices;
 using Unity.Burst;
 using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
+using Unity.Physics;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -62,11 +63,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             public float DeltaTime;
             [NativeDisableParallelForRestriction] public ComponentLookup<MovingTag> MovingTag_CL_RW;
 
-            private void Execute(Entity entity, ref LocalTransform transform, ref MoveTimer timer, in Destination destination)
+            private void Execute(Entity entity, ref LocalTransform transform, ref PhysicsVelocity velocity, ref MoveTimer timer, in Destination destination)
             {
                 var remainingDelta = math.max(timer.RemainingTime, DeltaTime - timer.RemainingTime);
                 // move pos in a direction of current destination by passed frac of whole remaining move time
-                transform.Position += ((destination.Value - transform.Position.xy) * DeltaTime / remainingDelta).ToFloat3();
+                velocity.Linear = (math.normalize(destination.Value - transform.Position.xy) * 2f).ToFloat3();
                 timer.RemainingTime = math.max(0, timer.RemainingTime - DeltaTime);
 
                 if (timer.RemainingTime == 0f)
