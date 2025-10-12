@@ -1,4 +1,5 @@
-﻿using Unity.Entities;
+using Unity.Entities;
+using Unity.Physics;
 using UnityEngine;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
