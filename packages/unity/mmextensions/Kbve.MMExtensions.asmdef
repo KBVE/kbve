@@ -35,6 +35,10 @@
       "Unity.TextMeshPro",
       "Newtonsoft.Json",
       "ObservableCollections",
+      "OneJS",
+      "OneJS.Runtime",
+      "com.tencent.puerts.core",
+      "Puerts",
       "R3"
   ],
   "includePlatforms": [],
