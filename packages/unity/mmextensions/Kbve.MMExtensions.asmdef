@@ -39,7 +39,8 @@
       "OneJS.Runtime",
       "com.tencent.puerts.core",
       "Puerts",
-      "R3"
+      "R3",
+      "R3.Unity"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],

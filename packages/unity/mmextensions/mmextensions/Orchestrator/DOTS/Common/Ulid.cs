@@ -1,162 +1,239 @@
 using System;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using Unity.Collections;
+using Unity.Collections.LowLevel.Unsafe;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     public static class Ulid
     {
-        // Base32 Crockford alphabet for ULID encoding
-        private const string Base32Chars = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
-        
-        /// <summary>
-        /// Convert ULID string (26 chars base32) to FixedBytes16
-        /// </summary>
+        // Crockford Base32 (no I, L, O, U)
+        // private const string Base32Chars = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+
+        private static ReadOnlySpan<char> Base32Chars => "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+        private static readonly sbyte[] Base32Lookup = BuildLookup();
+
+        // ---------- Public API ----------
+
+        /// <summary>Convert ULID base32 string (26 chars) to FixedBytes16.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FixedBytes16 ToBytes(string ulid)
         {
-            if (string.IsNullOrEmpty(ulid) || ulid.Length != 26)
-                throw new ArgumentException("ULID must be exactly 26 characters");
-            
-            byte[] bytes = Decode(ulid);
-            
-            FixedBytes16 result = default;
-            unsafe
-            {
-                byte* dst = (byte*)&result;
-                for (int i = 0; i < 16; i++)
-                    dst[i] = bytes[i];
-            }
-            return result;
+            if (!IsValid(ulid))
+                throw new ArgumentException("ULID must be 26 Crockford Base32 chars.", nameof(ulid));
+
+            Span<byte> tmp = stackalloc byte[16];
+            if (!TryDecode(ulid, tmp))
+                throw new ArgumentException("Invalid ULID encoding.", nameof(ulid));
+
+            return FromSpan(tmp);
         }
-        
-        /// <summary>
-        /// Convert FixedBytes16 back to ULID string
-        /// </summary>
+
+        /// <summary>Convert FixedBytes16 back to ULID base32 string.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static string ToString(FixedBytes16 bytes)
         {
-            byte[] array = new byte[16];
-            unsafe
-            {
-                byte* src = (byte*)&bytes;
-                for (int i = 0; i < 16; i++)
-                    array[i] = src[i];
-            }
-            return Encode(array);
+            ReadOnlySpan<byte> span = AsReadOnlySpan(bytes);
+            return Encode(span);
         }
-        
-        /// <summary>
-        /// Compare two ULID FixedBytes16 for equality
-        /// </summary>
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        public static bool Equals(FixedBytes16 a, FixedBytes16 b)
-        {
-            unsafe
-            {
-                long* ptrA = (long*)&a;
-                long* ptrB = (long*)&b;
-                
-                // Compare as longs for speed (16 bytes = 2 longs)
-                return ptrA[0] == ptrB[0] && ptrA[1] == ptrB[1];
-            }
-        }
-        
-        /// <summary>
-        /// Validate ULID string format
-        /// </summary>
+
+        /// <summary>Case-insensitive format check for a 26-char Crockford Base32 ULID.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static bool IsValid(string ulid)
         {
-            if (string.IsNullOrEmpty(ulid) || ulid.Length != 26)
-                return false;
-            
-            foreach (char c in ulid)
-            {
-                if (!IsValidChar(c))
-                    return false;
-            }
-            
+            if (string.IsNullOrEmpty(ulid) || ulid.Length != 26) return false;
+            for (int i = 0; i < 26; i++)
+                if (!IsValidChar(ulid[i])) return false;
             return true;
         }
-        
-        #region Private Encoding/Decoding
-        
-        private static byte[] Decode(string ulid)
+
+        /// <summary>Constant-time compare of two FixedBytes16 values.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool Equals(FixedBytes16 a, FixedBytes16 b)
         {
-            byte[] bytes = new byte[16];
-            long value = 0;
-            int index = 0;
-            
-            for (int i = 0; i < ulid.Length; i++)
+            unsafe { return UnsafeUtility.MemCmp(&a, &b, 16) == 0; }
+        }
+
+        // ---------- Bridge-friendly helpers for FixedBytes16 ----------
+
+        /// <summary>Copy FixedBytes16 into a new managed byte[16] without unsafe at callsite.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte[] ToArrayNoUnsafe(this FixedBytes16 fb)
+        {
+            ReadOnlySpan<byte> src = AsReadOnlySpan(fb);
+            return src.ToArray(); // exactly 16 bytes
+        }
+
+        /// <summary>Copy FixedBytes16 into destination Span<byte> (length >= 16). No allocation.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static bool TryCopyTo(this FixedBytes16 fb, Span<byte> destination)
+        {
+            if (destination.Length < 16) return false;
+            ReadOnlySpan<byte> src = AsReadOnlySpan(fb);
+            src.CopyTo(destination);
+            return true;
+        }
+
+        /// <summary>Fastest: memcpy FixedBytes16 -> new byte[16]. Keeps unsafe localized here.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static byte[] ToArrayFast(this FixedBytes16 fb)
+        {
+            var arr = new byte[16];
+            unsafe
             {
-                value = value * 32 + CharToValue(ulid[i]);
-                
-                if ((i + 1) % 4 == 0 || i == ulid.Length - 1)
+                fixed (byte* dst = arr)
                 {
-                    int byteCount = (i + 1) % 4 == 0 ? 5 : ((i + 1) % 4 * 5 + 7) / 8;
-                    for (int j = byteCount - 1; j >= 0; j--)
-                    {
-                        if (index < 16)
-                            bytes[index++] = (byte)(value >> (j * 8));
-                    }
-                    value = 0;
+                    UnsafeUtility.MemCpy(dst, &fb, 16);
                 }
             }
-            
-            return bytes;
+            return arr;
         }
-        
-        private static string Encode(byte[] bytes)
+
+        /// <summary>Create FixedBytes16 from first 16 bytes of the source span.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FixedBytes16 FromSpan(ReadOnlySpan<byte> src)
         {
-            char[] chars = new char[26];
-            int charIndex = 0;
-            long value = 0;
-            int bits = 0;
-            
-            for (int i = 0; i < bytes.Length; i++)
+            if (src.Length < 16) throw new ArgumentException("Need 16 bytes", nameof(src));
+            FixedBytes16 fb = default;
+            Span<byte> dst = AsSpan(ref fb);
+            src.Slice(0, 16).CopyTo(dst);
+            return fb;
+        }
+
+        // ---------- Encoding / Decoding (span-based, allocation-free) ----------
+
+        /// <summary>Encode 16 bytes (ULID) to 26-char Crockford Base32 string.</summary>
+        public static string Encode(ReadOnlySpan<byte> bytes)
+        {
+            if (bytes.Length < 16) throw new ArgumentException("Need 16 bytes", nameof(bytes));
+            bytes = bytes.Slice(0, 16);
+
+            Span<char> chars = stackalloc char[26];
+            int ci = 0;
+            int bitCount = 0;
+            int bitBuf = 0;
+
+            for (int i = 0; i < 16; i++)
             {
-                value = (value << 8) | bytes[i];
-                bits += 8;
-                
-                while (bits >= 5)
+                bitBuf = (bitBuf << 8) | bytes[i];
+                bitCount += 8;
+                while (bitCount >= 5)
                 {
-                    bits -= 5;
-                    chars[charIndex++] = Base32Chars[(int)((value >> bits) & 31)];
+                    bitCount -= 5;
+                    chars[ci++] = Base32Chars[(bitBuf >> bitCount) & 0x1F];
                 }
             }
-            
-            if (bits > 0)
-                chars[charIndex++] = Base32Chars[(int)((value << (5 - bits)) & 31)];
-            
-            return new string(chars, 0, 26);
+            if (bitCount > 0)
+            {
+                chars[ci++] = Base32Chars[(bitBuf << (5 - bitCount)) & 0x1F];
+            }
+            // ULID is exactly 128 bits -> 26 chars; if short, pad with '0'
+            while (ci < 26) chars[ci++] = '0';
+
+            return new string(chars);
         }
-        
+
+        /// <summary>Decode 26-char Crockford Base32 ULID into 16 bytes (dest span).</summary>
+        public static bool TryDecode(string ulid, Span<byte> dest)
+        {
+            if (ulid == null || ulid.Length != 26 || dest.Length < 16) return false;
+
+            int bitBuf = 0;
+            int bitCount = 0;
+            int bi = 0;
+
+            for (int i = 0; i < 26; i++)
+            {
+                int v = CharToValue(ulid[i]);
+                if (v < 0) return false;
+
+                bitBuf = (bitBuf << 5) | v;
+                bitCount += 5;
+
+                while (bitCount >= 8)
+                {
+                    bitCount -= 8;
+                    if (bi < 16)
+                        dest[bi++] = (byte)((bitBuf >> bitCount) & 0xFF);
+                }
+            }
+            return bi == 16;
+        }
+
+        // ---------- Internal helpers ----------
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static bool IsValidChar(char c) => CharToValue(c) >= 0;
+
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static int CharToValue(char c)
         {
-            if (c >= '0' && c <= '9') return c - '0';
-            if (c >= 'A' && c <= 'H') return c - 'A' + 10;
-            if (c >= 'J' && c <= 'K') return c - 'J' + 18;
-            if (c >= 'M' && c <= 'N') return c - 'M' + 20;
-            if (c >= 'P' && c <= 'T') return c - 'P' + 22;
-            if (c >= 'V' && c <= 'Z') return c - 'V' + 27;
-            if (c >= 'a' && c <= 'z') return CharToValue(char.ToUpper(c));
-            throw new ArgumentException($"Invalid ULID character: {c}");
+            if((uint)c >=128) return -1;
+            return Base32Lookup[c];
         }
-        
-        [MethodImpl(MethodImplOptions.AggressiveInlining)]
-        private static bool IsValidChar(char c)
+
+        private static sbyte[] BuildLookup()
         {
-            return (c >= '0' && c <= '9') ||
-                   (c >= 'A' && c <= 'H') ||
-                   (c >= 'J' && c <= 'K') ||
-                   (c >= 'M' && c <= 'N') ||
-                   (c >= 'P' && c <= 'T') ||
-                   (c >= 'V' && c <= 'Z') ||
-                   (c >= 'a' && c <= 'z');
+            var lut = new sbyte[128];
+            for (int i = 0; i < lut.Length; i++) lut[i] = -1;
+            const string chars = "0123456789ABCDEFGHJKMNPQRSTVWXYZ";
+            for (int i = 0; i < chars.Length; i++)
+            {
+                char upper = chars[i];
+                char lower = char.ToLower(upper);
+                lut[upper] = (sbyte)i;
+                lut[lower] =  (sbyte)i;
+            }
+            return lut;
         }
-        
-        #endregion
+
+
+        // <MM> -> AllocHGlobal / FreeHGlobal (IntPtr)
+        // Trying MemoryMarshal
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ReadOnlySpan<byte> AsReadOnlySpan(in FixedBytes16 fb)
+        {
+            return MemoryMarshal.AsBytes(
+                MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in fb), 1)
+            );
+        }
+
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Span<byte> AsSpan(ref FixedBytes16 fb)
+        {
+            return MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref fb, 1));
+        }
+
+        // TODO: Remove AsReadOnlySpanPtrGym if Burst or l2cpp fails
+        // Treat FixedBytes16 as a byte span (centralize unsafe here)
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static ReadOnlySpan<byte> AsReadOnlySpanPtrGym(in FixedBytes16 fb)
+        {
+            unsafe
+            {
+                fixed (FixedBytes16* p = &fb)
+                {
+                    return new ReadOnlySpan<byte>(p, 16);
+                }
+            }
+        }
+
+
+        // TODO: Remove > 
+        // Remove AsSpanPtrGym if Burst or Il2 fails.
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static Span<byte> AsSpanPtrGym(ref FixedBytes16 fb)
+        {
+            unsafe
+            {
+                fixed (FixedBytes16* p = &fb)
+                {
+                    return new Span<byte>(p, 16);
+                }
+            }
+        }
+
+
     }
 }
