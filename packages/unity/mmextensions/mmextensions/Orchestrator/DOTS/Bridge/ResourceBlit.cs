@@ -1,6 +1,7 @@
 using System;
 using System.Runtime.InteropServices;
 using Unity.Collections;
+using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
@@ -15,6 +16,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         public ushort MaxAmount;
         public ushort HarvestYield;
         public float HarvestTime;
+        public float3 WorldPos;
 
         // ---- Equality for DistinctUntilChanged ----
 
@@ -27,7 +29,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                 && Amount == other.Amount
                 && MaxAmount == other.MaxAmount
                 && HarvestYield == other.HarvestYield
-                && HarvestTime.Equals(other.HarvestTime);
+                && HarvestTime.Equals(other.HarvestTime)
+                && WorldPos.Equals(other.WorldPos);
         }
 
         public override bool Equals(object obj) => obj is ResourceBlit o && Equals(o);
@@ -53,6 +56,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                     hash = (hash * 397) ^ MaxAmount;
                     hash = (hash * 397) ^ HarvestYield;
                     hash = (hash * 397) ^ HarvestTime.GetHashCode();
+                    hash = (hash * 397) ^ (int)math.hash(WorldPos);
                     return hash;
                 }
             }

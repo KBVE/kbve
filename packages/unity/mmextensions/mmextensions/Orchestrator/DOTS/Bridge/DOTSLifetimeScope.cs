@@ -9,7 +9,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         {
             // base.Configure(builder);
             builder.Register<ResourceViewModel>(Lifetime.Singleton).AsSelf();
-            builder.RegisterComponentInHierarchy<DOTSBridge>();
+            //builder.RegisterComponentInHierarchy<DOTSBridge>();
         }
     }   
 }
