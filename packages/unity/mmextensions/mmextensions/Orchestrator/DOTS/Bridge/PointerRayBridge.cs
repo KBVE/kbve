@@ -1,7 +1,6 @@
 using UnityEngine;
 using Unity.Entities;
 using Unity.Mathematics;
-using KBVE.MMExtensions.Orchestrator.DOTS;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 {
@@ -9,34 +8,51 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
     {
         [SerializeField] private Camera cam;
         [SerializeField] private float maxDistance = 100f;
+        [SerializeField] private float updateThreshold = 0.5f;
 
         EntityManager _em;
         Entity _singleton;
-
+        
+        private Vector3 _lastMousePos;
+        private bool _isDirty;
+        
         void Awake()
         {
-            if (cam == null) cam = Camera.main; // only once in Mono
+            if (cam == null) cam = Camera.main;
             _em = World.DefaultGameObjectInjectionWorld.EntityManager;
 
-            // Create a typed query and explicitly specify T in TryGetSingletonEntity<T>
             var q = _em.CreateEntityQuery(ComponentType.ReadOnly<PlayerPointerRay>());
-
-            var exists = q.TryGetSingletonEntity<PlayerPointerRay>(out _singleton);
-            q.Dispose(); // good hygiene
-
-            if (!exists)
+            
+            if (!q.TryGetSingletonEntity<PlayerPointerRay>(out _singleton))
             {
                 _singleton = _em.CreateEntity(typeof(PlayerPointerRay));
                 _em.SetName(_singleton, "PlayerPointerRaySingleton");
-                _em.SetComponentData(_singleton, new PlayerPointerRay { MaxDistance = maxDistance });
             }
+            
+            q.Dispose();
+            
+            // Initialize once
+            UpdateRay(Input.mousePosition);
         }
 
         void Update()
         {
-            if (!cam) return;
+            if (cam == null) return;
 
-            var ray = cam.ScreenPointToRay(Input.mousePosition);
+            var mousePos = Input.mousePosition;
+            
+            // Only update if mouse moved beyond threshold
+            if (Vector3.Distance(mousePos, _lastMousePos) < updateThreshold)
+                return;
+
+            UpdateRay(mousePos);
+        }
+
+        private void UpdateRay(Vector3 mousePos)
+        {
+            _lastMousePos = mousePos;
+            var ray = cam.ScreenPointToRay(mousePos);
+            
             _em.SetComponentData(_singleton, new PlayerPointerRay
             {
                 Origin = ray.origin,
