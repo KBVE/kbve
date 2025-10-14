@@ -4,7 +4,7 @@ using Unity.Collections;
 using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
 
-namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
+namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     [StructLayout(LayoutKind.Sequential)]
     public struct ResourceBlit : IEquatable<ResourceBlit>
