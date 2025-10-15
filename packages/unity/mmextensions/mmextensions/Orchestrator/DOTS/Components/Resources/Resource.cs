@@ -1,6 +1,7 @@
 using Unity.Entities;
 using System;
 using System.Runtime.CompilerServices;
+using Unity.Collections;
 
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
@@ -24,6 +25,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
     public struct Resource : IComponentData
     {
+        public FixedBytes16 templateUlid;
         public ResourceType type;
         public ResourceFlags flags;
         public ushort amount;
@@ -31,6 +33,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public ushort harvestYield;
 
         public float harvestTime;
+    }
+
+    public struct ResourceID : IComponentData
+    {
+        public FixedBytes16 instanceUlid;
     }
 
     public static class ResourceExtensions

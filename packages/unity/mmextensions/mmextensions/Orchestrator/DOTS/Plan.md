@@ -96,8 +96,28 @@ When adding new entity types:
 
 ## Implementation Status
 
+### Entity Blits (Optimized)
 - ✅ EntityBlit - Optimized with IEquatable and unsafe hashcode
 - ✅ StructureBlit - Optimized with IEquatable and unsafe hashcode
 - ✅ CombatantBlit - Optimized with IEquatable and unsafe hashcode
-- 🔄 ResourceBlit - Needs optimization (remove Ulid/WorldPos duplication)
+- ✅ ItemBlit - Optimized with IEquatable and unsafe hashcode
+- ✅ ResourceBlit - Optimized and removed Ulid/WorldPos duplication
+
+### Universal Systems (Complete)
+- ✅ PlayerHoverSystem - Universal entity detection via physics raycasting
+- ✅ EntityHoverSelectSystem - Universal selection (replaces ResourceHoverSelectSystem)
+- ✅ EntityToVmDrainSystem - Universal data gathering for all entity types
+- ✅ EntityViewModel - Thread-safe universal reactive view model
+- ✅ EntityDOTSBridge - Universal UI bridge for all entity types
+
+### Components
+- ✅ PlayerHover - Universal hover detection component
+- ✅ PlayerPointerRay - Universal mouse ray component
+- ✅ SelectedEntity - Universal selection component
+- ✅ EntityBlitContainer - Universal data container with convenience properties
+
+### Migration Status
+- ✅ Removed ResourceToVmDrainSystem (redundant with EntityToVmDrainSystem)
+- ✅ Updated DOTSLifetimeScope to use EntityViewModel
+- 🔄 ResourceViewModel/DOTSBridge - Keep for UI backward compatibility, mark as deprecated
 - ❌ ResourceID - Should be removed (redundant with EntityBlit.Ulid)

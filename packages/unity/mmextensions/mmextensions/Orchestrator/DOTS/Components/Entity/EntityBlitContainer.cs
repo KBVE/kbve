@@ -9,15 +9,17 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     public struct EntityBlitContainer
     {
         public EntityBlit Entity;
-        
+
         // Only one of these will have meaningful data
         public ResourceBlit? Resource;
         public StructureBlit? Structure;
-        public MonsterBlit? Monster;
-        public UnitBlit? Unit;
-        public NPCBlit? NPC;
+        public CombatantBlit? Combatant;
         public ItemBlit? Item;
-        public PlayerBlit? Player;
 
+        // Convenience properties for checking what data is available
+        public bool HasResource => Resource.HasValue;
+        public bool HasStructure => Structure.HasValue;
+        public bool HasCombatant => Combatant.HasValue;
+        public bool HasItem => Item.HasValue;
     }
 }

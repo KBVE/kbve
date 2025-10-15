@@ -8,8 +8,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         protected override void Configure(IContainerBuilder builder)
         {
             // base.Configure(builder);
-            builder.Register<ResourceViewModel>(Lifetime.Singleton).AsSelf();
-            //builder.RegisterComponentInHierarchy<DOTSBridge>();
+            builder.Register<EntityViewModel>(Lifetime.Singleton).AsSelf();
+            //builder.RegisterComponentInHierarchy<EntityDOTSBridge>();
         }
-    }   
+    }
 }

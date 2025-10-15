@@ -1,46 +1,28 @@
-using UniRx;
-using UnityEngine;
+using R3;
+using System;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 {
-    public class EntityViewModel : MonoBehaviour
+    /// <summary>
+    /// Thread-safe reactive view model for the currently selected entites.
+    /// This bridges ECS → main thread → OneJS/TS UI.
+    /// </summary>
+    public sealed class EntityViewModel : IDisposable
     {
         public static EntityViewModel Instance { get; private set; }
 
-        // Main reactive property
-        public ReactiveProperty<EntityBlitContainer?> Current = new ReactiveProperty<EntityBlitContainer?>(null);
+        // Thread-safe reactive property for multi-threaded access
+        public SynchronizedReactiveProperty<EntityBlitContainer?> Current = new SynchronizedReactiveProperty<EntityBlitContainer?>(null);
 
-        // Convenience observables
-        public IObservable<(EntityBlit entity, ResourceBlit resource)> OnResourceSelected => 
-            Current
-                .Where(c => c.HasValue && c.Value.HasResource)
-                .Select(c => (c.Value.Entity, c.Value.Resource.Value));
-        
-        public IObservable<(EntityBlit entity, StructureBlit structure)> OnStructureSelected => 
-            Current
-                .Where(c => c.HasValue && c.Value.HasStructure)
-                .Select(c => (c.Value.Entity, c.Value.Structure.Value));
-        
-        public IObservable<(EntityBlit entity, CombatantBlit combatant)> OnCombatantSelected => 
-            Current
-                .Where(c => c.HasValue && c.Value.HasCombatant)
-                .Select(c => (c.Value.Entity, c.Value.Combatant.Value));
-
-        void Awake()
+        // View
+        public EntityViewModel() => Instance = this;
+          
+        /// <summary>
+        /// Release any subscriptions (if container disposes this singleton).
+        /// </summary>
+        public void Dispose()
         {
-            if (Instance != null)
-            {
-                Destroy(gameObject);
-                return;
-            }
-            Instance = this;
-            DontDestroyOnLoad(gameObject);
-        }
-
-        void OnDestroy()
-        {
-            if (Instance == this)
-                Instance = null;
+            Current.Dispose();
         }
     }
 }
