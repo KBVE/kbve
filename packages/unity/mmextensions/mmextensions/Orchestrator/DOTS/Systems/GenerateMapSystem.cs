@@ -27,7 +27,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 {
                     var rand = PosRands[_threadIndex];
                     var resourceEntity = ECB.Instantiate(i, Resources[rand.NextInt(0, Resources.Length)]);
-                    ECB.SetComponent(i, resourceEntity, LocalTransform.FromPosition(rand.NextFloat2(MapSize.c0, MapSize.c1).ToFloat3()));
+
+                    // Generate random world position
+                    var worldPos = rand.NextFloat2(MapSize.c0, MapSize.c1).ToFloat3();
+
+                    // Set transform position
+                    ECB.SetComponent(i, resourceEntity, LocalTransform.FromPosition(worldPos));
+
                     PosRands[_threadIndex] = rand;
                 }
             }
