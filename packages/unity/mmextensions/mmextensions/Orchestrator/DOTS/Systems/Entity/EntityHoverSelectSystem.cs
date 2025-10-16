@@ -3,7 +3,7 @@ using Unity.Entities;
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     /// <summary>
-    /// Universal hover selection system - works with any entity that has EntityBlit
+    /// Universal hover selection system - works with any entity that has EntityComponent
     /// </summary>
     [UpdateInGroup(typeof(SimulationSystemGroup))]
     [UpdateAfter(typeof(PlayerHoverSystem))]
@@ -30,8 +30,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             var e = hover.Entity;
 
-            // Any entity with EntityBlit can be selected (universal)
-            if (em.HasComponent<EntityBlit>(e))
+            // Any entity with EntityComponent can be selected (universal)
+            if (em.HasComponent<EntityComponent>(e))
             {
                 em.SetComponentData(selEnt, new SelectedEntity { Entity = e });
             }

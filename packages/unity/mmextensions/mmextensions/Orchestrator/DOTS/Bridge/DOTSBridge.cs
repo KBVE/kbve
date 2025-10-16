@@ -11,11 +11,15 @@ using Unity.Collections;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 {
+    /// <summary>
+    /// Universal DOTS Bridge that handles any entity type through EntityViewModel.
+    /// Consolidated from EntityDOTSBridge to replace resource-specific functionality.
+    /// </summary>
     public partial class DOTSBridge : MonoBehaviour, IDisposable
     {
-        public static ResourceViewModel ResourceVM { get; private set; }
+        public static EntityViewModel EntityVM { get; private set; }
 
-        [Inject] ResourceViewModel _vm;
+        [Inject] EntityViewModel _vm;
         private readonly CompositeDisposable _comp = new();
 
         // Cache flag constants
@@ -25,22 +29,71 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         // Reuse byte array to avoid allocations
         private byte[] _ulidBuffer = new byte[16];
 
+        // Universal EntityData properties
         [EventfulProperty] byte[] _jsUlid = Array.Empty<byte>();
-        [EventfulProperty] byte _jsType = 0;
-        [EventfulProperty] byte _jsFlags = 0;
-        [EventfulProperty] int _jsAmount = 0;
-        [EventfulProperty] int _jsMaxAmount = 0;
-        [EventfulProperty] int _jsHarvestYield = 0;
-        [EventfulProperty] float _jsHarvestTime = 0f;
+        [EventfulProperty] int _jsEntityType = 0;
+        [EventfulProperty] int _jsActionFlags = 0;
         [EventfulProperty] float3 _jsWorldPos = float3.zero;
         [EventfulProperty] bool _jsVisible = false;
-        [EventfulProperty] bool _jsHarvestable = false;
+
+        // Resource-specific properties
+        [EventfulProperty] byte _jsResourceType = 0;
+        [EventfulProperty] byte _jsResourceFlags = 0;
+        [EventfulProperty] int _jsResourceAmount = 0;
+        [EventfulProperty] int _jsResourceMaxAmount = 0;
+        [EventfulProperty] int _jsResourceHarvestYield = 0;
+        [EventfulProperty] float _jsResourceHarvestTime = 0f;
+        [EventfulProperty] bool _jsResourceHarvestable = false;
+
+        // Structure-specific properties
+        [EventfulProperty] byte _jsStructureType = 0;
+        [EventfulProperty] byte _jsStructureLevel = 0;
+        [EventfulProperty] int _jsStructureHealth = 0;
+        [EventfulProperty] int _jsStructureMaxHealth = 0;
+        [EventfulProperty] float _jsStructureProductionRate = 0f;
+        [EventfulProperty] float _jsStructureProductionProgress = 0f;
+
+        // Combatant-specific properties
+        [EventfulProperty] byte _jsCombatantType = 0;
+        [EventfulProperty] byte _jsCombatantLevel = 0;
+        [EventfulProperty] int _jsCombatantHealth = 0;
+        [EventfulProperty] int _jsCombatantMaxHealth = 0;
+        [EventfulProperty] float _jsCombatantAttackDamage = 0f;
+        [EventfulProperty] float _jsCombatantAttackSpeed = 0f;
+        [EventfulProperty] float _jsCombatantMoveSpeed = 0f;
+
+        // Item-specific properties
+        [EventfulProperty] byte _jsItemType = 0;
+        [EventfulProperty] byte _jsItemRarity = 0;
+        [EventfulProperty] int _jsItemStackCount = 0;
+        [EventfulProperty] int _jsItemMaxStack = 0;
+
+        // Player-specific properties
+        [EventfulProperty] byte _jsPlayerLevel = 0;
+        [EventfulProperty] int _jsPlayerExperience = 0;
+        [EventfulProperty] int _jsPlayerHealth = 0;
+        [EventfulProperty] int _jsPlayerMaxHealth = 0;
+        [EventfulProperty] int _jsPlayerMana = 0;
+        [EventfulProperty] int _jsPlayerMaxMana = 0;
+
+        // Entity type indicators
+        [EventfulProperty] bool _jsIsResource = false;
+        [EventfulProperty] bool _jsIsStructure = false;
+        [EventfulProperty] bool _jsIsCombatant = false;
+        [EventfulProperty] bool _jsIsItem = false;
+        [EventfulProperty] bool _jsIsPlayer = false;
 
         private void Start()
         {
-            ResourceVM ??= _vm ?? new ResourceViewModel();
+            EntityVM ??= _vm ?? FindObjectOfType<EntityViewModel>();
 
-            ResourceVM.Current
+            if (EntityVM == null)
+            {
+                Debug.LogError("DOTSBridge: No EntityViewModel found!");
+                return;
+            }
+
+            EntityVM.Current
                 .Where(static x => x.HasValue)
                 .Select(static x => x.Value)
                 .ThrottleLastFrame(2)
@@ -48,25 +101,102 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                 .ObserveOnMainThread()
                 .Subscribe(UpdateUI)
                 .AddTo(_comp);
+
+            // Clear UI when no entity selected
+            EntityVM.Current
+                .Where(static x => !x.HasValue)
+                .ObserveOnMainThread()
+                .Subscribe(_ => ClearUI())
+                .AddTo(_comp);
         }
 
-        private void UpdateUI(ResourceBlit rb)
+        private void UpdateUI(EntityBlitContainer container)
         {
-            CopyUlidToBuffer(rb.Ulid, _ulidBuffer);
-            JsUlid = _ulidBuffer;
-            JsType = rb.Type;
-            JsFlags = rb.Flags;
-            JsAmount = rb.Amount;
-            JsMaxAmount = rb.MaxAmount;
-            JsHarvestYield = rb.HarvestYield;
-            JsHarvestTime = rb.HarvestTime;
-            JsWorldPos = rb.WorldPos;
+            var entity = container.Entity;
 
-            JsHarvestable = ((rb.Flags & FLAG_HARVESTABLE) != 0) 
-                            & (rb.Amount > 0) 
-                            & ((rb.Flags & FLAG_DEPLETED) == 0);
+            // Universal EntityData
+            CopyUlidToBuffer(entity.Ulid, _ulidBuffer);
+            JsUlid = _ulidBuffer;
+            JsEntityType = (int)entity.Type;
+            JsActionFlags = (int)entity.ActionFlags;
+            JsWorldPos = entity.WorldPos;
+
+            // Reset all type indicators
+            JsIsResource = container.HasResource;
+            JsIsStructure = container.HasStructure;
+            JsIsCombatant = container.HasCombatant;
+            JsIsItem = container.HasItem;
+            JsIsPlayer = container.HasPlayer;
+
+            // Update type-specific data
+            if (container.HasResource)
+            {
+                var resource = container.Resource;
+                JsResourceType = resource.Type;
+                JsResourceFlags = resource.Flags;
+                JsResourceAmount = resource.Amount;
+                JsResourceMaxAmount = resource.MaxAmount;
+                JsResourceHarvestYield = resource.HarvestYield;
+                JsResourceHarvestTime = resource.HarvestTime;
+                JsResourceHarvestable = ((resource.Flags & FLAG_HARVESTABLE) != 0)
+                                      & (resource.Amount > 0)
+                                      & ((resource.Flags & FLAG_DEPLETED) == 0);
+            }
+
+            if (container.HasStructure)
+            {
+                var structure = container.Structure;
+                JsStructureType = structure.StructureType;
+                JsStructureLevel = structure.Level;
+                JsStructureHealth = structure.Health;
+                JsStructureMaxHealth = structure.MaxHealth;
+                JsStructureProductionRate = structure.ProductionRate;
+                JsStructureProductionProgress = structure.ProductionProgress;
+            }
+
+            if (container.HasCombatant)
+            {
+                var combatant = container.Combatant;
+                JsCombatantType = combatant.CombatantType;
+                JsCombatantLevel = combatant.Level;
+                JsCombatantHealth = combatant.Health;
+                JsCombatantMaxHealth = combatant.MaxHealth;
+                JsCombatantAttackDamage = combatant.AttackDamage;
+                JsCombatantAttackSpeed = combatant.AttackSpeed;
+                JsCombatantMoveSpeed = combatant.MoveSpeed;
+            }
+
+            if (container.HasItem)
+            {
+                var item = container.Item;
+                JsItemType = item.ItemType;
+                JsItemRarity = item.Rarity;
+                JsItemStackCount = item.StackCount;
+                JsItemMaxStack = item.MaxStack;
+            }
+
+            if (container.HasPlayer)
+            {
+                var player = container.Player;
+                JsPlayerLevel = player.Level;
+                JsPlayerExperience = player.Experience;
+                JsPlayerHealth = player.Health;
+                JsPlayerMaxHealth = player.MaxHealth;
+                JsPlayerMana = player.Mana;
+                JsPlayerMaxMana = player.MaxMana;
+            }
 
             JsVisible = true;
+        }
+
+        private void ClearUI()
+        {
+            JsVisible = false;
+            JsIsResource = false;
+            JsIsStructure = false;
+            JsIsCombatant = false;
+            JsIsItem = false;
+            JsIsPlayer = false;
         }
 
         private static unsafe void CopyUlidToBuffer(FixedBytes16 ulid, byte[] buffer)
@@ -79,7 +209,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         }
 
         public void Dispose() => _comp.Dispose();
-        
+
         private void OnDestroy() => Dispose();
     }
 }

@@ -5,6 +5,8 @@ using Unity.Burst;
 using Unity.Collections;
 using Unity.Jobs;
 using UnityEngine;
+using KBVE.MMExtensions.Orchestrator.DOTS;
+using KBVE.MMExtensions.Orchestrator.DOTS.Common;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 {
@@ -17,8 +19,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         private ComponentLookup<EntityTypeComponent> _typeLookup;
         private ComponentLookup<Resource> _resourceLookup;
         private ComponentLookup<ResourceID> _resourceIdLookup;
-        // private ComponentLookup<Structure> _structureLookup;
-        // private ComponentLookup<StructureID> _structureIdLookup;
+        private ComponentLookup<Structure> _structureLookup;
+        private ComponentLookup<StructureID> _structureIdLookup;
         // private ComponentLookup<Monster> _monsterLookup;
         // private ComponentLookup<MonsterID> _monsterIdLookup;
         // private ComponentLookup<Unit> _unitLookup;
@@ -28,6 +30,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         // private ComponentLookup<Item> _itemLookup;
         // private ComponentLookup<Player> _playerLookup;
         private ComponentLookup<LocalToWorld> _l2wLookup;
+
+        // Blit component lookups for data transfer
+        private ComponentLookup<EntityComponent> _entityLookup;
+        private ComponentLookup<Combatant> _combatantLookup;
+        private ComponentLookup<Item> _itemLookup;
+        private ComponentLookup<Player> _playerLookup;
 
         // Native containers for Burst-managed data transfer
         private NativeReference<EntityBlitContainer> _blitContainer;
@@ -40,11 +48,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            _entityBlitLookup = state.GetComponentLookup<EntityBlit>(true);
-            _resourceBlitLookup = state.GetComponentLookup<ResourceBlit>(true);
-            _structureBlitLookup = state.GetComponentLookup<StructureBlit>(true);
-            _combatantBlitLookup = state.GetComponentLookup<CombatantBlit>(true);
-            _itemBlitLookup = state.GetComponentLookup<ItemBlit>(true);
+            _entityLookup = state.GetComponentLookup<EntityComponent>(true);
+            _resourceLookup = state.GetComponentLookup<Resource>(true);
+            _structureLookup = state.GetComponentLookup<Structure>(true);
+            _combatantLookup = state.GetComponentLookup<Combatant>(true);
+            _itemLookup = state.GetComponentLookup<Item>(true);
+            _playerLookup = state.GetComponentLookup<Player>(true);
             _l2wLookup = state.GetComponentLookup<LocalToWorld>(true);
 
             _blitContainer = new NativeReference<EntityBlitContainer>(Allocator.Persistent);
@@ -59,11 +68,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         public void OnUpdate(ref SystemState state)
         {
             // Update lookups once per frame
-            _entityBlitLookup.Update(ref state);
-            _resourceBlitLookup.Update(ref state);
-            _structureBlitLookup.Update(ref state);
-            _combatantBlitLookup.Update(ref state);
-            _itemBlitLookup.Update(ref state);
+            _entityLookup.Update(ref state);
+            _resourceLookup.Update(ref state);
+            _structureLookup.Update(ref state);
+            _combatantLookup.Update(ref state);
+            _itemLookup.Update(ref state);
+            _playerLookup.Update(ref state);
             _l2wLookup.Update(ref state);
 
             // Get selected entity from universal SelectedEntity singleton
@@ -80,11 +90,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             var gatherJob = new GatherEntityDataJob
             {
                 SelectedEntity = _selectedEntityRef,
-                EntityBlitLookup = _entityBlitLookup,
-                ResourceBlitLookup = _resourceBlitLookup,
-                StructureBlitLookup = _structureBlitLookup,
-                CombatantBlitLookup = _combatantBlitLookup,
-                ItemBlitLookup = _itemBlitLookup,
+                EntityLookup = _entityLookup,
+                ResourceLookup = _resourceLookup,
+                StructureLookup = _structureLookup,
+                CombatantLookup = _combatantLookup,
+                ItemLookup = _itemLookup,
+                PlayerLookup = _playerLookup,
                 L2wLookup = _l2wLookup,
                 BlitOutput = _blitContainer,
                 HasValidOutput = _hasValidData,
@@ -99,7 +110,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             string debugMsg = debugCode switch
             {
                 1 => "Entity is Null",
-                2 => "Missing EntityBlit component",
+                2 => "Missing EntityComponent component",
                 3 => "Success - has valid data",
                 _ => "Unknown state"
             };
@@ -143,11 +154,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         private struct GatherEntityDataJob : IJob
         {
             [ReadOnly] public NativeReference<Entity> SelectedEntity;
-            [ReadOnly] public ComponentLookup<EntityBlit> EntityBlitLookup;
-            [ReadOnly] public ComponentLookup<ResourceBlit> ResourceBlitLookup;
-            [ReadOnly] public ComponentLookup<StructureBlit> StructureBlitLookup;
-            [ReadOnly] public ComponentLookup<CombatantBlit> CombatantBlitLookup;
-            [ReadOnly] public ComponentLookup<ItemBlit> ItemBlitLookup;
+            [ReadOnly] public ComponentLookup<EntityComponent> EntityLookup;
+            [ReadOnly] public ComponentLookup<Resource> ResourceLookup;
+            [ReadOnly] public ComponentLookup<Structure> StructureLookup;
+            [ReadOnly] public ComponentLookup<Combatant> CombatantLookup;
+            [ReadOnly] public ComponentLookup<Item> ItemLookup;
+            [ReadOnly] public ComponentLookup<Player> PlayerLookup;
             [ReadOnly] public ComponentLookup<LocalToWorld> L2wLookup;
 
             [WriteOnly] public NativeReference<EntityBlitContainer> BlitOutput;
@@ -166,42 +178,57 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                     return;
                 }
 
-                // EntityBlit is required for all entities
-                if (!EntityBlitLookup.HasComponent(entity))
+                // EntityComponent is required for all entities
+                if (!EntityLookup.HasComponent(entity))
                 {
                     DebugCode.Value = 2;
                     HasValidOutput.Value = false;
                     return;
                 }
 
-                // Get EntityBlit (universal data)
-                var entityBlit = EntityBlitLookup[entity];
+                // Get EntityComponent (universal data)
+                var entityComponent = EntityLookup[entity];
 
-                // Create container with EntityBlit
+                // Create container with EntityData
                 var container = new EntityBlitContainer
                 {
-                    Entity = entityBlit
+                    Entity = entityComponent.Data
                 };
 
                 // Add type-specific data based on what components exist
-                if (ResourceBlitLookup.HasComponent(entity))
+                if (ResourceLookup.HasComponent(entity))
                 {
-                    container.Resource = ResourceBlitLookup[entity];
+                    // Convert Resource component to ResourceData for the container
+                    var resourceComponent = ResourceLookup[entity];
+                    container.SetResource(resourceComponent.Data);
                 }
 
-                if (StructureBlitLookup.HasComponent(entity))
+                if (StructureLookup.HasComponent(entity))
                 {
-                    container.Structure = StructureBlitLookup[entity];
+                    // Convert Structure component to StructureData for the container
+                    var structureComponent = StructureLookup[entity];
+                    container.SetStructure(structureComponent.Data);
                 }
 
-                if (CombatantBlitLookup.HasComponent(entity))
+                if (CombatantLookup.HasComponent(entity))
                 {
-                    container.Combatant = CombatantBlitLookup[entity];
+                    // Convert Combatant component to CombatantData for the container
+                    var combatantComponent = CombatantLookup[entity];
+                    container.SetCombatant(combatantComponent.Data);
                 }
 
-                if (ItemBlitLookup.HasComponent(entity))
+                if (ItemLookup.HasComponent(entity))
                 {
-                    container.Item = ItemBlitLookup[entity];
+                    // Convert Item component to ItemData for the container
+                    var itemComponent = ItemLookup[entity];
+                    container.SetItem(itemComponent.Data);
+                }
+
+                if (PlayerLookup.HasComponent(entity))
+                {
+                    // Convert Player component to PlayerData for the container
+                    var playerComponent = PlayerLookup[entity];
+                    container.SetPlayer(playerComponent.Data);
                 }
 
                 // Write output

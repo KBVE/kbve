@@ -1,5 +1,9 @@
 using System;
 using Unity.Entities;
+using Unity.Collections;
+using Unity.Mathematics;
+using ProtoBuf;
+using KBVE.MMExtensions.Orchestrator.DOTS.Common;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -122,6 +126,210 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// </summary>
     public struct SelectedEntity : IComponentData
     {
-        public Entity Entity;
+        public Unity.Entities.Entity Entity;
+    }
+
+    // ================================
+    // PROTOBUF-NET ENTITY DATA
+    // ================================
+
+    /// <summary>
+    /// Universal entity data using protobuf-net for serialization.
+    /// Contains essential data present on all entities.
+    /// Size: ~36 bytes
+    /// </summary>
+    [ProtoContract]
+    public struct EntityData : IEntityData<EntityData>, IEquatable<EntityData>
+    {
+        /// <summary>Universal unique identifier for this entity</summary>
+        [ProtoMember(1)]
+        public FixedBytes16 Ulid;
+
+        /// <summary>Entity type flags determining what this entity is</summary>
+        [ProtoMember(2)]
+        public EntityType Type;
+
+        /// <summary>Action/state flags for what the entity is currently doing</summary>
+        [ProtoMember(3)]
+        public EntityActionFlags ActionFlags;
+
+        /// <summary>World position of this entity</summary>
+        [ProtoMember(4)]
+        public float3 WorldPos;
+
+        // ---- IEquatable Implementation ----
+        public bool Equals(EntityData other)
+        {
+            return Ulid.Equals(other.Ulid)
+                && Type == other.Type
+                && ActionFlags == other.ActionFlags
+                && WorldPos.Equals(other.WorldPos);
+        }
+
+        public override bool Equals(object obj) => obj is EntityData other && Equals(other);
+
+        public override int GetHashCode()
+        {
+            unsafe
+            {
+                long h0, h1;
+                fixed (FixedBytes16* p = &Ulid)
+                {
+                    h0 = ((long*)p)[0];
+                    h1 = ((long*)p)[1];
+                }
+
+                unchecked
+                {
+                    int hash = (int)(h0 ^ (h0 >> 32)) * 16777619 ^ (int)(h1 ^ (h1 >> 32));
+                    hash = (hash * 397) ^ (int)Type;
+                    hash = (hash * 397) ^ (int)ActionFlags;
+                    hash = (hash * 397) ^ (int)math.hash(WorldPos);
+                    return hash;
+                }
+            }
+        }
+
+        public static bool operator ==(EntityData a, EntityData b) => a.Equals(b);
+        public static bool operator !=(EntityData a, EntityData b) => !a.Equals(b);
+    }
+
+    // ================================
+    // ECS COMPONENT WRAPPER
+    // ================================
+
+    /// <summary>
+    /// ECS Component wrapper for EntityData.
+    /// Provides implicit conversions for seamless integration.
+    /// </summary>
+    public struct EntityComponent : IComponentData
+    {
+        public EntityData Data;
+
+        public EntityComponent(EntityData data) => Data = data;
+
+        // Implicit conversions for ease of use
+        public static implicit operator EntityData(EntityComponent component) => component.Data;
+        public static implicit operator EntityComponent(EntityData data) => new EntityComponent(data);
+    }
+
+    // ================================
+    // EXTENSION METHODS
+    // ================================
+
+    /// <summary>
+    /// Extension methods for Entity ECS operations
+    /// </summary>
+    public static class EntityExtensions
+    {
+        /// <summary>Sets EntityData on an entity</summary>
+        public static void SetEntityData(this EntityManager em, Unity.Entities.Entity entity, in EntityData data)
+        {
+            em.SetComponentData(entity, new EntityComponent(data));
+        }
+
+        /// <summary>Gets EntityData from an entity</summary>
+        public static EntityData GetEntityData(this EntityManager em, Unity.Entities.Entity entity)
+        {
+            return em.GetComponentData<EntityComponent>(entity).Data;
+        }
+
+        /// <summary>Updates EntityData on an entity</summary>
+        public static void UpdateEntityData(this EntityManager em, Unity.Entities.Entity entity, EntityData newData)
+        {
+            em.SetComponentData(entity, new EntityComponent(newData));
+        }
+
+        /// <summary>Checks if entity has EntityData component</summary>
+        public static bool HasEntityData(this EntityManager em, Unity.Entities.Entity entity)
+        {
+            return em.HasComponent<EntityComponent>(entity);
+        }
+    }
+
+    // ================================
+    // SERIALIZATION HELPERS
+    // ================================
+
+    /// <summary>
+    /// Legacy EntityBlit structure for backward compatibility
+    /// </summary>
+    public struct EntityBlit : IEquatable<EntityBlit>
+    {
+        public FixedBytes16 Ulid;
+        public EntityType Type;
+        public EntityActionFlags ActionFlags;
+        public float3 WorldPos;
+
+        // ---- Equality ----
+        public bool Equals(EntityBlit other)
+        {
+            return Ulid.Equals(other.Ulid)
+                && Type == other.Type
+                && ActionFlags == other.ActionFlags
+                && WorldPos.Equals(other.WorldPos);
+        }
+
+        public override bool Equals(object obj) => obj is EntityBlit o && Equals(o);
+
+        public override int GetHashCode()
+        {
+            unsafe
+            {
+                long h0, h1;
+                fixed (FixedBytes16* p = &Ulid)
+                {
+                    h0 = ((long*)p)[0];
+                    h1 = ((long*)p)[1];
+                }
+
+                unchecked
+                {
+                    int hash = (int)(h0 ^ (h0 >> 32)) * 16777619 ^ (int)(h1 ^ (h1 >> 32));
+                    hash = (hash * 397) ^ (int)Type;
+                    hash = (hash * 397) ^ (int)ActionFlags;
+                    hash = (hash * 397) ^ (int)math.hash(WorldPos);
+                    return hash;
+                }
+            }
+        }
+
+        public static bool operator ==(EntityBlit a, EntityBlit b) => a.Equals(b);
+        public static bool operator !=(EntityBlit a, EntityBlit b) => !a.Equals(b);
+
+        // Implicit conversions to/from EntityData
+        public static implicit operator EntityData(EntityBlit blit) => new EntityData
+        {
+            Ulid = blit.Ulid,
+            Type = blit.Type,
+            ActionFlags = blit.ActionFlags,
+            WorldPos = blit.WorldPos
+        };
+
+        public static implicit operator EntityBlit(EntityData data) => new EntityBlit
+        {
+            Ulid = data.Ulid,
+            Type = data.Type,
+            ActionFlags = data.ActionFlags,
+            WorldPos = data.WorldPos
+        };
+    }
+
+    /// <summary>
+    /// EntityBlit serialization helpers using protobuf-net
+    /// </summary>
+    public static class EntityBlitHelpers
+    {
+        /// <summary>Serialize EntityData to bytes using protobuf-net</summary>
+        public static byte[] Serialize(EntityData data) => GenericBlit<EntityData>.Serialize(data);
+
+        /// <summary>Deserialize bytes to EntityData using protobuf-net</summary>
+        public static EntityData Deserialize(byte[] bytes) => GenericBlit<EntityData>.Deserialize(bytes);
+
+        /// <summary>Serialize EntityBlit to bytes (converts to EntityData first)</summary>
+        public static byte[] Serialize(EntityBlit blit) => Serialize((EntityData)blit);
+
+        /// <summary>Deserialize bytes to EntityBlit (converts from EntityData)</summary>
+        public static EntityBlit DeserializeToBlit(byte[] bytes) => (EntityBlit)Deserialize(bytes);
     }
 }
