@@ -40,7 +40,8 @@
       "com.tencent.puerts.core",
       "Puerts",
       "R3",
-      "R3.Unity"
+      "R3.Unity",
+      "ProtoBuf"
   ],
   "includePlatforms": [],
   "excludePlatforms": [],
