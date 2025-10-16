@@ -55,6 +55,34 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             unsafe { return UnsafeUtility.MemCmp(&a, &b, 16) == 0; }
         }
 
+        /// <summary>Generate a new ULID directly as FixedBytes16 (no string allocation).</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FixedBytes16 NewUlidAsBytes()
+        {
+            // Generate timestamp (48 bits) + randomness (80 bits) = 128 bits total
+            long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+
+            // Create 16-byte array for ULID
+            Span<byte> bytes = stackalloc byte[16];
+
+            // First 6 bytes: timestamp (48 bits, big-endian)
+            bytes[0] = (byte)(timestamp >> 40);
+            bytes[1] = (byte)(timestamp >> 32);
+            bytes[2] = (byte)(timestamp >> 24);
+            bytes[3] = (byte)(timestamp >> 16);
+            bytes[4] = (byte)(timestamp >> 8);
+            bytes[5] = (byte)timestamp;
+
+            // Last 10 bytes: cryptographically random
+            var random = new System.Random();
+            for (int i = 6; i < 16; i++)
+            {
+                bytes[i] = (byte)random.Next(256);
+            }
+
+            return FromSpan(bytes);
+        }
+
         // ---------- Bridge-friendly helpers for FixedBytes16 ----------
 
         /// <summary>Copy FixedBytes16 into a new managed byte[16] without unsafe at callsite.</summary>

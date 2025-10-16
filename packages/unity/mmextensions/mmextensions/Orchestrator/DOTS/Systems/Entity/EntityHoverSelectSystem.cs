@@ -29,14 +29,23 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             }
 
             var e = hover.Entity;
+            UnityEngine.Debug.Log($"EntityHoverSelectSystem: Found hover entity {e}");
 
             // Any entity with EntityComponent can be selected (universal)
             if (em.HasComponent<EntityComponent>(e))
             {
+                UnityEngine.Debug.Log($"EntityHoverSelectSystem: Entity {e} has EntityComponent - selecting it");
                 em.SetComponentData(selEnt, new SelectedEntity { Entity = e });
             }
             else
             {
+                UnityEngine.Debug.Log($"EntityHoverSelectSystem: Entity {e} does NOT have EntityComponent - checking what it has...");
+                var entityComponentTypes = em.GetComponentTypes(e, Unity.Collections.Allocator.Temp);
+                foreach (var componentType in entityComponentTypes)
+                {
+                    UnityEngine.Debug.Log($"  - {componentType}");
+                }
+                entityComponentTypes.Dispose();
                 em.SetComponentData(selEnt, new SelectedEntity { Entity = Entity.Null });
             }
         }

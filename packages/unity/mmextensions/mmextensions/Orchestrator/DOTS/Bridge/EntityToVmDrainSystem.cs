@@ -64,9 +64,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             _hasValidData.Value = false;
         }
 
-        [BurstCompile]
+        // [BurstCompile] - Temporarily removed for debug logging
         public void OnUpdate(ref SystemState state)
         {
+            UnityEngine.Debug.Log("EntityToVmDrainSystem: OnUpdate called");
+
             // Update lookups once per frame
             _entityLookup.Update(ref state);
             _resourceLookup.Update(ref state);
@@ -81,10 +83,24 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (SystemAPI.TryGetSingleton(out SelectedEntity sel))
             {
                 selectedEntity = sel.Entity;
+                UnityEngine.Debug.Log($"EntityToVmDrainSystem: Found SelectedEntity singleton with entity: {selectedEntity}");
+            }
+            else
+            {
+                UnityEngine.Debug.Log("EntityToVmDrainSystem: No SelectedEntity singleton found");
             }
 
             // Store in native container for job
             _selectedEntityRef.Value = selectedEntity;
+
+            // Only schedule job if we have a valid selected entity
+            if (selectedEntity == Entity.Null)
+            {
+                UnityEngine.Debug.Log("EntityToVmDrainSystem: No entity selected, skipping job");
+                return;
+            }
+
+            UnityEngine.Debug.Log($"EntityToVmDrainSystem: Scheduling job for entity {selectedEntity}");
 
             // Schedule Burst-compiled job
             var gatherJob = new GatherEntityDataJob
@@ -105,25 +121,42 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             state.Dependency = gatherJob.Schedule(state.Dependency);
             state.Dependency.Complete();
 
-            // Debug output
+            UnityEngine.Debug.Log("EntityToVmDrainSystem: Job completed, calling HandleJobResults");
+
+            // Update ViewModel (non-Burst)
+            HandleJobResults();
+        }
+
+        // Non-Burst method to handle ViewModel updates
+        [BurstDiscard]
+        private void HandleJobResults()
+        {
             int debugCode = _debugCode.Value;
-            string debugMsg = debugCode switch
+            string debugMessage = debugCode switch
             {
-                1 => "Entity is Null",
-                2 => "Missing EntityComponent component",
-                3 => "Success - has valid data",
-                _ => "Unknown state"
+                1 => "Entity is null",
+                2 => "Entity missing EntityComponent",
+                3 => "Success - data processed",
+                10 => "Found Resource component",
+                11 => "Found Structure component",
+                12 => "Found Combatant component",
+                13 => "Found Item component",
+                14 => "Found Player component",
+                15 => "No type-specific components found",
+                _ => $"Unknown debug code: {debugCode}"
             };
 
-            // Update ViewModel
+            UnityEngine.Debug.Log($"EntityToVmDrainSystem Job Result: {debugMessage} (code: {debugCode})");
+
+            // Update ViewModel based on job results
             if (_hasValidData.Value)
             {
-                Debug.Log($"EntityJob SUCCESS: {debugMsg}");
+                UnityEngine.Debug.Log($"EntityToVmDrainSystem: Valid data found, updating ViewModel");
                 UpdateViewModel(_blitContainer.Value, true);
             }
             else
             {
-                Debug.Log($"EntityJob FAILED: {debugMsg}, SelectedEntity={selectedEntity.Index}:{selectedEntity.Version}");
+                UnityEngine.Debug.Log($"EntityToVmDrainSystem: No valid data, clearing ViewModel");
                 UpdateViewModel(default, false);
             }
         }
@@ -143,7 +176,17 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         {
             if (EntityViewModel.Instance != null)
             {
-                EntityViewModel.Instance.Current.Value = hasValidData ? container : (EntityBlitContainer?)null;
+                if (hasValidData)
+                {
+                    EntityViewModel.Instance.Current.Value = container;
+                }
+                else
+                {
+                    // Create empty container with no valid data (all HasX flags false)
+                    var emptyContainer = new EntityBlitContainer();
+                    emptyContainer.Clear(); // Ensures all HasX flags are false
+                    EntityViewModel.Instance.Current.Value = emptyContainer;
+                }
             }
         }
 
@@ -189,18 +232,31 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                 // Get EntityComponent (universal data)
                 var entityComponent = EntityLookup[entity];
 
-                // Create container with EntityData
+                // Create container with EntityData, but update WorldPos from actual transform
+                var entityData = entityComponent.Data;
+
+                // Update WorldPos with current world position from LocalToWorld
+                if (L2wLookup.HasComponent(entity))
+                {
+                    var localToWorld = L2wLookup[entity];
+                    entityData.WorldPos = localToWorld.Position;
+                }
+
                 var container = new EntityBlitContainer
                 {
-                    Entity = entityComponent.Data
+                    EntityData = entityData
                 };
 
                 // Add type-specific data based on what components exist
+                bool hasAnyTypeData = false;
+
                 if (ResourceLookup.HasComponent(entity))
                 {
                     // Convert Resource component to ResourceData for the container
                     var resourceComponent = ResourceLookup[entity];
                     container.SetResource(resourceComponent.Data);
+                    hasAnyTypeData = true;
+                    DebugCode.Value = 10; // Found Resource component
                 }
 
                 if (StructureLookup.HasComponent(entity))
@@ -208,6 +264,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                     // Convert Structure component to StructureData for the container
                     var structureComponent = StructureLookup[entity];
                     container.SetStructure(structureComponent.Data);
+                    hasAnyTypeData = true;
+                    DebugCode.Value = 11; // Found Structure component
                 }
 
                 if (CombatantLookup.HasComponent(entity))
@@ -215,6 +273,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                     // Convert Combatant component to CombatantData for the container
                     var combatantComponent = CombatantLookup[entity];
                     container.SetCombatant(combatantComponent.Data);
+                    hasAnyTypeData = true;
+                    DebugCode.Value = 12; // Found Combatant component
                 }
 
                 if (ItemLookup.HasComponent(entity))
@@ -222,6 +282,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                     // Convert Item component to ItemData for the container
                     var itemComponent = ItemLookup[entity];
                     container.SetItem(itemComponent.Data);
+                    hasAnyTypeData = true;
+                    DebugCode.Value = 13; // Found Item component
                 }
 
                 if (PlayerLookup.HasComponent(entity))
@@ -229,12 +291,21 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                     // Convert Player component to PlayerData for the container
                     var playerComponent = PlayerLookup[entity];
                     container.SetPlayer(playerComponent.Data);
+                    hasAnyTypeData = true;
+                    DebugCode.Value = 14; // Found Player component
+                }
+
+                if (!hasAnyTypeData)
+                {
+                    DebugCode.Value = 15; // No type-specific components found
+                    HasValidOutput.Value = false;
+                    return;
                 }
 
                 // Write output
                 BlitOutput.Value = container;
                 HasValidOutput.Value = true;
-                DebugCode.Value = 3;
+                DebugCode.Value = 3; // Success
             }
         }
     }

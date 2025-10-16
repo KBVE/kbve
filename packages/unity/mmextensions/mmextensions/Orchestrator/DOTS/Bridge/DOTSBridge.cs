@@ -5,6 +5,7 @@ using OneJS;
 using R3;
 using ObservableCollections;
 using KBVE.MMExtensions.Orchestrator.DOTS;
+using KBVE.MMExtensions.Orchestrator.DOTS.Common;
 using Unity.Mathematics;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Collections;
@@ -33,12 +34,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         [EventfulProperty] byte[] _jsUlid = Array.Empty<byte>();
         [EventfulProperty] int _jsEntityType = 0;
         [EventfulProperty] int _jsActionFlags = 0;
-        [EventfulProperty] float3 _jsWorldPos = float3.zero;
+        [EventfulProperty] float _jsWorldPosX = 0f;
+        [EventfulProperty] float _jsWorldPosY = 0f;
+        [EventfulProperty] float _jsWorldPosZ = 0f;
         [EventfulProperty] bool _jsVisible = false;
 
         // Resource-specific properties
-        [EventfulProperty] byte _jsResourceType = 0;
-        [EventfulProperty] byte _jsResourceFlags = 0;
+        [EventfulProperty] int _jsResourceType = 0;      // Changed to int for enum
+        [EventfulProperty] int _jsResourceFlags = 0;     // Changed to int for enum flags
         [EventfulProperty] int _jsResourceAmount = 0;
         [EventfulProperty] int _jsResourceMaxAmount = 0;
         [EventfulProperty] int _jsResourceHarvestYield = 0;
@@ -46,16 +49,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         [EventfulProperty] bool _jsResourceHarvestable = false;
 
         // Structure-specific properties
-        [EventfulProperty] byte _jsStructureType = 0;
-        [EventfulProperty] byte _jsStructureLevel = 0;
+        [EventfulProperty] int _jsStructureType = 0;     // Changed to int for enum
+        [EventfulProperty] int _jsStructureLevel = 0;    // Changed to int to match data
         [EventfulProperty] int _jsStructureHealth = 0;
         [EventfulProperty] int _jsStructureMaxHealth = 0;
         [EventfulProperty] float _jsStructureProductionRate = 0f;
         [EventfulProperty] float _jsStructureProductionProgress = 0f;
 
         // Combatant-specific properties
-        [EventfulProperty] byte _jsCombatantType = 0;
-        [EventfulProperty] byte _jsCombatantLevel = 0;
+        [EventfulProperty] int _jsCombatantType = 0;     // Changed to int for enum
+        [EventfulProperty] int _jsCombatantLevel = 0;    // Changed to int to match data
         [EventfulProperty] int _jsCombatantHealth = 0;
         [EventfulProperty] int _jsCombatantMaxHealth = 0;
         [EventfulProperty] float _jsCombatantAttackDamage = 0f;
@@ -63,13 +66,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         [EventfulProperty] float _jsCombatantMoveSpeed = 0f;
 
         // Item-specific properties
-        [EventfulProperty] byte _jsItemType = 0;
-        [EventfulProperty] byte _jsItemRarity = 0;
+        [EventfulProperty] int _jsItemType = 0;          // Changed to int for enum
+        [EventfulProperty] int _jsItemRarity = 0;        // Changed to int for enum
         [EventfulProperty] int _jsItemStackCount = 0;
         [EventfulProperty] int _jsItemMaxStack = 0;
 
         // Player-specific properties
-        [EventfulProperty] byte _jsPlayerLevel = 0;
+        [EventfulProperty] int _jsPlayerLevel = 0;       // Changed to int to match data
         [EventfulProperty] int _jsPlayerExperience = 0;
         [EventfulProperty] int _jsPlayerHealth = 0;
         [EventfulProperty] int _jsPlayerMaxHealth = 0;
@@ -85,17 +88,24 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 
         private void Start()
         {
-            EntityVM ??= _vm ?? FindObjectOfType<EntityViewModel>();
+            // Debug logging to help identify the issue
+            Debug.Log($"DOTSBridge Start: _vm = {(_vm != null ? "Found" : "NULL")}, Instance = {(EntityViewModel.Instance != null ? "Found" : "NULL")}");
 
+            EntityVM = _vm ?? EntityViewModel.Instance;
+
+            // Create EntityViewModel if none exists (this will set the static Instance)
             if (EntityVM == null)
             {
-                Debug.LogError("DOTSBridge: No EntityViewModel found!");
-                return;
+                Debug.Log("DOTSBridge: Creating EntityViewModel instance.");
+                EntityVM = new EntityViewModel();
             }
 
+            Debug.Log("DOTSBridge: EntityViewModel successfully configured.");
+
             EntityVM.Current
-                .Where(static x => x.HasValue)
-                .Select(static x => x.Value)
+                .Do(x => Debug.Log($"DOTSBridge: EntityVM.Current received data - HasResource={x.HasResource}, HasStructure={x.HasStructure}, HasCombatant={x.HasCombatant}, HasItem={x.HasItem}, HasPlayer={x.HasPlayer}"))
+                .Where(static x => x.HasResource || x.HasStructure || x.HasCombatant || x.HasItem || x.HasPlayer) // Has valid entity data
+                .Do(x => Debug.Log($"DOTSBridge: Data passed filter - HasResource={x.HasResource}, HasStructure={x.HasStructure}, HasCombatant={x.HasCombatant}, HasItem={x.HasItem}, HasPlayer={x.HasPlayer}"))
                 .ThrottleLastFrame(2)
                 .DistinctUntilChanged()
                 .ObserveOnMainThread()
@@ -104,7 +114,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 
             // Clear UI when no entity selected
             EntityVM.Current
-                .Where(static x => !x.HasValue)
+                .Where(static x => !x.HasResource && !x.HasStructure && !x.HasCombatant && !x.HasItem && !x.HasPlayer) // No valid entity data
                 .ObserveOnMainThread()
                 .Subscribe(_ => ClearUI())
                 .AddTo(_comp);
@@ -112,14 +122,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 
         private void UpdateUI(EntityBlitContainer container)
         {
-            var entity = container.Entity;
+            EntityData entityData = container.EntityData;
+            Debug.Log($"DOTSBridge UpdateUI: Received container with HasResource={container.HasResource}, HasStructure={container.HasStructure}, HasCombatant={container.HasCombatant}, HasItem={container.HasItem}, HasPlayer={container.HasPlayer}");
 
             // Universal EntityData
-            CopyUlidToBuffer(entity.Ulid, _ulidBuffer);
+            CopyUlidToBuffer(entityData.Ulid, _ulidBuffer);
             JsUlid = _ulidBuffer;
-            JsEntityType = (int)entity.Type;
-            JsActionFlags = (int)entity.ActionFlags;
-            JsWorldPos = entity.WorldPos;
+            JsEntityType = (int)entityData.Type;
+            JsActionFlags = (int)entityData.ActionFlags;
+            JsWorldPosX = entityData.WorldPos.x;
+            JsWorldPosY = entityData.WorldPos.y;
+            JsWorldPosZ = entityData.WorldPos.z;
+            JsVisible = true;
 
             // Reset all type indicators
             JsIsResource = container.HasResource;
@@ -132,21 +146,23 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (container.HasResource)
             {
                 var resource = container.Resource;
-                JsResourceType = resource.Type;
-                JsResourceFlags = resource.Flags;
+                JsResourceType = (int)resource.Type;
+                JsResourceFlags = (int)resource.Flags;
                 JsResourceAmount = resource.Amount;
                 JsResourceMaxAmount = resource.MaxAmount;
                 JsResourceHarvestYield = resource.HarvestYield;
                 JsResourceHarvestTime = resource.HarvestTime;
-                JsResourceHarvestable = ((resource.Flags & FLAG_HARVESTABLE) != 0)
+                JsResourceHarvestable = ((resource.Flags & (ResourceFlags)FLAG_HARVESTABLE) != 0)
                                       & (resource.Amount > 0)
-                                      & ((resource.Flags & FLAG_DEPLETED) == 0);
+                                      & ((resource.Flags & (ResourceFlags)FLAG_DEPLETED) == 0);
+
+                Debug.Log($"DOTSBridge: Set resource properties - Type={JsResourceType}, Amount={JsResourceAmount}, MaxAmount={JsResourceMaxAmount}, Harvestable={JsResourceHarvestable}");
             }
 
             if (container.HasStructure)
             {
                 var structure = container.Structure;
-                JsStructureType = structure.StructureType;
+                JsStructureType = (int)structure.Type;          // Fixed field name and cast
                 JsStructureLevel = structure.Level;
                 JsStructureHealth = structure.Health;
                 JsStructureMaxHealth = structure.MaxHealth;
@@ -157,7 +173,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (container.HasCombatant)
             {
                 var combatant = container.Combatant;
-                JsCombatantType = combatant.CombatantType;
+                JsCombatantType = (int)combatant.Type;           // Fixed field name and cast
                 JsCombatantLevel = combatant.Level;
                 JsCombatantHealth = combatant.Health;
                 JsCombatantMaxHealth = combatant.MaxHealth;
@@ -169,8 +185,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (container.HasItem)
             {
                 var item = container.Item;
-                JsItemType = item.ItemType;
-                JsItemRarity = item.Rarity;
+                JsItemType = (int)item.Type;                 // Fixed field name and cast
+                JsItemRarity = (int)item.Rarity;
                 JsItemStackCount = item.StackCount;
                 JsItemMaxStack = item.MaxStack;
             }

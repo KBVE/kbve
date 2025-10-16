@@ -7,6 +7,10 @@ using KBVE.MMExtensions.Orchestrator.DOTS.Common;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
+    // ================================
+    // ENTITY TYPE AND ACTION ENUMS
+    // ================================
+
     /// <summary>
     /// Bitwise flags for entity classification. Entities can have multiple types.
     /// Using uint for 32 possible flags.
@@ -245,10 +249,244 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             return em.HasComponent<EntityComponent>(entity);
         }
+
+        // ---- Essential EntityTypeComponent modifier methods ----
+
+        /// <summary>Adds entity type flags</summary>
+        public static void AddType(ref this EntityTypeComponent comp, EntityType type)
+        {
+            comp.Type |= type;
+        }
+
+        /// <summary>Removes entity type flags</summary>
+        public static void RemoveType(ref this EntityTypeComponent comp, EntityType type)
+        {
+            comp.Type &= ~type;
+        }
+
+        /// <summary>Adds action flags</summary>
+        public static void AddActionFlag(ref this EntityTypeComponent comp, EntityActionFlags flag)
+        {
+            comp.ActionFlags |= flag;
+        }
+
+        /// <summary>Removes action flags</summary>
+        public static void RemoveActionFlag(ref this EntityTypeComponent comp, EntityActionFlags flag)
+        {
+            comp.ActionFlags &= ~flag;
+        }
+
+        /// <summary>Sets action flag conditionally</summary>
+        public static void SetActionFlag(ref this EntityTypeComponent comp, EntityActionFlags flag, bool value)
+        {
+            if (value)
+                comp.ActionFlags |= flag;
+            else
+                comp.ActionFlags &= ~flag;
+        }
+
+        /// <summary>Checks if entity has specific type flags (all flags must match)</summary>
+        public static bool HasType(this EntityTypeComponent comp, EntityType type)
+        {
+            return (comp.Type & type) == type;
+        }
+
+        /// <summary>Checks if entity has any of the specified type flags</summary>
+        public static bool HasAnyType(this EntityTypeComponent comp, EntityType types)
+        {
+            return (comp.Type & types) != 0;
+        }
+
+        /// <summary>Checks if entity has specific action flags (all flags must match)</summary>
+        public static bool HasActionFlag(this EntityTypeComponent comp, EntityActionFlags flag)
+        {
+            return (comp.ActionFlags & flag) == flag;
+        }
+
+        /// <summary>Checks if entity has any of the specified action flags</summary>
+        public static bool HasAnyActionFlag(this EntityTypeComponent comp, EntityActionFlags flags)
+        {
+            return (comp.ActionFlags & flags) != 0;
+        }
     }
 
     // ================================
     // SERIALIZATION HELPERS
+    // ================================
+
+    // ================================
+    // ENTITY BLIT CONTAINER
+    // ================================
+
+    /// <summary>
+    /// Burst-compatible container that holds EntityData + optional type-specific data.
+    /// Uses flags and non-nullable fields for Burst compatibility.
+    /// Updated to use new protobuf-powered data types.
+    /// </summary>
+    public struct EntityBlitContainer
+    {
+        public EntityData EntityData;   // Universal entity data
+
+        // Non-nullable type-specific data (use HasX flags to check validity)
+        public ResourceData Resource;   // Use HasResource to check if valid
+        public StructureData Structure; // Use HasStructure to check if valid
+        public CombatantData Combatant; // Use HasCombatant to check if valid
+        public ItemData Item;           // Use HasItem to check if valid
+        public PlayerData Player;       // Use HasPlayer to check if valid
+
+        // Flags to indicate which data is valid (Burst-compatible)
+        public bool HasResource;
+        public bool HasStructure;
+        public bool HasCombatant;
+        public bool HasItem;
+        public bool HasPlayer;
+
+        /// <summary>Sets Resource data and marks it as valid</summary>
+        public void SetResource(ResourceData resource)
+        {
+            Resource = resource;
+            HasResource = true;
+        }
+
+        /// <summary>Sets Structure data and marks it as valid</summary>
+        public void SetStructure(StructureData structure)
+        {
+            Structure = structure;
+            HasStructure = true;
+        }
+
+        /// <summary>Sets Combatant data and marks it as valid</summary>
+        public void SetCombatant(CombatantData combatant)
+        {
+            Combatant = combatant;
+            HasCombatant = true;
+        }
+
+        /// <summary>Sets Item data and marks it as valid</summary>
+        public void SetItem(ItemData item)
+        {
+            Item = item;
+            HasItem = true;
+        }
+
+        /// <summary>Sets Player data and marks it as valid</summary>
+        public void SetPlayer(PlayerData player)
+        {
+            Player = player;
+            HasPlayer = true;
+        }
+
+        /// <summary>Clears all type-specific data</summary>
+        public void Clear()
+        {
+            HasResource = false;
+            HasStructure = false;
+            HasCombatant = false;
+            HasItem = false;
+            HasPlayer = false;
+
+            // Reset data to default values
+            Resource = default;
+            Structure = default;
+            Combatant = default;
+            Item = default;
+            Player = default;
+        }
+    }
+
+    // ================================
+    // ENTITY TYPE PRESETS
+    // ================================
+
+    /// <summary>
+    /// Common entity type combinations for convenience.
+    /// These are NOT required, just helpful shortcuts.
+    /// </summary>
+    public static class EntityTypePresets
+    {
+        // === MONSTERS ===
+        public static readonly EntityType BasicMonster =
+            EntityType.Monster | EntityType.Enemy | EntityType.Destructible;
+
+        public static readonly EntityType BossMonster =
+            EntityType.Monster | EntityType.Enemy | EntityType.Boss | EntityType.Destructible;
+
+        public static readonly EntityType LegendaryBoss =
+            EntityType.Monster | EntityType.Enemy | EntityType.Boss | EntityType.Legendary | EntityType.Destructible;
+
+        public static readonly EntityType EliteMob =
+            EntityType.Monster | EntityType.Enemy | EntityType.Elite | EntityType.Destructible;
+
+        // === RESOURCES ===
+        public static readonly EntityType BasicResource =
+            EntityType.Resource | EntityType.Interactable | EntityType.Neutral;
+
+        public static readonly EntityType RareResource =
+            EntityType.Resource | EntityType.Rare | EntityType.Interactable | EntityType.Destructible | EntityType.Neutral;
+
+        public static readonly EntityType DepletableResource =
+            EntityType.Resource | EntityType.Interactable | EntityType.Destructible | EntityType.Neutral | EntityType.Temporary;
+
+        // === UNITS ===
+        public static readonly EntityType PlayerUnit =
+            EntityType.Unit | EntityType.Player | EntityType.Ally;
+
+        public static readonly EntityType EnemyUnit =
+            EntityType.Unit | EntityType.Enemy | EntityType.Destructible;
+
+        public static readonly EntityType NeutralNPC =
+            EntityType.Unit | EntityType.NPC | EntityType.Neutral | EntityType.Interactable;
+
+        // === STRUCTURES ===
+        public static readonly EntityType BasicStructure =
+            EntityType.Structure | EntityType.Destructible;
+
+        public static readonly EntityType PlayerStructure =
+            EntityType.Structure | EntityType.Player | EntityType.Ally | EntityType.Destructible | EntityType.Upgradeable;
+
+        public static readonly EntityType EnemyStructure =
+            EntityType.Structure | EntityType.Enemy | EntityType.Destructible;
+
+        // === ITEMS ===
+        public static readonly EntityType QuestItem =
+            EntityType.Item | EntityType.Quest | EntityType.Collectible;
+
+        public static readonly EntityType ConsumableItem =
+            EntityType.Item | EntityType.Consumable | EntityType.Collectible | EntityType.Stackable;
+
+        public static readonly EntityType EquipmentItem =
+            EntityType.Item | EntityType.Equippable | EntityType.Collectible | EntityType.Upgradeable;
+
+        public static readonly EntityType LegendaryEquipment =
+            EntityType.Item | EntityType.Equippable | EntityType.Legendary | EntityType.Collectible | EntityType.Upgradeable;
+    }
+
+    /// <summary>
+    /// Common action flag combinations
+    /// </summary>
+    public static class EntityActionPresets
+    {
+        public static readonly EntityActionFlags IdleUnit =
+            EntityActionFlags.Idle | EntityActionFlags.CanMove | EntityActionFlags.CanAttack;
+
+        public static readonly EntityActionFlags AggressiveMonster =
+            EntityActionFlags.Aggressive | EntityActionFlags.CanMove | EntityActionFlags.CanAttack;
+
+        public static readonly EntityActionFlags HarvesterUnit =
+            EntityActionFlags.Idle | EntityActionFlags.CanMove | EntityActionFlags.CanHarvest | EntityActionFlags.CanInteract;
+
+        public static readonly EntityActionFlags BuilderUnit =
+            EntityActionFlags.Idle | EntityActionFlags.CanMove | EntityActionFlags.CanBuild | EntityActionFlags.CanInteract;
+
+        public static readonly EntityActionFlags DeadEntity =
+            EntityActionFlags.Dead;
+
+        public static readonly EntityActionFlags ProducingStructure =
+            EntityActionFlags.Producing | EntityActionFlags.Idle;
+    }
+
+    // ================================
+    // LEGACY COMPATIBILITY
     // ================================
 
     /// <summary>

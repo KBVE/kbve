@@ -11,12 +11,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
     {
         public static EntityViewModel Instance { get; private set; }
 
-        // Thread-safe reactive property for multi-threaded access
-        public SynchronizedReactiveProperty<EntityBlitContainer?> Current = new SynchronizedReactiveProperty<EntityBlitContainer?>(null);
+        // Thread-safe reactive property for multi-threaded access (non-nullable for Burst compatibility)
+        public SynchronizedReactiveProperty<EntityBlitContainer> Current = new SynchronizedReactiveProperty<EntityBlitContainer>(default);
 
         // View
         public EntityViewModel() => Instance = this;
-          
+
         /// <summary>
         /// Release any subscriptions (if container disposes this singleton).
         /// </summary>
