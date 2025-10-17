@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using VContainer;
 using OneJS;
@@ -32,6 +33,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 
         // Universal EntityData properties
         [EventfulProperty] byte[] _jsUlid = Array.Empty<byte>();
+        [EventfulProperty] byte[] _jsTemplateUlid = Array.Empty<byte>();
         [EventfulProperty] int _jsEntityType = 0;
         [EventfulProperty] int _jsActionFlags = 0;
         [EventfulProperty] float _jsWorldPosX = 0f;
@@ -127,6 +129,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 
             // Universal EntityData
             CopyUlidToBuffer(entityData.Ulid, _ulidBuffer);
+            Debug.Log($"DOTSBridge: Entity ULID bytes: {string.Join(",", _ulidBuffer.Take(8))}...");
             JsUlid = _ulidBuffer;
             JsEntityType = (int)entityData.Type;
             JsActionFlags = (int)entityData.ActionFlags;
@@ -146,6 +149,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (container.HasResource)
             {
                 var resource = container.Resource;
+
+                // Set template ULID from resource data (reuse same buffer)
+                CopyUlidToBuffer(resource.TemplateUlid, _ulidBuffer);
+                Debug.Log($"DOTSBridge: Template ULID bytes: {string.Join(",", _ulidBuffer.Take(8))}...");
+                JsTemplateUlid = _ulidBuffer;
+
                 JsResourceType = (int)resource.Type;
                 JsResourceFlags = (int)resource.Flags;
                 JsResourceAmount = resource.Amount;
