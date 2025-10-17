@@ -18,6 +18,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             public EntityCommandBuffer.ParallelWriter ECB;
             public float2x2 MapSize;
+            public long TimestampMs;
             [ReadOnly] public NativeArray<Entity> Resources;
             [NativeDisableParallelForRestriction] public NativeArray<Random> PosRands;
             [NativeSetThreadIndex] private int _threadIndex;
@@ -41,7 +42,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     {
                         Data = new EntityData
                         {
-                            Ulid = Ulid.NewUlidAsBytes(), // Generate unique ULID for this instance
+                            Ulid = Ulid.NewUlidAsBytesWithTimestamp(TimestampMs, rand.NextUInt()), // Generate unique ULID for this instance
                             Type = EntityType.Resource | EntityType.Interactable | EntityType.Neutral,
                             ActionFlags = EntityActionFlags.CanInteract,
                             WorldPos = worldPos
@@ -88,6 +89,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             {
                 ECB = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
                 MapSize = mapSettings.size,
+                TimestampMs = (long)(SystemAPI.Time.ElapsedTime * 1000.0), // Convert Unity time to milliseconds
                 PosRands = posRands,
                 Resources = state.EntityManager.GetBuffer<PrefabLink>(mapSettings.resourceCollectionLink).Reinterpret<Entity>().AsNativeArray()
             };

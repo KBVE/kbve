@@ -64,10 +64,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             _hasValidData.Value = false;
         }
 
-        // [BurstCompile] - Temporarily removed for debug logging
+        // [BurstCompile] - Temporarily disabled for debugging
         public void OnUpdate(ref SystemState state)
         {
-            UnityEngine.Debug.Log("EntityToVmDrainSystem: OnUpdate called");
 
             // Update lookups once per frame
             _entityLookup.Update(ref state);
@@ -83,11 +82,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (SystemAPI.TryGetSingleton(out SelectedEntity sel))
             {
                 selectedEntity = sel.Entity;
-                UnityEngine.Debug.Log($"EntityToVmDrainSystem: Found SelectedEntity singleton with entity: {selectedEntity}");
-            }
-            else
-            {
-                UnityEngine.Debug.Log("EntityToVmDrainSystem: No SelectedEntity singleton found");
             }
 
             // Store in native container for job
@@ -96,11 +90,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             // Only schedule job if we have a valid selected entity
             if (selectedEntity == Entity.Null)
             {
-                UnityEngine.Debug.Log("EntityToVmDrainSystem: No entity selected, skipping job");
                 return;
             }
-
-            UnityEngine.Debug.Log($"EntityToVmDrainSystem: Scheduling job for entity {selectedEntity}");
 
             // Schedule Burst-compiled job
             var gatherJob = new GatherEntityDataJob
@@ -131,6 +122,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         [BurstDiscard]
         private void HandleJobResults()
         {
+            UnityEngine.Debug.Log("EntityToVmDrainSystem: HandleJobResults() started");
             int debugCode = _debugCode.Value;
             string debugMessage = debugCode switch
             {
