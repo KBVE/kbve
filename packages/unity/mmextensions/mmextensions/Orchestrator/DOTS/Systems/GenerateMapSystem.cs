@@ -6,6 +6,7 @@ using Unity.Jobs;
 using Unity.Jobs.LowLevel.Unsafe;
 using Unity.Mathematics;
 using Unity.Transforms;
+using KBVE.MMExtensions.Orchestrator.DOTS.Common;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -33,6 +34,20 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                     // Set transform position
                     ECB.SetComponent(i, resourceEntity, LocalTransform.FromPosition(worldPos));
+
+                    // CRITICAL FIX: Generate unique Entity ULID for each instantiated resource
+                    // This ensures each tree/resource instance has its own unique identifier
+                    var entityComponent = new EntityComponent
+                    {
+                        Data = new EntityData
+                        {
+                            Ulid = Ulid.NewUlidAsBytes(), // Generate unique ULID for this instance
+                            Type = EntityType.Resource | EntityType.Interactable | EntityType.Neutral,
+                            ActionFlags = EntityActionFlags.CanInteract,
+                            WorldPos = worldPos
+                        }
+                    };
+                    ECB.SetComponent(i, resourceEntity, entityComponent);
 
                     PosRands[_threadIndex] = rand;
                 }
