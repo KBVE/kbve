@@ -1,3 +1,4 @@
+using System.Runtime.CompilerServices;
 using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
@@ -64,7 +65,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             _hasValidData.Value = false;
         }
 
-        // [BurstCompile] - Temporarily disabled for debugging
+        // [BurstCompile] - Disabled: Burst compilation interferes with ViewModel updates and debug logging
+        // This system heavily interacts with managed objects (EntityViewModel) making Burst less suitable
         public void OnUpdate(ref SystemState state)
         {
 
@@ -112,7 +114,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             state.Dependency = gatherJob.Schedule(state.Dependency);
             state.Dependency.Complete();
 
-            UnityEngine.Debug.Log("EntityToVmDrainSystem: Job completed, calling HandleJobResults");
 
             // Update ViewModel (non-Burst)
             HandleJobResults();
@@ -122,19 +123,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         [BurstDiscard]
         private void HandleJobResults()
         {
-            UnityEngine.Debug.Log("EntityToVmDrainSystem: HandleJobResults() started");
             int debugCode = _debugCode.Value;
             string debugMessage = debugCode switch
             {
                 1 => "Entity is null",
                 2 => "Entity missing EntityComponent",
-                3 => "Success - data processed",
-                10 => "Found Resource component",
-                11 => "Found Structure component",
-                12 => "Found Combatant component",
-                13 => "Found Item component",
-                14 => "Found Player component",
                 15 => "No type-specific components found",
+                _ when debugCode >= 100 => $"Success - Found components: {GetComponentList(debugCode - 100)}",
                 _ => $"Unknown debug code: {debugCode}"
             };
 
@@ -183,7 +178,22 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         }
 
         /// <summary>
-        /// Burst-compiled job that gathers entity data from ECS components
+        /// Helper method to decode component flags into human-readable list
+        /// </summary>
+        private static string GetComponentList(int flags)
+        {
+            var components = new System.Collections.Generic.List<string>();
+            if ((flags & 1) != 0) components.Add("Resource");    // RESOURCE_FLAG
+            if ((flags & 2) != 0) components.Add("Structure");   // STRUCTURE_FLAG
+            if ((flags & 4) != 0) components.Add("Combatant");   // COMBATANT_FLAG
+            if ((flags & 8) != 0) components.Add("Item");        // ITEM_FLAG
+            if ((flags & 16) != 0) components.Add("Player");     // PLAYER_FLAG
+            return string.Join(", ", components);
+        }
+
+        /// <summary>
+        /// Optimized Burst-compiled job that efficiently gathers entity data from ECS components.
+        /// Uses bitwise flags for better performance and improved debug tracking.
         /// </summary>
         [BurstCompile]
         private struct GatherEntityDataJob : IJob
@@ -201,103 +211,92 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             [WriteOnly] public NativeReference<bool> HasValidOutput;
             [WriteOnly] public NativeReference<int> DebugCode;
 
+            // Component type flags for efficient debug tracking
+            private const int RESOURCE_FLAG = 1 << 0;  // 1
+            private const int STRUCTURE_FLAG = 1 << 1; // 2
+            private const int COMBATANT_FLAG = 1 << 2; // 4
+            private const int ITEM_FLAG = 1 << 3;      // 8
+            private const int PLAYER_FLAG = 1 << 4;    // 16
+
             public void Execute()
             {
                 var entity = SelectedEntity.Value;
 
-                // Validate entity
+                // Early validation with minimal cost
                 if (entity == Entity.Null)
                 {
-                    DebugCode.Value = 1;
-                    HasValidOutput.Value = false;
+                    SetFailure(1); // Entity is null
                     return;
                 }
 
-                // EntityComponent is required for all entities
                 if (!EntityLookup.HasComponent(entity))
                 {
-                    DebugCode.Value = 2;
-                    HasValidOutput.Value = false;
+                    SetFailure(2); // Entity missing EntityComponent
                     return;
                 }
 
-                // Get EntityComponent (universal data)
-                var entityComponent = EntityLookup[entity];
+                // Pre-check component existence with bitwise flags for better performance
+                int componentFlags = 0;
+                if (ResourceLookup.HasComponent(entity)) componentFlags |= RESOURCE_FLAG;
+                if (StructureLookup.HasComponent(entity)) componentFlags |= STRUCTURE_FLAG;
+                if (CombatantLookup.HasComponent(entity)) componentFlags |= COMBATANT_FLAG;
+                if (ItemLookup.HasComponent(entity)) componentFlags |= ITEM_FLAG;
+                if (PlayerLookup.HasComponent(entity)) componentFlags |= PLAYER_FLAG;
 
-                // Create container with EntityData, but update WorldPos from actual transform
-                var entityData = entityComponent.Data;
+                // Early exit if no type-specific components found
+                if (componentFlags == 0)
+                {
+                    SetFailure(15); // No type-specific components found
+                    return;
+                }
 
-                // Update WorldPos with current world position from LocalToWorld
+                // Get base entity data and update world position efficiently
+                var entityData = EntityLookup[entity].Data;
                 if (L2wLookup.HasComponent(entity))
                 {
-                    var localToWorld = L2wLookup[entity];
-                    entityData.WorldPos = localToWorld.Position;
+                    entityData.WorldPos = L2wLookup[entity].Position;
                 }
 
-                var container = new EntityBlitContainer
-                {
-                    EntityData = entityData
-                };
+                // Create container only after validation
+                var container = new EntityBlitContainer { EntityData = entityData };
 
-                // Add type-specific data based on what components exist
-                bool hasAnyTypeData = false;
-
-                if (ResourceLookup.HasComponent(entity))
+                // Populate type-specific data using flags (no redundant HasComponent calls)
+                if ((componentFlags & RESOURCE_FLAG) != 0)
                 {
-                    // Convert Resource component to ResourceData for the container
-                    var resourceComponent = ResourceLookup[entity];
-                    container.SetResource(resourceComponent.Data);
-                    hasAnyTypeData = true;
-                    DebugCode.Value = 10; // Found Resource component
+                    container.SetResource(ResourceLookup[entity].Data);
                 }
 
-                if (StructureLookup.HasComponent(entity))
+                if ((componentFlags & STRUCTURE_FLAG) != 0)
                 {
-                    // Convert Structure component to StructureData for the container
-                    var structureComponent = StructureLookup[entity];
-                    container.SetStructure(structureComponent.Data);
-                    hasAnyTypeData = true;
-                    DebugCode.Value = 11; // Found Structure component
+                    container.SetStructure(StructureLookup[entity].Data);
                 }
 
-                if (CombatantLookup.HasComponent(entity))
+                if ((componentFlags & COMBATANT_FLAG) != 0)
                 {
-                    // Convert Combatant component to CombatantData for the container
-                    var combatantComponent = CombatantLookup[entity];
-                    container.SetCombatant(combatantComponent.Data);
-                    hasAnyTypeData = true;
-                    DebugCode.Value = 12; // Found Combatant component
+                    container.SetCombatant(CombatantLookup[entity].Data);
                 }
 
-                if (ItemLookup.HasComponent(entity))
+                if ((componentFlags & ITEM_FLAG) != 0)
                 {
-                    // Convert Item component to ItemData for the container
-                    var itemComponent = ItemLookup[entity];
-                    container.SetItem(itemComponent.Data);
-                    hasAnyTypeData = true;
-                    DebugCode.Value = 13; // Found Item component
+                    container.SetItem(ItemLookup[entity].Data);
                 }
 
-                if (PlayerLookup.HasComponent(entity))
+                if ((componentFlags & PLAYER_FLAG) != 0)
                 {
-                    // Convert Player component to PlayerData for the container
-                    var playerComponent = PlayerLookup[entity];
-                    container.SetPlayer(playerComponent.Data);
-                    hasAnyTypeData = true;
-                    DebugCode.Value = 14; // Found Player component
+                    container.SetPlayer(PlayerLookup[entity].Data);
                 }
 
-                if (!hasAnyTypeData)
-                {
-                    DebugCode.Value = 15; // No type-specific components found
-                    HasValidOutput.Value = false;
-                    return;
-                }
-
-                // Write output
+                // Success - encode component flags in debug code for better tracking
                 BlitOutput.Value = container;
                 HasValidOutput.Value = true;
-                DebugCode.Value = 3; // Success
+                DebugCode.Value = 100 + componentFlags; // 100+ = success with component flags
+            }
+
+            [MethodImpl(MethodImplOptions.AggressiveInlining)]
+            private void SetFailure(int code)
+            {
+                DebugCode.Value = code;
+                HasValidOutput.Value = false;
             }
         }
     }
