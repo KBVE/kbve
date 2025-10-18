@@ -104,11 +104,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             Debug.Log("DOTSBridge: EntityViewModel successfully configured.");
 
             EntityVM.Current
-                .Do(x => Debug.Log($"DOTSBridge: EntityVM.Current received data - HasResource={x.HasResource}, HasStructure={x.HasStructure}, HasCombatant={x.HasCombatant}, HasItem={x.HasItem}, HasPlayer={x.HasPlayer}"))
                 .Where(static x => x.HasResource || x.HasStructure || x.HasCombatant || x.HasItem || x.HasPlayer) // Has valid entity data
-                .Do(x => Debug.Log($"DOTSBridge: Data passed filter - HasResource={x.HasResource}, HasStructure={x.HasStructure}, HasCombatant={x.HasCombatant}, HasItem={x.HasItem}, HasPlayer={x.HasPlayer}"))
                 .ThrottleLastFrame(2)
-                .DistinctUntilChanged()
                 .ObserveOnMainThread()
                 .Subscribe(UpdateUI)
                 .AddTo(_comp);
@@ -124,12 +121,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         private void UpdateUI(EntityBlitContainer container)
         {
             EntityData entityData = container.EntityData;
-            Debug.Log($"DOTSBridge UpdateUI: Received container with HasResource={container.HasResource}, HasStructure={container.HasStructure}, HasCombatant={container.HasCombatant}, HasItem={container.HasItem}, HasPlayer={container.HasPlayer}");
 
             // Universal EntityData - Create new byte array for Entity ULID to trigger EventfulProperty change
             var entityUlidBytes = new byte[16];
             CopyUlidToBuffer(entityData.Ulid, entityUlidBytes);
-            Debug.Log($"DOTSBridge: Entity ULID bytes: {string.Join(",", entityUlidBytes.Take(8))}...");
             JsUlid = entityUlidBytes;
             JsEntityType = (int)entityData.Type;
             JsActionFlags = (int)entityData.ActionFlags;
@@ -153,7 +148,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                 // Set template ULID from resource data - Create new byte array to trigger EventfulProperty change
                 var templateUlidBytes = new byte[16];
                 CopyUlidToBuffer(resource.TemplateUlid, templateUlidBytes);
-                Debug.Log($"DOTSBridge: Template ULID bytes: {string.Join(",", templateUlidBytes.Take(8))}...");
                 JsTemplateUlid = templateUlidBytes;
 
                 JsResourceType = (int)resource.Type;
@@ -166,7 +160,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                                       & (resource.Amount > 0)
                                       & ((resource.Flags & (ResourceFlags)FLAG_DEPLETED) == 0);
 
-                Debug.Log($"DOTSBridge: Set resource properties - Type={JsResourceType}, Amount={JsResourceAmount}, MaxAmount={JsResourceMaxAmount}, Harvestable={JsResourceHarvestable}");
             }
 
             if (container.HasStructure)

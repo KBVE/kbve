@@ -1002,7 +1002,7 @@ namespace KBVE.SSDB.IRC
                             continue;
                         }
 
-                        Operator.D($"IRC Received: {receivedLine}");
+                        // Operator.D($"IRC Received: {receivedLine}"); // Commented out to reduce console spam
                         await ProcessIncomingLineAsync(receivedLine);
                     }
                     catch (System.IO.IOException ioEx)
@@ -1397,13 +1397,14 @@ namespace KBVE.SSDB.IRC
                 .Subscribe(OnConnectionStateChanged)
                 .AddTo(disposables);
 
-            ircService.IsConnected
-                .Subscribe(isConnected => Operator.D($"IRC Connected: {isConnected}"))
-                .AddTo(disposables);
+            // Commented out to reduce console spam
+            // ircService.IsConnected
+            //     .Subscribe(isConnected => Operator.D($"IRC Connected: {isConnected}"))
+            //     .AddTo(disposables);
 
-            ircService.OnRawMessageReceived
-                .Subscribe(raw => Operator.D($"IRC Raw: {raw}"))
-                .AddTo(disposables);
+            // ircService.OnRawMessageReceived
+            //     .Subscribe(raw => Operator.D($"IRC Raw: {raw}"))
+            //     .AddTo(disposables);
 
             // Connect automatically
             ircService.ConnectAsync(this.GetCancellationTokenOnDestroy()).Forget();

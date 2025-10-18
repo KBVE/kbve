@@ -152,8 +152,13 @@ namespace KBVE.SSDB
             // Use RegisterComponent to ensure dependency injection
             if (supabaseBridge != null)
             {
+                Debug.Log("[SSDBLifetimeScope] Registering SupabaseBridge component for VContainer injection");
                 builder.RegisterComponent(supabaseBridge)
                     .As<IInitializable>();
+            }
+            else
+            {
+                Debug.LogError("[SSDBLifetimeScope] SupabaseBridge component is null - not registering with VContainer! Supabase functionality will not work.");
             }
 
             // IRC Services - Register at the end after all other services

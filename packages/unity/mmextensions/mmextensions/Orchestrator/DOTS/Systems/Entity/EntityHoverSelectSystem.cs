@@ -9,8 +9,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     [UpdateAfter(typeof(PlayerHoverSystem))]
     public partial struct EntityHoverSelectSystem : ISystem
     {
-        private Entity _lastSelectedEntity;
-
         public void OnUpdate(ref SystemState state)
         {
             var em = state.EntityManager;
@@ -36,10 +34,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 }
             }
 
+            // Get current selection to compare with new target
+            var currentSelection = em.GetComponentData<SelectedEntity>(selEnt);
+
             // Only update if selection actually changed
-            if (targetEntity != _lastSelectedEntity)
+            if (targetEntity != currentSelection.Entity)
             {
-                _lastSelectedEntity = targetEntity;
                 em.SetComponentData(selEnt, new SelectedEntity { Entity = targetEntity });
             }
         }

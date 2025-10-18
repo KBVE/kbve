@@ -8,135 +8,16 @@ using Unity.Jobs;
 using UnityEngine;
 using KBVE.MMExtensions.Orchestrator.DOTS;
 using KBVE.MMExtensions.Orchestrator.DOTS.Common;
+using KBVE.MMExtensions.Orchestrator.DOTS.Systems.Cache;
 using Cysharp.Threading.Tasks;
 using System.Threading;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 {
-    /// <summary>
-    /// Burst-compatible LRU cache entry for entity data
-    /// </summary>
-    public struct EntityCacheEntry
-    {
-        public Entity Entity;
-        public EntityBlitContainer Data;
-        public int AccessTime; // Frame-based timestamp for LRU
-        public bool IsValid;
-    }
-
-    /// <summary>
-    /// Burst-compatible LRU cache for EntityBlitContainer data
-    /// </summary>
-    public struct EntityLRUCache
-    {
-        private NativeArray<EntityCacheEntry> _entries;
-        private int _capacity;
-        private int _currentFrame;
-
-        public EntityLRUCache(int capacity, Allocator allocator)
-        {
-            _capacity = capacity;
-            _entries = new NativeArray<EntityCacheEntry>(capacity, allocator);
-            _currentFrame = 0;
-
-            // Initialize all entries as invalid
-            for (int i = 0; i < capacity; i++)
-            {
-                _entries[i] = new EntityCacheEntry { IsValid = false, AccessTime = -1 };
-            }
-        }
-
-        public void IncrementFrame() => _currentFrame++;
-
-        public bool TryGet(Entity entity, out EntityBlitContainer data)
-        {
-            data = default;
-            for (int i = 0; i < _capacity; i++)
-            {
-                var entry = _entries[i];
-                if (entry.IsValid && entry.Entity == entity)
-                {
-                    // Update access time for LRU
-                    entry.AccessTime = _currentFrame;
-                    _entries[i] = entry;
-                    data = entry.Data;
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public void Put(Entity entity, EntityBlitContainer data)
-        {
-            // First, try to find existing entry
-            for (int i = 0; i < _capacity; i++)
-            {
-                var entry = _entries[i];
-                if (entry.IsValid && entry.Entity == entity)
-                {
-                    // Update existing entry
-                    _entries[i] = new EntityCacheEntry
-                    {
-                        Entity = entity,
-                        Data = data,
-                        AccessTime = _currentFrame,
-                        IsValid = true
-                    };
-                    return;
-                }
-            }
-
-            // Find least recently used slot
-            int lruIndex = 0;
-            int oldestTime = _currentFrame + 1;
-
-            for (int i = 0; i < _capacity; i++)
-            {
-                var entry = _entries[i];
-                if (!entry.IsValid)
-                {
-                    // Found empty slot
-                    lruIndex = i;
-                    break;
-                }
-
-                if (entry.AccessTime < oldestTime)
-                {
-                    oldestTime = entry.AccessTime;
-                    lruIndex = i;
-                }
-            }
-
-            // Insert new entry
-            _entries[lruIndex] = new EntityCacheEntry
-            {
-                Entity = entity,
-                Data = data,
-                AccessTime = _currentFrame,
-                IsValid = true
-            };
-        }
-
-        public void Clear()
-        {
-            for (int i = 0; i < _capacity; i++)
-            {
-                var entry = _entries[i];
-                entry.IsValid = false;
-                _entries[i] = entry;
-            }
-        }
-
-        public void Dispose()
-        {
-            if (_entries.IsCreated)
-                _entries.Dispose();
-        }
-
-        public bool IsCreated => _entries.IsCreated;
-    }
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
-    [UpdateAfter(typeof(KBVE.MMExtensions.Orchestrator.DOTS.EntityHoverSelectSystem))]
+    [UpdateInGroup(typeof(SimulationSystemGroup))]
+    [UpdateAfter(typeof(EntityHoverSelectSystem))]
+    [UpdateAfter(typeof(EntitySpatialSystem))]
+    [UpdateAfter(typeof(EntityCache))]
     public partial struct EntityToVmDrainSystem : ISystem
     {
         // Component lookups for all entity types
@@ -158,11 +39,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         private NativeReference<bool> _hasValidData;
         private NativeReference<Entity> _selectedEntityRef;
 
-        // Batch processing containers for hot swap
-        private NativeArray<Entity> _batchEntities;
-        private NativeArray<EntityBlitContainer> _batchContainers;
-        private NativeReference<int> _batchCount;
-        private const int MAX_BATCH_SIZE = 32; // Process up to 32 entities per job
+        // Hot swap will be handled via spatial queries after job completion
 
         // Debug info
         private NativeReference<int> _debugCode;
@@ -170,11 +47,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         // Selection change detection to avoid unnecessary processing
         private Entity _lastProcessedEntity;
         private bool _needsUpdate;
-
-        // LRU cache for entity data with hot swap capability
-        private EntityLRUCache _entityCache;
-        private const int CACHE_SIZE = 128; // Cache up to 128 entities for large scenes
-        private const float HOT_SWAP_RADIUS = 50f; // Radius for nearby entity caching
 
         // UniTask-based async job tracking
         private Unity.Jobs.JobHandle _pendingJobHandle;
@@ -195,13 +67,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             _selectedEntityRef = new NativeReference<Entity>(Allocator.Persistent);
             _debugCode = new NativeReference<int>(Allocator.Persistent);
 
-            // Initialize batch processing containers
-            _batchEntities = new NativeArray<Entity>(MAX_BATCH_SIZE, Allocator.Persistent);
-            _batchContainers = new NativeArray<EntityBlitContainer>(MAX_BATCH_SIZE, Allocator.Persistent);
-            _batchCount = new NativeReference<int>(Allocator.Persistent);
-
-            // Initialize LRU cache
-            _entityCache = new EntityLRUCache(CACHE_SIZE, Allocator.Persistent);
 
             _hasValidData.Value = false;
             _lastProcessedEntity = Entity.Null;
@@ -210,9 +75,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 
         public void OnUpdate(ref SystemState state)
         {
-            // Increment frame counter for LRU
-            _entityCache.IncrementFrame();
-
             // Get selected entity from universal SelectedEntity singleton
             Entity selectedEntity = Entity.Null;
             if (SystemAPI.TryGetSingleton(out SelectedEntity sel))
@@ -226,7 +88,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             // Handle null selection
             if (selectedEntity == Entity.Null)
             {
-                // Only clear if we had a selection before
+                // Always clear if we had a selection before (even if it was already null)
                 if (_lastProcessedEntity != Entity.Null)
                 {
                     _lastProcessedEntity = Entity.Null;
@@ -235,23 +97,26 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                 return;
             }
 
-            // Check cache first if selection changed
-            if (selectionChanged)
+            // Always check cache for any selected entity (allows re-hovering same entity)
+            if (EntityCache.Instance.TryGetCachedEntity(selectedEntity, out var cachedData))
             {
-                if (_entityCache.TryGet(selectedEntity, out var cachedData))
-                {
-                    // Cache hit! Update ViewModel immediately
-                    _lastProcessedEntity = selectedEntity;
-                    UpdateViewModelFromCache(cachedData);
-                    return;
-                }
+                // Cache hit! Update ViewModel immediately
+                _lastProcessedEntity = selectedEntity;
+                UpdateViewModelFromCache(cachedData);
+                return;
             }
 
             // Check if previous job completed and handle results
             if (_hasActivePendingJob && _pendingJobHandle.IsCompleted)
             {
                 _hasActivePendingJob = false;
-                ProcessJobResultsAsync().Forget();
+
+                // Capture job results synchronously before going async
+                var hasValidData = _hasValidData.Value;
+                var blitContainer = _blitContainer.Value;
+                var jobSelectedEntity = _selectedEntityRef.Value;
+
+                ProcessJobResultsAsync(hasValidData, blitContainer, jobSelectedEntity).Forget();
             }
 
             // Only schedule new job if selection changed and no job is running
@@ -270,7 +135,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                 _selectedEntityRef.Value = selectedEntity;
                 _lastProcessedEntity = selectedEntity;
 
-                // Schedule enhanced batch job for hot swap caching
+                // Schedule simplified job for selected entity only
                 var batchGatherJob = new BatchGatherEntityDataJob
                 {
                     SelectedEntity = _selectedEntityRef,
@@ -283,12 +148,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                     L2wLookup = _l2wLookup,
                     BlitOutput = _blitContainer,
                     HasValidOutput = _hasValidData,
-                    DebugCode = _debugCode,
-                    // Batch processing outputs
-                    BatchEntities = _batchEntities,
-                    BatchContainers = _batchContainers,
-                    BatchCount = _batchCount,
-                    HotSwapRadius = HOT_SWAP_RADIUS
+                    DebugCode = _debugCode
                 };
 
                 _pendingJobHandle = batchGatherJob.Schedule(state.Dependency);
@@ -381,13 +241,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         /// <summary>
         /// Process job results using UniTask on ThreadPool
         /// </summary>
-        private async UniTaskVoid ProcessJobResultsAsync()
+        private async UniTaskVoid ProcessJobResultsAsync(bool hasValidData, EntityBlitContainer blitContainer,
+            Entity selectedEntity)
         {
-            // Capture needed data (avoid struct lambda capture issues)
-            var hasValidData = _hasValidData.Value;
-            var blitContainer = _blitContainer.Value;
-            var selectedEntity = _selectedEntityRef.Value;
-
             // Process job results off main thread
             await UniTask.RunOnThreadPool(() =>
             {
@@ -397,19 +253,79 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             // Cache the primary result on main thread (if valid)
             if (hasValidData && selectedEntity != Entity.Null)
             {
-                _entityCache.Put(selectedEntity, blitContainer);
-            }
+                // Get position for spatial caching
+                var position = _l2wLookup.HasComponent(selectedEntity)
+                    ? _l2wLookup[selectedEntity].Position
+                    : float3.zero;
 
-            // Hot swap: Cache batch results for nearby entities
-            var batchCount = _batchCount.Value;
-            for (int i = 0; i < batchCount; i++)
+                EntityCache.Instance.CacheEntity(selectedEntity, blitContainer, position);
+
+                // Hot swap: Query nearby entities using spatial system and cache them
+                // Temporarily disabled due to ComponentLookup invalidation issues in async context
+                // ProcessNearbyEntitiesForHotSwap(selectedEntity, blitContainer);
+            }
+        }
+
+        /// <summary>
+        /// Use spatial queries to find and cache nearby entities for hot-swap performance
+        /// </summary>
+        private void ProcessNearbyEntitiesForHotSwap(Entity selectedEntity, EntityBlitContainer selectedContainer)
+        {
+            try
             {
-                var entity = _batchEntities[i];
-                var container = _batchContainers[i];
-                if (entity != Entity.Null)
+                // Check if entity is still valid
+                if (selectedEntity == Entity.Null)
+                    return;
+
+                // Get the selected entity's position for spatial query
+                if (!_l2wLookup.TryGetComponent(selectedEntity, out var selectedTransform))
+                    return;
+
+                var selectedPosition = selectedTransform.Position.xy;
+
+                // TODO: Query spatial system for nearby entities
+                // This will be implemented when spatial system integration is ready
+                // For now, we'll add a placeholder that can be easily replaced
+
+                /*
+                // Future implementation:
+                var spatialSystem = World.GetExistingSystemManaged<EntitySpatialSystem>();
+                if (spatialSystem == null || !spatialSystem.IsInitialized)
+                    return;
+
+                var quadTree = spatialSystem.GetQuadTree();
+                var nearbyEntities = new NativeList<Entity>(Allocator.Temp);
+
+                SpatialQueryUtilities.GetEntitiesInRadius(
+                    quadTree,
+                    selectedPosition,
+                    HOT_SWAP_RADIUS,
+                    nearbyEntities
+                );
+
+                // Process each nearby entity for caching
+                foreach (var nearbyEntity in nearbyEntities)
                 {
-                    _entityCache.Put(entity, container);
+                    if (nearbyEntity != selectedEntity)
+                    {
+                        GatherEntityDataDirect(nearbyEntity);
+                        if (_hasValidData.Value)
+                        {
+                            var nearbyPosition = _l2wLookup.HasComponent(nearbyEntity)
+                            ? _l2wLookup[nearbyEntity].Position
+                            : float3.zero;
+                        EntityCache.Instance.CacheEntity(nearbyEntity, _blitContainer.Value, nearbyPosition);
+                        }
+                    }
                 }
+
+                nearbyEntities.Dispose();
+                */
+            }
+            catch (System.Exception ex)
+            {
+                // Graceful degradation - don't crash if spatial query fails
+                UnityEngine.Debug.LogWarning($"Hot-swap spatial query failed: {ex.Message}");
             }
         }
 
@@ -436,10 +352,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (_hasValidData.IsCreated) _hasValidData.Dispose();
             if (_selectedEntityRef.IsCreated) _selectedEntityRef.Dispose();
             if (_debugCode.IsCreated) _debugCode.Dispose();
-            if (_batchEntities.IsCreated) _batchEntities.Dispose();
-            if (_batchContainers.IsCreated) _batchContainers.Dispose();
-            if (_batchCount.IsCreated) _batchCount.Dispose();
-            if (_entityCache.IsCreated) _entityCache.Dispose();
+            // EntityCache is managed by the EntityCache system - no manual disposal needed
         }
 
         /// <summary>
@@ -589,8 +502,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         }
 
         /// <summary>
-        /// Enhanced Burst-compiled job that gathers the selected entity data plus nearby entities for hot swap caching.
-        /// Uses spatial queries to find entities within a radius for proactive caching.
+        /// Simplified Burst-compiled job that gathers only the selected entity data.
+        /// Nearby entity caching will be handled by the system using spatial queries.
         /// </summary>
         [BurstCompile]
         private struct BatchGatherEntityDataJob : IJob
@@ -608,12 +521,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             [WriteOnly] public NativeReference<bool> HasValidOutput;
             [WriteOnly] public NativeReference<int> DebugCode;
 
-            // Batch processing outputs
-            [WriteOnly] public NativeArray<Entity> BatchEntities;
-            [WriteOnly] public NativeArray<EntityBlitContainer> BatchContainers;
-            [WriteOnly] public NativeReference<int> BatchCount;
-            [ReadOnly] public float HotSwapRadius;
-
             // Component type flags for efficient debug tracking
             private const int RESOURCE_FLAG = 1 << 0;  // 1
             private const int STRUCTURE_FLAG = 1 << 1; // 2
@@ -625,11 +532,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             {
                 var selectedEntity = SelectedEntity.Value;
 
-                // First, process the selected entity (same as original job)
+                // Process the selected entity
                 if (selectedEntity == Entity.Null || !EntityLookup.HasComponent(selectedEntity))
                 {
                     SetFailure(selectedEntity == Entity.Null ? 1 : 2);
-                    BatchCount.Value = 0;
                     return;
                 }
 
@@ -643,30 +549,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                 else
                 {
                     SetFailure(15);
-                    BatchCount.Value = 0;
-                    return;
                 }
-
-                // Get selected entity position for spatial query
-                var selectedPos = float3.zero;
-                if (L2wLookup.HasComponent(selectedEntity))
-                {
-                    selectedPos = L2wLookup[selectedEntity].Position;
-                }
-
-                // Hot swap: Find nearby entities to cache proactively
-                // Note: In a real implementation, you'd use a spatial data structure or
-                // SystemAPI.Query with distance checks. For now, we'll simulate nearby entities.
-                int batchIndex = 0;
-
-                // TODO: Replace this with actual spatial query
-                // For now, we'll just mark that we processed the selected entity in batch
-                // In a real implementation, you would:
-                // 1. Query entities within HotSwapRadius of selectedPos
-                // 2. Process each valid entity with ProcessSingleEntity
-                // 3. Store results in BatchEntities/BatchContainers
-
-                BatchCount.Value = batchIndex;
             }
 
             private bool ProcessSingleEntity(Entity entity, out EntityBlitContainer container)
