@@ -1,4 +1,5 @@
 using System;
+using System.Runtime.InteropServices;
 using Unity.Entities;
 using Unity.Collections;
 using Unity.Mathematics;
@@ -323,7 +324,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// Uses flags and non-nullable fields for Burst compatibility.
     /// Updated to use new protobuf-powered data types.
     /// Implements IBufferElementData for use in DynamicBuffer caching systems.
+    /// StructLayout.Sequential ensures predictable memory layout for unsafe operations.
     /// </summary>
+    [StructLayout(LayoutKind.Sequential)]
     public struct EntityBlitContainer : IBufferElementData
     {
         public EntityData EntityData;   // Universal entity data

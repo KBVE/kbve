@@ -20,11 +20,25 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         private ComponentLookup<EntityComponent> _entityLookup;
         private ComponentLookup<LocalToWorld> _l2wLookup;
 
+        // Component lookups for type-specific data
+        private ComponentLookup<Resource> _resourceLookup;
+        private ComponentLookup<Structure> _structureLookup;
+        private ComponentLookup<Combatant> _combatantLookup;
+        private ComponentLookup<Item> _itemLookup;
+        private ComponentLookup<Player> _playerLookup;
+
         public void OnCreate(ref SystemState state)
         {
             _lastSelectedEntity = Entity.Null;
             _entityLookup = state.GetComponentLookup<EntityComponent>(true);
             _l2wLookup = state.GetComponentLookup<LocalToWorld>(true);
+
+            // Initialize type-specific component lookups
+            _resourceLookup = state.GetComponentLookup<Resource>(true);
+            _structureLookup = state.GetComponentLookup<Structure>(true);
+            _combatantLookup = state.GetComponentLookup<Combatant>(true);
+            _itemLookup = state.GetComponentLookup<Item>(true);
+            _playerLookup = state.GetComponentLookup<Player>(true);
         }
 
         public void OnUpdate(ref SystemState state)
@@ -32,6 +46,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             // Update component lookups
             _entityLookup.Update(ref state);
             _l2wLookup.Update(ref state);
+
+            // Update type-specific lookups
+            _resourceLookup.Update(ref state);
+            _structureLookup.Update(ref state);
+            _combatantLookup.Update(ref state);
+            _itemLookup.Update(ref state);
+            _playerLookup.Update(ref state);
 
             // Get current selection
             Entity selectedEntity = Entity.Null;
@@ -95,6 +116,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (!entityManager.HasBuffer<EntityBlitContainer>(cacheEntity))
                 return false;
 
+            // Complete any pending producer jobs before accessing the cache buffer
+            if (entityManager.HasComponent<EntityCacheJobHandle>(cacheEntity))
+            {
+                var jobHandleComponent = entityManager.GetComponentData<EntityCacheJobHandle>(cacheEntity);
+                jobHandleComponent.ProducerJobHandle.Complete();
+            }
+
             var cacheBuffer = entityManager.GetBuffer<EntityBlitContainer>(cacheEntity);
 
             // Note: This is a simple linear search. For large caches, you might want
@@ -134,11 +162,35 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                 HasPlayer = false
             };
 
-            // TODO: Add logic to populate type-specific data based on additional components
-            // This would check for Resource, Structure, Combatant, etc. components
-            // and populate the corresponding data fields and flags
+            // Populate type-specific data based on components
+            if (_resourceLookup.HasComponent(entity))
+            {
+                container.SetResource(_resourceLookup[entity].Data);
+            }
 
-            return true;
+            if (_structureLookup.HasComponent(entity))
+            {
+                container.SetStructure(_structureLookup[entity].Data);
+            }
+
+            if (_combatantLookup.HasComponent(entity))
+            {
+                container.SetCombatant(_combatantLookup[entity].Data);
+            }
+
+            if (_itemLookup.HasComponent(entity))
+            {
+                container.SetItem(_itemLookup[entity].Data);
+            }
+
+            if (_playerLookup.HasComponent(entity))
+            {
+                container.SetPlayer(_playerLookup[entity].Data);
+            }
+
+            // Return true if entity has EntityData and at least one type-specific component
+            return container.HasResource || container.HasStructure || container.HasCombatant ||
+                   container.HasItem || container.HasPlayer;
         }
 
         /// <summary>

@@ -7,8 +7,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// Bootstrap system for creating the entity cache singleton entity
     /// Runs once at system initialization to set up the cache infrastructure
     /// Uses EntityBlitContainer directly for maximum performance
+    /// Runs early in InitializationSystemGroup to prevent race conditions
     /// </summary>
-    [DisableAutoCreation]
+    [UpdateInGroup(typeof(InitializationSystemGroup), OrderFirst = true)]
     public partial class EntityCacheBootstrap : SystemBase
     {
         protected override void OnCreate()
@@ -16,6 +17,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Create singleton entity for entity frame cache
             var cacheEntity = EntityManager.CreateEntity();
             EntityManager.AddComponent<EntityFrameCacheTag>(cacheEntity);
+            EntityManager.AddComponent<EntityCacheJobHandle>(cacheEntity);
 
             // Add buffer component using EntityBlitContainer directly for maximum performance
             var buffer = EntityManager.AddBuffer<EntityBlitContainer>(cacheEntity);

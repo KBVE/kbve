@@ -46,19 +46,17 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         protected override void OnUpdate()
         {
-            // Ensure all producer jobs have completed
-            CompleteDependency();
-
-            // Check if cache singleton exists
+            // Cache should always exist due to bootstrap - early exit if not
             if (!SystemAPI.HasSingleton<EntityFrameCacheTag>())
-            {
-                // Cache not initialized yet - initialize it
-                InitializeCache();
                 return;
-            }
 
-            // Get cache singleton and its buffer
+            // Get cache singleton entity
             var cacheEntity = SystemAPI.GetSingletonEntity<EntityFrameCacheTag>();
+
+            // Get and complete the specific producer job handle
+            var jobHandleComponent = EntityManager.GetComponentData<EntityCacheJobHandle>(cacheEntity);
+            jobHandleComponent.ProducerJobHandle.Complete();
+
             var cacheBuffer = EntityManager.GetBuffer<EntityBlitContainer>(cacheEntity);
             var bufferArray = cacheBuffer.AsNativeArray();
 
@@ -81,10 +79,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                 // Calculate byte count for copy operation
                 long byteCount = (long)bufferArray.Length * sizeof(EntityBlitContainer);
-                long maxByteCount = destinationArray.Length * sizeof(EntityBlitContainer);
 
-                // Perform memory copy with bounds checking
-                Buffer.MemoryCopy(sourcePtr, destinationPtr, maxByteCount, byteCount);
+                // Use UnsafeUtility.MemCpy - cleaner in DOTS and pairs better with Unity's safety tooling
+                UnsafeUtility.MemCpy(destinationPtr, sourcePtr, byteCount);
             }
 
             // Hand off to managed bridge system
@@ -154,32 +151,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // EntityViewModel.UpdateFromCache(data, count);
             // DOTSBridge.ProcessEntityUpdates(data, count);
 
-            #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            // Debug logging for development builds
-            if (count > 0)
-            {
-                UnityEngine.Debug.Log($"[EntityCacheDrainSystem] Processed {count} entity cache entries");
-            }
-            #endif
         }
 
-        /// <summary>
-        /// Initialize the cache singleton if it doesn't exist
-        /// This ensures the cache system works even if bootstrap wasn't explicitly enabled
-        /// </summary>
-        private void InitializeCache()
-        {
-            // Create singleton entity for entity frame cache
-            var cacheEntity = EntityManager.CreateEntity();
-            EntityManager.AddComponent<EntityFrameCacheTag>(cacheEntity);
-
-            // Add buffer component and pre-allocate capacity for performance
-            var buffer = EntityManager.AddBuffer<EntityBlitContainer>(cacheEntity);
-            buffer.EnsureCapacity(4096); // Pre-allocate for large scenes
-
-            #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            UnityEngine.Debug.Log("[EntityCacheDrainSystem] Auto-initialized cache singleton");
-            #endif
-        }
     }
 }

@@ -92,6 +92,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             // Set the final dependency for other systems to wait on
             state.Dependency = mergeDependency;
+
+            // Store the job handle in the singleton for the drain system to access
+            var jobHandleComponent = new EntityCacheJobHandle { ProducerJobHandle = mergeDependency };
+            state.EntityManager.SetComponentData(cacheEntity, jobHandleComponent);
         }
 
         /// <summary>
