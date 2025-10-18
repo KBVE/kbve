@@ -1,6 +1,6 @@
 using VContainer;
 using VContainer.Unity;
-using KBVE.MMExtensions.Orchestrator.DOTS.Systems.Cache;
+using KBVE.MMExtensions.Orchestrator.DOTS;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 {
@@ -14,7 +14,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             // Register EntityCollection as singleton for cache statistics and reactive UI
             // &&VContainer Issue with ECS
             //builder.RegisterComponentInHierarchy<EntityCollection>();
-            builder.RegisterComponentOnNewGameObject<EntityCollection>(Lifetime.Scoped, "EntityCollection");
+            //builder.RegisterComponentOnNewGameObject<EntityCollection>(Lifetime.Scoped, "EntityCollection");
         }
     }
 }

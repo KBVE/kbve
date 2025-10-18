@@ -322,8 +322,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// Burst-compatible container that holds EntityData + optional type-specific data.
     /// Uses flags and non-nullable fields for Burst compatibility.
     /// Updated to use new protobuf-powered data types.
+    /// Implements IBufferElementData for use in DynamicBuffer caching systems.
     /// </summary>
-    public struct EntityBlitContainer
+    public struct EntityBlitContainer : IBufferElementData
     {
         public EntityData EntityData;   // Universal entity data
 

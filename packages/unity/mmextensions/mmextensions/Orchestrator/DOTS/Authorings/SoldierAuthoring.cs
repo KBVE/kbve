@@ -30,7 +30,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 };
                 AddComponent(entity, new EntityComponent { Data = entityData });
 
-                // Add Combatant component so EntityToVmDrainSystem can detect this as a combatant
+                // Add Combatant component so bridge systems can detect this as a combatant
                 var combatantData = new CombatantData
                 {
                     TemplateUlid = default, // Will be set by factory or spawning system
