@@ -182,6 +182,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (container.HasCombatant)
             {
                 var combatant = container.Combatant;
+
+                // Set template ULID from combatant data - Create new byte array to trigger EventfulProperty change
+                var templateUlidBytes = new byte[16];
+                CopyUlidToBuffer(combatant.TemplateUlid, templateUlidBytes);
+                JsTemplateUlid = templateUlidBytes;
+
                 JsCombatantType = (int)combatant.Type;           // Fixed field name and cast
                 JsCombatantLevel = combatant.Level;
                 JsCombatantHealth = combatant.Health;
