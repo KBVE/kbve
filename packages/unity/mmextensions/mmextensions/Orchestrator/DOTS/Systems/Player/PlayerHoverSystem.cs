@@ -18,8 +18,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(BuildPhysicsWorld))]
-    [UpdateBefore(typeof(EndSimulationEntityCommandBufferSystem))]
     public partial struct PlayerHoverSystem : ISystem
     {
         private Entity _hoverEntity;
@@ -71,12 +69,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 ? physicsWorld.Bodies[hit.RigidBodyIndex].Entity
                 : Entity.Null;
 
-            if (hitEntity != cache.LastHitEntity)
-            {
-                var hoverLookup = SystemAPI.GetComponentLookup<PlayerHover>(false);
-                hoverLookup[_hoverEntity] = new PlayerHover { Entity = hitEntity };
-                cache.LastHitEntity = hitEntity;
-            }
+            // Always update the hover component to allow re-hovering same entities
+            var hoverLookup = SystemAPI.GetComponentLookup<PlayerHover>(false);
+            hoverLookup[_hoverEntity] = new PlayerHover { Entity = hitEntity };
+            cache.LastHitEntity = hitEntity;
 
             cache.LastRayOrigin = ray.Origin;
             cache.LastRayDir = ray.Direction;

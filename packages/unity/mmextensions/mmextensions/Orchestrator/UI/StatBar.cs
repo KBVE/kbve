@@ -38,7 +38,6 @@ namespace KBVE.MMExtensions.Orchestrator.Core.UI
                         })
                     .Subscribe(val =>
                         {
-                            Debug.Log($"[StatBar] {_type} updated fill: {val}");
                             if (_fill != null)
                             {
                                 _fill.fillAmount = val;

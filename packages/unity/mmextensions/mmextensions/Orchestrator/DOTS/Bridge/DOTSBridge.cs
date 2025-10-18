@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using UnityEngine;
 using VContainer;
 using OneJS;
@@ -27,11 +28,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         private const byte FLAG_HARVESTABLE = (byte)ResourceFlags.IsHarvestable;
         private const byte FLAG_DEPLETED = (byte)ResourceFlags.IsDepleted;
 
-        // Reuse byte array to avoid allocations
-        private byte[] _ulidBuffer = new byte[16];
+        // Note: We create new byte arrays for each ULID update to ensure EventfulProperty change detection
 
         // Universal EntityData properties
         [EventfulProperty] byte[] _jsUlid = Array.Empty<byte>();
+        [EventfulProperty] byte[] _jsTemplateUlid = Array.Empty<byte>();
         [EventfulProperty] int _jsEntityType = 0;
         [EventfulProperty] int _jsActionFlags = 0;
         [EventfulProperty] float _jsWorldPosX = 0f;
@@ -103,11 +104,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             Debug.Log("DOTSBridge: EntityViewModel successfully configured.");
 
             EntityVM.Current
-                .Do(x => Debug.Log($"DOTSBridge: EntityVM.Current received data - HasResource={x.HasResource}, HasStructure={x.HasStructure}, HasCombatant={x.HasCombatant}, HasItem={x.HasItem}, HasPlayer={x.HasPlayer}"))
                 .Where(static x => x.HasResource || x.HasStructure || x.HasCombatant || x.HasItem || x.HasPlayer) // Has valid entity data
-                .Do(x => Debug.Log($"DOTSBridge: Data passed filter - HasResource={x.HasResource}, HasStructure={x.HasStructure}, HasCombatant={x.HasCombatant}, HasItem={x.HasItem}, HasPlayer={x.HasPlayer}"))
                 .ThrottleLastFrame(2)
-                .DistinctUntilChanged()
                 .ObserveOnMainThread()
                 .Subscribe(UpdateUI)
                 .AddTo(_comp);
@@ -123,11 +121,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
         private void UpdateUI(EntityBlitContainer container)
         {
             EntityData entityData = container.EntityData;
-            Debug.Log($"DOTSBridge UpdateUI: Received container with HasResource={container.HasResource}, HasStructure={container.HasStructure}, HasCombatant={container.HasCombatant}, HasItem={container.HasItem}, HasPlayer={container.HasPlayer}");
 
-            // Universal EntityData
-            CopyUlidToBuffer(entityData.Ulid, _ulidBuffer);
-            JsUlid = _ulidBuffer;
+            // Universal EntityData - Create new byte array for Entity ULID to trigger EventfulProperty change
+            var entityUlidBytes = new byte[16];
+            CopyUlidToBuffer(entityData.Ulid, entityUlidBytes);
+            JsUlid = entityUlidBytes;
             JsEntityType = (int)entityData.Type;
             JsActionFlags = (int)entityData.ActionFlags;
             JsWorldPosX = entityData.WorldPos.x;
@@ -146,6 +144,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (container.HasResource)
             {
                 var resource = container.Resource;
+
+                // Set template ULID from resource data - Create new byte array to trigger EventfulProperty change
+                var templateUlidBytes = new byte[16];
+                CopyUlidToBuffer(resource.TemplateUlid, templateUlidBytes);
+                JsTemplateUlid = templateUlidBytes;
+
                 JsResourceType = (int)resource.Type;
                 JsResourceFlags = (int)resource.Flags;
                 JsResourceAmount = resource.Amount;
@@ -156,12 +160,17 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                                       & (resource.Amount > 0)
                                       & ((resource.Flags & (ResourceFlags)FLAG_DEPLETED) == 0);
 
-                Debug.Log($"DOTSBridge: Set resource properties - Type={JsResourceType}, Amount={JsResourceAmount}, MaxAmount={JsResourceMaxAmount}, Harvestable={JsResourceHarvestable}");
             }
 
             if (container.HasStructure)
             {
                 var structure = container.Structure;
+
+                // Set template ULID from structure data - Create new byte array to trigger EventfulProperty change
+                var templateUlidBytes = new byte[16];
+                CopyUlidToBuffer(structure.TemplateUlid, templateUlidBytes);
+                JsTemplateUlid = templateUlidBytes;
+
                 JsStructureType = (int)structure.Type;          // Fixed field name and cast
                 JsStructureLevel = structure.Level;
                 JsStructureHealth = structure.Health;
@@ -173,6 +182,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (container.HasCombatant)
             {
                 var combatant = container.Combatant;
+
+                // Set template ULID from combatant data - Create new byte array to trigger EventfulProperty change
+                var templateUlidBytes = new byte[16];
+                CopyUlidToBuffer(combatant.TemplateUlid, templateUlidBytes);
+                JsTemplateUlid = templateUlidBytes;
+
                 JsCombatantType = (int)combatant.Type;           // Fixed field name and cast
                 JsCombatantLevel = combatant.Level;
                 JsCombatantHealth = combatant.Health;
@@ -185,6 +200,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (container.HasItem)
             {
                 var item = container.Item;
+
+                // Set template ULID from item data - Create new byte array to trigger EventfulProperty change
+                var templateUlidBytes = new byte[16];
+                CopyUlidToBuffer(item.TemplateUlid, templateUlidBytes);
+                JsTemplateUlid = templateUlidBytes;
+
                 JsItemType = (int)item.Type;                 // Fixed field name and cast
                 JsItemRarity = (int)item.Rarity;
                 JsItemStackCount = item.StackCount;
@@ -194,6 +215,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
             if (container.HasPlayer)
             {
                 var player = container.Player;
+
+                // Set template ULID from player data - Create new byte array to trigger EventfulProperty change
+                var templateUlidBytes = new byte[16];
+                CopyUlidToBuffer(player.TemplateUlid, templateUlidBytes);
+                JsTemplateUlid = templateUlidBytes;
+
                 JsPlayerLevel = player.Level;
                 JsPlayerExperience = player.Experience;
                 JsPlayerHealth = player.Health;

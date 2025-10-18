@@ -3,6 +3,7 @@ using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
+using Unity.Mathematics;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -55,29 +56,36 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             unsafe { return UnsafeUtility.MemCmp(&a, &b, 16) == 0; }
         }
 
-        /// <summary>Generate a new ULID directly as FixedBytes16 (no string allocation).</summary>
+        /// <summary>Generate a new ULID directly as FixedBytes16 (no string allocation). NOT Burst compatible - use NewUlidAsBytesWithTimestamp for Burst jobs.</summary>
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         public static FixedBytes16 NewUlidAsBytes()
         {
             // Generate timestamp (48 bits) + randomness (80 bits) = 128 bits total
             long timestamp = DateTimeOffset.UtcNow.ToUnixTimeMilliseconds();
+            uint randomSeed = (uint)System.Environment.TickCount; // Use system tick count as seed
+            return NewUlidAsBytesWithTimestamp(timestamp, randomSeed);
+        }
 
+        /// <summary>Generate a new ULID directly as FixedBytes16 with provided timestamp and random seed. Burst compatible.</summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        public static FixedBytes16 NewUlidAsBytesWithTimestamp(long timestampMs, uint randomSeed)
+        {
             // Create 16-byte array for ULID
             Span<byte> bytes = stackalloc byte[16];
 
             // First 6 bytes: timestamp (48 bits, big-endian)
-            bytes[0] = (byte)(timestamp >> 40);
-            bytes[1] = (byte)(timestamp >> 32);
-            bytes[2] = (byte)(timestamp >> 24);
-            bytes[3] = (byte)(timestamp >> 16);
-            bytes[4] = (byte)(timestamp >> 8);
-            bytes[5] = (byte)timestamp;
+            bytes[0] = (byte)(timestampMs >> 40);
+            bytes[1] = (byte)(timestampMs >> 32);
+            bytes[2] = (byte)(timestampMs >> 24);
+            bytes[3] = (byte)(timestampMs >> 16);
+            bytes[4] = (byte)(timestampMs >> 8);
+            bytes[5] = (byte)timestampMs;
 
-            // Last 10 bytes: cryptographically random
-            var random = new System.Random();
+            // Last 10 bytes: cryptographically random using Unity.Mathematics.Random (Burst compatible)
+            var random = new Unity.Mathematics.Random(randomSeed);
             for (int i = 6; i < 16; i++)
             {
-                bytes[i] = (byte)random.Next(256);
+                bytes[i] = (byte)random.NextUInt(0, 256);
             }
 
             return FromSpan(bytes);
@@ -222,19 +230,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ReadOnlySpan<byte> AsReadOnlySpan(in FixedBytes16 fb)
         {
-            return MemoryMarshal.AsBytes(
-                MemoryMarshal.CreateReadOnlySpan(ref Unsafe.AsRef(in fb), 1)
-            );
+            // Use unsafe pointer version for Burst compatibility
+            return AsReadOnlySpanPtrGym(in fb);
         }
 
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Span<byte> AsSpan(ref FixedBytes16 fb)
         {
-            return MemoryMarshal.AsBytes(MemoryMarshal.CreateSpan(ref fb, 1));
+            // Use unsafe pointer version for Burst compatibility
+            return AsSpanPtrGym(ref fb);
         }
 
-        // TODO: Remove AsReadOnlySpanPtrGym if Burst or l2cpp fails
-        // Treat FixedBytes16 as a byte span (centralize unsafe here)
+        // Burst-compatible version using unsafe pointers (centralize unsafe here)
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static ReadOnlySpan<byte> AsReadOnlySpanPtrGym(in FixedBytes16 fb)
         {
@@ -248,8 +255,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         }
 
 
-        // TODO: Remove > 
-        // Remove AsSpanPtrGym if Burst or Il2 fails.
+        // Burst-compatible version using unsafe pointers
         [MethodImpl(MethodImplOptions.AggressiveInlining)]
         private static Span<byte> AsSpanPtrGym(ref FixedBytes16 fb)
         {

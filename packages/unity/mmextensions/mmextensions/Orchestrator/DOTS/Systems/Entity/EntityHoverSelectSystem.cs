@@ -21,32 +21,26 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 em.SetComponentData(selEnt, new SelectedEntity { Entity = Entity.Null });
             }
 
-            // No hover? clear selection
-            if (!SystemAPI.TryGetSingleton<PlayerHover>(out var hover) || hover.Entity == Entity.Null)
-            {
-                em.SetComponentData(selEnt, new SelectedEntity { Entity = Entity.Null });
-                return;
-            }
+            Entity targetEntity = Entity.Null;
 
-            var e = hover.Entity;
-            UnityEngine.Debug.Log($"EntityHoverSelectSystem: Found hover entity {e}");
-
-            // Any entity with EntityComponent can be selected (universal)
-            if (em.HasComponent<EntityComponent>(e))
+            // Determine target entity based on hover state
+            if (SystemAPI.TryGetSingleton<PlayerHover>(out var hover) && hover.Entity != Entity.Null)
             {
-                UnityEngine.Debug.Log($"EntityHoverSelectSystem: Entity {e} has EntityComponent - selecting it");
-                em.SetComponentData(selEnt, new SelectedEntity { Entity = e });
-            }
-            else
-            {
-                UnityEngine.Debug.Log($"EntityHoverSelectSystem: Entity {e} does NOT have EntityComponent - checking what it has...");
-                var entityComponentTypes = em.GetComponentTypes(e, Unity.Collections.Allocator.Temp);
-                foreach (var componentType in entityComponentTypes)
+                var e = hover.Entity;
+                // Any entity with EntityComponent can be selected (universal)
+                if (em.HasComponent<EntityComponent>(e))
                 {
-                    UnityEngine.Debug.Log($"  - {componentType}");
+                    targetEntity = e;
                 }
-                entityComponentTypes.Dispose();
-                em.SetComponentData(selEnt, new SelectedEntity { Entity = Entity.Null });
+            }
+
+            // Get current selection to compare with new target
+            var currentSelection = em.GetComponentData<SelectedEntity>(selEnt);
+
+            // Only update if selection actually changed
+            if (targetEntity != currentSelection.Entity)
+            {
+                em.SetComponentData(selEnt, new SelectedEntity { Entity = targetEntity });
             }
         }
     }
