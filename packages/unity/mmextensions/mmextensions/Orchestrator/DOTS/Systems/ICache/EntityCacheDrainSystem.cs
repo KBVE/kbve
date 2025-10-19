@@ -147,16 +147,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             // Integration points for your existing systems:
             // 1. EntityViewModel - update currently selected entity from cache (✅ INTEGRATED)
-            // 2. DOTSBridge - handle UI updates (TODO)
-            // 3. Spatial systems - update spatial indices (TODO)
+            // 2. Spatial systems - feed cache data to QuadTree/SpatialHash (✅ INTEGRATED - Phase 1)
+            // 3. DOTSBridge - handle UI updates (TODO)
             // 4. OneJS/TS bridge - handle web UI updates (TODO)
 
             // Update the currently selected entity if it appears in cache
             EntityViewModel.UpdateFromCache(data, count);
 
+            // Update spatial systems from cache (Phase 1: validation logging only)
+            SpatialSystemUtilities.UpdateFromCache(data, count);
+
             // Future integrations:
             // DOTSBridge.ProcessEntityUpdates(data, count);
-            // SpatialIndex.UpdateFromCache(data, count);
 
         }
 
