@@ -46,7 +46,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 {
                     for (int i = 0; i < CachedResources.Length; i++)
                     {
-                        ref readonly var cached = ref CachedResources[i];
+                        var cached = CachedResources[i];
 
                         // Only process resources (skip other entity types)
                         if (!cached.HasResource)
