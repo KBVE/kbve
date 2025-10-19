@@ -5,6 +5,7 @@ using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
 using KBVE.MMExtensions.Orchestrator.DOTS.Common;
+using KBVE.MMExtensions.Orchestrator.DOTS.Bridge;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -13,9 +14,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// Uses double-buffered pinned arrays for zero-copy data transfer
     /// Runs in presentation group after all producers have completed
     /// Uses EntityBlitContainer directly for maximum performance
+    ///
+    /// Note: PresentationSystemGroup runs after SimulationSystemGroup by default,
+    /// so this system will always run after EntityBlitProduceSystem.
+    /// We complete the specific producer job handle to ensure proper synchronization.
     /// </summary>
     [UpdateInGroup(typeof(PresentationSystemGroup))]
-    [UpdateAfter(typeof(EntityBlitProduceSystem))]
     public partial class EntityCacheDrainSystem : SystemBase
     {
         // Double-buffered arrays for efficient data handoff
@@ -142,13 +146,18 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private static void ProcessCacheData(EntityBlitContainer[] data, int count)
         {
             // Integration points for your existing systems:
-            // 1. EntityToVmDrainSystem - update view models
-            // 2. DOTSBridge - handle UI updates
-            // 3. Spatial systems - update spatial indices
-            // 4. OneJS/TS bridge - handle web UI updates
+            // 1. EntityViewModel - update currently selected entity from cache (✅ INTEGRATED)
+            // 2. Spatial systems - feed cache data to QuadTree/SpatialHash (✅ INTEGRATED - Phase 1)
+            // 3. DOTSBridge - handle UI updates (TODO)
+            // 4. OneJS/TS bridge - handle web UI updates (TODO)
 
-            // Example integration calls (uncomment when ready):
-            // EntityViewModel.UpdateFromCache(data, count);
+            // Update the currently selected entity if it appears in cache
+            EntityViewModel.UpdateFromCache(data, count);
+
+            // Update spatial systems from cache (Phase 1: validation logging only)
+            SpatialSystemUtilities.UpdateFromCache(data, count);
+
+            // Future integrations:
             // DOTSBridge.ProcessEntityUpdates(data, count);
 
         }

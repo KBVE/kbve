@@ -44,18 +44,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Early exit if no changed entities
             if (_sourceQuery.IsEmptyIgnoreFilter)
             {
-                // Complete dependency even if no work to ensure proper ordering
-                state.Dependency.Complete();
+                // Store a default completed job handle so drain system doesn't wait on stale data
+                if (SystemAPI.HasSingleton<EntityFrameCacheTag>())
+                {
+                    var entity = SystemAPI.GetSingletonEntity<EntityFrameCacheTag>();
+                    var emptyHandle = new EntityCacheJobHandle { ProducerJobHandle = default };
+                    state.EntityManager.SetComponentData(entity, emptyHandle);
+                }
                 return;
             }
 
             // Check if cache singleton exists - if not, skip this frame
             if (!SystemAPI.HasSingleton<EntityFrameCacheTag>())
-            {
-                // Complete dependency to maintain proper ordering
-                state.Dependency.Complete();
                 return;
-            }
 
             // Get archetype chunks for parallel processing
             var chunks = _sourceQuery.ToArchetypeChunkArray(Allocator.TempJob);

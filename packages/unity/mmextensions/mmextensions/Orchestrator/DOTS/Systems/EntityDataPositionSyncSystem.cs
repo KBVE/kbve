@@ -8,11 +8,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// <summary>
     /// Lightweight system that syncs EntityData.WorldPos with actual entity positions.
     /// Critical for multiplayer - ensures authoritative position data stays current.
-    /// Runs after all movement/physics to capture final positions.
+    /// Runs late in SimulationSystemGroup to capture final positions after transforms and physics.
+    ///
+    /// Note: TransformSystemGroup and PhysicsSystemGroup update within SimulationSystemGroup.
+    /// We run at OrderLast to ensure we capture all position updates from this frame.
     /// </summary>
-    [UpdateInGroup(typeof(SimulationSystemGroup))]
-    [UpdateAfter(typeof(TransformSystemGroup))] // After all position updates
-    [UpdateAfter(typeof(Unity.Physics.Systems.PhysicsSystemGroup))] // After physics updates
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     public partial struct EntityDataPositionSyncSystem : ISystem
     {
         public void OnUpdate(ref SystemState state)

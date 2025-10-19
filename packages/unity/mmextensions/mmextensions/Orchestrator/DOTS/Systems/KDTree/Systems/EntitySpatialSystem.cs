@@ -57,6 +57,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Get system configuration
             var config = SystemAPI.GetSingleton<SpatialSystemConfig>();
 
+            // PHASE 2 OPTIMIZATION: Skip ECS query updates if using cache-based updates
+            // When UseCacheBasedUpdates = true, spatial data comes from EntityCache instead
+            if (config.UseCacheBasedUpdates)
+            {
+                // Cache-based mode: QuadTree is updated from EntityCacheDrainSystem via SpatialSystemUtilities
+                // We still need to clear the QuadTree here for fresh data each frame
+                _quadTree.Clear();
+
+                // Skip the expensive ECS query - cache will provide the data
+                return;
+            }
+
+            // LEGACY PATH: Direct ECS query (used when UseCacheBasedUpdates = false)
             // Clear the QuadTree for fresh data
             _quadTree.Clear();
 
@@ -69,7 +82,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             };
 
             state.Dependency = updateJob.ScheduleParallel(_spatialEntitiesQuery, state.Dependency);
-            state.Dependency.Complete(); // Ensure QuadTree is updated before other systems
+
+            // PERFORMANCE FIX: Removed blocking Complete() call
+            // Jobs now run asynchronously - systems that need QuadTree data must complete dependency themselves
+            // This prevents main thread blocking when updating spatial index
 
             // Periodic rebuild if configured
             if (config.RebuildFrequency > 0 && _frameCounter % config.RebuildFrequency == 0)
@@ -113,14 +129,24 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         }
 
         /// <summary>
-        /// Get the QuadTree for spatial queries (read-only access)
+        /// Get the QuadTree for spatial queries (read-write access for cache updates)
         /// </summary>
         public QuadTree2D GetQuadTree() => _quadTree;
+
+        /// <summary>
+        /// Set the QuadTree (used by cache-based updates)
+        /// </summary>
+        public void SetQuadTree(QuadTree2D quadTree) => _quadTree = quadTree;
 
         /// <summary>
         /// Check if the spatial system is properly initialized
         /// </summary>
         public bool IsInitialized => _isInitialized && _quadTree.IsCreated;
+
+        /// <summary>
+        /// Get the last known positions map (for cache-based incremental updates)
+        /// </summary>
+        public NativeHashMap<Entity, float2> GetLastKnownPositions() => _lastKnownPositions;
     }
 
     /// <summary>
