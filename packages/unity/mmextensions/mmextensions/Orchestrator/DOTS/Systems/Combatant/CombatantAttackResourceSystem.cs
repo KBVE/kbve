@@ -199,12 +199,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 }
             }
 
-            // Fallback: Get all resource entities and their transforms (legacy path)
-            NativeArray<Entity> resourceEntities = default;
-            NativeArray<LocalTransform> resourceTransforms = default;
+            // Always allocate arrays (job requires valid NativeArrays even if empty)
+            NativeArray<Entity> resourceEntities;
+            NativeArray<LocalTransform> resourceTransforms;
 
-            if (!useCacheData)
+            if (useCacheData)
             {
+                // Using cache - create empty arrays to satisfy job requirements
+                resourceEntities = new NativeArray<Entity>(0, Allocator.TempJob);
+                resourceTransforms = new NativeArray<LocalTransform>(0, Allocator.TempJob);
+            }
+            else
+            {
+                // Legacy path - get all resource entities and their transforms
                 resourceEntities = systemData.ResourceQuery.ToEntityArray(Allocator.TempJob);
                 resourceTransforms = systemData.ResourceQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
 
@@ -223,7 +230,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 CachedResources = cachedData,
                 UseCacheData = useCacheData,
 
-                // Legacy ECS query data (fallback)
+                // Legacy ECS query data (always valid NativeArrays)
                 ResourceEntities = resourceEntities,
                 ResourceTransforms = resourceTransforms,
                 ResourceLookup = SystemAPI.GetComponentLookup<Resource>(true)
@@ -231,12 +238,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             state.Dependency = job.ScheduleParallel(state.Dependency);
 
-            // Dispose arrays after job completes (only if we allocated them)
-            if (!useCacheData)
-            {
-                state.Dependency = resourceEntities.Dispose(state.Dependency);
-                state.Dependency = resourceTransforms.Dispose(state.Dependency);
-            }
+            // Always dispose arrays after job completes
+            state.Dependency = resourceEntities.Dispose(state.Dependency);
+            state.Dependency = resourceTransforms.Dispose(state.Dependency);
         }
     }
 }
