@@ -140,6 +140,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             public EntityQuery CombatantQuery;
             public EntityQuery ResourceQuery;
+            public NativeArray<EntityBlitContainer> EmptyCacheArray; // Reusable empty array to avoid allocations
         }
 
         [BurstCompile]
@@ -159,7 +160,20 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             systemData.ResourceQuery = state.GetEntityQuery(resourceQueryBuilder);
             resourceQueryBuilder.Dispose();
 
+            // Create persistent empty array to avoid per-frame allocations when cache is unavailable
+            systemData.EmptyCacheArray = new NativeArray<EntityBlitContainer>(0, Allocator.Persistent);
+
             state.EntityManager.AddComponentData(state.SystemHandle, systemData);
+        }
+
+        public void OnDestroy(ref SystemState state)
+        {
+            // Cleanup persistent empty array
+            var systemData = SystemAPI.GetComponent<SystemData>(state.SystemHandle);
+            if (systemData.EmptyCacheArray.IsCreated)
+            {
+                systemData.EmptyCacheArray.Dispose();
+            }
         }
 
         [BurstCompile]
@@ -172,7 +186,21 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // - Direct Query: Contains ALL resources (including old static ones)
             // This ensures combatants can find both new and old resources
 
+            // ALWAYS query ALL resources (guaranteed to find everything)
+            var resourceEntities = systemData.ResourceQuery.ToEntityArray(Allocator.TempJob);
+            var resourceTransforms = systemData.ResourceQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
+
+            // Early exit if no resources exist at all
+            if (resourceEntities.Length == 0)
+            {
+                resourceEntities.Dispose();
+                resourceTransforms.Dispose();
+                return;
+            }
+
+            // Try to get cache data (optional optimization, not required)
             NativeArray<EntityBlitContainer> cachedData = default;
+            bool useCacheData = false;
 
             var cacheQuery = SystemAPI.QueryBuilder()
                 .WithAll<EntityFrameCacheTag>()
@@ -187,27 +215,22 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     if (cacheBuffer.Length > 0)
                     {
                         cachedData = cacheBuffer.AsNativeArray();
+                        useCacheData = true;
                     }
                 }
             }
 
-            // ALWAYS query ALL resources (guaranteed to find everything)
-            var resourceEntities = systemData.ResourceQuery.ToEntityArray(Allocator.TempJob);
-            var resourceTransforms = systemData.ResourceQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
-
-            // Early exit if no resources exist at all
-            if (resourceEntities.Length == 0 && (!cachedData.IsCreated || cachedData.Length == 0))
+            // If no cache available, use persistent empty array (no per-frame allocation)
+            if (!useCacheData)
             {
-                resourceEntities.Dispose();
-                resourceTransforms.Dispose();
-                return;
+                cachedData = systemData.EmptyCacheArray;
             }
 
             var job = new FindAndAttackResourcesJob
             {
-                // Cache data (contains recently changed/placed resources)
+                // Cache data (optional, only used if UseCacheData = true)
                 CachedResources = cachedData,
-                UseCacheData = cachedData.IsCreated && cachedData.Length > 0,
+                UseCacheData = useCacheData,
 
                 // Direct query data (contains ALL resources)
                 ResourceEntities = resourceEntities,

@@ -35,6 +35,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             );
 
             // Set change filters to only wake when data changes - critical for performance
+            // Unity allows max 2 change filters - using LocalToWorld and EntityComponent
+            // Note: Resource damage updates trigger EntityComponent changes via EntityDataPositionSyncSystem
             _sourceQuery.SetChangedVersionFilter(typeof(LocalToWorld));
             _sourceQuery.AddChangedVersionFilter(typeof(EntityComponent));
         }
