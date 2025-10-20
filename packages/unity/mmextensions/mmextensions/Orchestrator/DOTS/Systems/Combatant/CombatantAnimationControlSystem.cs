@@ -54,14 +54,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 .WithAll<Combatant>()
                 .WithAspect<AnimatorAspect>()
                 .WithOptions(EntityQueryOptions.IgnoreComponentEnabledState);
-            // var queryBuilder = new EntityQueryBuilder(Allocator.Temp)
-            //     .WithAll<MovingTag>()
-            //     .WithAspect<AnimatorAspect>()
-            //     .WithOptions(EntityQueryOptions.IgnoreComponentEnabledState);
             var CombatantQuery = state.GetEntityQuery(queryBuilder);
             CombatantQuery.AddChangedVersionFilter(ComponentType.ReadOnly<Combatant>());
-            //CombatantQuery.AddChangedVersionFilter(ComponentType.ReadOnly<MovingTag>());
-            
+
             systemData.CombatantQuery = CombatantQuery;
 
             _ = state.EntityManager.AddComponentData(state.SystemHandle, systemData);

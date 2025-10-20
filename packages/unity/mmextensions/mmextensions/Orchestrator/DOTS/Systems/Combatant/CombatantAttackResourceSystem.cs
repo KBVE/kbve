@@ -10,7 +10,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// <summary>
     /// Optimized system for combatants to detect and attack resources.
     /// Uses entity cache for resource positions when available (change-filtered).
-    /// Maintains MovingTag until combatant is in attack range.
+    /// Uses Combatant.State for movement control (MoveToDestinationSystem handles state-based movement).
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
@@ -30,8 +30,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             private void Execute(
                 ref Combatant combatant,
-                in LocalTransform transform,
-                EnabledRefRW<MovingTag> movingTag)
+                in LocalTransform transform)
             {
                 // Skip if combatant is dead
                 if (combatant.Data.IsDead)
@@ -41,7 +40,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 float nearestDistance = float.MaxValue;
                 bool foundResource = false;
 
-                // Use cache if available (preferred - change-filtered, no ECS query overhead)
+                // HYBRID SEARCH: Check BOTH cache and direct query
+                // Cache may contain recently placed resources, direct query has everything
+
+                // 1. Check cache first (if available) - fast for recently changed resources
                 if (UseCacheData && CachedResources.Length > 0)
                 {
                     for (int i = 0; i < CachedResources.Length; i++)
@@ -67,32 +69,30 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         }
                     }
                 }
-                else
+
+                // 2. ALWAYS check direct query (contains ALL resources including static ones)
+                for (int i = 0; i < ResourceEntities.Length; i++)
                 {
-                    // Fallback to direct ECS query
-                    for (int i = 0; i < ResourceEntities.Length; i++)
+                    var resourceEntity = ResourceEntities[i];
+
+                    // Check if resource still exists and has valid data
+                    if (!ResourceLookup.HasComponent(resourceEntity))
+                        continue;
+
+                    var resource = ResourceLookup[resourceEntity];
+
+                    // Skip depleted resources
+                    if (resource.Data.IsDepleted)
+                        continue;
+
+                    var resourceTransform = ResourceTransforms[i];
+                    float distance = math.distance(transform.Position, resourceTransform.Position);
+
+                    // Check if resource is within detection range
+                    if (distance <= combatant.Data.DetectionRange && distance < nearestDistance)
                     {
-                        var resourceEntity = ResourceEntities[i];
-
-                        // Check if resource still exists and has valid data
-                        if (!ResourceLookup.HasComponent(resourceEntity))
-                            continue;
-
-                        var resource = ResourceLookup[resourceEntity];
-
-                        // Skip depleted resources
-                        if (resource.Data.IsDepleted)
-                            continue;
-
-                        var resourceTransform = ResourceTransforms[i];
-                        float distance = math.distance(transform.Position, resourceTransform.Position);
-
-                        // Check if resource is within detection range
-                        if (distance <= combatant.Data.DetectionRange && distance < nearestDistance)
-                        {
-                            nearestDistance = distance;
-                            foundResource = true;
-                        }
+                        nearestDistance = distance;
+                        foundResource = true;
                     }
                 }
 
@@ -105,40 +105,32 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                     if (nearestDistance <= attackRange)
                     {
-                        // CRITICAL: Only stop moving when RIGHT NEXT TO the resource
-                        // Switch to attacking state and STOP MOVING
+                        // CRITICAL: Only attack when RIGHT NEXT TO the resource
+                        // MoveToDestinationSystem will automatically stop movement when State == Attacking
                         if (combatant.Data.State != CombatantState.Attacking)
                         {
                             combatant.Data = combatant.Data.SetState(CombatantState.Attacking);
                         }
-
-                        // Disable MovingTag - combatant is in attack range
-                        movingTag.ValueRW = false;
                     }
                     else
                     {
                         // Resource detected but NOT in attack range yet
-                        // KEEP MOVING towards resource (MovingTag stays enabled)
+                        // MoveToDestinationSystem will automatically move when State == Chasing
                         if (combatant.Data.State == CombatantState.Idle ||
                             combatant.Data.State == CombatantState.Patrolling)
                         {
                             combatant.Data = combatant.Data.SetState(CombatantState.Chasing);
                         }
-
-                        // Ensure MovingTag is enabled while chasing
-                        movingTag.ValueRW = true;
                     }
                 }
                 else
                 {
                     // No resources nearby, return to idle if currently attacking/chasing
+                    // MoveToDestinationSystem will automatically stop movement when State == Idle
                     if (combatant.Data.State == CombatantState.Attacking ||
                         combatant.Data.State == CombatantState.Chasing)
                     {
                         combatant.Data = combatant.Data.SetState(CombatantState.Idle);
-
-                        // Stop moving when going back to idle
-                        movingTag.ValueRW = false;
                     }
                 }
             }
@@ -155,10 +147,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             var systemData = new SystemData();
 
-            // Query for combatants with transforms and MovingTag
+            // Query for combatants with transforms
             var combatantQueryBuilder = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<Combatant, LocalTransform, MovingTag>()
-                .WithOptions(EntityQueryOptions.IgnoreComponentEnabledState);
+                .WithAll<Combatant, LocalTransform>();
             systemData.CombatantQuery = state.GetEntityQuery(combatantQueryBuilder);
             combatantQueryBuilder.Dispose();
 
@@ -176,13 +167,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             var systemData = SystemAPI.GetComponent<SystemData>(state.SystemHandle);
 
-            // Try to get cache data first
+            // HYBRID APPROACH: Use BOTH cache AND direct query
+            // - Cache: Contains recently placed/changed resources (via EntityCommandBuffer updates)
+            // - Direct Query: Contains ALL resources (including old static ones)
+            // This ensures combatants can find both new and old resources
+
+            NativeArray<EntityBlitContainer> cachedData = default;
+
             var cacheQuery = SystemAPI.QueryBuilder()
                 .WithAll<EntityFrameCacheTag>()
                 .Build();
-
-            bool useCacheData = false;
-            NativeArray<EntityBlitContainer> cachedData = default;
 
             if (!cacheQuery.IsEmpty)
             {
@@ -192,45 +186,30 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     var cacheBuffer = state.EntityManager.GetBuffer<EntityBlitContainer>(cacheEntity);
                     if (cacheBuffer.Length > 0)
                     {
-                        // Use cache data - this is already filtered to changed entities only!
                         cachedData = cacheBuffer.AsNativeArray();
-                        useCacheData = true;
                     }
                 }
             }
 
-            // Always allocate arrays (job requires valid NativeArrays even if empty)
-            NativeArray<Entity> resourceEntities;
-            NativeArray<LocalTransform> resourceTransforms;
+            // ALWAYS query ALL resources (guaranteed to find everything)
+            var resourceEntities = systemData.ResourceQuery.ToEntityArray(Allocator.TempJob);
+            var resourceTransforms = systemData.ResourceQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
 
-            if (useCacheData)
+            // Early exit if no resources exist at all
+            if (resourceEntities.Length == 0 && (!cachedData.IsCreated || cachedData.Length == 0))
             {
-                // Using cache - create empty arrays to satisfy job requirements
-                resourceEntities = new NativeArray<Entity>(0, Allocator.TempJob);
-                resourceTransforms = new NativeArray<LocalTransform>(0, Allocator.TempJob);
-            }
-            else
-            {
-                // Legacy path - get all resource entities and their transforms
-                resourceEntities = systemData.ResourceQuery.ToEntityArray(Allocator.TempJob);
-                resourceTransforms = systemData.ResourceQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
-
-                // Early exit if no resources and no cache
-                if (resourceEntities.Length == 0)
-                {
-                    resourceEntities.Dispose();
-                    resourceTransforms.Dispose();
-                    return;
-                }
+                resourceEntities.Dispose();
+                resourceTransforms.Dispose();
+                return;
             }
 
             var job = new FindAndAttackResourcesJob
             {
-                // Cache data (preferred)
+                // Cache data (contains recently changed/placed resources)
                 CachedResources = cachedData,
-                UseCacheData = useCacheData,
+                UseCacheData = cachedData.IsCreated && cachedData.Length > 0,
 
-                // Legacy ECS query data (always valid NativeArrays)
+                // Direct query data (contains ALL resources)
                 ResourceEntities = resourceEntities,
                 ResourceTransforms = resourceTransforms,
                 ResourceLookup = SystemAPI.GetComponentLookup<Resource>(true)
@@ -238,7 +217,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             state.Dependency = job.ScheduleParallel(state.Dependency);
 
-            // Always dispose arrays after job completes
+            // Dispose arrays after job completes
             state.Dependency = resourceEntities.Dispose(state.Dependency);
             state.Dependency = resourceTransforms.Dispose(state.Dependency);
         }
