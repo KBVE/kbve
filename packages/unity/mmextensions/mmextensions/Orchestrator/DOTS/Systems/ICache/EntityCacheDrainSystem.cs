@@ -22,7 +22,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             public NativeList<EntityBlitContainer> Data;
             public JobHandle Fence; // Copy job for this slot
-            public int Count;       // Valid element count
+            // Note: Count is now implicit via Data.Length
         }
 
 
@@ -76,51 +76,61 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         }
 
         /// <summary>
-        /// Burst-safe native-to-native memory copy
+        /// Burst-safe job that reads DynamicBuffer inside the job and writes into slot's NativeList.
+        /// This avoids main-thread buffer access which would force a sync.
         /// </summary>
         [BurstCompile]
-        private struct MemCpyJob : IJob
+        private struct CopyFromBufferToListJob : IJob
         {
-            [ReadOnly] public NativeArray<EntityBlitContainer> Src;
-            [NativeDisableUnsafePtrRestriction] public unsafe void* Dst;
-            public int Count;
+            [ReadOnly] public BufferLookup<EntityBlitContainer> Lookup;
+            public Entity CacheEntity;
+
+            // We'll write directly into the destination NativeList
+            // It's single-writer, single job, so it's safe to resize.
+            [NativeDisableContainerSafetyRestriction]
+            public NativeList<EntityBlitContainer> Dst;
 
             public void Execute()
             {
+                var src = Lookup[CacheEntity].AsNativeArray();
+                Dst.Clear();
+                Dst.ResizeUninitialized(src.Length);
+
                 unsafe
                 {
-                    var srcPtr = NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(Src);
-                    UnsafeUtility.MemCpy(Dst, srcPtr, (long)Count * UnsafeUtility.SizeOf<EntityBlitContainer>());
+                    void* srcPtr = NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(src);
+                    void* dstPtr = Dst.GetUnsafePtr();
+                    UnsafeUtility.MemCpy(dstPtr, srcPtr, (long)src.Length * UnsafeUtility.SizeOf<EntityBlitContainer>());
                 }
             }
         }
 
         /// <summary>
         /// Non-blocking produce: tries to write to slot if fence is ready.
+        /// Uses BufferLookup job to avoid main-thread buffer access (which would force sync).
         /// Returns false if slot is still busy (skip this frame instead of blocking).
+        /// Returns the new job handle that must be combined with state.Dependency.
         /// </summary>
-        private bool TryProduceInto(ref Slot slot, NativeArray<EntityBlitContainer> src, JobHandle prodHandle)
+        private bool TryProduceInto(ref Slot slot, Entity cacheEntity, BufferLookup<EntityBlitContainer> lookup, JobHandle prodHandle, out JobHandle newFence)
         {
-            // Early exits: slot busy or no data
-            if (!slot.Fence.IsCompleted) return false;
-            if (src.Length == 0) return false;
-
-            // Ensure capacity & resize
-            if (slot.Data.Capacity < src.Length)
-                slot.Data.Capacity = src.Length;
-
-            slot.Data.ResizeUninitialized(src.Length);
-            slot.Count = src.Length;
-
-            // Schedule native->native memcpy
-            // IMPORTANT: depend only on producer, not on state.Dependency to avoid serialization
-            unsafe
+            // Non-blocking backpressure: skip if slot still busy
+            if (!slot.Fence.IsCompleted)
             {
-                void* dstPtr = slot.Data.GetUnsafePtr();
-                var job = new MemCpyJob { Src = src, Dst = dstPtr, Count = src.Length };
-                slot.Fence = job.Schedule(prodHandle);
+                newFence = default;
+                return false;
             }
 
+            // Schedule copy entirely in Burst, no main-thread buffer access
+            var job = new CopyFromBufferToListJob
+            {
+                Lookup = lookup,
+                CacheEntity = cacheEntity,
+                Dst = slot.Data
+            };
+
+            // Schedule job depending on producer
+            slot.Fence = job.Schedule(prodHandle);
+            newFence = slot.Fence;
             return true;
         }
 
@@ -130,24 +140,26 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// </summary>
         private void TryConsumeFrom(ref Slot slot)
         {
-            if (slot.Count <= 0) return;
             if (!slot.Fence.IsCompleted) return; // Not ready yet - skip this frame
 
+            var len = slot.Data.Length;
+            if (len <= 0) return;
+
             // No Complete() needed; fence is already done
-            EnsureManagedCapacity(slot.Count);
+            EnsureManagedCapacity(len);
             unsafe
             {
                 void* srcPtr = slot.Data.GetUnsafeReadOnlyPtr();
                 void* dstPtr = (void*)_scratchPtr;
                 UnsafeUtility.MemCpy(dstPtr, srcPtr,
-                    (long)slot.Count * UnsafeUtility.SizeOf<EntityBlitContainer>());
+                    (long)len * UnsafeUtility.SizeOf<EntityBlitContainer>());
             }
 
             // Hand off to managed bridge systems
-            ProcessCacheDataManaged(_managedScratch, slot.Count);
+            ProcessCacheDataManaged(_managedScratch, len);
 
-            // Mark slot as consumed (optional - can leave for last-frame visibility)
-            slot.Count = 0;
+            // Optional: mark slot as consumed (can leave data for last-frame visibility)
+            // slot.Data.Clear();
         }
 
         public void OnUpdate(ref SystemState state)
@@ -162,23 +174,36 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                 var cacheEntity = SystemAPI.GetSingletonEntity<EntityFrameCacheTag>();
                 var producer = SystemAPI.GetComponent<EntityCacheJobHandle>(cacheEntity);
-                var cacheBuf = SystemAPI.GetBuffer<EntityBlitContainer>(cacheEntity);
-                var src = cacheBuf.AsNativeArray();
 
-                if (src.Length > 0)
+                // Only a lookup (safe to capture in Burst jobs); no main-thread AsNativeArray()
+                // This avoids the sync that would happen from accessing the DynamicBuffer on main thread
+                var lookup = SystemAPI.GetBufferLookup<EntityBlitContainer>(true);
+
+                var writeIdx = _writeIndex % 3;
+                bool produced;
+                JobHandle newFence;
+
+                switch (writeIdx)
                 {
-                    var writeIdx = _writeIndex % 3;
-                    bool produced = writeIdx switch
-                    {
-                        0 => TryProduceInto(ref _s0, src, producer.ProducerJobHandle),
-                        1 => TryProduceInto(ref _s1, src, producer.ProducerJobHandle),
-                        _ => TryProduceInto(ref _s2, src, producer.ProducerJobHandle),
-                    };
-
-                    if (produced)
-                        _writeIndex++;  // Advance only when we actually wrote
-                    // else: slot busy → skip this tick (no stall)
+                    case 0:
+                        produced = TryProduceInto(ref _s0, cacheEntity, lookup, producer.ProducerJobHandle, out newFence);
+                        break;
+                    case 1:
+                        produced = TryProduceInto(ref _s1, cacheEntity, lookup, producer.ProducerJobHandle, out newFence);
+                        break;
+                    default:
+                        produced = TryProduceInto(ref _s2, cacheEntity, lookup, producer.ProducerJobHandle, out newFence);
+                        break;
                 }
+
+                if (produced)
+                {
+                    _writeIndex++;  // Advance only when we actually wrote
+                    // CRITICAL: Register the job with Unity's dependency system
+                    // This prevents structural changes while the job is running
+                    state.Dependency = JobHandle.CombineDependencies(state.Dependency, newFence);
+                }
+                // else: slot busy → skip this tick (no stall)
             }
 
             // 2) CONSUME: Read previous slot if fence completed (opportunistic, non-blocking)
