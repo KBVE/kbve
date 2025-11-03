@@ -171,12 +171,9 @@ public partial class IRCBridge : MonoBehaviour, IInitializable
     
     private void Start()
     {
-        // Fallback if VContainer initialization didn't work
-        if (_ircService == null)
-        {
-            LogDiagnosticWarning("IRCService not available, attempting manual search");
-            InitializeIRCConnection().Forget();
-        }
+        // Call Initialize manually since we're not using RegisterEntryPoint
+        // VContainer will have injected dependencies by now
+        Initialize();
     }
     
     private async UniTaskVoid InitializeWithInjectedService()
