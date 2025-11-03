@@ -96,41 +96,44 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         }
 
         /// <summary>
-        /// Helper method to produce data into a slot with proper fence handling
+        /// Non-blocking produce: tries to write to slot if fence is ready.
+        /// Returns false if slot is still busy (skip this frame instead of blocking).
         /// </summary>
-        private void ProduceInto(ref Slot slot, NativeArray<EntityBlitContainer> src, JobHandle sysDep, JobHandle prodHandle)
+        private bool TryProduceInto(ref Slot slot, NativeArray<EntityBlitContainer> src, JobHandle prodHandle)
         {
-            // Complete any previous fence on this slot before reusing it
-            if (!slot.Fence.IsCompleted)
-                slot.Fence.Complete();
+            // Early exits: slot busy or no data
+            if (!slot.Fence.IsCompleted) return false;
+            if (src.Length == 0) return false;
 
-            // Ensure slot has capacity
+            // Ensure capacity & resize
             if (slot.Data.Capacity < src.Length)
                 slot.Data.Capacity = src.Length;
 
             slot.Data.ResizeUninitialized(src.Length);
             slot.Count = src.Length;
 
-            // Schedule native-to-native copy job
+            // Schedule native->native memcpy
+            // IMPORTANT: depend only on producer, not on state.Dependency to avoid serialization
             unsafe
             {
                 void* dstPtr = slot.Data.GetUnsafePtr();
                 var job = new MemCpyJob { Src = src, Dst = dstPtr, Count = src.Length };
-                slot.Fence = job.Schedule(JobHandle.CombineDependencies(sysDep, prodHandle));
+                slot.Fence = job.Schedule(prodHandle);
             }
+
+            return true;
         }
 
         /// <summary>
-        /// Helper method to consume data from a slot with proper fence handling
+        /// Non-blocking consume: reads from slot opportunistically if fence is ready.
+        /// No Complete() call - purely wait-free.
         /// </summary>
-        private void ConsumeFrom(ref Slot slot)
+        private void TryConsumeFrom(ref Slot slot)
         {
-            if (slot.Count <= 0 || !slot.Fence.IsCompleted) return;
+            if (slot.Count <= 0) return;
+            if (!slot.Fence.IsCompleted) return; // Not ready yet - skip this frame
 
-            // Complete THIS slot's fence only (no global sync)
-            slot.Fence.Complete();
-
-            // Copy native -> managed on main thread (SAFE)
+            // No Complete() needed; fence is already done
             EnsureManagedCapacity(slot.Count);
             unsafe
             {
@@ -142,6 +145,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             // Hand off to managed bridge systems
             ProcessCacheDataManaged(_managedScratch, slot.Count);
+
+            // Mark slot as consumed (optional - can leave for last-frame visibility)
+            slot.Count = 0;
         }
 
         public void OnUpdate(ref SystemState state)
@@ -162,25 +168,28 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 if (src.Length > 0)
                 {
                     var writeIdx = _writeIndex % 3;
-                    switch (writeIdx)
+                    bool produced = writeIdx switch
                     {
-                        case 0: ProduceInto(ref _s0, src, state.Dependency, producer.ProducerJobHandle); break;
-                        case 1: ProduceInto(ref _s1, src, state.Dependency, producer.ProducerJobHandle); break;
-                        default: ProduceInto(ref _s2, src, state.Dependency, producer.ProducerJobHandle); break;
-                    }
-                    _writeIndex++;
+                        0 => TryProduceInto(ref _s0, src, producer.ProducerJobHandle),
+                        1 => TryProduceInto(ref _s1, src, producer.ProducerJobHandle),
+                        _ => TryProduceInto(ref _s2, src, producer.ProducerJobHandle),
+                    };
+
+                    if (produced)
+                        _writeIndex++;  // Advance only when we actually wrote
+                    // else: slot busy → skip this tick (no stall)
                 }
             }
 
-            // 2) CONSUME: Read previous slot if fence completed
+            // 2) CONSUME: Read previous slot if fence completed (opportunistic, non-blocking)
             if (_writeIndex > 0)
             {
                 var readIdx = (_writeIndex - 1) % 3;
                 switch (readIdx)
                 {
-                    case 0: ConsumeFrom(ref _s0); break;
-                    case 1: ConsumeFrom(ref _s1); break;
-                    default: ConsumeFrom(ref _s2); break;
+                    case 0: TryConsumeFrom(ref _s0); break;
+                    case 1: TryConsumeFrom(ref _s1); break;
+                    default: TryConsumeFrom(ref _s2); break;
                 }
             }
         }
