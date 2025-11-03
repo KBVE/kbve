@@ -35,8 +35,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             private void Execute(Entity resourceEntity, ref Resource resource, ref ResourceDamageAccumulator accumulator, in LocalTransform resourceTransform)
             {
-                // Skip if already depleted
-                if (resource.Data.IsDepleted)
+                // Skip if already depleted or no attacking combatants
+                if (resource.Data.IsDepleted || AttackingCombatants.Length == 0)
                     return;
 
                 // Check all attacking combatants for proximity
@@ -116,6 +116,25 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             }
         }
 
+        [BurstCompile]
+        private partial struct FilterAttackingCombatantsJob : IJobEntity
+        {
+            public NativeList<Entity>.ParallelWriter FilteredEntities;
+            public NativeList<LocalTransform>.ParallelWriter FilteredTransforms;
+            public NativeList<Combatant>.ParallelWriter FilteredCombatants;
+
+            private void Execute(Entity entity, in Combatant combatant, in LocalTransform transform)
+            {
+                // Only include combatants in Attacking state
+                if (combatant.Data.State == CombatantState.Attacking)
+                {
+                    FilteredEntities.AddNoResize(entity);
+                    FilteredTransforms.AddNoResize(transform);
+                    FilteredCombatants.AddNoResize(combatant);
+                }
+            }
+        }
+
         private struct SystemData : IComponentData
         {
             public EntityQuery ResourceQuery;
@@ -168,46 +187,36 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 state.Dependency = addAccumulatorJob.ScheduleParallel(systemData.ResourcesWithoutAccumulatorQuery, state.Dependency);
             }
 
-            // Get all attacking combatants
-            var attackingCombatantsFilter = systemData.AttackingCombatantQuery.ToEntityArray(Allocator.TempJob);
-            var combatantTransforms = systemData.AttackingCombatantQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
-            var combatants = systemData.AttackingCombatantQuery.ToComponentDataArray<Combatant>(Allocator.TempJob);
-
-            // Filter to only those in Attacking state
-            NativeList<Entity> filteredEntities = new NativeList<Entity>(Allocator.TempJob);
-            NativeList<LocalTransform> filteredTransforms = new NativeList<LocalTransform>(Allocator.TempJob);
-            NativeList<Combatant> filteredCombatants = new NativeList<Combatant>(Allocator.TempJob);
-
-            for (int i = 0; i < combatants.Length; i++)
+            // Pre-allocate filtered lists with estimated capacity to avoid resizing
+            var combatantCount = systemData.AttackingCombatantQuery.CalculateEntityCount();
+            if (combatantCount == 0)
             {
-                if (combatants[i].Data.State == CombatantState.Attacking)
-                {
-                    filteredEntities.Add(attackingCombatantsFilter[i]);
-                    filteredTransforms.Add(combatantTransforms[i]);
-                    filteredCombatants.Add(combatants[i]);
-                }
+                return; // Early exit if no combatants at all
             }
 
-            // Dispose original arrays
-            attackingCombatantsFilter.Dispose();
-            combatantTransforms.Dispose();
-            combatants.Dispose();
+            NativeList<Entity> filteredEntities = new NativeList<Entity>(combatantCount, Allocator.TempJob);
+            NativeList<LocalTransform> filteredTransforms = new NativeList<LocalTransform>(combatantCount, Allocator.TempJob);
+            NativeList<Combatant> filteredCombatants = new NativeList<Combatant>(combatantCount, Allocator.TempJob);
 
-            // Early exit if no attacking combatants
-            if (filteredEntities.Length == 0)
+            // Use Burst-compiled job to filter attacking combatants asynchronously
+            var filterJob = new FilterAttackingCombatantsJob
             {
-                filteredEntities.Dispose();
-                filteredTransforms.Dispose();
-                filteredCombatants.Dispose();
-                return;
-            }
+                FilteredEntities = filteredEntities.AsParallelWriter(),
+                FilteredTransforms = filteredTransforms.AsParallelWriter(),
+                FilteredCombatants = filteredCombatants.AsParallelWriter()
+            };
+            state.Dependency = filterJob.ScheduleParallel(systemData.AttackingCombatantQuery, state.Dependency);
 
-            // Apply damage job
+            // Early exit check will be done after job completes (via dependency chain)
+            // Note: We can't check filteredEntities.Length here without completing the job
+            // So we'll let the ApplyDamageJob handle empty arrays efficiently
+
+            // Apply damage job - use AsDeferredJobArray() to avoid blocking on filter job completion
             var applyDamageJob = new ApplyDamageJob
             {
-                AttackingCombatants = filteredEntities.AsArray(),
-                CombatantTransforms = filteredTransforms.AsArray(),
-                Combatants = filteredCombatants.AsArray(),
+                AttackingCombatants = filteredEntities.AsDeferredJobArray(),
+                CombatantTransforms = filteredTransforms.AsDeferredJobArray(),
+                Combatants = filteredCombatants.AsDeferredJobArray(),
                 DeltaTime = SystemAPI.Time.DeltaTime
             };
             state.Dependency = applyDamageJob.ScheduleParallel(state.Dependency);
