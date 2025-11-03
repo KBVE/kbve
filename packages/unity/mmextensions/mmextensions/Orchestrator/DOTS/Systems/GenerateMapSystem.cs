@@ -63,7 +63,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
             _ = state.EntityManager.AddComponentData(state.SystemHandle, new SystemData { Rand = new Random(1u) });
         }
 
@@ -87,7 +87,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             var generateMapJob = new GenerateMapJob
             {
-                ECB = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
+                // Use BeginSimulation ECB to avoid blocking - map entities spawn at start of next frame
+                ECB = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter(),
                 MapSize = mapSettings.size,
                 TimestampMs = (long)(SystemAPI.Time.ElapsedTime * 1000.0), // Convert Unity time to milliseconds
                 PosRands = posRands,

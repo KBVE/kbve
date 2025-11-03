@@ -13,19 +13,33 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// Note: TransformSystemGroup and PhysicsSystemGroup update within SimulationSystemGroup.
     /// We run at OrderLast to ensure we capture all position updates from this frame.
     /// </summary>
+    [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
     public partial struct EntityDataPositionSyncSystem : ISystem
     {
+        [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // Only process entities with both EntityComponent and LocalToWorld that have moved
-            foreach (var (entityComponent, localToWorld) in SystemAPI.Query<RefRW<EntityComponent>, RefRO<LocalToWorld>>()
-                .WithChangeFilter<LocalToWorld>()) // Only entities whose position changed this frame
+            // Schedule the position sync job to run asynchronously
+            // Uses WithChangeFilter to only process entities whose position changed this frame
+            var syncJob = new SyncPositionJob();
+            state.Dependency = syncJob.ScheduleParallel(state.Dependency);
+        }
+
+        /// <summary>
+        /// Burst-compiled job that syncs EntityData.WorldPos with LocalToWorld position
+        /// Only runs on entities that moved this frame (change filter)
+        /// </summary>
+        [BurstCompile]
+        [WithChangeFilter(typeof(LocalToWorld))]
+        private partial struct SyncPositionJob : IJobEntity
+        {
+            private void Execute(ref EntityComponent entityComponent, in LocalToWorld localToWorld)
             {
                 // Update stored EntityData.WorldPos to match current position
-                var entityData = entityComponent.ValueRO.Data;
-                entityData.WorldPos = localToWorld.ValueRO.Position;
-                entityComponent.ValueRW.Data = entityData;
+                var entityData = entityComponent.Data;
+                entityData.WorldPos = localToWorld.Position;
+                entityComponent.Data = entityData;
             }
         }
     }
