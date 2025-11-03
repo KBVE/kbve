@@ -31,10 +31,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             [ReadOnly] public NativeArray<Entity> AttackingCombatants;
             [ReadOnly] public NativeArray<LocalTransform> CombatantTransforms;
             [ReadOnly] public NativeArray<Combatant> Combatants;
-            public ComponentLookup<ResourceDamageAccumulator> DamageAccumulatorLookup;
             public float DeltaTime;
 
-            private void Execute(Entity resourceEntity, ref Resource resource, in LocalTransform resourceTransform)
+            private void Execute(Entity resourceEntity, ref Resource resource, ref ResourceDamageAccumulator accumulator, in LocalTransform resourceTransform)
             {
                 // Skip if already depleted
                 if (resource.Data.IsDepleted)
@@ -62,14 +61,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         const float DAMAGE_PER_SECOND = 1.0f;
                         float damageThisFrame = DAMAGE_PER_SECOND * DeltaTime;
 
-                        // Get or create damage accumulator
-                        if (!DamageAccumulatorLookup.HasComponent(resourceEntity))
-                        {
-                            // Will be added by separate job - skip this frame
-                            break;
-                        }
-
-                        var accumulator = DamageAccumulatorLookup[resourceEntity];
+                        // Accumulate damage directly on the component
                         accumulator.AccumulatedDamage += damageThisFrame;
 
                         // Only reduce Amount when accumulated damage >= 1.0
@@ -89,9 +81,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                             resource.Data = newData;
                         }
-
-                        // Save accumulator
-                        DamageAccumulatorLookup[resourceEntity] = accumulator;
 
                         // Only take damage from one combatant per frame (prevents multi-hit)
                         break;
@@ -139,9 +128,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             var systemData = new SystemData();
 
-            // Query for all resources
+            // Query for all resources with damage accumulator
             var resourceQueryBuilder = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<Resource, LocalTransform>();
+                .WithAll<Resource, LocalTransform, ResourceDamageAccumulator>();
             systemData.ResourceQuery = state.GetEntityQuery(resourceQueryBuilder);
             resourceQueryBuilder.Dispose();
 
@@ -219,7 +208,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 AttackingCombatants = filteredEntities.AsArray(),
                 CombatantTransforms = filteredTransforms.AsArray(),
                 Combatants = filteredCombatants.AsArray(),
-                DamageAccumulatorLookup = SystemAPI.GetComponentLookup<ResourceDamageAccumulator>(false),
                 DeltaTime = SystemAPI.Time.DeltaTime
             };
             state.Dependency = applyDamageJob.ScheduleParallel(state.Dependency);
