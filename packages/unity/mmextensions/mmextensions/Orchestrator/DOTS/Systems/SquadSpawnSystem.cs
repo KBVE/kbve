@@ -20,7 +20,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public void OnCreate(ref SystemState state)
         {
             state.RequireForUpdate<SquadDefaultSettings>();
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
 
             var typeArray = new NativeArray<ComponentType>(4, Allocator.Temp);
             typeArray[0] = ComponentType.ReadOnly<WorldPosition2D>();
@@ -43,7 +43,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             var systemData = SystemAPI.GetComponent<SystemData>(state.SystemHandle);
 
-            var ecb = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
+            // Use BeginSimulation ECB to avoid blocking - squad spawns at start of next frame
+            var ecb = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged);
             var squadSettings = SystemAPI.GetSingleton<SquadDefaultSettings>();
             var soldierCount = squadSettings.SoldierCount;
 

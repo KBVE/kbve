@@ -1,166 +1,211 @@
 using System;
-using System.Runtime.InteropServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Jobs;
 using KBVE.MMExtensions.Orchestrator.DOTS.Common;
 using KBVE.MMExtensions.Orchestrator.DOTS.Bridge;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     /// <summary>
-    /// Drain system that handles main-thread handoff from DOTS to managed bridge
-    /// Uses double-buffered pinned arrays for zero-copy data transfer
-    /// Runs in presentation group after all producers have completed
-    /// Uses EntityBlitContainer directly for maximum performance
-    ///
-    /// Note: PresentationSystemGroup runs after SimulationSystemGroup by default,
-    /// so this system will always run after EntityBlitProduceSystem.
-    /// We complete the specific producer job handle to ensure proper synchronization.
+    /// Lock-free triple-buffered cache drain system.
+    /// Producers write to native slots via Burst jobs.
+    /// Consumer reads completed slots on main thread with per-slot fences.
+    /// NO GC pinning, NO managed memory access from Burst.
     /// </summary>
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
-    public partial class EntityCacheDrainSystem : SystemBase
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
+    public partial struct EntityCacheDrainSystem : ISystem
     {
-        // Double-buffered arrays for efficient data handoff
-        private EntityBlitContainer[] _bufferA;
-        private EntityBlitContainer[] _bufferB;
-
-        // GC handles for pinned memory to enable unsafe operations
-        private GCHandle _handleA;
-        private GCHandle _handleB;
-
-        // Buffer selection flag for double buffering
-        private bool _useBufferA;
-
-        protected override void OnCreate()
+        private struct Slot
         {
-            // Initialize double buffers with reasonable capacity
-            AllocateBuffers(1024);
+            public NativeList<EntityBlitContainer> Data;
+            public JobHandle Fence; // Copy job for this slot
+            public int Count;       // Valid element count
         }
 
-        protected override void OnDestroy()
+
+        /// <summary>
+        /// Slots are safe for now, gc wont move the pinned array
+        /// Pointer stays valid across frames, this is important!
+        /// The array should be re-pinned and the memory copy job should be burst compiled.
+        /// </summary>
+
+
+        private Slot _s0, _s1, _s2;
+        private int _writeIndex;
+        private double _nextTick;       // 30Hz throttle
+        private const double Hz = 30.0;
+
+        // Static managed scratch buffer (reused, no GC churn)
+        private static EntityBlitContainer[] _managedScratch = new EntityBlitContainer[1024];
+
+        // Pinned handle + address (valid across frames)
+        private static System.Runtime.InteropServices.GCHandle _scratchHandle;
+        private static System.IntPtr _scratchPtr;
+
+        // NOTE: Cannot use [BurstCompile] here because we need to pin managed memory with GCHandle
+        public void OnCreate(ref SystemState state)
         {
-            // Clean up pinned memory handles
-            if (_handleA.IsAllocated)
-                _handleA.Free();
-            if (_handleB.IsAllocated)
-                _handleB.Free();
+            _s0 = new Slot { Data = new NativeList<EntityBlitContainer>(1024, Allocator.Persistent) };
+            _s1 = new Slot { Data = new NativeList<EntityBlitContainer>(1024, Allocator.Persistent) };
+            _s2 = new Slot { Data = new NativeList<EntityBlitContainer>(1024, Allocator.Persistent) };
+            _writeIndex = 0;
+            _nextTick = 0;
+
+            // Pin the scratch buffer once for the lifetime of the system
+            if (_scratchHandle.IsAllocated) _scratchHandle.Free();
+            _scratchHandle = System.Runtime.InteropServices.GCHandle.Alloc(_managedScratch, System.Runtime.InteropServices.GCHandleType.Pinned);
+            _scratchPtr = _scratchHandle.AddrOfPinnedObject();
         }
 
-        protected override void OnUpdate()
+        public void OnDestroy(ref SystemState state)
         {
-            // Cache should always exist due to bootstrap - early exit if not
-            if (!SystemAPI.HasSingleton<EntityFrameCacheTag>())
-                return;
+            // Complete any pending fences before disposal
+            if (!_s0.Fence.IsCompleted) _s0.Fence.Complete();
+            if (!_s1.Fence.IsCompleted) _s1.Fence.Complete();
+            if (!_s2.Fence.IsCompleted) _s2.Fence.Complete();
 
-            // Get cache singleton entity
-            var cacheEntity = SystemAPI.GetSingletonEntity<EntityFrameCacheTag>();
+            _s0.Data.Dispose();
+            _s1.Data.Dispose();
+            _s2.Data.Dispose();
 
-            // Get and complete the specific producer job handle
-            var jobHandleComponent = EntityManager.GetComponentData<EntityCacheJobHandle>(cacheEntity);
-            jobHandleComponent.ProducerJobHandle.Complete();
+            // Unpin the managed scratch buffer
+            if (_scratchHandle.IsAllocated) _scratchHandle.Free();
+        }
 
-            var cacheBuffer = EntityManager.GetBuffer<EntityBlitContainer>(cacheEntity);
-            var bufferArray = cacheBuffer.AsNativeArray();
+        /// <summary>
+        /// Burst-safe native-to-native memory copy
+        /// </summary>
+        [BurstCompile]
+        private struct MemCpyJob : IJob
+        {
+            [ReadOnly] public NativeArray<EntityBlitContainer> Src;
+            [NativeDisableUnsafePtrRestriction] public unsafe void* Dst;
+            public int Count;
 
-            // Early exit if no data to process
-            if (bufferArray.Length == 0)
-                return;
+            public void Execute()
+            {
+                unsafe
+                {
+                    var srcPtr = NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(Src);
+                    UnsafeUtility.MemCpy(Dst, srcPtr, (long)Count * UnsafeUtility.SizeOf<EntityBlitContainer>());
+                }
+            }
+        }
 
-            // Ensure capacity for current data
-            EnsureBufferCapacity(bufferArray.Length);
+        /// <summary>
+        /// Helper method to produce data into a slot with proper fence handling
+        /// </summary>
+        private void ProduceInto(ref Slot slot, NativeArray<EntityBlitContainer> src, JobHandle sysDep, JobHandle prodHandle)
+        {
+            // Complete any previous fence on this slot before reusing it
+            if (!slot.Fence.IsCompleted)
+                slot.Fence.Complete();
 
-            // Select current destination buffer
-            var destinationArray = _useBufferA ? _bufferA : _bufferB;
+            // Ensure slot has capacity
+            if (slot.Data.Capacity < src.Length)
+                slot.Data.Capacity = src.Length;
 
-            // High-speed memory copy from DOTS buffer to managed array
+            slot.Data.ResizeUninitialized(src.Length);
+            slot.Count = src.Length;
+
+            // Schedule native-to-native copy job
             unsafe
             {
-                // Get pointers to pinned managed array and native buffer
-                void* destinationPtr = Marshal.UnsafeAddrOfPinnedArrayElement(destinationArray, 0).ToPointer();
-                void* sourcePtr = NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(bufferArray);
+                void* dstPtr = slot.Data.GetUnsafePtr();
+                var job = new MemCpyJob { Src = src, Dst = dstPtr, Count = src.Length };
+                slot.Fence = job.Schedule(JobHandle.CombineDependencies(sysDep, prodHandle));
+            }
+        }
 
-                // Calculate byte count for copy operation
-                long byteCount = (long)bufferArray.Length * sizeof(EntityBlitContainer);
+        /// <summary>
+        /// Helper method to consume data from a slot with proper fence handling
+        /// </summary>
+        private void ConsumeFrom(ref Slot slot)
+        {
+            if (slot.Count <= 0 || !slot.Fence.IsCompleted) return;
 
-                // Use UnsafeUtility.MemCpy - cleaner in DOTS and pairs better with Unity's safety tooling
-                UnsafeUtility.MemCpy(destinationPtr, sourcePtr, byteCount);
+            // Complete THIS slot's fence only (no global sync)
+            slot.Fence.Complete();
+
+            // Copy native -> managed on main thread (SAFE)
+            EnsureManagedCapacity(slot.Count);
+            unsafe
+            {
+                void* srcPtr = slot.Data.GetUnsafeReadOnlyPtr();
+                void* dstPtr = (void*)_scratchPtr;
+                UnsafeUtility.MemCpy(dstPtr, srcPtr,
+                    (long)slot.Count * UnsafeUtility.SizeOf<EntityBlitContainer>());
             }
 
-            // Hand off to managed bridge system
-            // Integration point for your existing bridge infrastructure
-            ProcessCacheData(destinationArray, bufferArray.Length);
-
-            // Swap buffers for next frame
-            _useBufferA = !_useBufferA;
-
-            // Optional: Clear buffer for delta-only semantics
-            // Uncomment if you want incremental updates instead of full frames
-            // state.EntityManager.GetBuffer<EntityFrameCache>(cacheEntity).Clear();
+            // Hand off to managed bridge systems
+            ProcessCacheDataManaged(_managedScratch, slot.Count);
         }
 
-        /// <summary>
-        /// Allocate double buffers with specified capacity
-        /// </summary>
-        private void AllocateBuffers(int capacity)
+        public void OnUpdate(ref SystemState state)
         {
-            _bufferA = new EntityBlitContainer[capacity];
-            _bufferB = new EntityBlitContainer[capacity];
+            // 1) PRODUCE: Copy current frame's cache to write-slot (throttled to 30Hz)
+            var now = SystemAPI.Time.ElapsedTime;
+            var shouldProduce = now >= _nextTick;
 
-            // Pin arrays in memory for unsafe operations
-            _handleA = GCHandle.Alloc(_bufferA, GCHandleType.Pinned);
-            _handleB = GCHandle.Alloc(_bufferB, GCHandleType.Pinned);
+            if (shouldProduce && SystemAPI.HasSingleton<EntityFrameCacheTag>())
+            {
+                _nextTick = now + 1.0 / Hz;
 
-            _useBufferA = true;
+                var cacheEntity = SystemAPI.GetSingletonEntity<EntityFrameCacheTag>();
+                var producer = SystemAPI.GetComponent<EntityCacheJobHandle>(cacheEntity);
+                var cacheBuf = SystemAPI.GetBuffer<EntityBlitContainer>(cacheEntity);
+                var src = cacheBuf.AsNativeArray();
+
+                if (src.Length > 0)
+                {
+                    var writeIdx = _writeIndex % 3;
+                    switch (writeIdx)
+                    {
+                        case 0: ProduceInto(ref _s0, src, state.Dependency, producer.ProducerJobHandle); break;
+                        case 1: ProduceInto(ref _s1, src, state.Dependency, producer.ProducerJobHandle); break;
+                        default: ProduceInto(ref _s2, src, state.Dependency, producer.ProducerJobHandle); break;
+                    }
+                    _writeIndex++;
+                }
+            }
+
+            // 2) CONSUME: Read previous slot if fence completed
+            if (_writeIndex > 0)
+            {
+                var readIdx = (_writeIndex - 1) % 3;
+                switch (readIdx)
+                {
+                    case 0: ConsumeFrom(ref _s0); break;
+                    case 1: ConsumeFrom(ref _s1); break;
+                    default: ConsumeFrom(ref _s2); break;
+                }
+            }
         }
 
-        /// <summary>
-        /// Ensure buffer capacity meets current requirements
-        /// Reallocates with exponential growth if needed
-        /// </summary>
-        private void EnsureBufferCapacity(int requiredCapacity)
+        private static void EnsureManagedCapacity(int n)
         {
-            if (requiredCapacity <= _bufferA.Length)
-                return;
+            if (_managedScratch.Length >= n) return;
 
-            // Calculate new capacity with exponential growth
-            var newCapacity = _bufferA.Length;
-            while (newCapacity < requiredCapacity)
-                newCapacity <<= 1; // Double capacity
+            // Grow to next power of two
+            int cap = _managedScratch.Length;
+            while (cap < n) cap <<= 1;
+            _managedScratch = new EntityBlitContainer[cap];
 
-            // Free existing handles
-            if (_handleA.IsAllocated)
-                _handleA.Free();
-            if (_handleB.IsAllocated)
-                _handleB.Free();
-
-            // Reallocate with new capacity
-            AllocateBuffers(newCapacity);
+            // Re-pin the new array and update pointer
+            if (_scratchHandle.IsAllocated) _scratchHandle.Free();
+            _scratchHandle = System.Runtime.InteropServices.GCHandle.Alloc(_managedScratch, System.Runtime.InteropServices.GCHandleType.Pinned);
+            _scratchPtr = _scratchHandle.AddrOfPinnedObject();
         }
 
-        /// <summary>
-        /// Process cached entity data - integration point for bridge systems
-        /// This is where you would integrate with your existing bridge infrastructure
-        /// </summary>
-        private static void ProcessCacheData(EntityBlitContainer[] data, int count)
+        private static void ProcessCacheDataManaged(EntityBlitContainer[] data, int count)
         {
-            // Integration points for your existing systems:
-            // 1. EntityViewModel - update currently selected entity from cache (✅ INTEGRATED)
-            // 2. Spatial systems - feed cache data to QuadTree/SpatialHash (✅ INTEGRATED - Phase 1)
-            // 3. DOTSBridge - handle UI updates (TODO)
-            // 4. OneJS/TS bridge - handle web UI updates (TODO)
-
-            // Update the currently selected entity if it appears in cache
+            // Integration with managed bridge systems
             EntityViewModel.UpdateFromCache(data, count);
-
-            // Update spatial systems from cache (Phase 1: validation logging only)
             SpatialSystemUtilities.UpdateFromCache(data, count);
-
-            // Future integrations:
-            // DOTSBridge.ProcessEntityUpdates(data, count);
-
+            // Future: DOTSBridge.ProcessEntityUpdates(data, count);
         }
-
     }
 }

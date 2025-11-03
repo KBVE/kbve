@@ -16,7 +16,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             if (!SystemAPI.TryGetSingleton<SquadDefaultSettings>(out var squadSettings))
                 return;
 
-            _ = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).Instantiate(squadSettings.soldierPrefab);
+            // Use BeginSimulation ECB instead of EndSimulation to avoid blocking
+            // Spawn will occur at the start of next frame, spreading the cost
+            _ = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).Instantiate(squadSettings.soldierPrefab);
         }
     }
 }

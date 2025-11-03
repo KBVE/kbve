@@ -38,9 +38,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     }
                     var requireSoldier = RequireSoldierData[squadIndex];
                     var distributionCount = math.min(SoldierEntities.Length - soldierIndex, requireSoldier.count);
-                    soldierLinkBuffer.Capacity += distributionCount;
 
-                    for (int i = soldierIndex; i < distributionCount; i++)
+                    // Use EnsureCapacity instead of Capacity += for efficient buffer allocation
+                    var neededCapacity = soldierLinkBuffer.Length + distributionCount;
+                    if (soldierLinkBuffer.Capacity < neededCapacity)
+                        soldierLinkBuffer.EnsureCapacity(neededCapacity);
+
+                    for (int i = soldierIndex; i < soldierIndex + distributionCount; i++)
                     {
                         var soldierEntity = SoldierEntities[i];
                         _ = soldierLinkBuffer.Add(new SoldierLink { entity = soldierEntity });
@@ -90,6 +94,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         public void OnUpdate(ref SystemState state)
         {
             var systemData = SystemAPI.GetComponent<SystemData>(state.SystemHandle);
+
+            // Early exit if no work to do - avoids expensive ECB operations
+            if (systemData.SoldierLessSquadQuery.IsEmpty || systemData.FreeSoldiersQuery.IsEmpty)
+            {
+                return;
+            }
+
             var squadEntities = systemData.SoldierLessSquadQuery.ToEntityListAsync(Allocator.TempJob, out var squadEntitiesGatherHandle);
             var requireSoldierData = systemData.SoldierLessSquadQuery.ToComponentDataListAsync<RequireSoldier>(Allocator.TempJob, state.Dependency, out var requireSoldier_GatherHandle);
             var soldierEntities = systemData.FreeSoldiersQuery.ToEntityListAsync(Allocator.TempJob, out var soldierEntitiesGatherHandle);
@@ -98,7 +109,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 SquadEntities = squadEntities,
                 RequireSoldierData = requireSoldierData,
                 SoldierEntities = soldierEntities,
-                ECB = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged),
+                // Use BeginSimulation ECB instead of EndSimulation to avoid blocking
+                // Commands will play back at the start of next frame, spreading cost
+                ECB = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged),
                 SoldierLink_BFE = SystemAPI.GetBufferLookup<SoldierLink>(false),
                 RequireSoldier_CDFE_WO = SystemAPI.GetComponentLookup<RequireSoldier>(false)
             };
@@ -110,6 +123,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             inputHandles[3] = state.Dependency;
 
             state.Dependency = distributeJob.ScheduleByRef(JobHandle.CombineDependencies(inputHandles));
+
+            // Note: We don't manually call AddJobHandleForProducer in Burst-compiled systems.
+            // The ECB system automatically tracks dependencies through the EntityCommandBuffer
+            // that was created from the singleton. The job writes to the ECB, and when the
+            // BeginSimulationEntityCommandBufferSystem runs, it will properly wait for our job.
+
             _ = squadEntities.Dispose(state.Dependency);
             _ = requireSoldierData.Dispose(state.Dependency);
             _ = soldierEntities.Dispose(state.Dependency);
