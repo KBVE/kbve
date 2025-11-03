@@ -13,8 +13,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             {
                 var entity = GetEntity(TransformUsageFlags.None);
                 AddComponent<SoldierTag>(entity);
-                AddComponent<MovingTag>(entity);
-                SetComponentEnabled<MovingTag>(entity, false);
+                // MovingTag removed - combatants use Combatant.State for movement control
                 AddComponent<Destination>(entity);
                 AddComponent<MoveTimer>(entity);
                 AddComponent(entity, new MoveSpeed { value = authoring.MoveSpeed });

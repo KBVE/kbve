@@ -44,10 +44,10 @@ namespace KBVE.SSDB.SupabaseFDW
         private SupabaseClientWrapper _clientWrapper;
         private CancellationTokenSource _cts;
 
-        public ReactiveProperty<bool> Initialized { get; } = new(false);
-        public ReactiveProperty<Session?> CurrentSession { get; } = new(null);
-        public ReactiveProperty<User?> CurrentUser { get; } = new(null);
-        public ReactiveProperty<bool> Online { get; } = new(false);
+        public SynchronizedReactiveProperty<bool> Initialized { get; } = new(false);
+        public SynchronizedReactiveProperty<Session?> CurrentSession { get; } = new(null);
+        public SynchronizedReactiveProperty<User?> CurrentUser { get; } = new(null);
+        public SynchronizedReactiveProperty<bool> Online { get; } = new(false);
 
         public Client Client => _clientWrapper?.Client;
 
@@ -80,6 +80,7 @@ namespace KBVE.SSDB.SupabaseFDW
             }
             catch (Exception e)
             {
+                Debug.LogError($"[SupabaseInstance] Failed to initialize Supabase client: {e.Message}");
                 Operator.D($"Failed to initialize Supabase client: {e.Message}");
                 PostMessage(NotificationType.Debug, $"Initialization Error {e.GetType()}", e);
                 throw;
@@ -91,7 +92,7 @@ namespace KBVE.SSDB.SupabaseFDW
             _clientWrapper.Client.Auth.AddStateChangedListener((sender, state) => UnityAuthListener(state, sender.CurrentSession));
             _clientWrapper.Client.Auth.LoadSession();
             _clientWrapper.Client.Auth.Options.AllowUnconfirmedUserSessions = true;
-            
+
             var currentSession = _clientWrapper.Client.Auth.CurrentSession;
             if (currentSession != null)
             {
@@ -123,25 +124,50 @@ namespace KBVE.SSDB.SupabaseFDW
             Operator.D($"[SSDB] Connection state set to: {Online.Value}");
 
             // Always try to initialize, even if offline
-            try 
+            try
             {
-                await _clientWrapper.Client.InitializeAsync();
+                // Add timeout to prevent hanging indefinitely
+                var initTask = _clientWrapper.Client.InitializeAsync().AsUniTask();
+                var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(10), cancellationToken: cancellationToken);
+                var (hasResultLeft, _) = await UniTask.WhenAny(initTask, timeoutTask);
+
+                // hasResultLeft is true if the first task (initTask) completed, false if second task (timeoutTask) completed
+                if (!hasResultLeft)
+                {
+                    Debug.LogError("[SupabaseInstance] Client.InitializeAsync() timed out after 10 seconds");
+                    throw new TimeoutException("Supabase Client.InitializeAsync() timed out after 10 seconds");
+                }
+
                 Operator.D("[SSDB] Client initialized successfully");
-                
+
                 if (_clientWrapper.Client.Auth.Online)
                 {
-                    await _clientWrapper.Client.Auth.Settings();
-                    Operator.D("[SSDB] Auth settings retrieved successfully");
+                    // Add timeout to Settings() as well
+                    var settingsTask = _clientWrapper.Client.Auth.Settings().AsUniTask();
+                    var settingsTimeoutTask = UniTask.Delay(TimeSpan.FromSeconds(10), cancellationToken: cancellationToken);
+                    var (settingsHasResultLeft, _) = await UniTask.WhenAny(settingsTask, settingsTimeoutTask);
+
+                    if (!settingsHasResultLeft)
+                    {
+                        Debug.LogWarning("[SupabaseInstance] Auth.Settings() timed out after 10 seconds, continuing anyway");
+                    }
+                    else
+                    {
+                        Operator.D("[SSDB] Auth settings retrieved successfully");
+                    }
                 }
             }
             catch (Exception e)
             {
+                Debug.LogError($"[SupabaseInstance] Client initialization error: {e.Message}");
+                Debug.LogException(e);
                 Operator.D($"[SSDB] Client initialization error: {e.Message}");
                 PostMessage(NotificationType.Error, $"Supabase client initialization failed: {e.Message}", e);
                 throw; // This should fail the startup
             }
 
             Initialized.Value = true;
+            Operator.D("[SSDB] Supabase initialization completed");
         }
 
         private void UnityAuthListener(Constants.AuthState state, Session session)
