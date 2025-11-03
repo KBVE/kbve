@@ -178,11 +178,10 @@ namespace KBVE.SSDB
                 //     .As<IDisposable>();
 
                 // Register the IRC bridge component if provided
-                // Use RegisterComponent to ensure dependency injection
+                // RegisterComponent will inject dependencies, then we manually call Initialize from Start
                 if (ircBridge != null)
                 {
-                    builder.RegisterComponent(ircBridge)
-                        .As<IInitializable>();
+                    builder.RegisterComponent(ircBridge).AsSelf();
                 }
             }
 
