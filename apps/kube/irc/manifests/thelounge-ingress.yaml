@@ -7,15 +7,11 @@ metadata:
         cert-manager.io/cluster-issuer: letsencrypt-http
         nginx.ingress.kubernetes.io/backend-protocol: 'HTTP'
         nginx.ingress.kubernetes.io/proxy-hide-headers: X-Frame-Options
-        nginx.ingress.kubernetes.io/proxy-read-timeout: '600'
-        nginx.ingress.kubernetes.io/proxy-send-timeout: '600'
+        nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
         nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
-        nginx.ingress.kubernetes.io/websocket-services: "thelounge-service,ergo-irc-service"
-        nginx.ingress.kubernetes.io/configuration-snippet: |
-            proxy_set_header Upgrade $http_upgrade;
-            proxy_set_header Connection "upgrade";
-            proxy_set_header X-Forwarded-For $remote_addr;
-            proxy_set_header X-Forwarded-Proto $scheme;
+        nginx.ingress.kubernetes.io/upstream-hash-by: "$http_upgrade"
 
 spec:
     ingressClassName: nginx
