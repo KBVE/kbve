@@ -1,7 +1,7 @@
 ---
 title: 'November: 4th'
 category: Daily
-date: 2024-11-04 12:00:00
+date: 2025-11-04 12:00:00
 client: Self
 unsplash: 1721332154373-17e78d19b4a4
 img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
@@ -11,6 +11,23 @@ tags:
 ---
 
 import { Adsense, Tasks } from '@kbve/astropad';
+
+## 2025
+
+### Deadlock got my mind going crazy.
+
+-	01:25PM
+
+	Solved my first major bug with the godot and rust bridge!
+	This was a deadlock that was a pain to find because the error was not in the output!
+	It turns out that my buffers were just way too small and that we needed to update them to work with the amount of data that was being processed.
+	Next I need to figure out the best way to handle websockets.
+
+-	1:41PM
+
+	Ergo supports websockets by default, so that means I could just update the kubernetes to use them.
+	There are two sides to this, one will be getting the internal nginx to work within the current ergo eco-system.
+	Finally the other side might be to make our own reverse proxy for the IRC.
 
 ## 2024
 
