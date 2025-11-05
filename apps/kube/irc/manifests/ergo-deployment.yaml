@@ -29,6 +29,8 @@ spec:
                         name: ircs
                       - containerPort: 8080
                         name: websocket
+                      - containerPort: 8067
+                        name: websocket-proxy
                       - containerPort: 6060
                         name: metrics
                   volumeMounts:
