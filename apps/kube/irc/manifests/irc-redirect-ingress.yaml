@@ -5,8 +5,9 @@ metadata:
     namespace: irc
     annotations:
         cert-manager.io/cluster-issuer: letsencrypt-http
-        nginx.ingress.kubernetes.io/permanent-redirect: 'https://chat.kbve.com'
-        nginx.ingress.kubernetes.io/permanent-redirect-code: '301'
+        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+        nginx.ingress.kubernetes.io/proxy-read-timeout: '600'
+        nginx.ingress.kubernetes.io/proxy-send-timeout: '600'
 spec:
     ingressClassName: nginx
     tls:
@@ -17,10 +18,10 @@ spec:
         - host: irc.kbve.com
           http:
               paths:
-                  - path: /
+                  - path: /webirc
                     pathType: Prefix
                     backend:
                         service:
-                            name: dummy-service
+                            name: ergo-irc-service
                             port:
-                                number: 80
+                                number: 8067
