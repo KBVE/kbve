@@ -31,6 +31,8 @@ data:
             key: /etc/ssl/certs/tls.key        
         ":8080":
           websocket: true
+        ":8067":
+          websocket: true
     
     # Data storage
     datastore:
