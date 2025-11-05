@@ -5,9 +5,7 @@ metadata:
     namespace: irc
     annotations:
         cert-manager.io/cluster-issuer: letsencrypt-http
-        nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
-        nginx.ingress.kubernetes.io/proxy-read-timeout: '600'
-        nginx.ingress.kubernetes.io/proxy-send-timeout: '600'
+        nginx.ingress.kubernetes.io/permanent-redirect: https://chat.kbve.com$request_uri
 spec:
     ingressClassName: nginx
     tls:
@@ -18,7 +16,7 @@ spec:
         - host: irc.kbve.com
           http:
               paths:
-                  - path: /webirc
+                  - path: /
                     pathType: Prefix
                     backend:
                         service:
