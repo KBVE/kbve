@@ -43,6 +43,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 
         public void OnUpdate(ref SystemState state)
         {
+            // IMPORTANT: Complete dependencies before accessing ComponentLookup
+            // This system reads from multiple component types that may be written by jobs
+            state.Dependency.Complete();
+
+            //  11-04-2025 - Need to double check if the state.Dependency.Complete ends up becoming blocking.
+
             // Update component lookups
             _entityLookup.Update(ref state);
             _l2wLookup.Update(ref state);

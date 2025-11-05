@@ -6,6 +6,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Physics;
+using NSprites;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -58,7 +59,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             public float DeltaTime;
 
-            private void Execute(ref LocalTransform transform, ref PhysicsVelocity velocity,
+            private void Execute(ref WorldPosition2D worldPos, ref PhysicsVelocity velocity,
                                ref MoveTimer timer, in Destination destination, in Combatant combatant)
             {
                 // Only move if in states that allow movement
@@ -75,8 +76,20 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     return;
                 }
 
-                // Normal movement logic for valid movement states
-                velocity.Linear = (math.normalize(destination.Value - transform.Position.xy) * 2f).ToFloat3();
+                // velocity.Linear = (math.normalize(destination.Value - transform.Position.xy) * 2f).ToFloat3();
+                // PERFORMANCE OPTIMIZATION: Update WorldPosition2D (cheap simulation position)
+                // LocalTransform will be synced by VisibleEntitySyncSystem
+                // We use kinematic movement (position-based) instead of physics velocity
+                var direction = math.normalize(destination.Value - worldPos.Value);
+
+                // Update simulation position directly (kinematic movement)
+                worldPos.Value += direction * 2f * DeltaTime;
+
+                // Clear physics velocity to prevent double movement
+                // (VisibleEntitySyncSystem will sync WorldPosition2D → LocalTransform)
+                velocity.Linear = float3.zero;
+                velocity.Angular = float3.zero;
+
                 timer.RemainingTime = math.max(0, timer.RemainingTime - DeltaTime);
             }
         }

@@ -12,7 +12,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
 [WorldSystemFilter(WorldSystemFilterFlags.Default | WorldSystemFilterFlags.Editor)]
 [UpdateInGroup(typeof(PresentationSystemGroup))]
-[UpdateAfter(typeof(SpriteRenderingSystem))]
+[UpdateAfter(typeof(SpriteRenderingUpdateSystem))]
 public partial struct DrawSquadInSceneViewSystem : ISystem
 {
     private struct EnableSquadDrawing : IComponentData { }
