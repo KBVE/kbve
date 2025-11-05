@@ -13,7 +13,7 @@ spec:
     tls:
         - hosts:
               - irc.kbve.com
-          secretName: irc-redirect-tls
+          secretName: ergo-irc-tls-secret
     rules:
         - host: irc.kbve.com
           http:
