@@ -30,22 +30,23 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             );
 
             // Create query for entities with all required components
+            // Note: We don't require Resource/Combatant/etc. components - they are optional
             _sourceQuery = state.GetEntityQuery(
                 ComponentType.ReadOnly<EntityComponent>(),
                 ComponentType.ReadOnly<LocalToWorld>()
             );
 
-            // Set change filters to only wake when data changes - critical for performance
-            // Unity allows max 2 change filters - using LocalToWorld and EntityComponent
-            // Note: Resource damage updates trigger EntityComponent changes via EntityDataPositionSyncSystem
-            _sourceQuery.SetChangedVersionFilter(typeof(LocalToWorld));
-            _sourceQuery.AddChangedVersionFilter(typeof(EntityComponent));
+            // OPTIMIZATION REMOVED: Change filters were causing static resources to disappear from cache
+            // Systems like CombatantAttackResourceSystem need ALL entities in the cache, not just changed ones
+            // TODO: Consider re-adding change filters with a separate "full snapshot" mode
+            //_sourceQuery.SetChangedVersionFilter(typeof(LocalToWorld));
+            //_sourceQuery.AddChangedVersionFilter(typeof(EntityComponent));
         }
 
         public void OnUpdate(ref SystemState state)
         {
-            // Early exit if no changed entities
-            if (_sourceQuery.IsEmptyIgnoreFilter)
+            // Early exit if no entities match the query
+            if (_sourceQuery.IsEmpty)
             {
                 // Store a default completed job handle so drain system doesn't wait on stale data
                 if (SystemAPI.HasSingleton<EntityFrameCacheTag>())
@@ -70,6 +71,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Get component type handles for reading data
             var entityTypeHandle = state.GetComponentTypeHandle<EntityComponent>(true);
             var l2wTypeHandle = state.GetComponentTypeHandle<LocalToWorld>(true);
+            var resourceTypeHandle = state.GetComponentTypeHandle<Resource>(true);
+            var combatantTypeHandle = state.GetComponentTypeHandle<Combatant>(true);
 
             // Create parallel stream for lock-free data gathering
             var stream = new NativeStream(chunkCount, Allocator.TempJob);
@@ -80,6 +83,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             {
                 EntityTypeHandle = entityTypeHandle,
                 L2WTypeHandle = l2wTypeHandle,
+                ResourceTypeHandle = resourceTypeHandle,
+                CombatantTypeHandle = combatantTypeHandle,
                 OutStream = stream.AsWriter()
             };
             var gatherDependency = gatherJob.ScheduleParallel(_sourceQuery, state.Dependency);
@@ -109,12 +114,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// Parallel job that gathers entity data from entity chunks
         /// Executes in parallel across multiple chunks for maximum throughput
         /// Uses IJobChunk to avoid ToArchetypeChunkArray blocking call
+        /// Populates type-specific component data (Resource, Combatant, etc.)
         /// </summary>
         [BurstCompile]
         private struct GatherEntityDataJobChunk : IJobChunk
         {
             [ReadOnly] public ComponentTypeHandle<EntityComponent> EntityTypeHandle;
             [ReadOnly] public ComponentTypeHandle<LocalToWorld> L2WTypeHandle;
+            [ReadOnly] public ComponentTypeHandle<Resource> ResourceTypeHandle;
+            [ReadOnly] public ComponentTypeHandle<Combatant> CombatantTypeHandle;
 
             public NativeStream.Writer OutStream;
 
@@ -123,16 +131,20 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 var entityComponents = chunk.GetNativeArray(ref EntityTypeHandle);
                 var transforms = chunk.GetNativeArray(ref L2WTypeHandle);
 
+                // Check what components this chunk has
+                bool hasResource = chunk.Has(ref ResourceTypeHandle);
+                bool hasCombatant = chunk.Has(ref CombatantTypeHandle);
+
                 OutStream.BeginForEachIndex(unfilteredChunkIndex);
 
                 // Process each entity in the chunk
                 for (int i = 0; i < chunk.Count; i++)
                 {
-                    // Create EntityBlitContainer using existing infrastructure
+                    // Create EntityBlitContainer with base entity data
                     var blitContainer = new EntityBlitContainer
                     {
                         EntityData = entityComponents[i].Data,
-                        // Type-specific data flags default to false
+                        // Initialize all flags to false
                         HasResource = false,
                         HasStructure = false,
                         HasCombatant = false,
@@ -140,9 +152,22 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         HasPlayer = false
                     };
 
-                    // TODO: Add logic to populate type-specific data based on additional components
-                    // This could be extended to check for Resource, Structure, Combatant, etc. components
-                    // and populate the corresponding data fields in the EntityBlitContainer
+                    // Populate type-specific data if components exist
+                    if (hasResource)
+                    {
+                        var resourceArray = chunk.GetNativeArray(ref ResourceTypeHandle);
+                        blitContainer.HasResource = true;
+                        blitContainer.Resource = resourceArray[i].Data;
+                    }
+
+                    if (hasCombatant)
+                    {
+                        var combatantArray = chunk.GetNativeArray(ref CombatantTypeHandle);
+                        blitContainer.HasCombatant = true;
+                        blitContainer.Combatant = combatantArray[i].Data;
+                    }
+
+                    // TODO: Add Structure, Item, Player component population as needed
 
                     OutStream.Write(blitContainer);
                 }
