@@ -312,4 +312,32 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             UseCacheBasedUpdates = false // Can enable for cache-based optimization
         };
     }
+
+    /// <summary>
+    /// Singleton component that stores the QuadTree for spatial queries.
+    /// This allows Burst jobs to access the QuadTree for fast spatial lookups.
+    /// </summary>
+    public struct QuadTreeSingleton : IComponentData
+    {
+        /// <summary>
+        /// The QuadTree data structure for spatial queries.
+        /// Accessible from Burst jobs for high-performance radius/rectangle queries.
+        /// </summary>
+        public QuadTree2D QuadTree;
+
+        /// <summary>
+        /// Frame number when the QuadTree was last updated
+        /// </summary>
+        public uint LastUpdateFrame;
+
+        /// <summary>
+        /// Whether the QuadTree is currently valid and ready for queries
+        /// </summary>
+        public bool IsValid;
+    }
+
+    /// <summary>
+    /// Tag component marking the entity that owns the spatial data structures
+    /// </summary>
+    public struct SpatialSystemTag : IComponentData { }
 }

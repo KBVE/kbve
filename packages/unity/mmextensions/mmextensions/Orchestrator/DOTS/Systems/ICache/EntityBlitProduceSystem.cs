@@ -20,6 +20,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     {
         private EntityQuery _sourceQuery;
         private ComponentTypeSet _requiredComponents;
+        private double _nextUpdateTime;
+        private const double UpdateHz = 30.0; // Match drain system throttle rate (must match EntityCacheDrainSystem.Hz)
 
         public void OnCreate(ref SystemState state)
         {
@@ -45,6 +47,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         public void OnUpdate(ref SystemState state)
         {
+            // Throttle updates to match drain system (30Hz)
+            // This prevents wasted CPU cycles producing cache faster than it's consumed
+            var now = SystemAPI.Time.ElapsedTime;
+            if (now < _nextUpdateTime)
+            {
+                return; // Skip this frame - not time to update yet
+            }
+            _nextUpdateTime = now + (1.0 / UpdateHz);
+
             // Early exit if no entities match the query
             if (_sourceQuery.IsEmpty)
             {
