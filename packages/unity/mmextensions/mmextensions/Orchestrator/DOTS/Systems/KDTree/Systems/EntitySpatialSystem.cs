@@ -15,12 +15,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     [BurstCompile]
     public partial struct EntitySpatialSystem : ISystem
     {
-        private QuadTree2D _quadTree;
         private EntityQuery _spatialEntitiesQuery;
         private EntityQuery _configQuery;
+        private EntityQuery _quadTreeQuery;
         private NativeHashMap<Entity, float2> _lastKnownPositions;
         private uint _frameCounter;
-        private bool _isInitialized;
 
         [BurstCompile]
         public void OnCreate(ref SystemState state)
@@ -34,8 +33,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 .WithAll<SpatialSystemConfig>()
                 .Build();
 
+            _quadTreeQuery = SystemAPI.QueryBuilder()
+                .WithAll<QuadTreeSingleton, SpatialSystemTag>()
+                .Build();
+
             _frameCounter = 0;
-            _isInitialized = false;
             _lastKnownPositions = new NativeHashMap<Entity, float2>(1000, Allocator.Persistent);
 
             // Require config to exist
@@ -47,11 +49,22 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             _frameCounter++;
 
-            // Initialize QuadTree if needed
-            if (!_isInitialized)
+            // Initialize QuadTree singleton if needed
+            if (_quadTreeQuery.IsEmpty)
             {
-                InitializeQuadTree(ref state);
-                if (!_isInitialized) return;
+                InitializeQuadTreeSingleton(ref state);
+                return;
+            }
+
+            // Get QuadTree singleton
+            var quadTreeEntity = _quadTreeQuery.GetSingletonEntity();
+            var quadTreeSingleton = state.EntityManager.GetComponentData<QuadTreeSingleton>(quadTreeEntity);
+
+            // Verify QuadTree is valid
+            if (!quadTreeSingleton.IsValid)
+            {
+                InitializeQuadTreeSingleton(ref state);
+                return;
             }
 
             // Get system configuration
@@ -63,7 +76,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             {
                 // Cache-based mode: QuadTree is updated from EntityCacheDrainSystem via SpatialSystemUtilities
                 // We still need to clear the QuadTree here for fresh data each frame
-                _quadTree.Clear();
+                quadTreeSingleton.QuadTree.Clear();
+                quadTreeSingleton.LastUpdateFrame = _frameCounter;
+                state.EntityManager.SetComponentData(quadTreeEntity, quadTreeSingleton);
 
                 // Skip the expensive ECS query - cache will provide the data
                 return;
@@ -71,21 +86,28 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             // LEGACY PATH: Direct ECS query (used when UseCacheBasedUpdates = false)
             // Clear the QuadTree for fresh data
-            _quadTree.Clear();
+            quadTreeSingleton.QuadTree.Clear();
 
             // Update spatial index with current entity positions
             var updateJob = new UpdateSpatialIndexJob
             {
-                QuadTree = _quadTree,
+                QuadTree = quadTreeSingleton.QuadTree,
                 LastKnownPositions = _lastKnownPositions,
                 FrameCounter = _frameCounter
             };
 
             state.Dependency = updateJob.ScheduleParallel(_spatialEntitiesQuery, state.Dependency);
 
-            // PERFORMANCE FIX: Removed blocking Complete() call
-            // Jobs now run asynchronously - systems that need QuadTree data must complete dependency themselves
-            // This prevents main thread blocking when updating spatial index
+            // Update the singleton with the modified QuadTree after job completes
+            // Note: We schedule a follow-up job to write back to the singleton
+            var writeBackJob = new WriteQuadTreeBackJob
+            {
+                QuadTreeEntity = quadTreeEntity,
+                QuadTree = quadTreeSingleton.QuadTree,
+                FrameCounter = _frameCounter,
+                QuadTreeLookup = state.GetComponentLookup<QuadTreeSingleton>(false)
+            };
+            state.Dependency = writeBackJob.Schedule(state.Dependency);
 
             // Periodic rebuild if configured
             if (config.RebuildFrequency > 0 && _frameCounter % config.RebuildFrequency == 0)
@@ -94,21 +116,41 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             }
         }
 
-        private void InitializeQuadTree(ref SystemState state)
+        private void InitializeQuadTreeSingleton(ref SystemState state)
         {
             if (!_configQuery.IsEmpty)
             {
                 var config = SystemAPI.GetSingleton<SpatialSystemConfig>();
                 var bounds = new AABB2D(config.WorldOrigin + config.WorldSize * 0.5f, config.WorldSize);
 
-                _quadTree = new QuadTree2D(
+                var quadTree = new QuadTree2D(
                     bounds,
                     config.MaxQuadTreeDepth,
                     config.MaxEntitiesPerNode,
                     Allocator.Persistent
                 );
 
-                _isInitialized = true;
+                // Create or get singleton entity
+                Entity singletonEntity;
+                if (_quadTreeQuery.IsEmpty)
+                {
+                    singletonEntity = state.EntityManager.CreateEntity();
+                    state.EntityManager.AddComponent<SpatialSystemTag>(singletonEntity);
+                    state.EntityManager.SetName(singletonEntity, "QuadTreeSingleton");
+                }
+                else
+                {
+                    singletonEntity = _quadTreeQuery.GetSingletonEntity();
+                }
+
+                // Store QuadTree in singleton
+                var singleton = new QuadTreeSingleton
+                {
+                    QuadTree = quadTree,
+                    LastUpdateFrame = 0,
+                    IsValid = true
+                };
+                state.EntityManager.AddComponentData(singletonEntity, singleton);
             }
         }
 
@@ -121,32 +163,40 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
-            if (_quadTree.IsCreated)
-                _quadTree.Dispose();
+            // Dispose QuadTree from singleton
+            if (!_quadTreeQuery.IsEmpty)
+            {
+                var quadTreeEntity = _quadTreeQuery.GetSingletonEntity();
+                var singleton = state.EntityManager.GetComponentData<QuadTreeSingleton>(quadTreeEntity);
+                if (singleton.QuadTree.IsCreated)
+                {
+                    singleton.QuadTree.Dispose();
+                }
+            }
 
             if (_lastKnownPositions.IsCreated)
                 _lastKnownPositions.Dispose();
         }
+    }
 
-        /// <summary>
-        /// Get the QuadTree for spatial queries (read-write access for cache updates)
-        /// </summary>
-        public QuadTree2D GetQuadTree() => _quadTree;
+    /// <summary>
+    /// Job to write the QuadTree back to the singleton component after updates
+    /// </summary>
+    [BurstCompile]
+    public partial struct WriteQuadTreeBackJob : IJob
+    {
+        public Entity QuadTreeEntity;
+        public QuadTree2D QuadTree;
+        public uint FrameCounter;
+        public ComponentLookup<QuadTreeSingleton> QuadTreeLookup;
 
-        /// <summary>
-        /// Set the QuadTree (used by cache-based updates)
-        /// </summary>
-        public void SetQuadTree(QuadTree2D quadTree) => _quadTree = quadTree;
-
-        /// <summary>
-        /// Check if the spatial system is properly initialized
-        /// </summary>
-        public bool IsInitialized => _isInitialized && _quadTree.IsCreated;
-
-        /// <summary>
-        /// Get the last known positions map (for cache-based incremental updates)
-        /// </summary>
-        public NativeHashMap<Entity, float2> GetLastKnownPositions() => _lastKnownPositions;
+        public void Execute()
+        {
+            var singleton = QuadTreeLookup[QuadTreeEntity];
+            singleton.QuadTree = QuadTree;
+            singleton.LastUpdateFrame = FrameCounter;
+            QuadTreeLookup[QuadTreeEntity] = singleton;
+        }
     }
 
     /// <summary>
