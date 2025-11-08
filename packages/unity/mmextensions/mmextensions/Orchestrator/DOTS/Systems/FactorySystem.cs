@@ -57,7 +57,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            state.RequireForUpdate<EndSimulationEntityCommandBufferSystem.Singleton>();
+            state.RequireForUpdate<BeginSimulationEntityCommandBufferSystem.Singleton>();
         }
 
         [BurstCompile]
@@ -68,7 +68,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 DeltaTime = SystemAPI.Time.DeltaTime,
                 TimestampMs = (long)(SystemAPI.Time.ElapsedTime * 1000.0), // Convert Unity time to milliseconds
                 RandomSeed = (uint)(SystemAPI.Time.ElapsedTime * 1000000.0), // Use high-precision time as random seed
-                ECB = SystemAPI.GetSingleton<EndSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
+                // Use BeginSimulation ECB to avoid blocking - entities spawn at start of next frame
+                ECB = SystemAPI.GetSingleton<BeginSimulationEntityCommandBufferSystem.Singleton>().CreateCommandBuffer(state.WorldUnmanaged).AsParallelWriter()
             };
             state.Dependency = productionJob.ScheduleParallelByRef(state.Dependency);
         }

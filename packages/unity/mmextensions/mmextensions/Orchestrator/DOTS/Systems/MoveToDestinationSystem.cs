@@ -6,6 +6,7 @@ using Unity.Entities;
 using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Physics;
+using NSprites;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
@@ -23,7 +24,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             [ReadOnly] public ComponentTypeHandle<MoveSpeed> MoveSpeed_CTH_RO;
             [ReadOnly] public ComponentTypeHandle<LocalToWorld> LTW_CTH_RO;
             [ReadOnly] public ComponentTypeHandle<Destination> Destination_CTH_RO;
-            public ComponentTypeHandle<MovingTag> MovingTag_CTH_RW;
             public uint LastSystemVersion;
 
             public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
@@ -43,8 +43,6 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         if (distance > Threshold)
                         {
                             timers[entityIndex] = new MoveTimer { RemainingTime = GetRemainingTime(distance, moveSpeeds[entityIndex].value) };
-                            if (!chunk.IsComponentEnabled(ref MovingTag_CTH_RW, entityIndex))
-                                chunk.SetComponentEnabled(ref MovingTag_CTH_RW, entityIndex, true);
                         }
                     }
                 }
@@ -57,21 +55,42 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 => distance / speed;
         }
         [BurstCompile]
-        [WithAll(typeof(MovingTag))]
         private partial struct MoveJob : IJobEntity
         {
             public float DeltaTime;
-            [NativeDisableParallelForRestriction] public ComponentLookup<MovingTag> MovingTag_CL_RW;
 
-            private void Execute(Entity entity, ref LocalTransform transform, ref PhysicsVelocity velocity, ref MoveTimer timer, in Destination destination)
+            private void Execute(ref WorldPosition2D worldPos, ref PhysicsVelocity velocity,
+                               ref MoveTimer timer, in Destination destination, in Combatant combatant)
             {
-                var remainingDelta = math.max(timer.RemainingTime, DeltaTime - timer.RemainingTime);
-                // move pos in a direction of current destination by passed frac of whole remaining move time
-                velocity.Linear = (math.normalize(destination.Value - transform.Position.xy) * 2f).ToFloat3();
-                timer.RemainingTime = math.max(0, timer.RemainingTime - DeltaTime);
+                // Only move if in states that allow movement
+                bool canMove = combatant.Data.State == CombatantState.Idle
+                            || combatant.Data.State == CombatantState.Chasing
+                            || combatant.Data.State == CombatantState.Patrolling
+                            || combatant.Data.State == CombatantState.Fleeing;
 
-                if (timer.RemainingTime == 0f)
-                    MovingTag_CL_RW.SetComponentEnabled(entity, false);
+                if (!canMove || combatant.Data.IsDead)
+                {
+                    // Stop velocity for attacking, dead, stunned, casting, channeling states
+                    velocity.Linear = float3.zero;
+                    velocity.Angular = float3.zero;
+                    return;
+                }
+
+                // velocity.Linear = (math.normalize(destination.Value - transform.Position.xy) * 2f).ToFloat3();
+                // PERFORMANCE OPTIMIZATION: Update WorldPosition2D (cheap simulation position)
+                // LocalTransform will be synced by VisibleEntitySyncSystem
+                // We use kinematic movement (position-based) instead of physics velocity
+                var direction = math.normalize(destination.Value - worldPos.Value);
+
+                // Update simulation position directly (kinematic movement)
+                worldPos.Value += direction * 2f * DeltaTime;
+
+                // Clear physics velocity to prevent double movement
+                // (VisibleEntitySyncSystem will sync WorldPosition2D → LocalTransform)
+                velocity.Linear = float3.zero;
+                velocity.Angular = float3.zero;
+
+                timer.RemainingTime = math.max(0, timer.RemainingTime - DeltaTime);
             }
         }
         #endregion
@@ -107,15 +126,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 MoveSpeed_CTH_RO = SystemAPI.GetComponentTypeHandle<MoveSpeed>(true),
                 LTW_CTH_RO = SystemAPI.GetComponentTypeHandle<LocalToWorld>(true),
                 Destination_CTH_RO = SystemAPI.GetComponentTypeHandle<Destination>(true),
-                MovingTag_CTH_RW = SystemAPI.GetComponentTypeHandle<MovingTag>(false),
                 LastSystemVersion = state.LastSystemVersion
             };
             state.Dependency = calculateMoveTimerJob.ScheduleParallelByRef(systemData.MovableQuery, state.Dependency);
 
+            // Schedule movement (state-based for all entities)
             var moveJob = new MoveJob
             {
-                DeltaTime = SystemAPI.Time.DeltaTime,
-                MovingTag_CL_RW = SystemAPI.GetComponentLookup<MovingTag>(false)
+                DeltaTime = SystemAPI.Time.DeltaTime
             };
             state.Dependency = moveJob.ScheduleParallelByRef(state.Dependency);
         }

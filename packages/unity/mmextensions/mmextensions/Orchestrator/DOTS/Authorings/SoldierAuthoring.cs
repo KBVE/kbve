@@ -1,6 +1,7 @@
 using Unity.Entities;
 using Unity.Physics;
 using UnityEngine;
+using Unity.Mathematics;
 using KBVE.MMExtensions.Orchestrator.DOTS.Common;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
@@ -11,10 +12,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             public override void Bake(SoldierAuthoring authoring)
             {
-                var entity = GetEntity(TransformUsageFlags.None);
+                var entity = GetEntity(TransformUsageFlags.Dynamic); // 11-04-2025 Switched from "None" to "Dynamic", but might revert.
                 AddComponent<SoldierTag>(entity);
-                AddComponent<MovingTag>(entity);
-                SetComponentEnabled<MovingTag>(entity, false);
+                // MovingTag removed - combatants use Combatant.State for movement control
+                // TODO: Debug if we want to use localTransform or switch to WorldPosition , 11-04-2025
                 AddComponent<Destination>(entity);
                 AddComponent<MoveTimer>(entity);
                 AddComponent(entity, new MoveSpeed { value = authoring.MoveSpeed });

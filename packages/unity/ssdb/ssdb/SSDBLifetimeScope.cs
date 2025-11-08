@@ -149,12 +149,11 @@ namespace KBVE.SSDB
             .As<IDisposable>();
 
             // Register the Supabase bridge component if provided
-            // Use RegisterComponent to ensure dependency injection
+            // RegisterComponent will inject dependencies, then we manually call Initialize from Start
             if (supabaseBridge != null)
             {
                 Debug.Log("[SSDBLifetimeScope] Registering SupabaseBridge component for VContainer injection");
-                builder.RegisterComponent(supabaseBridge)
-                    .As<IInitializable>();
+                builder.RegisterComponent(supabaseBridge).AsSelf();
             }
             else
             {
@@ -179,11 +178,10 @@ namespace KBVE.SSDB
                 //     .As<IDisposable>();
 
                 // Register the IRC bridge component if provided
-                // Use RegisterComponent to ensure dependency injection
+                // RegisterComponent will inject dependencies, then we manually call Initialize from Start
                 if (ircBridge != null)
                 {
-                    builder.RegisterComponent(ircBridge)
-                        .As<IInitializable>();
+                    builder.RegisterComponent(ircBridge).AsSelf();
                 }
             }
 

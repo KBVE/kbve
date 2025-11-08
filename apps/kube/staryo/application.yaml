@@ -1,0 +1,24 @@
+apiVersion: argoproj.io/v1alpha1
+kind: Application
+metadata:
+  name: staryo
+  namespace: argocd
+spec:
+  project: default
+  source:
+    repoURL: https://github.com/KBVE/kbve
+    targetRevision: HEAD
+    path: apps/kube/staryo/manifest
+  destination:
+    server: https://kubernetes.default.svc
+    namespace: staryo
+  syncPolicy:
+    automated:
+      prune: true
+      selfHeal: true
+    syncOptions:
+    - CreateNamespace=true
+    - PrunePropagationPolicy=foreground
+    - PruneLast=true
+    - RespectIgnoreDifferences=true
+    - Replace=false

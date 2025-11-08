@@ -7,6 +7,11 @@ metadata:
         cert-manager.io/cluster-issuer: letsencrypt-http
         nginx.ingress.kubernetes.io/backend-protocol: 'HTTP'
         nginx.ingress.kubernetes.io/proxy-hide-headers: X-Frame-Options
+        nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
+        nginx.ingress.kubernetes.io/upstream-hash-by: "$http_upgrade"
 
 spec:
     ingressClassName: nginx
@@ -18,6 +23,13 @@ spec:
         - host: chat.kbve.com
           http:
               paths:
+                  - path: /webirc
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: ergo-irc-service
+                            port:
+                                number: 8067
                   - path: /
                     pathType: Prefix
                     backend:

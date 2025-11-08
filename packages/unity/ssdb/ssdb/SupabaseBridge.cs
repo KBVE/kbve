@@ -138,7 +138,6 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
     public void Initialize()
     {
-        Debug.Log("[SupabaseBridge] Initialize() called by VContainer");
         LogDiagnostic("VContainer Initialize() called");
 
         // Run diagnostics first to understand the container state (only if enabled)
@@ -201,13 +200,11 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
         if (_supabaseInstance != null)
         {
-            Debug.Log("[SupabaseBridge] Supabase services available, calling InitializeWithInjectedServices()");
-            LogDiagnostic("Supabase services available, initializing with injected services");
             InitializeWithInjectedServices().Forget();
         }
         else
         {
-            LogDiagnosticWarning("Supabase services not available after VContainer initialization, will fall back to manual search");
+            LogDiagnosticWarning("Supabase services not available after VContainer initialization");
         }
     }
 
@@ -217,38 +214,22 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
     private void Start()
     {
-        Debug.Log("[SupabaseBridge] Start() called - checking VContainer injection status");
-
-        // Fallback if VContainer initialization didn't work
-        if (_supabaseInstance == null)
-        {
-            Debug.LogWarning("[SupabaseBridge] Supabase services not available via VContainer injection, attempting manual search");
-            LogDiagnosticWarning("Supabase services not available, attempting manual search");
-            InitializeSupabaseConnection().Forget();
-        }
-        else
-        {
-            Debug.Log("[SupabaseBridge] VContainer injection successful, _supabaseInstance is available");
-        }
+        // Call Initialize manually since we're not using RegisterEntryPoint
+        // VContainer will have injected dependencies by now
+        Initialize();
     }
 
     private async UniTaskVoid InitializeWithInjectedServices()
     {
         try
         {
-            Debug.Log($"[SupabaseBridge] InitializeWithInjectedServices() - Supabase initialized: {_supabaseInstance.Initialized.Value}");
-
             // Wait for Supabase to be initialized
             if (!_supabaseInstance.Initialized.Value)
             {
-                Debug.Log("[SupabaseBridge] Waiting for Supabase initialization...");
                 await WaitForSupabaseInitializationAsync(this.GetCancellationTokenOnDestroy());
             }
 
-            Debug.Log("[SupabaseBridge] Calling InitializeBindings()");
             InitializeBindings();
-
-            Debug.Log("[SupabaseBridge] Successfully initialized with injected services");
             LogDiagnostic("Successfully initialized with injected services");
         }
         catch (Exception ex)
@@ -424,35 +405,28 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
             return;
         }
 
-        Debug.Log($"[SupabaseBridge] WaitForSupabaseInitializationAsync: Starting wait, current value: {_supabaseInstance.Initialized.Value}");
         LogDiagnostic("Waiting for Supabase to be initialized...");
 
         try
         {
             // Use UniTask.WaitUntil with timeout for better async handling
             var initTask = UniTask.WaitUntil(
-                () => {
-                    var currentValue = _supabaseInstance.Initialized.Value;
-                    if (currentValue) Debug.Log("[SupabaseBridge] WaitUntil condition met - Supabase is initialized!");
-                    return currentValue;
-                },
+                () => _supabaseInstance.Initialized.Value,
                 cancellationToken: cancellationToken
             );
 
             var timeoutTask = UniTask.Delay(TimeSpan.FromSeconds(30), cancellationToken: cancellationToken);
-
-            Debug.Log("[SupabaseBridge] Starting UniTask.WhenAny wait...");
             var completedTaskIndex = await UniTask.WhenAny(initTask, timeoutTask);
 
             if (completedTaskIndex == 0) // Initialized
             {
-                Debug.Log("[SupabaseBridge] Supabase initialization completed successfully!");
                 LogDiagnostic($"Supabase initialized successfully!");
             }
             else
             {
-                Debug.LogWarning("[SupabaseBridge] Supabase initialization timeout after 30 seconds");
+                Debug.LogError("[SupabaseBridge] Supabase initialization timeout after 30 seconds. Check that SupabaseInstance.StartAsync() completed successfully.");
                 LogDiagnosticWarning("Supabase initialization timeout");
+                JsLastError = "Supabase failed to initialize within 30 seconds. Check Unity console for details.";
             }
         }
         catch (OperationCanceledException)
@@ -536,31 +510,28 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
 
     private void InitializeBindings()
     {
-        Debug.Log("[SupabaseBridge] InitializeBindings() called");
-
         if (_supabaseInstance == null)
         {
-            Debug.LogError("[SupabaseBridge] Cannot initialize bindings - ISupabaseInstance is null!");
             LogDiagnosticError("Cannot initialize bindings - ISupabaseInstance is null!");
             return;
         }
 
-        Debug.Log($"[SupabaseBridge] Initializing bindings - Current Supabase state: Initialized={_supabaseInstance.Initialized.Value}, Online={_supabaseInstance.Online.Value}");
-        LogDiagnostic("✓ Initializing OneJS bindings with Supabase services");
+        LogDiagnostic("Initializing OneJS bindings with Supabase services");
 
         // Subscribe to Supabase Instance properties
-        Debug.Log("[SupabaseBridge] Setting up Initialized property subscription");
+        // SynchronizedReactiveProperty will emit current value immediately on Subscribe
+        LogDiagnostic($"[INIT] About to subscribe. Initialized.Value = {_supabaseInstance.Initialized.Value}");
         _supabaseInstance.Initialized.Subscribe(value =>
         {
-            Debug.Log($"[SupabaseBridge] Supabase Initialized state changed: {value} -> Setting JsIsInitialized = {value}");
-            LogDiagnostic($"Supabase Initialized state changed: {value}");
-            JsIsInitialized = value; // Auto-generated property
+            LogDiagnostic($"[SUBSCRIBE CALLBACK] Initialized changed to: {value}");
+            JsIsInitialized = value;
         }).AddTo(_disposables);
+        LogDiagnostic($"[INIT] After subscribe. JsIsInitialized = {JsIsInitialized}");
 
         _supabaseInstance.Online.Subscribe(value =>
         {
             LogDiagnostic($"Supabase Online state changed: {value}");
-            JsIsOnline = value; // Auto-generated property
+            JsIsOnline = value;
         }).AddTo(_disposables);
 
         _supabaseInstance.CurrentUser.Subscribe(user =>
@@ -591,7 +562,7 @@ public partial class SupabaseBridge : MonoBehaviour, IInitializable
             _authFDW.IsAuthenticated.Subscribe(value =>
             {
                 LogDiagnostic($"Auth FDW authenticated state changed: {value}");
-                JsIsAuthenticated = value; // Auto-generated property
+                JsIsAuthenticated = value;
             }).AddTo(_disposables);
 
             _authFDW.ErrorMessage.Subscribe(error =>

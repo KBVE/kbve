@@ -1,157 +1,245 @@
 using System;
-using System.Runtime.InteropServices;
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Collections.LowLevel.Unsafe;
 using Unity.Entities;
+using Unity.Jobs;
 using KBVE.MMExtensions.Orchestrator.DOTS.Common;
+using KBVE.MMExtensions.Orchestrator.DOTS.Bridge;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     /// <summary>
-    /// Drain system that handles main-thread handoff from DOTS to managed bridge
-    /// Uses double-buffered pinned arrays for zero-copy data transfer
-    /// Runs in presentation group after all producers have completed
-    /// Uses EntityBlitContainer directly for maximum performance
+    /// Lock-free triple-buffered cache drain system.
+    /// Producers write to native slots via Burst jobs.
+    /// Consumer reads completed slots on main thread with per-slot fences.
+    /// NO GC pinning, NO managed memory access from Burst.
     /// </summary>
-    [UpdateInGroup(typeof(PresentationSystemGroup))]
-    [UpdateAfter(typeof(EntityBlitProduceSystem))]
-    public partial class EntityCacheDrainSystem : SystemBase
+    [UpdateInGroup(typeof(SimulationSystemGroup), OrderLast = true)]
+    public partial struct EntityCacheDrainSystem : ISystem
     {
-        // Double-buffered arrays for efficient data handoff
-        private EntityBlitContainer[] _bufferA;
-        private EntityBlitContainer[] _bufferB;
-
-        // GC handles for pinned memory to enable unsafe operations
-        private GCHandle _handleA;
-        private GCHandle _handleB;
-
-        // Buffer selection flag for double buffering
-        private bool _useBufferA;
-
-        protected override void OnCreate()
+        private struct Slot
         {
-            // Initialize double buffers with reasonable capacity
-            AllocateBuffers(1024);
+            public NativeList<EntityBlitContainer> Data;
+            public JobHandle Fence; // Copy job for this slot
+            // Note: Count is now implicit via Data.Length
         }
 
-        protected override void OnDestroy()
+
+        /// <summary>
+        /// Slots are safe for now, gc wont move the pinned array
+        /// Pointer stays valid across frames, this is important!
+        /// The array should be re-pinned and the memory copy job should be burst compiled.
+        /// </summary>
+
+
+        private Slot _s0, _s1, _s2;
+        private int _writeIndex;
+        private double _nextTick;       // 30Hz throttle
+        private const double Hz = 30.0;
+
+        // Static managed scratch buffer (reused, no GC churn)
+        private static EntityBlitContainer[] _managedScratch = new EntityBlitContainer[1024];
+
+        // Pinned handle + address (valid across frames)
+        private static System.Runtime.InteropServices.GCHandle _scratchHandle;
+        private static System.IntPtr _scratchPtr;
+
+        // NOTE: Cannot use [BurstCompile] here because we need to pin managed memory with GCHandle
+        public void OnCreate(ref SystemState state)
         {
-            // Clean up pinned memory handles
-            if (_handleA.IsAllocated)
-                _handleA.Free();
-            if (_handleB.IsAllocated)
-                _handleB.Free();
+            _s0 = new Slot { Data = new NativeList<EntityBlitContainer>(1024, Allocator.Persistent) };
+            _s1 = new Slot { Data = new NativeList<EntityBlitContainer>(1024, Allocator.Persistent) };
+            _s2 = new Slot { Data = new NativeList<EntityBlitContainer>(1024, Allocator.Persistent) };
+            _writeIndex = 0;
+            _nextTick = 0;
+
+            // Pin the scratch buffer once for the lifetime of the system
+            if (_scratchHandle.IsAllocated) _scratchHandle.Free();
+            _scratchHandle = System.Runtime.InteropServices.GCHandle.Alloc(_managedScratch, System.Runtime.InteropServices.GCHandleType.Pinned);
+            _scratchPtr = _scratchHandle.AddrOfPinnedObject();
         }
 
-        protected override void OnUpdate()
+        public void OnDestroy(ref SystemState state)
         {
-            // Cache should always exist due to bootstrap - early exit if not
-            if (!SystemAPI.HasSingleton<EntityFrameCacheTag>())
-                return;
+            // Complete any pending fences before disposal
+            if (!_s0.Fence.IsCompleted) _s0.Fence.Complete();
+            if (!_s1.Fence.IsCompleted) _s1.Fence.Complete();
+            if (!_s2.Fence.IsCompleted) _s2.Fence.Complete();
 
-            // Get cache singleton entity
-            var cacheEntity = SystemAPI.GetSingletonEntity<EntityFrameCacheTag>();
+            _s0.Data.Dispose();
+            _s1.Data.Dispose();
+            _s2.Data.Dispose();
 
-            // Get and complete the specific producer job handle
-            var jobHandleComponent = EntityManager.GetComponentData<EntityCacheJobHandle>(cacheEntity);
-            jobHandleComponent.ProducerJobHandle.Complete();
+            // Unpin the managed scratch buffer
+            if (_scratchHandle.IsAllocated) _scratchHandle.Free();
+        }
 
-            var cacheBuffer = EntityManager.GetBuffer<EntityBlitContainer>(cacheEntity);
-            var bufferArray = cacheBuffer.AsNativeArray();
+        /// <summary>
+        /// Burst-safe job that reads DynamicBuffer inside the job and writes into slot's NativeList.
+        /// This avoids main-thread buffer access which would force a sync.
+        /// </summary>
+        [BurstCompile]
+        private struct CopyFromBufferToListJob : IJob
+        {
+            [ReadOnly] public BufferLookup<EntityBlitContainer> Lookup;
+            public Entity CacheEntity;
 
-            // Early exit if no data to process
-            if (bufferArray.Length == 0)
-                return;
+            // We'll write directly into the destination NativeList
+            // It's single-writer, single job, so it's safe to resize.
+            [NativeDisableContainerSafetyRestriction]
+            public NativeList<EntityBlitContainer> Dst;
 
-            // Ensure capacity for current data
-            EnsureBufferCapacity(bufferArray.Length);
-
-            // Select current destination buffer
-            var destinationArray = _useBufferA ? _bufferA : _bufferB;
-
-            // High-speed memory copy from DOTS buffer to managed array
-            unsafe
+            public void Execute()
             {
-                // Get pointers to pinned managed array and native buffer
-                void* destinationPtr = Marshal.UnsafeAddrOfPinnedArrayElement(destinationArray, 0).ToPointer();
-                void* sourcePtr = NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(bufferArray);
+                var src = Lookup[CacheEntity].AsNativeArray();
+                Dst.Clear();
+                Dst.ResizeUninitialized(src.Length);
 
-                // Calculate byte count for copy operation
-                long byteCount = (long)bufferArray.Length * sizeof(EntityBlitContainer);
+                unsafe
+                {
+                    void* srcPtr = NativeArrayUnsafeUtility.GetUnsafeReadOnlyPtr(src);
+                    void* dstPtr = Dst.GetUnsafePtr();
+                    UnsafeUtility.MemCpy(dstPtr, srcPtr, (long)src.Length * UnsafeUtility.SizeOf<EntityBlitContainer>());
+                }
+            }
+        }
 
-                // Use UnsafeUtility.MemCpy - cleaner in DOTS and pairs better with Unity's safety tooling
-                UnsafeUtility.MemCpy(destinationPtr, sourcePtr, byteCount);
+        /// <summary>
+        /// Non-blocking produce: tries to write to slot if fence is ready.
+        /// Uses BufferLookup job to avoid main-thread buffer access (which would force sync).
+        /// Returns false if slot is still busy (skip this frame instead of blocking).
+        /// Returns the new job handle that must be combined with state.Dependency.
+        /// </summary>
+        private bool TryProduceInto(ref Slot slot, Entity cacheEntity, BufferLookup<EntityBlitContainer> lookup, JobHandle prodHandle, out JobHandle newFence)
+        {
+            // Non-blocking backpressure: skip if slot still busy
+            if (!slot.Fence.IsCompleted)
+            {
+                newFence = default;
+                return false;
             }
 
-            // Hand off to managed bridge system
-            // Integration point for your existing bridge infrastructure
-            ProcessCacheData(destinationArray, bufferArray.Length);
+            // Schedule copy entirely in Burst, no main-thread buffer access
+            var job = new CopyFromBufferToListJob
+            {
+                Lookup = lookup,
+                CacheEntity = cacheEntity,
+                Dst = slot.Data
+            };
 
-            // Swap buffers for next frame
-            _useBufferA = !_useBufferA;
-
-            // Optional: Clear buffer for delta-only semantics
-            // Uncomment if you want incremental updates instead of full frames
-            // state.EntityManager.GetBuffer<EntityFrameCache>(cacheEntity).Clear();
+            // Schedule job depending on producer
+            slot.Fence = job.Schedule(prodHandle);
+            newFence = slot.Fence;
+            return true;
         }
 
         /// <summary>
-        /// Allocate double buffers with specified capacity
+        /// Non-blocking consume: reads from slot opportunistically if fence is ready.
+        /// No Complete() call - purely wait-free.
         /// </summary>
-        private void AllocateBuffers(int capacity)
+        private void TryConsumeFrom(ref Slot slot)
         {
-            _bufferA = new EntityBlitContainer[capacity];
-            _bufferB = new EntityBlitContainer[capacity];
+            if (!slot.Fence.IsCompleted) return; // Not ready yet - skip this frame
 
-            // Pin arrays in memory for unsafe operations
-            _handleA = GCHandle.Alloc(_bufferA, GCHandleType.Pinned);
-            _handleB = GCHandle.Alloc(_bufferB, GCHandleType.Pinned);
+            var len = slot.Data.Length;
+            if (len <= 0) return;
 
-            _useBufferA = true;
+            // No Complete() needed; fence is already done
+            EnsureManagedCapacity(len);
+            unsafe
+            {
+                void* srcPtr = slot.Data.GetUnsafeReadOnlyPtr();
+                void* dstPtr = (void*)_scratchPtr;
+                UnsafeUtility.MemCpy(dstPtr, srcPtr,
+                    (long)len * UnsafeUtility.SizeOf<EntityBlitContainer>());
+            }
+
+            // Hand off to managed bridge systems
+            ProcessCacheDataManaged(_managedScratch, len);
+
+            // Optional: mark slot as consumed (can leave data for last-frame visibility)
+            // slot.Data.Clear();
         }
 
-        /// <summary>
-        /// Ensure buffer capacity meets current requirements
-        /// Reallocates with exponential growth if needed
-        /// </summary>
-        private void EnsureBufferCapacity(int requiredCapacity)
+        public void OnUpdate(ref SystemState state)
         {
-            if (requiredCapacity <= _bufferA.Length)
-                return;
+            // 1) PRODUCE: Copy current frame's cache to write-slot (throttled to 30Hz)
+            var now = SystemAPI.Time.ElapsedTime;
+            var shouldProduce = now >= _nextTick;
 
-            // Calculate new capacity with exponential growth
-            var newCapacity = _bufferA.Length;
-            while (newCapacity < requiredCapacity)
-                newCapacity <<= 1; // Double capacity
+            if (shouldProduce && SystemAPI.HasSingleton<EntityFrameCacheTag>())
+            {
+                _nextTick = now + 1.0 / Hz;
 
-            // Free existing handles
-            if (_handleA.IsAllocated)
-                _handleA.Free();
-            if (_handleB.IsAllocated)
-                _handleB.Free();
+                var cacheEntity = SystemAPI.GetSingletonEntity<EntityFrameCacheTag>();
+                var producer = SystemAPI.GetComponent<EntityCacheJobHandle>(cacheEntity);
 
-            // Reallocate with new capacity
-            AllocateBuffers(newCapacity);
+                // Only a lookup (safe to capture in Burst jobs); no main-thread AsNativeArray()
+                // This avoids the sync that would happen from accessing the DynamicBuffer on main thread
+                var lookup = SystemAPI.GetBufferLookup<EntityBlitContainer>(true);
+
+                var writeIdx = _writeIndex % 3;
+                bool produced;
+                JobHandle newFence;
+
+                switch (writeIdx)
+                {
+                    case 0:
+                        produced = TryProduceInto(ref _s0, cacheEntity, lookup, producer.ProducerJobHandle, out newFence);
+                        break;
+                    case 1:
+                        produced = TryProduceInto(ref _s1, cacheEntity, lookup, producer.ProducerJobHandle, out newFence);
+                        break;
+                    default:
+                        produced = TryProduceInto(ref _s2, cacheEntity, lookup, producer.ProducerJobHandle, out newFence);
+                        break;
+                }
+
+                if (produced)
+                {
+                    _writeIndex++;  // Advance only when we actually wrote
+                    // CRITICAL: Register the job with Unity's dependency system
+                    // This prevents structural changes while the job is running
+                    state.Dependency = JobHandle.CombineDependencies(state.Dependency, newFence);
+                }
+                // else: slot busy → skip this tick (no stall)
+            }
+
+            // 2) CONSUME: Read previous slot if fence completed (opportunistic, non-blocking)
+            if (_writeIndex > 0)
+            {
+                var readIdx = (_writeIndex - 1) % 3;
+                switch (readIdx)
+                {
+                    case 0: TryConsumeFrom(ref _s0); break;
+                    case 1: TryConsumeFrom(ref _s1); break;
+                    default: TryConsumeFrom(ref _s2); break;
+                }
+            }
         }
 
-        /// <summary>
-        /// Process cached entity data - integration point for bridge systems
-        /// This is where you would integrate with your existing bridge infrastructure
-        /// </summary>
-        private static void ProcessCacheData(EntityBlitContainer[] data, int count)
+        private static void EnsureManagedCapacity(int n)
         {
-            // Integration points for your existing systems:
-            // 1. EntityToVmDrainSystem - update view models
-            // 2. DOTSBridge - handle UI updates
-            // 3. Spatial systems - update spatial indices
-            // 4. OneJS/TS bridge - handle web UI updates
+            if (_managedScratch.Length >= n) return;
 
-            // Example integration calls (uncomment when ready):
-            // EntityViewModel.UpdateFromCache(data, count);
-            // DOTSBridge.ProcessEntityUpdates(data, count);
+            // Grow to next power of two
+            int cap = _managedScratch.Length;
+            while (cap < n) cap <<= 1;
+            _managedScratch = new EntityBlitContainer[cap];
 
+            // Re-pin the new array and update pointer
+            if (_scratchHandle.IsAllocated) _scratchHandle.Free();
+            _scratchHandle = System.Runtime.InteropServices.GCHandle.Alloc(_managedScratch, System.Runtime.InteropServices.GCHandleType.Pinned);
+            _scratchPtr = _scratchHandle.AddrOfPinnedObject();
         }
 
+        private static void ProcessCacheDataManaged(EntityBlitContainer[] data, int count)
+        {
+            // Integration with managed bridge systems
+            EntityViewModel.UpdateFromCache(data, count);
+            SpatialSystemUtilities.UpdateFromCache(data, count);
+            // Future: DOTSBridge.ProcessEntityUpdates(data, count);
+        }
     }
 }

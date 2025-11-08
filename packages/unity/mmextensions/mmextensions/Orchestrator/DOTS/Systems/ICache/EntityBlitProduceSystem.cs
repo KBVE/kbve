@@ -1,4 +1,5 @@
 using Unity.Burst;
+using Unity.Burst.Intrinsics;
 using Unity.Collections;
 using Unity.Entities;
 using Unity.Jobs;
@@ -35,6 +36,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             );
 
             // Set change filters to only wake when data changes - critical for performance
+            // Unity allows max 2 change filters - using LocalToWorld and EntityComponent
+            // Note: Resource damage updates trigger EntityComponent changes via EntityDataPositionSyncSystem
             _sourceQuery.SetChangedVersionFilter(typeof(LocalToWorld));
             _sourceQuery.AddChangedVersionFilter(typeof(EntityComponent));
         }
@@ -44,80 +47,83 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Early exit if no changed entities
             if (_sourceQuery.IsEmptyIgnoreFilter)
             {
-                // Complete dependency even if no work to ensure proper ordering
-                state.Dependency.Complete();
+                // Store a default completed job handle so drain system doesn't wait on stale data
+                if (SystemAPI.HasSingleton<EntityFrameCacheTag>())
+                {
+                    var entity = SystemAPI.GetSingletonEntity<EntityFrameCacheTag>();
+                    var emptyHandle = new EntityCacheJobHandle { ProducerJobHandle = default };
+                    state.EntityManager.SetComponentData(entity, emptyHandle);
+                }
                 return;
             }
 
             // Check if cache singleton exists - if not, skip this frame
             if (!SystemAPI.HasSingleton<EntityFrameCacheTag>())
-            {
-                // Complete dependency to maintain proper ordering
-                state.Dependency.Complete();
                 return;
-            }
 
-            // Get archetype chunks for parallel processing
-            var chunks = _sourceQuery.ToArchetypeChunkArray(Allocator.TempJob);
+            // Get cache singleton entity BEFORE scheduling jobs
+            var cacheEntity = SystemAPI.GetSingletonEntity<EntityFrameCacheTag>();
+
+            // Calculate chunk count without materializing chunks (avoids JobHandle.Complete)
+            var chunkCount = _sourceQuery.CalculateChunkCountWithoutFiltering();
 
             // Get component type handles for reading data
             var entityTypeHandle = state.GetComponentTypeHandle<EntityComponent>(true);
             var l2wTypeHandle = state.GetComponentTypeHandle<LocalToWorld>(true);
 
             // Create parallel stream for lock-free data gathering
-            var stream = new NativeStream(chunks.Length, state.WorldUpdateAllocator);
+            var stream = new NativeStream(chunkCount, Allocator.TempJob);
 
-            // Schedule parallel gather job
-            var gatherJob = new GatherEntityDataJob
+            // Schedule parallel gather job using IJobChunk instead of IJobFor
+            // This avoids the ToArchetypeChunkArray() blocking call
+            var gatherJob = new GatherEntityDataJobChunk
             {
-                Chunks = chunks,
                 EntityTypeHandle = entityTypeHandle,
                 L2WTypeHandle = l2wTypeHandle,
                 OutStream = stream.AsWriter()
             };
-            var gatherDependency = gatherJob.Schedule(chunks.Length, state.Dependency);
+            var gatherDependency = gatherJob.ScheduleParallel(_sourceQuery, state.Dependency);
 
-            // Get cache singleton entity and buffer
-            var cacheEntity = SystemAPI.GetSingletonEntity<EntityFrameCacheTag>();
-            var cacheBuffer = state.EntityManager.GetBuffer<EntityBlitContainer>(cacheEntity);
+            // Get buffer accessor for async access
+            var cacheBufferLookup = state.GetBufferLookup<EntityBlitContainer>(false);
 
             // Schedule merge job to consolidate stream data into cache buffer
             // This job must wait for the gather job to complete
             var mergeJob = new MergeStreamToCacheJob
             {
                 InStream = stream.AsReader(),
-                CacheBuffer = cacheBuffer
+                CacheBufferLookup = cacheBufferLookup,
+                CacheEntity = cacheEntity
             };
             var mergeDependency = mergeJob.Schedule(gatherDependency);
 
-            // Set the final dependency for other systems to wait on
-            state.Dependency = mergeDependency;
+            // Dispose stream after merge completes
+            state.Dependency = stream.Dispose(mergeDependency);
 
             // Store the job handle in the singleton for the drain system to access
-            var jobHandleComponent = new EntityCacheJobHandle { ProducerJobHandle = mergeDependency };
+            var jobHandleComponent = new EntityCacheJobHandle { ProducerJobHandle = state.Dependency };
             state.EntityManager.SetComponentData(cacheEntity, jobHandleComponent);
         }
 
         /// <summary>
         /// Parallel job that gathers entity data from entity chunks
         /// Executes in parallel across multiple chunks for maximum throughput
+        /// Uses IJobChunk to avoid ToArchetypeChunkArray blocking call
         /// </summary>
         [BurstCompile]
-        private struct GatherEntityDataJob : IJobFor
+        private struct GatherEntityDataJobChunk : IJobChunk
         {
-            [ReadOnly] public NativeArray<ArchetypeChunk> Chunks;
             [ReadOnly] public ComponentTypeHandle<EntityComponent> EntityTypeHandle;
             [ReadOnly] public ComponentTypeHandle<LocalToWorld> L2WTypeHandle;
 
             public NativeStream.Writer OutStream;
 
-            public void Execute(int chunkIndex)
+            public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in Unity.Burst.Intrinsics.v128 chunkEnabledMask)
             {
-                var chunk = Chunks[chunkIndex];
                 var entityComponents = chunk.GetNativeArray(ref EntityTypeHandle);
                 var transforms = chunk.GetNativeArray(ref L2WTypeHandle);
 
-                OutStream.BeginForEachIndex(chunkIndex);
+                OutStream.BeginForEachIndex(unfilteredChunkIndex);
 
                 // Process each entity in the chunk
                 for (int i = 0; i < chunk.Count; i++)
@@ -148,12 +154,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// <summary>
         /// Single-threaded merge job that consolidates stream data into the cache buffer
         /// Executes after all gather jobs complete
+        /// Uses BufferLookup for async buffer access
         /// </summary>
         [BurstCompile]
         private struct MergeStreamToCacheJob : IJob
         {
             public NativeStream.Reader InStream;
-            public DynamicBuffer<EntityBlitContainer> CacheBuffer;
+            public BufferLookup<EntityBlitContainer> CacheBufferLookup;
+            public Entity CacheEntity;
 
             public void Execute()
             {
@@ -161,9 +169,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 if (totalCount == 0)
                     return;
 
+                // Get buffer via lookup for async access
+                var cacheBuffer = CacheBufferLookup[CacheEntity];
+
                 // Clear previous frame data and resize for new data
-                CacheBuffer.Clear();
-                CacheBuffer.ResizeUninitialized(totalCount);
+                cacheBuffer.Clear();
+                cacheBuffer.ResizeUninitialized(totalCount);
 
                 // Copy stream data directly to buffer for maximum performance
                 int destinationIndex = 0;
@@ -173,7 +184,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     while (InStream.RemainingItemCount > 0)
                     {
                         var blitContainer = InStream.Read<EntityBlitContainer>();
-                        CacheBuffer[destinationIndex++] = blitContainer;
+                        cacheBuffer[destinationIndex++] = blitContainer;
                     }
                     InStream.EndForEachIndex();
                 }

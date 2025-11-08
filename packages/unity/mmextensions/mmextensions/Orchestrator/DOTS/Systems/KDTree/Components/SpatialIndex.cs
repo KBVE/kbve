@@ -282,6 +282,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// </summary>
         public int UpdateBudgetMicroseconds;
 
+        /// <summary>
+        /// Use entity cache for spatial updates (Phase 2 optimization)
+        /// When true, spatial systems receive data from cache instead of querying ECS directly
+        /// </summary>
+        public bool UseCacheBasedUpdates;
+
         public static SpatialSystemConfig Default => new SpatialSystemConfig
         {
             WorldSize = new float2(1000f, 1000f),
@@ -290,7 +296,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             MaxEntitiesPerNode = 16,
             EnableDebugVisualization = false,
             RebuildFrequency = 0,
-            UpdateBudgetMicroseconds = 1000 // 1ms budget
+            UpdateBudgetMicroseconds = 1000, // 1ms budget
+            UseCacheBasedUpdates = false // Phase 2: Enable for cache-based optimization
         };
 
         public static SpatialSystemConfig ForLargeWorld(float2 worldSize) => new SpatialSystemConfig
@@ -301,7 +308,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             MaxEntitiesPerNode = 32,
             EnableDebugVisualization = false,
             RebuildFrequency = 0,
-            UpdateBudgetMicroseconds = 2000 // 2ms budget for large worlds
+            UpdateBudgetMicroseconds = 2000, // 2ms budget for large worlds
+            UseCacheBasedUpdates = false // Can enable for cache-based optimization
         };
     }
 }
