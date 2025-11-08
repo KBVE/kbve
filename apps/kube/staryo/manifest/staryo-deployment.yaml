@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: staryo-deployment
+  namespace: staryo
+  labels:
+    app: staryo
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: staryo
+  template:
+    metadata:
+      labels:
+        app: staryo
+    spec:
+      containers:
+      - name: staryo
+        image: ghcr.io/kbve/staryo:1.0.1
+        ports:
+        - containerPort: 4321
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "4321"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: staryo-service
+  namespace: staryo
+  labels:
+    app: staryo
+spec:
+  type: ClusterIP
+  selector:
+    app: staryo
+  ports:
+  - port: 4321
+    targetPort: 4321
+    protocol: TCP
