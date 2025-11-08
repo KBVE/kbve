@@ -9,7 +9,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     /// <summary>
     /// Optimized system for combatants to detect and attack resources.
-    /// Uses entity cache for resource positions when available (change-filtered).
+    /// Uses ONLY the entity cache from the QuadTree spatial system for maximum performance.
+    /// The cache contains all entities (resources, combatants, etc.) updated by EntityCacheDrainSystem.
     /// Uses Combatant.State for movement control (MoveToDestinationSystem handles state-based movement).
     /// </summary>
     [BurstCompile]
@@ -19,14 +20,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         private partial struct FindAndAttackResourcesJob : IJobEntity
         {
-            // Cache-based resource data (preferred for performance)
+            // Cache-based resource data from QuadTree spatial system
             [ReadOnly] public NativeArray<EntityBlitContainer> CachedResources;
-            [ReadOnly] public bool UseCacheData;
-
-            // Legacy: Direct ECS query (fallback when cache not available)
-            [ReadOnly] public NativeArray<Entity> ResourceEntities;
-            [ReadOnly] public NativeArray<LocalTransform> ResourceTransforms;
-            [ReadOnly] public ComponentLookup<Resource> ResourceLookup;
 
             private void Execute(
                 ref Combatant combatant,
@@ -40,53 +35,22 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 float nearestDistance = float.MaxValue;
                 bool foundResource = false;
 
-                // HYBRID SEARCH: Check BOTH cache and direct query
-                // Cache may contain recently placed resources, direct query has everything
-
-                // 1. Check cache first (if available) - fast for recently changed resources
-                if (UseCacheData && CachedResources.Length > 0)
+                // Search through cache for resources
+                // Cache is populated by EntityCacheDrainSystem -> SpatialSystemUtilities.UpdateFromCache()
+                for (int i = 0; i < CachedResources.Length; i++)
                 {
-                    for (int i = 0; i < CachedResources.Length; i++)
-                    {
-                        var cached = CachedResources[i];
+                    var cached = CachedResources[i];
 
-                        // Only process resources (skip other entity types)
-                        if (!cached.HasResource)
-                            continue;
-
-                        // Skip depleted resources
-                        if (cached.Resource.IsDepleted)
-                            continue;
-
-                        var resourcePos = cached.EntityData.WorldPos;
-                        float distance = math.distance(transform.Position, resourcePos);
-
-                        // Check if resource is within detection range
-                        if (distance <= combatant.Data.DetectionRange && distance < nearestDistance)
-                        {
-                            nearestDistance = distance;
-                            foundResource = true;
-                        }
-                    }
-                }
-
-                // 2. ALWAYS check direct query (contains ALL resources including static ones)
-                for (int i = 0; i < ResourceEntities.Length; i++)
-                {
-                    var resourceEntity = ResourceEntities[i];
-
-                    // Check if resource still exists and has valid data
-                    if (!ResourceLookup.HasComponent(resourceEntity))
+                    // Only process resources (skip other entity types)
+                    if (!cached.HasResource)
                         continue;
-
-                    var resource = ResourceLookup[resourceEntity];
 
                     // Skip depleted resources
-                    if (resource.Data.IsDepleted)
+                    if (cached.Resource.IsDepleted)
                         continue;
 
-                    var resourceTransform = ResourceTransforms[i];
-                    float distance = math.distance(transform.Position, resourceTransform.Position);
+                    var resourcePos = cached.EntityData.WorldPos;
+                    float distance = math.distance(transform.Position, resourcePos);
 
                     // Check if resource is within detection range
                     if (distance <= combatant.Data.DetectionRange && distance < nearestDistance)
@@ -138,9 +102,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         private struct SystemData : IComponentData
         {
-            public EntityQuery CombatantQuery;
-            public EntityQuery ResourceQuery;
-            public NativeArray<EntityBlitContainer> EmptyCacheArray; // Reusable empty array to avoid allocations
+            public NativeArray<EntityBlitContainer> EmptyCacheArray; // Reusable empty array to avoid allocations when cache is empty
         }
 
         [BurstCompile]
@@ -148,19 +110,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             var systemData = new SystemData();
 
-            // Query for combatants with transforms
-            var combatantQueryBuilder = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<Combatant, LocalTransform>();
-            systemData.CombatantQuery = state.GetEntityQuery(combatantQueryBuilder);
-            combatantQueryBuilder.Dispose();
-
-            // Query for resources with transforms
-            var resourceQueryBuilder = new EntityQueryBuilder(Allocator.Temp)
-                .WithAll<Resource, LocalTransform>();
-            systemData.ResourceQuery = state.GetEntityQuery(resourceQueryBuilder);
-            resourceQueryBuilder.Dispose();
-
-            // Create persistent empty array to avoid per-frame allocations when cache is unavailable
+            // Create persistent empty array to avoid per-frame allocations when cache is empty
             systemData.EmptyCacheArray = new NativeArray<EntityBlitContainer>(0, Allocator.Persistent);
 
             state.EntityManager.AddComponentData(state.SystemHandle, systemData);
@@ -181,26 +131,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             var systemData = SystemAPI.GetComponent<SystemData>(state.SystemHandle);
 
-            // HYBRID APPROACH: Use BOTH cache AND direct query
-            // - Cache: Contains recently placed/changed resources (via EntityCommandBuffer updates)
-            // - Direct Query: Contains ALL resources (including old static ones)
-            // This ensures combatants can find both new and old resources
-
-            // ALWAYS query ALL resources (guaranteed to find everything)
-            var resourceEntities = systemData.ResourceQuery.ToEntityArray(Allocator.TempJob);
-            var resourceTransforms = systemData.ResourceQuery.ToComponentDataArray<LocalTransform>(Allocator.TempJob);
-
-            // Early exit if no resources exist at all
-            if (resourceEntities.Length == 0)
-            {
-                resourceEntities.Dispose();
-                resourceTransforms.Dispose();
-                return;
-            }
-
-            // Try to get cache data (optional optimization, not required)
-            NativeArray<EntityBlitContainer> cachedData = default;
-            bool useCacheData = false;
+            // Get cache data from EntityCacheDrainSystem
+            // Cache is populated by EntityCacheDrainSystem -> SpatialSystemUtilities.UpdateFromCache()
+            // and contains ALL entities in the spatial system (resources, combatants, etc.)
+            NativeArray<EntityBlitContainer> cachedData;
 
             var cacheQuery = SystemAPI.QueryBuilder()
                 .WithAll<EntityFrameCacheTag>()
@@ -215,34 +149,31 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     if (cacheBuffer.Length > 0)
                     {
                         cachedData = cacheBuffer.AsNativeArray();
-                        useCacheData = true;
+                    }
+                    else
+                    {
+                        // Cache exists but is empty - use persistent empty array
+                        cachedData = systemData.EmptyCacheArray;
                     }
                 }
+                else
+                {
+                    // Cache entity exists but no buffer - use persistent empty array
+                    cachedData = systemData.EmptyCacheArray;
+                }
             }
-
-            // If no cache available, use persistent empty array (no per-frame allocation)
-            if (!useCacheData)
+            else
             {
+                // Cache not initialized yet - use persistent empty array
                 cachedData = systemData.EmptyCacheArray;
             }
 
             var job = new FindAndAttackResourcesJob
             {
-                // Cache data (optional, only used if UseCacheData = true)
-                CachedResources = cachedData,
-                UseCacheData = useCacheData,
-
-                // Direct query data (contains ALL resources)
-                ResourceEntities = resourceEntities,
-                ResourceTransforms = resourceTransforms,
-                ResourceLookup = SystemAPI.GetComponentLookup<Resource>(true)
+                CachedResources = cachedData
             };
 
             state.Dependency = job.ScheduleParallel(state.Dependency);
-
-            // Dispose arrays after job completes
-            state.Dependency = resourceEntities.Dispose(state.Dependency);
-            state.Dependency = resourceTransforms.Dispose(state.Dependency);
         }
     }
 }
