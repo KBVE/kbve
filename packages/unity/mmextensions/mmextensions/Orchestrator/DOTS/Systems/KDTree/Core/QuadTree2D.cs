@@ -77,6 +77,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private int _maxDepth;
         private int _maxEntriesPerNode;
         private int _rootNodeIndex;
+        private int _nextFreeNodeIndex; // Track next available node for O(1) allocation
         private bool _isCreated;
 
         private const int INVALID_NODE = -1;
@@ -95,6 +96,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             // Create root node
             _rootNodeIndex = 0;
+            _nextFreeNodeIndex = 1; // Start allocating from index 1 (0 is root)
             _nodes[0] = new QuadTreeNode
             {
                 Bounds = bounds,
@@ -176,6 +178,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             rootNode.EntryCount = 0;
             rootNode.FirstChildIndex = INVALID_NODE;
             _nodes[_rootNodeIndex] = rootNode;
+
+            // Reset free node tracking for next build
+            _nextFreeNodeIndex = 1;
         }
 
         private void InsertEntry(int nodeIndex, QuadTreeEntry entry, int depth)
@@ -226,6 +231,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             // Create four child nodes
             var firstChildIndex = GetNextAvailableNodeIndex();
+
+            // SAFETY CHECK: If QuadTree is out of capacity, don't split
+            // This prevents index out of range errors when the tree is full
+            if (firstChildIndex == INVALID_NODE)
+            {
+                // QuadTree is at capacity - can't split further
+                // Entity will stay in this leaf node even if it exceeds MaxEntitiesPerNode
+                // PERFORMANCE WARNING: This will degrade query performance as leaf nodes become overcrowded
+                // Consider increasing MaxQuadTreeDepth in SpatialSystemConfig or reducing entity count
+                // NOTE: Cannot log from Burst job - use Unity Profiler to detect degraded performance
+                return;
+            }
+
             node.FirstChildIndex = firstChildIndex;
             node.IsLeaf = false;
 
@@ -481,16 +499,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         private int GetNextAvailableNodeIndex()
         {
-            // Simple linear search for available node
-            // In a production system, you might want a more sophisticated approach
-            for (int i = 1; i < _nodes.Length; i++)
+            // O(1) node allocation using simple counter
+            // When Clear() is called, _nextFreeNodeIndex resets to 1
+            if (_nextFreeNodeIndex + 4 <= _nodes.Length) // Need 4 nodes for quad split
             {
-                if (_nodes[i].FirstChildIndex == INVALID_NODE && _nodes[i].EntryCount == 0)
-                {
-                    return i;
-                }
+                int index = _nextFreeNodeIndex;
+                _nextFreeNodeIndex += 4; // Reserve 4 nodes for children
+                return index;
             }
-            return INVALID_NODE;
+            return INVALID_NODE; // Out of capacity
         }
 
         public void Dispose()
