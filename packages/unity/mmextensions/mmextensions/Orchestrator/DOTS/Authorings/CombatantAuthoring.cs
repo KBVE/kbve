@@ -79,6 +79,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 {
                     instanceUlid = Ulid.ToBytes(authoring.CombatantULID)  // Template ULID reference
                 });
+
+                // Add SpatialIndex so combatants are included in QuadTree for AI queries
+                // Combatants are dynamic, so update every frame
+                AddComponent(entity, new SpatialIndex
+                {
+                    Radius = authoring.DetectionRange, // Use detection range as collision radius
+                    LayerMask = uint.MaxValue, // Visible to all layers
+                    IncludeInQueries = true, // CRITICAL: Must be true for spatial queries
+                    Priority = 1 // Higher priority than static resources
+                });
+
+                // Add spatial settings for moving units
+                AddComponent(entity, SpatialSettings.MovingUnit);
             }
         }
 

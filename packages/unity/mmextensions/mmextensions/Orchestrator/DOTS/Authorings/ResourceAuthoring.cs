@@ -49,8 +49,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 {
                     instanceUlid = Ulid.ToBytes(authoring.ResourceULID)  // Fixed field name
                 });
-                
-                
+
+                // Add SpatialIndex so resources are included in QuadTree for combat detection
+                // Resources are static, so use larger update frequency
+                AddComponent(entity, new SpatialIndex
+                {
+                    Radius = 1f, // Collision radius for spatial queries
+                    LayerMask = uint.MaxValue, // Visible to all layers
+                    IncludeInQueries = true, // CRITICAL: Must be true for combat system to find resources
+                    Priority = 0
+                });
+
+                // Add spatial settings for static resources
+                AddComponent(entity, SpatialSettings.Static);
             }
         }
 

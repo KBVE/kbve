@@ -337,6 +337,29 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     }
 
     /// <summary>
+    /// Singleton component that stores the KD-Tree for nearest neighbor queries.
+    /// Complements QuadTreeSingleton - use KD-Tree for exact nearest neighbor, QuadTree for radius queries.
+    /// </summary>
+    public struct KDTreeSingleton : IComponentData
+    {
+        /// <summary>
+        /// The KD-Tree data structure for nearest neighbor queries.
+        /// Best for finding exact K-nearest entities, worse for dynamic updates than QuadTree.
+        /// </summary>
+        public KDTree2D KDTree;
+
+        /// <summary>
+        /// Frame number when the KD-Tree was last updated
+        /// </summary>
+        public uint LastUpdateFrame;
+
+        /// <summary>
+        /// Whether the KD-Tree is currently valid and ready for queries
+        /// </summary>
+        public bool IsValid;
+    }
+
+    /// <summary>
     /// Tag component marking the entity that owns the spatial data structures
     /// </summary>
     public struct SpatialSystemTag : IComponentData { }
