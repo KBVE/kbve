@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: staryo
-        image: ghcr.io/kbve/staryo:1.0.2
+        image: ghcr.io/kbve/staryo:1.0.3
         ports:
         - containerPort: 4321
           protocol: TCP
