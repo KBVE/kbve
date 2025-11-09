@@ -18,6 +18,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 // TODO: Debug if we want to use localTransform or switch to WorldPosition , 11-04-2025
                 AddComponent<Destination>(entity);
                 AddComponent<MoveTimer>(entity);
+                AddComponent<SpriteFlipVelocityTag>(entity);
                 AddComponent(entity, new MoveSpeed { value = authoring.MoveSpeed });
 
                 // Add universal EntityComponent for hover/selection system
