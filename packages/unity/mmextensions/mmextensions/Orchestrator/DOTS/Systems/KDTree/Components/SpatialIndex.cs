@@ -314,13 +314,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     }
 
     /// <summary>
-    /// Singleton component that stores the QuadTree for spatial queries.
+    /// Singleton component that stores the DYNAMIC QuadTree for moving entities.
+    /// Rebuilt every frame for entities that can move (combatants, players, etc.).
     /// This allows Burst jobs to access the QuadTree for fast spatial lookups.
     /// </summary>
     public struct QuadTreeSingleton : IComponentData
     {
         /// <summary>
-        /// The QuadTree data structure for spatial queries.
+        /// The QuadTree data structure for spatial queries of dynamic entities.
         /// Accessible from Burst jobs for high-performance radius/rectangle queries.
         /// </summary>
         public QuadTree2D QuadTree;
@@ -332,6 +333,57 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         /// <summary>
         /// Whether the QuadTree is currently valid and ready for queries
+        /// </summary>
+        public bool IsValid;
+    }
+
+    /// <summary>
+    /// Singleton component that stores the STATIC QuadTree for non-moving entities.
+    /// Built once for static resources, structures, etc. Never cleared unless entities spawn/despawn.
+    /// </summary>
+    public struct StaticQuadTreeSingleton : IComponentData
+    {
+        /// <summary>
+        /// The QuadTree data structure for static entities only.
+        /// Accessible from Burst jobs for high-performance spatial lookups.
+        /// </summary>
+        public QuadTree2D QuadTree;
+
+        /// <summary>
+        /// Frame number when the QuadTree was last updated (only on entity spawn/despawn)
+        /// </summary>
+        public uint LastUpdateFrame;
+
+        /// <summary>
+        /// Whether the QuadTree is currently valid and ready for queries
+        /// </summary>
+        public bool IsValid;
+
+        /// <summary>
+        /// Dirty flag - set to true when static entities spawn/despawn and tree needs rebuild
+        /// </summary>
+        public bool NeedsRebuild;
+    }
+
+    /// <summary>
+    /// Singleton component that stores the KD-Tree for nearest neighbor queries.
+    /// Complements QuadTreeSingleton - use KD-Tree for exact nearest neighbor, QuadTree for radius queries.
+    /// </summary>
+    public struct KDTreeSingleton : IComponentData
+    {
+        /// <summary>
+        /// The KD-Tree data structure for nearest neighbor queries.
+        /// Best for finding exact K-nearest entities, worse for dynamic updates than QuadTree.
+        /// </summary>
+        public KDTree2D KDTree;
+
+        /// <summary>
+        /// Frame number when the KD-Tree was last updated
+        /// </summary>
+        public uint LastUpdateFrame;
+
+        /// <summary>
+        /// Whether the KD-Tree is currently valid and ready for queries
         /// </summary>
         public bool IsValid;
     }

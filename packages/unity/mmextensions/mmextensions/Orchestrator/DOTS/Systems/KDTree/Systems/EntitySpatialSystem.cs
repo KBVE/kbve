@@ -3,6 +3,7 @@ using Unity.Mathematics;
 using Unity.Transforms;
 using Unity.Collections;
 using Unity.Burst;
+using Unity.Burst.Intrinsics;
 using Unity.Jobs;
 
 namespace KBVE.MMExtensions.Orchestrator.DOTS
@@ -16,8 +17,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     public partial struct EntitySpatialSystem : ISystem
     {
         private EntityQuery _spatialEntitiesQuery;
+        private EntityQuery _staticEntitiesQuery;  // Static resources/structures
+        private EntityQuery _dynamicEntitiesQuery; // Moving combatants/players
         private EntityQuery _configQuery;
         private EntityQuery _quadTreeQuery;
+        private EntityQuery _staticQuadTreeQuery;
+        private EntityQuery _kdTreeQuery;
         private NativeHashMap<Entity, float2> _lastKnownPositions;
         private uint _frameCounter;
 
@@ -29,12 +34,30 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 .WithAll<SpatialIndex, LocalToWorld>()
                 .Build();
 
+            // Static entities: UpdateFrequency > 1 (updated rarely or never)
+            _staticEntitiesQuery = SystemAPI.QueryBuilder()
+                .WithAll<SpatialIndex, LocalToWorld, SpatialSettings>()
+                .Build();
+
+            // Dynamic entities: UpdateFrequency == 1 (updated every frame)
+            _dynamicEntitiesQuery = SystemAPI.QueryBuilder()
+                .WithAll<SpatialIndex, LocalToWorld, SpatialSettings>()
+                .Build();
+
             _configQuery = SystemAPI.QueryBuilder()
                 .WithAll<SpatialSystemConfig>()
                 .Build();
 
             _quadTreeQuery = SystemAPI.QueryBuilder()
                 .WithAll<QuadTreeSingleton, SpatialSystemTag>()
+                .Build();
+
+            _staticQuadTreeQuery = SystemAPI.QueryBuilder()
+                .WithAll<StaticQuadTreeSingleton, SpatialSystemTag>()
+                .Build();
+
+            _kdTreeQuery = SystemAPI.QueryBuilder()
+                .WithAll<KDTreeSingleton, SpatialSystemTag>()
                 .Build();
 
             _frameCounter = 0;
@@ -84,30 +107,103 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 return;
             }
 
-            // LEGACY PATH: Direct ECS query (used when UseCacheBasedUpdates = false)
-            // Clear the QuadTree for fresh data
+            // DUAL QUADTREE OPTIMIZATION: Separate static and dynamic entities
+            // Static QuadTree: Resources, structures (rebuilt only on spawn/despawn)
+            // Dynamic QuadTree: Combatants, players (rebuilt every frame with movement threshold)
+
+            // Step 1: Update STATIC QuadTree (only if entities spawned/despawned)
+            UpdateStaticQuadTree(ref state);
+
+            // Step 2: Update DYNAMIC QuadTree (every frame, with movement threshold)
+            // Clear dynamic tree and rebuild with only entities that moved
             quadTreeSingleton.QuadTree.Clear();
 
-            // Update spatial index with current entity positions
-            var updateJob = new UpdateSpatialIndexJob
+            // PARALLEL-SAFE PATTERN: Use NativeStream to collect insertions in parallel
+            // Gather ONLY dynamic entities (UpdateFrequency == 1)
+            var dynamicChunkCount = _dynamicEntitiesQuery.CalculateChunkCountWithoutFiltering();
+            var dynamicDataStream = new NativeStream(math.max(1, dynamicChunkCount), Allocator.TempJob);
+
+            var gatherDynamicJob = new GatherDynamicSpatialDataJob
+            {
+                SpatialIndexTypeHandle = state.GetComponentTypeHandle<SpatialIndex>(true),
+                SpatialSettingsTypeHandle = state.GetComponentTypeHandle<SpatialSettings>(true),
+                LocalToWorldTypeHandle = state.GetComponentTypeHandle<LocalToWorld>(true),
+                EntityTypeHandle = state.GetEntityTypeHandle(),
+                LastKnownPositions = _lastKnownPositions,
+                OutStream = dynamicDataStream.AsWriter(),
+                FrameCounter = _frameCounter
+            };
+
+            var gatherDependency = gatherDynamicJob.ScheduleParallel(_dynamicEntitiesQuery, state.Dependency);
+
+            // Step 3: Insert collected dynamic data into dynamic QuadTree serially
+            var insertDynamicJob = new InsertIntoQuadTreeJob
             {
                 QuadTree = quadTreeSingleton.QuadTree,
+                InStream = dynamicDataStream.AsReader(),
                 LastKnownPositions = _lastKnownPositions,
                 FrameCounter = _frameCounter
             };
 
-            state.Dependency = updateJob.ScheduleParallel(_spatialEntitiesQuery, state.Dependency);
+            var insertDependency = insertDynamicJob.Schedule(gatherDependency);
 
-            // Update the singleton with the modified QuadTree after job completes
-            // Note: We schedule a follow-up job to write back to the singleton
-            var writeBackJob = new WriteQuadTreeBackJob
+            // Dispose the stream after insertion
+            dynamicDataStream.Dispose(insertDependency);
+
+            state.Dependency = insertDependency;
+
+            // Update the singleton with the modified QuadTree
+            // NOTE: We can't do this in a job because QuadTree contains nested native containers
+            // The InsertIntoQuadTreeJob already modified quadTreeSingleton.QuadTree in-place,
+            // so we just need to update the LastUpdateFrame
+            quadTreeSingleton.LastUpdateFrame = _frameCounter;
+            state.EntityManager.SetComponentData(quadTreeEntity, quadTreeSingleton);
+
+            // Build KD-Tree from spatial entities (expensive O(N log N), so do it less frequently)
+            // KD-Tree is better for exact nearest neighbor, QuadTree for radius queries
+            // Rebuild every 10 frames to balance performance and accuracy
+            if (_frameCounter % 10 == 0 && !_kdTreeQuery.IsEmpty)
             {
-                QuadTreeEntity = quadTreeEntity,
-                QuadTree = quadTreeSingleton.QuadTree,
-                FrameCounter = _frameCounter,
-                QuadTreeLookup = state.GetComponentLookup<QuadTreeSingleton>(false)
-            };
-            state.Dependency = writeBackJob.Schedule(state.Dependency);
+                var kdTreeEntity = _kdTreeQuery.GetSingletonEntity();
+                var kdTreeSingleton = state.EntityManager.GetComponentData<KDTreeSingleton>(kdTreeEntity);
+
+                // Gather all spatial entities
+                var entities = _spatialEntitiesQuery.ToEntityArray(Allocator.TempJob);
+                var transforms = _spatialEntitiesQuery.ToComponentDataArray<LocalToWorld>(Allocator.TempJob);
+                var spatialIndices = _spatialEntitiesQuery.ToComponentDataArray<SpatialIndex>(Allocator.TempJob);
+
+                // Build entries array
+                var entries = new NativeArray<KDTreeEntry>(entities.Length, Allocator.TempJob);
+                int validCount = 0;
+
+                for (int i = 0; i < entities.Length; i++)
+                {
+                    if (spatialIndices[i].IncludeInQueries)
+                    {
+                        entries[validCount++] = new KDTreeEntry
+                        {
+                            Entity = entities[i],
+                            Position = transforms[i].Position.xy
+                        };
+                    }
+                }
+
+                // Trim to actual count
+                var validEntries = new NativeArray<KDTreeEntry>(validCount, Allocator.TempJob);
+                NativeArray<KDTreeEntry>.Copy(entries, validEntries, validCount);
+
+                // Build KD-Tree
+                kdTreeSingleton.KDTree.Build(validEntries);
+                kdTreeSingleton.LastUpdateFrame = _frameCounter;
+                state.EntityManager.SetComponentData(kdTreeEntity, kdTreeSingleton);
+
+                // Cleanup
+                entities.Dispose();
+                transforms.Dispose();
+                spatialIndices.Dispose();
+                entries.Dispose();
+                validEntries.Dispose();
+            }
 
             // Periodic rebuild if configured
             if (config.RebuildFrequency > 0 && _frameCounter % config.RebuildFrequency == 0)
@@ -130,13 +226,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     Allocator.Persistent
                 );
 
+                // Create KD-Tree with estimated capacity
+                var kdTree = new KDTree2D(1000, Allocator.Persistent);
+
                 // Create or get singleton entity
                 Entity singletonEntity;
                 if (_quadTreeQuery.IsEmpty)
                 {
                     singletonEntity = state.EntityManager.CreateEntity();
                     state.EntityManager.AddComponent<SpatialSystemTag>(singletonEntity);
-                    state.EntityManager.SetName(singletonEntity, "QuadTreeSingleton");
+                    state.EntityManager.SetName(singletonEntity, "SpatialDataSingleton");
                 }
                 else
                 {
@@ -144,13 +243,83 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 }
 
                 // Store QuadTree in singleton
-                var singleton = new QuadTreeSingleton
+                var quadTreeSingleton = new QuadTreeSingleton
                 {
                     QuadTree = quadTree,
                     LastUpdateFrame = 0,
                     IsValid = true
                 };
-                state.EntityManager.AddComponentData(singletonEntity, singleton);
+                state.EntityManager.AddComponentData(singletonEntity, quadTreeSingleton);
+
+                // Store Static QuadTree in singleton
+                var staticQuadTree = new QuadTree2D(bounds, config.MaxQuadTreeDepth, config.MaxEntitiesPerNode, Allocator.Persistent);
+                var staticQuadTreeSingleton = new StaticQuadTreeSingleton
+                {
+                    QuadTree = staticQuadTree,
+                    LastUpdateFrame = 0,
+                    IsValid = true,
+                    NeedsRebuild = true // Force initial build
+                };
+                state.EntityManager.AddComponentData(singletonEntity, staticQuadTreeSingleton);
+
+                // Store KD-Tree in singleton
+                var kdTreeSingleton = new KDTreeSingleton
+                {
+                    KDTree = kdTree,
+                    LastUpdateFrame = 0,
+                    IsValid = true
+                };
+                state.EntityManager.AddComponentData(singletonEntity, kdTreeSingleton);
+            }
+        }
+
+        private void UpdateStaticQuadTree(ref SystemState state)
+        {
+            // Only rebuild if needed (entities spawned/despawned)
+            if (_staticQuadTreeQuery.IsEmpty) return;
+
+            var staticQuadTreeEntity = _staticQuadTreeQuery.GetSingletonEntity();
+            var staticQuadTreeSingleton = state.EntityManager.GetComponentData<StaticQuadTreeSingleton>(staticQuadTreeEntity);
+
+            if (!staticQuadTreeSingleton.NeedsRebuild)
+                return; // No changes to static entities, skip rebuild
+
+            // Rebuild static tree
+            staticQuadTreeSingleton.QuadTree.Clear();
+
+            // TODO: For now, rebuild every 60 frames to catch new entities
+            // In production, use entity spawn/despawn events to set NeedsRebuild flag
+            if (_frameCounter % 60 == 0)
+            {
+                var staticChunkCount = _staticEntitiesQuery.CalculateChunkCountWithoutFiltering();
+                var staticDataStream = new NativeStream(math.max(1, staticChunkCount), Allocator.TempJob);
+
+                var gatherStaticJob = new GatherStaticSpatialDataJob
+                {
+                    SpatialIndexTypeHandle = state.GetComponentTypeHandle<SpatialIndex>(true),
+                    SpatialSettingsTypeHandle = state.GetComponentTypeHandle<SpatialSettings>(true),
+                    LocalToWorldTypeHandle = state.GetComponentTypeHandle<LocalToWorld>(true),
+                    EntityTypeHandle = state.GetEntityTypeHandle(),
+                    OutStream = staticDataStream.AsWriter()
+                };
+
+                var gatherDep = gatherStaticJob.ScheduleParallel(_staticEntitiesQuery, state.Dependency);
+
+                var insertStaticJob = new InsertIntoQuadTreeJob
+                {
+                    QuadTree = staticQuadTreeSingleton.QuadTree,
+                    InStream = staticDataStream.AsReader(),
+                    LastKnownPositions = _lastKnownPositions,
+                    FrameCounter = _frameCounter
+                };
+
+                var insertDep = insertStaticJob.Schedule(gatherDep);
+                staticDataStream.Dispose(insertDep);
+                insertDep.Complete(); // Must complete before updating singleton
+
+                staticQuadTreeSingleton.LastUpdateFrame = _frameCounter;
+                staticQuadTreeSingleton.NeedsRebuild = false;
+                state.EntityManager.SetComponentData(staticQuadTreeEntity, staticQuadTreeSingleton);
             }
         }
 
@@ -163,14 +332,36 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         public void OnDestroy(ref SystemState state)
         {
-            // Dispose QuadTree from singleton
+            // Dispose Dynamic QuadTree from singleton
             if (!_quadTreeQuery.IsEmpty)
             {
                 var quadTreeEntity = _quadTreeQuery.GetSingletonEntity();
-                var singleton = state.EntityManager.GetComponentData<QuadTreeSingleton>(quadTreeEntity);
-                if (singleton.QuadTree.IsCreated)
+                var quadTreeSingleton = state.EntityManager.GetComponentData<QuadTreeSingleton>(quadTreeEntity);
+                if (quadTreeSingleton.QuadTree.IsCreated)
                 {
-                    singleton.QuadTree.Dispose();
+                    quadTreeSingleton.QuadTree.Dispose();
+                }
+            }
+
+            // Dispose Static QuadTree from singleton
+            if (!_staticQuadTreeQuery.IsEmpty)
+            {
+                var staticQuadTreeEntity = _staticQuadTreeQuery.GetSingletonEntity();
+                var staticQuadTreeSingleton = state.EntityManager.GetComponentData<StaticQuadTreeSingleton>(staticQuadTreeEntity);
+                if (staticQuadTreeSingleton.QuadTree.IsCreated)
+                {
+                    staticQuadTreeSingleton.QuadTree.Dispose();
+                }
+            }
+
+            // Dispose KD-Tree from singleton
+            if (!_kdTreeQuery.IsEmpty)
+            {
+                var kdTreeEntity = _kdTreeQuery.GetSingletonEntity();
+                var kdTreeSingleton = state.EntityManager.GetComponentData<KDTreeSingleton>(kdTreeEntity);
+                if (kdTreeSingleton.KDTree.IsCreated)
+                {
+                    kdTreeSingleton.KDTree.Dispose();
                 }
             }
 
@@ -180,65 +371,209 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     }
 
     /// <summary>
-    /// Job to write the QuadTree back to the singleton component after updates
+    /// Struct for streaming spatial data from parallel gather job
+    /// </summary>
+    public struct SpatialInsertData
+    {
+        public Entity Entity;
+        public float2 Position;
+        public float Radius;
+    }
+
+    /// <summary>
+    /// Parallel job to gather STATIC spatial data (resources, structures)
+    /// Only runs when static entities spawn/despawn
     /// </summary>
     [BurstCompile]
-    public partial struct WriteQuadTreeBackJob : IJob
+    public struct GatherStaticSpatialDataJob : IJobChunk
     {
-        public Entity QuadTreeEntity;
-        public QuadTree2D QuadTree;
-        public uint FrameCounter;
-        public ComponentLookup<QuadTreeSingleton> QuadTreeLookup;
+        [ReadOnly] public ComponentTypeHandle<SpatialIndex> SpatialIndexTypeHandle;
+        [ReadOnly] public ComponentTypeHandle<SpatialSettings> SpatialSettingsTypeHandle;
+        [ReadOnly] public ComponentTypeHandle<LocalToWorld> LocalToWorldTypeHandle;
+        [ReadOnly] public EntityTypeHandle EntityTypeHandle;
 
-        public void Execute()
+        public NativeStream.Writer OutStream;
+
+        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
         {
-            var singleton = QuadTreeLookup[QuadTreeEntity];
-            singleton.QuadTree = QuadTree;
-            singleton.LastUpdateFrame = FrameCounter;
-            QuadTreeLookup[QuadTreeEntity] = singleton;
+            var spatialIndices = chunk.GetNativeArray(ref SpatialIndexTypeHandle);
+            var spatialSettings = chunk.GetNativeArray(ref SpatialSettingsTypeHandle);
+            var transforms = chunk.GetNativeArray(ref LocalToWorldTypeHandle);
+            var entities = chunk.GetNativeArray(EntityTypeHandle);
+
+            OutStream.BeginForEachIndex(unfilteredChunkIndex);
+
+            for (int i = 0; i < chunk.Count; i++)
+            {
+                var settings = spatialSettings[i];
+
+                // Only gather STATIC entities (UpdateFrequency > 1 means static/infrequent updates)
+                if (settings.UpdateFrequency <= 1)
+                    continue;
+
+                var spatialIndex = spatialIndices[i];
+                if (!spatialIndex.IncludeInQueries)
+                    continue;
+
+                var entity = entities[i];
+                var currentPosition = transforms[i].Position.xy;
+
+                OutStream.Write(new SpatialInsertData
+                {
+                    Entity = entity,
+                    Position = currentPosition,
+                    Radius = spatialIndex.Radius
+                });
+            }
+
+            OutStream.EndForEachIndex();
         }
     }
 
     /// <summary>
-    /// Job to update the spatial index with current entity positions
+    /// Parallel job to gather DYNAMIC spatial data (combatants, players)
+    /// Runs every frame with movement threshold optimization
     /// </summary>
     [BurstCompile]
-    public partial struct UpdateSpatialIndexJob : IJobEntity
+    public struct GatherDynamicSpatialDataJob : IJobChunk
+    {
+        [ReadOnly] public ComponentTypeHandle<SpatialIndex> SpatialIndexTypeHandle;
+        [ReadOnly] public ComponentTypeHandle<SpatialSettings> SpatialSettingsTypeHandle;
+        [ReadOnly] public ComponentTypeHandle<LocalToWorld> LocalToWorldTypeHandle;
+        [ReadOnly] public EntityTypeHandle EntityTypeHandle;
+        [ReadOnly] public NativeHashMap<Entity, float2> LastKnownPositions;
+
+        public NativeStream.Writer OutStream;
+        public uint FrameCounter;
+
+        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
+        {
+            var spatialIndices = chunk.GetNativeArray(ref SpatialIndexTypeHandle);
+            var spatialSettings = chunk.GetNativeArray(ref SpatialSettingsTypeHandle);
+            var transforms = chunk.GetNativeArray(ref LocalToWorldTypeHandle);
+            var entities = chunk.GetNativeArray(EntityTypeHandle);
+
+            OutStream.BeginForEachIndex(unfilteredChunkIndex);
+
+            for (int i = 0; i < chunk.Count; i++)
+            {
+                var settings = spatialSettings[i];
+
+                // Only gather DYNAMIC entities (UpdateFrequency == 1 means every frame)
+                if (settings.UpdateFrequency != 1)
+                    continue;
+
+                var spatialIndex = spatialIndices[i];
+                if (!spatialIndex.IncludeInQueries)
+                    continue;
+
+                var entity = entities[i];
+                var currentPosition = transforms[i].Position.xy;
+
+                // MOVEMENT THRESHOLD OPTIMIZATION: Only insert if entity moved
+                bool shouldInsert = true;
+                if (LastKnownPositions.TryGetValue(entity, out var lastPosition))
+                {
+                    var distanceMoved = math.distance(currentPosition, lastPosition);
+                    shouldInsert = distanceMoved >= settings.MovementThreshold;
+                }
+
+                if (shouldInsert)
+                {
+                    OutStream.Write(new SpatialInsertData
+                    {
+                        Entity = entity,
+                        Position = currentPosition,
+                        Radius = spatialIndex.Radius
+                    });
+                }
+            }
+
+            OutStream.EndForEachIndex();
+        }
+    }
+
+    /// <summary>
+    /// LEGACY: Parallel job to gather ALL spatial data (kept for compatibility)
+    /// Uses IJobChunk for maximum parallelism across entity chunks
+    /// </summary>
+    [BurstCompile]
+    public struct GatherSpatialDataJob : IJobChunk
+    {
+        [ReadOnly] public ComponentTypeHandle<SpatialIndex> SpatialIndexTypeHandle;
+        [ReadOnly] public ComponentTypeHandle<LocalToWorld> LocalToWorldTypeHandle;
+        [ReadOnly] public EntityTypeHandle EntityTypeHandle;
+        [ReadOnly] public NativeHashMap<Entity, float2> LastKnownPositions;
+
+        public NativeStream.Writer OutStream;
+
+        public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in v128 chunkEnabledMask)
+        {
+            var spatialIndices = chunk.GetNativeArray(ref SpatialIndexTypeHandle);
+            var transforms = chunk.GetNativeArray(ref LocalToWorldTypeHandle);
+            var entities = chunk.GetNativeArray(EntityTypeHandle);
+
+            OutStream.BeginForEachIndex(unfilteredChunkIndex);
+
+            for (int i = 0; i < chunk.Count; i++)
+            {
+                var spatialIndex = spatialIndices[i];
+
+                // Skip if entity doesn't want to be included in queries
+                if (!spatialIndex.IncludeInQueries)
+                    continue;
+
+                var entity = entities[i];
+                var currentPosition = transforms[i].Position.xy;
+
+                // Always insert ALL entities since QuadTree is cleared each frame
+                // This ensures static resources and dynamic combatants are both in the tree
+                OutStream.Write(new SpatialInsertData
+                {
+                    Entity = entity,
+                    Position = currentPosition,
+                    Radius = spatialIndex.Radius
+                });
+            }
+
+            OutStream.EndForEachIndex();
+        }
+    }
+
+    /// <summary>
+    /// STEP 2: Single-threaded job to insert gathered data into QuadTree (safe)
+    /// Reads from NativeStream and inserts into QuadTree serially
+    /// </summary>
+    [BurstCompile]
+    public struct InsertIntoQuadTreeJob : IJob
     {
         public QuadTree2D QuadTree;
+        public NativeStream.Reader InStream;
         public NativeHashMap<Entity, float2> LastKnownPositions;
         public uint FrameCounter;
 
-        public void Execute(Entity entity, in SpatialIndex spatialIndex, in LocalToWorld localToWorld)
+        public void Execute()
         {
-            // Skip if entity doesn't want to be included in queries
-            if (!spatialIndex.IncludeInQueries)
-                return;
+            // Read all spatial data from stream and insert into QuadTree
+            // QuadTree was cleared before this job, so we're rebuilding from scratch
+            int streamCount = InStream.ForEachCount;
 
-            var currentPosition = localToWorld.Position.xy;
-
-            // Check if we need to update based on movement threshold
-            bool shouldUpdate = false;
-
-            if (LastKnownPositions.TryGetValue(entity, out var lastPosition))
+            for (int streamIndex = 0; streamIndex < streamCount; streamIndex++)
             {
-                var distance = math.distance(currentPosition, lastPosition);
-                // Use default movement threshold since we don't have guaranteed access to settings
-                shouldUpdate = distance >= 0.1f; // Default movement threshold
-            }
-            else
-            {
-                // First time seeing this entity
-                shouldUpdate = true;
-            }
+                InStream.BeginForEachIndex(streamIndex);
 
-            if (shouldUpdate)
-            {
-                // Insert into QuadTree
-                QuadTree.Insert(entity, currentPosition, spatialIndex.Radius);
+                while (InStream.RemainingItemCount > 0)
+                {
+                    var data = InStream.Read<SpatialInsertData>();
 
-                // Update tracking data
-                LastKnownPositions[entity] = currentPosition;
+                    // Insert entity into fresh QuadTree
+                    QuadTree.Insert(data.Entity, data.Position, data.Radius);
+
+                    // Update position tracking for movement threshold checks
+                    LastKnownPositions[data.Entity] = data.Position;
+                }
+
+                InStream.EndForEachIndex();
             }
         }
     }
