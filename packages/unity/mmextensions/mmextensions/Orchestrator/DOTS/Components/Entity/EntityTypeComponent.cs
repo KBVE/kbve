@@ -325,10 +325,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// Updated to use new protobuf-powered data types.
     /// Implements IBufferElementData for use in DynamicBuffer caching systems.
     /// StructLayout.Sequential ensures predictable memory layout for unsafe operations.
+    ///
+    /// PERFORMANCE: EntityReference enables O(1) cache lookups via NativeHashMap<Entity, int>
     /// </summary>
     [StructLayout(LayoutKind.Sequential)]
     public struct EntityBlitContainer : IBufferElementData
     {
+        // PERFORMANCE: Entity reference for O(1) cache index mapping
+        public Unity.Entities.Entity EntityReference;
+
         public EntityData EntityData;   // Universal entity data
 
         // Non-nullable type-specific data (use HasX flags to check validity)

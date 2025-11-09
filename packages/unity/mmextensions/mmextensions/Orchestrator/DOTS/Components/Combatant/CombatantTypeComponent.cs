@@ -102,6 +102,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [ProtoMember(14)]
         public float DetectionRange;            // 4 bytes - How far it can detect enemies
 
+        // PERFORMANCE: Track current attack target to eliminate O(N×M) resource damage loops
+        // Note: This is NOT serialized (no ProtoMember) - it's runtime-only state
+        public Entity TargetEntity;             // 8 bytes - Current attack target (Resource, Structure, etc.)
+
         // ---- Equality Implementation ----
         public bool Equals(CombatantData other)
         {
