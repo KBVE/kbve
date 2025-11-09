@@ -33,8 +33,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     // Generate random world position
                     var worldPos = rand.NextFloat2(MapSize.c0, MapSize.c1).ToFloat3();
 
-                    // Set transform position
-                    ECB.SetComponent(i, resourceEntity, LocalTransform.FromPosition(worldPos));
+                    // Add transform component (prefabs may not have LocalTransform)
+                    ECB.AddComponent(i, resourceEntity, LocalTransform.FromPosition(worldPos));
 
                     // CRITICAL FIX: Generate unique Entity ULID for each instantiated resource
                     // This ensures each tree/resource instance has its own unique identifier
