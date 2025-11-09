@@ -13,6 +13,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     [BurstCompile]
     public partial struct MoveToDestinationSystem : ISystem
     {
+        // PERFORMANCE: Staggered updates for 50k+ entities
+        // Movement updates don't need to be every frame - 2-frame stagger is imperceptible
+        // At 50k entities: 60fps = 3M moves/sec, 30fps = 1.5M moves/sec (2x reduction)
+        private const int UPDATE_FREQUENCY = 2; // 1=every frame, 2=half entities per frame, 4=quarter per frame
+        private ulong _frameCounter;
+
         #region jobs
         [BurstCompile]
         private struct CalculateMoveTimerJob : IJobChunk
@@ -58,10 +64,21 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private partial struct MoveJob : IJobEntity
         {
             public float DeltaTime;
+            public ulong FrameCounter;
+            public int UpdateFrequency;
 
-            private void Execute(ref WorldPosition2D worldPos, ref PhysicsVelocity velocity,
+            private void Execute(Entity entity, ref WorldPosition2D worldPos, ref PhysicsVelocity velocity,
                                ref MoveTimer timer, in Destination destination, in Combatant combatant)
             {
+                // PERFORMANCE: Staggered updates - only process subset of entities each frame
+                if (UpdateFrequency > 1)
+                {
+                    int entityBucket = (int)((uint)entity.Index % (uint)UpdateFrequency);
+                    int currentBucket = (int)(FrameCounter % (uint)UpdateFrequency);
+                    if (entityBucket != currentBucket)
+                        return; // Skip this frame
+                }
+
                 // Only move if in states that allow movement
                 bool canMove = combatant.Data.State == CombatantState.Idle
                             || combatant.Data.State == CombatantState.Chasing
@@ -116,6 +133,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            _frameCounter++;
+
             var systemData = SystemAPI.GetComponent<SystemData>(state.SystemHandle);
 
             // recalculate MoveTimer if MoveSpeed or Destination was changed
@@ -133,7 +152,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // Schedule movement (state-based for all entities)
             var moveJob = new MoveJob
             {
-                DeltaTime = SystemAPI.Time.DeltaTime
+                DeltaTime = SystemAPI.Time.DeltaTime,
+                FrameCounter = _frameCounter,
+                UpdateFrequency = UPDATE_FREQUENCY
             };
             state.Dependency = moveJob.ScheduleParallelByRef(state.Dependency);
         }

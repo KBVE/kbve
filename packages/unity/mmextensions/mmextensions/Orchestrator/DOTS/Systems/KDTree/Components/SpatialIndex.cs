@@ -389,6 +389,30 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     }
 
     /// <summary>
+    /// Singleton component that stores the Spatial Hash Grid for dynamic entities.
+    /// O(1) insert/query performance, optimized for entities that move frequently.
+    /// Replaces QuadTreeSingleton for dynamic entities (combatants, players, projectiles).
+    /// </summary>
+    public struct SpatialHashGridSingleton : IComponentData
+    {
+        /// <summary>
+        /// The Spatial Hash Grid data structure for dynamic entities.
+        /// O(1) insert/query vs O(log N) for QuadTree - much faster for moving entities!
+        /// </summary>
+        public SpatialHashGrid2D HashGrid;
+
+        /// <summary>
+        /// Frame number when the hash grid was last updated
+        /// </summary>
+        public uint LastUpdateFrame;
+
+        /// <summary>
+        /// Whether the hash grid is currently valid and ready for queries
+        /// </summary>
+        public bool IsValid;
+    }
+
+    /// <summary>
     /// Tag component marking the entity that owns the spatial data structures
     /// </summary>
     public struct SpatialSystemTag : IComponentData { }
