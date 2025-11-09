@@ -30,8 +30,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         private partial struct FindAndAttackResourcesJob : IJobEntity
         {
-            // QuadTree for O(log N) spatial filtering by radius
-            [ReadOnly] public QuadTree2D QuadTree;
+            // Dynamic QuadTree for moving entities (combatants, players)
+            [ReadOnly] public QuadTree2D DynamicQuadTree;
+
+            // Static QuadTree for non-moving entities (resources, structures)
+            [ReadOnly] public QuadTree2D StaticQuadTree;
 
             // KD-Tree for O(log K) exact nearest neighbor from filtered set
             [ReadOnly] public KDTree2D KDTree;
@@ -51,16 +54,23 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 // Attack range is smaller than detection range
                 float attackRange = math.min(combatant.Data.DetectionRange * 0.5f, 2f);
 
-                // HYBRID APPROACH: QuadTree spatial filter + KD-Tree exact nearest
-                // Step 1: Use QuadTree to get ALL nearby entities within detection range
-                // This filters out 90%+ of entities instantly using spatial partitioning!
-                var nearbyEntities = new NativeList<Entity>(Allocator.Temp);
-                QuadTree.QueryRadius(transform.Position.xy, combatant.Data.DetectionRange, nearbyEntities);
+                // DUAL QUADTREE + KD-TREE APPROACH: Query both static and dynamic trees
+                // Step 1: Query STATIC QuadTree for resources/structures
+                var nearbyStatic = new NativeList<Entity>(Allocator.Temp);
+                StaticQuadTree.QueryRadius(transform.Position.xy, combatant.Data.DetectionRange, nearbyStatic);
+
+                // Step 2: Query DYNAMIC QuadTree for other combatants (future PvP support)
+                var nearbyDynamic = new NativeList<Entity>(Allocator.Temp);
+                DynamicQuadTree.QueryRadius(transform.Position.xy, combatant.Data.DetectionRange, nearbyDynamic);
+
+                // Combine results (for now, we only care about static resources)
+                var nearbyEntities = nearbyStatic;
 
                 // Early exit if no nearby entities
                 if (nearbyEntities.Length == 0)
                 {
                     nearbyEntities.Dispose();
+                    nearbyDynamic.Dispose();
                     // No entities nearby, return to idle
                     if (combatant.Data.State == CombatantState.Attacking ||
                         combatant.Data.State == CombatantState.Chasing)
@@ -99,22 +109,35 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 }
 
                 nearbyEntities.Dispose();
+                nearbyDynamic.Dispose();
 
-                // Step 3: If we have resources, find the NEAREST one using manual distance check
-                // (We could build a temporary KD-Tree here, but for small filtered sets, linear search is faster)
+                // Step 3: Use KD-Tree to find NEAREST resource from filtered set
+                // For small sets (<10), use linear search; for larger sets, build temp KD-Tree
+                Entity nearestResource = Entity.Null;
+                float nearestDistanceSq = float.MaxValue;
+
                 if (resourcePositions.Length > 0)
                 {
-                    Entity nearestResource = Entity.Null;
-                    float nearestDistanceSq = float.MaxValue;
-
-                    for (int i = 0; i < resourcePositions.Length; i++)
+                    if (resourcePositions.Length <= 10)
                     {
-                        float distSq = math.distancesq(transform.Position.xy, resourcePositions[i].Position);
-                        if (distSq < nearestDistanceSq)
+                        // Linear search for small sets (faster than KD-Tree overhead)
+                        for (int i = 0; i < resourcePositions.Length; i++)
                         {
-                            nearestDistanceSq = distSq;
-                            nearestResource = resourcePositions[i].Entity;
+                            float distSq = math.distancesq(transform.Position.xy, resourcePositions[i].Position);
+                            if (distSq < nearestDistanceSq)
+                            {
+                                nearestDistanceSq = distSq;
+                                nearestResource = resourcePositions[i].Entity;
+                            }
                         }
+                    }
+                    else
+                    {
+                        // KD-Tree for larger sets (O(log K) vs O(K))
+                        var tempKDTree = new KDTree2D(resourcePositions.Length, Allocator.Temp);
+                        tempKDTree.Build(resourcePositions.AsArray());
+                        tempKDTree.FindNearest(transform.Position.xy, out nearestResource, out nearestDistanceSq);
+                        tempKDTree.Dispose();
                     }
 
                     resourcePositions.Dispose();
@@ -170,9 +193,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            // Create query for spatial system singleton (has both QuadTree and KD-Tree)
+            // Create query for spatial system singleton (has BOTH QuadTrees + KD-Tree)
             _spatialSystemQuery = SystemAPI.QueryBuilder()
-                .WithAll<QuadTreeSingleton, KDTreeSingleton, SpatialSystemTag>()
+                .WithAll<QuadTreeSingleton, StaticQuadTreeSingleton, KDTreeSingleton, SpatialSystemTag>()
                 .Build();
 
             // Require spatial systems to exist before running
@@ -182,17 +205,19 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
-            // Get both spatial structures from singletons
-            var quadTreeSingleton = SystemAPI.GetSingleton<QuadTreeSingleton>();
+            // Get all spatial structures from singletons
+            var dynamicQuadTreeSingleton = SystemAPI.GetSingleton<QuadTreeSingleton>();
+            var staticQuadTreeSingleton = SystemAPI.GetSingleton<StaticQuadTreeSingleton>();
             var kdTreeSingleton = SystemAPI.GetSingleton<KDTreeSingleton>();
 
-            // Skip if either spatial system not ready
-            if (!quadTreeSingleton.IsValid || !kdTreeSingleton.IsValid)
+            // Skip if any spatial system not ready
+            if (!dynamicQuadTreeSingleton.IsValid || !staticQuadTreeSingleton.IsValid || !kdTreeSingleton.IsValid)
                 return;
 
             var job = new FindAndAttackResourcesJob
             {
-                QuadTree = quadTreeSingleton.QuadTree,
+                DynamicQuadTree = dynamicQuadTreeSingleton.QuadTree,
+                StaticQuadTree = staticQuadTreeSingleton.QuadTree,
                 KDTree = kdTreeSingleton.KDTree,
                 ResourceLookup = SystemAPI.GetComponentLookup<Resource>(true),
                 TransformLookup = SystemAPI.GetComponentLookup<LocalToWorld>(true)
