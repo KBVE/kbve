@@ -50,6 +50,21 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     };
                     ECB.SetComponent(i, resourceEntity, entityComponent);
 
+                    // CRITICAL: Add spatial components so resources appear in QuadTree
+                    // Static entities need UpdateFrequency > 1 to be included in static spatial queries
+                    ECB.AddComponent(i, resourceEntity, new SpatialIndex
+                    {
+                        Radius = 1f,
+                        LayerMask = ~0u,
+                        IncludeInQueries = true,
+                        Priority = 0
+                    });
+                    ECB.AddComponent(i, resourceEntity, new SpatialSettings
+                    {
+                        UpdateFrequency = 999,      // Static - never moves after spawn
+                        MovementThreshold = 999f    // Large threshold since it never moves
+                    });
+
                     PosRands[_threadIndex] = rand;
                 }
             }

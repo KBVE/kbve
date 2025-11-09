@@ -423,18 +423,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             var staticQuadTreeEntity = _staticQuadTreeQuery.GetSingletonEntity();
             var staticQuadTreeSingleton = state.EntityManager.GetComponentData<StaticQuadTreeSingleton>(staticQuadTreeEntity);
 
-            if (!staticQuadTreeSingleton.NeedsRebuild)
-                return; // No changes to static entities, skip rebuild
-
-            // Rebuild static tree
-            staticQuadTreeSingleton.QuadTree.Clear();
-            // TODO: Restructure the static tree.
-            // <T> -> % mod Hz to 30.
-
-            // TODO: For now, rebuild every 60 frames to catch new entities
-            // In production, use entity spawn/despawn events to set NeedsRebuild flag
-            if (_frameCounter % 60 == 0)
+            // Rebuild immediately on first frame, then every 60 frames to catch new entities
+            // CRITICAL FIX: Removed NeedsRebuild gate - it prevented resources from being indexed
+            // Resources spawn in frame 2, but NeedsRebuild becomes false after frame 1,
+            // causing early return and leaving QuadTree empty
+            if (_frameCounter == 1 || _frameCounter % 60 == 0)
             {
+                // Rebuild static tree
+                staticQuadTreeSingleton.QuadTree.Clear();
+
                 var staticChunkCount = _staticEntitiesQuery.CalculateChunkCountWithoutFiltering();
                 var staticDataStream = new NativeStream(math.max(1, staticChunkCount), Allocator.TempJob);
 

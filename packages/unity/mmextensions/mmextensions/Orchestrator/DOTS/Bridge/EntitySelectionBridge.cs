@@ -56,20 +56,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
 
         public void OnUpdate(ref SystemState state)
         {
-            // PERFORMANCE FIX: Removed blocking state.Dependency.Complete()
-            // ComponentLookup is safe to use in main thread without Complete()
-            // as long as we're not racing with jobs that write to these components
-
-            // Update component lookups (lightweight operation)
-            _entityLookup.Update(ref state);
-            _l2wLookup.Update(ref state);
-            _resourceLookup.Update(ref state);
-            _structureLookup.Update(ref state);
-            _combatantLookup.Update(ref state);
-            _itemLookup.Update(ref state);
-            _playerLookup.Update(ref state);
-
-            // Get current selection
+            // Get current selection FIRST (before any potentially expensive operations)
             Entity selectedEntity = Entity.Null;
             if (SystemAPI.TryGetSingleton(out SelectedEntity sel))
             {
@@ -90,9 +77,22 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS.Bridge
                 return;
             }
 
-            // Only process if selection changed
+            // Only process if selection changed - EARLY EXIT before expensive operations
             if (!selectionChanged)
                 return;
+
+            // SAFETY: Complete dependencies only when selection CHANGED
+            // This runs infrequently (only on selection change), so minimal perf impact
+            state.Dependency.Complete();
+
+            // Update component lookups (lightweight operation)
+            _entityLookup.Update(ref state);
+            _l2wLookup.Update(ref state);
+            _resourceLookup.Update(ref state);
+            _structureLookup.Update(ref state);
+            _combatantLookup.Update(ref state);
+            _itemLookup.Update(ref state);
+            _playerLookup.Update(ref state);
 
             // Try to find in cache first (performance optimization)
             if (TryGetFromCache(selectedEntity, ref state, out var cachedContainer))

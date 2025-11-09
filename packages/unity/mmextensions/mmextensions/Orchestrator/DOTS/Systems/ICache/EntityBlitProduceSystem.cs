@@ -21,7 +21,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private EntityQuery _sourceQuery;
         private ComponentTypeSet _requiredComponents;
         private double _nextUpdateTime;
-        private const double UpdateHz = 30.0; // Match drain system throttle rate (must match EntityCacheDrainSystem.Hz)
+        // PERFORMANCE FIX: Reduced from 30Hz to 2Hz
+        // This cache is ONLY used for UI entity selection - 2Hz is more than enough!
+        // At 20k entities: 30Hz = 600k cache writes/sec, 2Hz = 40k writes/sec (15x reduction!)
+        private const double UpdateHz = 2.0;
 
         public void OnCreate(ref SystemState state)
         {
