@@ -66,13 +66,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                 // Query STATIC QuadTree for resources/structures - O(log N)
                 // Removed expensive Hash Grid query for dynamic entities (not needed for resource targeting)
-                var nearbyEntities = new NativeList<Entity>(Allocator.Temp);
+                // CRITICAL: Use using pattern to ensure disposal on ALL code paths
+                using var nearbyEntities = new NativeList<Entity>(Allocator.Temp);
                 StaticQuadTree.QueryRadius(transform.Position.xy, combatant.Data.DetectionRange, nearbyEntities);
 
                 // Early exit if no nearby entities
                 if (nearbyEntities.Length == 0)
                 {
-                    nearbyEntities.Dispose();
                     // No entities nearby, return to idle
                     if (combatant.Data.State == CombatantState.Attacking ||
                         combatant.Data.State == CombatantState.Chasing)
@@ -80,12 +80,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         combatant.Data = combatant.Data.SetState(CombatantState.Idle);
                         combatant.Data.TargetEntity = Entity.Null; // Clear target
                     }
-                    return;
+                    return; // nearbyEntities disposed automatically by 'using'
                 }
 
                 // Filter QuadTree results to only include valid resources
                 // Build a temporary list of resource positions for nearest neighbor search
-                var resourcePositions = new NativeList<KDTreeEntry>(nearbyEntities.Length, Allocator.Temp);
+                // CRITICAL: Use using pattern to ensure disposal on ALL code paths
+                using var resourcePositions = new NativeList<KDTreeEntry>(nearbyEntities.Length, Allocator.Temp);
                 for (int i = 0; i < nearbyEntities.Length; i++)
                 {
                     var resourceEntity = nearbyEntities[i];
@@ -111,9 +112,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     }
                 }
 
-                nearbyEntities.Dispose();
-
                 // Linear search to find NEAREST resource (fastest for typical case of <50 resources)
+                // nearbyEntities disposed automatically by 'using' at end of scope
                 Entity nearestResource = Entity.Null;
                 float nearestDistanceSq = float.MaxValue;
 
@@ -130,7 +130,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         }
                     }
 
-                    resourcePositions.Dispose();
+                    // resourcePositions disposed automatically by 'using' at end of scope
 
                     // Calculate actual distance
                     float distance = math.sqrt(nearestDistanceSq);
@@ -172,8 +172,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 }
                 else
                 {
-                    resourcePositions.Dispose();
                     // No resources found in filtered set, return to idle
+                    // resourcePositions disposed automatically by 'using' at end of scope
                     if (combatant.Data.State == CombatantState.Attacking ||
                         combatant.Data.State == CombatantState.Chasing)
                     {
