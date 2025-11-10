@@ -51,6 +51,28 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     DetectionRange = 10f
                 };
                 AddComponent(entity, new Combatant { Data = combatantData });
+
+                // Add SpatialIndex so combatants are included in CSR Grid for dynamic queries
+                // CRITICAL: Without this, combatants won't appear in spatial queries (attack, pathfinding, etc.)
+                AddComponent(entity, new SpatialIndex
+                {
+                    Radius = combatantData.DetectionRange, // Use detection range as collision radius
+                    LayerMask = uint.MaxValue, // Visible to all layers
+                    IncludeInQueries = true, // CRITICAL: Must be true for spatial queries
+                    Priority = 1 // Higher priority than static resources
+                });
+
+                // Add spatial settings for moving units (dynamic entities)
+                // UpdateFrequency = 1 means update every frame (combatants move constantly)
+                AddComponent(entity, SpatialSettings.MovingUnit);
+
+                // Add PhysicsVelocity for physics-based movement and collision
+                // Required by MoveToDestinationSystem and physics simulation
+                AddComponent(entity, new PhysicsVelocity());
+
+                // Add AttackCooldown component for damage rate limiting
+                // PlayerDamageSystem uses this to prevent attacking every frame
+                AddComponent(entity, new AttackCooldown { TimeRemaining = 0f });
             }
         }
 

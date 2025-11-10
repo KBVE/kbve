@@ -12,8 +12,12 @@ namespace NSprites
                 AddComponent(GetEntity(TransformUsageFlags.None), new AnimationSettings
                 {
                     IdleHash = Animator.StringToHash("idle"),
+                    Idle2Hash = Animator.StringToHash("idle2"),
                     WalkHash = Animator.StringToHash("walk"),
-                    AttackHash = Animator.StringToHash("attack")
+                    AttackHash = Animator.StringToHash("attack"),
+                    DeathHash = Animator.StringToHash("death"),
+                    HurtHash = Animator.StringToHash("hurt"),
+                    JumpHash = Animator.StringToHash("jump")
                 });
             }
         }
