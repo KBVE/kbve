@@ -66,9 +66,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 // UpdateFrequency = 1 means update every frame (combatants move constantly)
                 AddComponent(entity, SpatialSettings.MovingUnit);
 
-                // Add PhysicsVelocity for physics-based movement and collision
-                // Required by MoveToDestinationSystem and physics simulation
-                AddComponent(entity, new PhysicsVelocity());
+                // NOTE: PhysicsVelocity is automatically added by Unity.Physics.Authoring.RigidbodyBaker
+                // when the GameObject has a Rigidbody component. Do NOT add it manually!
+                // The Rigidbody component on the Soldier prefab handles physics baking.
 
                 // Add AttackCooldown component for damage rate limiting
                 // PlayerDamageSystem uses this to prevent attacking every frame
