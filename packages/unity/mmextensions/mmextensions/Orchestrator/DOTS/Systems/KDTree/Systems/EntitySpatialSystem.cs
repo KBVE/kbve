@@ -49,6 +49,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     /// COMBINED PERFORMANCE: 10-30x baseline + CSR scaling to 100k-1M entities!
     /// ═══════════════════════════════════════════════════════════════════════════
     ///
+    /// KD-TREE FEATURE FLAG:
+    /// - Disabled by default - CSR Grid handles all spatial queries efficiently
+    /// - KD-Tree rebuild costs O(N log N) + 10.3MB TempJob allocation at 90k entities
+    /// - Only enable if you need exact k-NN on non-uniform distributions
+    /// - CSR Grid provides k-NN via ring expansion with better memory characteristics
+    /// ═══════════════════════════════════════════════════════════════════════════
+    ///
     /// Architecture:
     /// - CSR Grid (Dynamic): Combatants, players, projectiles - O(N) rebuild, 100k-1M scale
     /// - QuadTree (Static): Resources, structures - rebuilt only on spawn/despawn
@@ -80,6 +87,29 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private NativeParallelHashMap<Entity, float2> _lastKnownPositions;
         private uint _frameCounter;
         private bool _useCSRGrid;                  // Toggle between hash grid (legacy) and CSR grid
+
+        // ═══════════════════════════════════════════════════════════════════
+        // FEATURE FLAGS
+        // ═══════════════════════════════════════════════════════════════════
+
+        /// <summary>
+        /// Enable KD-Tree spatial index (DISABLED by default for 100k+ entity scaling)
+        ///
+        /// PERFORMANCE COST AT 90k ENTITIES:
+        /// - TempJob allocations: 10.3 MB (exceeds Unity's 4MB limit → CRASH!)
+        /// - Rebuild time: O(N log N) every 10 frames
+        /// - Memory overhead: 2x entity count (nodes + scratch buffers)
+        ///
+        /// WHEN TO ENABLE:
+        /// - You need exact k-NN on highly non-uniform distributions
+        /// - CSR Grid ring expansion yields too many false positives
+        /// - Entity count < 50k (below TempJob crash threshold)
+        ///
+        /// ALTERNATIVE (RECOMMENDED):
+        /// - CSR Grid handles k-NN via ring expansion with O(N) rebuild
+        /// - No temp allocations, scales to 100k-1M entities
+        /// </summary>
+        private const bool ENABLE_KDTREE = false;
 
         // OPTION C: Job Batching with Temporal Coherence
         private const int HASH_GRID_UPDATE_FREQUENCY = 2;  // Update hash grid every N frames
@@ -130,7 +160,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             _frameCounter = 0;
             // Use NativeParallelHashMap for thread-safe parallel writes (Option B optimization)
-            _lastKnownPositions = new NativeParallelHashMap<Entity, float2>(1000, Allocator.Persistent);
+            // CRITICAL: Capacity must match target entity scale to prevent fragmentation
+            // At 100k entities with 1k capacity: 99k hash collisions + reallocation overhead
+            // Pre-size to 100k for smooth scaling to 300k+ entities
+            _lastKnownPositions = new NativeParallelHashMap<Entity, float2>(100000, Allocator.Persistent);
 
             // OPTION C: Initialize batching state
             _currentBucket = 0;
@@ -269,10 +302,20 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             hashGridSingleton.LastUpdateFrame = _frameCounter;
             state.EntityManager.SetComponentData(hashGridEntity, hashGridSingleton);
 
-            // Build KD-Tree from spatial entities (expensive O(N log N), so do it less frequently)
-            // KD-Tree is better for exact nearest neighbor, QuadTree for radius queries
-            // Rebuild every 10 frames to balance performance and accuracy
-            if (_frameCounter % 10 == 0 && !_kdTreeQuery.IsEmpty)
+            // ═══════════════════════════════════════════════════════════════════
+            // KD-TREE BUILD (DISABLED by default - see ENABLE_KDTREE flag)
+            // ═══════════════════════════════════════════════════════════════════
+            // WARNING: At 90k entities, this allocates 10.3MB TempJob memory:
+            // - ToEntityArray: 0.69 MB
+            // - ToComponentDataArray<LocalToWorld>: 5.49 MB
+            // - ToComponentDataArray<SpatialIndex>: 1.37 MB
+            // - NativeArray<KDTreeEntry> (×2): 2.75 MB
+            // Unity's TempJob limit is ~4MB → CRASH!
+            //
+            // CSR Grid provides equivalent k-NN via ring expansion without allocations.
+            // Only enable if you need exact k-NN on non-uniform distributions.
+            // ═══════════════════════════════════════════════════════════════════
+            if (ENABLE_KDTREE && _frameCounter % 10 == 0 && !_kdTreeQuery.IsEmpty)
             {
                 var kdTreeEntity = _kdTreeQuery.GetSingletonEntity();
                 var kdTreeSingleton = state.EntityManager.GetComponentData<KDTreeSingleton>(kdTreeEntity);
@@ -341,7 +384,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 // OPTIMIZATION: Use Spatial Hash Grid for dynamic entities (O(1) vs O(log N))
                 // Cell size = average detection range for optimal performance
                 // Too small = many cells to check per query, too large = too many entities per cell
-                float cellSize = 10f; // Typical combatant detection range
+                // CRITICAL: Larger cell size reduces grid cell count, preventing histogram OOM crashes
+                // At 10k x 10k world: cellSize=10 → 1M cells × 4 bytes × 342 chunks = 1.4GB temp memory (CRASH!)
+                // At 10k x 10k world: cellSize=50 → 40k cells × 4 bytes × 342 chunks = 54MB temp memory (OK)
+                float cellSize = 50f; // Larger cells = fewer grid cells = less memory in histogram job
                 var hashGrid = new SpatialHashGrid2D(
                     bounds,
                     cellSize,
@@ -375,9 +421,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 state.EntityManager.AddComponentData(singletonEntity, hashGridSingleton);
 
                 // OPTION E: Create CSR Grid for DYNAMIC entities (100k-1M scale)
-                // Start with conservative capacity, can grow dynamically if needed
-                // 50k is a good middle ground - not too large on init, but scales well
-                int estimatedMaxDynamicEntities = 50000; // 50k movers (conservative start)
+                // CRITICAL: Capacity must be large enough to hold ALL dynamic entities
+                // At 300k+ entities, 50k was causing crashes due to overflow
+                // 500k capacity = ~12MB memory (Entity is 8 bytes + 4 byte index = 12 bytes/entity)
+                int estimatedMaxDynamicEntities = 500000; // 500k movers (supports 300k+ combatants)
                 var csrGrid = new SpatialGridCSR(
                     bounds,
                     cellSize,
