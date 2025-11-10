@@ -92,6 +92,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                 // Add spatial settings for moving units
                 AddComponent(entity, SpatialSettings.MovingUnit);
+
+                // Add AttackCooldown component for damage rate limiting
+                AddComponent(entity, new AttackCooldown { TimeRemaining = 0f });
             }
         }
 
