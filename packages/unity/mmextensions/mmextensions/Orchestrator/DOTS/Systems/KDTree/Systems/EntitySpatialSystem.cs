@@ -489,6 +489,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     var staticQuadTreeEntity = _staticQuadTreeQuery.GetSingletonEntity();
                     var staticQuadTreeSingleton = state.EntityManager.GetComponentData<StaticQuadTreeSingleton>(staticQuadTreeEntity);
 
+                    // PRE-SIZE QUADTREE BUFFERS: Must happen BEFORE scheduling job!
+                    // BuildFromSortedArray cannot resize buffers inside a Burst job (Dispose() forbidden)
+                    // Estimate static entity count from CoalescedWal and pre-allocate buffers
+                    int estimatedStaticCount = math.min(_coalescedWal.Count(), 100000); // Cap at 100k for safety
+                    staticQuadTreeSingleton.QuadTree.EnsureScratchCapacity(estimatedStaticCount);
+                    staticQuadTreeSingleton.QuadTree.EnsureSortBufferCapacity(estimatedStaticCount);
+
                     var buildQuadTreeJob = new BuildQuadTreeFromWalJob
                     {
                         CoalescedWal = _coalescedWal,
