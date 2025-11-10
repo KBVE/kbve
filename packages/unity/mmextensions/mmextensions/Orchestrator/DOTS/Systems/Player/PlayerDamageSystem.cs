@@ -32,6 +32,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private partial struct ApplyDamageToPlayersJob : IJobEntity
         {
             // Component lookup for direct O(1) player access
+            // NativeDisableParallelForRestriction: Multiple combatants can attack different players simultaneously
+            // This is safe because each combatant only writes to its own TargetEntity (no race conditions)
+            [NativeDisableParallelForRestriction]
             public ComponentLookup<Player> PlayerLookup;
 
             // Delta time for attack speed calculations
