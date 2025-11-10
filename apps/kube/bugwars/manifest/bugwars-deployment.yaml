@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bugwars-deployment
+  namespace: bugwars
+  labels:
+    app: bugwars
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bugwars
+  template:
+    metadata:
+      labels:
+        app: bugwars
+    spec:
+      containers:
+      - name: bugwars
+        image: ghcr.io/kbve/bugwars:1.0.0
+        ports:
+        - containerPort: 4321
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "4321"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bugwars-service
+  namespace: bugwars
+  labels:
+    app: bugwars
+spec:
+  type: ClusterIP
+  selector:
+    app: bugwars
+  ports:
+  - port: 4321
+    targetPort: 4321
+    protocol: TCP

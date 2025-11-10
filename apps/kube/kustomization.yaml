@@ -42,3 +42,4 @@ resources:
   - clickhouse/application.yaml
   - restream/application.yaml
   - staryo/application.yaml
+  - bugwars/application.yaml

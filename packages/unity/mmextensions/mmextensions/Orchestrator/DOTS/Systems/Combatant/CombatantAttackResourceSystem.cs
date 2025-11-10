@@ -66,120 +66,141 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                 // Query STATIC QuadTree for resources/structures - O(log N)
                 // Removed expensive Hash Grid query for dynamic entities (not needed for resource targeting)
-                // CRITICAL: Use using pattern to ensure disposal on ALL code paths
-                using var nearbyEntities = new NativeList<Entity>(Allocator.Temp);
-                StaticQuadTree.QueryRadius(transform.Position.xy, combatant.Data.DetectionRange, nearbyEntities);
-
-                // Early exit if no nearby entities
-                if (nearbyEntities.Length == 0)
+                // CRITICAL: Explicit try-finally disposal for Burst compatibility
+                // CRITICAL: Reduced capacity to avoid exceeding TempJob allocator limits
+                // At 10k entities with 4-frame stagger = 2.5k entities/frame × 64 entries = 160KB (under 4MB limit)
+                // Allocator.Temp has 4MB limit per frame - must keep total allocation low!
+                var nearbyEntities = new NativeList<Entity>(64, Allocator.Temp); // Reduced to prevent TempJob overflow
+                try
                 {
-                    // No entities nearby, return to idle
-                    if (combatant.Data.State == CombatantState.Attacking ||
-                        combatant.Data.State == CombatantState.Chasing)
+                    StaticQuadTree.QueryRadius(transform.Position.xy, combatant.Data.DetectionRange, nearbyEntities);
+
+                    // Early exit if no nearby entities
+                    if (nearbyEntities.Length == 0)
                     {
-                        combatant.Data = combatant.Data.SetState(CombatantState.Idle);
-                        combatant.Data.TargetEntity = Entity.Null; // Clear target
-                    }
-                    return; // nearbyEntities disposed automatically by 'using'
-                }
-
-                // Filter QuadTree results to only include valid resources
-                // Build a temporary list of resource positions for nearest neighbor search
-                // CRITICAL: Use using pattern to ensure disposal on ALL code paths
-                using var resourcePositions = new NativeList<KDTreeEntry>(nearbyEntities.Length, Allocator.Temp);
-                for (int i = 0; i < nearbyEntities.Length; i++)
-                {
-                    var resourceEntity = nearbyEntities[i];
-
-                    // Only include resources
-                    if (!ResourceLookup.HasComponent(resourceEntity))
-                        continue;
-
-                    var resource = ResourceLookup[resourceEntity];
-
-                    // Skip depleted resources
-                    if (resource.Data.IsDepleted)
-                        continue;
-
-                    // Get resource position
-                    if (TransformLookup.TryGetComponent(resourceEntity, out var resourceTransform))
-                    {
-                        resourcePositions.Add(new KDTreeEntry
-                        {
-                            Entity = resourceEntity,
-                            Position = resourceTransform.Position.xy
-                        });
-                    }
-                }
-
-                // Linear search to find NEAREST resource (fastest for typical case of <50 resources)
-                // nearbyEntities disposed automatically by 'using' at end of scope
-                Entity nearestResource = Entity.Null;
-                float nearestDistanceSq = float.MaxValue;
-
-                if (resourcePositions.Length > 0)
-                {
-                    // Linear search - simpler and faster than temp KD-Tree overhead
-                    for (int i = 0; i < resourcePositions.Length; i++)
-                    {
-                        float distSq = math.distancesq(transform.Position.xy, resourcePositions[i].Position);
-                        if (distSq < nearestDistanceSq)
-                        {
-                            nearestDistanceSq = distSq;
-                            nearestResource = resourcePositions[i].Entity;
-                        }
-                    }
-
-                    // resourcePositions disposed automatically by 'using' at end of scope
-
-                    // Calculate actual distance
-                    float distance = math.sqrt(nearestDistanceSq);
-
-                    // Update combatant state based on distance to nearest resource
-                    if (distance <= attackRange)
-                    {
-                        // CRITICAL: Only attack when RIGHT NEXT TO the resource
-                        // MoveToDestinationSystem will automatically stop movement when State == Attacking
-                        if (combatant.Data.State != CombatantState.Attacking)
-                        {
-                            combatant.Data = combatant.Data.SetState(CombatantState.Attacking);
-                        }
-
-                        // PERFORMANCE FIX: Store target entity for O(1) damage application
-                        // This eliminates the O(N×M) loop in ResourceControllerSystem
-                        combatant.Data.TargetEntity = nearestResource;
-                    }
-                    else if (distance <= combatant.Data.DetectionRange)
-                    {
-                        // Resource detected but NOT in attack range yet
-                        // MoveToDestinationSystem will automatically move when State == Chasing
-                        if (combatant.Data.State == CombatantState.Idle ||
-                            combatant.Data.State == CombatantState.Patrolling)
-                        {
-                            combatant.Data = combatant.Data.SetState(CombatantState.Chasing);
-                        }
-                    }
-                    else
-                    {
-                        // Nearest resource is outside detection range (shouldn't happen due to QuadTree filter)
+                        // No entities nearby, return to idle
                         if (combatant.Data.State == CombatantState.Attacking ||
                             combatant.Data.State == CombatantState.Chasing)
                         {
                             combatant.Data = combatant.Data.SetState(CombatantState.Idle);
                             combatant.Data.TargetEntity = Entity.Null; // Clear target
                         }
+                        return; // Will hit finally block for disposal
+                    }
+
+                    // Filter QuadTree results to only include valid resources
+                    // Build a temporary list of resource positions for nearest neighbor search
+                    // NOTE: KDTreeEntry is just a (Entity, Position) struct - NOT using KD-Tree algorithm
+                    // This is used for linear search in spatial queries, KD-Tree itself is disabled
+                    // CRITICAL: Explicit try-finally disposal for Burst compatibility
+                    // CRITICAL: Reduced capacity to avoid exceeding TempJob allocator limits
+                    var resourcePositions = new NativeList<KDTreeEntry>(64, Allocator.Temp);
+                    int maxResourceCapacity = resourcePositions.Capacity;
+                    try
+                    {
+                        for (int i = 0; i < nearbyEntities.Length; i++)
+                        {
+                            var resourceEntity = nearbyEntities[i];
+
+                            // Only include resources
+                            if (!ResourceLookup.HasComponent(resourceEntity))
+                                continue;
+
+                            var resource = ResourceLookup[resourceEntity];
+
+                            // Skip depleted resources
+                            if (resource.Data.IsDepleted)
+                                continue;
+
+                            // Get resource position
+                            if (TransformLookup.TryGetComponent(resourceEntity, out var resourceTransform))
+                            {
+                                // CRITICAL: Check capacity BEFORE adding to prevent resize
+                                if (resourcePositions.Length >= maxResourceCapacity)
+                                    break; // Stop adding to prevent resize crash
+
+                                resourcePositions.Add(new KDTreeEntry
+                                {
+                                    Entity = resourceEntity,
+                                    Position = resourceTransform.Position.xy
+                                });
+                            }
+                        }
+
+                        // Linear search to find NEAREST resource (fastest for typical case of <50 resources)
+                        Entity nearestResource = Entity.Null;
+                        float nearestDistanceSq = float.MaxValue;
+
+                        if (resourcePositions.Length > 0)
+                        {
+                            // Linear search - simpler and faster than temp KD-Tree overhead
+                            for (int i = 0; i < resourcePositions.Length; i++)
+                            {
+                                float distSq = math.distancesq(transform.Position.xy, resourcePositions[i].Position);
+                                if (distSq < nearestDistanceSq)
+                                {
+                                    nearestDistanceSq = distSq;
+                                    nearestResource = resourcePositions[i].Entity;
+                                }
+                            }
+
+                            // Calculate actual distance
+                            float distance = math.sqrt(nearestDistanceSq);
+
+                            // Update combatant state based on distance to nearest resource
+                            if (distance <= attackRange)
+                            {
+                                // CRITICAL: Only attack when RIGHT NEXT TO the resource
+                                // MoveToDestinationSystem will automatically stop movement when State == Attacking
+                                if (combatant.Data.State != CombatantState.Attacking)
+                                {
+                                    combatant.Data = combatant.Data.SetState(CombatantState.Attacking);
+                                }
+
+                                // PERFORMANCE FIX: Store target entity for O(1) damage application
+                                // This eliminates the O(N×M) loop in ResourceControllerSystem
+                                combatant.Data.TargetEntity = nearestResource;
+                            }
+                            else if (distance <= combatant.Data.DetectionRange)
+                            {
+                                // Resource detected but NOT in attack range yet
+                                // MoveToDestinationSystem will automatically move when State == Chasing
+                                if (combatant.Data.State == CombatantState.Idle ||
+                                    combatant.Data.State == CombatantState.Patrolling)
+                                {
+                                    combatant.Data = combatant.Data.SetState(CombatantState.Chasing);
+                                }
+                            }
+                            else
+                            {
+                                // Nearest resource is outside detection range (shouldn't happen due to QuadTree filter)
+                                if (combatant.Data.State == CombatantState.Attacking ||
+                                    combatant.Data.State == CombatantState.Chasing)
+                                {
+                                    combatant.Data = combatant.Data.SetState(CombatantState.Idle);
+                                    combatant.Data.TargetEntity = Entity.Null; // Clear target
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // No resources found in filtered set, return to idle
+                            if (combatant.Data.State == CombatantState.Attacking ||
+                                combatant.Data.State == CombatantState.Chasing)
+                            {
+                                combatant.Data = combatant.Data.SetState(CombatantState.Idle);
+                                combatant.Data.TargetEntity = Entity.Null; // Clear target
+                            }
+                        }
+                    }
+                    finally
+                    {
+                        resourcePositions.Dispose();
                     }
                 }
-                else
+                finally
                 {
-                    // No resources found in filtered set, return to idle
-                    // resourcePositions disposed automatically by 'using' at end of scope
-                    if (combatant.Data.State == CombatantState.Attacking ||
-                        combatant.Data.State == CombatantState.Chasing)
-                    {
-                        combatant.Data = combatant.Data.SetState(CombatantState.Idle);
-                        combatant.Data.TargetEntity = Entity.Null; // Clear target
-                    }
+                    nearbyEntities.Dispose();
                 }
             }
         }
