@@ -363,6 +363,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// Dirty flag - set to true when static entities spawn/despawn and tree needs rebuild
         /// </summary>
         public bool NeedsRebuild;
+
+        /// <summary>
+        /// FENCE: Published job handle for dependency tracking.
+        /// Consumers must combine this with their state.Dependency before reading QuadTree
+        /// </summary>
+        public Unity.Jobs.JobHandle BuildJobHandle;
     }
 
     /// <summary>
@@ -410,6 +416,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// Whether the hash grid is currently valid and ready for queries
         /// </summary>
         public bool IsValid;
+
+        /// <summary>
+        /// FENCE: Published job handle for dependency tracking.
+        /// Consumers must combine this with their state.Dependency before reading HashGrid
+        /// </summary>
+        public Unity.Jobs.JobHandle BuildJobHandle;
     }
 
     /// <summary>

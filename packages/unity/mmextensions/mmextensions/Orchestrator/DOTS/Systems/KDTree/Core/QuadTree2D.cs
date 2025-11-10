@@ -1063,19 +1063,23 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     return false; // Abort split - keep as fat leaf
                 }
 
-                // PASS 2: Scatter entries into exact slots (in-place partition)
-                // ROBUST: Same deterministic fallback logic as PASS 1
-                int w0 = off0, w1 = off1, w2 = off2, w3 = off3;
+                // PASS 2: Scatter entries using TEMP BUFFER (safe, no in-place issues)
+                // CRITICAL FIX: Use temp buffer to avoid writing beyond _entries.Length
+                // The in-place partition was failing when parent entries were at the end of the list
+                var tempBuffer = new NativeArray<QuadTreeEntry>(parentCount, Allocator.Temp);
 
-                // CRITICAL: Track max allowed write indices to prevent out-of-bounds writes
-                int maxW0 = off0 + c0;
-                int maxW1 = off1 + c1;
-                int maxW2 = off2 + c2;
-                int maxW3 = off3 + c3;
+                // Copy parent entries to temp buffer first
+                for (int i = 0; i < parentCount; i++)
+                {
+                    tempBuffer[i] = _entries[parentStart + i];
+                }
+
+                // Now scatter from temp buffer into parent's segment
+                int w0 = 0, w1 = 0, w2 = 0, w3 = 0;
 
                 for (int i = 0; i < parentCount; i++)
                 {
-                    var entry = _entries[parentStart + i];
+                    var entry = tempBuffer[i];
 
                     // Try to get child index (same logic as PASS 1 for consistency)
                     int childIdx = GetChildIndex(nodeIndex, entry.Position);
@@ -1099,28 +1103,29 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                     int q = childIdx - node.FirstChildIndex;
 
-                    // CRITICAL: Bounds check before every write to prevent index out of range
-                    // This catches any inconsistency between pass 1 (count) and pass 2 (scatter)
+                    // Write to correct child segment (safe because we're writing within [parentStart, parentStart+parentCount))
                     switch (q)
                     {
                         case 0:
-                            if (w0 < maxW0 && w0 < _entries.Length)
-                                _entries[w0++] = entry;
+                            if (w0 < c0)
+                                _entries[off0 + w0++] = entry;
                             break;
                         case 1:
-                            if (w1 < maxW1 && w1 < _entries.Length)
-                                _entries[w1++] = entry;
+                            if (w1 < c1)
+                                _entries[off1 + w1++] = entry;
                             break;
                         case 2:
-                            if (w2 < maxW2 && w2 < _entries.Length)
-                                _entries[w2++] = entry;
+                            if (w2 < c2)
+                                _entries[off2 + w2++] = entry;
                             break;
                         case 3:
-                            if (w3 < maxW3 && w3 < _entries.Length)
-                                _entries[w3++] = entry;
+                            if (w3 < c3)
+                                _entries[off3 + w3++] = entry;
                             break;
                     }
                 }
+
+                tempBuffer.Dispose();
 
                 // Assign ranges to children (only if they have entries)
                 var child0 = _nodes[firstChildIndex + 0];
@@ -1488,6 +1493,321 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             int index = _nextFreeNodeIndex;
             _nextFreeNodeIndex += 4; // Reserve 4 nodes for children
             return index;
+        }
+
+        /// <summary>
+        /// Compute Morton code (Z-order curve) for a 2D position within bounds.
+        /// Used for spatial sorting to minimize QuadTree splits.
+        /// Returns a 32-bit interleaved code (16 bits per axis).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private uint ComputeMortonCode(float2 position)
+        {
+            // Normalize position to [0, 1] within bounds
+            float2 normalized = (position - Bounds.Min) / Bounds.Size;
+            normalized = math.clamp(normalized, 0f, 1f);
+
+            // Convert to 16-bit integers (0..65535)
+            uint x = (uint)(normalized.x * 65535f);
+            uint y = (uint)(normalized.y * 65535f);
+
+            // Interleave bits (Morton encoding)
+            return MortonEncode2D(x, y);
+        }
+
+        /// <summary>
+        /// Interleave 16-bit X and Y coordinates into a 32-bit Morton code.
+        /// Branchless bit manipulation for maximum Burst performance.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private static uint MortonEncode2D(uint x, uint y)
+        {
+            // Spread 16-bit value to occupy every other bit (32-bit result)
+            x = (x | (x << 8)) & 0x00FF00FF;
+            x = (x | (x << 4)) & 0x0F0F0F0F;
+            x = (x | (x << 2)) & 0x33333333;
+            x = (x | (x << 1)) & 0x55555555;
+
+            y = (y | (y << 8)) & 0x00FF00FF;
+            y = (y | (y << 4)) & 0x0F0F0F0F;
+            y = (y | (y << 2)) & 0x33333333;
+            y = (y | (y << 1)) & 0x55555555;
+
+            // Interleave: even bits = x, odd bits = y
+            return x | (y << 1);
+        }
+
+        /// <summary>
+        /// Build QuadTree from a pre-sorted array of entries WITHOUT any splits.
+        /// This eliminates all split complexity and fragility at scale.
+        ///
+        /// Algorithm:
+        /// 1. Sort entries by Morton code (Z-order curve) for spatial locality
+        /// 2. Pre-calculate exact tree structure needed (no dynamic splits)
+        /// 3. Allocate all nodes upfront in contiguous blocks
+        /// 4. Assign entries to leaf nodes directly
+        ///
+        /// This is MUCH faster and more robust than Insert() for bulk builds.
+        /// Recommended for 10k+ static entities.
+        /// </summary>
+        public void BuildFromSortedArray(NativeArray<QuadTreeEntry> entries)
+        {
+            if (entries.Length == 0)
+            {
+                Clear();
+                return;
+            }
+
+            // STEP 1: Sort entries by Morton code for spatial locality
+            var sortedEntries = new NativeArray<QuadTreeEntry>(entries.Length, Allocator.Temp);
+            entries.CopyTo(sortedEntries);
+
+            // Compute Morton codes for all entries
+            var mortonCodes = new NativeArray<uint>(entries.Length, Allocator.Temp);
+            for (int i = 0; i < entries.Length; i++)
+            {
+                mortonCodes[i] = ComputeMortonCode(entries[i].Position);
+            }
+
+            // Sort entries by Morton code (using Unity's NativeSortExtension if available, else bubble sort for now)
+            // TODO: Replace with radix sort for production (linear time for 32-bit keys)
+            SortByMortonCode(sortedEntries, mortonCodes);
+
+            mortonCodes.Dispose();
+
+            // STEP 2: Build tree structure recursively from sorted array
+            Clear(); // Reset tree state
+
+            // Reserve capacity based on entry count
+            ReserveForBuild(entries.Length);
+
+            // Copy sorted entries to _entries list
+            _entries.Clear();
+            _entries.Capacity = sortedEntries.Length;
+            for (int i = 0; i < sortedEntries.Length; i++)
+            {
+                _entries.Add(sortedEntries[i]);
+            }
+
+            // STEP 3: Build tree structure by partitioning sorted array
+            // Root node takes all entries
+            var rootNode = _nodes[_rootNodeIndex];
+            rootNode.FirstEntryIndex = 0;
+            rootNode.EntryCount = sortedEntries.Length;
+            rootNode.IsLeaf = true;
+            rootNode.FirstChildIndex = INVALID_NODE;
+            _nodes[_rootNodeIndex] = rootNode;
+
+            // Recursively subdivide if root exceeds capacity
+            if (sortedEntries.Length > _maxEntriesPerNode)
+            {
+                BuildNodeRecursive(_rootNodeIndex, 0);
+            }
+
+            sortedEntries.Dispose();
+        }
+
+        /// <summary>
+        /// Sort entries by Morton code using insertion sort (simple but O(N^2)).
+        /// TODO: Replace with radix sort for production (O(N) for 32-bit keys).
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void SortByMortonCode(NativeArray<QuadTreeEntry> entries, NativeArray<uint> mortonCodes)
+        {
+            int n = entries.Length;
+
+            // Simple insertion sort (good for nearly-sorted data, bad for random)
+            // For 20k+ entities, replace with radix sort
+            for (int i = 1; i < n; i++)
+            {
+                var keyEntry = entries[i];
+                var keyCode = mortonCodes[i];
+                int j = i - 1;
+
+                while (j >= 0 && mortonCodes[j] > keyCode)
+                {
+                    entries[j + 1] = entries[j];
+                    mortonCodes[j + 1] = mortonCodes[j];
+                    j--;
+                }
+
+                entries[j + 1] = keyEntry;
+                mortonCodes[j + 1] = keyCode;
+            }
+        }
+
+        /// <summary>
+        /// Recursively build tree structure from sorted entries WITHOUT any splits.
+        /// All entries for this node are already assigned in _entries[node.FirstEntryIndex..node.FirstEntryIndex+node.EntryCount).
+        /// If node exceeds capacity, subdivide into 4 children and partition entries.
+        /// </summary>
+        [MethodImpl(MethodImplOptions.AggressiveInlining)]
+        private void BuildNodeRecursive(int nodeIndex, int depth)
+        {
+            if (nodeIndex < 0 || nodeIndex >= _nodes.Length)
+                return;
+
+            var node = _nodes[nodeIndex];
+
+            // Base case: node is small enough or max depth reached
+            if (node.EntryCount <= _maxEntriesPerNode || depth >= _maxDepth)
+            {
+                // Keep as leaf
+                return;
+            }
+
+            // Allocate 4 children
+            var firstChildIndex = GetNextAvailableNodeIndex();
+            if (firstChildIndex == INVALID_NODE)
+            {
+                // Out of capacity - keep as fat leaf
+                if (_overflow.IsCreated)
+                    _overflow.Value = 1;
+                return;
+            }
+
+            // Validate child indices
+            if (firstChildIndex + 3 >= _nodes.Length)
+            {
+                if (_overflow.IsCreated)
+                    _overflow.Value = 1;
+                return;
+            }
+
+            // Partition entries into 4 quadrants
+            var center = node.Bounds.Center;
+            var halfSize = node.Bounds.Size * 0.5f;
+
+            // Count entries per quadrant (TR=0, TL=1, BL=2, BR=3)
+            int c0 = 0, c1 = 0, c2 = 0, c3 = 0;
+            int parentStart = node.FirstEntryIndex;
+            int parentCount = node.EntryCount;
+
+            // PASS 1: Count entries per child
+            for (int i = 0; i < parentCount; i++)
+            {
+                var entry = _entries[parentStart + i];
+                int right = entry.Position.x >= center.x ? 1 : 0;
+                int bottom = entry.Position.y < center.y ? 1 : 0;
+                int quadrant = (right | (bottom << 1)) switch
+                {
+                    0 => 1, // TL
+                    1 => 0, // TR
+                    2 => 2, // BL
+                    3 => 3, // BR
+                    _ => 0
+                };
+
+                switch (quadrant)
+                {
+                    case 0: c0++; break;
+                    case 1: c1++; break;
+                    case 2: c2++; break;
+                    case 3: c3++; break;
+                }
+            }
+
+            // Compute child ranges (contiguous within parent's segment)
+            int off0 = parentStart;
+            int off1 = off0 + c0;
+            int off2 = off1 + c1;
+            int off3 = off2 + c2;
+
+            // PASS 2: Partition entries using temp buffer
+            var tempBuffer = new NativeArray<QuadTreeEntry>(parentCount, Allocator.Temp);
+            for (int i = 0; i < parentCount; i++)
+            {
+                tempBuffer[i] = _entries[parentStart + i];
+            }
+
+            // Scatter into quadrants
+            int w0 = 0, w1 = 0, w2 = 0, w3 = 0;
+            for (int i = 0; i < parentCount; i++)
+            {
+                var entry = tempBuffer[i];
+                int right = entry.Position.x >= center.x ? 1 : 0;
+                int bottom = entry.Position.y < center.y ? 1 : 0;
+                int quadrant = (right | (bottom << 1)) switch
+                {
+                    0 => 1, // TL
+                    1 => 0, // TR
+                    2 => 2, // BL
+                    3 => 3, // BR
+                    _ => 0
+                };
+
+                switch (quadrant)
+                {
+                    case 0:
+                        if (w0 < c0) _entries[off0 + w0++] = entry;
+                        break;
+                    case 1:
+                        if (w1 < c1) _entries[off1 + w1++] = entry;
+                        break;
+                    case 2:
+                        if (w2 < c2) _entries[off2 + w2++] = entry;
+                        break;
+                    case 3:
+                        if (w3 < c3) _entries[off3 + w3++] = entry;
+                        break;
+                }
+            }
+
+            tempBuffer.Dispose();
+
+            // Create child nodes
+            _nodes[firstChildIndex + 0] = new QuadTreeNode
+            {
+                Bounds = new AABB2D(new float2(center.x + halfSize.x * 0.5f, center.y + halfSize.y * 0.5f), halfSize),
+                IsLeaf = true,
+                FirstEntryIndex = (c0 > 0) ? off0 : -1,
+                EntryCount = c0,
+                FirstChildIndex = INVALID_NODE
+            };
+
+            _nodes[firstChildIndex + 1] = new QuadTreeNode
+            {
+                Bounds = new AABB2D(new float2(center.x - halfSize.x * 0.5f, center.y + halfSize.y * 0.5f), halfSize),
+                IsLeaf = true,
+                FirstEntryIndex = (c1 > 0) ? off1 : -1,
+                EntryCount = c1,
+                FirstChildIndex = INVALID_NODE
+            };
+
+            _nodes[firstChildIndex + 2] = new QuadTreeNode
+            {
+                Bounds = new AABB2D(new float2(center.x - halfSize.x * 0.5f, center.y - halfSize.y * 0.5f), halfSize),
+                IsLeaf = true,
+                FirstEntryIndex = (c2 > 0) ? off2 : -1,
+                EntryCount = c2,
+                FirstChildIndex = INVALID_NODE
+            };
+
+            _nodes[firstChildIndex + 3] = new QuadTreeNode
+            {
+                Bounds = new AABB2D(new float2(center.x + halfSize.x * 0.5f, center.y - halfSize.y * 0.5f), halfSize),
+                IsLeaf = true,
+                FirstEntryIndex = (c3 > 0) ? off3 : -1,
+                EntryCount = c3,
+                FirstChildIndex = INVALID_NODE
+            };
+
+            // Update parent to point to children
+            node.FirstChildIndex = firstChildIndex;
+            node.IsLeaf = false;
+            node.FirstEntryIndex = -1; // Parent no longer owns entries
+            node.EntryCount = 0;
+            _nodes[nodeIndex] = node;
+
+            // Recursively subdivide children
+            if (c0 > _maxEntriesPerNode)
+                BuildNodeRecursive(firstChildIndex + 0, depth + 1);
+            if (c1 > _maxEntriesPerNode)
+                BuildNodeRecursive(firstChildIndex + 1, depth + 1);
+            if (c2 > _maxEntriesPerNode)
+                BuildNodeRecursive(firstChildIndex + 2, depth + 1);
+            if (c3 > _maxEntriesPerNode)
+                BuildNodeRecursive(firstChildIndex + 3, depth + 1);
         }
 
         public void Dispose()
