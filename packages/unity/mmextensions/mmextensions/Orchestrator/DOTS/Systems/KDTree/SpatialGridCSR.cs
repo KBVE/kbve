@@ -114,6 +114,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
         /// <summary>
         /// Query entities within radius (checks neighboring cells)
+        /// CRITICAL: Pre-allocate results with sufficient capacity to prevent resizing!
         /// </summary>
         [BurstCompile]
         public void QueryRadius(in float2 center, float radius, NativeList<Entity> results)
@@ -134,6 +135,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             float radiusSq = radius * radius;
 
+            // Get current capacity to prevent resize during Add()
+            int maxCapacity = results.Capacity;
+            int currentLength = results.Length;
+
             // Iterate cells in range (typically 4-9 cells)
             for (int cy = minCell.y; cy <= maxCell.y; cy++)
             {
@@ -146,7 +151,17 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     // CSR lookup: sequential range iteration (cache-friendly!)
                     for (int i = start; i < end; i++)
                     {
+                        // CRITICAL: Check capacity before adding to prevent resize
+                        // If capacity exceeded, stop adding (caller should increase pre-allocation)
+                        if (currentLength >= maxCapacity)
+                        {
+                            // Capacity exceeded - return what we have
+                            // This prevents crashes but may result in incomplete queries
+                            return;
+                        }
+
                         results.Add(Indices[i]);
+                        currentLength++;
                         // Note: Actual distance check would require position data
                         // This is handled in the query system with component lookups
                     }
@@ -171,11 +186,32 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
     }
 
     /// <summary>
-    /// Singleton component holding the CSR grid
+    /// Singleton component holding the CSR grid with DOUBLE BUFFERING
+    ///
+    /// DOUBLE BUFFERING STRATEGY:
+    /// - ReadGrid: Used by query systems (attack, pathfinding) - guaranteed stable
+    /// - WriteGrid: Being rebuilt by EntitySpatialSystem in parallel
+    /// - Swap at end of frame: WriteGrid becomes ReadGrid, ReadGrid becomes WriteGrid
+    ///
+    /// FENCE PATTERN:
+    /// - BuildJobHandle: Consumers MUST depend on this before reading ReadGrid
+    /// - This eliminates implicit dependencies and prevents race conditions
+    ///
+    /// BENEFITS:
+    /// - No Complete() calls needed - eliminates main thread stalls
+    /// - Queries can read from stable grid while rebuild happens in parallel
+    /// - Explicit dependency chain prevents deadlocks
+    /// - 1-frame latency is acceptable for spatial queries (entities don't teleport)
     /// </summary>
     public struct SpatialGridCSRSingleton : IComponentData
     {
-        public SpatialGridCSR Grid;
+        public SpatialGridCSR ReadGrid;  // Stable grid for queries
+        public SpatialGridCSR WriteGrid; // Grid being rebuilt
+
+        // FENCE: Published job handle for dependency tracking
+        // Consumers must combine this with their state.Dependency before reading ReadGrid
+        public JobHandle BuildJobHandle;
+
         public uint LastUpdateFrame;
         public bool IsValid;
     }

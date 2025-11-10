@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using KBVE.MMExtensions.Orchestrator.DOTS.Common;
@@ -66,111 +67,24 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 float attackRange = math.min(combatant.Data.DetectionRange * 0.5f, 2f);
 
                 // Query CSR Grid for nearby dynamic entities (players) - O(1)!
-                // CRITICAL: Use using pattern to ensure disposal on ALL code paths
-                using var nearbyEntities = new NativeList<Entity>(Allocator.Temp);
-                CSRGrid.QueryRadius(transform.Position.xy, combatant.Data.DetectionRange, nearbyEntities);
-
-                // Early exit if no nearby entities
-                if (nearbyEntities.Length == 0)
+                // CRITICAL: Explicit try-finally disposal for Burst compatibility
+                // CRITICAL: Reduced capacity to avoid exceeding TempJob allocator limits
+                // At 10k entities with 4-frame stagger = 2.5k entities/frame × 64 entries = 160KB (under 4MB limit)
+                // Allocator.Temp has 4MB limit per frame - must keep total allocation low!
+                var nearbyEntities = new NativeList<Entity>(64, Allocator.Temp); // Reduced to prevent TempJob overflow
+                try
                 {
-                    // No entities nearby, return to idle if currently attacking a player
-                    if (combatant.Data.State == CombatantState.Attacking ||
-                        combatant.Data.State == CombatantState.Chasing)
+                    CSRGrid.QueryRadius(transform.Position.xy, combatant.Data.DetectionRange, nearbyEntities);
+
+                    // Early exit if no nearby entities
+                    if (nearbyEntities.Length == 0)
                     {
-                        // Only clear state if the current target is a player
-                        // (don't interfere with resource targeting)
-                        if (combatant.Data.TargetEntity != Entity.Null &&
-                            PlayerLookup.HasComponent(combatant.Data.TargetEntity))
-                        {
-                            combatant.Data = combatant.Data.SetState(CombatantState.Idle);
-                            combatant.Data.TargetEntity = Entity.Null; // Clear target
-                        }
-                    }
-                    return; // nearbyEntities disposed automatically by 'using'
-                }
-
-                // Filter CSR Grid results to only include valid players
-                // Build a temporary list of player positions for nearest neighbor search
-                // CRITICAL: Use using pattern to ensure disposal on ALL code paths
-                using var playerPositions = new NativeList<KDTreeEntry>(nearbyEntities.Length, Allocator.Temp);
-                for (int i = 0; i < nearbyEntities.Length; i++)
-                {
-                    var playerEntity = nearbyEntities[i];
-
-                    // Only include players
-                    if (!PlayerLookup.HasComponent(playerEntity))
-                        continue;
-
-                    var player = PlayerLookup[playerEntity];
-
-                    // Skip dead players (don't attack corpses)
-                    if (player.Data.IsDead)
-                        continue;
-
-                    // Get player position
-                    if (TransformLookup.TryGetComponent(playerEntity, out var playerTransform))
-                    {
-                        playerPositions.Add(new KDTreeEntry
-                        {
-                            Entity = playerEntity,
-                            Position = playerTransform.Position.xy
-                        });
-                    }
-                }
-
-                // Linear search to find NEAREST player (fastest for typical case of 1-10 players)
-                Entity nearestPlayer = Entity.Null;
-                float nearestDistanceSq = float.MaxValue;
-
-                if (playerPositions.Length > 0)
-                {
-                    // Linear search - simpler and faster than temp KD-Tree overhead
-                    for (int i = 0; i < playerPositions.Length; i++)
-                    {
-                        float distSq = math.distancesq(transform.Position.xy, playerPositions[i].Position);
-                        if (distSq < nearestDistanceSq)
-                        {
-                            nearestDistanceSq = distSq;
-                            nearestPlayer = playerPositions[i].Entity;
-                        }
-                    }
-
-                    // playerPositions disposed automatically by 'using' at end of scope
-
-                    // Calculate actual distance
-                    float distance = math.sqrt(nearestDistanceSq);
-
-                    // Update combatant state based on distance to nearest player
-                    if (distance <= attackRange)
-                    {
-                        // CRITICAL: Only attack when RIGHT NEXT TO the player
-                        // MoveToDestinationSystem will automatically stop movement when State == Attacking
-                        if (combatant.Data.State != CombatantState.Attacking)
-                        {
-                            combatant.Data = combatant.Data.SetState(CombatantState.Attacking);
-                        }
-
-                        // PERFORMANCE FIX: Store target entity for O(1) damage application
-                        // PlayerDamageSystem will apply damage based on TargetEntity
-                        combatant.Data.TargetEntity = nearestPlayer;
-                    }
-                    else if (distance <= combatant.Data.DetectionRange)
-                    {
-                        // Player detected but NOT in attack range yet
-                        // MoveToDestinationSystem will automatically move when State == Chasing
-                        if (combatant.Data.State == CombatantState.Idle ||
-                            combatant.Data.State == CombatantState.Patrolling)
-                        {
-                            combatant.Data = combatant.Data.SetState(CombatantState.Chasing);
-                        }
-                    }
-                    else
-                    {
-                        // Nearest player is outside detection range (shouldn't happen due to CSR filter)
+                        // No entities nearby, return to idle if currently attacking a player
                         if (combatant.Data.State == CombatantState.Attacking ||
                             combatant.Data.State == CombatantState.Chasing)
                         {
                             // Only clear state if the current target is a player
+                            // (don't interfere with resource targeting)
                             if (combatant.Data.TargetEntity != Entity.Null &&
                                 PlayerLookup.HasComponent(combatant.Data.TargetEntity))
                             {
@@ -178,23 +92,132 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                                 combatant.Data.TargetEntity = Entity.Null; // Clear target
                             }
                         }
+                        return; // Will hit finally block for disposal
                     }
-                }
-                else
-                {
-                    // No players found in filtered set, return to idle if currently targeting a player
-                    // playerPositions disposed automatically by 'using' at end of scope
-                    if (combatant.Data.State == CombatantState.Attacking ||
-                        combatant.Data.State == CombatantState.Chasing)
+
+                    // Filter CSR Grid results to only include valid players
+                    // Build a temporary list of player positions for nearest neighbor search
+                    // NOTE: KDTreeEntry is just a (Entity, Position) struct - NOT using KD-Tree algorithm
+                    // This is used for linear search in spatial queries, KD-Tree itself is disabled
+                    // CRITICAL: Explicit try-finally disposal for Burst compatibility
+                    // CRITICAL: Reduced capacity to avoid exceeding TempJob allocator limits
+                    var playerPositions = new NativeList<KDTreeEntry>(64, Allocator.Temp);
+                    int maxPlayerCapacity = playerPositions.Capacity;
+                    try
                     {
-                        // Only clear state if the current target is a player
-                        if (combatant.Data.TargetEntity != Entity.Null &&
-                            PlayerLookup.HasComponent(combatant.Data.TargetEntity))
+                        for (int i = 0; i < nearbyEntities.Length; i++)
                         {
-                            combatant.Data = combatant.Data.SetState(CombatantState.Idle);
-                            combatant.Data.TargetEntity = Entity.Null; // Clear target
+                            var playerEntity = nearbyEntities[i];
+
+                            // Only include players
+                            if (!PlayerLookup.HasComponent(playerEntity))
+                                continue;
+
+                            var player = PlayerLookup[playerEntity];
+
+                            // Skip dead players (don't attack corpses)
+                            if (player.Data.IsDead)
+                                continue;
+
+                            // Get player position
+                            if (TransformLookup.TryGetComponent(playerEntity, out var playerTransform))
+                            {
+                                // CRITICAL: Check capacity BEFORE adding to prevent resize
+                                if (playerPositions.Length >= maxPlayerCapacity)
+                                    break; // Stop adding to prevent resize crash
+
+                                playerPositions.Add(new KDTreeEntry
+                                {
+                                    Entity = playerEntity,
+                                    Position = playerTransform.Position.xy
+                                });
+                            }
+                        }
+
+                        // Linear search to find NEAREST player (fastest for typical case of 1-10 players)
+                        Entity nearestPlayer = Entity.Null;
+                        float nearestDistanceSq = float.MaxValue;
+
+                        if (playerPositions.Length > 0)
+                        {
+                            // Linear search - simpler and faster than temp KD-Tree overhead
+                            for (int i = 0; i < playerPositions.Length; i++)
+                            {
+                                float distSq = math.distancesq(transform.Position.xy, playerPositions[i].Position);
+                                if (distSq < nearestDistanceSq)
+                                {
+                                    nearestDistanceSq = distSq;
+                                    nearestPlayer = playerPositions[i].Entity;
+                                }
+                            }
+
+                            // Calculate actual distance
+                            float distance = math.sqrt(nearestDistanceSq);
+
+                            // Update combatant state based on distance to nearest player
+                            if (distance <= attackRange)
+                            {
+                                // CRITICAL: Only attack when RIGHT NEXT TO the player
+                                // MoveToDestinationSystem will automatically stop movement when State == Attacking
+                                if (combatant.Data.State != CombatantState.Attacking)
+                                {
+                                    combatant.Data = combatant.Data.SetState(CombatantState.Attacking);
+                                }
+
+                                // PERFORMANCE FIX: Store target entity for O(1) damage application
+                                // PlayerDamageSystem will apply damage based on TargetEntity
+                                combatant.Data.TargetEntity = nearestPlayer;
+                            }
+                            else if (distance <= combatant.Data.DetectionRange)
+                            {
+                                // Player detected but NOT in attack range yet
+                                // MoveToDestinationSystem will automatically move when State == Chasing
+                                if (combatant.Data.State == CombatantState.Idle ||
+                                    combatant.Data.State == CombatantState.Patrolling)
+                                {
+                                    combatant.Data = combatant.Data.SetState(CombatantState.Chasing);
+                                }
+                            }
+                            else
+                            {
+                                // Nearest player is outside detection range (shouldn't happen due to CSR filter)
+                                if (combatant.Data.State == CombatantState.Attacking ||
+                                    combatant.Data.State == CombatantState.Chasing)
+                                {
+                                    // Only clear state if the current target is a player
+                                    if (combatant.Data.TargetEntity != Entity.Null &&
+                                        PlayerLookup.HasComponent(combatant.Data.TargetEntity))
+                                    {
+                                        combatant.Data = combatant.Data.SetState(CombatantState.Idle);
+                                        combatant.Data.TargetEntity = Entity.Null; // Clear target
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // No players found in filtered set, return to idle if currently targeting a player
+                            if (combatant.Data.State == CombatantState.Attacking ||
+                                combatant.Data.State == CombatantState.Chasing)
+                            {
+                                // Only clear state if the current target is a player
+                                if (combatant.Data.TargetEntity != Entity.Null &&
+                                    PlayerLookup.HasComponent(combatant.Data.TargetEntity))
+                                {
+                                    combatant.Data = combatant.Data.SetState(CombatantState.Idle);
+                                    combatant.Data.TargetEntity = Entity.Null; // Clear target
+                                }
+                            }
                         }
                     }
+                    finally
+                    {
+                        playerPositions.Dispose();
+                    }
+                }
+                finally
+                {
+                    nearbyEntities.Dispose();
                 }
             }
         }
@@ -231,9 +254,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             if (!csrGridSingleton.IsValid)
                 return;
 
+            // FENCE: Depend on CSR Grid build handle to prevent races
+            // This ensures the ReadGrid is fully built before we query it
+            state.Dependency = JobHandle.CombineDependencies(state.Dependency, csrGridSingleton.BuildJobHandle);
+
             var job = new FindAndAttackPlayersJob
             {
-                CSRGrid = csrGridSingleton.Grid,
+                CSRGrid = csrGridSingleton.ReadGrid, // DOUBLE BUFFERING: Use stable ReadGrid
                 PlayerLookup = SystemAPI.GetComponentLookup<Player>(true),
                 TransformLookup = SystemAPI.GetComponentLookup<LocalToWorld>(true),
                 FrameCounter = _frameCounter,
