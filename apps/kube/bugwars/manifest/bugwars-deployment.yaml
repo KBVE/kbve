@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
       - name: bugwars
-        image: ghcr.io/kbve/bugwars:1.0.4
+        image: ghcr.io/kbve/bugwars:1.0.5
         ports:
         - containerPort: 4321
           protocol: TCP
