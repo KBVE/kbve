@@ -43,3 +43,4 @@ resources:
   - restream/application.yaml
   - staryo/application.yaml
   - bugwars/application.yaml
+  - cityvote/application.yaml

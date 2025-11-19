@@ -1,0 +1,49 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: cityvote-deployment
+  namespace: cityvote
+  labels:
+    app: cityvote
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: cityvote
+  template:
+    metadata:
+      labels:
+        app: cityvote
+    spec:
+      containers:
+      - name: cityvote
+        image: ghcr.io/kbve/cityvote:1.0.1
+        ports:
+        - containerPort: 4321
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "4321"
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: cityvote-service
+  namespace: cityvote
+  labels:
+    app: cityvote
+spec:
+  type: ClusterIP
+  selector:
+    app: cityvote
+  ports:
+  - port: 4321
+    targetPort: 4321
+    protocol: TCP
