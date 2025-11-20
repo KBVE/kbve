@@ -12,12 +12,16 @@ spec:
       app: bugwars
   template:
     metadata:
+      annotations:
+        rollout-restart: "2025-11-20"
       labels:
         app: bugwars
+        version: "1.0.22"
     spec:
       containers:
       - name: bugwars
         image: ghcr.io/kbve/bugwars:1.0.22
+        imagePullPolicy: Always
         ports:
         - containerPort: 4321
           protocol: TCP
