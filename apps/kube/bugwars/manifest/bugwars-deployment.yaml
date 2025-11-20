@@ -20,7 +20,7 @@ spec:
     spec:
       containers:
       - name: bugwars
-        image: ghcr.io/kbve/bugwars:1.0.22
+        image: ghcr.io/kbve/bugwars:1.0.23
         imagePullPolicy: Always
         ports:
         - containerPort: 4321
