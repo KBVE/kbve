@@ -30,6 +30,16 @@ spec:
           value: "4321"
         - name: SUPABASE_URL
           value: "http://kong.kilobase.svc.cluster.local:8000"
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: anon-key
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: service-role-key
         resources:
           requests:
             memory: "128Mi"
