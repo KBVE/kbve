@@ -12,12 +12,16 @@ spec:
       app: cityvote
   template:
     metadata:
+      annotations:
+        rollout-restart: "2025-11-20T23:30:00Z"
       labels:
         app: cityvote
+        version: "1.0.3"
     spec:
       containers:
       - name: cityvote
         image: ghcr.io/kbve/cityvote:1.0.3
+        imagePullPolicy: Always
         ports:
         - containerPort: 4321
           protocol: TCP
