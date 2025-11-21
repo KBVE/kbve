@@ -1,0 +1,27 @@
+---
+# Allow the bugwars namespace SA to access secrets in kilobase namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: bugwars-read-kilobase-secrets
+  namespace: kilobase
+rules:
+  - apiGroups: ['']
+    resources: ['secrets']
+    verbs: ['get', 'list', 'watch']
+    resourceNames:
+      ['supabase-jwt', 'supabase-postgres']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: bugwars-read-kilobase-secrets
+  namespace: kilobase
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: bugwars-read-kilobase-secrets
+subjects:
+  - kind: ServiceAccount
+    name: bugwars-external-secrets
+    namespace: bugwars
