@@ -3,5 +3,7 @@ kind: Kustomization
 namespace: bugwars
 
 resources:
+  - bugwars-serviceaccount.yaml
+  - bugwars-externalsecret.yaml
   - bugwars-deployment.yaml
   - nginx-ingress.yaml
