@@ -28,6 +28,8 @@ spec:
         env:
         - name: PORT
           value: "4321"
+        - name: SUPABASE_URL
+          value: "http://kong.kilobase.svc.cluster.local:8000"
         resources:
           requests:
             memory: "128Mi"
