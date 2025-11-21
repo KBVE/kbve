@@ -35,6 +35,9 @@ subjects:
 - kind: ServiceAccount
   name: notification-bot
   namespace: discord
+- kind: ServiceAccount
+  name: bugwars-external-secrets
+  namespace: bugwars
 ---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1
