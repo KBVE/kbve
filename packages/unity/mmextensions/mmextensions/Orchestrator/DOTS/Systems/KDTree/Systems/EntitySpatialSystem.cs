@@ -162,6 +162,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private NativeParallelHashMap<Entity, WalOp> _coalescedWal;
 
         /// <summary>
+        /// CRITICAL: Manual dependency tracking for NativeCollections
+        /// Unity's automatic dependency tracking ONLY works for ECS components.
+        /// For private NativeCollections (_coalescedWal, _lastKnownPositions), we must
+        /// manually track job dependencies to prevent race conditions.
+        /// </summary>
+        private JobHandle _coalescedWalDependency;
+
+        /// <summary>
         /// Pre-allocated buffer for static QuadTree entries.
         /// Passed into BuildQuadTreeFromWalJob to avoid allocations inside jobs.
         /// </summary>
@@ -250,6 +258,8 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             if (_csrGridQuery.IsEmpty)
             {
                 InitializeSpatialSingletons(ref state);
+                // BUGFIX: Early return must preserve state.Dependency
+                // Unity's safety system requires Dependency to be set even on early returns
                 return;
             }
 
@@ -260,6 +270,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // TODO: Implement cache-based updates via EntityCacheDrainSystem
             if (config.UseCacheBasedUpdates)
             {
+                // BUGFIX: Early return must preserve state.Dependency
                 return;
             }
 
@@ -452,7 +463,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             // STEP 1: Create WAL stream locally (TempJob, disposed same frame)
             int chunkCount = _spatialEntitiesQuery.CalculateChunkCount();
-            if (chunkCount == 0) return;
+            if (chunkCount == 0)
+            {
+                // BUGFIX: Early return must preserve state.Dependency (no work to schedule)
+                return;
+            }
 
             var walStream = new NativeStream(math.max(1, chunkCount), Allocator.TempJob);
 
@@ -468,7 +483,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 FrameCounter = _frameCounter
             };
 
-            var appendDep = appendJob.ScheduleParallel(_spatialEntitiesQuery, state.Dependency);
+            // BUGFIX: Combine with manual dependency for _coalescedWal and _lastKnownPositions
+            // These are NOT ECS components, so Unity doesn't track them automatically
+            var inputDep = JobHandle.CombineDependencies(state.Dependency, _coalescedWalDependency);
+
+            // Schedule append job - Unity tracks query dependencies automatically
+            var appendDep = appendJob.ScheduleParallel(_spatialEntitiesQuery, inputDep);
 
             // STEP 3: Coalesce WAL (single-threaded dedup)
             var coalesceJob = new CoalesceWalJob
@@ -491,21 +511,26 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
                     // PRE-SIZE QUADTREE BUFFERS: Must happen BEFORE scheduling job!
                     // BuildFromSortedArray cannot resize buffers inside a Burst job (Dispose() forbidden)
-                    // Estimate static entity count from CoalescedWal and pre-allocate buffers
-                    int estimatedStaticCount = math.min(_coalescedWal.Count(), 100000); // Cap at 100k for safety
+                    // BUGFIX: Can't read _coalescedWal.Count() while CoalesceWalJob is running!
+                    // Use entity query count as conservative estimate instead (may overestimate but safe)
+                    int estimatedStaticCount = math.min(_spatialEntitiesQuery.CalculateEntityCount(), 100000);
                     staticQuadTreeSingleton.QuadTree.EnsureScratchCapacity(estimatedStaticCount);
                     staticQuadTreeSingleton.QuadTree.EnsureSortBufferCapacity(estimatedStaticCount);
+
+                    // BUGFIX: Get ComponentLookup and add it to job data
+                    // ComponentLookup access in IJob requires manual dependency registration
+                    var spatialSettingsLookup = state.GetComponentLookup<SpatialSettings>(true);
 
                     var buildQuadTreeJob = new BuildQuadTreeFromWalJob
                     {
                         CoalescedWal = _coalescedWal,
-                        SpatialSettingsLookup = state.GetComponentLookup<SpatialSettings>(true),
+                        SpatialSettingsLookup = spatialSettingsLookup,
                         QuadTree = staticQuadTreeSingleton.QuadTree,
                         LastKnownPositions = _lastKnownPositions,
                         OutEntries = _staticEntries
                     };
 
-                    var buildHandle = buildQuadTreeJob.Schedule(coalesceDep);
+                    var buildHandle = buildQuadTreeJob.Schedule(lastDep);
 
                     // Publish the fence; don't Complete()
                     staticQuadTreeSingleton.BuildJobHandle = buildHandle;
@@ -523,10 +548,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 var csrGridEntity = _csrGridQuery.GetSingletonEntity();
                 var csrGridSingleton = state.EntityManager.GetComponentData<SpatialGridCSRSingleton>(csrGridEntity);
 
+                // BUGFIX: Get ComponentLookup for manual dependency registration
+                var spatialSettingsLookupCSR = state.GetComponentLookup<SpatialSettings>(true);
+
                 var buildCSRJob = new BuildCSRGridFromWalJob
                 {
                     CoalescedWal = _coalescedWal,
-                    SpatialSettingsLookup = state.GetComponentLookup<SpatialSettings>(true),
+                    SpatialSettingsLookup = spatialSettingsLookupCSR,
                     Grid = csrGridSingleton.WriteGrid,
                     LastKnownPositions = _lastKnownPositions
                 };
@@ -548,8 +576,13 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             // This ensures cleanup happens same frame (prevents TempJob 4-frame leak guard)
             walStream.Dispose(lastDep);
 
-            // Wire the system dependency to ensure all jobs complete before next frame
-            state.Dependency = JobHandle.CombineDependencies(state.Dependency, lastDep);
+            // BUGFIX: Save dependency for manual NativeCollections
+            // This prevents "UNKNOWN_OBJECT_TYPE" errors when same job tries to use _coalescedWal again
+            _coalescedWalDependency = lastDep;
+
+            // BUGFIX: Update state.Dependency at the END of the method with the final job chain
+            // Unity's safety system requires this to track all component accesses
+            state.Dependency = lastDep;
         }
 
         private void RebuildSpatialStructures()
