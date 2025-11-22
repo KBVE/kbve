@@ -1,6 +1,7 @@
 using Unity.Burst;
 using Unity.Collections;
 using Unity.Entities;
+using Unity.Jobs;
 using Unity.Mathematics;
 using Unity.Transforms;
 using KBVE.MMExtensions.Orchestrator.DOTS.Common;
@@ -8,34 +9,35 @@ using KBVE.MMExtensions.Orchestrator.DOTS.Common;
 namespace KBVE.MMExtensions.Orchestrator.DOTS
 {
     /// <summary>
-    /// Optimized system for combatants to detect and attack resources.
-    /// Uses CSR Grid for ultra-fast spatial queries at massive scale (1000+ combatants/sec).
+    /// Optimized system for combatants (zombies) to detect and attack players.
+    /// Uses CSR Grid for ultra-fast spatial queries of dynamic entities (players move!).
     ///
     /// PERFORMANCE OPTIMIZATIONS:
     /// 1. CSR Grid.QueryRadius() - O(1) neighbor lookup, 100k-1M entity scale
-    /// 2. QuadTree.QueryRadius() - O(log N) for static resources
-    /// 3. Staggered updates - Process 1/4 of combatants per frame (4-frame cycle)
-    /// 4. Temporal coherence - Cache last known target, recheck every 4 frames
-    /// 5. Pooled NativeList allocations - Reuse lists across job executions
+    /// 2. Staggered updates - Process 1/4 of combatants per frame (4-frame cycle)
+    /// 3. Temporal coherence - Cache last known target, recheck every 4 frames
+    /// 4. Linear search for nearest player - faster than temp KD-Tree overhead
     ///
-    /// SCALING:
-    /// - Before: 100fps → 2fps at 1000 units/sec (O(N²) queries)
-    /// - After: Stable 60fps at 10k+ units (staggered + CSR grid)
+    /// DIFFERENCE FROM CombatantAttackResourceSystem:
+    /// - Uses CSR Grid (dynamic) instead of QuadTree (static)
+    /// - Players move, so CSR Grid is updated every frame
+    /// - Players have health/state, combatants can kill them
     ///
     /// Uses Combatant.State for movement control (MoveToDestinationSystem handles state-based movement).
     /// </summary>
     [BurstCompile]
     [UpdateInGroup(typeof(SimulationSystemGroup))]
-    public partial struct CombatantAttackResourceSystem : ISystem
+    [UpdateAfter(typeof(CombatantAttackResourceSystem))] // Players get priority after resources
+    public partial struct CombatantAttackPlayerSystem : ISystem
     {
         [BurstCompile]
-        private partial struct FindAndAttackResourcesJob : IJobEntity
+        private partial struct FindAndAttackPlayersJob : IJobEntity
         {
-            // Static QuadTree for non-moving entities (resources, structures) - O(log N)
-            [ReadOnly] public QuadTree2D StaticQuadTree;
+            // CSR Grid for dynamic entities (players, combatants) - O(1) queries!
+            [ReadOnly] public SpatialGridCSR CSRGrid;
 
-            // Component lookups for checking resource status
-            [ReadOnly] public ComponentLookup<Resource> ResourceLookup;
+            // Component lookups for checking player status
+            [ReadOnly] public ComponentLookup<Player> PlayerLookup;
             [ReadOnly] public ComponentLookup<LocalToWorld> TransformLookup;
 
             // Staggered update support
@@ -64,8 +66,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 // Attack range is smaller than detection range
                 float attackRange = math.min(combatant.Data.DetectionRange * 0.5f, 2f);
 
-                // Query STATIC QuadTree for resources/structures - O(log N)
-                // Removed expensive Hash Grid query for dynamic entities (not needed for resource targeting)
+                // Query CSR Grid for nearby dynamic entities (players) - O(1)!
                 // CRITICAL: Explicit try-finally disposal for Burst compatibility
                 // CRITICAL: Reduced capacity to avoid exceeding TempJob allocator limits
                 // At 10k entities with 4-frame stagger = 2.5k entities/frame × 64 entries = 160KB (under 4MB limit)
@@ -73,84 +74,90 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 var nearbyEntities = new NativeList<Entity>(64, Allocator.Temp); // Reduced to prevent TempJob overflow
                 try
                 {
-                    StaticQuadTree.QueryRadius(transform.Position.xy, combatant.Data.DetectionRange, nearbyEntities);
+                    CSRGrid.QueryRadius(transform.Position.xy, combatant.Data.DetectionRange, nearbyEntities);
 
                     // Early exit if no nearby entities
                     if (nearbyEntities.Length == 0)
                     {
-                        // No entities nearby, return to idle
+                        // No entities nearby, return to idle if currently attacking a player
                         if (combatant.Data.State == CombatantState.Attacking ||
                             combatant.Data.State == CombatantState.Chasing)
                         {
-                            combatant.Data = combatant.Data.SetState(CombatantState.Idle);
-                            combatant.Data.TargetEntity = Entity.Null; // Clear target
+                            // Only clear state if the current target is a player
+                            // (don't interfere with resource targeting)
+                            if (combatant.Data.TargetEntity != Entity.Null &&
+                                PlayerLookup.HasComponent(combatant.Data.TargetEntity))
+                            {
+                                combatant.Data = combatant.Data.SetState(CombatantState.Idle);
+                                combatant.Data.TargetEntity = Entity.Null; // Clear target
+                            }
                         }
                         return; // Will hit finally block for disposal
                     }
 
-                    // Filter QuadTree results to only include valid resources
-                    // Build a temporary list of resource positions for nearest neighbor search
+                    // Filter CSR Grid results to only include valid players
+                    // Build a temporary list of player positions for nearest neighbor search
                     // NOTE: KDTreeEntry is just a (Entity, Position) struct - NOT using KD-Tree algorithm
                     // This is used for linear search in spatial queries, KD-Tree itself is disabled
                     // CRITICAL: Explicit try-finally disposal for Burst compatibility
                     // CRITICAL: Reduced capacity to avoid exceeding TempJob allocator limits
-                    var resourcePositions = new NativeList<KDTreeEntry>(64, Allocator.Temp);
-                    int maxResourceCapacity = resourcePositions.Capacity;
+                    var playerPositions = new NativeList<KDTreeEntry>(64, Allocator.Temp);
+                    int maxPlayerCapacity = playerPositions.Capacity;
                     try
                     {
                         for (int i = 0; i < nearbyEntities.Length; i++)
                         {
-                            var resourceEntity = nearbyEntities[i];
+                            var playerEntity = nearbyEntities[i];
 
-                            // Only include resources
-                            if (!ResourceLookup.HasComponent(resourceEntity))
+                            // Only include players
+                            if (!PlayerLookup.HasComponent(playerEntity))
                                 continue;
 
-                            var resource = ResourceLookup[resourceEntity];
+                            var player = PlayerLookup[playerEntity];
 
-                            // Skip depleted resources
-                            if (resource.Data.IsDepleted)
+                            // Skip dead players (don't attack corpses)
+                            if (player.Data.IsDead)
                                 continue;
 
-                            // Get resource position
-                            if (TransformLookup.TryGetComponent(resourceEntity, out var resourceTransform))
+                            // Get player position
+                            if (TransformLookup.TryGetComponent(playerEntity, out var playerTransform))
                             {
                                 // CRITICAL: Check capacity BEFORE adding to prevent resize
-                                if (resourcePositions.Length >= maxResourceCapacity)
+                                if (playerPositions.Length >= maxPlayerCapacity)
                                     break; // Stop adding to prevent resize crash
 
-                                resourcePositions.Add(new KDTreeEntry
+                                playerPositions.Add(new KDTreeEntry
                                 {
-                                    Entity = resourceEntity,
-                                    Position = resourceTransform.Position.xy
+                                    Entity = playerEntity,
+                                    Position = playerTransform.Position.xy
                                 });
                             }
                         }
 
-                        // Linear search to find NEAREST resource (fastest for typical case of <50 resources)
-                        Entity nearestResource = Entity.Null;
+                        // Linear search to find NEAREST player (fastest for typical case of 1-10 players)
+                        Entity nearestPlayer = Entity.Null;
                         float nearestDistanceSq = float.MaxValue;
 
-                        if (resourcePositions.Length > 0)
+                        if (playerPositions.Length > 0)
                         {
                             // Linear search - simpler and faster than temp KD-Tree overhead
-                            for (int i = 0; i < resourcePositions.Length; i++)
+                            for (int i = 0; i < playerPositions.Length; i++)
                             {
-                                float distSq = math.distancesq(transform.Position.xy, resourcePositions[i].Position);
+                                float distSq = math.distancesq(transform.Position.xy, playerPositions[i].Position);
                                 if (distSq < nearestDistanceSq)
                                 {
                                     nearestDistanceSq = distSq;
-                                    nearestResource = resourcePositions[i].Entity;
+                                    nearestPlayer = playerPositions[i].Entity;
                                 }
                             }
 
                             // Calculate actual distance
                             float distance = math.sqrt(nearestDistanceSq);
 
-                            // Update combatant state based on distance to nearest resource
+                            // Update combatant state based on distance to nearest player
                             if (distance <= attackRange)
                             {
-                                // CRITICAL: Only attack when RIGHT NEXT TO the resource
+                                // CRITICAL: Only attack when RIGHT NEXT TO the player
                                 // MoveToDestinationSystem will automatically stop movement when State == Attacking
                                 if (combatant.Data.State != CombatantState.Attacking)
                                 {
@@ -158,12 +165,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                                 }
 
                                 // PERFORMANCE FIX: Store target entity for O(1) damage application
-                                // This eliminates the O(N×M) loop in ResourceControllerSystem
-                                combatant.Data.TargetEntity = nearestResource;
+                                // PlayerDamageSystem will apply damage based on TargetEntity
+                                combatant.Data.TargetEntity = nearestPlayer;
                             }
                             else if (distance <= combatant.Data.DetectionRange)
                             {
-                                // Resource detected but NOT in attack range yet
+                                // Player detected but NOT in attack range yet
                                 // MoveToDestinationSystem will automatically move when State == Chasing
                                 if (combatant.Data.State == CombatantState.Idle ||
                                     combatant.Data.State == CombatantState.Patrolling)
@@ -173,29 +180,39 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                             }
                             else
                             {
-                                // Nearest resource is outside detection range (shouldn't happen due to QuadTree filter)
+                                // Nearest player is outside detection range (shouldn't happen due to CSR filter)
                                 if (combatant.Data.State == CombatantState.Attacking ||
                                     combatant.Data.State == CombatantState.Chasing)
+                                {
+                                    // Only clear state if the current target is a player
+                                    if (combatant.Data.TargetEntity != Entity.Null &&
+                                        PlayerLookup.HasComponent(combatant.Data.TargetEntity))
+                                    {
+                                        combatant.Data = combatant.Data.SetState(CombatantState.Idle);
+                                        combatant.Data.TargetEntity = Entity.Null; // Clear target
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            // No players found in filtered set, return to idle if currently targeting a player
+                            if (combatant.Data.State == CombatantState.Attacking ||
+                                combatant.Data.State == CombatantState.Chasing)
+                            {
+                                // Only clear state if the current target is a player
+                                if (combatant.Data.TargetEntity != Entity.Null &&
+                                    PlayerLookup.HasComponent(combatant.Data.TargetEntity))
                                 {
                                     combatant.Data = combatant.Data.SetState(CombatantState.Idle);
                                     combatant.Data.TargetEntity = Entity.Null; // Clear target
                                 }
                             }
                         }
-                        else
-                        {
-                            // No resources found in filtered set, return to idle
-                            if (combatant.Data.State == CombatantState.Attacking ||
-                                combatant.Data.State == CombatantState.Chasing)
-                            {
-                                combatant.Data = combatant.Data.SetState(CombatantState.Idle);
-                                combatant.Data.TargetEntity = Entity.Null; // Clear target
-                            }
-                        }
                     }
                     finally
                     {
-                        resourcePositions.Dispose();
+                        playerPositions.Dispose();
                     }
                 }
                 finally
@@ -215,9 +232,9 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         public void OnCreate(ref SystemState state)
         {
-            // Create query for spatial system singleton (only need QuadTree for static resources)
+            // Create query for CSR Grid singleton (for dynamic entities like players)
             _spatialSystemQuery = SystemAPI.QueryBuilder()
-                .WithAll<StaticQuadTreeSingleton, SpatialSystemTag>()
+                .WithAll<SpatialGridCSRSingleton, SpatialSystemTag>()
                 .Build();
 
             // Require spatial systems to exist before running
@@ -230,17 +247,21 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         {
             _frameCounter++;
 
-            // Get static QuadTree for resource lookups
-            var staticQuadTreeSingleton = SystemAPI.GetSingleton<StaticQuadTreeSingleton>();
+            // Get CSR Grid for dynamic entity lookups (players)
+            var csrGridSingleton = SystemAPI.GetSingleton<SpatialGridCSRSingleton>();
 
             // Skip if spatial system not ready
-            if (!staticQuadTreeSingleton.IsValid)
+            if (!csrGridSingleton.IsValid)
                 return;
 
-            var job = new FindAndAttackResourcesJob
+            // FENCE: Depend on CSR Grid build handle to prevent races
+            // This ensures the ReadGrid is fully built before we query it
+            state.Dependency = JobHandle.CombineDependencies(state.Dependency, csrGridSingleton.BuildJobHandle);
+
+            var job = new FindAndAttackPlayersJob
             {
-                StaticQuadTree = staticQuadTreeSingleton.QuadTree,
-                ResourceLookup = SystemAPI.GetComponentLookup<Resource>(true),
+                CSRGrid = csrGridSingleton.ReadGrid, // DOUBLE BUFFERING: Use stable ReadGrid
+                PlayerLookup = SystemAPI.GetComponentLookup<Player>(true),
                 TransformLookup = SystemAPI.GetComponentLookup<LocalToWorld>(true),
                 FrameCounter = _frameCounter,
                 UpdateFrequency = UPDATE_FREQUENCY

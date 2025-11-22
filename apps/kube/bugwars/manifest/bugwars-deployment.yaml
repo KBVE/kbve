@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: bugwars-deployment
+  namespace: bugwars
+  labels:
+    app: bugwars
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: bugwars
+  template:
+    metadata:
+      annotations:
+        rollout-restart: "2025-11-22T13:52:42Z"
+      labels:
+        app: bugwars
+        version: "1.0.29"
+    spec:
+      containers:
+      - name: bugwars
+        image: ghcr.io/kbve/bugwars:1.0.29
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4321
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "4321"
+        - name: SUPABASE_URL
+          value: "http://kong.kilobase.svc.cluster.local:8000"
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: anon-key
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: service-role-key
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: bugwars-service
+  namespace: bugwars
+  labels:
+    app: bugwars
+spec:
+  type: ClusterIP
+  selector:
+    app: bugwars
+  ports:
+  - port: 4321
+    targetPort: 4321
+    protocol: TCP

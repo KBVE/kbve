@@ -24,6 +24,11 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private Entity _cacheEntity;
         private CollisionFilter _filter;
 
+        // PERFORMANCE: Throttle raycast updates for 50k+ entities
+        // Hover detection doesn't need to be 60fps - 15Hz is imperceptible
+        private const int UPDATE_FREQUENCY = 4; // 1=every frame (60fps), 4=every 4th frame (15fps)
+        private ulong _frameCounter;
+
         // Tolerance for "ray hasn't moved" check
         private const float RAY_EPSILON = 0.0001f;
 
@@ -47,6 +52,14 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         [BurstCompile]
         public void OnUpdate(ref SystemState state)
         {
+            // PERFORMANCE: Throttle updates - physics raycasts are expensive at 50k+ entities
+            // At 50k entities with physics at 10Hz, raycasts can be expensive even with caching
+            _frameCounter++;
+            if (UPDATE_FREQUENCY > 1 && _frameCounter % UPDATE_FREQUENCY != 0)
+            {
+                return; // Skip this frame - hover updates at 15Hz instead of 60Hz
+            }
+
             var ray = SystemAPI.GetSingleton<PlayerPointerRay>();
             var cache = SystemAPI.GetSingleton<PlayerHoverCache>();
 

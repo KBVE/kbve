@@ -21,7 +21,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private EntityQuery _sourceQuery;
         private ComponentTypeSet _requiredComponents;
         private double _nextUpdateTime;
-        private const double UpdateHz = 30.0; // Match drain system throttle rate (must match EntityCacheDrainSystem.Hz)
+        // PERFORMANCE FIX: Reduced from 30Hz to 2Hz
+        // This cache is ONLY used for UI entity selection - 2Hz is more than enough!
+        // At 20k entities: 30Hz = 600k cache writes/sec, 2Hz = 40k writes/sec (15x reduction!)
+        private const double UpdateHz = 2.0;
 
         public void OnCreate(ref SystemState state)
         {
@@ -81,6 +84,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
 
             // Get component type handles for reading data
             var entityTypeHandle = state.GetComponentTypeHandle<EntityComponent>(true);
+            var entityHandle = state.GetEntityTypeHandle(); // For Entity reference
             var l2wTypeHandle = state.GetComponentTypeHandle<LocalToWorld>(true);
             var resourceTypeHandle = state.GetComponentTypeHandle<Resource>(true);
             var combatantTypeHandle = state.GetComponentTypeHandle<Combatant>(true);
@@ -93,6 +97,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             var gatherJob = new GatherEntityDataJobChunk
             {
                 EntityTypeHandle = entityTypeHandle,
+                EntityHandle = entityHandle,
                 L2WTypeHandle = l2wTypeHandle,
                 ResourceTypeHandle = resourceTypeHandle,
                 CombatantTypeHandle = combatantTypeHandle,
@@ -131,6 +136,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         private struct GatherEntityDataJobChunk : IJobChunk
         {
             [ReadOnly] public ComponentTypeHandle<EntityComponent> EntityTypeHandle;
+            [ReadOnly] public EntityTypeHandle EntityHandle;
             [ReadOnly] public ComponentTypeHandle<LocalToWorld> L2WTypeHandle;
             [ReadOnly] public ComponentTypeHandle<Resource> ResourceTypeHandle;
             [ReadOnly] public ComponentTypeHandle<Combatant> CombatantTypeHandle;
@@ -140,6 +146,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
             public void Execute(in ArchetypeChunk chunk, int unfilteredChunkIndex, bool useEnabledMask, in Unity.Burst.Intrinsics.v128 chunkEnabledMask)
             {
                 var entityComponents = chunk.GetNativeArray(ref EntityTypeHandle);
+                var entities = chunk.GetNativeArray(EntityHandle);
                 var transforms = chunk.GetNativeArray(ref L2WTypeHandle);
 
                 // Check what components this chunk has
@@ -154,6 +161,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     // Create EntityBlitContainer with base entity data
                     var blitContainer = new EntityBlitContainer
                     {
+                        EntityReference = entities[i], // Store entity for O(1) cache lookups
                         EntityData = entityComponents[i].Data,
                         // Initialize all flags to false
                         HasResource = false,

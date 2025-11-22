@@ -363,6 +363,12 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// Dirty flag - set to true when static entities spawn/despawn and tree needs rebuild
         /// </summary>
         public bool NeedsRebuild;
+
+        /// <summary>
+        /// FENCE: Published job handle for dependency tracking.
+        /// Consumers must combine this with their state.Dependency before reading QuadTree
+        /// </summary>
+        public Unity.Jobs.JobHandle BuildJobHandle;
     }
 
     /// <summary>
@@ -386,6 +392,36 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         /// Whether the KD-Tree is currently valid and ready for queries
         /// </summary>
         public bool IsValid;
+    }
+
+    /// <summary>
+    /// Singleton component that stores the Spatial Hash Grid for dynamic entities.
+    /// O(1) insert/query performance, optimized for entities that move frequently.
+    /// Replaces QuadTreeSingleton for dynamic entities (combatants, players, projectiles).
+    /// </summary>
+    public struct SpatialHashGridSingleton : IComponentData
+    {
+        /// <summary>
+        /// The Spatial Hash Grid data structure for dynamic entities.
+        /// O(1) insert/query vs O(log N) for QuadTree - much faster for moving entities!
+        /// </summary>
+        public SpatialHashGrid2D HashGrid;
+
+        /// <summary>
+        /// Frame number when the hash grid was last updated
+        /// </summary>
+        public uint LastUpdateFrame;
+
+        /// <summary>
+        /// Whether the hash grid is currently valid and ready for queries
+        /// </summary>
+        public bool IsValid;
+
+        /// <summary>
+        /// FENCE: Published job handle for dependency tracking.
+        /// Consumers must combine this with their state.Dependency before reading HashGrid
+        /// </summary>
+        public Unity.Jobs.JobHandle BuildJobHandle;
     }
 
     /// <summary>
