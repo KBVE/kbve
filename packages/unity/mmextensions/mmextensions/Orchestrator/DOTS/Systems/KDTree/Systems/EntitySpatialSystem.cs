@@ -468,7 +468,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 FrameCounter = _frameCounter
             };
 
+            // BUGFIX: Update state.Dependency immediately after scheduling jobs that access tracked components
+            // This prevents "job not assigned to Dependency" safety errors
             var appendDep = appendJob.ScheduleParallel(_spatialEntitiesQuery, state.Dependency);
+            state.Dependency = appendDep;
 
             // STEP 3: Coalesce WAL (single-threaded dedup)
             var coalesceJob = new CoalesceWalJob
@@ -477,9 +480,10 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 CoalescedWal = _coalescedWal
             };
 
-            var coalesceDep = coalesceJob.Schedule(appendDep);
+            var coalesceDep = coalesceJob.Schedule(state.Dependency);
+            state.Dependency = coalesceDep;
 
-            JobHandle lastDep = coalesceDep;
+            JobHandle lastDep = state.Dependency;
 
             // STEP 4: Build QuadTree from coalesced WAL (static entities only, every 60 frames)
             if (_frameCounter == 1 || _frameCounter % 60 == 0)
@@ -505,14 +509,15 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                         OutEntries = _staticEntries
                     };
 
-                    var buildHandle = buildQuadTreeJob.Schedule(coalesceDep);
+                    var buildHandle = buildQuadTreeJob.Schedule(state.Dependency);
 
                     // Publish the fence; don't Complete()
                     staticQuadTreeSingleton.BuildJobHandle = buildHandle;
                     staticQuadTreeSingleton.LastUpdateFrame = _frameCounter;
                     state.EntityManager.SetComponentData(staticQuadTreeEntity, staticQuadTreeSingleton);
 
-                    lastDep = buildHandle;
+                    state.Dependency = buildHandle;
+                    lastDep = state.Dependency;
                 }
             }
 
@@ -531,7 +536,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                     LastKnownPositions = _lastKnownPositions
                 };
 
-                var buildHandle = buildCSRJob.Schedule(lastDep);
+                var buildHandle = buildCSRJob.Schedule(state.Dependency);
 
                 // DOUBLE BUFFERING: Swap read/write grids without blocking
                 (csrGridSingleton.ReadGrid, csrGridSingleton.WriteGrid) = (csrGridSingleton.WriteGrid, csrGridSingleton.ReadGrid);
@@ -541,15 +546,16 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
                 csrGridSingleton.LastUpdateFrame = _frameCounter;
                 state.EntityManager.SetComponentData(csrGridEntity, csrGridSingleton);
 
-                lastDep = buildHandle;
+                state.Dependency = buildHandle;
+                lastDep = state.Dependency;
             }
 
             // CRITICAL: Dispose WAL stream with job dependency
             // This ensures cleanup happens same frame (prevents TempJob 4-frame leak guard)
-            walStream.Dispose(lastDep);
+            // state.Dependency already contains the full job chain, so use it for disposal
+            walStream.Dispose(state.Dependency);
 
-            // Wire the system dependency to ensure all jobs complete before next frame
-            state.Dependency = JobHandle.CombineDependencies(state.Dependency, lastDep);
+            // state.Dependency already updated throughout the job chain - no need to combine again
         }
 
         private void RebuildSpatialStructures()
