@@ -33,7 +33,11 @@ CREATE TABLE IF NOT EXISTS profile.username (
         CHECK (username ~ '^[a-z0-9_-]+$'),
 
     CONSTRAINT username_lowercase_chk
-        CHECK (username = lower(username))
+        CHECK (username = lower(username)),
+
+    -- Username length: 3–63 chars
+    CONSTRAINT username_length_chk
+        CHECK (char_length(username) BETWEEN 3 AND 63)
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_profile_username_unique
@@ -90,7 +94,11 @@ CREATE TABLE IF NOT EXISTS profile.username_reservation (
         CHECK (reserved_username ~ '^[a-z0-9_-]+$'),
 
     CONSTRAINT username_res_lower_chk
-        CHECK (reserved_username = lower(reserved_username))
+        CHECK (reserved_username = lower(reserved_username)),
+
+    -- Username length: 3–63 chars
+    CONSTRAINT username_res_length_chk
+        CHECK (char_length(reserved_username) BETWEEN 3 AND 63)
 );
 
 COMMENT ON TABLE profile.username_reservation IS
