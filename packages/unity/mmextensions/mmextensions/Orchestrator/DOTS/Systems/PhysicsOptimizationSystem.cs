@@ -37,7 +37,7 @@ namespace KBVE.MMExtensions.Orchestrator.DOTS
         // ═══════════════════════════════════════════════════════════════════
 
         // OPTIMIZATION 1: Physics Update Rate Limiting
-        public const bool ENABLE_RATE_LIMITING = true;
+        public const bool ENABLE_RATE_LIMITING = false;
         // AGGRESSIVE: 10Hz for 50k+ entities (was 20Hz, default 60Hz)
         // At 50k entities: 60Hz = 3M physics ops/sec, 10Hz = 500k ops/sec (6x reduction!)
         public const float PHYSICS_HZ = 10.0f; // 60=precise/slow, 20=balanced, 10=fast (RTS)
