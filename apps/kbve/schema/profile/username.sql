@@ -1,8 +1,5 @@
 BEGIN;
 
--- ULID extension (pg_idkit provides ulid_generate())
-CREATE EXTENSION IF NOT EXISTS "pg_idkit";
-
 CREATE SCHEMA IF NOT EXISTS profile;
 ALTER SCHEMA profile OWNER TO postgres;
 
@@ -18,12 +15,11 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA profile
     GRANT ALL ON TABLES TO service_role;
 
 -- ===========================================
--- USERNAME TABLE (ULID primary key)
+-- USERNAME TABLE (user_id primary key)
 -- ===========================================
 CREATE TABLE IF NOT EXISTS profile.username (
-    ulid ulid PRIMARY KEY DEFAULT ulid_generate(),
-
-    user_id UUID UNIQUE NOT NULL
+    -- 1:1 with auth.users; user_id is the natural PK
+    user_id UUID PRIMARY KEY
         REFERENCES auth.users(id)
         ON DELETE CASCADE,
 
@@ -48,12 +44,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_profile_username_unique
 
 COMMENT ON TABLE profile.username IS
     'Canonical usernames controlled exclusively by backend service-role.';
-COMMENT ON COLUMN profile.username.ulid IS
-    'Binary ULID primary key containing chronological information.';
+COMMENT ON COLUMN profile.username.user_id IS
+    'Primary key and 1:1 mapping to Supabase auth.users.id.';
 COMMENT ON COLUMN profile.username.username IS
     'Lowercase ASCII username, punycode/xn-- future-safe.';
-COMMENT ON COLUMN profile.username.user_id IS
-    '1:1 mapping to Supabase auth.users.';
 
 -- ===========================================
 -- RLS (LOCKED DOWN)
@@ -94,16 +88,11 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA profile
 ALTER DEFAULT PRIVILEGES IN SCHEMA profile
     REVOKE ALL ON FUNCTIONS FROM PUBLIC, anon, authenticated;
 
--- Look up username by user_id quickly (and speed ON DELETE CASCADE)
-CREATE INDEX IF NOT EXISTS idx_profile_username_user_id
-    ON profile.username (user_id);
-
-
 -- ===========================================
 -- USERNAME RESERVATION TABLE
 -- ===========================================
 CREATE TABLE IF NOT EXISTS profile.username_reservation (
-    ulid ulid PRIMARY KEY DEFAULT ulid_generate(),
+    id bigserial PRIMARY KEY,
 
     -- Who owns this reservation (Supabase auth user)
     user_id UUID NOT NULL
@@ -133,8 +122,6 @@ CREATE TABLE IF NOT EXISTS profile.username_reservation (
 
 COMMENT ON TABLE profile.username_reservation IS
     'Username reservations controlled exclusively by backend service-role.';
-COMMENT ON COLUMN profile.username_reservation.ulid IS
-    'Binary ULID primary key, also carries creation time.';
 COMMENT ON COLUMN profile.username_reservation.user_id IS
     'Supabase auth.users.id owning this reservation.';
 COMMENT ON COLUMN profile.username_reservation.reserved_username IS
