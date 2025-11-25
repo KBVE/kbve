@@ -276,6 +276,62 @@ EXECUTE FUNCTION profile.trg_username_before_ins_upd();
 
 
 -- ===========================================
+-- HELPER: NORMALIZE + VALIDATE USERNAME
+-- ===========================================
+CREATE OR REPLACE FUNCTION profile.normalize_username(
+    p_username text
+)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_trimmed    text;
+    v_normalized text;
+BEGIN
+    IF p_username IS NULL THEN
+        RAISE EXCEPTION 'Username cannot be NULL'
+            USING ERRCODE = '22004';
+    END IF;
+
+    v_trimmed := btrim(p_username);
+
+    IF v_trimmed = '' THEN
+        RAISE EXCEPTION 'Username cannot be empty or whitespace'
+            USING ERRCODE = '22023';
+    END IF;
+
+    v_normalized := lower(v_trimmed COLLATE "C");
+
+    IF char_length(v_normalized) < 3 OR char_length(v_normalized) > 63 THEN
+        RAISE EXCEPTION 'Username length must be between 3 and 63 characters'
+            USING ERRCODE = '22023';
+    END IF;
+
+    IF v_normalized !~ '^[a-z0-9_-]+$' THEN
+        RAISE EXCEPTION 'Username may only contain lowercase letters, digits, underscores, and hyphens'
+            USING ERRCODE = '22023';
+    END IF;
+
+    IF v_normalized LIKE 'xn--%' THEN
+        RAISE EXCEPTION 'Usernames starting with "xn--" are reserved'
+            USING ERRCODE = '22023';
+    END IF;
+
+    RETURN v_normalized;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION profile.normalize_username(text)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION profile.normalize_username(text)
+    TO service_role;
+
+ALTER FUNCTION profile.normalize_username(text) OWNER TO service_role;
+
+
+-- ===========================================
 -- SERVICE FUNCTION: CREATE USERNAME (SERVICE ROLE ONLY)
 -- ===========================================
 CREATE OR REPLACE FUNCTION profile.service_add_username(
@@ -288,10 +344,14 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-    v_row profile.username;
+    v_row       profile.username;
+    v_canonical text;
 BEGIN
-    -- Lock the username to serialize with trigger checks
-    PERFORM pg_advisory_xact_lock(hashtext(p_username));
+    -- Normalize + validate input
+    v_canonical := profile.normalize_username(p_username);
+
+    -- Lock on canonical username to serialize with trigger checks
+    PERFORM pg_advisory_xact_lock(hashtext(v_canonical));
 
     -- Ensure user doesn't already have a username
     IF EXISTS (
@@ -305,9 +365,9 @@ BEGIN
             USING ERRCODE = 'unique_violation';
     END IF;
 
-    -- Insert and return the row
+    -- Insert canonicalized username and return the row
     INSERT INTO profile.username (user_id, username)
-    VALUES (p_user_id, p_username)
+    VALUES (p_user_id, v_canonical)
     RETURNING * INTO v_row;
 
     RETURN v_row;
@@ -334,8 +394,9 @@ SECURITY DEFINER
 SET search_path = ''
 AS $$
 DECLARE
-    v_user_id uuid;
-    v_row     profile.username;
+    v_user_id   uuid;
+    v_row       profile.username;
+    v_canonical text;
 BEGIN
     v_user_id := auth.uid();
     IF v_user_id IS NULL THEN
@@ -352,7 +413,10 @@ BEGIN
             USING ERRCODE = 'unique_violation';
     END IF;
 
-    v_row := profile.service_add_username(v_user_id, p_username);
+    -- Optional belt-and-suspenders normalization prior to delegation
+    v_canonical := profile.normalize_username(p_username);
+
+    v_row := profile.service_add_username(v_user_id, v_canonical);
     RETURN v_row;
 END;
 $$;
@@ -387,6 +451,28 @@ BEGIN
         RAISE EXCEPTION
             'profile: Found % active reservations for usernames that are already claimed. Fix data before applying constraints.',
             conflict_count;
+    END IF;
+
+    -- Check: normalize_username exists and is restricted to service_role
+    PERFORM 'profile.normalize_username(text)'::regprocedure;
+
+    IF NOT has_function_privilege('service_role', 'profile.normalize_username(text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'profile: service_role must retain execute on profile.normalize_username(text).';
+    END IF;
+
+    IF has_function_privilege('anon', 'profile.normalize_username(text)', 'EXECUTE')
+       OR has_function_privilege('authenticated', 'profile.normalize_username(text)', 'EXECUTE')
+       OR has_function_privilege('public', 'profile.normalize_username(text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'profile: profile.normalize_username(text) should not be executable by anon/authenticated/public roles.';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM pg_proc
+        WHERE oid = 'profile.normalize_username(text)'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'profile: profile.normalize_username(text) must be owned by service_role to satisfy RLS policy expectations.';
     END IF;
 
     -- Check: service_add_username exists and is restricted to service_role
