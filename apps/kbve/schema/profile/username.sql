@@ -276,6 +276,96 @@ EXECUTE FUNCTION profile.trg_username_before_ins_upd();
 
 
 -- ===========================================
+-- SERVICE FUNCTION: CREATE USERNAME (SERVICE ROLE ONLY)
+-- ===========================================
+CREATE OR REPLACE FUNCTION profile.service_add_username(
+    p_user_id  uuid,
+    p_username text
+)
+RETURNS profile.username
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_row profile.username;
+BEGIN
+    -- Lock the username to serialize with trigger checks
+    PERFORM pg_advisory_xact_lock(hashtext(p_username));
+
+    -- Ensure user doesn't already have a username
+    IF EXISTS (
+        SELECT 1
+        FROM profile.username AS u
+        WHERE u.user_id = p_user_id
+    ) THEN
+        RAISE EXCEPTION
+            'User % already has a username',
+            p_user_id
+            USING ERRCODE = 'unique_violation';
+    END IF;
+
+    -- Insert and return the row
+    INSERT INTO profile.username (user_id, username)
+    VALUES (p_user_id, p_username)
+    RETURNING * INTO v_row;
+
+    RETURN v_row;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION profile.service_add_username(uuid, text)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION profile.service_add_username(uuid, text)
+    TO service_role;
+
+ALTER FUNCTION profile.service_add_username(uuid, text) OWNER TO service_role;
+
+
+-- ===========================================
+-- PROXY FUNCTION: AUTH USER -> SERVICE FUNCTION
+-- ===========================================
+CREATE OR REPLACE FUNCTION profile.proxy_add_username(
+    p_username text
+)
+RETURNS profile.username
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_user_id uuid;
+    v_row     profile.username;
+BEGIN
+    v_user_id := auth.uid();
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Not authenticated'
+            USING ERRCODE = '28000';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM profile.username AS u
+        WHERE u.user_id = v_user_id
+    ) THEN
+        RAISE EXCEPTION 'Username already set for this user'
+            USING ERRCODE = 'unique_violation';
+    END IF;
+
+    v_row := profile.service_add_username(v_user_id, p_username);
+    RETURN v_row;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION profile.proxy_add_username(text)
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION profile.proxy_add_username(text)
+    TO authenticated, service_role;
+
+ALTER FUNCTION profile.proxy_add_username(text) OWNER TO service_role;
+
+
+-- ===========================================
 -- MIGRATION-TIME SANITY CHECK (WITH SEARCH_PATH LOCKED)
 -- ===========================================
 DO $$
@@ -297,6 +387,50 @@ BEGIN
         RAISE EXCEPTION
             'profile: Found % active reservations for usernames that are already claimed. Fix data before applying constraints.',
             conflict_count;
+    END IF;
+
+    -- Check: service_add_username exists and is restricted to service_role
+    PERFORM 'profile.service_add_username(uuid, text)'::regprocedure;
+
+    IF NOT has_function_privilege('service_role', 'profile.service_add_username(uuid, text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'profile: service_role must retain execute on profile.service_add_username(uuid, text).';
+    END IF;
+
+    IF has_function_privilege('anon', 'profile.service_add_username(uuid, text)', 'EXECUTE')
+       OR has_function_privilege('authenticated', 'profile.service_add_username(uuid, text)', 'EXECUTE')
+       OR has_function_privilege('public', 'profile.service_add_username(uuid, text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'profile: profile.service_add_username(uuid, text) should not be executable by anon/authenticated/public roles.';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM pg_proc
+        WHERE oid = 'profile.service_add_username(uuid, text)'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'profile: profile.service_add_username(uuid, text) must be owned by service_role to satisfy RLS policy expectations.';
+    END IF;
+
+    -- Check: proxy_add_username exists with expected privileges/ownership
+    PERFORM 'profile.proxy_add_username(text)'::regprocedure;
+
+    IF NOT has_function_privilege('service_role', 'profile.proxy_add_username(text)', 'EXECUTE')
+       OR NOT has_function_privilege('authenticated', 'profile.proxy_add_username(text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'profile: proxy_add_username(text) must be callable by service_role and authenticated roles.';
+    END IF;
+
+    IF has_function_privilege('anon', 'profile.proxy_add_username(text)', 'EXECUTE')
+       OR has_function_privilege('public', 'profile.proxy_add_username(text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'profile: proxy_add_username(text) should not be executable by anon/public roles.';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1
+        FROM pg_proc
+        WHERE oid = 'profile.proxy_add_username(text)'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'profile: profile.proxy_add_username(text) must be owned by service_role to align with RLS policy.';
     END IF;
 END;
 $$ LANGUAGE plpgsql;
