@@ -629,3 +629,90 @@ ALTER FUNCTION profile.proxy_reserve_username(text) OWNER TO service_role;
 GRANT ALL ON SEQUENCE profile.username_reservation_id_seq TO service_role;
 
 COMMIT;
+
+
+BEGIN;
+
+CREATE OR REPLACE FUNCTION profile.get_username_by_id(
+    p_user_id uuid
+)
+RETURNS text
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_username text;
+BEGIN
+    -- Reject NULL input early (belt & suspenders)
+    IF p_user_id IS NULL THEN
+        RAISE EXCEPTION
+            'p_user_id cannot be NULL'
+            USING ERRCODE = '22004';
+    END IF;
+
+    SELECT u.username
+    INTO v_username
+    FROM profile.username AS u
+    WHERE u.user_id = p_user_id;
+
+    -- Return NULL if no match exists (admin-friendly)
+    RETURN v_username;
+END;
+$$;
+
+-- Lock it down: service_role only
+REVOKE ALL ON FUNCTION profile.get_username_by_id(uuid)
+    FROM PUBLIC, anon, authenticated;
+
+GRANT EXECUTE ON FUNCTION profile.get_username_by_id(uuid)
+    TO service_role;
+
+ALTER FUNCTION profile.get_username_by_id(uuid)
+    OWNER TO service_role;
+
+COMMIT;
+
+
+BEGIN;
+
+-- ===========================================
+-- ADMIN FUNCTION: GET USER ID BY USERNAME
+-- ===========================================
+CREATE OR REPLACE FUNCTION profile.get_id_by_username(
+    p_username text
+)
+RETURNS uuid
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_canonical text;
+    v_user_id   uuid;
+BEGIN
+    -- Normalize + validate the username (belt & suspenders)
+    v_canonical := profile.normalize_username(p_username);
+
+    -- Look up the user_id for this canonical username
+    SELECT u.user_id
+    INTO v_user_id
+    FROM profile.username AS u
+    WHERE u.username = v_canonical;
+
+    -- If not found, just return NULL (you can change this to RAISE if you prefer)
+    RETURN v_user_id;
+END;
+$$;
+
+-- Lock it down: service_role only
+REVOKE ALL ON FUNCTION profile.get_id_by_username(text)
+    FROM PUBLIC, anon, authenticated;
+
+GRANT EXECUTE ON FUNCTION profile.get_id_by_username(text)
+    TO service_role;
+
+ALTER FUNCTION profile.get_id_by_username(text)
+    OWNER TO service_role;
+
+COMMIT;
