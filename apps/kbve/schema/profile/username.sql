@@ -21,7 +21,7 @@ ALTER DEFAULT PRIVILEGES IN SCHEMA profile
 -- USERNAME TABLE (ULID primary key)
 -- ===========================================
 CREATE TABLE IF NOT EXISTS profile.username (
-    ulid TEXT PRIMARY KEY DEFAULT ulid_generate(),
+    ulid ulid PRIMARY KEY DEFAULT ulid_generate(),
 
     user_id UUID UNIQUE NOT NULL
         REFERENCES auth.users(id)
@@ -49,7 +49,7 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_profile_username_unique
 COMMENT ON TABLE profile.username IS
     'Canonical usernames controlled exclusively by backend service-role.';
 COMMENT ON COLUMN profile.username.ulid IS
-    'ULID primary key containing chronological information.';
+    'Binary ULID primary key containing chronological information.';
 COMMENT ON COLUMN profile.username.username IS
     'Lowercase ASCII username, punycode/xn-- future-safe.';
 COMMENT ON COLUMN profile.username.user_id IS
@@ -103,7 +103,7 @@ CREATE INDEX IF NOT EXISTS idx_profile_username_user_id
 -- USERNAME RESERVATION TABLE
 -- ===========================================
 CREATE TABLE IF NOT EXISTS profile.username_reservation (
-    ulid TEXT PRIMARY KEY DEFAULT ulid_generate(),
+    ulid ulid PRIMARY KEY DEFAULT ulid_generate(),
 
     -- Who owns this reservation (Supabase auth user)
     user_id UUID NOT NULL
@@ -134,7 +134,7 @@ CREATE TABLE IF NOT EXISTS profile.username_reservation (
 COMMENT ON TABLE profile.username_reservation IS
     'Username reservations controlled exclusively by backend service-role.';
 COMMENT ON COLUMN profile.username_reservation.ulid IS
-    'ULID primary key, also carries creation time.';
+    'Binary ULID primary key, also carries creation time.';
 COMMENT ON COLUMN profile.username_reservation.user_id IS
     'Supabase auth.users.id owning this reservation.';
 COMMENT ON COLUMN profile.username_reservation.reserved_username IS
