@@ -186,6 +186,9 @@ LANGUAGE plpgsql
 SET search_path = ''
 AS $$
 BEGIN
+    -- Serialize operations per username to avoid reservation/claim races
+    PERFORM pg_advisory_xact_lock(hashtext(NEW.reserved_username));
+
     IF NEW.is_active THEN
         IF EXISTS (
             SELECT 1
@@ -227,6 +230,9 @@ AS $$
 DECLARE
     res_owner UUID;
 BEGIN
+    -- Serialize operations per username to avoid reservation/claim races
+    PERFORM pg_advisory_xact_lock(hashtext(NEW.username));
+
     -- Is there an active reservation for this username?
     SELECT r.user_id
     INTO res_owner
