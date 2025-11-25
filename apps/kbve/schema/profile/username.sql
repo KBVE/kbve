@@ -37,7 +37,10 @@ CREATE TABLE IF NOT EXISTS profile.username (
 
     -- Username length: 3–63 chars
     CONSTRAINT username_length_chk
-        CHECK (char_length(username) BETWEEN 3 AND 63)
+        CHECK (char_length(username) BETWEEN 3 AND 63),
+
+    CONSTRAINT username_trim_chk
+        CHECK (username = btrim(username))
 );
 
 CREATE UNIQUE INDEX IF NOT EXISTS idx_profile_username_unique
@@ -98,7 +101,10 @@ CREATE TABLE IF NOT EXISTS profile.username_reservation (
 
     -- Username length: 3–63 chars
     CONSTRAINT username_res_length_chk
-        CHECK (char_length(reserved_username) BETWEEN 3 AND 63)
+        CHECK (char_length(reserved_username) BETWEEN 3 AND 63),
+
+    CONSTRAINT username_res_trim_chk
+        CHECK (reserved_username = btrim(reserved_username))
 );
 
 COMMENT ON TABLE profile.username_reservation IS
@@ -170,6 +176,9 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION profile.trg_username_reservation_before_ins_upd()
+    FROM PUBLIC, anon, authenticated;
+
 DROP TRIGGER IF EXISTS trg_username_reservation_before_ins_upd
 ON profile.username_reservation;
 
@@ -219,6 +228,9 @@ BEGIN
     RETURN NEW;
 END;
 $$;
+
+REVOKE ALL ON FUNCTION profile.trg_username_before_ins_upd()
+    FROM PUBLIC, anon, authenticated;
 
 DROP TRIGGER IF EXISTS trg_username_before_ins_upd
 ON profile.username;
