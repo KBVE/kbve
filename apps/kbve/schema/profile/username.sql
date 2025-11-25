@@ -509,3 +509,121 @@ END;
 $$ LANGUAGE plpgsql;
 
 COMMIT;
+
+---
+-- SELECT profile.service_add_username(
+--     'auth-user-uuid-here',
+--     'h0lybyte'
+-- );
+---
+
+BEGIN;
+-- ===========================================
+-- SERVICE FUNCTION: RESERVE USERNAME (SERVICE ROLE ONLY)
+-- ===========================================
+CREATE OR REPLACE FUNCTION profile.service_reserve_username(
+    p_user_id  uuid,
+    p_username text
+)
+RETURNS profile.username_reservation
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_row       profile.username_reservation;
+    v_canonical text;
+BEGIN
+    -- Normalize + validate input
+    v_canonical := profile.normalize_username(p_username);
+
+    -- Serialize on canonical username to avoid races
+    PERFORM pg_advisory_xact_lock(hashtext(v_canonical));
+
+    -- Prevent reserving a username that is already claimed
+    IF EXISTS (
+        SELECT 1
+        FROM profile.username AS u
+        WHERE u.username = v_canonical
+    ) THEN
+        RAISE EXCEPTION
+            'Cannot reserve username "%": it is already taken.',
+            v_canonical
+            USING ERRCODE = 'unique_violation';
+    END IF;
+
+    -- Insert active reservation; uniqueness constraints enforce:
+    --  - one active reservation per username
+    --  - one active reservation per (user, username)
+    INSERT INTO profile.username_reservation (user_id, reserved_username, is_active)
+    VALUES (p_user_id, v_canonical, TRUE)
+    RETURNING * INTO v_row;
+
+    RETURN v_row;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION profile.service_reserve_username(uuid, text)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION profile.service_reserve_username(uuid, text)
+    TO service_role;
+
+ALTER FUNCTION profile.service_reserve_username(uuid, text) OWNER TO service_role;
+
+COMMIT;
+
+
+BEGIN;
+-- ===========================================
+-- PROXY FUNCTION: AUTH USER -> SERVICE RESERVATION FUNCTION
+-- ===========================================
+CREATE OR REPLACE FUNCTION profile.proxy_reserve_username(
+    p_username text
+)
+RETURNS profile.username_reservation
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_user_id   uuid;
+    v_row       profile.username_reservation;
+    v_canonical text;
+BEGIN
+    v_user_id := auth.uid();
+    IF v_user_id IS NULL THEN
+        RAISE EXCEPTION 'Not authenticated'
+            USING ERRCODE = '28000';
+    END IF;
+
+    -- Normalize early (belt + suspenders)
+    v_canonical := profile.normalize_username(p_username);
+
+    -- Optional: you can check here if this user already has an active
+    -- reservation for this username; the unique index will also enforce it.
+    IF EXISTS (
+        SELECT 1
+        FROM profile.username_reservation r
+        WHERE r.user_id = v_user_id
+          AND r.reserved_username = v_canonical
+          AND r.is_active
+    ) THEN
+        RAISE EXCEPTION
+            'You already have an active reservation for username "%"',
+            v_canonical
+            USING ERRCODE = 'unique_violation';
+    END IF;
+
+    -- Delegate to the service-level function
+    v_row := profile.service_reserve_username(v_user_id, v_canonical);
+    RETURN v_row;
+END;
+$$;
+
+REVOKE ALL ON FUNCTION profile.proxy_reserve_username(text)
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION profile.proxy_reserve_username(text)
+    TO service_role;
+
+ALTER FUNCTION profile.proxy_reserve_username(text) OWNER TO service_role;
+COMMIT;
