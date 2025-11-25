@@ -626,4 +626,6 @@ GRANT EXECUTE ON FUNCTION profile.proxy_reserve_username(text)
     TO service_role;
 
 ALTER FUNCTION profile.proxy_reserve_username(text) OWNER TO service_role;
+GRANT ALL ON SEQUENCE profile.username_reservation_id_seq TO service_role;
+
 COMMIT;
