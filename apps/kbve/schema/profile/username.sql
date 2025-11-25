@@ -27,13 +27,13 @@ CREATE TABLE IF NOT EXISTS profile.username (
         REFERENCES auth.users(id)
         ON DELETE CASCADE,
 
-    username TEXT NOT NULL,
+    username TEXT COLLATE "C" NOT NULL,
 
     CONSTRAINT username_format_chk
         CHECK (username ~ '^[a-z0-9_-]+$'),
 
     CONSTRAINT username_lowercase_chk
-        CHECK (username = lower(username)),
+        CHECK (username = lower(username COLLATE "C")),
 
     -- Username length: 3–63 chars
     CONSTRAINT username_length_chk
@@ -74,6 +74,30 @@ CREATE POLICY "service_role_full_access"
 
 -- No anon/authenticated policies: they cannot touch this table at all.
 
+-- Explicitly nuke table privileges for non-service roles (existing objects)
+REVOKE ALL ON ALL TABLES IN SCHEMA profile
+    FROM PUBLIC, anon, authenticated;
+
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA profile
+    FROM PUBLIC, anon, authenticated;
+
+REVOKE ALL ON ALL FUNCTIONS IN SCHEMA profile
+    FROM PUBLIC, anon, authenticated;
+
+-- Future objects: make sure nobody but service_role gets anything by default
+ALTER DEFAULT PRIVILEGES IN SCHEMA profile
+    REVOKE ALL ON TABLES    FROM PUBLIC, anon, authenticated;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA profile
+    REVOKE ALL ON SEQUENCES FROM PUBLIC, anon, authenticated;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA profile
+    REVOKE ALL ON FUNCTIONS FROM PUBLIC, anon, authenticated;
+
+-- Look up username by user_id quickly (and speed ON DELETE CASCADE)
+CREATE INDEX IF NOT EXISTS idx_profile_username_user_id
+    ON profile.username (user_id);
+
 
 -- ===========================================
 -- USERNAME RESERVATION TABLE
@@ -87,7 +111,7 @@ CREATE TABLE IF NOT EXISTS profile.username_reservation (
         ON DELETE CASCADE,
 
     -- Username being reserved
-    reserved_username TEXT NOT NULL,
+    reserved_username TEXT COLLATE "C" NOT NULL,
 
     -- Soft-state so you can "release" without deleting
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
@@ -97,7 +121,7 @@ CREATE TABLE IF NOT EXISTS profile.username_reservation (
         CHECK (reserved_username ~ '^[a-z0-9_-]+$'),
 
     CONSTRAINT username_res_lower_chk
-        CHECK (reserved_username = lower(reserved_username)),
+        CHECK (reserved_username = lower(reserved_username COLLATE "C")),
 
     -- Username length: 3–63 chars
     CONSTRAINT username_res_length_chk
@@ -131,7 +155,10 @@ CREATE UNIQUE INDEX IF NOT EXISTS idx_profile_username_reservation_active_unique
 CREATE UNIQUE INDEX IF NOT EXISTS idx_profile_username_reservation_user_name_active
     ON profile.username_reservation (user_id, reserved_username)
     WHERE is_active;
-
+    
+-- Fast lookups of reservations by user
+CREATE INDEX IF NOT EXISTS idx_profile_username_reservation_user_id
+    ON profile.username_reservation (user_id);
 
 -- ===========================================
 -- RLS: SERVICE_ROLE ONLY
