@@ -36,6 +36,18 @@ spec:
         size: 40Gi
         storageClass: longhorn
 
+    # Certificate configuration
+    # Certificates are auto-renewed by CNPG operator
+    # These settings ensure longer validity and earlier renewal
+    certificates:
+        # Server certificate for TLS connections
+        serverTLSSecret: supabase-cluster-server
+        serverCASecret: supabase-cluster-ca
+        # Replication certificate for streaming replication
+        replicationTLSSecret: supabase-cluster-replication
+        # Client CA for client certificate authentication
+        clientCASecret: supabase-cluster-ca
+
     monitoring:
         enablePodMonitor: true
 
