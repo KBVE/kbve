@@ -26,13 +26,24 @@ maxRunners: 10
 # Runner group (optional - for enterprise/org runners)
 # runnerGroup: "default"
 
-# Runner container configuration
+# Runner container configuration with Docker-in-Docker support
 template:
   spec:
+    # Init container to wait for Docker daemon
+    initContainers:
+      - name: init-dind-externals
+        image: ghcr.io/actions/actions-runner:latest
+        command: ["cp", "-r", "-v", "/home/runner/externals/.", "/home/runner/tmpDir/"]
+        volumeMounts:
+          - name: dind-externals
+            mountPath: /home/runner/tmpDir
     containers:
       - name: runner
         image: ghcr.io/actions/actions-runner:latest
         command: ["/home/runner/run.sh"]
+        env:
+          - name: DOCKER_HOST
+            value: unix:///var/run/docker.sock
         resources:
           limits:
             cpu: "12"
@@ -40,7 +51,6 @@ template:
           requests:
             cpu: "4"
             memory: 8Gi
-        # Security context for the runner container
         securityContext:
           allowPrivilegeEscalation: false
           readOnlyRootFilesystem: false
@@ -49,6 +59,40 @@ template:
           capabilities:
             drop:
               - ALL
+        volumeMounts:
+          - name: work
+            mountPath: /home/runner/_work
+          - name: dind-sock
+            mountPath: /var/run
+          - name: dind-externals
+            mountPath: /home/runner/externals
+      # Docker-in-Docker sidecar
+      # Note: Unity builds request high resources, DinD needs headroom
+      - name: dind
+        image: docker:dind
+        securityContext:
+          privileged: true
+        resources:
+          limits:
+            cpu: "12"
+            memory: 32Gi
+          requests:
+            cpu: "2"
+            memory: 4Gi
+        volumeMounts:
+          - name: work
+            mountPath: /home/runner/_work
+          - name: dind-sock
+            mountPath: /var/run
+          - name: dind-externals
+            mountPath: /home/runner/externals
+    volumes:
+      - name: work
+        emptyDir: {}
+      - name: dind-sock
+        emptyDir: {}
+      - name: dind-externals
+        emptyDir: {}
 
 # Pod-level configuration
 # nodeSelector: {}
