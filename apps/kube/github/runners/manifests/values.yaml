@@ -66,6 +66,8 @@ template:
             mountPath: /var/run
           - name: dind-externals
             mountPath: /home/runner/externals
+          - name: runner-cache
+            mountPath: /home/runner/_cache
       # Docker-in-Docker sidecar
       # Note: Unity builds request high resources, DinD needs headroom
       - name: dind
@@ -93,6 +95,9 @@ template:
         emptyDir: {}
       - name: dind-externals
         emptyDir: {}
+      - name: runner-cache
+        persistentVolumeClaim:
+          claimName: arc-runner-cache
 
 # Pod-level configuration
 # nodeSelector: {}

@@ -1,0 +1,14 @@
+# Shared cache PVC for GitHub Actions runners
+# This allows Unity Library cache to persist across builds and be shared
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: arc-runner-cache
+  namespace: arc-runners
+spec:
+  accessModes:
+    - ReadWriteMany
+  storageClassName: longhorn
+  resources:
+    requests:
+      storage: 50Gi

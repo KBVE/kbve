@@ -8,3 +8,4 @@ metadata:
 
 resources:
   - github-arc-externalsecret.yaml
+  - runner-cache-pvc.yaml
