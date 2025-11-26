@@ -43,7 +43,7 @@ template:
         command: ["/home/runner/run.sh"]
         env:
           - name: DOCKER_HOST
-            value: unix:///var/run/docker.sock
+            value: tcp://localhost:2376
         resources:
           limits:
             cpu: "12"
@@ -72,6 +72,11 @@ template:
       # Note: Unity builds request high resources, DinD needs headroom
       - name: dind
         image: docker:dind
+        args:
+          - dockerd
+          - --host=unix:///var/run/docker.sock
+          - --host=tcp://0.0.0.0:2376
+          - --tls=false
         securityContext:
           privileged: true
         resources:
