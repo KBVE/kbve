@@ -29,7 +29,7 @@ maxRunners: 10
 # Runner container configuration with Docker-in-Docker support
 template:
   spec:
-    # Init container to wait for Docker daemon
+    # Init container to copy externals for DinD
     initContainers:
       - name: init-dind-externals
         image: ghcr.io/actions/actions-runner:latest
@@ -40,7 +40,8 @@ template:
     containers:
       - name: runner
         image: ghcr.io/actions/actions-runner:latest
-        command: ["/home/runner/run.sh"]
+        # Fix sudoers for root before starting runner (Unity builder uses sudo)
+        command: ["/bin/bash", "-c", "echo 'root ALL=(ALL) NOPASSWD:ALL' >> /etc/sudoers && /home/runner/run.sh"]
         env:
           - name: DOCKER_HOST
             value: tcp://localhost:2376
