@@ -4,10 +4,11 @@ metadata:
   name: arc-controller
   namespace: argocd
   annotations:
-    argocd.argoproj.io/sync-wave: "1"
+    argocd.argoproj.io/sync-wave: "0"
 spec:
   project: default
   sources:
+    # Helm chart for the ARC controller
     - repoURL: ghcr.io/actions/actions-runner-controller-charts
       targetRevision: 0.9.3
       chart: gha-runner-scale-set-controller
@@ -15,9 +16,14 @@ spec:
         releaseName: arc-controller
         valueFiles:
           - $values/apps/kube/github/controller/manifests/values.yaml
+    # Values file reference
     - repoURL: https://github.com/kbve/kbve
       targetRevision: main
       ref: values
+    # Additional manifests (sealed secret, RBAC for external-secrets)
+    - repoURL: https://github.com/kbve/kbve
+      targetRevision: main
+      path: apps/kube/github/controller/manifests
   destination:
     server: https://kubernetes.default.svc
     namespace: arc-systems

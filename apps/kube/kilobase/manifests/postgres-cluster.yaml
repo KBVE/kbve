@@ -33,7 +33,7 @@ spec:
     postgresGID: 102
 
     storage:
-        size: 20Gi
+        size: 40Gi
         storageClass: longhorn
 
     monitoring:
