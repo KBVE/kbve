@@ -44,6 +44,8 @@ template:
         env:
           - name: DOCKER_HOST
             value: tcp://localhost:2376
+          - name: RUNNER_ALLOW_RUNASROOT
+            value: "1"
         resources:
           limits:
             cpu: "12"
