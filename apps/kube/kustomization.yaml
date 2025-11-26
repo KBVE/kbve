@@ -45,7 +45,7 @@ resources:
   - bugwars/application.yaml
   - cityvote/application.yaml
   # GitHub Actions Runner Controller (ARC)
-  - github/controller/secrets-application.yaml
+  # Consolidated: controller includes helm chart + sealed secret + RBAC
+  # Consolidated: runners includes helm chart + ExternalSecret/SecretStore
   - github/controller/application.yaml
-  - github/runners/secrets-application.yaml
   - github/runners/application.yaml

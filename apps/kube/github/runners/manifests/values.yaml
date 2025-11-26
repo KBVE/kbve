@@ -21,7 +21,7 @@ controllerServiceAccount:
 
 # Scaling configuration
 minRunners: 0
-maxRunners: 5
+maxRunners: 10
 
 # Runner group (optional - for enterprise/org runners)
 # runnerGroup: "default"
@@ -35,11 +35,11 @@ template:
         command: ["/home/runner/run.sh"]
         resources:
           limits:
-            cpu: "2"
-            memory: 4Gi
+            cpu: "12"
+            memory: 24Gi
           requests:
-            cpu: 500m
-            memory: 1Gi
+            cpu: "4"
+            memory: 8Gi
         # Security context for the runner container
         securityContext:
           allowPrivilegeEscalation: false
