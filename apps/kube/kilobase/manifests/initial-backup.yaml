@@ -1,0 +1,14 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: supabase-cluster-initial-backup
+  namespace: kilobase
+spec:
+  cluster:
+    name: supabase-cluster
+  target: prefer-standby
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: kilobase-backup-store

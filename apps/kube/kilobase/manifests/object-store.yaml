@@ -4,7 +4,7 @@ metadata:
   name: kilobase-backup-store
   namespace: kilobase
 spec:
-  retentionPolicy: '30d'
+  retentionPolicy: '3d'
   configuration:
     destinationPath: s3://kilobase/barman/backup
     s3Credentials:
