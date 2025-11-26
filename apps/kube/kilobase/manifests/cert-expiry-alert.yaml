@@ -1,0 +1,30 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: cnpg-cert-expiry-alert
+  namespace: kilobase
+  labels:
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+    - name: cnpg-certificates
+      rules:
+        - alert: CNPGCertificateExpiringSoon
+          annotations:
+            description: "CloudNativePG certificate {{ $labels.secret_name }} in cluster {{ $labels.cluster }} expires in less than 14 days"
+            summary: "CNPG certificate expiring soon"
+          expr: |
+            cnpg_cluster_cert_expires_in_seconds < 1209600
+          for: 1h
+          labels:
+            severity: warning
+        - alert: CNPGCertificateExpiryCritical
+          annotations:
+            description: "CloudNativePG certificate {{ $labels.secret_name }} in cluster {{ $labels.cluster }} expires in less than 3 days!"
+            summary: "CNPG certificate expiry CRITICAL"
+          expr: |
+            cnpg_cluster_cert_expires_in_seconds < 259200
+          for: 5m
+          labels:
+            severity: critical
