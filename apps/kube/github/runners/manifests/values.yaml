@@ -52,13 +52,15 @@ template:
             cpu: "4"
             memory: 8Gi
         securityContext:
-          allowPrivilegeEscalation: false
+          allowPrivilegeEscalation: true
           readOnlyRootFilesystem: false
-          runAsNonRoot: true
-          runAsUser: 1001
+          runAsNonRoot: false
+          runAsUser: 0
           capabilities:
+            add:
+              - SYS_ADMIN
             drop:
-              - ALL
+              - NET_RAW
         volumeMounts:
           - name: work
             mountPath: /home/runner/_work
