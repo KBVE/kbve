@@ -7,5 +7,6 @@ metadata:
     description: "ExternalSecret to pull GitHub PAT from arc-systems namespace"
 
 resources:
+  - namespace.yaml
   - github-arc-externalsecret.yaml
   - runner-cache-pvc.yaml

@@ -1,0 +1,11 @@
+# Namespace for ARC runners with Pod Security set to privileged
+# Required for Docker-in-Docker sidecar containers
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: arc-runners
+  labels:
+    # Allow privileged pods for DinD
+    pod-security.kubernetes.io/enforce: privileged
+    pod-security.kubernetes.io/audit: privileged
+    pod-security.kubernetes.io/warn: privileged
