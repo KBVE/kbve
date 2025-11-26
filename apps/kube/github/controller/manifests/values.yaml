@@ -1,0 +1,47 @@
+# ARC Controller (gha-runner-scale-set-controller) values
+# Docs: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller
+
+# Controller flags
+flags:
+  # Log level for the controller (debug, info, warn, error)
+  logLevel: info
+  # Log format (text, json)
+  logFormat: text
+  # Update strategy for the controller
+  updateStrategy: immediate
+
+# Controller resources
+resources:
+  limits:
+    cpu: 500m
+    memory: 512Mi
+  requests:
+    cpu: 100m
+    memory: 128Mi
+
+# Service account for the controller
+serviceAccount:
+  create: true
+  name: arc-controller
+
+# Metrics configuration
+metrics:
+  controllerManagerAddr: ":8080"
+  listenerAddr: ":8080"
+  listenerEndpoint: "/metrics"
+
+# Pod security context
+securityContext:
+  runAsNonRoot: true
+
+# Priority class for controller pods
+priorityClassName: ""
+
+# Node selector for controller pods
+nodeSelector: {}
+
+# Tolerations for controller pods
+tolerations: []
+
+# Affinity for controller pods
+affinity: {}

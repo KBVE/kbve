@@ -1,0 +1,82 @@
+# ARC Runner Scale Set (gha-runner-scale-set) values
+# Docs: https://docs.github.com/en/actions/hosting-your-own-runners/managing-self-hosted-runners-with-actions-runner-controller
+
+# IMPORTANT: This name becomes the `runs-on` label in your workflows
+# Example: runs-on: arc-runner-set
+runnerScaleSetName: "arc-runner-set"
+
+# GitHub configuration
+# Use organization URL for org-wide runners, or repo URL for repo-specific
+githubConfigUrl: "https://github.com/kbve"
+
+# Authentication - use a Kubernetes secret for the GitHub PAT
+# The secret must exist in the arc-runners namespace
+githubConfigSecret:
+  github_token: ""
+
+# Reference to existing secret (preferred over inline token)
+# Create this secret separately with your PAT
+# kubectl create secret generic github-arc-token -n arc-runners --from-literal=github_token=<YOUR_PAT>
+# Or use sealed-secrets/external-secrets
+credentialsSecret: github-arc-token
+
+# Controller service account reference
+controllerServiceAccount:
+  name: arc-controller
+  namespace: arc-systems
+
+# Scaling configuration
+minRunners: 0
+maxRunners: 5
+
+# Runner group (optional - for enterprise/org runners)
+# runnerGroup: "default"
+
+# Runner container configuration
+template:
+  spec:
+    containers:
+      - name: runner
+        image: ghcr.io/actions/actions-runner:latest
+        command: ["/home/runner/run.sh"]
+        resources:
+          limits:
+            cpu: "2"
+            memory: 4Gi
+          requests:
+            cpu: 500m
+            memory: 1Gi
+        # Security context for the runner container
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: false
+          runAsNonRoot: true
+          runAsUser: 1001
+          capabilities:
+            drop:
+              - ALL
+
+# Pod-level configuration
+# nodeSelector: {}
+# tolerations: []
+# affinity: {}
+
+# Listener pod configuration (the component that listens for jobs)
+listenerTemplate:
+  spec:
+    containers:
+      - name: listener
+        resources:
+          limits:
+            cpu: 250m
+            memory: 256Mi
+          requests:
+            cpu: 50m
+            memory: 64Mi
+        securityContext:
+          allowPrivilegeEscalation: false
+          readOnlyRootFilesystem: true
+          runAsNonRoot: true
+          capabilities:
+            drop:
+              - ALL
