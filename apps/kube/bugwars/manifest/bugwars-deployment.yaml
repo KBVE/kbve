@@ -40,6 +40,15 @@ spec:
             secretKeyRef:
               name: supabase-shared
               key: service-role-key
+        # IRC configuration - connects to Ergo IRC server in cluster
+        - name: IRC_ENABLED
+          value: "true"
+        - name: IRC_SERVER
+          value: "ergo-irc-service.irc.svc.cluster.local"
+        - name: IRC_NICKNAME
+          value: "BugWarsBot"
+        - name: IRC_CHANNEL
+          value: "#general"
         resources:
           requests:
             memory: "128Mi"
