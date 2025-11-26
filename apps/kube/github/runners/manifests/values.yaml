@@ -52,15 +52,10 @@ template:
             cpu: "4"
             memory: 8Gi
         securityContext:
-          allowPrivilegeEscalation: true
-          readOnlyRootFilesystem: false
-          runAsNonRoot: false
+          # Run as root for sudo/apt-get (Unity builder requirement)
+          # Not privileged - no host access, just root inside container
           runAsUser: 0
-          capabilities:
-            add:
-              - SYS_ADMIN
-            drop:
-              - NET_RAW
+          runAsGroup: 0
         volumeMounts:
           - name: work
             mountPath: /home/runner/_work
