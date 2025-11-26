@@ -1,0 +1,58 @@
+# CronJob to cleanup old cache entries and prevent PVC from filling up
+# Runs daily at 3 AM UTC
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: arc-runner-cache-cleanup
+  namespace: arc-runners
+spec:
+  schedule: "0 3 * * *"  # Daily at 3 AM UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 3
+  jobTemplate:
+    spec:
+      ttlSecondsAfterFinished: 86400  # Clean up job after 24 hours
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: cache-cleanup
+              image: alpine:3.19
+              command:
+                - /bin/sh
+                - -c
+                - |
+                  echo "=== Cache Cleanup Started ==="
+                  echo "Current cache usage:"
+                  du -sh /cache/* 2>/dev/null || echo "Cache is empty"
+                  df -h /cache
+                  echo ""
+
+                  # Remove files not accessed in 14 days
+                  echo "Removing files not accessed in 14 days..."
+                  find /cache -type f -atime +14 -delete 2>/dev/null || true
+
+                  # Remove empty directories
+                  echo "Removing empty directories..."
+                  find /cache -type d -empty -delete 2>/dev/null || true
+
+                  echo ""
+                  echo "Cache usage after cleanup:"
+                  du -sh /cache/* 2>/dev/null || echo "Cache is empty"
+                  df -h /cache
+                  echo "=== Cache Cleanup Completed ==="
+              resources:
+                limits:
+                  cpu: 100m
+                  memory: 128Mi
+                requests:
+                  cpu: 50m
+                  memory: 64Mi
+              volumeMounts:
+                - name: runner-cache
+                  mountPath: /cache
+          volumes:
+            - name: runner-cache
+              persistentVolumeClaim:
+                claimName: arc-runner-cache

@@ -10,3 +10,4 @@ resources:
   - namespace.yaml
   - github-arc-externalsecret.yaml
   - runner-cache-pvc.yaml
+  - cache-cleanup-cronjob.yaml
