@@ -9,16 +9,10 @@ runnerScaleSetName: "arc-runner-set"
 # Use organization URL for org-wide runners, or repo URL for repo-specific
 githubConfigUrl: "https://github.com/kbve"
 
-# Authentication - use a Kubernetes secret for the GitHub PAT
-# The secret must exist in the arc-runners namespace
-githubConfigSecret:
-  github_token: ""
-
-# Reference to existing secret (preferred over inline token)
-# Create this secret separately with your PAT
-# kubectl create secret generic github-arc-token -n arc-runners --from-literal=github_token=<YOUR_PAT>
-# Or use sealed-secrets/external-secrets
-credentialsSecret: github-arc-token
+# Authentication - reference existing Kubernetes secret with GitHub PAT
+# The secret is created by ExternalSecret from arc-systems namespace
+# Secret must have key: github_token
+githubConfigSecret: github-arc-token
 
 # Controller service account reference
 controllerServiceAccount:
