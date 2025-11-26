@@ -1,0 +1,21 @@
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: supabase-cluster-backup
+  namespace: kilobase
+spec:
+  # Daily backup at 2 AM UTC
+  schedule: '0 2 * * *'
+  # Keep backup ownership tied to the ScheduledBackup resource
+  backupOwnerReference: self
+  # Target cluster
+  cluster:
+    name: supabase-cluster
+  # Prefer taking backup from standby to reduce load on primary
+  target: prefer-standby
+  # Use the barman-cloud plugin for S3 backup
+  method: plugin
+  pluginConfiguration:
+    name: barman-cloud.cloudnative-pg.io
+    parameters:
+      barmanObjectName: kilobase-backup-store
