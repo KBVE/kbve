@@ -281,10 +281,37 @@ aws s3 rm s3://kilobase/barman/backup/supabase-release-supabase-db/ --recursive
 - [ ] Set up alerting for backup failures
 - [ ] Create `backup-health-check.yaml` weekly CronJob (see Scheduled Health Checks)
 - [ ] Create `storage-usage-report.yaml` monthly CronJob (see Scheduled Health Checks)
+- [ ] Create `backup-health-alerts.yaml` PrometheusRule (see Scheduled Health Checks)
+- [ ] Verify Prometheus Pushgateway is deployed and accessible
 
 ## Scheduled Health Checks
 
-Read-only monitoring jobs that provide visibility into backup health and storage usage. These run as simple Python scripts using a lightweight Python image.
+Read-only monitoring jobs that push metrics to Prometheus Pushgateway for unified alerting. These run as Python scripts that collect S3 backup data and expose it as Prometheus metrics.
+
+### Architecture
+
+```
+┌─────────────────┐    push metrics    ┌─────────────────┐    scrape    ┌─────────────────┐
+│ CronJob         │ ─────────────────► │ Pushgateway     │ ◄─────────── │ Prometheus      │
+│ (Python script) │                    │ (monitoring ns) │              │                 │
+└─────────────────┘                    └─────────────────┘              └────────┬────────┘
+                                                                                 │
+                                                                                 ▼
+                                                                        ┌─────────────────┐
+                                                                        │ PrometheusRule  │
+                                                                        │ (alerts)        │
+                                                                        └────────┬────────┘
+                                                                                 │
+                                                                                 ▼
+                                                                        ┌─────────────────┐
+                                                                        │ Alertmanager    │
+                                                                        └─────────────────┘
+```
+
+### Prerequisites
+
+- Prometheus Pushgateway deployed (typically in `monitoring` namespace)
+- Update `PUSHGATEWAY_URL` env var to match your Pushgateway service
 
 ### Weekly: Backup Health Check
 
@@ -292,11 +319,12 @@ Read-only monitoring jobs that provide visibility into backup health and storage
 
 **Schedule**: `0 6 * * 0` (Sundays at 6 AM UTC)
 
-**Checks**:
-- List all backups in S3 and verify recent backups exist
-- Check age of latest base backup (should be < 7 days)
-- Verify WAL archives are being written
-- Report any stale or missing backups
+**Metrics Pushed**:
+- `kilobase_backup_count` - Number of base backups in S3
+- `kilobase_backup_latest_age_days` - Age of most recent backup in days
+- `kilobase_backup_wal_exists` - Whether WAL archives exist (1=yes, 0=no)
+- `kilobase_backup_check_timestamp` - Unix timestamp of last check
+- `kilobase_backup_check_success` - Whether check completed successfully (1=yes, 0=no)
 
 ```yaml
 # backup-health-check.yaml
@@ -333,69 +361,96 @@ spec:
                   value: "kilobase"
                 - name: BACKUP_PATH
                   value: "barman/backup/kilobase-postgres-backup"
+                - name: PUSHGATEWAY_URL
+                  value: "http://prometheus-pushgateway.monitoring.svc.cluster.local:9091"
               command:
                 - /bin/bash
                 - -c
                 - |
-                  pip install -q boto3
+                  pip install -q boto3 prometheus-client
                   python3 << 'EOF'
                   import boto3
                   import os
-                  from datetime import datetime, timezone, timedelta
+                  import sys
+                  from datetime import datetime, timezone
+                  from prometheus_client import CollectorRegistry, Gauge, push_to_gateway
 
+                  # Config
                   s3 = boto3.client('s3')
                   bucket = os.environ['S3_BUCKET']
                   backup_path = os.environ['BACKUP_PATH']
+                  pushgateway_url = os.environ['PUSHGATEWAY_URL']
+
+                  # Create registry and metrics
+                  registry = CollectorRegistry()
+
+                  backup_count = Gauge('kilobase_backup_count',
+                      'Number of base backups in S3', registry=registry)
+                  backup_age = Gauge('kilobase_backup_latest_age_days',
+                      'Age of most recent backup in days', registry=registry)
+                  wal_exists = Gauge('kilobase_backup_wal_exists',
+                      'Whether WAL archives exist (1=yes, 0=no)', registry=registry)
+                  check_timestamp = Gauge('kilobase_backup_check_timestamp',
+                      'Unix timestamp of last health check', registry=registry)
+                  check_success = Gauge('kilobase_backup_check_success',
+                      'Whether health check completed successfully', registry=registry)
 
                   print("=== Kilobase Backup Health Check ===")
                   print(f"Timestamp: {datetime.now(timezone.utc).isoformat()}")
-                  print(f"Bucket: {bucket}")
-                  print(f"Path: {backup_path}")
-                  print()
 
-                  # Check base backups
-                  print("--- Base Backups ---")
-                  base_path = f"{backup_path}/base/"
-                  response = s3.list_objects_v2(Bucket=bucket, Prefix=base_path, Delimiter='/')
+                  try:
+                      # Check base backups
+                      base_path = f"{backup_path}/base/"
+                      response = s3.list_objects_v2(Bucket=bucket, Prefix=base_path, Delimiter='/')
 
-                  backups = []
-                  for prefix in response.get('CommonPrefixes', []):
-                      backup_name = prefix['Prefix'].split('/')[-2]
-                      backups.append(backup_name)
+                      backups = []
+                      for prefix in response.get('CommonPrefixes', []):
+                          backup_name = prefix['Prefix'].split('/')[-2]
+                          backups.append(backup_name)
 
-                  if backups:
-                      backups.sort(reverse=True)
+                      backup_count.set(len(backups))
                       print(f"Found {len(backups)} base backup(s)")
-                      print(f"Latest: {backups[0]}")
-                      print(f"Oldest: {backups[-1]}")
 
-                      # Check if latest backup is recent (within 7 days)
+                      if backups:
+                          backups.sort(reverse=True)
+                          print(f"Latest: {backups[0]}")
+                          try:
+                              latest_date = datetime.strptime(backups[0][:8], '%Y%m%d')
+                              age_days = (datetime.now() - latest_date).days
+                              backup_age.set(age_days)
+                              print(f"Backup age: {age_days} day(s)")
+                          except ValueError:
+                              backup_age.set(-1)  # Invalid date format
+                              print(f"WARNING: Could not parse backup date")
+                      else:
+                          backup_age.set(-1)  # No backups
+                          print("ERROR: No base backups found!")
+
+                      # Check WAL archives
+                      wal_path = f"{backup_path}/wals/"
+                      response = s3.list_objects_v2(Bucket=bucket, Prefix=wal_path, MaxKeys=1)
+                      wal_count = response.get('KeyCount', 0)
+                      wal_exists.set(1 if wal_count > 0 else 0)
+                      print(f"WAL archives exist: {wal_count > 0}")
+
+                      # Set success metrics
+                      check_timestamp.set(datetime.now(timezone.utc).timestamp())
+                      check_success.set(1)
+
+                      # Push to Pushgateway
+                      push_to_gateway(pushgateway_url, job='kilobase_backup_health', registry=registry)
+                      print(f"Metrics pushed to {pushgateway_url}")
+                      print("=== Health Check Complete ===")
+
+                  except Exception as e:
+                      print(f"ERROR: {e}")
+                      check_success.set(0)
+                      check_timestamp.set(datetime.now(timezone.utc).timestamp())
                       try:
-                          latest_date = datetime.strptime(backups[0][:8], '%Y%m%d')
-                          age_days = (datetime.now() - latest_date).days
-                          if age_days > 7:
-                              print(f"WARNING: Latest backup is {age_days} days old!")
-                          else:
-                              print(f"OK: Latest backup is {age_days} day(s) old")
-                      except ValueError:
-                          print(f"Could not parse backup date: {backups[0]}")
-                  else:
-                      print("ERROR: No base backups found!")
-
-                  # Check WAL archives
-                  print()
-                  print("--- WAL Archives ---")
-                  wal_path = f"{backup_path}/wals/"
-                  response = s3.list_objects_v2(Bucket=bucket, Prefix=wal_path, MaxKeys=10)
-
-                  wal_count = response.get('KeyCount', 0)
-                  if wal_count > 0:
-                      print(f"OK: WAL archives present ({wal_count}+ files)")
-                  else:
-                      print("WARNING: No WAL archives found!")
-
-                  print()
-                  print("=== Health Check Complete ===")
+                          push_to_gateway(pushgateway_url, job='kilobase_backup_health', registry=registry)
+                      except:
+                          pass
+                      sys.exit(1)
                   EOF
 ```
 
@@ -405,11 +460,13 @@ spec:
 
 **Schedule**: `0 8 1 * *` (1st of each month at 8 AM UTC)
 
-**Reports**:
-- Total bucket size
-- Breakdown by directory (base backups, WALs, orphaned data)
-- File counts per category
-- Growth trends (if historical data available)
+**Metrics Pushed**:
+- `kilobase_storage_total_bytes` - Total size of backup storage in bytes
+- `kilobase_storage_total_files` - Total number of files
+- `kilobase_storage_base_bytes` - Size of base backups
+- `kilobase_storage_wal_bytes` - Size of WAL archives
+- `kilobase_storage_report_timestamp` - Unix timestamp of last report
+- `kilobase_storage_report_success` - Whether report completed successfully
 
 ```yaml
 # storage-usage-report.yaml
@@ -444,16 +501,21 @@ spec:
                       key: accessKey
                 - name: S3_BUCKET
                   value: "kilobase"
+                - name: BACKUP_PATH
+                  value: "barman/backup/kilobase-postgres-backup"
+                - name: PUSHGATEWAY_URL
+                  value: "http://prometheus-pushgateway.monitoring.svc.cluster.local:9091"
               command:
                 - /bin/bash
                 - -c
                 - |
-                  pip install -q boto3
+                  pip install -q boto3 prometheus-client
                   python3 << 'EOF'
                   import boto3
                   import os
+                  import sys
                   from datetime import datetime, timezone
-                  from collections import defaultdict
+                  from prometheus_client import CollectorRegistry, Gauge, push_to_gateway
 
                   def format_size(bytes_size):
                       for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
@@ -462,75 +524,210 @@ spec:
                           bytes_size /= 1024
                       return f"{bytes_size:.2f} PB"
 
+                  # Config
                   s3 = boto3.client('s3')
                   bucket = os.environ['S3_BUCKET']
+                  backup_path = os.environ['BACKUP_PATH']
+                  pushgateway_url = os.environ['PUSHGATEWAY_URL']
+
+                  # Create registry and metrics
+                  registry = CollectorRegistry()
+
+                  total_bytes = Gauge('kilobase_storage_total_bytes',
+                      'Total backup storage size in bytes', registry=registry)
+                  total_files = Gauge('kilobase_storage_total_files',
+                      'Total number of backup files', registry=registry)
+                  base_bytes = Gauge('kilobase_storage_base_bytes',
+                      'Size of base backups in bytes', registry=registry)
+                  wal_bytes = Gauge('kilobase_storage_wal_bytes',
+                      'Size of WAL archives in bytes', registry=registry)
+                  report_timestamp = Gauge('kilobase_storage_report_timestamp',
+                      'Unix timestamp of last storage report', registry=registry)
+                  report_success = Gauge('kilobase_storage_report_success',
+                      'Whether storage report completed successfully', registry=registry)
 
                   print("=== Kilobase Storage Usage Report ===")
                   print(f"Timestamp: {datetime.now(timezone.utc).isoformat()}")
-                  print(f"Bucket: {bucket}")
-                  print()
 
-                  # Paginate through all objects
-                  paginator = s3.get_paginator('list_objects_v2')
+                  try:
+                      paginator = s3.get_paginator('list_objects_v2')
 
-                  total_size = 0
-                  total_count = 0
-                  dir_stats = defaultdict(lambda: {'size': 0, 'count': 0})
+                      stats = {
+                          'total_size': 0,
+                          'total_count': 0,
+                          'base_size': 0,
+                          'wal_size': 0,
+                      }
 
-                  for page in paginator.paginate(Bucket=bucket, Prefix='barman/'):
-                      for obj in page.get('Contents', []):
-                          key = obj['Key']
-                          size = obj['Size']
-                          total_size += size
-                          total_count += 1
+                      for page in paginator.paginate(Bucket=bucket, Prefix=f"{backup_path}/"):
+                          for obj in page.get('Contents', []):
+                              key = obj['Key']
+                              size = obj['Size']
+                              stats['total_size'] += size
+                              stats['total_count'] += 1
 
-                          # Categorize by top-level directory
-                          parts = key.split('/')
-                          if len(parts) >= 4:
-                              category = '/'.join(parts[:4])
-                          else:
-                              category = '/'.join(parts[:3]) if len(parts) >= 3 else key
+                              if '/base/' in key:
+                                  stats['base_size'] += size
+                              elif '/wals/' in key:
+                                  stats['wal_size'] += size
 
-                          dir_stats[category]['size'] += size
-                          dir_stats[category]['count'] += 1
+                      # Set metrics
+                      total_bytes.set(stats['total_size'])
+                      total_files.set(stats['total_count'])
+                      base_bytes.set(stats['base_size'])
+                      wal_bytes.set(stats['wal_size'])
+                      report_timestamp.set(datetime.now(timezone.utc).timestamp())
+                      report_success.set(1)
 
-                  print("--- Summary ---")
-                  print(f"Total Size: {format_size(total_size)}")
-                  print(f"Total Files: {total_count:,}")
-                  print()
+                      # Print summary
+                      print(f"Total Size: {format_size(stats['total_size'])}")
+                      print(f"Total Files: {stats['total_count']:,}")
+                      print(f"Base Backups: {format_size(stats['base_size'])}")
+                      print(f"WAL Archives: {format_size(stats['wal_size'])}")
 
-                  print("--- Breakdown by Directory ---")
-                  sorted_dirs = sorted(dir_stats.items(), key=lambda x: x[1]['size'], reverse=True)
-                  for dir_path, stats in sorted_dirs:
-                      pct = (stats['size'] / total_size * 100) if total_size > 0 else 0
-                      print(f"{dir_path}")
-                      print(f"  Size: {format_size(stats['size'])} ({pct:.1f}%)")
-                      print(f"  Files: {stats['count']:,}")
+                      # Push to Pushgateway
+                      push_to_gateway(pushgateway_url, job='kilobase_storage_report', registry=registry)
+                      print(f"Metrics pushed to {pushgateway_url}")
+                      print("=== Report Complete ===")
 
-                  print()
-                  print("=== Report Complete ===")
+                  except Exception as e:
+                      print(f"ERROR: {e}")
+                      report_success.set(0)
+                      report_timestamp.set(datetime.now(timezone.utc).timestamp())
+                      try:
+                          push_to_gateway(pushgateway_url, job='kilobase_storage_report', registry=registry)
+                      except:
+                          pass
+                      sys.exit(1)
                   EOF
 ```
 
-### Notes on Python CronJobs
+### PrometheusRule for Backup Alerts
 
-- **Image**: Uses `python:3.12-slim` (~50MB) - lightweight and has pip
-- **Dependencies**: Installs `boto3` at runtime (adds ~10s startup)
-- **Alternative**: Could build a custom image with boto3 pre-installed for faster startup
-- **Output**: Logs to stdout, viewable via `kubectl logs`
-- **No actions**: These are read-only monitoring jobs, they don't modify or delete anything
+Create alerts based on the metrics pushed by the health check jobs:
 
-### Viewing Job Output
+```yaml
+# backup-health-alerts.yaml
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: kilobase-backup-alerts
+  namespace: kilobase
+  labels:
+    prometheus: kube-prometheus
+    role: alert-rules
+spec:
+  groups:
+    - name: kilobase-backup-health
+      rules:
+        # Alert if no backups exist
+        - alert: KilobaseNoBackups
+          annotations:
+            description: "No base backups found in S3 for kilobase"
+            summary: "Kilobase has no backups"
+          expr: kilobase_backup_count == 0
+          for: 1h
+          labels:
+            severity: critical
+
+        # Alert if backup is too old (> 3 days)
+        - alert: KilobaseBackupStale
+          annotations:
+            description: "Latest kilobase backup is {{ $value }} days old"
+            summary: "Kilobase backup is stale"
+          expr: kilobase_backup_latest_age_days > 3
+          for: 30m
+          labels:
+            severity: warning
+
+        # Alert if backup is very old (> 7 days)
+        - alert: KilobaseBackupCriticallyStale
+          annotations:
+            description: "Latest kilobase backup is {{ $value }} days old - exceeds retention!"
+            summary: "Kilobase backup critically stale"
+          expr: kilobase_backup_latest_age_days > 7
+          for: 15m
+          labels:
+            severity: critical
+
+        # Alert if no WAL archives
+        - alert: KilobaseNoWALArchives
+          annotations:
+            description: "No WAL archives found - point-in-time recovery not possible"
+            summary: "Kilobase WAL archiving may be broken"
+          expr: kilobase_backup_wal_exists == 0
+          for: 1h
+          labels:
+            severity: warning
+
+        # Alert if health check hasn't run (stale metrics > 8 days)
+        - alert: KilobaseHealthCheckStale
+          annotations:
+            description: "Backup health check hasn't run in over 8 days"
+            summary: "Kilobase health check not running"
+          expr: (time() - kilobase_backup_check_timestamp) > 691200
+          for: 1h
+          labels:
+            severity: warning
+
+        # Alert if health check failed
+        - alert: KilobaseHealthCheckFailed
+          annotations:
+            description: "Backup health check job failed"
+            summary: "Kilobase health check error"
+          expr: kilobase_backup_check_success == 0
+          for: 5m
+          labels:
+            severity: warning
+
+    - name: kilobase-storage-health
+      rules:
+        # Alert if storage exceeds threshold (e.g., 50GB)
+        - alert: KilobaseStorageHigh
+          annotations:
+            description: "Kilobase backup storage is {{ $value | humanize1024 }}B"
+            summary: "Kilobase storage usage high"
+          expr: kilobase_storage_total_bytes > 53687091200
+          for: 1h
+          labels:
+            severity: warning
+
+        # Alert if WAL storage exceeds base storage (potential cleanup issue)
+        - alert: KilobaseWALStorageHigh
+          annotations:
+            description: "WAL archives ({{ $value | humanize1024 }}B) exceed base backups - may need cleanup"
+            summary: "Kilobase WAL storage disproportionate"
+          expr: kilobase_storage_wal_bytes > (kilobase_storage_base_bytes * 2)
+          for: 1h
+          labels:
+            severity: warning
+```
+
+### Notes on Prometheus Integration
+
+- **Image**: Uses `python:3.12-slim` with `boto3` and `prometheus-client`
+- **Pushgateway**: Metrics are pushed to Prometheus Pushgateway for scraping
+- **Job names**: `kilobase_backup_health` and `kilobase_storage_report`
+- **Retention**: Pushgateway retains metrics until overwritten or deleted
+- **No actions**: Read-only monitoring, no modifications to backup data
+
+### Viewing Metrics and Logs
 
 ```bash
+# View metrics in Prometheus
+# Query: kilobase_backup_count, kilobase_storage_total_bytes, etc.
+
 # List recent job runs
-kubectl get jobs -n kilobase -l app=backup-health-check
+kubectl get jobs -n kilobase | grep -E "(backup-health|storage-usage)"
 
 # View logs from latest health check
 kubectl logs -n kilobase -l job-name=backup-health-check --tail=100
 
 # View logs from latest storage report
 kubectl logs -n kilobase -l job-name=storage-usage-report --tail=100
+
+# Check Pushgateway metrics directly
+curl http://prometheus-pushgateway.monitoring.svc.cluster.local:9091/metrics | grep kilobase
 ```
 
 ## Research
