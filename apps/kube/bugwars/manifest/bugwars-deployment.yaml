@@ -13,14 +13,14 @@ spec:
   template:
     metadata:
       annotations:
-        rollout-restart: "2025-11-27T02:21:30Z"
+        rollout-restart: "2025-11-27T13:24:17Z"
       labels:
         app: bugwars
-        version: "1.0.41"
+        version: "1.0.42"
     spec:
       containers:
       - name: bugwars
-        image: ghcr.io/kbve/bugwars:1.0.41
+        image: ghcr.io/kbve/bugwars:1.0.42
         imagePullPolicy: Always
         ports:
         - containerPort: 4321
