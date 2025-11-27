@@ -275,6 +275,178 @@ aws s3 rm s3://kilobase/barman/backup/supabase-release-supabase-db/ --recursive
 - [ ] Add PodMonitor for backup metrics
 - [ ] Set up alerting for backup failures
 
+## Research
+
+Key findings from CloudNativePG documentation that may be relevant for future improvements.
+
+### 6-Field Cron Format (Seconds)
+
+**Important**: CloudNativePG uses a 6-field cron format that includes seconds:
+
+```
+┌───────────── second (0 - 59)
+│ ┌───────────── minute (0 - 59)
+│ │ ┌───────────── hour (0 - 23)
+│ │ │ ┌───────────── day of month (1 - 31)
+│ │ │ │ ┌───────────── month (1 - 12)
+│ │ │ │ │ ┌───────────── day of week (0 - 6)
+│ │ │ │ │ │
+* * * * * *
+```
+
+This explains Issue #3 - our schedule `0 2 * * *` is interpreted as:
+- Second: 0
+- Minute: 2
+- Hour: * (every hour)
+- Day: * (every day)
+- Month: * (every month)
+
+**Fix**: Change to `0 0 2 * * *` for daily at 2 AM, or `0 2 * * * *` for every minute at second 2.
+
+### WAL Archive Management
+
+From the barman-cloud plugin documentation:
+
+1. **WAL archiving is essential** - Without continuous WAL archiving, you cannot recover to any point in time between base backups
+2. **Retention policy scope** - The `retentionPolicy` on ObjectStore only triggers `barman-cloud-backup-delete` which manages base backups
+3. **WAL cleanup mechanism** - `instanceSidecarConfiguration.retentionPolicyIntervalSeconds` runs periodic cleanup that removes WALs no longer needed for recovery
+
+### Synchronous Replication
+
+For higher durability, consider synchronous replication:
+
+```yaml
+spec:
+  postgresql:
+    synchronous:
+      method: any  # or 'first'
+      number: 1    # number of synchronous standbys
+```
+
+**Trade-off**: Increases write latency but ensures data is on multiple nodes before commit acknowledged.
+
+### Instance Manager & Probes
+
+CNPG uses an instance manager sidecar that handles:
+- **Liveness probe**: Checks if postmaster is running
+- **Readiness probe**: Checks if accepting connections and not in recovery (for RW service)
+- **Startup probe**: Allows time for recovery/startup before liveness kicks in
+
+Custom probe configuration:
+```yaml
+spec:
+  startDelay: 30
+  stopDelay: 30
+  smartShutdownTimeout: 180
+  switchoverDelay: 40000000  # microseconds
+```
+
+### Monitoring with PodMonitor
+
+CNPG supports Prometheus metrics via PodMonitor:
+
+```yaml
+spec:
+  monitoring:
+    enablePodMonitor: true
+    customQueriesConfigMap:
+      - name: custom-queries
+        key: queries
+```
+
+**Key metrics** (exported at `/metrics`):
+- `cnpg_collector_*` - Collector status
+- `cnpg_pg_replication_*` - Replication lag metrics
+- `cnpg_pg_stat_archiver_*` - WAL archiving stats
+- `cnpg_pg_database_size_bytes` - Database sizes
+
+### Troubleshooting Commands
+
+Useful diagnostic commands:
+
+```bash
+# Check cluster status
+kubectl cnpg status supabase-cluster -n kilobase
+
+# Get cluster logs
+kubectl cnpg logs cluster supabase-cluster -n kilobase -f
+
+# Promote a replica (emergency failover)
+kubectl cnpg promote supabase-cluster-2 -n kilobase
+
+# Restart a specific instance
+kubectl cnpg restart supabase-cluster-1 -n kilobase
+
+# Run psql on primary
+kubectl cnpg psql supabase-cluster -n kilobase -- -c "SELECT 1"
+```
+
+### SSL/TLS Certificates
+
+CNPG auto-manages certificates with 90-day validity and 7-day pre-expiry renewal:
+
+```yaml
+spec:
+  certificates:
+    serverTLSSecret: supabase-cluster-server
+    serverCASecret: supabase-cluster-ca
+    replicationTLSSecret: supabase-cluster-replication
+    clientCASecret: supabase-cluster-ca
+```
+
+**Note**: Client applications should trust the CA secret for secure connections.
+
+### Operator Capability Levels
+
+CloudNativePG is rated **Level 5 - Auto Pilot** (highest level):
+- Level 1: Basic Install
+- Level 2: Seamless Upgrades
+- Level 3: Full Lifecycle (backup/restore)
+- Level 4: Deep Insights (metrics/alerts)
+- Level 5: Auto Pilot (auto-scaling, auto-healing, auto-tuning)
+
+### Backup Best Practices
+
+1. **Always enable WAL archiving** before creating backups
+2. **Test recovery regularly** in a separate namespace
+3. **Use `prefer-standby` target** to reduce load on primary
+4. **Monitor `pg_stat_archiver`** for archiving failures
+5. **Set appropriate retention** based on RPO requirements
+
+### Point-in-Time Recovery (PITR)
+
+To recover to a specific point in time:
+
+```yaml
+spec:
+  bootstrap:
+    recovery:
+      source: kilobase-postgres-backup
+      recoveryTarget:
+        targetTime: "2024-11-26T10:00:00Z"  # ISO 8601 format
+        # OR
+        targetLSN: "0/1234567"
+        # OR
+        targetXID: "1234567"
+```
+
+**Important**: After PITR, the cluster cannot rejoin the original timeline. Consider cloning instead.
+
+### Replication Slots
+
+For guaranteed WAL retention during replica lag:
+
+```yaml
+spec:
+  replicationSlots:
+    highAvailability:
+      enabled: true
+      slotPrefix: _cnpg_
+    updateInterval: 30  # seconds
+```
+
+**Warning**: If a replica falls too far behind, slots prevent WAL cleanup, potentially filling disk.
+
 ## References
 
 - [CloudNativePG Documentation](https://cloudnative-pg.io/documentation/)
