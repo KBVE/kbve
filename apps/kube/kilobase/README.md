@@ -288,26 +288,6 @@ aws s3 rm s3://kilobase/barman/backup/supabase-release-supabase-db/ --recursive
 
 Read-only monitoring jobs that push metrics to Prometheus Pushgateway for unified alerting. These run as Python scripts that collect S3 backup data and expose it as Prometheus metrics.
 
-### Architecture
-
-```
-┌─────────────────┐    push metrics    ┌─────────────────┐    scrape    ┌─────────────────┐
-│ CronJob         │ ─────────────────► │ Pushgateway     │ ◄─────────── │ Prometheus      │
-│ (Python script) │                    │ (monitoring ns) │              │                 │
-└─────────────────┘                    └─────────────────┘              └────────┬────────┘
-                                                                                 │
-                                                                                 ▼
-                                                                        ┌─────────────────┐
-                                                                        │ PrometheusRule  │
-                                                                        │ (alerts)        │
-                                                                        └────────┬────────┘
-                                                                                 │
-                                                                                 ▼
-                                                                        ┌─────────────────┐
-                                                                        │ Alertmanager    │
-                                                                        └─────────────────┘
-```
-
 ### Prerequisites
 
 - Prometheus Pushgateway deployed (typically in `monitoring` namespace)
