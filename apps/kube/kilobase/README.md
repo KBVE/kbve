@@ -279,6 +279,259 @@ aws s3 rm s3://kilobase/barman/backup/supabase-release-supabase-db/ --recursive
 - [ ] Add PodMonitor for backup metrics
 - [ ] Set up alerting for certificate expiry (`cert-expiry-alert.yaml` - needs verification)
 - [ ] Set up alerting for backup failures
+- [ ] Create `backup-health-check.yaml` weekly CronJob (see Scheduled Health Checks)
+- [ ] Create `storage-usage-report.yaml` monthly CronJob (see Scheduled Health Checks)
+
+## Scheduled Health Checks
+
+Read-only monitoring jobs that provide visibility into backup health and storage usage. These run as simple Python scripts using a lightweight Python image.
+
+### Weekly: Backup Health Check
+
+**Purpose**: Verify backups are being created and check age of stored data in S3.
+
+**Schedule**: `0 6 * * 0` (Sundays at 6 AM UTC)
+
+**Checks**:
+- List all backups in S3 and verify recent backups exist
+- Check age of latest base backup (should be < 7 days)
+- Verify WAL archives are being written
+- Report any stale or missing backups
+
+```yaml
+# backup-health-check.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: backup-health-check
+  namespace: kilobase
+spec:
+  schedule: "0 6 * * 0"  # Weekly on Sunday at 6 AM UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 4
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: health-check
+              image: python:3.12-slim
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: kilobase-s3-secret
+                      key: keyId
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: kilobase-s3-secret
+                      key: accessKey
+                - name: S3_BUCKET
+                  value: "kilobase"
+                - name: BACKUP_PATH
+                  value: "barman/backup/kilobase-postgres-backup"
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  pip install -q boto3
+                  python3 << 'EOF'
+                  import boto3
+                  import os
+                  from datetime import datetime, timezone, timedelta
+
+                  s3 = boto3.client('s3')
+                  bucket = os.environ['S3_BUCKET']
+                  backup_path = os.environ['BACKUP_PATH']
+
+                  print("=== Kilobase Backup Health Check ===")
+                  print(f"Timestamp: {datetime.now(timezone.utc).isoformat()}")
+                  print(f"Bucket: {bucket}")
+                  print(f"Path: {backup_path}")
+                  print()
+
+                  # Check base backups
+                  print("--- Base Backups ---")
+                  base_path = f"{backup_path}/base/"
+                  response = s3.list_objects_v2(Bucket=bucket, Prefix=base_path, Delimiter='/')
+
+                  backups = []
+                  for prefix in response.get('CommonPrefixes', []):
+                      backup_name = prefix['Prefix'].split('/')[-2]
+                      backups.append(backup_name)
+
+                  if backups:
+                      backups.sort(reverse=True)
+                      print(f"Found {len(backups)} base backup(s)")
+                      print(f"Latest: {backups[0]}")
+                      print(f"Oldest: {backups[-1]}")
+
+                      # Check if latest backup is recent (within 7 days)
+                      try:
+                          latest_date = datetime.strptime(backups[0][:8], '%Y%m%d')
+                          age_days = (datetime.now() - latest_date).days
+                          if age_days > 7:
+                              print(f"WARNING: Latest backup is {age_days} days old!")
+                          else:
+                              print(f"OK: Latest backup is {age_days} day(s) old")
+                      except ValueError:
+                          print(f"Could not parse backup date: {backups[0]}")
+                  else:
+                      print("ERROR: No base backups found!")
+
+                  # Check WAL archives
+                  print()
+                  print("--- WAL Archives ---")
+                  wal_path = f"{backup_path}/wals/"
+                  response = s3.list_objects_v2(Bucket=bucket, Prefix=wal_path, MaxKeys=10)
+
+                  wal_count = response.get('KeyCount', 0)
+                  if wal_count > 0:
+                      print(f"OK: WAL archives present ({wal_count}+ files)")
+                  else:
+                      print("WARNING: No WAL archives found!")
+
+                  print()
+                  print("=== Health Check Complete ===")
+                  EOF
+```
+
+### Monthly: Storage Usage Report
+
+**Purpose**: Report total S3 bucket size and breakdown of stored data.
+
+**Schedule**: `0 8 1 * *` (1st of each month at 8 AM UTC)
+
+**Reports**:
+- Total bucket size
+- Breakdown by directory (base backups, WALs, orphaned data)
+- File counts per category
+- Growth trends (if historical data available)
+
+```yaml
+# storage-usage-report.yaml
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+  name: storage-usage-report
+  namespace: kilobase
+spec:
+  schedule: "0 8 1 * *"  # Monthly on 1st at 8 AM UTC
+  concurrencyPolicy: Forbid
+  successfulJobsHistoryLimit: 3
+  failedJobsHistoryLimit: 2
+  jobTemplate:
+    spec:
+      template:
+        spec:
+          restartPolicy: OnFailure
+          containers:
+            - name: storage-report
+              image: python:3.12-slim
+              env:
+                - name: AWS_ACCESS_KEY_ID
+                  valueFrom:
+                    secretKeyRef:
+                      name: kilobase-s3-secret
+                      key: keyId
+                - name: AWS_SECRET_ACCESS_KEY
+                  valueFrom:
+                    secretKeyRef:
+                      name: kilobase-s3-secret
+                      key: accessKey
+                - name: S3_BUCKET
+                  value: "kilobase"
+              command:
+                - /bin/bash
+                - -c
+                - |
+                  pip install -q boto3
+                  python3 << 'EOF'
+                  import boto3
+                  import os
+                  from datetime import datetime, timezone
+                  from collections import defaultdict
+
+                  def format_size(bytes_size):
+                      for unit in ['B', 'KB', 'MB', 'GB', 'TB']:
+                          if bytes_size < 1024:
+                              return f"{bytes_size:.2f} {unit}"
+                          bytes_size /= 1024
+                      return f"{bytes_size:.2f} PB"
+
+                  s3 = boto3.client('s3')
+                  bucket = os.environ['S3_BUCKET']
+
+                  print("=== Kilobase Storage Usage Report ===")
+                  print(f"Timestamp: {datetime.now(timezone.utc).isoformat()}")
+                  print(f"Bucket: {bucket}")
+                  print()
+
+                  # Paginate through all objects
+                  paginator = s3.get_paginator('list_objects_v2')
+
+                  total_size = 0
+                  total_count = 0
+                  dir_stats = defaultdict(lambda: {'size': 0, 'count': 0})
+
+                  for page in paginator.paginate(Bucket=bucket, Prefix='barman/'):
+                      for obj in page.get('Contents', []):
+                          key = obj['Key']
+                          size = obj['Size']
+                          total_size += size
+                          total_count += 1
+
+                          # Categorize by top-level directory
+                          parts = key.split('/')
+                          if len(parts) >= 4:
+                              category = '/'.join(parts[:4])
+                          else:
+                              category = '/'.join(parts[:3]) if len(parts) >= 3 else key
+
+                          dir_stats[category]['size'] += size
+                          dir_stats[category]['count'] += 1
+
+                  print("--- Summary ---")
+                  print(f"Total Size: {format_size(total_size)}")
+                  print(f"Total Files: {total_count:,}")
+                  print()
+
+                  print("--- Breakdown by Directory ---")
+                  sorted_dirs = sorted(dir_stats.items(), key=lambda x: x[1]['size'], reverse=True)
+                  for dir_path, stats in sorted_dirs:
+                      pct = (stats['size'] / total_size * 100) if total_size > 0 else 0
+                      print(f"{dir_path}")
+                      print(f"  Size: {format_size(stats['size'])} ({pct:.1f}%)")
+                      print(f"  Files: {stats['count']:,}")
+
+                  print()
+                  print("=== Report Complete ===")
+                  EOF
+```
+
+### Notes on Python CronJobs
+
+- **Image**: Uses `python:3.12-slim` (~50MB) - lightweight and has pip
+- **Dependencies**: Installs `boto3` at runtime (adds ~10s startup)
+- **Alternative**: Could build a custom image with boto3 pre-installed for faster startup
+- **Output**: Logs to stdout, viewable via `kubectl logs`
+- **No actions**: These are read-only monitoring jobs, they don't modify or delete anything
+
+### Viewing Job Output
+
+```bash
+# List recent job runs
+kubectl get jobs -n kilobase -l app=backup-health-check
+
+# View logs from latest health check
+kubectl logs -n kilobase -l job-name=backup-health-check --tail=100
+
+# View logs from latest storage report
+kubectl logs -n kilobase -l job-name=storage-usage-report --tail=100
+```
 
 ## Research
 
