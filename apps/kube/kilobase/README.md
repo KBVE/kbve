@@ -141,13 +141,17 @@ spec:
 | File | Description |
 |------|-------------|
 | `namespace.yaml` | Creates `kilobase` namespace |
-| `secrets.yaml` | Database credentials, JWT secrets, S3 credentials |
+| `sealed-postgres-db-login.yaml` | SealedSecret for database credentials |
+| `kilobase-jwt-secret-sealed.yaml` | SealedSecret for JWT secrets |
+| `sealed-aws-s3-bucket.yaml` | SealedSecret for S3 credentials |
+| `sealed-pg-sodium-key.yaml` | SealedSecret for PostgreSQL sodium encryption key |
 | `postgres-cluster.yaml` | CNPG Cluster with barman-cloud plugin |
 | `object-store.yaml` | S3 ObjectStore with retention policy |
 | `scheduled-backup.yaml` | ScheduledBackup resource |
+| `initial-backup.yaml` | One-time initial backup resource |
 | `configmap-sql.yaml` | SQL initialization scripts |
-| `service.yaml` | Kubernetes services |
-| `backup-cleanup-cronjob.yaml` | **TODO** - Automated backup/WAL cleanup |
+| `cross-namespace-rbac.yaml` | RBAC for external services (discord, bugwars) to access secrets |
+| `cert-expiry-alert.yaml` | PrometheusRule for certificate expiry alerting |
 
 ## Deployment
 
@@ -271,8 +275,9 @@ aws s3 rm s3://kilobase/barman/backup/supabase-release-supabase-db/ --recursive
 
 - [ ] Add `instanceSidecarConfiguration` to ObjectStore for automatic WAL cleanup
 - [ ] Create `backup-cleanup-cronjob.yaml` for orphaned data cleanup
-- [ ] Investigate hourly vs daily backup schedule issue
+- [ ] Investigate hourly vs daily backup schedule issue (see Research section - 6-field cron format)
 - [ ] Add PodMonitor for backup metrics
+- [ ] Set up alerting for certificate expiry (`cert-expiry-alert.yaml` - needs verification)
 - [ ] Set up alerting for backup failures
 
 ## Research
