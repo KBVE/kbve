@@ -168,7 +168,7 @@ CREATE POLICY "service_role_full_access"
 -- ===========================================
 CREATE TABLE IF NOT EXISTS profile.username_banlist (
     id          bigserial PRIMARY KEY,
-    pattern     text NOT NULL,          -- regex or literal fragment
+    pattern     text NOT NULL UNIQUE,   -- regex or literal fragment (unique to prevent duplicates)
     description text,
     is_active   boolean NOT NULL DEFAULT TRUE
 );
