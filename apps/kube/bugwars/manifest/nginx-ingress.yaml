@@ -13,6 +13,10 @@ metadata:
     nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
     nginx.ingress.kubernetes.io/upstream-hash-by: "$http_upgrade"
     nginx.ingress.kubernetes.io/proxy-pass-headers: "Cross-Origin-Opener-Policy,Cross-Origin-Embedder-Policy,Cross-Origin-Resource-Policy"
+    # nginx.ingress.kubernetes.io/configuration-snippet: |
+    #   add_header Cross-Origin-Opener-Policy "same-origin" always;
+    #   add_header Cross-Origin-Embedder-Policy "require-corp" always;
+    #   add_header Cross-Origin-Resource-Policy "cross-origin" always;
 spec:
   rules:
   - host: bugwars.kbve.com
