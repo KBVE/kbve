@@ -38,6 +38,9 @@ subjects:
 - kind: ServiceAccount
   name: bugwars-external-secrets
   namespace: bugwars
+- kind: ServiceAccount
+  name: rentearth-external-secrets
+  namespace: rentearth
 ---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1
