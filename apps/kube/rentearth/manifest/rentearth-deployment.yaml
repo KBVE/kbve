@@ -13,7 +13,7 @@ spec:
   template:
     metadata:
       annotations:
-        rollout-restart: "2025-12-06T00:00:00Z"
+        rollout-restart: "2025-12-08T08:36:35Z"
       labels:
         app: rentearth
         version: "1.0.0"
