@@ -93,6 +93,8 @@ template:
             mountPath: /var/run
           - name: dind-externals
             mountPath: /home/runner/externals
+          - name: runner-cache
+            mountPath: /home/runner/_cache
     volumes:
       - name: work
         emptyDir: {}
