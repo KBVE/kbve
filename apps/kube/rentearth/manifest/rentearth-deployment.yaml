@@ -13,14 +13,14 @@ spec:
   template:
     metadata:
       annotations:
-        rollout-restart: "2025-12-08T21:03:07Z"
+        rollout-restart: "2025-12-08T22:22:07Z"
       labels:
         app: rentearth
-        version: "1.0.4"
+        version: "1.0.5"
     spec:
       containers:
       - name: rentearth
-        image: ghcr.io/kbve/rentearth:1.0.4
+        image: ghcr.io/kbve/rentearth:1.0.5
         imagePullPolicy: Always
         ports:
         - containerPort: 4321
