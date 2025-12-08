@@ -40,13 +40,22 @@ spec:
             secretKeyRef:
               name: supabase-shared
               key: service-role-key
+        # IRC configuration - connects to Ergo IRC server in cluster
+        - name: IRC_ENABLED
+          value: "true"
+        - name: IRC_SERVER
+          value: "ergo-irc-service.irc.svc.cluster.local"
+        - name: IRC_NICKNAME
+          value: "RentEarthBot"
+        - name: IRC_CHANNEL
+          value: "#general"
         resources:
           requests:
-            memory: "256Mi"
-            cpu: "250m"
-          limits:
             memory: "512Mi"
-            cpu: "1000m"
+            cpu: "2000m"
+          limits:
+            memory: "1024Mi"
+            cpu: "4000m"
 ---
 apiVersion: v1
 kind: Service
