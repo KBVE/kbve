@@ -43,6 +43,7 @@ resources:
   - restream/application.yaml
   - staryo/application.yaml
   - bugwars/application.yaml
+  - rentearth/application.yaml
   - cityvote/application.yaml
   # GitHub Actions Runner Controller (ARC)
   # Consolidated: controller includes helm chart + sealed secret + RBAC
