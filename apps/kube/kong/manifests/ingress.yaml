@@ -15,7 +15,7 @@ metadata:
     nginx.ingress.kubernetes.io/large-client-header-buffers: "64 160k"
     nginx.ingress.kubernetes.io/client-body-buffer-size: "160k"
     nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://discord.sh,https://*.discord.sh,https://kbve.com,https://*.kbve.com,https://meme.sh,https://*.meme.sh,http://localhost:4321,http://localhost:3000"
+    nginx.ingress.kubernetes.io/cors-allow-origin: "https://discord.sh,https://*.discord.sh,https://kbve.com,https://*.kbve.com,https://meme.sh,https://*.meme.sh,https://rentearth.com,https://*.rentearth.com,http://localhost:4321,http://localhost:3000"
     nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
     nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Profile,Accept-Version"
     nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
