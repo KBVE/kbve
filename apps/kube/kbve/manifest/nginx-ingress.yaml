@@ -15,6 +15,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: kbve-hyperlane-service
+            name: kbve-service
             port:
-              number: 3000
+              number: 4321
