@@ -3,5 +3,7 @@ kind: Kustomization
 namespace: kbve
 
 resources:
-  - hyperlane-deployment.yaml
+  - kbve-serviceaccount.yaml
+  - kbve-externalsecret.yaml
+  - kbve-deployment.yaml
   - nginx-ingress.yaml

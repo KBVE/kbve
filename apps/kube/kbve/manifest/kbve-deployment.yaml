@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kbve-deployment
+  namespace: kbve
+  labels:
+    app: kbve
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kbve
+  template:
+    metadata:
+      annotations:
+        rollout-restart: "2025-12-21T00:00:00Z"
+      labels:
+        app: kbve
+        version: "1.0.1"
+    spec:
+      containers:
+      - name: kbve
+        image: ghcr.io/kbve/kbve.com:1.0.1
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4321
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "4321"
+        - name: SUPABASE_URL
+          value: "http://kong.kilobase.svc.cluster.local:8000"
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: anon-key
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: service-role-key
+        - name: TWITCH_CLIENT_ID
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: twitch-client-id
+        - name: TWITCH_APP_TOKEN
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: twitch-client-secret
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "2000m"
+          limits:
+            memory: "1024Mi"
+            cpu: "4000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kbve-service
+  namespace: kbve
+  labels:
+    app: kbve
+spec:
+  type: ClusterIP
+  selector:
+    app: kbve
+  ports:
+  - port: 4321
+    targetPort: 4321
+    protocol: TCP
