@@ -13,14 +13,14 @@ spec:
   template:
     metadata:
       annotations:
-        rollout-restart: "2025-12-21T00:00:00Z"
+        rollout-restart: "2025-12-23T08:12:01Z"
       labels:
         app: kbve
-        version: "1.0.1"
+        version: "1.0.3"
     spec:
       containers:
       - name: kbve
-        image: ghcr.io/kbve/kbve.com:1.0.1
+        image: ghcr.io/kbve/kbve.com:1.0.3
         imagePullPolicy: Always
         ports:
         - containerPort: 4321
