@@ -42,7 +42,6 @@ resources:
   - clickhouse/application.yaml
   - restream/application.yaml
   - staryo/application.yaml
-  - bugwars/application.yaml
   - rentearth/application.yaml
   - cityvote/application.yaml
   # GitHub Actions Runner Controller (ARC)

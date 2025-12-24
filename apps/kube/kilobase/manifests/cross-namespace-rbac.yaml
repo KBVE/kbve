@@ -36,9 +36,6 @@ subjects:
   name: notification-bot
   namespace: discord
 - kind: ServiceAccount
-  name: bugwars-external-secrets
-  namespace: bugwars
-- kind: ServiceAccount
   name: rentearth-external-secrets
   namespace: rentearth
 - kind: ServiceAccount
