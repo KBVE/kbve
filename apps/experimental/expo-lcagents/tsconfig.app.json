@@ -3,7 +3,7 @@
 	"compilerOptions": {
 		"outDir": "../../../dist/out-tsc",
 		"types": ["node"],
-		"sourceMap": true,
+		"sourceMap": true
 	},
 	"files": ["../../../node_modules/@nx/expo/typings/svg.d.ts"],
 	"exclude": [

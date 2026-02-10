@@ -1,6 +1,6 @@
 module.exports = {
 	displayName: 'expo-lcagents',
-	resolver: '@nx/jest/plugins/resolver',
+
 	preset: 'jest-expo',
 	moduleFileExtensions: ['ts', 'js', 'html', 'tsx', 'jsx'],
 	setupFilesAfterEnv: ['<rootDir>/test-setup.ts'],
