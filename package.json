@@ -43,7 +43,7 @@
 		"@nx/web": "22.5.0",
 		"@nx/webpack": "22.5.0",
 		"@nx/workspace": "22.5.0",
-		"@nxlv/python": "20.12.4",
+		"@nxlv/python": "22.0.5",
 		"@nxtensions/astro": "19.0.1",
 		"@playform/compress": "^0.1.9",
 		"@playwright/test": "^1.48.1",
