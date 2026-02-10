@@ -176,7 +176,8 @@
 			"!holy",
 			"!kbve",
 			"!jedi",
-			"!laser-e2e"
+			"!laser-e2e",
+			"!devops-e2e"
 		],
 		"version": {
 			"conventionalCommits": false
