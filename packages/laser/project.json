@@ -1,5 +1,5 @@
 {
-  "name": "laser",
+  "name": "laser-legacy",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/laser/src",
   "projectType": "library",

@@ -21,7 +21,7 @@
 			"@kbve/droid": ["packages/npm/droid/src/index.ts"],
 			"@kbve/expo-bbq": ["packages/expo-bbq/src/index.ts"],
 			"@kbve/khashvault": ["packages/khashvault/src/index.ts"],
-			"@kbve/laser": ["packages/laser/src/index.ts"],
+			"@kbve/laser": ["packages/npm/laser/src/index.ts"],
 			"@kbve/shadcnui": ["packages/shadcnui/src/index.ts"],
 			"@kbve/shadcnui/*": ["packages/shadcnui/src/*"],
 			"@kbve/shadcnutils": ["packages/shadcnutils/src/index.ts"],
