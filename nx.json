@@ -172,7 +172,6 @@
 			"packages/*",
 			"!astro-ve",
 			"!astropad",
-			"!expo-bbq",
 			"!erust",
 			"!holy",
 			"!kbve",

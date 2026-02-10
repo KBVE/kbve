@@ -84,10 +84,6 @@ cache/
 .mono/*
 *.mono/
 
-# Tamagui
-# *.tamagui
-apps/expo-cityvote/.tamagui/css/*
-
 # NuGetScracthroot
 NuGetScratchroot/
 dotnet-install.sh
