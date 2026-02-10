@@ -3,7 +3,6 @@
   "version": "0.0.1",
   "private": true,
   "dependencies": {
-    "@testing-library/jest-native": "*",
     "@testing-library/react-native": "*",
     "metro-config": "*",
     "react-native": "*",
@@ -44,7 +43,8 @@
     "expo-splash-screen": "*",
     "expo-status-bar": "*",
     "@react-native-async-storage/async-storage": "*",
-    "react-native-gesture-handler": "*"
+    "react-native-gesture-handler": "*",
+    "expo-system-ui": "~6.0.0"
   },
   "scripts": {
     "eas-build-pre-install": "cd ../../../ && node tools/scripts/eas-build-pre-install.mjs . apps/experimental/expo-hqplan && cp pnpm-lock.yaml apps/experimental/expo-hqplan",
