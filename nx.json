@@ -162,7 +162,8 @@
 			"!erust",
 			"!holy",
 			"!kbve",
-			"!jedi"
+			"!jedi",
+			"!laser-e2e"
 		],
 		"version": {
 			"conventionalCommits": false
