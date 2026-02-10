@@ -210,7 +210,7 @@ jobs:
             khashvault:
                 - 'packages/khashvault/package.json'
             devops:
-                - 'packages/devops/package.json'
+                - 'packages/npm/devops/package.json'
             cryptothrone:
                 - 'apps/cryptothrone.com/src/**'
             laser:
