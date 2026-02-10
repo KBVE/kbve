@@ -1,5 +1,5 @@
 {
-  "name": "devops",
+  "name": "devops-legacy",
   "$schema": "../../node_modules/nx/schemas/project-schema.json",
   "sourceRoot": "packages/devops/src",
   "projectType": "library",
