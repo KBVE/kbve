@@ -1,0 +1,44 @@
+{
+	"name": "devops",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/npm/devops/src",
+	"projectType": "library",
+	"release": {
+		"version": {
+			"currentVersionResolver": "disk",
+			"preserveLocalDependencyProtocols": false,
+			"manifestRootsToUpdate": ["packages/npm/devops"]
+		}
+	},
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "@nx/vite:build",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/packages/npm/devops",
+				"main": "packages/npm/devops/src/index.ts",
+				"tsConfig": "packages/npm/devops/tsconfig.lib.json",
+				"configFile": "packages/npm/devops/vite.config.ts",
+				"assets": ["packages/npm/devops/*.md"]
+			}
+		},
+		"nx-release-publish": {
+			"options": {
+				"packageRoot": "dist/packages/npm/devops"
+			}
+		},
+		"publish": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx build devops --emptyOutDir=true",
+					"cp packages/npm/devops/package.json dist/packages/npm/devops/package.json",
+					"cp packages/npm/devops/README.md dist/packages/npm/devops/README.md",
+					"nx nx-release-publish devops"
+				],
+				"parallel": false
+			}
+		}
+	}
+}
