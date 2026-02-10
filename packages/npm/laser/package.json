@@ -1,0 +1,45 @@
+{
+	"name": "@kbve/laser",
+	"version": "0.1.0",
+	"description": "Phaser + React Three Fiber integration layer for React 19",
+	"keywords": ["phaser", "react", "r3f", "react-three-fiber", "gamedev", "three.js"],
+	"homepage": "https://kbve.com/application/javascript/",
+	"bugs": { "url": "https://github.com/KBVE/kbve/issues" },
+	"repository": { "type": "git", "url": "git+https://github.com/KBVE/kbve.git" },
+	"author": "KBVE <hello@kbve.com>",
+	"license": "MIT",
+	"type": "module",
+	"main": "./laser.es.js",
+	"module": "./laser.es.js",
+	"types": "./index.d.ts",
+	"exports": {
+		".": {
+			"import": "./laser.es.js",
+			"types": "./index.d.ts"
+		}
+	},
+	"files": [
+		"laser.es.js",
+		"index.d.ts",
+		"**/*.d.ts",
+		"*.md"
+	],
+	"peerDependencies": {
+		"react": ">=18.0.0",
+		"react-dom": ">=18.0.0",
+		"phaser": ">=3.80.0",
+		"three": ">=0.160.0",
+		"@react-three/fiber": ">=9.0.0",
+		"@react-three/drei": ">=10.0.0"
+	},
+	"peerDependenciesMeta": {
+		"phaser": { "optional": true },
+		"three": { "optional": true },
+		"@react-three/fiber": { "optional": true },
+		"@react-three/drei": { "optional": true }
+	},
+	"dependencies": {},
+	"publishConfig": {
+		"access": "public"
+	}
+}

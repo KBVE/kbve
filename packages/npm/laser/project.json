@@ -1,0 +1,44 @@
+{
+	"name": "laser",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/npm/laser/src",
+	"projectType": "library",
+	"release": {
+		"version": {
+			"currentVersionResolver": "disk",
+			"preserveLocalDependencyProtocols": false,
+			"manifestRootsToUpdate": ["packages/npm/laser"]
+		}
+	},
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "@nx/vite:build",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/packages/npm/laser",
+				"main": "packages/npm/laser/src/index.ts",
+				"tsConfig": "packages/npm/laser/tsconfig.lib.json",
+				"configFile": "packages/npm/laser/vite.config.ts",
+				"assets": ["packages/npm/laser/*.md"]
+			}
+		},
+		"nx-release-publish": {
+			"options": {
+				"packageRoot": "dist/packages/npm/laser"
+			}
+		},
+		"publish": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx build laser --emptyOutDir=true",
+					"cp packages/npm/laser/package.json dist/packages/npm/laser/package.json",
+					"cp packages/npm/laser/README.md dist/packages/npm/laser/README.md",
+					"nx nx-release-publish laser"
+				],
+				"parallel": false
+			}
+		}
+	}
+}
