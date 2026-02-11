@@ -46,9 +46,6 @@ on:
       py_atlas:
         description: "Atlas changed"
         value: ${{ jobs.alter.outputs.py_atlas }}
-      py_fudster:
-        description: "Fudster changed"
-        value: ${{ jobs.alter.outputs.py_fudster }}
       py_lib_fudster:
         description: "Python Fudster library changed"
         value: ${{ jobs.alter.outputs.py_lib_fudster }}
@@ -135,7 +132,6 @@ jobs:
       disoxide: ${{ steps.delta.outputs.disoxide_any_changed }}
       hyperlane: ${{ steps.delta.outputs.hyperlane_any_changed }}
       py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}
-      py_fudster: ${{ steps.delta.outputs.py_fudster_any_changed }}
       py_lib_fudster: ${{ steps.delta.outputs.py_lib_fudster_any_changed }}
       py_lib_kbve: ${{ steps.delta.outputs.py_lib_kbve_any_changed }}
       astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
@@ -193,8 +189,6 @@ jobs:
                 - 'packages/npm/droid/README.md'
             py_atlas:
                 - 'apps/atlas/kbve_atlas/**'
-            py_fudster:
-                - 'apps/fudster/fudster/**'
             py_lib_fudster:
                 - 'packages/python/fudster/fudster/**'
             py_lib_kbve:
