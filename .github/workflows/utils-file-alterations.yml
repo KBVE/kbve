@@ -43,9 +43,10 @@ on:
       notification_bot:
         description: "Notification Bot"
         value: ${{ jobs.alter.outputs.notification_bot }}
-      py_atlas:
-        description: "Atlas changed"
-        value: ${{ jobs.alter.outputs.py_atlas }}
+      # NOTE: Atlas has been migrated into pydesk. Disabled.
+      # py_atlas:
+      #   description: "Atlas changed"
+      #   value: ${{ jobs.alter.outputs.py_atlas }}
       py_lib_fudster:
         description: "Python Fudster library changed"
         value: ${{ jobs.alter.outputs.py_lib_fudster }}
@@ -131,7 +132,7 @@ jobs:
       kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
       disoxide: ${{ steps.delta.outputs.disoxide_any_changed }}
       hyperlane: ${{ steps.delta.outputs.hyperlane_any_changed }}
-      py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}
+      # py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}  # Atlas migrated into pydesk
       py_lib_fudster: ${{ steps.delta.outputs.py_lib_fudster_any_changed }}
       py_lib_kbve: ${{ steps.delta.outputs.py_lib_kbve_any_changed }}
       astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
@@ -187,8 +188,8 @@ jobs:
                 - 'apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx'
             droid:
                 - 'packages/npm/droid/README.md'
-            py_atlas:
-                - 'apps/atlas/kbve_atlas/**'
+            # py_atlas:  # Atlas migrated into pydesk
+            #     - 'apps/atlas/kbve_atlas/**'
             py_lib_fudster:
                 - 'packages/python/fudster/fudster/**'
             py_lib_kbve:

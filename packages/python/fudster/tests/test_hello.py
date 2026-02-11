@@ -4,6 +4,12 @@ from fudster import (
     CommandModel, LoggerModel, BroadcastModel,
     KBVELoginModel, HandshakeModel, model_map,
     Routes, CORS, WS, RuneLiteClient,
+    APIConnector,
+    RssItem, RssFeed, PoemDB, CoinDeskAPIResponse,
+    AiGroqPayload, GroqResponse,
+    GameEvent, GameStat, GameInventory,
+    CoinDeskClient, PoetryDBClient, GroqClient, WebsocketEchoClient,
+    RSSUtility, KRDecorator, DynamicEndpoint,
 )
 
 
@@ -76,3 +82,45 @@ def test_exports():
     assert CORS is not None
     assert WS is not None
     assert RuneLiteClient is not None
+
+
+def test_api_connector_export():
+    """Test APIConnector is importable."""
+    assert APIConnector is not None
+
+
+def test_rss_models():
+    """Test RSS model creation."""
+    item = RssItem(title="Test", link="http://example.com", description="Desc", pubDate="Mon, 01 Jan 2024")
+    assert item.title == "Test"
+
+    feed = RssFeed(title="Feed", link="http://example.com", description="A feed", items=[item])
+    assert len(feed.items) == 1
+
+
+def test_poem_model():
+    """Test PoemDB model creation."""
+    poem = PoemDB(title="Test Poem", author="Author", lines=["Line 1", "Line 2"], linecount=2)
+    assert poem.title == "Test Poem"
+    assert poem.linecount == 2
+
+
+def test_groq_payload_model():
+    """Test AiGroqPayload model creation."""
+    payload = AiGroqPayload(message="hello", model="llama3", system="You are helpful")
+    assert payload.message == "hello"
+
+
+def test_api_clients_importable():
+    """Test that API clients are importable."""
+    assert CoinDeskClient is not None
+    assert PoetryDBClient is not None
+    assert GroqClient is not None
+    assert WebsocketEchoClient is not None
+
+
+def test_utils_importable():
+    """Test that utility classes are importable."""
+    assert RSSUtility is not None
+    assert KRDecorator is not None
+    assert DynamicEndpoint is not None
