@@ -1,6 +1,29 @@
 -- Realtime RLS Policies
 -- This file contains the Row Level Security policies needed for Supabase Realtime to function properly
 -- Run this after the main realtime_schema.sql
+--
+-- VERIFIED AGAINST LIVE DB: 2026-02-11
+-- Database: supabase (supabase-cluster-rw / kilobase namespace)
+-- PostgreSQL 17.4
+--
+-- STATUS: The 3 policies this file creates on realtime.messages exist
+--   in live DB. However significant drift exists.
+--
+-- ADJUSTMENTS NEEDED:
+--   1. POLICY DRIFT on realtime.messages: Live DB has 7 policies total,
+--      this file only defines 3. Additional live policies:
+--      - "Allow Anon Presence" (SELECT, anon+authenticated+service_role)
+--      - "Allow listening for broadcasts from a specific channel" (SELECT)
+--      - "Allow pushing broadcasts for authenticated users only" (INSERT)
+--      - "Service Role All" (SELECT, service_role)
+--      These were likely added via Supabase Studio or other migrations.
+--      Decide whether to capture them here or leave them as Studio-managed.
+--   2. ANON ACCESS: This file blocks anon from realtime.messages, but
+--      live DB grants anon SELECT+INSERT on several policies. Reconcile
+--      whether anon should have realtime access.
+--   3. DUPLICATE POLICY NAME: Live DB has a policy with a concatenated
+--      name "authenticated users can insert broadcast messagesAllow pushing"
+--      which appears to be a naming collision. Consider cleaning up.
 
 BEGIN;
 

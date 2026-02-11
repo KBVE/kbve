@@ -1,6 +1,26 @@
 -- Realtime Schema - 2025 Best Practices
 -- Complete setup for Supabase Realtime with performance optimization
 -- Based on Supabase Realtime Authorization and Performance Guidelines
+--
+-- VERIFIED AGAINST LIVE DB: 2026-02-11
+-- Database: supabase (supabase-cluster-rw / kilobase namespace)
+-- PostgreSQL 17.4
+--
+-- STATUS: Table (public.realtime_messages) and 4 helper functions match.
+--
+-- ADJUSTMENTS NEEDED:
+--   1. RLS POLICY DRIFT: Live DB has extra policies not in this file:
+--      - "authenticated_users_delete_messages" (DELETE, authenticated)
+--      - "authenticated_users_update_messages" (UPDATE, authenticated)
+--      These overlap with "users_delete_own_messages" and
+--      "users_update_own_messages" which are also present. The extra
+--      policies use broader access (no user_id check). Consider
+--      consolidating — remove the duplicates or tighten the broader ones.
+--   2. DROP TABLE IF EXISTS at the top is destructive on re-run against
+--      a populated database. Consider switching to CREATE TABLE IF NOT
+--      EXISTS for idempotent application.
+--   3. send_system_message returns UUID but the table PK is BIGSERIAL.
+--      The RETURNING clause will fail. This function needs a fix.
 
 BEGIN;
 
