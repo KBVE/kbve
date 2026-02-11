@@ -91,6 +91,14 @@ fn main() {
 
     // .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
     // .field_attribute("status.StatusMessage.type", "#[bitflags]")
-    .compile_protos(&["proto/redis.proto", "proto/groq.proto", "proto/jedi.proto", "proto/twitch.proto"], &["proto"])
+    .compile_protos(
+      &[
+        "../../data/proto/jedi/redis.proto",
+        "../../data/proto/jedi/groq.proto",
+        "../../data/proto/jedi/jedi.proto",
+        "../../data/proto/jedi/twitch.proto",
+      ],
+      &["../../data/proto/jedi", "../../data/proto"],
+    )
     .expect("Failed to compile Protobuf files");
 }
