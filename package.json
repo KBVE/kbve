@@ -25,7 +25,6 @@
 		"@monodon/rust": "1.2.0",
 		"@nanostores/persistent": "^0.9.1",
 		"@nanostores/react": "^1.0.0",
-		"@nx-extend/shadcn-ui": "^4.1.2",
 		"@nx-tools/nx-container": "^6.2.0",
 		"@nx/devkit": "22.5.0",
 		"@nx/esbuild": "22.5.0",
