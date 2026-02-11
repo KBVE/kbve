@@ -64,7 +64,7 @@
 		"proto": {
 			"executor": "@nxlv/python:run-commands",
 			"options": {
-				"command": "uv run python -m grpc_tools.protoc --proto_path=proto --python_out=kbve/proto --grpc_python_out=kbve/proto --pyi_out=kbve/proto proto/kbve.proto",
+				"command": "uv run python -m grpc_tools.protoc --proto_path=../../../packages/data/proto/kbve --python_out=kbve/proto --grpc_python_out=kbve/proto --pyi_out=kbve/proto ../../../packages/data/proto/kbve/kbve.proto",
 				"cwd": "packages/python/kbve"
 			}
 		}
