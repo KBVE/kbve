@@ -1,8 +1,18 @@
-"""Hello unit test module."""
+"""KBVE package basic tests."""
 
-from kbve.hello import hello
+import kbve
 
 
-def test_hello():
-    """Test the hello function."""
-    assert hello() == "Hello python-kbve"
+def test_version():
+    """Test the version is set."""
+    assert kbve.__version__ == "0.1.0"
+
+
+def test_exports():
+    """Test that primary exports are available."""
+    assert kbve.ServerConfig is not None
+    assert kbve.AppServer is not None
+    assert kbve.GrpcServer is not None
+    assert kbve.HttpServer is not None
+    assert kbve.HealthServicer is not None
+    assert kbve.EchoServicer is not None
