@@ -439,16 +439,16 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Setup Node v20
+            - name: Setup Node v22
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version: 22
                   registry-url: https://registry.npmjs.org/
 
             - name: Setup pnpm
               uses: pnpm/action-setup@v3
               with:
-                  version: 9
+                  version: 10
                   run_install: false
 
             #   @[CACHE]->[START]
@@ -470,10 +470,6 @@ jobs:
             - name: Install pnpm dependencies
               run: |
                   pnpm install
-
-            - name: Install npm
-              run: |
-                  npm install --legacy-peer-deps
 
             - name: Print Environment Info
               shell: bash

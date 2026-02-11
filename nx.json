@@ -120,20 +120,6 @@
 			}
 		},
 		{
-			"plugin": "@nx/expo/plugin",
-			"options": {
-				"startTargetName": "start",
-				"serveTargetName": "serve",
-				"runIosTargetName": "run-ios",
-				"runAndroidTargetName": "run-android",
-				"exportTargetName": "export",
-				"prebuildTargetName": "prebuild",
-				"installTargetName": "install",
-				"buildTargetName": "build",
-				"submitTargetName": "submit"
-			}
-		},
-		{
 			"plugin": "@nx/vitest",
 			"options": {
 				"testTargetName": "test"
@@ -172,11 +158,12 @@
 			"packages/*",
 			"!astro-ve",
 			"!astropad",
-			"!expo-bbq",
 			"!erust",
 			"!holy",
 			"!kbve",
-			"!jedi"
+			"!jedi",
+			"!laser-e2e",
+			"!devops-e2e"
 		],
 		"version": {
 			"conventionalCommits": false

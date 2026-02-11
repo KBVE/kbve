@@ -205,18 +205,16 @@ jobs:
                 - 'apps/saber/**'
             rustprofile:
                 - 'apps/rust_api_profile/**'
-            expolcagents:
-                - 'apps/expo-lcagents/src/**'
             dockervoid:
                 - 'migrations/docker/v01d/**'
             khashvault:
                 - 'packages/khashvault/package.json'
             devops:
-                - 'packages/devops/package.json'
+                - 'packages/npm/devops/package.json'
             cryptothrone:
                 - 'apps/cryptothrone.com/src/**'
             laser:
-                - 'packages/laser/package.json'
+                - 'packages/npm/laser/package.json'
             asteroids:
                 - 'apps/gamejam/brackeys/13/**'
 
