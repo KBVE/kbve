@@ -1,3 +1,20 @@
+-- ============================================================
+-- VERIFIED AGAINST LIVE DB: 2026-02-11
+-- Database: supabase (supabase-cluster-rw / kilobase namespace)
+-- PostgreSQL 17.4
+--
+-- STATUS: Tables, functions, RLS policies, triggers all match.
+--
+-- ADJUSTMENTS NEEDED:
+--   1. Function ownership: SQL says OWNER TO service_role / postgres,
+--      but live DB shows supabase_admin as owner for trigger functions.
+--      This is expected Supabase behavior (migrations run as supabase_admin).
+--      No action needed unless migrating to a non-Supabase environment.
+--   2. ALTER SCHEMA profile OWNER TO postgres — in live DB the schema
+--      may be owned by supabase_admin. Verify if this matters for your
+--      deployment pipeline.
+-- ============================================================
+
 BEGIN;
 
 CREATE SCHEMA IF NOT EXISTS profile;

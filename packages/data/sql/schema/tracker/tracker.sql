@@ -1,6 +1,21 @@
 -- KBVE Tracker Schema
 -- Service-level operations and distributed system coordination
 -- Security: Service role only access
+--
+-- VERIFIED AGAINST LIVE DB: 2026-02-11
+-- Database: supabase (supabase-cluster-rw / kilobase namespace)
+-- PostgreSQL 17.4
+--
+-- STATUS: Table (tracker.cluster_management), all 10 functions,
+--   3 RLS policies, indexes, triggers — all match live DB.
+--
+-- ADJUSTMENTS NEEDED:
+--   1. Function ownership: All functions owned by supabase_admin in
+--      live DB. SQL does not explicitly set owner — defaults to
+--      executing role. No action needed for Supabase deployments.
+--   2. The verification DO block at the bottom inserts/deletes test
+--      data on every run. Consider guarding with an env check or
+--      removing for production idempotent re-runs.
 
 BEGIN;
 

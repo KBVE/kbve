@@ -2,6 +2,22 @@
 -- API TOKENS VAULT SYSTEM
 -- Secure token storage using Supabase Vault with RLS protection
 -- ===================================================================
+--
+-- VERIFIED AGAINST LIVE DB: 2026-02-11
+-- Database: supabase (supabase-cluster-rw / kilobase namespace)
+-- PostgreSQL 17.4
+--
+-- STATUS: Table (private.api_tokens), all 3 internal functions, all 7
+--   public proxy functions, RLS policy, indexes — all match live DB.
+--
+-- ADJUSTMENTS NEEDED:
+--   1. Function ownership: SQL uses SECURITY DEFINER but live DB shows
+--      all functions owned by supabase_admin (not postgres). Expected
+--      Supabase behavior.
+--   2. The verification query at the bottom (section 4) compares arg
+--      types as text arrays — may need adjustment if pg_type names
+--      differ across PG versions (e.g. "uuid" vs "uuid").
+-- ===================================================================
 
 BEGIN;
 -- 0. Ensure private schema exists
