@@ -1,0 +1,3 @@
+[submodule "apps/postgres"]
+	path = apps/postgres
+	url = https://github.com/kbve/postgres.git
