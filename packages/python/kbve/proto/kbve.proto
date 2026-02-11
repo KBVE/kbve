@@ -1,0 +1,32 @@
+syntax = "proto3";
+
+package kbve;
+
+// Health check service for load balancers and readiness probes
+message HealthCheckRequest {}
+
+message HealthCheckResponse {
+    enum ServingStatus {
+        UNKNOWN = 0;
+        SERVING = 1;
+        NOT_SERVING = 2;
+    }
+    ServingStatus status = 1;
+}
+
+service Health {
+    rpc Check (HealthCheckRequest) returns (HealthCheckResponse);
+}
+
+// Echo service for connectivity testing and debugging
+message EchoRequest {
+    string message = 1;
+}
+
+message EchoResponse {
+    string message = 1;
+}
+
+service Echo {
+    rpc Ping (EchoRequest) returns (EchoResponse);
+}

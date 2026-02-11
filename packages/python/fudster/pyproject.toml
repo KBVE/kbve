@@ -1,0 +1,40 @@
+[project]
+name = "fudster"
+version = "0.1.0"
+description = "Fudster - A composable ML library for haystack-ai and pgvector integrations"
+readme = "README.md"
+license = "LicenseRef-Proprietary"
+requires-python = ">=3.12,<3.14"
+dependencies = [
+    "pydantic>=1.10,<3.0",
+    "fastapi>=0.115,<1.0",
+    "broadcaster>=0.3,<1.0",
+    "jinja2>=3.0,<4.0",
+    "requests>=2.28,<3.0",
+    "anyio>=4.0,<5.0",
+]
+
+[dependency-groups]
+dev = [
+    "autopep8==2.0.2",
+    "flake8==6.0.0",
+    "pytest==8.3.3",
+    "pytest-sugar==0.9.7",
+    "pytest-cov==4.1.0",
+    "pytest-html==3.2.0",
+]
+
+[tool.coverage.run]
+branch = true
+source = [ "fudster" ]
+
+[tool.coverage.report]
+exclude_lines = ['if TYPE_CHECKING:']
+show_missing = true
+
+[tool.pytest.ini_options]
+addopts = "--cov --cov-report html:'../../../coverage/packages/python/fudster/html' --cov-report xml:'../../../coverage/packages/python/fudster/coverage.xml' --html='../../../reports/packages/python/fudster/unittests/html/index.html' --junitxml='../../../reports/packages/python/fudster/unittests/junit.xml'"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

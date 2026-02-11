@@ -1,0 +1,72 @@
+{
+	"name": "python-kbve",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/python/kbve/kbve",
+	"tags": ["python", "library"],
+	"targets": {
+		"lock": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv lock",
+				"cwd": "packages/python/kbve"
+			}
+		},
+		"add": {
+			"executor": "@nxlv/python:add",
+			"options": {}
+		},
+		"update": {
+			"executor": "@nxlv/python:update",
+			"options": {}
+		},
+		"remove": {
+			"executor": "@nxlv/python:remove",
+			"options": {}
+		},
+		"build": {
+			"executor": "@nxlv/python:build",
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"outputPath": "packages/python/kbve/dist",
+				"publish": true,
+				"lockedVersions": true,
+				"bundleLocalDependencies": true
+			}
+		},
+		"install": {
+			"executor": "@nxlv/python:install",
+			"options": {
+				"silent": false,
+				"args": "",
+				"verbose": false,
+				"debug": false
+			}
+		},
+		"lint": {
+			"executor": "@nxlv/python:flake8",
+			"outputs": ["{workspaceRoot}/reports/packages/python/kbve/pylint.txt"],
+			"options": {
+				"outputFile": "reports/packages/python/kbve/pylint.txt"
+			}
+		},
+		"test": {
+			"executor": "@nxlv/python:run-commands",
+			"outputs": [
+				"{workspaceRoot}/reports/packages/python/kbve/unittests",
+				"{workspaceRoot}/coverage/packages/python/kbve"
+			],
+			"options": {
+				"command": "uv run pytest tests/",
+				"cwd": "packages/python/kbve"
+			}
+		},
+		"proto": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv run python -m grpc_tools.protoc --proto_path=proto --python_out=kbve/proto --grpc_python_out=kbve/proto --pyi_out=kbve/proto proto/kbve.proto",
+				"cwd": "packages/python/kbve"
+			}
+		}
+	}
+}

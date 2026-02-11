@@ -1,0 +1,65 @@
+{
+	"name": "python-fudster",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/python/fudster/fudster",
+	"tags": ["python", "library"],
+	"targets": {
+		"lock": {
+			"executor": "@nxlv/python:run-commands",
+			"options": {
+				"command": "uv lock",
+				"cwd": "packages/python/fudster"
+			}
+		},
+		"add": {
+			"executor": "@nxlv/python:add",
+			"options": {}
+		},
+		"update": {
+			"executor": "@nxlv/python:update",
+			"options": {}
+		},
+		"remove": {
+			"executor": "@nxlv/python:remove",
+			"options": {}
+		},
+		"build": {
+			"executor": "@nxlv/python:build",
+			"outputs": ["{projectRoot}/dist"],
+			"options": {
+				"outputPath": "packages/python/fudster/dist",
+				"publish": true,
+				"lockedVersions": true,
+				"bundleLocalDependencies": true
+			}
+		},
+		"install": {
+			"executor": "@nxlv/python:install",
+			"options": {
+				"silent": false,
+				"args": "",
+				"verbose": false,
+				"debug": false
+			}
+		},
+		"lint": {
+			"executor": "@nxlv/python:flake8",
+			"outputs": ["{workspaceRoot}/reports/packages/python/fudster/pylint.txt"],
+			"options": {
+				"outputFile": "reports/packages/python/fudster/pylint.txt"
+			}
+		},
+		"test": {
+			"executor": "@nxlv/python:run-commands",
+			"outputs": [
+				"{workspaceRoot}/reports/packages/python/fudster/unittests",
+				"{workspaceRoot}/coverage/packages/python/fudster"
+			],
+			"options": {
+				"command": "uv run pytest tests/",
+				"cwd": "packages/python/fudster"
+			}
+		}
+	}
+}
