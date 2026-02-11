@@ -1,0 +1,1 @@
+"""Fudster models."""

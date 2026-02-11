@@ -49,6 +49,12 @@ on:
       py_fudster:
         description: "Fudster changed"
         value: ${{ jobs.alter.outputs.py_fudster }}
+      py_lib_fudster:
+        description: "Python Fudster library changed"
+        value: ${{ jobs.alter.outputs.py_lib_fudster }}
+      py_lib_kbve:
+        description: "Python KBVE library changed"
+        value: ${{ jobs.alter.outputs.py_lib_kbve }}
       # ? Astro
       astro_kbve:
         description: "KBVE.com changed"
@@ -130,6 +136,8 @@ jobs:
       hyperlane: ${{ steps.delta.outputs.hyperlane_any_changed }}
       py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}
       py_fudster: ${{ steps.delta.outputs.py_fudster_any_changed }}
+      py_lib_fudster: ${{ steps.delta.outputs.py_lib_fudster_any_changed }}
+      py_lib_kbve: ${{ steps.delta.outputs.py_lib_kbve_any_changed }}
       astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
       astro_memes: ${{ steps.delta.outputs.astro_memes_any_changed }}
       astro_herbmail: ${{ steps.delta.outputs.astro_herbmail_any_changed }}
@@ -187,6 +195,10 @@ jobs:
                 - 'apps/atlas/kbve_atlas/**'
             py_fudster:
                 - 'apps/fudster/fudster/**'
+            py_lib_fudster:
+                - 'packages/python/fudster/fudster/**'
+            py_lib_kbve:
+                - 'packages/python/kbve/kbve/**'
             notificationbot:
                 - 'apps/discord/notification-bot/README.md'
             astro_kbve:
