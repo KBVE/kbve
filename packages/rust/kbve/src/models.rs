@@ -11,7 +11,7 @@ use chrono::NaiveDateTime;
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = apikey)]
 pub struct Apikey {
-    pub id: u64,
+    pub id: i64,
     pub ulid: Vec<u8>,
     pub userid: Vec<u8>,
     pub permissions: String,
@@ -22,7 +22,7 @@ pub struct Apikey {
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = appwrite)]
 pub struct Appwrite {
-    pub id: u64,
+    pub id: i64,
     pub ulid: Vec<u8>,
     pub userid: Vec<u8>,
     pub appwrite_endpoint: String,
@@ -35,7 +35,7 @@ pub struct Appwrite {
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = auth)]
 pub struct Auth {
-    pub id: u64,
+    pub id: i64,
     pub ulid: Vec<u8>,
     pub userid: Vec<u8>,
     pub email: String,
@@ -56,7 +56,7 @@ pub struct Auth {
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = characters)]
 pub struct Character {
-    pub id: u64,
+    pub id: i64,
     pub cid: Vec<u8>,
     pub userid: Vec<u8>,
     pub hp: i32,
@@ -79,7 +79,7 @@ pub struct Character {
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = globals)]
 pub struct Global {
-    pub id: u64,
+    pub id: i64,
     pub key: String,
     pub value: String,
 }
@@ -87,7 +87,7 @@ pub struct Global {
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = invoice)]
 pub struct Invoice {
-    pub id: u64,
+    pub id: i64,
     pub ulid: Vec<u8>,
     pub userid: Vec<u8>,
     pub items: Json,
@@ -95,7 +95,7 @@ pub struct Invoice {
     pub total: f64,
     pub balance: f64,
     pub external: String,
-    pub due: u64,
+    pub due: i64,
     pub visibility: i32,
     pub status: i32,
 }
@@ -103,7 +103,7 @@ pub struct Invoice {
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = n8n)]
 pub struct N8n {
-    pub id: u64,
+    pub id: i64,
     pub ulid: Vec<u8>,
     pub userid: Vec<u8>,
     pub webhook: String,
@@ -115,7 +115,7 @@ pub struct N8n {
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = profile)]
 pub struct Profile {
-    pub id: u64,
+    pub id: i64,
     pub ulid: Vec<u8>,
     pub name: String,
     pub bio: String,
@@ -129,7 +129,7 @@ pub struct Profile {
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = settings)]
 pub struct Setting {
-    pub id: u64,
+    pub id: i64,
     pub ulid: Vec<u8>,
     pub userid: Vec<u8>,
     pub key: String,
@@ -139,7 +139,7 @@ pub struct Setting {
 #[derive(Queryable, Serialize, Deserialize, Debug)]
 #[diesel(table_name = users)]
 pub struct User {
-    pub id: u64,
+    pub id: i64,
     pub userid: Vec<u8>,
     pub username: String,
     pub role: i32,
