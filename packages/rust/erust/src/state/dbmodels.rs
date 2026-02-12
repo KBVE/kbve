@@ -136,3 +136,120 @@ pub struct User {
     pub created_at: NaiveDateTime,
 }
 
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn user_default_values() {
+		let user = User::default();
+		assert_eq!(user.id, 0);
+		assert!(user.userid.is_empty());
+		assert!(user.username.is_empty());
+		assert_eq!(user.role, 0);
+		assert_eq!(user.reputation, 0);
+		assert_eq!(user.exp, 0);
+	}
+
+	#[test]
+	fn user_serde_round_trip() {
+		let user = User {
+			id: 1,
+			userid: vec![0xDE, 0xAD],
+			username: "h0lybyte".to_string(),
+			role: 2,
+			reputation: 100,
+			exp: 5000,
+			created_at: NaiveDateTime::default(),
+		};
+
+		let json = serde_json::to_string(&user).unwrap();
+		let restored: User = serde_json::from_str(&json).unwrap();
+		assert_eq!(user, restored);
+	}
+
+	#[test]
+	fn character_default_values() {
+		let c = Character::default();
+		assert_eq!(c.hp, 0);
+		assert_eq!(c.mp, 0);
+		assert_eq!(c.strength, 0);
+		assert!(c.name.is_empty());
+	}
+
+	#[test]
+	fn character_serde_round_trip() {
+		let c = Character {
+			id: 1,
+			cid: vec![1, 2, 3],
+			userid: vec![4, 5, 6],
+			hp: 100,
+			mp: 50,
+			ep: 25,
+			health: 100,
+			mana: 50,
+			energy: 25,
+			armour: 10,
+			agility: 15,
+			strength: 20,
+			intelligence: 18,
+			name: "Hero".to_string(),
+			description: "A brave hero".to_string(),
+			experience: 1000,
+			reputation: 50,
+			faith: 5,
+		};
+
+		let json = serde_json::to_string(&c).unwrap();
+		let restored: Character = serde_json::from_str(&json).unwrap();
+		assert_eq!(c, restored);
+	}
+
+	#[test]
+	fn profile_serde_round_trip() {
+		let p = Profile {
+			id: 1,
+			ulid: vec![1],
+			name: "Test".to_string(),
+			bio: "A bio".to_string(),
+			unsplash: String::new(),
+			github: "kbve".to_string(),
+			instagram: String::new(),
+			discord: "kbve#0001".to_string(),
+			userid: vec![2],
+		};
+
+		let json = serde_json::to_string(&p).unwrap();
+		let restored: Profile = serde_json::from_str(&json).unwrap();
+		assert_eq!(p, restored);
+	}
+
+	#[test]
+	fn global_serde_round_trip() {
+		let g = Global {
+			id: 1,
+			key: "theme".to_string(),
+			value: "dark".to_string(),
+		};
+
+		let json = serde_json::to_string(&g).unwrap();
+		let restored: Global = serde_json::from_str(&json).unwrap();
+		assert_eq!(g, restored);
+	}
+
+	#[test]
+	fn apikey_clone_equals_original() {
+		let key = Apikey {
+			id: 42,
+			ulid: vec![1, 2, 3],
+			userid: vec![4, 5, 6],
+			permissions: "read,write".to_string(),
+			keyhash: "abc123".to_string(),
+			label: "my-key".to_string(),
+		};
+
+		let cloned = key.clone();
+		assert_eq!(key, cloned);
+	}
+}
+
