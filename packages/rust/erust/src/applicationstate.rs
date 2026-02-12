@@ -6,6 +6,7 @@
 //  Preparing to remove this file.
 
 use std::sync::{Arc, Mutex};
+use std::sync::atomic::{AtomicBool, Ordering};
 use crate::img::{load_image_from_url, create_egui_texture_from_image, ImageError};
 use base64::Engine;
 
@@ -37,7 +38,8 @@ pub struct AppState {
     pub is_image_loaded: bool,
 
 	// Image Loading Action Boolean
-	pub is_loading_image: Arc<Mutex<bool>>,
+	#[serde(skip)]
+	pub is_loading_image: Arc<AtomicBool>,
 
     #[serde(skip)]
 	// Load Error
@@ -64,7 +66,7 @@ impl AppState {
             value: 2.7,
 			is_dark_mode: true, // default value, set to false if you want light mode by default
 			is_image_loaded: false,
-			is_loading_image: Arc::new(Mutex::new(false)),
+			is_loading_image: Arc::new(AtomicBool::new(false)),
 			load_error: Arc::new(Mutex::new(None)),
 			image_texture: Arc::new(Mutex::new(None)),			
 		}
@@ -97,10 +99,9 @@ impl AppState {
         let loading_flag = self.is_loading_image.clone();
         let error_flag = self.load_error.clone(); 
     
-        // Set loading flag
-        *loading_flag.lock().unwrap() = true;
+        loading_flag.store(true, Ordering::Release);
         *error_flag.lock().unwrap() = None;
-    
+
         let ctx_clone = ctx.clone();
         load_image_from_url(url, move |result| {
             match result {
@@ -110,17 +111,15 @@ impl AppState {
                     *texture_handle.lock().unwrap() = Some(texture);
                 }
                 Err(error) => {
-                    // Log and update error state
-                    warn!("Error loading image: {:?}", error);  // Use Debug formatting
+                    warn!("Error loading image: {}", error);
                     *error_flag.lock().unwrap() = Some(match error {
-                        ImageError::NetworkError(msg) if msg == "Empty response" => 
+                        ImageError::NetworkError(ref msg) if msg == "Empty response" =>
                             "Image not found or empty response".to_string(),
-                        _ => format!("Failed to load image: {:?}", error),
+                        _ => format!("Failed to load image: {}", error),
                     });
-            
                 }
             }
-            *loading_flag.lock().unwrap() = false;
+            loading_flag.store(false, Ordering::Release);
         });
     }
 
@@ -129,13 +128,11 @@ impl AppState {
         let loading_flag = self.is_loading_image.clone();
         let error_flag = self.load_error.clone();
     
-        // Set loading flag
-        *loading_flag.lock().unwrap() = true;
+        loading_flag.store(true, Ordering::Release);
         *error_flag.lock().unwrap() = None;
-    
+
         let ctx_clone = ctx.clone();
-    
-        // Decode the Base64 string to bytes
+
         match base64::engine::general_purpose::STANDARD.decode(base64_string) {
             Ok(image_data) => {
                 match image::load_from_memory(&image_data) {
@@ -158,9 +155,8 @@ impl AppState {
             }
         }
     
-        *loading_flag.lock().unwrap() = false;
+        loading_flag.store(false, Ordering::Release);
     }
-    
 
 
 }
