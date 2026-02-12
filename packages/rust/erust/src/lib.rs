@@ -1,7 +1,5 @@
 #![warn(clippy::all)]
 
-//  * [MODS]
-
 pub mod ironatom;
 pub mod applicationstate;
 pub mod widgets;

@@ -1,10 +1,3 @@
-// Define a struct that encapsulates all the state of your application
-
-//  This applicationstate will be migrated to the state library.
-//  Making a minor change here to proc another release of `erust` for 0.1.3.
-//  Triggering another pipeline test case for the permissions.
-//  Preparing to remove this file.
-
 use std::sync::{Arc, Mutex};
 use std::sync::atomic::{AtomicBool, Ordering};
 use crate::img::{load_image_from_url, create_egui_texture_from_image, ImageError};
@@ -16,59 +9,42 @@ use log::warn;
 
 #[derive(serde::Deserialize, serde::Serialize, Default)]
 pub struct AppState {
-	// Add fields for each piece of state your app needs
-	// For example:
 	pub counter: i32,
-	// User-related fields
 	pub username: String,
 	pub email: String,
-	pub session_id: Option<String>, // Can be None if not logged in
+	pub session_id: Option<String>,
 	pub bio: String,
-	pub avatar_url: Option<String>, // URL to the user's avatar image
-
-	// Default Templates
+	pub avatar_url: Option<String>,
 	pub label: String,
 	pub value: f32,
-
-	// Dark/Light Mode
 	pub is_dark_mode: bool,
 
-	// WASM Background Image
-    #[serde(skip)]
-    pub is_image_loaded: bool,
-
-	// Image Loading Action Boolean
+	#[serde(skip)]
+	pub is_image_loaded: bool,
 	#[serde(skip)]
 	pub is_loading_image: Arc<AtomicBool>,
-
-    #[serde(skip)]
-	// Load Error
-	pub load_error:  Arc<Mutex<Option<String>>>,
- 
-
+	#[serde(skip)]
+	pub load_error: Arc<Mutex<Option<String>>>,
 	#[serde(skip)]
 	pub image_texture: Arc<Mutex<Option<egui::TextureHandle>>>,
-
-
 }
 
 impl AppState {
 	pub fn new() -> Self {
 		Self {
 			counter: 1,
-			// Initialize other state variables
-            username: String::new(),
-            email: String::new(),
-            session_id: None,
-            bio: String::new(),
-            avatar_url: None,
+			username: String::new(),
+			email: String::new(),
+			session_id: None,
+			bio: String::new(),
+			avatar_url: None,
 			label: "Hello World!".to_owned(),
-            value: 2.7,
-			is_dark_mode: true, // default value, set to false if you want light mode by default
+			value: 2.7,
+			is_dark_mode: true,
 			is_image_loaded: false,
 			is_loading_image: Arc::new(AtomicBool::new(false)),
 			load_error: Arc::new(Mutex::new(None)),
-			image_texture: Arc::new(Mutex::new(None)),			
+			image_texture: Arc::new(Mutex::new(None)),
 		}
 	}
 
@@ -77,30 +53,27 @@ impl AppState {
 	}
 
 	pub fn save(&self, storage: &mut dyn eframe::Storage) {
-        if let Ok(serialized) = serde_json::to_string(self) {
-            storage.set_string(eframe::APP_KEY, serialized);
-        }
-        // Handle error or log in case of serialization failure
-    }
+		if let Ok(serialized) = serde_json::to_string(self) {
+			storage.set_string(eframe::APP_KEY, serialized);
+		}
+	}
 
-	
 	pub fn load(storage: Option<&dyn eframe::Storage>) -> Option<Self> {
-        if let Some(storage) = storage {
-            if let Some(serialized) = storage.get_string(eframe::APP_KEY) {
-                return serde_json::from_str(&serialized).ok();
-            }
-        }
-        None
-    }
+		if let Some(storage) = storage {
+			if let Some(serialized) = storage.get_string(eframe::APP_KEY) {
+				return serde_json::from_str(&serialized).ok();
+			}
+		}
+		None
+	}
 
-	
 	pub fn load_image(&mut self, ctx: &egui::Context, url: &str) {
         let texture_handle = self.image_texture.clone();
         let loading_flag = self.is_loading_image.clone();
         let error_flag = self.load_error.clone(); 
     
         loading_flag.store(true, Ordering::Release);
-        *error_flag.lock().unwrap() = None;
+        *error_flag.lock().expect("load_error mutex poisoned") = None;
 
         let ctx_clone = ctx.clone();
         load_image_from_url(url, move |result| {
@@ -108,11 +81,11 @@ impl AppState {
                 Ok(dynamic_image) => {
                     let rgba_image = dynamic_image.to_rgba8();
                     let texture = create_egui_texture_from_image(&ctx_clone, rgba_image);
-                    *texture_handle.lock().unwrap() = Some(texture);
+                    *texture_handle.lock().expect("image_texture mutex poisoned") = Some(texture);
                 }
                 Err(error) => {
                     warn!("Error loading image: {}", error);
-                    *error_flag.lock().unwrap() = Some(match error {
+                    *error_flag.lock().expect("load_error mutex poisoned") = Some(match error {
                         ImageError::NetworkError(ref msg) if msg == "Empty response" =>
                             "Image not found or empty response".to_string(),
                         _ => format!("Failed to load image: {}", error),
@@ -129,7 +102,7 @@ impl AppState {
         let error_flag = self.load_error.clone();
     
         loading_flag.store(true, Ordering::Release);
-        *error_flag.lock().unwrap() = None;
+        *error_flag.lock().expect("load_error mutex poisoned") = None;
 
         let ctx_clone = ctx.clone();
 
@@ -139,19 +112,17 @@ impl AppState {
                     Ok(dynamic_image) => {
                         let rgba_image = dynamic_image.to_rgba8();
                         let texture = create_egui_texture_from_image(&ctx_clone, rgba_image);
-                        *texture_handle.lock().unwrap() = Some(texture);
+                        *texture_handle.lock().expect("image_texture mutex poisoned") = Some(texture);
                     }
                     Err(error) => {
-                        // Log and update error state
                         warn!("Error processing image: {:?}", error);
-                        *error_flag.lock().unwrap() = Some(format!("Failed to process image: {:?}", error));
+                        *error_flag.lock().expect("load_error mutex poisoned") = Some(format!("Failed to process image: {:?}", error));
                     }
                 }
             }
             Err(error) => {
-                // Log and update error state
                 warn!("Error decoding Base64: {:?}", error);
-                *error_flag.lock().unwrap() = Some(format!("Failed to decode Base64: {:?}", error));
+                *error_flag.lock().expect("load_error mutex poisoned") = Some(format!("Failed to decode Base64: {:?}", error));
             }
         }
     

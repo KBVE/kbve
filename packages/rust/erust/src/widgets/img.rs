@@ -1,4 +1,4 @@
-use image::{self, DynamicImage, Rgba, RgbaImage};
+use image::{self, DynamicImage, RgbaImage};
 use ehttp::{Request, Response};
 use egui::{
 	ColorImage,
