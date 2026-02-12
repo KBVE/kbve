@@ -1,0 +1,5 @@
+error: Getters macro only supports structs with named fields
+ --> tests/fail/02-tuple-struct.rs:4:1
+  |
+4 | struct Nope(i32, i32);
+  | ^^^^^^^^^^^^^^^^^^^^^^
