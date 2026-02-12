@@ -2,7 +2,7 @@
 [workspace]
 resolver = '2'
 members = [
-	'packages/kbve',
+	'packages/rust/kbve',
 	'packages/rust/erust',
 	'packages/rust/holy',
 	'packages/rust/jedi',
