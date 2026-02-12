@@ -1,0 +1,46 @@
+{
+	"name": "astro",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/npm/astro/src",
+	"projectType": "library",
+	"release": {
+		"version": {
+			"currentVersionResolver": "disk",
+			"preserveLocalDependencyProtocols": false,
+			"manifestRootsToUpdate": ["packages/npm/astro"]
+		}
+	},
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "@nx/vite:build",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/packages/npm/astro",
+				"main": "packages/npm/astro/src/index.ts",
+				"tsConfig": "packages/npm/astro/tsconfig.lib.json",
+				"configFile": "packages/npm/astro/vite.config.ts",
+				"assets": ["packages/npm/astro/*.md"]
+			}
+		},
+		"nx-release-publish": {
+			"options": {
+				"packageRoot": "dist/packages/npm/astro"
+			}
+		},
+		"publish": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx build astro --emptyOutDir=true",
+					"cp packages/npm/astro/package.json dist/packages/npm/astro/package.json",
+					"cp packages/npm/astro/README.md dist/packages/npm/astro/README.md",
+					"mkdir -p dist/packages/npm/astro/components",
+					"cp packages/npm/astro/src/components/*.astro dist/packages/npm/astro/components/",
+					"nx nx-release-publish astro"
+				],
+				"parallel": false
+			}
+		}
+	}
+}
