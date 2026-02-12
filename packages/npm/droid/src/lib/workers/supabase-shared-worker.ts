@@ -30,6 +30,17 @@ type Res =
 
 const ports = new Set<MessagePort>();
 
+/** Post to all connected ports, removing dead ones on failure */
+function safeBroadcast(msg: unknown) {
+  for (const p of ports) {
+    try {
+      p.postMessage(msg);
+    } catch {
+      ports.delete(p);
+    }
+  }
+}
+
 // ---- IDB-backed auth storage using Dexie 4 ----
 interface KVPair {
   key: string;
@@ -127,9 +138,7 @@ async function connectWebSocket(wsUrl?: string) {
     wsLastPongTime = Date.now();
     startHeartbeat();
 
-    for (const p of ports) {
-      p.postMessage({ type: 'ws.status', status: 'connected', url });
-    }
+    safeBroadcast({ type: 'ws.status', status: 'connected', url });
     comm.broadcast({ type: 'ws.status', data: { status: 'connected', url } });
   };
 
@@ -140,9 +149,7 @@ async function connectWebSocket(wsUrl?: string) {
         wsLastPongTime = Date.now();
         return;
       }
-      for (const p of ports) {
-        p.postMessage({ type: 'ws.message', data: message });
-      }
+      safeBroadcast({ type: 'ws.message', data: message });
       comm.broadcast({ type: 'ws.message', data: message });
     } catch (error) {
       console.error('[SharedWorker] Failed to parse WebSocket message:', error);
@@ -150,18 +157,14 @@ async function connectWebSocket(wsUrl?: string) {
   };
 
   ws.onerror = () => {
-    for (const p of ports) {
-      p.postMessage({ type: 'ws.status', status: 'error', error: 'WebSocket connection error' });
-    }
+    safeBroadcast({ type: 'ws.status', status: 'error', error: 'WebSocket connection error' });
   };
 
   ws.onclose = (event) => {
     ws = null;
     stopHeartbeat();
 
-    for (const p of ports) {
-      p.postMessage({ type: 'ws.status', status: 'disconnected', code: event.code, reason: event.reason });
-    }
+    safeBroadcast({ type: 'ws.status', status: 'disconnected', code: event.code, reason: event.reason });
 
     if (event.code !== 1000 && wsReconnectAttempts < WS_MAX_RECONNECT_ATTEMPTS) {
       wsReconnectAttempts++;
@@ -210,9 +213,7 @@ function disconnectWebSocket() {
     ws.close(1000, 'Requested by client');
     ws = null;
     wsReconnectAttempts = 0;
-    for (const p of ports) {
-      p.postMessage({ type: 'ws.status', status: 'disconnected' });
-    }
+    safeBroadcast({ type: 'ws.status', status: 'disconnected' });
   }
 }
 
@@ -249,9 +250,7 @@ async function ensureClient(url: string, anonKey: string, options: any = {}) {
   });
 
   client.auth.onAuthStateChange(async (_event, session) => {
-    for (const p of ports) {
-      p.postMessage({ type: 'auth', session });
-    }
+    safeBroadcast({ type: 'auth', session });
     comm.broadcast({ type: 'auth', data: { session } });
   });
 
@@ -351,9 +350,7 @@ function reply(port: MessagePort, msg: Res) {
           const channel = client
             .channel(key)
             .on('postgres_changes', params, (payload) => {
-              for (const p of ports) {
-                p.postMessage({ type: 'realtime', key, payload });
-              }
+              safeBroadcast({ type: 'realtime', key, payload });
             });
           await channel.subscribe();
           subscriptions.set(key, { unsubscribe: async () => { await channel.unsubscribe(); } });
