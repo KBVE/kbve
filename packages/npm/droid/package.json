@@ -1,6 +1,6 @@
 {
   "name": "@kbve/droid",
-  "version": "0.0.6",
+  "version": "0.1.0",
   "description": "A manager for web, shared and service workers, aimming to make it as modular and upgradable.",
   "keywords": [
     "workers",
@@ -27,11 +27,14 @@
     },
     "./lib/workers/canvas-worker": "./lib/workers/canvas-worker.js",
     "./lib/workers/db-worker": "./lib/workers/db-worker.js",
-    "./lib/workers/ws-worker": "./lib/workers/ws-worker.js"
+    "./lib/workers/ws-worker": "./lib/workers/ws-worker.js",
+    "./lib/workers/supabase-shared-worker": "./lib/workers/supabase-shared-worker.js",
+    "./lib/workers/supabase-db-worker": "./lib/workers/supabase-db-worker.js"
   },
   "files": [
     "workers/",
     "lib/workers/",
+    "lib/gateway/",
     "assets/",
     "src/",
     "comlink*.js",
@@ -47,10 +50,19 @@
   "dependencies": {
     "tslib": "^2.3.0",
     "comlink": "^4.3.1",
-    "@nanostores/persistent": "^0.7.1",
-    "dexie": "^3.2.4",
-    "zod": "^3.22.4",
-    "flatbuffers": "^25.2.10"
+    "@nanostores/persistent": "^0.9.1",
+    "dexie": "^4.0.9",
+    "zod": "^3.23.8",
+    "flatbuffers": "^25.2.10",
+    "@bufbuild/protobuf": "^2.5.2"
+  },
+  "peerDependencies": {
+    "@supabase/supabase-js": "^2.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@supabase/supabase-js": {
+      "optional": true
+    }
   },
   "publishConfig": {
     "access": "public"
