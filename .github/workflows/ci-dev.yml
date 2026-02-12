@@ -23,6 +23,7 @@ jobs:
               with:
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
+                  submodules: true
 
             - name: Check if dev has changes for staging
               id: check_changes
