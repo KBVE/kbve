@@ -1,5 +1,5 @@
 use quote::quote;
-use syn::{Attribute, Meta, Token, Visibility};
+use syn::{Attribute, Expr, Lit, Meta, Token, Visibility};
 use syn::parse::Parser;
 use syn::punctuated::Punctuated;
 
@@ -64,5 +64,31 @@ pub fn has_holy_argument(attrs: &[Attribute], arg_name: &str) -> bool {
 		nested
 			.iter()
 			.any(|meta| matches!(meta, Meta::Path(path) if path.is_ident(arg_name)))
+	})
+}
+
+pub fn get_holy_string_value(attrs: &[Attribute], key: &str) -> Option<(String, proc_macro2::Span)> {
+	attrs.iter().find_map(|attr| {
+		if !attr.path().is_ident("holy") {
+			return None;
+		}
+		let Meta::List(meta_list) = &attr.meta else {
+			return None;
+		};
+		let nested = Punctuated::<Meta, Token![,]>::parse_terminated
+			.parse2(meta_list.tokens.clone())
+			.ok()?;
+		for meta in &nested {
+			if let Meta::NameValue(nv) = meta {
+				if nv.path.is_ident(key) {
+					if let Expr::Lit(expr_lit) = &nv.value {
+						if let Lit::Str(lit_str) = &expr_lit.lit {
+							return Some((lit_str.value(), lit_str.span()));
+						}
+					}
+				}
+			}
+		}
+		None
 	})
 }
