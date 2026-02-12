@@ -18,6 +18,10 @@
 /reports/
 /coverage/
 
+# Playwright
+**/playwright-report/
+**/test-results/
+
 # compiled output
 /src
 dist

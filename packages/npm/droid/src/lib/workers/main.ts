@@ -52,7 +52,7 @@ function initSharedWorker(
 	// Try .js (production build output)
 	try {
 		const worker = new SharedWorker(
-			new URL(`./${name}.js`, import.meta.url),
+			/* @vite-ignore */ new URL(`./${name}.js`, import.meta.url),
 			{ type: 'module' },
 		);
 		worker.port.start();
@@ -60,7 +60,7 @@ function initSharedWorker(
 	} catch {
 		// Fallback to .ts (Vite dev)
 		const worker = new SharedWorker(
-			new URL(`./${name}.ts`, import.meta.url),
+			/* @vite-ignore */ new URL(`./${name}.ts`, import.meta.url),
 			{ type: 'module' },
 		);
 		worker.port.start();
@@ -80,12 +80,12 @@ function initDedicatedWorker(
 
 	try {
 		return new Worker(
-			new URL(`./${name}.js`, import.meta.url),
+			/* @vite-ignore */ new URL(`./${name}.js`, import.meta.url),
 			{ type: 'module' },
 		);
 	} catch {
 		return new Worker(
-			new URL(`./${name}.ts`, import.meta.url),
+			/* @vite-ignore */ new URL(`./${name}.ts`, import.meta.url),
 			{ type: 'module' },
 		);
 	}
@@ -203,7 +203,7 @@ export const uiux = {
 		mode: 'static' | 'animated' | 'dynamic' = 'animated',
 	) {
 		const offscreen = canvasEl.transferControlToOffscreen();
-		await window.kbve?.uiux?.worker?.bindCanvas(panelId, offscreen, mode);
+		await (window.kbve?.uiux as Record<string, any>)?.['worker']?.bindCanvas(panelId, offscreen, mode);
 	},
 
 	closeAllPanels() {

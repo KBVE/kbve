@@ -15,7 +15,7 @@
 		"noPropertyAccessFromIndexSignature": true
 	},
 	"files": [],
-	"include": ["src", "src/types.d.ts"],
+	"include": ["src"],
 	"references": [
 		{
 			"path": "./tsconfig.lib.json"
