@@ -3,7 +3,7 @@
 resolver = '2'
 members = [
 	'packages/kbve',
-	'packages/erust',
+	'packages/rust/erust',
 	'packages/holy',
 	'packages/rust/jedi',
 	'apps/kbve/kilobase',
