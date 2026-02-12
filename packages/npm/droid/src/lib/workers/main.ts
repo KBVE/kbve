@@ -321,7 +321,7 @@ export function bridgeWsToDb(
 		});
 	});
 
-	ws.onMessage(transfer(handler, [0]));
+	ws.onMessage(handler);
 }
 
 // --- MAIN ---
