@@ -21,9 +21,7 @@
     // Skip typechecking libraries and .d.ts files
     "skipLibCheck": true,
     // Enable strict mode
-    "strict": true,
-    // Error when a value import is only used as a type
-    "importsNotUsedAsValues": "error",
+    "strict": true,    
     // TypeScript 5.0 changed how `isolatedModules` and `importsNotUsedAsValues` works, deprecating the later
     // Until the majority of users are on TypeScript 5.0, we'll have to supress those deprecation errors
     "ignoreDeprecations": "5.0",
