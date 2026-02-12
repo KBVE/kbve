@@ -1,0 +1,10 @@
+error[E0599]: no method named `internal` found for struct `WithSkip` in the current scope
+  --> tests/fail/03-skip-no-getter.rs:15:12
+   |
+ 4 | pub struct WithSkip {
+   | ------------------- method `internal` not found for this struct
+...
+15 |     let _ = s.internal();
+   |               ^^^^^^^^-- help: remove the arguments
+   |               |
+   |               field, not a method
