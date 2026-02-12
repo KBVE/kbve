@@ -14,10 +14,6 @@ type WorkerMessage =
   | { id: string; type: 'from.delete'; payload: { table: string; match: Record<string, any> } }
   | { id: string; type: 'rpc'; payload: { fn: string; args?: Record<string, any> } };
 
-type WorkerResponse =
-  | { id: string; ok: true; data?: any }
-  | { id: string; ok: false; error: string };
-
 declare const self: DedicatedWorkerGlobalScope;
 
 let client: SupabaseClient | null = null;
@@ -189,7 +185,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
   }
 };
 
-function respond(id: string, response: Omit<WorkerResponse, 'id'>) {
+function respond(id: string, response: { ok: true; data?: any } | { ok: false; error: string }) {
   self.postMessage({ id, ...response });
 }
 
