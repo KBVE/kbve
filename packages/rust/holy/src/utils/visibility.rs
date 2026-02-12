@@ -1,61 +1,68 @@
-
 use quote::quote;
-
-
-use syn::{
-    Visibility,
-    Attribute,
-    Meta,
-	NestedMeta,
-};
-
+use syn::{Attribute, Meta, Token, Visibility};
+use syn::parse::Parser;
+use syn::punctuated::Punctuated;
 
 pub fn determine_visibility(
 	vis: &Visibility,
-	attrs: &[Attribute]
+	attrs: &[Attribute],
 ) -> Result<proc_macro2::TokenStream, syn::Error> {
-	if
-		let Some(override_vis) = attrs
-			.iter()
-			.find(|attr| attr.path.is_ident("holy"))
-			.and_then(parse_visibility_override)
+	if let Some(override_vis) = attrs
+		.iter()
+		.find(|attr| attr.path().is_ident("holy"))
+		.and_then(parse_visibility_override)
 	{
 		Ok(override_vis)
 	} else {
 		match vis {
 			Visibility::Public(_) => Ok(quote! { pub }),
-			Visibility::Restricted(restricted) =>
-				Ok(quote! { pub(#restricted) }),
-			_ => Ok(quote! {}),
+			Visibility::Restricted(restricted) => Ok(quote! { #restricted }),
+			Visibility::Inherited => Ok(quote! {}),
 		}
 	}
 }
 
-pub fn parse_visibility_override(
-	attr: &Attribute
-) -> Option<proc_macro2::TokenStream> {
-	attr.parse_meta()
-		.ok()
-		.and_then(|meta| {
-			if let Meta::List(meta_list) = meta {
-				for nested_meta in meta_list.nested.iter() {
-					match nested_meta {
-						NestedMeta::Meta(Meta::Path(path)) if
-							path.is_ident("public")
-						=> {
-							return Some(quote! { pub });
-						}
-						NestedMeta::Meta(Meta::Path(path)) if
-							path.is_ident("private")
-						=> {
-							return Some(quote! {});
-						}
-						_ => {
-							continue;
-						}
-					}
-				}
+fn parse_visibility_override(attr: &Attribute) -> Option<proc_macro2::TokenStream> {
+	let Meta::List(meta_list) = &attr.meta else {
+		return None;
+	};
+
+	let nested = Punctuated::<Meta, Token![,]>::parse_terminated
+		.parse2(meta_list.tokens.clone())
+		.ok()?;
+
+	for meta in &nested {
+		if let Meta::Path(path) = meta {
+			if path.is_ident("public") {
+				return Some(quote! { pub });
 			}
-			None
-		})
+			if path.is_ident("private") {
+				return Some(quote! {});
+			}
+		}
+	}
+	None
+}
+
+pub fn should_skip(attrs: &[Attribute]) -> bool {
+	has_holy_argument(attrs, "skip")
+}
+
+pub fn has_holy_argument(attrs: &[Attribute], arg_name: &str) -> bool {
+	attrs.iter().any(|attr| {
+		if !attr.path().is_ident("holy") {
+			return false;
+		}
+		let Meta::List(meta_list) = &attr.meta else {
+			return false;
+		};
+		let Ok(nested) = Punctuated::<Meta, Token![,]>::parse_terminated
+			.parse2(meta_list.tokens.clone())
+		else {
+			return false;
+		};
+		nested
+			.iter()
+			.any(|meta| matches!(meta, Meta::Path(path) if path.is_ident(arg_name)))
+	})
 }

@@ -1,13 +1,55 @@
-
 ## Holy
 
-This package provides a Getter/Setter, used like this 
-    
-`#[derive(Getters, Setters)]` or with the crate scoped in, `#[derive(holy::Getters, holy::Setters)]`
+A proc-macro library providing derive macros for Rust structs.
 
-Furthermore, we added a visibility handler via attributes, so you can set certain fields visible or private via, `#[holy(public)]` or `#[holy(private)]`
+### Getters & Setters
 
-TODO: subscriber / observer.
+```rust
+#[derive(holy::Getters, holy::Setters)]
+pub struct User {
+    pub name: String,
+    pub age: u32,
+}
 
-WIP - as of 1/17/2023
+let mut user = User { name: "test".into(), age: 25 };
+let name: &String = user.name();    // getter
+user.set_age(26);                    // setter
+```
 
+Supports generic structs:
+
+```rust
+#[derive(holy::Getters, holy::Setters)]
+pub struct Container<T> {
+    pub value: T,
+}
+```
+
+### Attributes
+
+Control visibility and behavior per-field with `#[holy(...)]`:
+
+- `#[holy(public)]` — make the generated getter/setter `pub` regardless of field visibility
+- `#[holy(private)]` — make the generated getter/setter private regardless of field visibility
+- `#[holy(skip)]` — skip generating getter/setter for this field
+- `#[holy(observe)]` — mark field for observer pattern (used with `Observer` derive)
+
+### Observer
+
+Derive `Observer` to generate a companion struct for the observer pattern:
+
+```rust
+#[derive(holy::Observer)]
+pub struct Sensor {
+    #[holy(observe)]
+    pub temperature: f64,
+    pub name: String,
+}
+
+// Generates `SensorObservers` companion struct
+let mut observers = SensorObservers::new();
+observers.add_temperature_observer(|s: &Sensor| {
+    println!("temp: {}", s.temperature);
+});
+observers.notify_temperature_observers(&sensor);
+```
