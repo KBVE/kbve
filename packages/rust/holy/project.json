@@ -1,8 +1,8 @@
 {
 	"name": "holy",
-	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "library",
-	"sourceRoot": "packages/holy/src",
+	"sourceRoot": "packages/rust/holy/src",
 	"tags": [],
 	"targets": {
 		"build": {

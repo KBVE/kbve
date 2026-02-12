@@ -4,7 +4,7 @@ resolver = '2'
 members = [
 	'packages/kbve',
 	'packages/rust/erust',
-	'packages/holy',
+	'packages/rust/holy',
 	'packages/rust/jedi',
 	'apps/kbve/kilobase',
 	'apps/kbve/kbve-hyperlane',
