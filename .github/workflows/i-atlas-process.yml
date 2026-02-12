@@ -7,7 +7,7 @@ on:
 
 
 env:
-  atlas_action: none
+  # atlas_action: none  # NOTE: Atlas has been migrated into pydesk
   YTID: ''
   GENRE: ''
   TITLE: ''
@@ -37,7 +37,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { _$gha_kbve_ActionProcess } = require('@kbve/devops');
+            const { _$gha_kbve_ActionProcess } = await import('@kbve/devops');
             const title = context.payload.issue.title;
             try {
               const action = _$gha_kbve_ActionProcess(title);
@@ -52,35 +52,35 @@ jobs:
         run: |
           echo "Matched action is: ${{ steps.title-parser.outputs.action }}"
 
-  handle_atlas:
-    name: 'Handle Atlas Ticket'
-    runs-on: ubuntu-latest
-    needs: ['process_issue']
-    permissions:
-      issues: write
-      contents: read
-    if: needs.process_issue.outputs.matched_action == 'atlas_action'
-    steps:
-      - name: Set up Node.js
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
+  # NOTE: Atlas has been migrated into pydesk. This job is disabled.
+  # handle_atlas:
+  #   name: 'Handle Atlas Ticket'
+  #   runs-on: ubuntu-latest
+  #   needs: ['process_issue']
+  #   permissions:
+  #     issues: write
+  #     contents: read
+  #   if: needs.process_issue.outputs.matched_action == 'atlas_action'
+  #   steps:
+  #     - name: Set up Node.js
+  #       uses: actions/setup-node@v4
+  #       with:
+  #         node-version: '20'
+  #
+  #     - name: Install dependencies
+  #       run: |
+  #         npm install @kbve/devops
+  #
+  #     - name: Atlas Debug Comment
+  #       env:
+  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  #       uses: actions/github-script@v7
+  #       with:
+  #         script: |
+  #           const { _$gha_createIssueComment } = await import('@kbve/devops');
+  #           const body = '[DEBUG] Processing [Atlas](https://kbve.com/project/atlas/) Action v0.0.11';
+  #           await _$gha_createIssueComment(github, context, body);
 
-      - name: Install dependencies
-        run: |
-          npm install @kbve/devops
-
-      - name: Atlas Debug Comment
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        uses: actions/github-script@v7
-        with:
-          script: |
-
-            const { _$gha_createIssueComment } = require('@kbve/devops');
-            const body = '[DEBUG] Processing [Atlas](https://kbve.com/project/atlas/) Action v0.0.11';
-            await _$gha_createIssueComment(github, context, body);
-            
 
   handle_music:
     name: 'Handle Music Ticket'
@@ -110,7 +110,7 @@ jobs:
       #   uses: actions/github-script@v7
       #   with:
       #     script: |
-      #       const { _$gha_createIssueComment } = require('@kbve/devops');
+      #       const { _$gha_createIssueComment } = await import('@kbve/devops');
       #       const body = '[DEBUG] Processing [Music](https://kbve.com/music/) Action v0.0.11';
       #       await _$gha_createIssueComment(github, context, body);
 
@@ -122,7 +122,7 @@ jobs:
         uses: actions/github-script@v7
         with:
           script: |
-            const { _groq, extractYoutubeId, _$gha_createIssueComment, _$gha_removeLabel, _$gha_addLabel, _$gha_verifyMatrixLabel } = require('@kbve/devops');
+            const { _groq, extractYoutubeId, _$gha_createIssueComment, _$gha_removeLabel, _$gha_addLabel, _$gha_verifyMatrixLabel } = await import('@kbve/devops');
 
             const system = '01J0YEVWK8ZA1Z0Q8B0GDG6871';
             const message = context.payload.issue.body;

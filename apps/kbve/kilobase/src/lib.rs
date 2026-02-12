@@ -1,6 +1,6 @@
 use pgrx::bgworkers::*;
 use pgrx::prelude::*;
-use pgrx::spi::{SpiClient, SpiError};
+use pgrx::spi::SpiError;
 use pgrx::datum::{DatumWithOid, IntoDatum};
 use std::time::Duration;
 mod sql;
@@ -32,7 +32,7 @@ pub extern "C-unwind" fn _PG_init() {
 // =============================================================================
 
 #[pg_guard]
-#[no_mangle]
+#[unsafe(no_mangle)]
 pub extern "C-unwind" fn smart_matview_worker_main(arg: pg_sys::Datum) {
      let check_interval_secs = unsafe { 
         i32::from_polymorphic_datum(arg, false, pg_sys::INT4OID)
@@ -188,75 +188,6 @@ fn refresh_materialized_view_standalone(job: &JobInfo) -> Result<i32, String> {
     Err(last_error)
 }
 
-fn update_next_refresh_standalone(job: &JobInfo) -> Result<(), pgrx::spi::Error> {
-    let next_refresh_sql = format!(
-        "UPDATE matview_refresh_jobs 
-        SET last_refresh = NOW(), 
-            next_refresh = NOW() + INTERVAL '{} seconds'
-        WHERE id = {}",
-        job.interval_secs, job.id
-    );
-    
-    Spi::run(&next_refresh_sql)?;
-    Ok(())
-}
-
-fn log_refresh_success_standalone(job_id: i32, duration_ms: i32) -> Result<(), pgrx::spi::Error> {
-    let sql = format!(
-        "INSERT INTO matview_refresh_log (job_id, status, duration_ms) VALUES ({}, 'Success', {})",
-        job_id, duration_ms
-    );
-    Spi::run(&sql)?;
-    Ok(())
-}
-
-fn log_refresh_failure_standalone(job_id: i32, error_message: &str) -> Result<(), pgrx::spi::Error> {
-    let escaped_error = error_message.replace("'", "''");
-    let sql = format!(
-        "INSERT INTO matview_refresh_log (job_id, status, error_message) VALUES ({}, 'Failed', '{}')",
-        job_id, escaped_error
-    );
-    Spi::run(&sql)?;
-    Ok(())
-}
-
-// =============================================================================
-// MATERIALIZED VIEW REFRESH LOGIC
-// =============================================================================
-
-fn refresh_materialized_view(
-    client: &mut SpiClient,
-    job: &JobInfo,
-) -> Result<i32, String> {
-
-    let start_time = std::time::Instant::now();
-    
-    let is_populated = check_if_view_populated(client, &job.schema, &job.view_name)?;
-    let refresh_strategies = get_refresh_strategies(&job.schema, &job.view_name, is_populated);
-    
-    execute_refresh_with_fallback(client, job, &refresh_strategies, start_time)
-}
-
-fn check_if_view_populated(
-    client: &mut SpiClient,
-    schema: &str,
-    view_name: &str,
-) -> Result<bool, String> {
-    let result = client.select(
-        "SELECT ispopulated FROM pg_matviews WHERE schemaname = $1 AND matviewname = $2",
-        None,
-        &[
-            unsafe { DatumWithOid::new(schema.into_datum().unwrap(), pg_sys::TEXTOID) },
-            unsafe { DatumWithOid::new(view_name.into_datum().unwrap(), pg_sys::TEXTOID) },
-        ]
-    ).map_err(|e| e.to_string())?;
-
-    for row in result {
-        return Ok(row.get_by_name::<bool, _>("ispopulated").unwrap_or(Some(false)).unwrap_or(false));
-    }
-    Ok(false)
-}
-
 fn get_refresh_strategies(schema: &str, view_name: &str, is_populated: bool) -> Vec<String> {
     if is_populated {
         vec![
@@ -268,57 +199,49 @@ fn get_refresh_strategies(schema: &str, view_name: &str, is_populated: bool) -> 
     }
 }
 
-fn execute_refresh_with_fallback(
-    client: &mut SpiClient,
-    job: &JobInfo,
-    refresh_strategies: &[String],
-    start_time: std::time::Instant,
-) -> Result<i32, String> {
-    let mut last_error = String::new();
-    
-    for (attempt, refresh_sql) in refresh_strategies.iter().enumerate() {
-        match client.update(refresh_sql, None, &[]) {
-            Ok(_) => {
-                let duration_ms = start_time.elapsed().as_millis() as i32;
-                log_refresh_success(client, job.id, duration_ms);
-                return Ok(duration_ms);
-            }
-            Err(e) => {
-                last_error = e.to_string();
-                if attempt == 0 && refresh_strategies.len() > 1 {
-                    pgrx::log!("WARNING: Concurrent refresh failed for {}.{}, trying regular refresh", 
-                              job.schema, job.view_name);
-                }
-            }
-        }
-    }
-
-    log_refresh_failure(client, job.id, &last_error);
-    Err(last_error)
+fn update_next_refresh_standalone(job: &JobInfo) -> Result<(), pgrx::spi::Error> {
+    Spi::connect(|client| {
+        client.select(
+            "UPDATE matview_refresh_jobs
+             SET last_refresh = NOW(),
+                 next_refresh = NOW() + ($2 * INTERVAL '1 second')
+             WHERE id = $1",
+            None,
+            &[
+                unsafe { DatumWithOid::new(job.id.into_datum().unwrap(), pg_sys::INT4OID) },
+                unsafe { DatumWithOid::new(job.interval_secs.into_datum().unwrap(), pg_sys::INT4OID) },
+            ]
+        )?;
+        Ok(())
+    })
 }
 
-fn log_refresh_success(client: &mut SpiClient, job_id: i32, duration_ms: i32) {
-    let _ = client.update(
-        "INSERT INTO matview_refresh_log (job_id, status, duration_ms) VALUES ($1, $2, $3)",
-        None,
-        &[
-            unsafe { DatumWithOid::new(job_id.into_datum().unwrap(), pg_sys::INT4OID) },
-            unsafe { DatumWithOid::new("Success".into_datum().unwrap(), pg_sys::TEXTOID) },
-            unsafe { DatumWithOid::new(duration_ms.into_datum().unwrap(), pg_sys::INT4OID) },
-        ]
-    );
+fn log_refresh_success_standalone(job_id: i32, duration_ms: i32) -> Result<(), pgrx::spi::Error> {
+    Spi::connect(|client| {
+        client.select(
+            "INSERT INTO matview_refresh_log (job_id, status, duration_ms) VALUES ($1, 'Success', $2)",
+            None,
+            &[
+                unsafe { DatumWithOid::new(job_id.into_datum().unwrap(), pg_sys::INT4OID) },
+                unsafe { DatumWithOid::new(duration_ms.into_datum().unwrap(), pg_sys::INT4OID) },
+            ]
+        )?;
+        Ok(())
+    })
 }
 
-fn log_refresh_failure(client: &mut SpiClient, job_id: i32, error_message: &str) {
-    let _ = client.update(
-        "INSERT INTO matview_refresh_log (job_id, status, error_message) VALUES ($1, $2, $3)",
-        None,
-        &[
-            unsafe { DatumWithOid::new(job_id.into_datum().unwrap(), pg_sys::INT4OID) },
-            unsafe { DatumWithOid::new("Failed".into_datum().unwrap(), pg_sys::TEXTOID) },
-            unsafe { DatumWithOid::new(error_message.into_datum().unwrap(), pg_sys::TEXTOID) },
-        ]
-    );
+fn log_refresh_failure_standalone(job_id: i32, error_message: &str) -> Result<(), pgrx::spi::Error> {
+    Spi::connect(|client| {
+        client.select(
+            "INSERT INTO matview_refresh_log (job_id, status, error_message) VALUES ($1, 'Failed', $2)",
+            None,
+            &[
+                unsafe { DatumWithOid::new(job_id.into_datum().unwrap(), pg_sys::INT4OID) },
+                unsafe { DatumWithOid::new(error_message.into_datum().unwrap(), pg_sys::TEXTOID) },
+            ]
+        )?;
+        Ok(())
+    })
 }
 
 // =============================================================================
@@ -400,6 +323,6 @@ fn unregister_matview_internal(
                 unsafe { DatumWithOid::new(view_name.into_datum().unwrap(), pg_sys::TEXTOID) },
             ]
         )?;
-        Ok(result.len() > 0)
+        Ok(!result.is_empty())
     })
 }

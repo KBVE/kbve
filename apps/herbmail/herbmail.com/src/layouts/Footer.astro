@@ -1,5 +1,4 @@
 ---
-import { Button } from '@kbve/shadcnui/button';
 import { Icon } from '@astrojs/starlight/components';
 import type { Icons } from '@astrojs/starlight/components/Icons';
 
@@ -73,14 +72,12 @@ const socialLinks = [
 				{
 					navigationLinks.map(({ href, icon, label }) => (
 						<li>
-							<Button variant="secondary" size="sm">
-								<a
-									href={href}
-									class="flex items-center space-x-2">
-									<Icon name={icon} class="h-4 w-4" />
-									<span class="ml-1 hidden md:block">{label}</span>
-								</a>
-							</Button>
+							<a
+								href={href}
+								class="inline-flex items-center justify-center rounded-md text-sm font-medium bg-secondary text-secondary-foreground px-3 py-1.5 hover:bg-secondary/80 space-x-2">
+								<Icon name={icon} class="h-4 w-4" />
+								<span class="ml-1 hidden md:block">{label}</span>
+							</a>
 						</li>
 					))
 				}
@@ -91,15 +88,14 @@ const socialLinks = [
 		<div class="flex space-x-4">
 			{
 				socialLinks.map(({ href, icon, label }) => (
-					<Button variant="secondary" size="icon" aria-label={label}>
-						<a
-							href={href}
-							target="_blank"
-							rel="noopener noreferrer"
-							class="hover:scale-110">
-							<Icon name={icon} class="h-6 w-6" />
-						</a>
-					</Button>
+					<a
+						href={href}
+						target="_blank"
+						rel="noopener noreferrer"
+						aria-label={label}
+						class="inline-flex items-center justify-center rounded-md bg-secondary text-secondary-foreground p-2 hover:bg-secondary/80 hover:scale-110">
+						<Icon name={icon} class="h-6 w-6" />
+					</a>
 				))
 			}
 		</div>

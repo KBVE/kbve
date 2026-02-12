@@ -13,12 +13,13 @@ path = "./src/bin/pgrx_embed.rs"
 [features]
 default = ["pg17"]
 pg17 = ["pgrx/pg17", "pgrx-tests/pg17" ]
+pg18 = ["pgrx/pg18", "pgrx-tests/pg18" ]
 pg_test = []
 
 [dependencies]
 thiserror = "2.0.12"
-pgrx = { version = "=0.15.0", default-features = false }
+pgrx = { version = "=0.16.1", default-features = false }
 serde = "1.0"
 
 [dev-dependencies]
-pgrx-tests = "=0.15.0"
+pgrx-tests = "=0.16.1"

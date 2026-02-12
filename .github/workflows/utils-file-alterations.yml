@@ -43,12 +43,16 @@ on:
       notification_bot:
         description: "Notification Bot"
         value: ${{ jobs.alter.outputs.notification_bot }}
-      py_atlas:
-        description: "Atlas changed"
-        value: ${{ jobs.alter.outputs.py_atlas }}
-      py_fudster:
-        description: "Fudster changed"
-        value: ${{ jobs.alter.outputs.py_fudster }}
+      # NOTE: Atlas has been migrated into pydesk. Disabled.
+      # py_atlas:
+      #   description: "Atlas changed"
+      #   value: ${{ jobs.alter.outputs.py_atlas }}
+      py_lib_fudster:
+        description: "Python Fudster library changed"
+        value: ${{ jobs.alter.outputs.py_lib_fudster }}
+      py_lib_kbve:
+        description: "Python KBVE library changed"
+        value: ${{ jobs.alter.outputs.py_lib_kbve }}
       # ? Astro
       astro_kbve:
         description: "KBVE.com changed"
@@ -128,8 +132,9 @@ jobs:
       kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
       disoxide: ${{ steps.delta.outputs.disoxide_any_changed }}
       hyperlane: ${{ steps.delta.outputs.hyperlane_any_changed }}
-      py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}
-      py_fudster: ${{ steps.delta.outputs.py_fudster_any_changed }}
+      # py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}  # Atlas migrated into pydesk
+      py_lib_fudster: ${{ steps.delta.outputs.py_lib_fudster_any_changed }}
+      py_lib_kbve: ${{ steps.delta.outputs.py_lib_kbve_any_changed }}
       astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
       astro_memes: ${{ steps.delta.outputs.astro_memes_any_changed }}
       astro_herbmail: ${{ steps.delta.outputs.astro_herbmail_any_changed }}
@@ -183,10 +188,12 @@ jobs:
                 - 'apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx'
             droid:
                 - 'packages/npm/droid/README.md'
-            py_atlas:
-                - 'apps/atlas/kbve_atlas/**'
-            py_fudster:
-                - 'apps/fudster/fudster/**'
+            # py_atlas:  # Atlas migrated into pydesk
+            #     - 'apps/atlas/kbve_atlas/**'
+            py_lib_fudster:
+                - 'packages/python/fudster/fudster/**'
+            py_lib_kbve:
+                - 'packages/python/kbve/kbve/**'
             notificationbot:
                 - 'apps/discord/notification-bot/README.md'
             astro_kbve:
@@ -205,18 +212,16 @@ jobs:
                 - 'apps/saber/**'
             rustprofile:
                 - 'apps/rust_api_profile/**'
-            expolcagents:
-                - 'apps/expo-lcagents/src/**'
             dockervoid:
                 - 'migrations/docker/v01d/**'
             khashvault:
                 - 'packages/khashvault/package.json'
             devops:
-                - 'packages/devops/package.json'
+                - 'packages/npm/devops/package.json'
             cryptothrone:
                 - 'apps/cryptothrone.com/src/**'
             laser:
-                - 'packages/laser/package.json'
+                - 'packages/npm/laser/package.json'
             asteroids:
                 - 'apps/gamejam/brackeys/13/**'
 

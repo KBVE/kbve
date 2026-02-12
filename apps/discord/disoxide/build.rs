@@ -11,8 +11,13 @@ fn main() {
         .type_attribute(".", "#[derive(serde::Serialize, serde::Deserialize)]")
         // .field_attribute("status.StatusMessage.type", "#[bitflags]")
         .compile_protos(
-            &["proto/user.proto", "proto/message.proto", "proto/store.proto", "proto/status.proto"],
-            &["proto"],
+            &[
+                "../../../packages/data/proto/disoxide/user.proto",
+                "../../../packages/data/proto/disoxide/message.proto",
+                "../../../packages/data/proto/disoxide/store.proto",
+                "../../../packages/data/proto/disoxide/status.proto",
+            ],
+            &["../../../packages/data/proto/disoxide"],
         )
         .expect("Failed to compile Protobuf files");
 }

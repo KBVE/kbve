@@ -1,4 +1,4 @@
-use pgrx::{datum::DatumWithOid, prelude::*};
+use pgrx::prelude::*;
 
 #[derive(Debug)]
 pub struct JobInfo {
@@ -17,57 +17,6 @@ impl JobInfo {
             interval_secs: job.get_by_name::<i32, _>("refresh_interval_seconds")?.unwrap_or(300),
         })
     }
-
-    pub fn process(&self, client: &mut pgrx::spi::SpiClient) -> Result<(), pgrx::spi::Error> {
-        log!("Processing refresh for {}.{} (job_id: {})", 
-             self.schema, self.view_name, self.id);
-
-        let refresh_result = crate::refresh_materialized_view(client, self);
-        self.update_next_refresh(client)?;
-
-        match refresh_result {
-            Ok(duration_ms) => {
-                log!("SUCCESS: Refreshed {}.{} in {}ms", 
-                     self.schema, self.view_name, duration_ms);
-            }
-            Err(error_msg) => {
-                log!("ERROR: Failed to refresh {}.{}: {}", 
-                     self.schema, self.view_name, error_msg);
-            }
-        }
-
-        Ok(())
-    }
-
-    fn update_next_refresh(&self, client: &mut pgrx::spi::SpiClient) -> Result<(), pgrx::spi::Error> {
-        let next_refresh_sql = format!(
-            "UPDATE matview_refresh_jobs 
-            SET last_refresh = NOW(), 
-                next_refresh = NOW() + INTERVAL '{} seconds'
-            WHERE id = $1",
-            self.interval_secs
-        );
-        
-        client.update(
-            &next_refresh_sql, 
-            None, 
-            &[unsafe { DatumWithOid::new(self.id.into_datum().unwrap(), pg_sys::INT4OID) }]
-        )?;
-        Ok(())
-    }
-}
-
-pub fn get_due_refresh_jobs<'a>(client: &'a mut pgrx::spi::SpiClient<'a>) -> Result<pgrx::spi::SpiTupleTable<'a>, pgrx::spi::Error> {
-    client.select(
-        "SELECT id, schema_name, view_name, refresh_interval_seconds
-         FROM matview_refresh_jobs 
-         WHERE is_active = true 
-           AND (next_refresh IS NULL OR next_refresh <= NOW())
-         ORDER BY next_refresh NULLS FIRST 
-         LIMIT 10",
-        None,
-        &[]
-    )
 }
 
 pub fn log_cycle_completion(jobs_processed: usize) {

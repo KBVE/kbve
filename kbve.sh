@@ -748,44 +748,37 @@ case "$1" in
             sed -i -e 's/, Identifiable//' src/models.rs
             echo "Patched Identifiable from models.rs"
             
-            # Protobuf
-            diesel_ext --proto > src/kbveproto.proto
+            # Protobuf — generate to centralized packages/data/proto/kbve/
+            diesel_ext --proto > ../data/proto/kbve/kbveproto.proto
             echo "Created Protos"
 
             # Patching Binary Protobuf
-            sed -i 's/\/\* TODO: unknown type Binary \*\//bytes/g' src/kbveproto.proto
+            sed -i 's/\/\* TODO: unknown type Binary \*\//bytes/g' ../data/proto/kbve/kbveproto.proto
             echo "Patching Binary from Protos"
 
             # Patching Integer Protobuf
-            sed -i 's/\/\* TODO: unknown type Integer \*\//int64/g' src/kbveproto.proto
+            sed -i 's/\/\* TODO: unknown type Integer \*\//int64/g' ../data/proto/kbve/kbveproto.proto
             echo "Patching Integer from Protos"
 
             # Patching Unsign Bigint Protobuf
-            sed -i 's/\/\* TODO: unknown type Unsigned<Bigint> \*\//uint64/g' src/kbveproto.proto
+            sed -i 's/\/\* TODO: unknown type Unsigned<Bigint> \*\//uint64/g' ../data/proto/kbve/kbveproto.proto
             echo "Patching Unsign BigInt from Protos"
 
             # Patching Decimal Protobuf
-            sed -i 's/\/\* TODO: unknown type Decimal \*\//string/g' src/kbveproto.proto
+            sed -i 's/\/\* TODO: unknown type Decimal \*\//string/g' ../data/proto/kbve/kbveproto.proto
             echo "Patching Decimal as string for Protos"
-
-
-            # Copy KBVEProto to JS Library
-            cp -f src/kbveproto.proto ../khashvault/src/lib/kbveproto.proto
-            
-            # Generate the Protobuf for JS Library
-            #protoc --proto_path=../khashvault/src/lib --js_out=import_style=commonjs,binary:../khashvault/src/lib ../khashvault/src/lib/kbveproto.proto
 
             # Return to the original directory
             cd "$original_dir"
-            
-            # Running pnpm grpc_tools 
+
+            # Running pnpm grpc_tools (source from packages/data/proto/kbve/)
             pnpm grpc_tools_node_protoc \
                 --js_out=import_style=commonjs,binary:./packages/khashvault/src/lib \
                 --grpc_out=./packages/khashvault/src/lib \
                 --plugin=protoc-gen-grpc=./node_modules/.bin/grpc_tools_node_protoc_plugin \
-                --proto_path=./packages/khashvault/src/lib \
+                --proto_path=./packages/data/proto/kbve \
                 --ts_out=./packages/khashvault/src/lib \
-                ./packages/khashvault/src/lib/kbveproto.proto
+                ./packages/data/proto/kbve/kbveproto.proto
 
             
         else
