@@ -28,6 +28,7 @@ export class WorkerPool {
   private readonly MAX_RETRY_ATTEMPTS = 3;
   private readonly BASE_RETRY_DELAY_MS = 1000;
   private readonly MAX_RETRY_DELAY_MS = 8000;
+  private readonly REQUEST_TIMEOUT_MS = 30000;
 
   constructor(config: WorkerPoolConfig) {
     this.poolSize = config.size;
@@ -81,11 +82,23 @@ export class WorkerPool {
         return reject(new Error(`Worker ${workerId} not available`));
       }
 
-      this.pending.set(message.id, { resolve, reject, workerId });
+      const timer = setTimeout(() => {
+        if (this.pending.has(message.id)) {
+          this.pending.delete(message.id);
+          reject(new Error(`Worker ${workerId} request ${message.type} timed out after ${this.REQUEST_TIMEOUT_MS}ms`));
+        }
+      }, this.REQUEST_TIMEOUT_MS);
+
+      this.pending.set(message.id, {
+        resolve: (value: unknown) => { clearTimeout(timer); resolve(value as T); },
+        reject: (err: unknown) => { clearTimeout(timer); reject(err); },
+        workerId,
+      });
 
       try {
         worker.postMessage(message);
       } catch (err) {
+        clearTimeout(timer);
         this.pending.delete(message.id);
         reject(err);
       }
