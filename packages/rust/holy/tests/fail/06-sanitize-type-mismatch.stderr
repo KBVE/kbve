@@ -1,0 +1,5 @@
+error: sanitize rule 'trim' is only valid for String fields, but field 'count' has a numeric type
+ --> tests/fail/06-sanitize-type-mismatch.rs:5:20
+  |
+5 |     #[holy(sanitize = "trim")]
+  |                       ^^^^^^
