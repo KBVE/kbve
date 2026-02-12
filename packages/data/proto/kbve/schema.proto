@@ -1,0 +1,309 @@
+syntax = "proto3";
+
+package kbve.schema;
+
+import "kbve/common.proto";
+import "kbve/enums.proto";
+
+// =============================================================================
+// Script Binding
+// =============================================================================
+
+message ScriptBinding {
+  string guid = 1; // 32-char hex GUID
+  map<string, ScriptVar> vars = 2;
+}
+
+message ScriptVar {
+  oneof value {
+    string string_value = 1;
+    double number_value = 2;
+    bool bool_value = 3;
+  }
+}
+
+// =============================================================================
+// Bonus Stats
+// =============================================================================
+
+message Bonuses {
+  optional int32 armor = 1;
+  optional int32 intelligence = 2;
+  optional int32 health = 3;
+  optional int32 mana = 4;
+  optional int32 energy = 5;
+  optional int32 strength = 6;
+}
+
+// =============================================================================
+// Crafting
+// =============================================================================
+
+message CraftingIngredient {
+  oneof ingredient {
+    string name = 1; // Simple string reference
+    CraftingIngredientRef ref = 2; // Detailed reference
+  }
+}
+
+message CraftingIngredientRef {
+  optional string name = 1;
+  string ref = 2; // ULID
+  int32 amount = 3; // default: 1
+}
+
+message CraftingTool {
+  oneof tool {
+    string name = 1;
+    CraftingToolRef ref = 2;
+  }
+}
+
+message CraftingToolRef {
+  optional string name = 1;
+  string ref = 2; // ULID
+}
+
+message Crafting {
+  repeated CraftingIngredient ingredients = 1;
+  repeated CraftingTool tools = 2;
+}
+
+// =============================================================================
+// Deployable
+// =============================================================================
+
+message Deployable {
+  repeated int32 size = 1; // [width, height], default [1, 1]
+  repeated float pivot = 2; // [x, y] 0-1, default [0.5, 0.5]
+  optional string override_prefab = 3;
+  repeated string scripts = 4;
+  float scale_multiplier = 5; // default: 1.0
+  bool grid_snap = 6; // default: true
+  repeated ScriptBinding script_bindings = 7;
+}
+
+// =============================================================================
+// Object (Item)
+// =============================================================================
+
+message Object {
+  string id = 1;
+  int32 key = 2;
+  string ref = 3; // ULID
+  string name = 4;
+  string type = 5;
+  optional int32 category = 6; // ItemCategoryFlags bitmask
+  optional string description = 7;
+  optional string img = 8;
+  int32 pixel_density = 9; // 8-512
+  string sorting_layer = 10; // default: "Default"
+  int32 sorting_order = 11; // default: 0
+  optional Bonuses bonuses = 12;
+  optional float durability = 13;
+  optional float weight = 14;
+  optional bool equipped = 15;
+  optional bool consumable = 16;
+  optional string effects = 17;
+  optional bool stackable = 18;
+  optional string rarity = 19;
+  optional int32 level_requirement = 20;
+  optional float price = 21;
+  optional float cooldown = 22;
+  optional string action = 23;
+  optional Crafting crafting_materials = 24;
+  optional Deployable deployable = 25;
+  optional string credits = 26;
+  repeated ScriptBinding scripts = 27;
+  optional string steam_market_url = 28;
+  optional string exchange_url = 29;
+}
+
+// =============================================================================
+// Quest
+// =============================================================================
+
+message QuestObjective {
+  string description = 1;
+  kbve.enums.QuestObjectiveType type = 2; // default: CUSTOM
+  repeated string target_refs = 3; // ULIDs, min 1
+  int32 required_amount = 4; // default: 1
+}
+
+message QuestRewardItem {
+  string ref = 1; // ULID
+  int32 amount = 2; // default: 1
+}
+
+message AchievementMeta {
+  string api_name = 1;
+  optional string name = 2;
+  optional string description = 3;
+  optional string icon_achieved = 4;
+  optional string icon_unachieved = 5;
+  optional float global_percent = 6; // 0-100
+  bool hidden = 7; // default: false
+  optional int32 min_value = 8;
+  optional int32 max_value = 9;
+}
+
+message QuestReward {
+  repeated QuestRewardItem items = 1;
+  map<string, int32> bonuses = 2;
+  optional AchievementMeta steam_achievement = 3;
+  optional int32 currency = 4;
+}
+
+message Quest {
+  string id = 1; // ULID
+  string guid = 2; // GUID
+  bool drafted = 3; // default: false
+  string title = 4;
+  optional string description = 5;
+  optional string icon = 6;
+  kbve.enums.QuestCategory category = 7; // default: MAIN
+  bool hidden = 8; // default: false
+  bool repeatable = 9; // default: false
+  optional int32 level_requirement = 10;
+  repeated QuestObjective objectives = 11; // min 1
+  optional QuestReward rewards = 12;
+  repeated string triggers = 13;
+  optional string next_quest_id = 14; // ULID, nullable
+}
+
+// =============================================================================
+// Map Objects
+// =============================================================================
+
+// Animation frame position in sprite sheet
+message SpriteAnimationFrame {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+// Animation frame range
+message AnimationFrameRange {
+  int32 offset = 1; // default: 0
+  int32 count = 2;
+}
+
+// Animation clip definition
+message AnimationClip {
+  string id = 1; // e.g., "idle", "sway", "harvest"
+  optional string name = 2;
+  SpriteAnimationFrame frame_count = 3; // Total frames in X,Y grid
+  AnimationFrameRange frame_range = 4; // Which frames to use
+  repeated float frame_durations = 5; // Duration per frame in seconds
+  bool loop = 6; // default: true
+  bool play_on_start = 7; // default: false
+  int32 priority = 8; // default: 0
+}
+
+// Animation data for a map object
+message AnimationData {
+  bool has_animation = 1; // default: false
+  optional string sprite_sheet_path = 2;
+  repeated AnimationClip clips = 3;
+  optional string default_clip = 4; // ID of default animation
+}
+
+// Build cost for structures
+message BuildCost {
+  kbve.enums.ResourceType resource_type = 1;
+  int32 amount = 2;
+}
+
+// Base map object properties (shared between Resource and Structure)
+message MapObjectBase {
+  string id = 1; // ULID
+  string guid = 2; // GUID
+  bool drafted = 3; // default: false
+  string name = 4;
+  optional string description = 5;
+
+  // Visual properties
+  string image_path = 6;
+  int32 pixels_per_unit = 7; // default: 16
+  kbve.enums.PivotAlignment pivot = 8; // default: CENTER
+  float pivot_x = 9; // default: 0.5
+  float pivot_y = 10; // default: 0.5
+
+  // Import-time settings
+  kbve.enums.SpriteMeshType mesh_type = 11; // default: FULL_RECT
+  int32 extrude_edges = 12; // 0-32, default: 1
+
+  // Rendering
+  string sorting_layer = 13; // default: "Foreground"
+  int32 sorting_index = 14; // default: 0
+  bool static_sorting = 15; // default: true
+  kbve.enums.TextureWrapMode wrap_mode = 16; // default: CLAMP
+
+  // Animation (optional)
+  optional AnimationData animation = 17;
+}
+
+// Resource-specific map object
+message MapResource {
+  MapObjectBase base = 1;
+  kbve.enums.ResourceType resource_type = 2; // default: WOOD
+
+  // Resource amounts (0-65535)
+  int32 amount = 3;
+  int32 max_amount = 4;
+  int32 harvest_yield = 5; // default: 1
+  float harvest_time = 6; // default: 2.0
+
+  // State flags
+  bool is_harvestable = 7; // default: true
+  bool is_depleted = 8; // default: false
+
+  // Spawning
+  float spawn_weight = 9; // 0-1, default: 1.0
+  optional int32 spawn_count = 10;
+}
+
+// Structure-specific map object
+message MapStructure {
+  MapObjectBase base = 1;
+  kbve.enums.StructureType structure_type = 2; // default: BUILDING
+
+  // Footprint
+  int32 footprint_width = 3; // default: 1
+  int32 footprint_height = 4; // default: 1
+
+  // Properties
+  bool is_walkable = 5; // default: false
+  bool blocks_placement = 6; // default: true
+
+  // Health/Construction
+  int32 max_health = 7; // default: 100
+  float construction_time = 8; // default: 0
+
+  // Build costs
+  repeated BuildCost build_costs = 9;
+}
+
+// Discriminated union for map objects
+message MapObject {
+  kbve.enums.MapObjectType type = 1;
+  oneof object {
+    MapResource resource = 2;
+    MapStructure structure = 3;
+  }
+}
+
+// =============================================================================
+// Registries (collections)
+// =============================================================================
+
+message ObjectRegistry {
+  repeated Object objects = 1;
+}
+
+message QuestRegistry {
+  repeated Quest quests = 1;
+}
+
+message MapObjectRegistry {
+  repeated MapObject objects = 1;
+}

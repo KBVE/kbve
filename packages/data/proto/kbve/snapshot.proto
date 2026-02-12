@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package kbve.snapshot;
+
+import "kbve/common.proto";
+
+// Client to Server messages
+message ClientMessage {
+  oneof payload {
+    Ping ping = 1;
+    ClientReady client_ready = 2;
+    // Add more client message types here
+  }
+}
+
+// Server to Client messages
+message ServerMessage {
+  oneof payload {
+    Pong pong = 1;
+    ConnectResponse connect_response = 2;
+    Error error = 3;
+    // Add more server message types here
+  }
+}
+
+// Ping request
+message Ping {
+  int64 timestamp = 1;
+}
+
+// Pong response
+message Pong {
+  int64 client_timestamp = 1;
+  int64 server_timestamp = 2;
+}
+
+// Client ready signal
+message ClientReady {
+  string client_version = 1;
+}
+
+// Connection response from server
+message ConnectResponse {
+  bool success = 1;
+  string session_id = 2;
+  string server_version = 3;
+  int64 server_time = 4;
+}
+
+// Error message
+message Error {
+  int32 code = 1;
+  string message = 2;
+}

@@ -218,7 +218,6 @@
 		"reflect-metadata": "^0.1.14",
 		"rehype-mermaid": "^3.0.0",
 		"rollup-plugin-copy": "^3.5.0",
-		"rxjs": "^7.8.1",
 		"shiki": "^1.22.0",
 		"sonner": "^1.7.0",
 		"styled-components": "5.3.6",

@@ -25,13 +25,17 @@ export default defineConfig(() => ({
         'workers/canvas-worker': path.resolve(__dirname, 'src/lib/workers/canvas-worker.ts'),
         'workers/db-worker': path.resolve(__dirname, 'src/lib/workers/db-worker.ts'),
         'workers/ws-worker': path.resolve(__dirname, 'src/lib/workers/ws-worker.ts'),
+        'workers/supabase-shared-worker': path.resolve(__dirname, 'src/lib/workers/supabase-shared-worker.ts'),
+        'workers/supabase-db-worker': path.resolve(__dirname, 'src/lib/workers/supabase-db-worker.ts'),
       },
     output: {
 		manualChunks: undefined,
         entryFileNames: (chunkInfo) => {
           if (chunkInfo.facadeModuleId?.includes('canvas-worker.ts')) return 'lib/workers/canvas-worker.js';
-          if (chunkInfo.facadeModuleId?.includes('db-worker.ts')) return 'lib/workers/db-worker.js';
+          if (chunkInfo.facadeModuleId?.includes('db-worker.ts') && !chunkInfo.facadeModuleId?.includes('supabase')) return 'lib/workers/db-worker.js';
           if (chunkInfo.facadeModuleId?.includes('ws-worker.ts')) return 'lib/workers/ws-worker.js';
+          if (chunkInfo.facadeModuleId?.includes('supabase-shared-worker.ts')) return 'lib/workers/supabase-shared-worker.js';
+          if (chunkInfo.facadeModuleId?.includes('supabase-db-worker.ts')) return 'lib/workers/supabase-db-worker.js';
           if (chunkInfo.facadeModuleId?.includes('main.ts')) return 'workers/main.js';
 		  if (chunkInfo.facadeModuleId?.includes('index.ts')) return 'droid.mjs';
         return '[name].js';
@@ -51,6 +55,8 @@ export default defineConfig(() => ({
         'canvas-worker': path.resolve(__dirname, 'src/lib/workers/canvas-worker.ts'),
         'db-worker': path.resolve(__dirname, 'src/lib/workers/db-worker.ts'),
         'ws-worker': path.resolve(__dirname, 'src/lib/workers/ws-worker.ts'),
+        'supabase-shared-worker': path.resolve(__dirname, 'src/lib/workers/supabase-shared-worker.ts'),
+        'supabase-db-worker': path.resolve(__dirname, 'src/lib/workers/supabase-db-worker.ts'),
       },
       output: {
         entryFileNames: 'lib/workers/[name].js',

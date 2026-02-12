@@ -287,9 +287,6 @@ importers:
       rollup-plugin-copy:
         specifier: ^3.5.0
         version: 3.5.0
-      rxjs:
-        specifier: ^7.8.1
-        version: 7.8.2
       shiki:
         specifier: ^1.22.0
         version: 1.29.2
