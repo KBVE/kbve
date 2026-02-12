@@ -37,7 +37,7 @@ jobs:
     call_sync:
         needs: ['globals']
         name: 'Call Sync Workflow'
-        uses: ./.github/workflows/ci-sync.yml
+        uses: KBVE/kbve/.github/workflows/ci-sync.yml@main
         secrets:
           UNITY_PAT: ${{ secrets.UNITY_PAT }}
         
@@ -69,14 +69,15 @@ jobs:
                   run_install: false
             #   @[CACHE]->[START]
             - name: Get pnpm Store
+              id: pnpm-store
               shell: bash
               run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
               uses: actions/cache@v4
               with:
-                  path: ${{ env.STORE_PATH }}
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
@@ -318,14 +319,15 @@ jobs:
                   run_install: false
 
             - name: Get pnpm Store
+              id: pnpm-store
               shell: bash
               run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
               uses: actions/cache@v4
               with:
-                  path: ${{ env.STORE_PATH }}
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
@@ -383,14 +385,15 @@ jobs:
 
             #   @[CACHE]->[START]
             - name: Get pnpm Store
+              id: pnpm-store
               shell: bash
               run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
               uses: actions/cache@v4
               with:
-                  path: ${{ env.STORE_PATH }}
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
@@ -453,14 +456,15 @@ jobs:
 
             #   @[CACHE]->[START]
             - name: Get pnpm Store
+              id: pnpm-store
               shell: bash
               run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
               uses: actions/cache@v4
               with:
-                  path: ${{ env.STORE_PATH }}
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
@@ -519,14 +523,15 @@ jobs:
 
             #   @[CACHE]->[START]
             - name: Get pnpm Store
+              id: pnpm-store
               shell: bash
               run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
               uses: actions/cache@v4
               with:
-                  path: ${{ env.STORE_PATH }}
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
@@ -664,14 +669,15 @@ jobs:
                   run_install: false
 
             - name: Get pnpm Store
+              id: pnpm-store
               shell: bash
               run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
               uses: actions/cache@v4
               with:
-                  path: ${{ env.STORE_PATH }}
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
@@ -742,14 +748,15 @@ jobs:
                   run_install: false
 
             - name: Get pnpm Store
+              id: pnpm-store
               shell: bash
               run: |
-                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
               uses: actions/cache@v4
               with:
-                  path: ${{ env.STORE_PATH }}
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
                   restore-keys: |
                       ${{ runner.os }}-pnpm-store-
