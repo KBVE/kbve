@@ -1,8 +1,8 @@
 {
 	"name": "kbve",
-	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "library",
-	"sourceRoot": "packages/kbve/src",
+	"sourceRoot": "packages/rust/kbve/src",
 	"tags": [],
 	"targets": {
 		"build": {
