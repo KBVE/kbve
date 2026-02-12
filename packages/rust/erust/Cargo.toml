@@ -2,36 +2,35 @@
 name = "erust"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.7"
-edition = "2021"
+edition = "2024"
 license = "MIT"
 description = "ERust is an additional package for egui and eframe that provides extendable components."
 homepage = "https://kbve.com/"
-repository = "https://github.com/KBVE/kbve/tree/main/packages/erust"
+repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/erust"
 readme = "README.md"
-rust-version = "1.75"
+rust-version = "1.88"
 
 
 [dependencies]
-base64 = "0.21.6"
-egui = "0.25.0"
-eframe = { version = "0.25.0", default-features = false, features = [
-    "accesskit",     # Make egui comptaible with screen readers. NOTE: adds a lot of dependencies.
+base64 = "0.22.1"
+egui = "0.33.3"
+eframe = { version = "0.33.3", default-features = false, features = [
+    "accesskit",     # Make egui compatible with screen readers. NOTE: adds a lot of dependencies.
     "default_fonts", # Embed the default egui fonts.
     "glow",          # Use the glow rendering backend. Alternative: "wgpu".
     "persistence",   # Enable restoring app state when restarting the app.
+    "wayland",       # Wayland support on Linux.
+    "x11",           # X11 support on Linux.
 ] }
 log = "0.4"
-ehttp = "0.3.1"
-image = "0.24.7"
-holy = { path = "../../packages/holy" }
+ehttp = "0.6.0"
+image = { version = "0.25.9", default-features = false, features = ["png", "jpeg", "webp"] }
+holy = { path = "../../holy" }
 
-chrono = { version = "0.4.24", features = ["serde"] }
+chrono = { version = "0.4.43", features = ["serde"] }
 
 serde = { version = "1", features = ["derive"] }
 serde_json = "1.0"
-
-
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
 wasm-bindgen-futures = "0.4"
