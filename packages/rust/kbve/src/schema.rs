@@ -2,11 +2,11 @@
 
 diesel::table! {
     apikey (id) {
-        id -> Unsigned<Bigint>,
+        id -> Int8,
         #[max_length = 16]
-        ulid -> Binary,
+        ulid -> Bytea,
         #[max_length = 16]
-        userid -> Binary,
+        userid -> Bytea,
         #[max_length = 255]
         permissions -> Varchar,
         #[max_length = 255]
@@ -18,11 +18,11 @@ diesel::table! {
 
 diesel::table! {
     appwrite (id) {
-        id -> Unsigned<Bigint>,
+        id -> Int8,
         #[max_length = 16]
-        ulid -> Binary,
+        ulid -> Bytea,
         #[max_length = 16]
-        userid -> Binary,
+        userid -> Bytea,
         #[max_length = 255]
         appwrite_endpoint -> Varchar,
         #[max_length = 255]
@@ -37,11 +37,11 @@ diesel::table! {
 
 diesel::table! {
     auth (id) {
-        id -> Unsigned<Bigint>,
+        id -> Int8,
         #[max_length = 16]
-        ulid -> Binary,
+        ulid -> Bytea,
         #[max_length = 16]
-        userid -> Binary,
+        userid -> Bytea,
         #[max_length = 255]
         email -> Varchar,
         #[max_length = 255]
@@ -66,11 +66,11 @@ diesel::table! {
 
 diesel::table! {
     characters (id) {
-        id -> Unsigned<Bigint>,
+        id -> Int8,
         #[max_length = 16]
-        cid -> Binary,
+        cid -> Bytea,
         #[max_length = 16]
-        userid -> Binary,
+        userid -> Bytea,
         hp -> Integer,
         mp -> Integer,
         ep -> Integer,
@@ -93,7 +93,7 @@ diesel::table! {
 
 diesel::table! {
     globals (id) {
-        id -> Unsigned<Bigint>,
+        id -> Int8,
         #[max_length = 255]
         key -> Varchar,
         #[max_length = 255]
@@ -103,18 +103,18 @@ diesel::table! {
 
 diesel::table! {
     invoice (id) {
-        id -> Unsigned<Bigint>,
+        id -> Int8,
         #[max_length = 16]
-        ulid -> Binary,
+        ulid -> Bytea,
         #[max_length = 16]
-        userid -> Binary,
-        items -> Json,
-        paid -> Decimal,
-        total -> Decimal,
-        balance -> Decimal,
+        userid -> Bytea,
+        items -> Jsonb,
+        paid -> Float8,
+        total -> Float8,
+        balance -> Float8,
         #[max_length = 255]
         external -> Varchar,
-        due -> Unsigned<Bigint>,
+        due -> Int8,
         visibility -> Integer,
         status -> Integer,
     }
@@ -122,11 +122,11 @@ diesel::table! {
 
 diesel::table! {
     n8n (id) {
-        id -> Unsigned<Bigint>,
+        id -> Int8,
         #[max_length = 16]
-        ulid -> Binary,
+        ulid -> Bytea,
         #[max_length = 16]
-        userid -> Binary,
+        userid -> Bytea,
         #[max_length = 255]
         webhook -> Varchar,
         #[max_length = 255]
@@ -140,9 +140,9 @@ diesel::table! {
 
 diesel::table! {
     profile (id) {
-        id -> Unsigned<Bigint>,
+        id -> Int8,
         #[max_length = 16]
-        ulid -> Binary,
+        ulid -> Bytea,
         #[max_length = 255]
         name -> Varchar,
         #[max_length = 64]
@@ -156,17 +156,17 @@ diesel::table! {
         #[max_length = 64]
         discord -> Varchar,
         #[max_length = 16]
-        userid -> Binary,
+        userid -> Bytea,
     }
 }
 
 diesel::table! {
     settings (id) {
-        id -> Unsigned<Bigint>,
+        id -> Int8,
         #[max_length = 16]
-        ulid -> Binary,
+        ulid -> Bytea,
         #[max_length = 16]
-        userid -> Binary,
+        userid -> Bytea,
         #[max_length = 255]
         key -> Varchar,
         #[max_length = 255]
@@ -176,9 +176,9 @@ diesel::table! {
 
 diesel::table! {
     users (id) {
-        id -> Unsigned<Bigint>,
+        id -> Int8,
         #[max_length = 16]
-        userid -> Binary,
+        userid -> Bytea,
         #[max_length = 255]
         username -> Varchar,
         role -> Integer,

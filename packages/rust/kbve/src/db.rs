@@ -2,10 +2,10 @@ use std::env;
 use std::result::Result;
 use std::fs;
 use diesel::prelude::*;
-use diesel::mysql::MysqlConnection;
+use diesel::pg::PgConnection;
 use diesel::r2d2::{self, ConnectionManager};
 
-pub type Pool = r2d2::Pool<ConnectionManager<diesel::MysqlConnection>>;
+pub type Pool = r2d2::Pool<ConnectionManager<PgConnection>>;
 
 fn get_env_var(name: &str) -> Result<String, String> {
     match env::var(name) {
@@ -18,16 +18,16 @@ fn get_env_var(name: &str) -> Result<String, String> {
     }
 }
 
-pub fn establish_connection_dev() -> Result<MysqlConnection, String> {
+pub fn establish_connection_dev() -> Result<PgConnection, String> {
     establish_connection_generic("DATABASE_URL_DEV")
 }
-pub fn establish_connection_prod() -> Result<MysqlConnection, String> {
+pub fn establish_connection_prod() -> Result<PgConnection, String> {
     establish_connection_generic("DATABASE_URL_PROD")
 }
 
-fn establish_connection_generic(env_var: &str) -> Result<MysqlConnection, String> {
+fn establish_connection_generic(env_var: &str) -> Result<PgConnection, String> {
     let database_url = get_env_var(env_var)?;
-    MysqlConnection::establish(&database_url)
+    PgConnection::establish(&database_url)
         .map_err(|err| format!("Error connecting to {}: {}", database_url, err))
 }
 
@@ -36,7 +36,7 @@ pub fn establish_connection_pool() -> Pool {
     let database_url = get_env_var("DATABASE_URL_PROD")
     .expect("DATABASE_URL_PROD must be set for production");
 
-    let manager = ConnectionManager::<MysqlConnection>::new(database_url);
+    let manager = ConnectionManager::<PgConnection>::new(database_url);
 
     r2d2::Pool::builder()
     .build(manager)
