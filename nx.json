@@ -51,19 +51,6 @@
 			"dependsOn": ["^build"],
 			"inputs": ["production", "^production"]
 		},
-		"@nxtensions/astro:build": {
-			"dependsOn": ["^build"],
-			"inputs": ["production", "^production"],
-			"cache": true,
-			"outputs": ["{workspaceRoot}/dist/{projectRoot}"]
-		},
-		"@nxtensions/astro:check": {
-			"inputs": ["production", "^production"],
-			"cache": true
-		},
-		"@nxtensions/astro:preview": {
-			"dependsOn": ["build"]
-		},
 		"@nx/js:tsc": {
 			"cache": true,
 			"dependsOn": ["^build"],
@@ -93,7 +80,6 @@
 		"libsDir": "packages"
 	},
 	"plugins": [
-		"@nxtensions/astro",
 		"@nxlv/python",
 		"@monodon/rust",
 		{
