@@ -81,7 +81,7 @@ impl eframe::App for TemplateApp {
 					ui.add_space(16.0);
 				}
 
-				 egui::widgets::global_dark_light_mode_buttons(ui);
+				 egui::widgets::global_theme_preference_buttons(ui);
 			});
 		});
 
@@ -95,13 +95,6 @@ impl eframe::App for TemplateApp {
 				}
 			});
 			// Add more widgets here as needed
-            if ui.button("Save State").clicked() {
-                // Check if storage is available and get a mutable reference
-                if let Some(storage) = _frame.storage_mut() {
-                    // Now storage is a mutable reference
-                    self.state.save(storage);
-                }
-            }
 
             //  Dark / Light
 
@@ -110,11 +103,6 @@ impl eframe::App for TemplateApp {
                     ctx.set_visuals(egui::Visuals::dark());
                 } else {
                     ctx.set_visuals(egui::Visuals::light());
-                }
-
-                // Optionally save the state immediately when changed
-                if let Some(storage) = _frame.storage_mut() {
-                    self.state.save(storage);
                 }
             }
 		});

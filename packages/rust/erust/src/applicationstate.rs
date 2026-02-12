@@ -6,10 +6,10 @@
 //  Preparing to remove this file.
 
 use std::sync::{Arc, Mutex};
-use crate::img::{load_image_from_url, darken_image, create_egui_texture_from_image, ImageError};
-use egui::{Context as EguiContext, TextureHandle};
+use crate::img::{load_image_from_url, create_egui_texture_from_image, ImageError};
+use base64::Engine;
 
-use log::{info, warn};
+use log::warn;
 
 
 
@@ -136,7 +136,7 @@ impl AppState {
         let ctx_clone = ctx.clone();
     
         // Decode the Base64 string to bytes
-        match base64::decode(base64_string) {
+        match base64::engine::general_purpose::STANDARD.decode(base64_string) {
             Ok(image_data) => {
                 match image::load_from_memory(&image_data) {
                     Ok(dynamic_image) => {
