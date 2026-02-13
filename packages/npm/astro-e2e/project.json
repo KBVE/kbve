@@ -1,0 +1,55 @@
+{
+	"name": "astro-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/npm/astro-e2e/src",
+	"projectType": "application",
+	"implicitDependencies": ["astro"],
+	"targets": {
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/npm/astro-e2e",
+				"commands": [
+					"nx exec -- astro dev --port 4302"
+				]
+			}
+		},
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/npm/astro-e2e",
+				"commands": [
+					"nx exec -- astro build"
+				]
+			}
+		},
+		"preview": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/npm/astro-e2e",
+				"commands": [
+					"nx exec -- astro preview --port 4303"
+				]
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"npx playwright test --project=dev --config=packages/npm/astro-e2e/playwright.config.ts"
+				],
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"e2e:preview": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build"],
+			"options": {
+				"commands": [
+					"npx playwright test --project=preview --config=packages/npm/astro-e2e/playwright.config.ts"
+				],
+				"cwd": "{workspaceRoot}"
+			}
+		}
+	}
+}
