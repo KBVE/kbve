@@ -1,9 +1,8 @@
 ---
-import DroidProvider from '../../../astro/src/components/DroidProvider.astro';
-import DroidStatus from '../../../astro/src/components/DroidStatus.astro';
-import { ContextConsumer } from '../components/ContextConsumer';
+import { ProviderTestHarness } from '../components/ProviderTestHarness';
 import { OutsideProviderTest } from '../components/OutsideProviderTest';
 import { CnTest } from '../components/CnTest';
+import { workerURLs } from '../lib/workers';
 ---
 
 <html lang="en">
@@ -20,12 +19,9 @@ import { CnTest } from '../components/CnTest';
 		</nav>
 
 		<div data-testid="provider-status-test" style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
-			<h2>DroidProvider.astro + DroidStatus.astro Integration</h2>
+			<h2>DroidProvider + DroidStatus Integration</h2>
 
-			<DroidProvider>
-				<DroidStatus class="test-status" />
-				<ContextConsumer client:only="react" />
-			</DroidProvider>
+			<ProviderTestHarness client:only="react" workerURLs={workerURLs} />
 		</div>
 
 		<div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">

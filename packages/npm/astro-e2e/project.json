@@ -50,6 +50,16 @@
 				],
 				"cwd": "{workspaceRoot}"
 			}
+		},
+		"e2e:static": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build"],
+			"options": {
+				"commands": [
+					"E2E_STATIC=true pnpm exec playwright test --config=packages/npm/astro-e2e/playwright.config.ts"
+				],
+				"cwd": "{workspaceRoot}"
+			}
 		}
 	}
 }

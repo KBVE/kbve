@@ -1,6 +1,7 @@
 ---
 import DroidProvider from '../../../astro/src/components/DroidProvider.astro';
 import { EventHookTest } from '../components/EventHookTest';
+import { workerURLs } from '../lib/workers';
 ---
 
 <html lang="en">
@@ -16,7 +17,7 @@ import { EventHookTest } from '../components/EventHookTest';
 			<a data-testid="nav-events" href="/events">Event Hook</a>
 		</nav>
 
-		<DroidProvider>
+		<DroidProvider workerURLs={workerURLs}>
 			<EventHookTest client:only="react" />
 		</DroidProvider>
 	</body>

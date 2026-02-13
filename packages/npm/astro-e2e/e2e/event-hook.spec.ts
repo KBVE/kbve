@@ -67,7 +67,9 @@ test.describe('useDroidEvents Hook', () => {
 
 	test('hook cleans up subscriptions on navigation', async ({ page }) => {
 		await page.getByTestId('emit-ready').click();
-		await expect(page.getByTestId('event-log')).toHaveAttribute('data-count', '1');
+		await page.getByTestId('emit-panel-open').click();
+		await page.getByTestId('emit-panel-close').click();
+		await expect(page.getByTestId('event-log')).toHaveAttribute('data-count', '3');
 
 		await page.getByTestId('nav-home').click();
 		await page.getByTestId('menu-view').waitFor({ state: 'visible' });
@@ -75,7 +77,14 @@ test.describe('useDroidEvents Hook', () => {
 		await page.getByTestId('nav-events').click();
 		await page.getByTestId('event-hook-test').waitFor({ state: 'visible', timeout: 10_000 });
 
-		await expect(page.getByTestId('event-log')).toHaveAttribute('data-count', '0');
-		await expect(page.getByTestId('no-events')).toBeVisible();
+		// Old manually-emitted events should be gone after navigation.
+		// droid-ready may fire on re-init, so count could be 0 or 1.
+		const count = await page.getByTestId('event-log').getAttribute('data-count');
+		expect(Number(count)).toBeLessThanOrEqual(1);
+
+		// If droid-ready auto-fired, verify it's a fresh init event, not an old one
+		if (count === '1') {
+			await expect(page.getByTestId('event-entry-0')).toHaveAttribute('data-event', 'droid-ready');
+		}
 	});
 });
