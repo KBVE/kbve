@@ -1,0 +1,41 @@
+####################
+# Kilobase Test Runner
+# Runs pgrx integration tests against PostgreSQL 17
+#
+# Usage:
+#   docker build -f Dockerfile.test -t kilobase-test .
+#   docker run --rm kilobase-test
+#
+# Or via docker-compose:
+#   docker compose run --rm kilobase-test
+####################
+FROM rust:bookworm
+
+# Install PostgreSQL 17 dev packages and build dependencies
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gnupg2 lsb-release ca-certificates \
+    libclang-dev pkg-config libssl-dev sudo && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg && \
+    apt-get update && apt-get install -y --no-install-recommends \
+    postgresql-17 \
+    postgresql-server-dev-17 && \
+    rm -rf /var/lib/apt/lists/*
+
+# Install cargo-pgrx matching the project version
+RUN cargo install cargo-pgrx --version "=0.16.1" --locked
+
+# Initialize pgrx with system PostgreSQL 17
+RUN cargo pgrx init --pg17=/usr/bin/pg_config
+
+WORKDIR /build
+COPY . .
+
+# Run unit tests first (no PostgreSQL needed)
+RUN echo "=== Running unit tests ===" && \
+    cargo test --lib --features pg17 && \
+    echo "=== Unit tests passed ==="
+
+# Run pgrx integration tests against PostgreSQL 17
+# pgrx manages its own PostgreSQL instance for testing
+CMD ["cargo", "pgrx", "test", "pg17"]
