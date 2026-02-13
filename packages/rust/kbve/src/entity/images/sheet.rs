@@ -2,10 +2,7 @@ use axum::{
 	extract::{ Query, Path },
 	response::{ Response, IntoResponse },
 	http::{ StatusCode, header, HeaderMap },
-	routing::get,
-	Router,
 	body::Body,
-	async_trait,
 };
 
 use axum::Extension;
