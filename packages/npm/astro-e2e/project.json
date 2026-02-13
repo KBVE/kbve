@@ -36,7 +36,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"npx playwright test --project=dev --config=packages/npm/astro-e2e/playwright.config.ts"
+					"pnpm exec playwright test --config=packages/npm/astro-e2e/playwright.config.ts"
 				],
 				"cwd": "{workspaceRoot}"
 			}
@@ -46,7 +46,7 @@
 			"dependsOn": ["build"],
 			"options": {
 				"commands": [
-					"npx playwright test --project=preview --config=packages/npm/astro-e2e/playwright.config.ts"
+					"E2E_PREVIEW=true pnpm exec playwright test --config=packages/npm/astro-e2e/playwright.config.ts"
 				],
 				"cwd": "{workspaceRoot}"
 			}
