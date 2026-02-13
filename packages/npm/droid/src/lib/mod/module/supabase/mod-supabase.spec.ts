@@ -20,7 +20,7 @@ describe('mod-supabase', () => {
         console.log('Resolved worker URL:', modURL.href);
 
 		const handle = await window.kbve.mod.load(modURL.href);
-		const mod: Remote<SupabaseModAPI> = handle.instance;
+		const mod = handle.instance as unknown as Remote<SupabaseModAPI>;
 		const meta = handle.meta;
 
 		console.log('[test] Supabase mod loaded:', meta);
