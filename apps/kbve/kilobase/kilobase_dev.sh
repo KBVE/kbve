@@ -162,7 +162,8 @@ run_full_tests() {
     fi
 }
 
-# Run e2e pipeline: unit tests -> Docker build -> integration tests
+# Run e2e pipeline: unit tests -> Docker run integration tests
+# Note: Docker image is built by nx container-test target (dependsOn in project.json)
 run_e2e_tests() {
     local start_time=$SECONDS
     local unit_passed=0
@@ -174,57 +175,53 @@ run_e2e_tests() {
     echo "[kilobase_dev] E2E Pipeline Starting"
     echo "============================================"
 
-    # Pre-flight: check Docker is available
+    # Pre-flight: check Docker is available and test image exists
     if ! check_docker; then
         write_results "failed" "e2e" "0" "0" "0" "0" "0" "Docker not available"
         return 1
     fi
 
+    if ! docker image inspect "$IMAGE_NAME" &> /dev/null; then
+        echo "[kilobase_dev] ERROR: Test image '$IMAGE_NAME' not found."
+        echo "[kilobase_dev] Build it first with: nx run kilobase:container-test"
+        write_results "failed" "e2e" "0" "0" "0" "0" "0" "Test image not found - run container-test first"
+        return 1
+    fi
+
     # Phase 1: Local unit tests
     echo ""
-    echo "[kilobase_dev] Phase 1/3: Running local unit tests..."
+    echo "[kilobase_dev] Phase 1/2: Running local unit tests..."
     local unit_output
     if unit_output=$(cd "$PROJECT_ROOT" && cargo test -p kilobase --lib 2>&1); then
         unit_passed=$(parse_test_count "$unit_output" "passed")
         unit_failed=$(parse_test_count "$unit_output" "failed")
         echo "$unit_output"
         echo ""
-        echo "[kilobase_dev] Phase 1/3 PASSED: $unit_passed passed, $unit_failed failed"
+        echo "[kilobase_dev] Phase 1/2 PASSED: $unit_passed passed, $unit_failed failed"
     else
         local duration=$(( SECONDS - start_time ))
         echo "$unit_output"
         echo ""
-        echo "[kilobase_dev] Phase 1/3 FAILED: Unit tests did not pass"
+        echo "[kilobase_dev] Phase 1/2 FAILED: Unit tests did not pass"
         write_results "failed" "e2e" "0" "0" "0" "0" "$duration" "Unit tests failed - aborting e2e pipeline"
         return 1
     fi
 
-    # Phase 2: Docker build (also re-runs unit tests inside container)
+    # Phase 2: Docker run (pgrx integration tests using Nx-built image)
     echo ""
-    echo "[kilobase_dev] Phase 2/3: Building Docker test image..."
-    if ! build_test_image; then
-        local duration=$(( SECONDS - start_time ))
-        echo "[kilobase_dev] Phase 2/3 FAILED: Docker build failed"
-        write_results "failed" "e2e" "$unit_passed" "$unit_failed" "0" "0" "$duration" "Docker build failed"
-        return 1
-    fi
-    echo "[kilobase_dev] Phase 2/3 PASSED: Docker image built successfully"
-
-    # Phase 3: Docker run (pgrx integration tests)
-    echo ""
-    echo "[kilobase_dev] Phase 3/3: Running pgrx integration tests in Docker..."
+    echo "[kilobase_dev] Phase 2/2: Running pgrx integration tests in Docker..."
     local integration_output
     if integration_output=$(docker run --rm --name "$CONTAINER_NAME" "$IMAGE_NAME" 2>&1); then
         integration_passed=$(parse_test_count "$integration_output" "passed")
         integration_failed=$(parse_test_count "$integration_output" "failed")
         echo "$integration_output"
         echo ""
-        echo "[kilobase_dev] Phase 3/3 PASSED: Integration tests completed"
+        echo "[kilobase_dev] Phase 2/2 PASSED: Integration tests completed"
     else
         local duration=$(( SECONDS - start_time ))
         echo "$integration_output"
         echo ""
-        echo "[kilobase_dev] Phase 3/3 FAILED: Integration tests did not pass"
+        echo "[kilobase_dev] Phase 2/2 FAILED: Integration tests did not pass"
         write_results "failed" "e2e" "$unit_passed" "$unit_failed" "0" "0" "$duration" "Integration tests failed"
         return 1
     fi

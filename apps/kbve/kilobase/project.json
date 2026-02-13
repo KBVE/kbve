@@ -108,10 +108,27 @@
         "args"
       ]
     },
+    "container-test": {
+      "executor": "@nx-tools/nx-container:build",
+      "options": {
+        "engine": "docker",
+        "context": "apps/kbve/kilobase",
+        "file": "apps/kbve/kilobase/Dockerfile.test",
+        "metadata": {
+          "images": [
+            "kilobase-test"
+          ],
+          "load": true,
+          "tags": [
+            "latest"
+          ]
+        }
+      }
+    },
     "e2e": {
       "executor": "nx:run-commands",
       "dependsOn": [
-        "test"
+        "container-test"
       ],
       "inputs": [
         "{projectRoot}/src/**/*.rs",
