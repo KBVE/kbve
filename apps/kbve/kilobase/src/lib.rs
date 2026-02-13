@@ -563,6 +563,121 @@ mod tests {
         assert!(strategies[0].contains("\"sch\"\"ema\".\"vi\"\"ew\""));
     }
 
+    // ── quote_ident edge cases: SQL injection vectors ──
+
+    #[test]
+    fn test_quote_ident_sql_injection_semicolon() {
+        // Attacker tries to terminate statement and inject new SQL
+        let result = quote_ident("view; DROP TABLE users; --");
+        assert_eq!(result, "\"view; DROP TABLE users; --\"");
+        assert!(!result.contains(r#""""#)); // no unescaped quotes
+    }
+
+    #[test]
+    fn test_quote_ident_sql_injection_single_quotes() {
+        // Single quotes should pass through — double-quoting handles identifiers
+        let result = quote_ident("test' OR '1'='1");
+        assert_eq!(result, "\"test' OR '1'='1\"");
+    }
+
+    #[test]
+    fn test_quote_ident_sql_injection_double_quote_escape() {
+        // Attacker tries to break out of double-quoted identifier
+        let result = quote_ident(r#"view" ; DROP TABLE users; --"#);
+        // Internal " must be escaped as ""
+        assert_eq!(result, r#""view"" ; DROP TABLE users; --""#);
+    }
+
+    #[test]
+    fn test_quote_ident_sql_injection_nested_quotes() {
+        // Multiple layers of quote escaping
+        let result = quote_ident(r#""""#);
+        assert_eq!(result, r#""""""""#); // each " becomes ""
+    }
+
+    #[test]
+    fn test_quote_ident_unicode() {
+        assert_eq!(quote_ident("表名"), "\"表名\"");
+    }
+
+    #[test]
+    fn test_quote_ident_newlines_and_tabs() {
+        let result = quote_ident("view\nname\ttab");
+        assert_eq!(result, "\"view\nname\ttab\"");
+    }
+
+    #[test]
+    fn test_quote_ident_backslash() {
+        let result = quote_ident(r"my\schema");
+        assert_eq!(result, r#""my\schema""#);
+    }
+
+    #[test]
+    fn test_quote_ident_null_byte() {
+        let result = quote_ident("view\0name");
+        assert_eq!(result, "\"view\0name\"");
+    }
+
+    #[test]
+    fn test_quote_ident_sql_keywords() {
+        // SQL reserved words used as identifiers must be safely quoted
+        for keyword in &["SELECT", "DROP", "INSERT", "DELETE", "UPDATE", "TABLE", "FROM", "WHERE"] {
+            let result = quote_ident(keyword);
+            assert_eq!(result, format!("\"{}\"", keyword));
+        }
+    }
+
+    #[test]
+    fn test_quote_ident_long_identifier() {
+        let long_name = "a".repeat(1000);
+        let result = quote_ident(&long_name);
+        assert_eq!(result.len(), 1002); // 1000 chars + 2 surrounding quotes
+    }
+
+    // ── get_refresh_strategies: SQL injection via identifiers ──
+
+    #[test]
+    fn test_strategies_sql_injection_in_schema() {
+        let strategies = get_refresh_strategies(
+            "public\"; DROP TABLE matview_refresh_jobs; --",
+            "my_view",
+            true,
+            true,
+        );
+        // The injected SQL should be safely wrapped inside double quotes
+        assert!(strategies[0].starts_with("REFRESH MATERIALIZED VIEW CONCURRENTLY \"public\"\""));
+        // Should NOT contain a bare semicolon outside quotes
+        let qualified = &strategies[0]["REFRESH MATERIALIZED VIEW CONCURRENTLY ".len()..];
+        // The entire thing should be a single quoted identifier pair
+        assert!(qualified.contains("\"\""), "Internal quotes must be escaped");
+    }
+
+    #[test]
+    fn test_strategies_sql_injection_in_view_name() {
+        let strategies = get_refresh_strategies(
+            "public",
+            "view\"; DELETE FROM matview_refresh_log; --",
+            true,
+            true,
+        );
+        // View name with injection attempt should be properly escaped
+        assert!(strategies[0].contains("\"view\"\""));
+    }
+
+    #[test]
+    fn test_strategies_sql_injection_both_params() {
+        let strategies = get_refresh_strategies(
+            "'; DROP TABLE t; --",
+            "\"; DROP TABLE t; --",
+            true,
+            true,
+        );
+        // Both should be properly quoted — single quotes in schema pass through,
+        // double quotes in view_name get escaped
+        assert_eq!(strategies.len(), 2);
+        assert!(strategies[0].contains("CONCURRENTLY"));
+    }
+
     // ── JobOutcome ──
 
     #[test]
