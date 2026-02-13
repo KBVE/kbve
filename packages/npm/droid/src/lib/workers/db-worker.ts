@@ -9,18 +9,19 @@ interface SharedWorkerGlobalScope extends Worker {
 declare const self: SharedWorkerGlobalScope;
 
 class AppDexie extends Dexie {
-	settings!: Table<{ id: string; value: any }, string>;
-	meta!: Table<{ key: string; value: any }, string>;
-	i18n!: Table<{ key: string; value: string }, string>;
-	htmlservers!: Table<{ key: string; value: string }, string>;
-	servers!: Table<DiscordServer, string>;
-	tags!: Table<DiscordTag, string>;
-	profiles!: Table<Profile, string>;
-	ws_messages!: Table<{ key: string; message: any }, string>;
+	settings!: Table<{ id: string; value: any }>;
+	meta!: Table<{ key: string; value: any }>;
+	i18n!: Table<{ key: string; value: string }>;
+	htmlservers!: Table<{ key: string; value: string }>;
+	servers!: Table<DiscordServer>;
+	tags!: Table<DiscordTag>;
+	profiles!: Table<Profile>;
+	ws_messages!: Table<{ key: string; message: any }>;
+	auth_tokens!: Table<{ key: string; value: string; expires_at?: number }>;
 
 	constructor() {
 		super('AppStorage');
-		this.version(3).stores({
+		this.version(4).stores({
 			settings: '&id',
 			meta: '&key',
 			i18n: '&key',
@@ -29,6 +30,7 @@ class AppDexie extends Dexie {
 			tags: '&tag_id',
 			profiles: '&profile_id',
 			ws_messages: '&key',
+			auth_tokens: '&key',
 		});
 	}
 }
@@ -101,8 +103,7 @@ const storageAPI = {
 	await storageAPI.putI18nBatch(data);
 	},
 	async getAllI18nKeys(): Promise<string[]> {
-		const all = await db.i18n.toCollection().primaryKeys();
-		return all as string[];
+		return await db.i18n.toCollection().primaryKeys() as string[];
 	},
 
 	async loadServersFromJSON(path = 'https://discord.sh/data/servers.json') {
@@ -191,6 +192,26 @@ const storageAPI = {
 	},
 	async getAllProfiles() {
 		return await db.profiles.toArray();
+	},
+
+	// Auth Tokens (IDB-backed auth storage)
+	async setAuthToken(key: string, value: string, expiresAt?: number) {
+		await db.auth_tokens.put({ key, value, expires_at: expiresAt });
+	},
+	async getAuthToken(key: string): Promise<string | null> {
+		const record = await db.auth_tokens.get(key);
+		if (!record) return null;
+		if (record.expires_at && Date.now() > record.expires_at) {
+			await db.auth_tokens.delete(key);
+			return null;
+		}
+		return record.value;
+	},
+	async removeAuthToken(key: string) {
+		await db.auth_tokens.delete(key);
+	},
+	async clearAuthTokens() {
+		await db.auth_tokens.clear();
 	},
 };
 

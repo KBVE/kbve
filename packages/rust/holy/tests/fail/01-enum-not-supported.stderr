@@ -1,0 +1,8 @@
+error: Getters macro only supports structs
+ --> tests/fail/01-enum-not-supported.rs:4:1
+  |
+4 | / enum Nope {
+5 | |     A,
+6 | |     B,
+7 | | }
+  | |_^

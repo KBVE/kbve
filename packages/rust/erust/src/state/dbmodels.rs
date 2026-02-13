@@ -1,0 +1,250 @@
+use serde_json::{Value as Json};
+
+use chrono::NaiveDateTime;
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct Apikey {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+    pub permissions: String,
+    pub keyhash: String,
+    pub label: String,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct Appwrite {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+    pub appwrite_endpoint: String,
+    pub appwrite_projectid: String,
+    pub appwrite_api_key: String,
+    pub version: String,
+    pub created_at: NaiveDateTime,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct Auth {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+    pub email: String,
+    pub hash: String,
+    pub salt: String,
+    pub password_reset_token: String,
+    pub password_reset_expiry: NaiveDateTime,
+    pub verification_token: String,
+    pub verification_expiry: NaiveDateTime,
+    pub status: i32,
+    pub last_login_at: NaiveDateTime,
+    pub failed_login_attempts: i32,
+    pub lockout_until: NaiveDateTime,
+    pub two_factor_secret: String,
+    pub recovery_codes: String,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct Character {
+    pub id: u64,
+    pub cid: Vec<u8>,
+    pub userid: Vec<u8>,
+    pub hp: i32,
+    pub mp: i32,
+    pub ep: i32,
+    pub health: i32,
+    pub mana: i32,
+    pub energy: i32,
+    pub armour: i32,
+    pub agility: i32,
+    pub strength: i32,
+    pub intelligence: i32,
+    pub name: String,
+    pub description: String,
+    pub experience: i32,
+    pub reputation: i32,
+    pub faith: i32,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct Global {
+    pub id: u64,
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct Invoice {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+    pub items: Json,
+    pub paid: f64,
+    pub total: f64,
+    pub balance: f64,
+    pub external: String,
+    pub due: u64,
+    pub visibility: i32,
+    pub status: i32,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct N8n {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+    pub webhook: String,
+    pub permissions: String,
+    pub keyhash: String,
+    pub label: String,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct Profile {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub name: String,
+    pub bio: String,
+    pub unsplash: String,
+    pub github: String,
+    pub instagram: String,
+    pub discord: String,
+    pub userid: Vec<u8>,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct Setting {
+    pub id: u64,
+    pub ulid: Vec<u8>,
+    pub userid: Vec<u8>,
+    pub key: String,
+    pub value: String,
+}
+
+#[derive(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)]
+pub struct User {
+    pub id: u64,
+    pub userid: Vec<u8>,
+    pub username: String,
+    pub role: i32,
+    pub reputation: i32,
+    pub exp: i32,
+    pub created_at: NaiveDateTime,
+}
+
+#[cfg(test)]
+mod tests {
+	use super::*;
+
+	#[test]
+	fn user_default_values() {
+		let user = User::default();
+		assert_eq!(user.id, 0);
+		assert!(user.userid.is_empty());
+		assert!(user.username.is_empty());
+		assert_eq!(user.role, 0);
+		assert_eq!(user.reputation, 0);
+		assert_eq!(user.exp, 0);
+	}
+
+	#[test]
+	fn user_serde_round_trip() {
+		let user = User {
+			id: 1,
+			userid: vec![0xDE, 0xAD],
+			username: "h0lybyte".to_string(),
+			role: 2,
+			reputation: 100,
+			exp: 5000,
+			created_at: NaiveDateTime::default(),
+		};
+
+		let json = serde_json::to_string(&user).unwrap();
+		let restored: User = serde_json::from_str(&json).unwrap();
+		assert_eq!(user, restored);
+	}
+
+	#[test]
+	fn character_default_values() {
+		let c = Character::default();
+		assert_eq!(c.hp, 0);
+		assert_eq!(c.mp, 0);
+		assert_eq!(c.strength, 0);
+		assert!(c.name.is_empty());
+	}
+
+	#[test]
+	fn character_serde_round_trip() {
+		let c = Character {
+			id: 1,
+			cid: vec![1, 2, 3],
+			userid: vec![4, 5, 6],
+			hp: 100,
+			mp: 50,
+			ep: 25,
+			health: 100,
+			mana: 50,
+			energy: 25,
+			armour: 10,
+			agility: 15,
+			strength: 20,
+			intelligence: 18,
+			name: "Hero".to_string(),
+			description: "A brave hero".to_string(),
+			experience: 1000,
+			reputation: 50,
+			faith: 5,
+		};
+
+		let json = serde_json::to_string(&c).unwrap();
+		let restored: Character = serde_json::from_str(&json).unwrap();
+		assert_eq!(c, restored);
+	}
+
+	#[test]
+	fn profile_serde_round_trip() {
+		let p = Profile {
+			id: 1,
+			ulid: vec![1],
+			name: "Test".to_string(),
+			bio: "A bio".to_string(),
+			unsplash: String::new(),
+			github: "kbve".to_string(),
+			instagram: String::new(),
+			discord: "kbve#0001".to_string(),
+			userid: vec![2],
+		};
+
+		let json = serde_json::to_string(&p).unwrap();
+		let restored: Profile = serde_json::from_str(&json).unwrap();
+		assert_eq!(p, restored);
+	}
+
+	#[test]
+	fn global_serde_round_trip() {
+		let g = Global {
+			id: 1,
+			key: "theme".to_string(),
+			value: "dark".to_string(),
+		};
+
+		let json = serde_json::to_string(&g).unwrap();
+		let restored: Global = serde_json::from_str(&json).unwrap();
+		assert_eq!(g, restored);
+	}
+
+	#[test]
+	fn apikey_clone_equals_original() {
+		let key = Apikey {
+			id: 42,
+			ulid: vec![1, 2, 3],
+			userid: vec![4, 5, 6],
+			permissions: "read,write".to_string(),
+			keyhash: "abc123".to_string(),
+			label: "my-key".to_string(),
+		};
+
+		let cloned = key.clone();
+		assert_eq!(key, cloned);
+	}
+}
+

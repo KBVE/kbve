@@ -1,3 +1,5 @@
+/** @deprecated Use @kbve/astro instead. This package will be removed in a future release. */
+
 // Do not write code directly here, instead use the `src` folder!
 
 // @ts-expect-error TypeScript doesn't know about Astro files

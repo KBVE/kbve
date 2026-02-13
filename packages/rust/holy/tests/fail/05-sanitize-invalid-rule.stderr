@@ -1,0 +1,5 @@
+error: unknown sanitize rule: 'bogus_rule'
+ --> tests/fail/05-sanitize-invalid-rule.rs:5:20
+  |
+5 |     #[holy(sanitize = "trim,bogus_rule")]
+  |                       ^^^^^^^^^^^^^^^^^

@@ -1,0 +1,46 @@
+{
+	"name": "@kbve/astro",
+	"version": "0.1.0",
+	"description": "Unified Astro component library with React support and @kbve/droid integration",
+	"keywords": ["astro", "react", "droid", "workers", "components"],
+	"homepage": "https://kbve.com/application/javascript/",
+	"bugs": { "url": "https://github.com/KBVE/kbve/issues" },
+	"repository": { "type": "git", "url": "git+https://github.com/KBVE/kbve.git" },
+	"author": "KBVE <hello@kbve.com>",
+	"license": "MIT",
+	"type": "module",
+	"main": "./astro.es.js",
+	"module": "./astro.es.js",
+	"types": "./index.d.ts",
+	"exports": {
+		".": {
+			"import": "./astro.es.js",
+			"types": "./index.d.ts"
+		},
+		"./components/DroidProvider.astro": "./components/DroidProvider.astro",
+		"./components/DroidStatus.astro": "./components/DroidStatus.astro"
+	},
+	"files": [
+		"astro.es.js",
+		"index.d.ts",
+		"**/*.d.ts",
+		"components/*.astro",
+		"*.md"
+	],
+	"peerDependencies": {
+		"react": ">=18.0.0",
+		"react-dom": ">=18.0.0",
+		"astro": ">=4.0.0",
+		"@kbve/droid": ">=0.1.0"
+	},
+	"peerDependenciesMeta": {
+		"astro": { "optional": true }
+	},
+	"dependencies": {
+		"clsx": "^2.1.1",
+		"tailwind-merge": "^2.5.4"
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

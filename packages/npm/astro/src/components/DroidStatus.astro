@@ -1,0 +1,11 @@
+---
+import { DroidStatus as ReactDroidStatus } from '../react/DroidStatus';
+
+interface Props {
+	class?: string;
+}
+
+const { class: className } = Astro.props;
+---
+
+<ReactDroidStatus client:only="react" className={className} />
