@@ -10,6 +10,10 @@ repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/kbve"
 readme = "README.md"
 rust-version = "1.78"
 
+[features]
+default = []
+supabase = []
+
 [dependencies]
 anyhow = "1.0"
 ammonia = "4.0.0"
