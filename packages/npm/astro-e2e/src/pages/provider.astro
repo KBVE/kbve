@@ -1,0 +1,41 @@
+---
+import DroidProvider from '../../../astro/src/components/DroidProvider.astro';
+import DroidStatus from '../../../astro/src/components/DroidStatus.astro';
+import { ContextConsumer } from '../components/ContextConsumer';
+import { OutsideProviderTest } from '../components/OutsideProviderTest';
+import { CnTest } from '../components/CnTest';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Provider + Status Test</title>
+	</head>
+	<body style="padding: 1rem; font-family: sans-serif;">
+		<nav data-testid="nav" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+			<a data-testid="nav-home" href="/">Menu</a>
+			<a data-testid="nav-provider" href="/provider">Provider + Status</a>
+			<a data-testid="nav-events" href="/events">Event Hook</a>
+		</nav>
+
+		<div data-testid="provider-status-test" style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
+			<h2>DroidProvider.astro + DroidStatus.astro Integration</h2>
+
+			<DroidProvider>
+				<DroidStatus class="test-status" />
+				<ContextConsumer client:only="react" />
+			</DroidProvider>
+		</div>
+
+		<div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
+			<h3>Error Handling: useDroidContext outside Provider</h3>
+			<OutsideProviderTest client:only="react" />
+		</div>
+
+		<div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
+			<h3>cn Utility</h3>
+			<CnTest client:only="react" />
+		</div>
+	</body>
+</html>
