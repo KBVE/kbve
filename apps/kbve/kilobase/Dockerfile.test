@@ -1,0 +1,57 @@
+####################
+# Kilobase Test Runner
+# Builds the extension, installs into PostgreSQL 17, and runs SQL-based e2e tests
+#
+# Usage (via Nx):
+#   nx run kilobase:container-test   # build
+#   nx run kilobase:e2e              # build + test
+####################
+
+####################
+# Stage 0: Build kilobase extension (mirrors production Stage 0)
+####################
+FROM rust:bookworm AS builder
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl gnupg2 lsb-release ca-certificates \
+    libclang-dev pkg-config libssl-dev && \
+    echo "deb http://apt.postgresql.org/pub/repos/apt bookworm-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
+    curl -fsSL https://www.postgresql.org/media/keys/ACCC4CF8.asc | gpg --dearmor -o /etc/apt/trusted.gpg.d/pgdg.gpg && \
+    apt-get update && apt-get install -y --no-install-recommends postgresql-server-dev-17 && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN cargo install cargo-pgrx --version "=0.16.1" --locked
+RUN cargo pgrx init --pg17=/usr/bin/pg_config
+
+WORKDIR /build
+COPY . .
+
+# Build the extension package
+RUN cargo pgrx package --pg-config /usr/bin/pg_config --features pg17
+
+# Also run unit tests during build
+RUN cargo test --lib --features pg17
+
+####################
+# Stage 1: Test image — PostgreSQL 17 + kilobase .so + test runner
+####################
+FROM postgres:17-bookworm
+
+# Copy built extension artifacts from builder
+COPY --from=builder /build/target/release/kilobase-pg17/usr/share/postgresql/17/extension/kilobase* /usr/share/postgresql/17/extension/
+COPY --from=builder /build/target/release/kilobase-pg17/usr/lib/postgresql/17/lib/kilobase.so /usr/lib/postgresql/17/lib/kilobase.so
+
+# Copy the SQL test script
+COPY sql/test_kilobase.sql /docker-entrypoint-initdb.d/
+
+# Configure PostgreSQL to preload kilobase
+RUN echo "shared_preload_libraries = 'kilobase'" >> /usr/share/postgresql/postgresql.conf.sample
+
+# The test entrypoint script
+COPY sql/run_tests.sh /run_tests.sh
+RUN chmod +x /run_tests.sh
+
+ENV POSTGRES_PASSWORD=testpass
+ENV POSTGRES_DB=kilobase_test
+
+CMD ["/run_tests.sh"]

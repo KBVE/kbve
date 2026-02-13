@@ -1,7 +1,13 @@
 ---
 import { DroidProvider as ReactDroidProvider } from '../react/DroidProvider';
+
+interface Props {
+	workerURLs?: Record<string, string>;
+}
+
+const { workerURLs } = Astro.props;
 ---
 
-<ReactDroidProvider client:only="react">
+<ReactDroidProvider client:only="react" workerURLs={workerURLs}>
 	<slot />
 </ReactDroidProvider>
