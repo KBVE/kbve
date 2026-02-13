@@ -24,7 +24,7 @@ pub extern "C-unwind" fn _PG_init() {
 
     BackgroundWorkerBuilder::new("Smart Matview Refresher")
         .set_function("smart_matview_worker_main")
-        .set_library("bgworker")
+        .set_library("kilobase")
         .set_argument(42i32.into_datum())
         .enable_spi_access()
         .load();
