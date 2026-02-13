@@ -15,13 +15,10 @@ use crate::entity::response::{ create_error_response, create_custom_response };
 use crate::runes::{ WizardResponse, RecoverUserSchema };
 
 use axum::{
-  async_trait,
-  http::{ StatusCode, Request, header },
-  extract::{ Extension, Path, State, FromRequest },
-  response::{ IntoResponse, Response },
-  middleware::{ self, Next },
+  http::StatusCode,
+  extract::Extension,
+  response::IntoResponse,
   Json,
-  BoxError,
 };
 
 async fn resend_confirmation_email(email: &str, pool: &Arc<Pool>) -> Result<(), String> {

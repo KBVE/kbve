@@ -7,10 +7,10 @@ use crate::db::{ Pool };
 use crate::session::TokenJWT;
 
 use axum::{
-	http::{ StatusCode, Request, header },
-	extract::{ Extension, Json, State },
+	http::{ StatusCode, header },
+	extract::{ Json, State, Request },
 	response::IntoResponse,
-    middleware::Next,
+	middleware::Next,
 };
 
 use serde_json::json;
@@ -22,11 +22,11 @@ use crate::spellbook_get_global;
 //  Graceful Replacement -> Middleware JWT
 
 
-pub async fn middleware_jwt<B>(
+pub async fn middleware_jwt(
 	cookie_jar: CookieJar,
 	State(_data): State<Arc<Pool>>,
-	mut req: Request<B>,
-	next: Next<B>
+	mut req: Request,
+	next: Next,
 ) -> impl IntoResponse {
 	let token_result: Result<String, ()> = cookie_jar
 		.get("token")

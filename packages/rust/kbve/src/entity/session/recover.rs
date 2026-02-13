@@ -17,13 +17,10 @@ use crate::entity::response::{ create_error_response, create_custom_response };
 
 
 use axum::{
-    async_trait,
-    http::{ StatusCode, Request, header },
-    extract::{ Extension, Path, State, FromRequest },
-    response::{ IntoResponse, Response },
-    middleware::{ self, Next },
+    http::StatusCode,
+    extract::Extension,
+    response::IntoResponse,
     Json,
-    BoxError,
   };
 
 use std::str::FromStr;

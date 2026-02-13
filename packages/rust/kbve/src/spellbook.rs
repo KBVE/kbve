@@ -31,12 +31,12 @@ macro_rules! spellbook_create_jwt {
 #[macro_export]
 macro_rules! spellbook_create_cookie {
   ($name:expr, $token:expr, $duration:expr) => {
-		axum_extra::extract::cookie::Cookie::build($name, $token)
+		axum_extra::extract::cookie::Cookie::build(($name, $token))
 			.path("/")
 			.max_age(time::Duration::hours($duration))
 			.same_site(axum_extra::extract::cookie::SameSite::Lax)
 			.http_only(true)
-			.finish()
+			.build()
   };
 }
 
