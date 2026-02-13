@@ -15,9 +15,12 @@ pgrx::pg_module_magic!();
 
 #[pg_guard]
 pub extern "C-unwind" fn _PG_init() {
-    // if unsafe { !pgrx::pg_sys::process_shared_preload_libraries_in_progress } {
-    //     pgrx::error!("Extension has to be loaded via shared_preload_libraries.");
-    // }
+    // Background workers can only be registered during shared_preload_libraries
+    // processing. If loaded via CREATE EXTENSION alone, skip bgworker registration
+    // so the extension installs cleanly (SQL functions/tables still get created).
+    if unsafe { !pgrx::pg_sys::process_shared_preload_libraries_in_progress } {
+        return;
+    }
 
     BackgroundWorkerBuilder::new("Smart Matview Refresher")
         .set_function("smart_matview_worker_main")
@@ -247,82 +250,9 @@ fn log_refresh_failure_standalone(job_id: i32, error_message: &str) -> Result<()
 // =============================================================================
 // PUBLIC API FUNCTIONS
 // =============================================================================
-
-#[pg_extern]
-fn register_matview_for_refresh(
-    schema_name: &str, 
-    view_name: &str, 
-    interval_seconds: i32
-) -> i32 {
-    match register_matview_internal(schema_name, view_name, interval_seconds) {
-        Ok(job_id) => {
-            pgrx::log!("SUCCESS: Registered {}.{} for refresh every {} seconds (job_id: {})", 
-                      schema_name, view_name, interval_seconds, job_id);
-            job_id
-        }
-        Err(e) => {
-            pgrx::log!("ERROR: Failed to register {}.{}: {}", schema_name, view_name, e);
-            0
-        }
-    }
-}
-
-fn register_matview_internal(
-    schema_name: &str,
-    view_name: &str,
-    interval_seconds: i32,
-) -> Result<i32, SpiError> {
-    Spi::connect(|client| {
-        let result = client.select(
-            "SELECT register_matview_refresh($1, $2, $3)",
-            None,
-            &[
-                unsafe { DatumWithOid::new(schema_name.into_datum().unwrap(), pg_sys::TEXTOID) },
-                unsafe { DatumWithOid::new(view_name.into_datum().unwrap(), pg_sys::TEXTOID) },
-                unsafe { DatumWithOid::new(interval_seconds.into_datum().unwrap(), pg_sys::INT4OID) },
-            ]
-        )?;
-        
-        for row in result {
-            return Ok(row.get::<i32>(1).unwrap_or(Some(0)).unwrap_or(0));
-        }
-        Ok(0)
-    })
-}
-
-#[pg_extern]
-fn unregister_matview_refresh(schema_name: &str, view_name: &str) -> bool {
-    match unregister_matview_internal(schema_name, view_name) {
-        Ok(success) => {
-            if success {
-                pgrx::log!("SUCCESS: Unregistered {}.{} from automatic refresh", 
-                          schema_name, view_name);
-            } else {
-                pgrx::log!("WARNING: No registration found for {}.{}", 
-                          schema_name, view_name);
-            }
-            success
-        }
-        Err(e) => {
-            pgrx::log!("ERROR: Failed to unregister {}.{}: {}", schema_name, view_name, e);
-            false
-        }
-    }
-}
-
-fn unregister_matview_internal(
-    schema_name: &str,
-    view_name: &str,
-) -> Result<bool, SpiError> {
-    Spi::connect(|client| {
-        let result = client.select(
-            "SELECT unregister_matview_refresh($1, $2)",
-            None,
-            &[
-                unsafe { DatumWithOid::new(schema_name.into_datum().unwrap(), pg_sys::TEXTOID) },
-                unsafe { DatumWithOid::new(view_name.into_datum().unwrap(), pg_sys::TEXTOID) },
-            ]
-        )?;
-        Ok(!result.is_empty())
-    })
-}
+// The public API (register_matview_refresh, unregister_matview_refresh) is
+// defined as PL/pgSQL functions in sql.rs via extension_sql!. Those are the
+// canonical entry points for users. Rust #[pg_extern] wrappers were removed
+// to avoid "function already exists" conflicts during CREATE EXTENSION, since
+// pgrx generates CREATE FUNCTION (without OR REPLACE) which collides with
+// the PL/pgSQL CREATE OR REPLACE FUNCTION of the same signature.
