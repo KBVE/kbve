@@ -1,0 +1,80 @@
+syntax = "proto3";
+
+package kbve.common;
+
+// Common types shared across all services
+
+// ULID - 26 character Crockford Base32 encoded string
+// Pattern: [0-9A-HJKMNP-TV-Z]{26}
+message ULID {
+  string value = 1;
+}
+
+// GUID - 32 character hex string (no dashes)
+// Pattern: [a-f0-9]{32}
+message GUID {
+  string value = 1;
+}
+
+// UUID - Standard UUID format
+message UUID {
+  string value = 1;
+}
+
+// 2D Vector (int)
+message Vec2i {
+  int32 x = 1;
+  int32 y = 2;
+}
+
+// 2D Vector (float)
+message Vec2f {
+  float x = 1;
+  float y = 2;
+}
+
+// 3D Vector
+message Vec3 {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+}
+
+// Quaternion rotation
+message Quat {
+  float x = 1;
+  float y = 2;
+  float z = 3;
+  float w = 4;
+}
+
+// Transform (position + rotation + scale)
+message Transform {
+  Vec3 position = 1;
+  Quat rotation = 2;
+  Vec3 scale = 3;
+}
+
+// Timestamp wrapper
+message Timestamp {
+  int64 seconds = 1;
+  int32 nanos = 2;
+}
+
+// Generic result wrapper
+message Result {
+  bool success = 1;
+  string message = 2;
+  int32 code = 3;
+}
+
+// Key-value pair for dynamic properties
+message KeyValue {
+  string key = 1;
+  oneof value {
+    string string_value = 2;
+    int64 int_value = 3;
+    double float_value = 4;
+    bool bool_value = 5;
+  }
+}

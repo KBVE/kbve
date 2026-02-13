@@ -3,10 +3,10 @@ import { JSDOM } from 'jsdom';
 
 /**
  * Regular expression to validate YouTube URLs.
+ * Note: No /g flag on the module-level regex to avoid lastIndex state bugs.
  */
 const YOUTUBE_URL_REGEX =
-  //  /^(https?:\/\/)?(www\.)?(youtube\.com|youtu\.be)\/.+$/;
-  /https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/[^\s]+/g;
+  /https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/[^\s]+/;
 
 /**
  * Fetches the title of a YouTube video without using the YouTube API.
@@ -55,7 +55,10 @@ export async function fetchYoutubeTitle(url: string): Promise<string | null> {
  * @returns The first YouTube link found in the message, or null if no link is found.
  */
 export function extractYoutubeLink(message: string): string | null {
-  const urlMatches = message.match(YOUTUBE_URL_REGEX);
+  // Use /g flag inline so lastIndex resets each call
+  const urlMatches = message.match(
+    /https?:\/\/(www\.)?(youtube\.com|youtu\.be)\/[^\s]+/g,
+  );
   return urlMatches ? urlMatches[0] : null;
 }
 

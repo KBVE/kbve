@@ -34,7 +34,11 @@ class DroidEventBus {
 		window.dispatchEvent(new CustomEvent(event, { detail: payload }));
 
 		for (const handler of this.listeners.get(event) ?? []) {
-			(handler as EventHandler<K>)(payload);
+			try {
+				(handler as EventHandler<K>)(payload);
+			} catch (err) {
+				console.error(`[DroidEventBus] Listener error for ${event}:`, err);
+			}
 		}
 	}
 

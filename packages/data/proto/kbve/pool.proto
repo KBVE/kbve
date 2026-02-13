@@ -1,0 +1,30 @@
+syntax = "proto3";
+
+package kbve.pool;
+
+// Prefab/Asset registry for game objects
+
+message PrefabRegistry {
+  repeated Prefab prefabs = 1;
+}
+
+message Prefab {
+  string id = 1;
+  string name = 2;
+  string category = 3;
+  map<string, string> metadata = 4;
+}
+
+// Item definitions
+message ItemDefinition {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string category = 4;
+  int32 stack_size = 5;
+  map<string, string> properties = 6;
+}
+
+message ItemRegistry {
+  repeated ItemDefinition items = 1;
+}
