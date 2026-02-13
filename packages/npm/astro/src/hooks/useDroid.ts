@@ -19,7 +19,7 @@ const initialState: DroidState = {
 	error: null,
 };
 
-export function useDroid(): DroidState {
+export function useDroid(workerURLs?: Record<string, string>): DroidState {
 	const [state, setState] = useState<DroidState>(initialState);
 
 	useEffect(() => {
@@ -27,7 +27,7 @@ export function useDroid(): DroidState {
 
 		async function init() {
 			try {
-				const result = await droid();
+				const result = await droid(workerURLs ? { workerURLs } : undefined);
 				if (cancelled) return;
 
 				const kbve = (window as any).kbve;
