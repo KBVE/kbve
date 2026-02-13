@@ -4,6 +4,7 @@ pub mod images;
 pub mod model;
 pub mod client;
 pub mod template;
+pub mod middleware;
 
 pub use response::*;
 pub use session::*;
@@ -11,3 +12,4 @@ pub use images::*;
 pub use model::*;
 pub use client::*;
 pub use template::*;
+pub use middleware::*;
