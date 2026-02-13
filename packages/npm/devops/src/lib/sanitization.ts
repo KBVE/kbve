@@ -109,7 +109,7 @@ export function _title(title: string): string {
  * @param row - The string to sanitize.
  * @returns Markdown-safe string.
  */
-export async function _md_safe_row(row: string): Promise<string> {
+export function _md_safe_row(row: string): string {
   // Escape special markdown characters to prevent formatting issues
   const mdSafeRow = row
     .replace(/\\/g, '\\\\')  // Escape backslashes

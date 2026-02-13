@@ -60,6 +60,15 @@ interface PromptEngine {
   };
 }
 
+export interface GroqResponse {
+  choices?: {
+    message?: {
+      content?: string;
+    };
+  }[];
+  [key: string]: unknown;
+}
+
 const sanitizationFunctions: {
   [key: number]: (text: string) => Promise<string>;
 } = {
@@ -101,8 +110,8 @@ export async function _prompt(ulid: string): Promise<PromptItem> {
  * @param kbve_api - The API token for authentication.
  * @returns The headers object.
  */
-export function _headers(kbve_api?: string): object {
-  const headers: { [key: string]: string } = {
+export function _headers(kbve_api?: string): Record<string, string> {
+  const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
 
@@ -124,7 +133,7 @@ export function _headers(kbve_api?: string): object {
 export async function _post<T>(
   url: string,
   payload: object,
-  headers: object,
+  headers: Record<string, string>,
 ): Promise<T> {
   try {
     const response = await axios.post<T>(url, payload, {
@@ -173,7 +182,7 @@ export async function _groq(
   kbve_api: string,
   model: string,
   sanitizationLevel: number,
-): Promise<any> {
+): Promise<GroqResponse> {
   try {
     const headers = _headers(kbve_api);
 
@@ -190,7 +199,7 @@ export async function _groq(
       model,
     };
 
-    const apiResponse = await _post(
+    const apiResponse = await _post<GroqResponse>(
       'https://rust.kbve.com/api/v1/call_groq',
       payload,
       headers,

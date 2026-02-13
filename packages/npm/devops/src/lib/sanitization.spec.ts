@@ -24,6 +24,25 @@ describe('ulid', () => {
   it('should return true for valid ULID', () => {
     expect(_isULID('01ARZ3NDEKTSV4RRFFQ69G5FAV')).toEqual(true);
   });
+
+  it('should return true for lowercase valid ULID', () => {
+    expect(_isULID('01arz3ndektsv4rrffq69g5fav')).toEqual(true);
+  });
+
+  it('should return false for 25-character string', () => {
+    expect(_isULID('01ARZ3NDEKTSV4RRFFQ69G5FA')).toEqual(false);
+  });
+
+  it('should return false for 27-character string', () => {
+    expect(_isULID('01ARZ3NDEKTSV4RRFFQ69G5FAVX')).toEqual(false);
+  });
+
+  it('should return false for ULID with invalid characters (I, L, O, U)', () => {
+    expect(_isULID('01ARZ3NDIKTSV4RRFFQ69G5FAV')).toEqual(false);
+    expect(_isULID('01ARZ3NDLKTSV4RRFFQ69G5FAV')).toEqual(false);
+    expect(_isULID('01ARZ3NDOKTSV4RRFFQ69G5FAV')).toEqual(false);
+    expect(_isULID('01ARZ3NDUKTSV4RRFFQ69G5FAV')).toEqual(false);
+  });
 });
 
 describe('markdownToJsonSafeString', () => {
@@ -31,6 +50,19 @@ describe('markdownToJsonSafeString', () => {
     const markdown = '# Hello, World!';
     const result = await markdownToJsonSafeString(markdown);
     expect(result).toEqual(JSON.stringify('Hello, World!'));
+  });
+
+  it('should handle code blocks', async () => {
+    const markdown = '```js\nconst x = 1;\n```';
+    const result = await markdownToJsonSafeString(markdown);
+    expect(result).toContain('const x = 1;');
+  });
+
+  it('should strip HTML injection attempts', async () => {
+    const markdown = '<script>alert("xss")</script>Hello';
+    const result = await markdownToJsonSafeString(markdown);
+    expect(result).not.toContain('<script>');
+    expect(result).toContain('Hello');
   });
 });
 
@@ -103,47 +135,47 @@ describe('_title', () => {
 });
 
 describe('_md_safe_row', () => {
-  it('should escape pipe characters', async () => {
+  it('should escape pipe characters', () => {
     const row = 'Column 1 | Column 2';
-    const result = await _md_safe_row(row);
+    const result = _md_safe_row(row);
     expect(result).toEqual('Column 1 \\| Column 2');
   });
 
-  it('should escape underscore characters', async () => {
+  it('should escape underscore characters', () => {
     const row = 'This is a test_row';
-    const result = await _md_safe_row(row);
+    const result = _md_safe_row(row);
     expect(result).toEqual('This is a test\\_row');
   });
 
-  it('should escape asterisk characters', async () => {
+  it('should escape asterisk characters', () => {
     const row = 'This is *bold* text';
-    const result = await _md_safe_row(row);
+    const result = _md_safe_row(row);
     expect(result).toEqual('This is \\*bold\\* text');
   });
 
-  it('should escape backslash characters', async () => {
+  it('should escape backslash characters', () => {
     const row = 'This is a backslash: \\';
-    const result = await _md_safe_row(row);
+    const result = _md_safe_row(row);
     expect(result).toEqual('This is a backslash: \\\\');
   });
 
-  it('should escape square bracket characters', async () => {
+  it('should escape square bracket characters', () => {
     const row = 'This is a [link]';
-    const result = await _md_safe_row(row);
+    const result = _md_safe_row(row);
     expect(result).toEqual('This is a \\[link\\]');
   });
 
-  it('should escape parenthesis characters', async () => {
+  it('should escape parenthesis characters', () => {
     const row = 'Porter Robinson - Sad Machine (Official Lyric Video)';
-    const result = await _md_safe_row(row);
+    const result = _md_safe_row(row);
     expect(result).toEqual(
       'Porter Robinson - Sad Machine \\(Official Lyric Video\\)',
     );
   });
 
-  it('should handle multiple special characters', async () => {
+  it('should handle multiple special characters', () => {
     const row = 'This is *bold* text with [link](url) and | pipe';
-    const result = await _md_safe_row(row);
+    const result = _md_safe_row(row);
     expect(result).toEqual(
       'This is \\*bold\\* text with \\[link\\]\\(url\\) and \\| pipe',
     );
@@ -155,6 +187,14 @@ describe('sanitizePort', () => {
     const port = 8080;
     const result = sanitizePort(port);
     expect(result).toEqual(8080);
+  });
+
+  it('should accept port 1 (minimum valid)', () => {
+    expect(sanitizePort(1)).toEqual(1);
+  });
+
+  it('should accept port 65535 (maximum valid)', () => {
+    expect(sanitizePort(65535)).toEqual(65535);
   });
 
   it('should throw an error for a non-numeric port', () => {
@@ -178,10 +218,21 @@ describe('sanitizePort', () => {
     );
   });
 
-  it('should throw an error for restricted ports', () => {
-    const port = 443;
-    expect(() => sanitizePort(port)).toThrow(
+  it('should throw an error for restricted port 443', () => {
+    expect(() => sanitizePort(443)).toThrow(
       'Port 443 is restricted and cannot be used.',
+    );
+  });
+
+  it('should throw an error for restricted port 80', () => {
+    expect(() => sanitizePort(80)).toThrow(
+      'Port 80 is restricted and cannot be used.',
+    );
+  });
+
+  it('should throw an error for restricted port 22', () => {
+    expect(() => sanitizePort(22)).toThrow(
+      'Port 22 is restricted and cannot be used.',
     );
   });
 
@@ -192,7 +243,6 @@ describe('sanitizePort', () => {
     );
   });
 });
-
 
 describe('sanitizeContainerName', () => {
   it('should return a valid container name', () => {
@@ -225,6 +275,12 @@ describe('sanitizeContainerName', () => {
     const name = 'valid_Container123';
     const result = sanitizeContainerName(name);
     expect(result).toEqual('valid_Container123');
+  });
+
+  it('should strip hyphens from container name', () => {
+    const name = 'my-container-name';
+    const result = sanitizeContainerName(name);
+    expect(result).toEqual('mycontainername');
   });
 });
 

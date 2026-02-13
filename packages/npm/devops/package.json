@@ -30,6 +30,9 @@
 		"marked": "^13.0.0",
 		"dompurify": "^3.1.5"
 	},
+	"engines": {
+		"node": ">=22"
+	},
 	"publishConfig": {
 		"access": "public"
 	}
