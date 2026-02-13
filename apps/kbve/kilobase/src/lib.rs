@@ -574,14 +574,25 @@ mod tests {
 }
 
 // =============================================================================
+// PGRX TEST FRAMEWORK SETUP (required by #[pg_test] macro)
+// =============================================================================
+
+#[cfg(test)]
+pub mod pg_test {
+    pub fn setup(_options: Vec<&str>) {}
+    pub fn postgresql_conf_options() -> Vec<&'static str> {
+        vec!["shared_preload_libraries = 'kilobase'"]
+    }
+}
+
+// =============================================================================
 // PGRX INTEGRATION TESTS (require PostgreSQL — run with: cargo pgrx test pg17)
 // =============================================================================
 
 #[cfg(feature = "pg_test")]
 #[pgrx::pg_schema]
-mod pg_tests {
+mod kilobase_tests {
     use pgrx::prelude::*;
-    use pgrx_tests::pg_test;
 
     #[pg_test]
     fn test_extension_creates_tables() {
