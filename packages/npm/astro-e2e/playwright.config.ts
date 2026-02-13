@@ -1,5 +1,21 @@
 import { defineConfig, devices } from '@playwright/test';
 
+const mode = process.env['E2E_STATIC'] === 'true'
+	? 'static'
+	: process.env['E2E_PREVIEW'] === 'true'
+		? 'preview'
+		: 'dev';
+
+const ports = { dev: 4302, preview: 4303, static: 4304 } as const;
+const port = ports[mode];
+const baseURL = `http://localhost:${port}`;
+
+const commands: Record<string, string> = {
+	dev: 'pnpm exec nx dev astro-e2e',
+	preview: 'pnpm exec nx preview astro-e2e',
+	static: `python3 -m http.server ${port} --directory dist/packages/npm/astro-e2e`,
+};
+
 export default defineConfig({
 	testDir: './e2e',
 	fullyParallel: true,
@@ -12,32 +28,17 @@ export default defineConfig({
 	},
 	projects: [
 		{
-			name: 'dev',
+			name: mode,
 			use: {
 				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4302',
-			},
-		},
-		{
-			name: 'preview',
-			use: {
-				...devices['Desktop Chrome'],
-				baseURL: 'http://localhost:4303',
+				baseURL,
 			},
 		},
 	],
-	webServer: [
-		{
-			command: 'npx nx dev astro-e2e',
-			url: 'http://localhost:4302',
-			reuseExistingServer: !process.env['CI'],
-			timeout: 30_000,
-		},
-		{
-			command: 'npx nx preview astro-e2e',
-			url: 'http://localhost:4303',
-			reuseExistingServer: !process.env['CI'],
-			timeout: 30_000,
-		},
-	],
+	webServer: {
+		command: commands[mode],
+		url: baseURL,
+		reuseExistingServer: !process.env['CI'],
+		timeout: 30_000,
+	},
 });

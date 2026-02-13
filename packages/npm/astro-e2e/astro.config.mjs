@@ -11,12 +11,24 @@ export default defineConfig({
 		}),
 	],
 	vite: {
+		server: {
+			fs: {
+				allow: ['../../..'],
+			},
+		},
 		ssr: {
 			noExternal: ['path-to-regexp'],
 		},
 		optimizeDeps: {
-			include: ['react', 'react-dom'],
-			exclude: ['@kbve/droid'],
+			include: ['comlink', 'react', 'react-dom'],
+		},
+		worker: {
+			format: 'es',
+			rollupOptions: {
+				output: {
+					entryFileNames: 'assets/[name].js',
+				},
+			},
 		},
 	},
 });

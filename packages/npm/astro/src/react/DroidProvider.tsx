@@ -11,8 +11,13 @@ export function useDroidContext(): DroidState {
 	return ctx;
 }
 
-export function DroidProvider({ children }: { children: ReactNode }) {
-	const state = useDroid();
+export interface DroidProviderProps {
+	children: ReactNode;
+	workerURLs?: Record<string, string>;
+}
+
+export function DroidProvider({ children, workerURLs }: DroidProviderProps) {
+	const state = useDroid(workerURLs);
 
 	return (
 		<DroidContext.Provider value={state}>

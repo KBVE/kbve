@@ -108,6 +108,45 @@
         "args"
       ]
     },
+    "container-test": {
+      "executor": "@nx-tools/nx-container:build",
+      "options": {
+        "engine": "docker",
+        "context": "apps/kbve/kilobase",
+        "file": "apps/kbve/kilobase/Dockerfile.test",
+        "metadata": {
+          "images": [
+            "kilobase-test"
+          ],
+          "load": true,
+          "tags": [
+            "latest"
+          ]
+        }
+      }
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "container-test"
+      ],
+      "inputs": [
+        "{projectRoot}/src/**/*.rs",
+        "{projectRoot}/Cargo.toml",
+        "{projectRoot}/Dockerfile.test",
+        "{projectRoot}/kilobase_dev.sh"
+      ],
+      "outputs": [
+        "{projectRoot}/test-results/test-results.json"
+      ],
+      "options": {
+        "cwd": "apps/kbve/kilobase",
+        "commands": [
+          "bash kilobase_dev.sh e2e"
+        ],
+        "parallel": false
+      }
+    },
     "dev-test": {
       "executor": "nx:run-commands",
       "options": {
