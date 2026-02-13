@@ -48,51 +48,92 @@ extension_sql!(
     bootstrap,
 );
 
+// Schema evolution: add new columns for change detection and UNIQUE index tracking
+extension_sql!(
+    r#"
+    ALTER TABLE matview_refresh_jobs ADD COLUMN IF NOT EXISTS source_table TEXT;
+    ALTER TABLE matview_refresh_jobs ADD COLUMN IF NOT EXISTS last_change_count BIGINT DEFAULT 0;
+    ALTER TABLE matview_refresh_jobs ADD COLUMN IF NOT EXISTS has_unique_index BOOLEAN DEFAULT false;
+    ALTER TABLE matview_refresh_jobs ADD COLUMN IF NOT EXISTS skip_count INTEGER DEFAULT 0;
+    "#,
+    name = "schema_evolution",
+    requires = ["bootstrap_tables"]
+);
+
 // Create indexes after tables
 extension_sql!(
     r#"
     -- Indexes for better performance
-    CREATE INDEX IF NOT EXISTS idx_matview_jobs_next_refresh 
+    CREATE INDEX IF NOT EXISTS idx_matview_jobs_next_refresh
         ON matview_refresh_jobs(next_refresh) WHERE is_active = true;
-    
-    CREATE INDEX IF NOT EXISTS idx_matview_log_job_time 
+
+    CREATE INDEX IF NOT EXISTS idx_matview_log_job_time
         ON matview_refresh_log(job_id, refresh_time);
-    
-    CREATE INDEX IF NOT EXISTS idx_matview_log_status_time 
+
+    CREATE INDEX IF NOT EXISTS idx_matview_log_status_time
         ON matview_refresh_log(status, refresh_time);
     "#,
     name = "create_indexes",
-    requires = ["bootstrap_tables"]
+    requires = ["schema_evolution"]
 );
 
 // Helper functions for managing refresh jobs
 extension_sql!(
     r#"
     -- Function to register a materialized view for automatic refresh
+    -- Now supports optional source_table for change detection and staggered scheduling
     CREATE OR REPLACE FUNCTION register_matview_refresh(
         p_schema_name TEXT,
         p_view_name TEXT,
-        p_interval_seconds INTEGER DEFAULT 300
+        p_interval_seconds INTEGER DEFAULT 300,
+        p_source_table TEXT DEFAULT NULL
     ) RETURNS INTEGER AS $$
     DECLARE
         job_id INTEGER;
+        job_count INTEGER;
+        stagger_offset INTEGER;
+        v_has_unique_index BOOLEAN;
     BEGIN
         -- Verify the materialized view exists
         IF NOT EXISTS (
-            SELECT 1 FROM pg_matviews 
+            SELECT 1 FROM pg_matviews
             WHERE schemaname = p_schema_name AND matviewname = p_view_name
         ) THEN
             RAISE EXCEPTION 'Materialized view %.% does not exist', p_schema_name, p_view_name;
         END IF;
 
+        -- Check for UNIQUE index on the matview (required for CONCURRENT refresh)
+        SELECT EXISTS (
+            SELECT 1 FROM pg_indexes
+            WHERE schemaname = p_schema_name AND tablename = p_view_name
+            AND indexdef LIKE '%UNIQUE%'
+        ) INTO v_has_unique_index;
+
+        IF NOT v_has_unique_index THEN
+            RAISE NOTICE 'View %.% lacks a UNIQUE index. CONCURRENT refresh (non-blocking) requires one. Falling back to ACCESS EXCLUSIVE lock refresh.', p_schema_name, p_view_name;
+        END IF;
+
+        -- Stagger scheduling: offset based on existing active job count
+        SELECT COUNT(*) INTO job_count FROM matview_refresh_jobs WHERE is_active = true;
+        stagger_offset := (job_count * 10) % GREATEST(p_interval_seconds, 1);
+
         -- Insert or update the job
-        INSERT INTO matview_refresh_jobs (schema_name, view_name, refresh_interval_seconds, next_refresh)
-        VALUES (p_schema_name, p_view_name, p_interval_seconds, NOW() + INTERVAL '1 minute')
-        ON CONFLICT (schema_name, view_name) 
-        DO UPDATE SET 
+        INSERT INTO matview_refresh_jobs (
+            schema_name, view_name, refresh_interval_seconds,
+            next_refresh, source_table, has_unique_index
+        )
+        VALUES (
+            p_schema_name, p_view_name, p_interval_seconds,
+            NOW() + ((60 + stagger_offset) * INTERVAL '1 second'),
+            p_source_table, v_has_unique_index
+        )
+        ON CONFLICT (schema_name, view_name)
+        DO UPDATE SET
             refresh_interval_seconds = p_interval_seconds,
             is_active = true,
-            next_refresh = NOW() + INTERVAL '1 minute'
+            next_refresh = NOW() + ((60 + stagger_offset) * INTERVAL '1 second'),
+            source_table = p_source_table,
+            has_unique_index = v_has_unique_index
         RETURNING id INTO job_id;
 
         RETURN job_id;
@@ -105,10 +146,10 @@ extension_sql!(
         p_view_name TEXT
     ) RETURNS BOOLEAN AS $$
     BEGIN
-        UPDATE matview_refresh_jobs 
-        SET is_active = false 
+        UPDATE matview_refresh_jobs
+        SET is_active = false
         WHERE schema_name = p_schema_name AND view_name = p_view_name;
-        
+
         RETURN FOUND;
     END;
     $$ LANGUAGE plpgsql;
@@ -119,9 +160,9 @@ extension_sql!(
 
 extension_sql!(
     r#"
-    -- View to see current refresh job status
+    -- View to see current refresh job status (enhanced with change detection fields)
     CREATE OR REPLACE VIEW matview_refresh_status AS
-    SELECT 
+    SELECT
         j.id,
         j.schema_name,
         j.view_name,
@@ -129,10 +170,18 @@ extension_sql!(
         j.last_refresh,
         j.next_refresh,
         j.is_active,
-        CASE 
+        j.has_unique_index,
+        j.source_table,
+        j.skip_count,
+        j.last_change_count,
+        CASE
             WHEN j.next_refresh <= NOW() THEN 'Due'
             ELSE 'Scheduled'
         END as current_status,
+        CASE
+            WHEN j.has_unique_index THEN 'CONCURRENT (non-blocking)'
+            ELSE 'EXCLUSIVE (blocking reads)'
+        END as refresh_mode,
         mv.ispopulated as view_populated,
         pg_size_pretty(pg_total_relation_size(
             (j.schema_name || '.' || j.view_name)::regclass
@@ -142,9 +191,9 @@ extension_sql!(
     WHERE j.is_active = true
     ORDER BY j.next_refresh;
 
-    -- View for recent refresh history
+    -- View for recent refresh history (increased to 500 entries)
     CREATE OR REPLACE VIEW matview_refresh_history AS
-    SELECT 
+    SELECT
         l.refresh_time,
         j.schema_name,
         j.view_name,
@@ -155,7 +204,7 @@ extension_sql!(
     FROM matview_refresh_log l
     JOIN matview_refresh_jobs j ON l.job_id = j.id
     ORDER BY l.refresh_time DESC
-    LIMIT 100;
+    LIMIT 500;
     "#,
     name = "monitoring_views",
     requires = ["helper_functions"]
@@ -214,4 +263,73 @@ extension_sql!(
     "#,
     name = "notifications",
     requires = ["sample_setup"]
+);
+
+// Log retention cleanup function
+extension_sql!(
+    r#"
+    -- Function to clean up old refresh log entries
+    CREATE OR REPLACE FUNCTION cleanup_matview_refresh_logs(
+        p_retention_days INTEGER DEFAULT 7
+    ) RETURNS INTEGER AS $$
+    DECLARE
+        deleted_count INTEGER;
+    BEGIN
+        WITH deleted AS (
+            DELETE FROM matview_refresh_log
+            WHERE refresh_time < NOW() - (p_retention_days * INTERVAL '1 day')
+            RETURNING 1
+        )
+        SELECT COUNT(*) INTO deleted_count FROM deleted;
+        RETURN deleted_count;
+    END;
+    $$ LANGUAGE plpgsql;
+    "#,
+    name = "cleanup_function",
+    requires = ["notifications"]
+);
+
+// Health check function for observability
+extension_sql!(
+    r#"
+    -- Health check function for kilobase diagnostics
+    CREATE OR REPLACE FUNCTION kilobase_health_check()
+    RETURNS TABLE(
+        worker_status TEXT,
+        active_jobs INTEGER,
+        jobs_due_now INTEGER,
+        total_refreshes_24h INTEGER,
+        failed_refreshes_24h INTEGER,
+        skipped_refreshes INTEGER,
+        avg_duration_ms_24h NUMERIC,
+        oldest_log_entry TIMESTAMPTZ,
+        log_table_rows BIGINT,
+        views_without_unique_index INTEGER
+    ) AS $$
+    BEGIN
+        RETURN QUERY SELECT
+            CASE WHEN EXISTS (
+                SELECT 1 FROM pg_stat_activity
+                WHERE backend_type = 'background worker'
+                AND application_name LIKE '%matview%'
+            ) THEN 'running'::TEXT ELSE 'unknown'::TEXT END,
+            (SELECT COUNT(*)::INTEGER FROM matview_refresh_jobs WHERE is_active = true),
+            (SELECT COUNT(*)::INTEGER FROM matview_refresh_jobs
+             WHERE is_active = true AND (next_refresh IS NULL OR next_refresh <= NOW())),
+            (SELECT COUNT(*)::INTEGER FROM matview_refresh_log
+             WHERE refresh_time > NOW() - INTERVAL '24 hours'),
+            (SELECT COUNT(*)::INTEGER FROM matview_refresh_log
+             WHERE refresh_time > NOW() - INTERVAL '24 hours' AND status = 'Failed'),
+            (SELECT COALESCE(SUM(skip_count), 0)::INTEGER FROM matview_refresh_jobs WHERE is_active = true),
+            (SELECT ROUND(COALESCE(AVG(duration_ms), 0)::NUMERIC, 2) FROM matview_refresh_log
+             WHERE refresh_time > NOW() - INTERVAL '24 hours' AND status = 'Success'),
+            (SELECT MIN(refresh_time) FROM matview_refresh_log),
+            (SELECT COUNT(*) FROM matview_refresh_log),
+            (SELECT COUNT(*)::INTEGER FROM matview_refresh_jobs
+             WHERE is_active = true AND has_unique_index = false);
+    END;
+    $$ LANGUAGE plpgsql;
+    "#,
+    name = "health_check",
+    requires = ["cleanup_function"]
 );

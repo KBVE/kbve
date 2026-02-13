@@ -108,6 +108,46 @@
         "args"
       ]
     },
+    "dev-test": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/kbve/kilobase",
+        "commands": [
+          "bash kilobase_dev.sh test"
+        ],
+        "parallel": false
+      }
+    },
+    "dev-unit": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/kbve/kilobase",
+        "commands": [
+          "bash kilobase_dev.sh unit"
+        ],
+        "parallel": false
+      }
+    },
+    "dev-results": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/kbve/kilobase",
+        "commands": [
+          "bash kilobase_dev.sh results"
+        ],
+        "parallel": false
+      }
+    },
+    "dev-clean": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/kbve/kilobase",
+        "commands": [
+          "bash kilobase_dev.sh clean"
+        ],
+        "parallel": false
+      }
+    },
     "debug": {
       "executor": "nx:run-commands",
       "options": {
