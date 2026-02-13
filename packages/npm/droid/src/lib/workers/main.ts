@@ -32,7 +32,7 @@ export function resolveWorkerURL(name: string, fallback?: string): string {
 
 /**
  * Simplified worker init — tries provided ref/URL, then falls back to
- * import.meta.url-relative paths (.ts for dev, .js for prod).
+ * resolveWorkerURL which checks window.kbveWorkerURLs or /workers/{name}.
  */
 function initSharedWorker(
 	name: string,
@@ -43,29 +43,10 @@ function initSharedWorker(
 		return opts.workerRef;
 	}
 
-	if (opts?.workerURL) {
-		const worker = new SharedWorker(opts.workerURL, { type: 'module' });
-		worker.port.start();
-		return worker;
-	}
-
-	// Try .js (production build output)
-	try {
-		const worker = new SharedWorker(
-			/* @vite-ignore */ new URL(`./${name}.js`, import.meta.url),
-			{ type: 'module' },
-		);
-		worker.port.start();
-		return worker;
-	} catch {
-		// Fallback to .ts (Vite dev)
-		const worker = new SharedWorker(
-			/* @vite-ignore */ new URL(`./${name}.ts`, import.meta.url),
-			{ type: 'module' },
-		);
-		worker.port.start();
-		return worker;
-	}
+	const url = opts?.workerURL ?? resolveWorkerURL(name);
+	const worker = new SharedWorker(url, { type: 'module' });
+	worker.port.start();
+	return worker;
 }
 
 function initDedicatedWorker(
@@ -74,21 +55,8 @@ function initDedicatedWorker(
 ): Worker {
 	if (opts?.workerRef) return opts.workerRef;
 
-	if (opts?.workerURL) {
-		return new Worker(opts.workerURL, { type: 'module' });
-	}
-
-	try {
-		return new Worker(
-			/* @vite-ignore */ new URL(`./${name}.js`, import.meta.url),
-			{ type: 'module' },
-		);
-	} catch {
-		return new Worker(
-			/* @vite-ignore */ new URL(`./${name}.ts`, import.meta.url),
-			{ type: 'module' },
-		);
-	}
+	const url = opts?.workerURL ?? resolveWorkerURL(name);
+	return new Worker(url, { type: 'module' });
 }
 
 async function initStorageComlink(opts?: {

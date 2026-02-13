@@ -1,0 +1,24 @@
+---
+import DroidProvider from '../../../astro/src/components/DroidProvider.astro';
+import { EventHookTest } from '../components/EventHookTest';
+import { workerURLs } from '../lib/workers';
+---
+
+<html lang="en">
+	<head>
+		<meta charset="UTF-8" />
+		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+		<title>Event Hook Test</title>
+	</head>
+	<body style="padding: 1rem; font-family: sans-serif;">
+		<nav data-testid="nav" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
+			<a data-testid="nav-home" href="/">Menu</a>
+			<a data-testid="nav-provider" href="/provider">Provider + Status</a>
+			<a data-testid="nav-events" href="/events">Event Hook</a>
+		</nav>
+
+		<DroidProvider workerURLs={workerURLs}>
+			<EventHookTest client:only="react" />
+		</DroidProvider>
+	</body>
+</html>
