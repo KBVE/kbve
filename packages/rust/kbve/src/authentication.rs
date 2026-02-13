@@ -37,13 +37,11 @@ use crate::schema::{ auth, profile, users };
 //	?	[Axum]
 
 use axum::{
-  async_trait,
-  http::{ StatusCode, Request, header },
-  extract::{ Extension, Path, State, FromRequest },
+  http::{ StatusCode, header },
+  extract::{ Extension, Path, State, Request },
   response::{ IntoResponse, Response },
-  middleware::{ self, Next },
+  middleware::Next,
   Json,
-  BoxError,
 };
 
 //	?	[Argon2]
@@ -624,11 +622,11 @@ pub async fn auth_jwt_update_profile(
 
 //	!	[END] -> @JWTs
 
-pub async fn graceful<B>(
+pub async fn graceful(
   cookie_jar: axum_extra::extract::cookie::CookieJar,
   State(_data): State<Arc<Pool>>,
-  mut req: Request<B>,
-  next: axum::middleware::Next<B>
+  mut req: Request,
+  next: Next,
 ) -> impl IntoResponse {
   let token_result: Result<String, ()> = cookie_jar
     .get("token")
@@ -675,10 +673,7 @@ pub async fn graceful<B>(
 
 //	!	[Shield]
 
-pub async fn shieldwall<B>(req: Request<B>, next: axum::middleware::Next<B>) -> impl IntoResponse
-  where
-    B: Send // required by `axum::middleware::Next`
-{
+pub async fn shieldwall(req: Request, next: Next) -> impl IntoResponse {
   // Extract the "kbve-shieldwall" header
   let shieldwall_header_value = req
     .headers()

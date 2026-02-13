@@ -36,12 +36,12 @@ impl HeaderResponse {
         http_only: bool,
         same_site: SameSite
     ) -> Self {
-        let cookie = Cookie::build(name, value)
+        let cookie = Cookie::build((name, value))
             .path(path)
             .max_age(duration)
             .same_site(same_site)
             .http_only(http_only)
-            .finish();
+            .build();
 
         let cookie_value = cookie.to_string();
         self.headers.insert(SET_COOKIE, cookie_value.parse().unwrap());

@@ -1,6 +1,5 @@
 use tokio::sync::Semaphore;
-use std::error::Error;
-use std::sync::{ Arc, Mutex };
+use std::sync::Arc;
 use reqwest::Client;
 use serde::{ Serialize, Deserialize };
 use crossbeam::queue::SegQueue;
@@ -63,6 +62,8 @@ impl std::fmt::Display for FeatherlessError {
   }
 }
 
+impl std::error::Error for FeatherlessError {}
+
 impl FeatherlessClient {
   pub fn new(
     api_key: String,
@@ -92,27 +93,53 @@ impl FeatherlessClient {
     let _permit = self.semaphore.acquire().await.unwrap();
 
     let url = format!("{}/completions", BASE_URL);
+    let mut attempts = 0;
 
-    let response = self.client
-      .post(&url)
-      .header("Authorization", format!("Bearer {}", self.api_key))
-      .header("Content-type", "application/json")
-      .json(request_body)
-      .send().await;
+    while attempts < self.max_retries {
+      attempts += 1;
 
-    match response {
-      Ok(resp) => {
-        if resp.status().is_success() {
-          match resp.json::<FeatherlessResponseBody>().await {
-            Ok(body) => Ok(body),
-            Err(e) => Err(FeatherlessError::JsonError(e.to_string())),
+      let response = self.client
+        .post(&url)
+        .header("Authorization", format!("Bearer {}", self.api_key))
+        .header("Content-type", "application/json")
+        .json(request_body)
+        .send()
+        .await;
+
+      match response {
+        Ok(resp) => {
+          if resp.status() == reqwest::StatusCode::TOO_MANY_REQUESTS {
+            tracing::warn!(
+              "Rate limited. Retrying in {} seconds...",
+              self.rate_limit_delay.as_secs()
+            );
+            tokio::time::sleep(self.rate_limit_delay).await;
+          } else if resp.status().is_success() {
+            return match resp.json::<FeatherlessResponseBody>().await {
+              Ok(body) => Ok(body),
+              Err(e) => Err(FeatherlessError::JsonError(e.to_string())),
+            };
+          } else {
+            tracing::error!("Request failed with status: {}", resp.status());
+            return Err(FeatherlessError::HttpError(resp.status()));
           }
-        } else {
-          Err(FeatherlessError::HttpError(resp.status()))
+        }
+        Err(e) => {
+          tracing::error!("Request failed: {}", e);
+          if attempts >= self.max_retries {
+            return Err(FeatherlessError::ClientError(e.to_string()));
+          }
+          tracing::warn!(
+            "Retrying request (attempt {}/{})",
+            attempts,
+            self.max_retries
+          );
+          tokio::time::sleep(self.rate_limit_delay).await;
         }
       }
-      Err(e) => Err(FeatherlessError::ClientError(e.to_string())),
     }
+
+    Err(FeatherlessError::ClientError("Max retries exceeded".to_string()))
   }
 
   pub fn add_to_queue(&self, url: String) {
@@ -132,5 +159,70 @@ impl FeatherlessClient {
     }
 
     status
+  }
+}
+
+#[cfg(test)]
+mod tests {
+  use super::*;
+
+  #[test]
+  fn test_featherless_client_creation() {
+    let client = FeatherlessClient::new(
+      "test-key".to_string(),
+      Duration::from_secs(5),
+      3,
+      10,
+    );
+    assert_eq!(client.api_key, "test-key");
+    assert_eq!(client.rate_limit_delay, Duration::from_secs(5));
+    assert_eq!(client.max_retries, 3);
+  }
+
+  #[test]
+  fn test_queue_add_and_status() {
+    let client = FeatherlessClient::new(
+      "test-key".to_string(),
+      Duration::from_secs(1),
+      3,
+      5,
+    );
+
+    client.add_to_queue("https://example.com/1".to_string());
+    client.add_to_queue("https://example.com/2".to_string());
+
+    let status = client.get_queue_status();
+    assert_eq!(status.len(), 2);
+    assert!(status.contains(&"https://example.com/1".to_string()));
+    assert!(status.contains(&"https://example.com/2".to_string()));
+
+    // Queue should still have items after get_queue_status
+    let status2 = client.get_queue_status();
+    assert_eq!(status2.len(), 2);
+  }
+
+  #[test]
+  fn test_featherless_error_display() {
+    let err = FeatherlessError::ClientError("connection refused".to_string());
+    assert_eq!(err.to_string(), "Client Error: connection refused");
+
+    let err = FeatherlessError::JsonError("invalid json".to_string());
+    assert_eq!(err.to_string(), "JSON Error: invalid json");
+
+    let err = FeatherlessError::NoAvailableClients;
+    assert_eq!(err.to_string(), "No available clients");
+  }
+
+  #[test]
+  fn test_featherless_client_clone() {
+    let client = FeatherlessClient::new(
+      "test-key".to_string(),
+      Duration::from_secs(2),
+      5,
+      10,
+    );
+    let cloned = client.clone();
+    assert_eq!(cloned.api_key, "test-key");
+    assert_eq!(cloned.max_retries, 5);
   }
 }
