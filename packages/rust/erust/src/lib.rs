@@ -4,11 +4,13 @@ pub mod ironatom;
 pub mod applicationstate;
 pub mod widgets;
 pub mod state;
+pub mod supabase;
 
 pub use ironatom::*;
 pub use applicationstate::*;
 pub use widgets::*;
 pub use state::*;
+pub use supabase::*;
 
 
 #[cfg(test)]
