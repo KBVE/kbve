@@ -6,6 +6,7 @@
 #   ./kilobase_dev.sh [command]
 #
 # Commands:
+#   e2e       Full e2e pipeline: unit tests -> Docker build -> integration tests
 #   test      Build test container and run all tests (default)
 #   unit      Run unit tests only (no Docker needed)
 #   build     Build the test container only
@@ -44,11 +45,18 @@ write_results() {
   "test_type": "$test_type",
   "unit_tests": {
     "passed": $unit_passed,
-    "failed": $unit_failed
+    "failed": $unit_failed,
+    "total": $(( unit_passed + unit_failed ))
   },
   "integration_tests": {
     "passed": $integration_passed,
-    "failed": $integration_failed
+    "failed": $integration_failed,
+    "total": $(( integration_passed + integration_failed ))
+  },
+  "summary": {
+    "total_passed": $(( unit_passed + integration_passed )),
+    "total_failed": $(( unit_failed + integration_failed )),
+    "total_tests": $(( unit_passed + unit_failed + integration_passed + integration_failed ))
   },
   "duration_seconds": $duration,
   "error_message": "$error_message",
@@ -59,6 +67,26 @@ EOF
     echo "[kilobase_dev] Results written to $RESULTS_FILE"
 }
 
+# Parse test count from cargo test output (POSIX-compatible)
+parse_test_count() {
+    local output="$1"
+    local label="$2"
+    echo "$output" | grep -Eo "[0-9]+ $label" | grep -Eo '[0-9]+' || echo "0"
+}
+
+# Check Docker is available
+check_docker() {
+    if ! command -v docker &> /dev/null; then
+        echo "[kilobase_dev] ERROR: Docker is not installed"
+        return 1
+    fi
+    if ! docker info &> /dev/null 2>&1; then
+        echo "[kilobase_dev] ERROR: Docker daemon is not running"
+        return 1
+    fi
+    return 0
+}
+
 # Run unit tests locally (no Docker needed)
 run_unit_tests() {
     echo "[kilobase_dev] Running unit tests..."
@@ -67,8 +95,10 @@ run_unit_tests() {
     local output
     if output=$(cd "$PROJECT_ROOT" && cargo test -p kilobase --lib 2>&1); then
         local duration=$(( SECONDS - start_time ))
-        local passed=$(echo "$output" | grep -oP '\d+ passed' | grep -oP '\d+' || echo "0")
-        local failed=$(echo "$output" | grep -oP '\d+ failed' | grep -oP '\d+' || echo "0")
+        local passed
+        passed=$(parse_test_count "$output" "passed")
+        local failed
+        failed=$(parse_test_count "$output" "failed")
         echo "$output"
         echo ""
         echo "[kilobase_dev] Unit tests PASSED ($passed passed, $failed failed) in ${duration}s"
@@ -113,19 +143,103 @@ run_full_tests() {
     local output
     if output=$(docker run --rm --name "$CONTAINER_NAME" "$IMAGE_NAME" 2>&1); then
         local duration=$(( SECONDS - start_time ))
+        local int_passed
+        int_passed=$(parse_test_count "$output" "passed")
+        local int_failed
+        int_failed=$(parse_test_count "$output" "failed")
         echo "$output"
         echo ""
         echo "[kilobase_dev] Full test suite PASSED in ${duration}s"
-        write_results "passed" "full" "10" "0" "11" "0" "$duration"
+        write_results "passed" "full" "0" "0" "$int_passed" "$int_failed" "$duration"
         return 0
     else
         local duration=$(( SECONDS - start_time ))
         echo "$output"
         echo ""
         echo "[kilobase_dev] Integration tests FAILED in ${duration}s"
-        write_results "failed" "full" "10" "0" "0" "11" "$duration" "Integration tests failed"
+        write_results "failed" "full" "0" "0" "0" "0" "$duration" "Integration tests failed"
         return 1
     fi
+}
+
+# Run e2e pipeline: unit tests -> Docker build -> integration tests
+run_e2e_tests() {
+    local start_time=$SECONDS
+    local unit_passed=0
+    local unit_failed=0
+    local integration_passed=0
+    local integration_failed=0
+
+    echo "============================================"
+    echo "[kilobase_dev] E2E Pipeline Starting"
+    echo "============================================"
+
+    # Pre-flight: check Docker is available
+    if ! check_docker; then
+        write_results "failed" "e2e" "0" "0" "0" "0" "0" "Docker not available"
+        return 1
+    fi
+
+    # Phase 1: Local unit tests
+    echo ""
+    echo "[kilobase_dev] Phase 1/3: Running local unit tests..."
+    local unit_output
+    if unit_output=$(cd "$PROJECT_ROOT" && cargo test -p kilobase --lib 2>&1); then
+        unit_passed=$(parse_test_count "$unit_output" "passed")
+        unit_failed=$(parse_test_count "$unit_output" "failed")
+        echo "$unit_output"
+        echo ""
+        echo "[kilobase_dev] Phase 1/3 PASSED: $unit_passed passed, $unit_failed failed"
+    else
+        local duration=$(( SECONDS - start_time ))
+        echo "$unit_output"
+        echo ""
+        echo "[kilobase_dev] Phase 1/3 FAILED: Unit tests did not pass"
+        write_results "failed" "e2e" "0" "0" "0" "0" "$duration" "Unit tests failed - aborting e2e pipeline"
+        return 1
+    fi
+
+    # Phase 2: Docker build (also re-runs unit tests inside container)
+    echo ""
+    echo "[kilobase_dev] Phase 2/3: Building Docker test image..."
+    if ! build_test_image; then
+        local duration=$(( SECONDS - start_time ))
+        echo "[kilobase_dev] Phase 2/3 FAILED: Docker build failed"
+        write_results "failed" "e2e" "$unit_passed" "$unit_failed" "0" "0" "$duration" "Docker build failed"
+        return 1
+    fi
+    echo "[kilobase_dev] Phase 2/3 PASSED: Docker image built successfully"
+
+    # Phase 3: Docker run (pgrx integration tests)
+    echo ""
+    echo "[kilobase_dev] Phase 3/3: Running pgrx integration tests in Docker..."
+    local integration_output
+    if integration_output=$(docker run --rm --name "$CONTAINER_NAME" "$IMAGE_NAME" 2>&1); then
+        integration_passed=$(parse_test_count "$integration_output" "passed")
+        integration_failed=$(parse_test_count "$integration_output" "failed")
+        echo "$integration_output"
+        echo ""
+        echo "[kilobase_dev] Phase 3/3 PASSED: Integration tests completed"
+    else
+        local duration=$(( SECONDS - start_time ))
+        echo "$integration_output"
+        echo ""
+        echo "[kilobase_dev] Phase 3/3 FAILED: Integration tests did not pass"
+        write_results "failed" "e2e" "$unit_passed" "$unit_failed" "0" "0" "$duration" "Integration tests failed"
+        return 1
+    fi
+
+    # All phases passed
+    local duration=$(( SECONDS - start_time ))
+    echo ""
+    echo "============================================"
+    echo "[kilobase_dev] E2E Pipeline PASSED"
+    echo "  Unit:        $unit_passed passed, $unit_failed failed"
+    echo "  Integration: $integration_passed passed, $integration_failed failed"
+    echo "  Duration:    ${duration}s"
+    echo "============================================"
+    write_results "passed" "e2e" "$unit_passed" "$unit_failed" "$integration_passed" "$integration_failed" "$duration"
+    return 0
 }
 
 # Show last test results
@@ -154,6 +268,9 @@ clean() {
 COMMAND="${1:-test}"
 
 case "$COMMAND" in
+    e2e)
+        run_e2e_tests
+        ;;
     test)
         run_full_tests
         ;;
@@ -171,7 +288,7 @@ case "$COMMAND" in
         ;;
     *)
         echo "Unknown command: $COMMAND"
-        echo "Usage: $0 [test|unit|build|results|clean]"
+        echo "Usage: $0 [e2e|test|unit|build|results|clean]"
         exit 1
         ;;
 esac

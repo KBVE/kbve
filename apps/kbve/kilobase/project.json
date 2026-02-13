@@ -108,6 +108,28 @@
         "args"
       ]
     },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "dependsOn": [
+        "test"
+      ],
+      "inputs": [
+        "{projectRoot}/src/**/*.rs",
+        "{projectRoot}/Cargo.toml",
+        "{projectRoot}/Dockerfile.test",
+        "{projectRoot}/kilobase_dev.sh"
+      ],
+      "outputs": [
+        "{projectRoot}/test-results/test-results.json"
+      ],
+      "options": {
+        "cwd": "apps/kbve/kilobase",
+        "commands": [
+          "bash kilobase_dev.sh e2e"
+        ],
+        "parallel": false
+      }
+    },
     "dev-test": {
       "executor": "nx:run-commands",
       "options": {
