@@ -7,3 +7,6 @@ volumes/
 .gitingore
 project.json
 project.lock.json
+test-results/
+kilobase_dev.sh
+Dockerfile.test

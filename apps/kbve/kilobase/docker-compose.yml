@@ -1,4 +1,16 @@
 services:
+    # Test runner: runs unit + pgrx integration tests
+    # Usage: docker compose --profile test run --rm kilobase-test
+    kilobase-test:
+        container_name: kilobase-test
+        build:
+            context: .
+            dockerfile: Dockerfile.test
+        profiles:
+            - test
+        environment:
+            CARGO_TERM_COLOR: always
+
     kilobase-init:
         image: busybox:latest
         container_name: kilobase-init
