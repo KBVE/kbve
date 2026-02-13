@@ -2,10 +2,7 @@ use axum::{
     extract::Query,
     response::{Response, IntoResponse},
     http::{StatusCode, header},
-    routing::get,
-    Router,
     body::Body,
-    async_trait,
 };
 
 use serde::Deserialize;
