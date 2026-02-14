@@ -41,8 +41,8 @@ FROM postgres:17-bookworm
 COPY --from=builder /build/target/release/kilobase-pg17/usr/share/postgresql/17/extension/kilobase* /usr/share/postgresql/17/extension/
 COPY --from=builder /build/target/release/kilobase-pg17/usr/lib/postgresql/17/lib/kilobase.so /usr/lib/postgresql/17/lib/kilobase.so
 
-# Copy the SQL test script
-COPY sql/test_kilobase.sql /docker-entrypoint-initdb.d/
+# Copy the SQL test script to /tests/ (NOT initdb.d — avoid double execution)
+COPY sql/test_kilobase.sql /tests/test_kilobase.sql
 
 # Configure PostgreSQL to preload kilobase
 RUN echo "shared_preload_libraries = 'kilobase'" >> /usr/share/postgresql/postgresql.conf.sample

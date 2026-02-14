@@ -1,7 +1,8 @@
 ---
-import { ProviderTestHarness } from '../components/ProviderTestHarness';
-import { OutsideProviderTest } from '../components/OutsideProviderTest';
-import { CnTest } from '../components/CnTest';
+import DroidProvider from '../../../astro/src/components/DroidProvider.astro';
+import { RapidFireTest } from '../components/RapidFireTest';
+import { CnEdgeCaseTest } from '../components/CnEdgeCaseTest';
+import { MultiConsumerTest } from '../components/MultiConsumerTest';
 import { workerURLs } from '../lib/workers';
 ---
 
@@ -9,7 +10,7 @@ import { workerURLs } from '../lib/workers';
 	<head>
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
-		<title>Provider + Status Test</title>
+		<title>Edge Case Tests</title>
 	</head>
 	<body style="padding: 1rem; font-family: sans-serif;">
 		<nav data-testid="nav" style="display: flex; gap: 0.5rem; margin-bottom: 1rem;">
@@ -19,20 +20,18 @@ import { workerURLs } from '../lib/workers';
 			<a data-testid="nav-edge-cases" href="/edge-cases">Edge Cases</a>
 		</nav>
 
-		<div data-testid="provider-status-test" style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
-			<h2>DroidProvider + DroidStatus Integration</h2>
-
-			<ProviderTestHarness client:only="react" workerURLs={workerURLs} />
+		<div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
+			<DroidProvider workerURLs={workerURLs}>
+				<RapidFireTest client:only="react" />
+			</DroidProvider>
 		</div>
 
 		<div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
-			<h3>Error Handling: useDroidContext outside Provider</h3>
-			<OutsideProviderTest client:only="react" />
+			<CnEdgeCaseTest client:only="react" />
 		</div>
 
 		<div style="border: 1px solid #ccc; padding: 1rem; margin-bottom: 1rem;">
-			<h3>cn Utility</h3>
-			<CnTest client:only="react" />
+			<MultiConsumerTest client:only="react" workerURLs={workerURLs} />
 		</div>
 	</body>
 </html>

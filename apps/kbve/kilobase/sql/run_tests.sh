@@ -38,7 +38,7 @@ echo "============================================"
 echo ""
 
 # Run the test SQL and capture output
-TEST_OUTPUT=$(psql -U postgres -d kilobase_test -f /docker-entrypoint-initdb.d/test_kilobase.sql 2>&1) || true
+TEST_OUTPUT=$(psql -U postgres -d kilobase_test -f /tests/test_kilobase.sql 2>&1) || true
 
 # Parse PASS/FAIL from NOTICE messages
 while IFS= read -r line; do
