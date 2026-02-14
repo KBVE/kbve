@@ -1,5 +1,5 @@
 {
-  "name": "rust_soul",
+  "name": "soul",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
   "sourceRoot": "packages/rust/soul/src",
