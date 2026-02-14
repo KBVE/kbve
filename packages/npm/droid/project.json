@@ -34,6 +34,13 @@
 				"packageRoot": "dist/packages/npm/droid"
 			}
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx e2e droid-e2e"],
+				"parallel": false
+			}
+		},
 		"publish": {
 			"executor": "nx:run-commands",
 			"options": {
