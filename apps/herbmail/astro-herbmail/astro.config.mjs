@@ -14,6 +14,7 @@ export default defineConfig({
         './src/styles/global.css',
       ],
       components: {
+        Header: './src/components/header/Header.astro',
         Footer: './src/components/starlight/Footer.astro',
       },
       sidebar: [
