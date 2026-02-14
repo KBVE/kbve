@@ -1,0 +1,7 @@
+<div class="text-center">
+    <p class="text-3xl font-bold text-gray-900 dark:text-white">{{ value }}</p>
+    <p class="mt-1 text-sm font-medium uppercase tracking-wide text-gray-500 dark:text-gray-400">{{ label }}</p>
+    {% if let Some(val) = description %}
+    <p class="mt-1 text-sm text-gray-600 dark:text-gray-300">{{ val }}</p>
+    {% endif %}
+</div>

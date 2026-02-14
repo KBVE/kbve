@@ -1,0 +1,23 @@
+---
+interface Props {
+	class?: string;
+}
+const { class: className } = Astro.props;
+const fragment = `<div class="rounded-lg border border-gray-200 bg-white p-6 shadow-sm dark:border-gray-700 dark:bg-gray-800">
+    <h3 class="text-lg font-semibold text-gray-900 dark:text-white">{{ title }}</h3>
+    {% if let Some(val) = subtitle %}
+    <p class="mt-1 text-sm text-gray-500 dark:text-gray-400">{{ val }}</p>
+    {% endif %}
+    {% if let Some(val) = body %}
+    <div class="mt-4 text-gray-700 dark:text-gray-300">{{ val }}</div>
+    {% endif %}
+    {% if let Some(val) = href %}
+    <a href="{{ val }}" class="mt-4 inline-block text-blue-600 hover:underline dark:text-blue-400">
+        {% if let Some(lt) = link_text %}{{ lt }}{% else %}Learn more{% endif %}
+    </a>
+    {% endif %}
+</div>`;
+---
+<div class={className}>
+	<Fragment set:html={fragment} />
+</div>

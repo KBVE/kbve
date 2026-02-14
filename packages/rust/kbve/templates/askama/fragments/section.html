@@ -1,0 +1,9 @@
+<section class="py-12">
+    <h2 class="text-2xl font-bold text-gray-900 dark:text-white">{{ title }}</h2>
+    {% if let Some(val) = subtitle %}
+    <p class="mt-2 text-gray-600 dark:text-gray-400">{{ val }}</p>
+    {% endif %}
+    {% if let Some(val) = body %}
+    <div class="mt-6 text-gray-700 dark:text-gray-300">{{ val }}</div>
+    {% endif %}
+</section>
