@@ -70,7 +70,7 @@
 		"@vitest/coverage-c8": "~0.32.4",
 		"@vitest/coverage-v8": "4.0.9",
 		"@vitest/ui": "4.0.9",
-		"@vitest/web-worker": "^2.1.9",
+		"@vitest/web-worker": "4.0.9",
 		"@webcomponents/template-shadowroot": "^0.2.1",
 		"astro": "5.17.2",
 		"astro-compressor": "^1.2.0",

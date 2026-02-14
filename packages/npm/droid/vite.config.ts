@@ -8,6 +8,16 @@ export default defineConfig(() => ({
   cacheDir: '../../../node_modules/.vite/npm/droid',
   plugins: [nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
 
+  resolve: {
+    alias: {
+      '/workers/canvas-worker': path.resolve(__dirname, 'src/lib/workers/canvas-worker.ts'),
+      '/workers/db-worker': path.resolve(__dirname, 'src/lib/workers/db-worker.ts'),
+      '/workers/ws-worker': path.resolve(__dirname, 'src/lib/workers/ws-worker.ts'),
+      '/workers/supabase-shared-worker': path.resolve(__dirname, 'src/lib/workers/supabase-shared-worker.ts'),
+      '/workers/supabase-db-worker': path.resolve(__dirname, 'src/lib/workers/supabase-db-worker.ts'),
+    },
+  },
+
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.ts'),
