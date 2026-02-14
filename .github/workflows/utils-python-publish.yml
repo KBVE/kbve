@@ -1,4 +1,4 @@
-name: Utils NPM Publish
+name: Utils Python Publish
 
 on:
   workflow_call:
@@ -7,13 +7,15 @@ on:
         required: true
         type: string
     secrets:
-      NPM_TOKEN:
+      PYPI_TOKEN:
         required: true
 
 jobs:
   publish:
-    name: Publish ${{ inputs.project }} NPM Package
+    name: Publish ${{ inputs.project }} Python Package
     runs-on: ubuntu-latest
+    environment:
+      name: pypi
     permissions:
       contents: read
       id-token: write
@@ -21,14 +23,11 @@ jobs:
     steps:
       - name: Checkout the monorepo
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
 
-      - name: Setup Node v20
+      - name: Setup Node v22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
-          registry-url: https://registry.npmjs.org/
+          node-version: 22
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v4
@@ -53,33 +52,25 @@ jobs:
       - name: Install pnpm dependencies
         run: pnpm install
 
-      - name: Install npm
-        run: npm install --legacy-peer-deps
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
 
-      - name: Print Environment Info
-        run: npx nx report
-
-    #   - name: Build KBVE ${{ inputs.project }} NPM Package
-    #     uses: ./.github/actions/kbve-shell
-    #     with:
-    #       flag: "-nx ${{ inputs.project }}:build"
-    #       create_pull_request: false
-    #       github_token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
 
       - name: Run e2e for ${{ inputs.project }}
         shell: bash
         run: pnpm nx e2e ${{ inputs.project }}
 
-      - name: Build KBVE ${{ inputs.project }} NPM Package
+      - name: Build ${{ inputs.project }}
         shell: bash
-        run: ./kbve.sh -nx ${{ inputs.project }}:publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
+        run: pnpm nx build ${{ inputs.project }}
 
-
-      # - name: Publish NPM Package
-      #   run: npx nx run ${{ inputs.project }}:nx-release-publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      #     NPM_CONFIG_PROVENANCE: true
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
+          packages-dir: packages/python/${{ inputs.project == 'python-fudster' && 'fudster' || 'kbve' }}/dist/
