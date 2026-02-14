@@ -5,6 +5,7 @@ export * from './lib/types/panel-types';
 export * from './lib/workers/events';
 export * from './lib/mod/mod-urls';
 export * from './lib/gateway';
+export * from './lib/state';
 
 export const workerURLs = {
 	canvasWorker: new URL(
