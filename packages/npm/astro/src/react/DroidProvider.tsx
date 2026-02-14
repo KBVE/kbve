@@ -12,7 +12,7 @@ export function useDroidContext(): DroidState {
 }
 
 export interface DroidProviderProps {
-	children: ReactNode;
+	children?: ReactNode;
 	workerURLs?: Record<string, string>;
 }
 

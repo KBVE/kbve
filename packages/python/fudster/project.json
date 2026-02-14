@@ -50,6 +50,13 @@
 				"outputFile": "reports/packages/python/fudster/pylint.txt"
 			}
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx test python-fudster"],
+				"parallel": false
+			}
+		},
 		"test": {
 			"executor": "@nxlv/python:run-commands",
 			"outputs": [

@@ -36,6 +36,13 @@
 				"target-dir": "dist/target/jedi"
 			}
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx test jedi"],
+				"parallel": false
+			}
+		},
 		"dry": {
 			"executor": "nx:run-commands",
 			"options": {

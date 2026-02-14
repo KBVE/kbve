@@ -34,7 +34,7 @@ export function toBase64(bytes: Uint8Array): string {
 /**
  * Decode a base64 string to a Uint8Array.
  */
-export function fromBase64(b64: string): Uint8Array {
+export function fromBase64(b64: string): Uint8Array<ArrayBuffer> {
 	const binary = atob(b64);
 	const bytes = new Uint8Array(binary.length);
 	for (let i = 0; i < binary.length; i++) {
@@ -55,8 +55,8 @@ export function toHex(bytes: Uint8Array): string {
 /**
  * Encode a string to a Uint8Array via TextEncoder.
  */
-export function encode(text: string): Uint8Array {
-	return new TextEncoder().encode(text);
+export function encode(text: string): Uint8Array<ArrayBuffer> {
+	return new TextEncoder().encode(text) as Uint8Array<ArrayBuffer>;
 }
 
 /**

@@ -18,7 +18,13 @@
 			"types": "./index.d.ts"
 		},
 		"./components/DroidProvider.astro": "./components/DroidProvider.astro",
-		"./components/DroidStatus.astro": "./components/DroidStatus.astro"
+		"./components/DroidStatus.astro": "./components/DroidStatus.astro",
+		"./components/AskamaFragment.astro": "./components/AskamaFragment.astro",
+		"./components/AskamaCard.astro": "./components/AskamaCard.astro",
+		"./components/AskamaHero.astro": "./components/AskamaHero.astro",
+		"./components/AskamaAlert.astro": "./components/AskamaAlert.astro",
+		"./components/AskamaSection.astro": "./components/AskamaSection.astro",
+		"./components/AskamaStat.astro": "./components/AskamaStat.astro"
 	},
 	"files": [
 		"astro.es.js",

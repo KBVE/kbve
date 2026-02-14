@@ -159,6 +159,13 @@ impl From<RedisError> for JediError {
   }
 }
 
+#[cfg(feature = "clickhouse")]
+impl From<clickhouse::error::Error> for JediError {
+  fn from(err: clickhouse::error::Error) -> Self {
+    JediError::Database(Cow::Owned(format!("ClickHouse error: {}", err)))
+  }
+}
+
 impl<E: std::fmt::Display + Send + Sync + 'static> ErrorSink<E> for JediErrorSink {
   fn sink(&self, error: E) {
     let err = JediError::Database(Cow::Owned(format!("bb8 async error: {}", error)));

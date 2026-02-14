@@ -1,0 +1,11 @@
+<section class="py-16 text-center">
+    <h1 class="text-4xl font-bold tracking-tight text-gray-900 dark:text-white sm:text-5xl">{{ title }}</h1>
+    {% if let Some(val) = subtitle %}
+    <p class="mx-auto mt-4 max-w-2xl text-lg text-gray-600 dark:text-gray-300">{{ val }}</p>
+    {% endif %}
+    {% if let Some(val) = cta_href %}
+    <a href="{{ val }}" class="mt-8 inline-block rounded-lg bg-blue-600 px-6 py-3 text-white hover:bg-blue-700">
+        {% if let Some(ct) = cta_text %}{{ ct }}{% else %}Get Started{% endif %}
+    </a>
+    {% endif %}
+</section>

@@ -66,6 +66,10 @@ jobs:
     #       create_pull_request: false
     #       github_token: ${{ secrets.GITHUB_TOKEN }}
 
+      - name: Run e2e for ${{ inputs.project }}
+        shell: bash
+        run: pnpm nx e2e ${{ inputs.project }}
+
       - name: Build KBVE ${{ inputs.project }} NPM Package
         shell: bash
         run: ./kbve.sh -nx ${{ inputs.project }}:publish
