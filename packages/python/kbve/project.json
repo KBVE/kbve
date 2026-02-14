@@ -50,6 +50,13 @@
 				"outputFile": "reports/packages/python/kbve/pylint.txt"
 			}
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx test python-kbve"],
+				"parallel": false
+			}
+		},
 		"test": {
 			"executor": "@nxlv/python:run-commands",
 			"outputs": [
