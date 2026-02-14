@@ -1495,6 +1495,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-herbmail"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "askama 0.15.4",
+ "axum 0.8.8",
+ "axum-extra 0.12.5",
+ "dotenvy",
+ "jedi 0.2.1",
+ "kbve",
+ "num_cpus",
+ "serde",
+ "serde_json",
+ "socket2 0.6.2",
+ "thiserror 2.0.18",
+ "tikv-jemallocator",
+ "tokio",
+ "tower 0.5.2",
+ "tower-http 0.6.6",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "axum-macros"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4928,7 +4952,7 @@ dependencies = [
  "libc",
  "percent-encoding",
  "pin-project-lite",
- "socket2 0.6.0",
+ "socket2 0.5.10",
  "tokio",
  "tower-service",
  "tracing",
@@ -8857,12 +8881,12 @@ dependencies = [
 
 [[package]]
 name = "socket2"
-version = "0.6.0"
+version = "0.6.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "233504af464074f9d066d7b5416c5f9b894a5862a6506e306f7b816cdd6f1807"
+checksum = "86f4aa3ad99f2088c990dfa82d367e19cb29268ed67c574d10d0a4bfe71f07e0"
 dependencies = [
  "libc",
- "windows-sys 0.59.0",
+ "windows-sys 0.60.2",
 ]
 
 [[package]]
@@ -11275,7 +11299,7 @@ dependencies = [
  "pin-project-lite",
  "signal-hook-registry",
  "slab",
- "socket2 0.6.0",
+ "socket2 0.6.2",
  "tokio-macros",
  "windows-sys 0.59.0",
 ]
