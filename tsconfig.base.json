@@ -20,7 +20,7 @@
 			"@kbve/astropad": ["packages/astropad/index.ts"],
 			"@kbve/devops": ["packages/npm/devops/src/index.ts"],
 			"@kbve/droid": ["packages/npm/droid/src/index.ts"],
-			"@kbve/khashvault": ["packages/khashvault/src/index.ts"],
+			"@kbve/khashvault": ["packages/npm/khashvault/src/index.ts"],
 			"@kbve/laser": ["packages/npm/laser/src/index.ts"],
 			"@kbve/unity-js": ["packages/unity/unity-js/src/index.ts"]
 		}
