@@ -57,7 +57,7 @@
     "@bufbuild/protobuf": "^2.5.2"
   },
   "peerDependencies": {
-    "@supabase/supabase-js": "^2.0.0"
+    "@supabase/supabase-js": "^2.95.3"
   },
   "peerDependenciesMeta": {
     "@supabase/supabase-js": {

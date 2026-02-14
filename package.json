@@ -145,7 +145,7 @@
 		"@react-three/fiber": "^9.1.2",
 		"@react-three/flex": "^1.0.1",
 		"@stylexjs/stylex": "^0.7.5",
-		"@supabase/supabase-js": "^2.50.0",
+		"@supabase/supabase-js": "^2.95.3",
 		"@swc/helpers": "0.5.18",
 		"@tabler/icons-react": "^2.47.0",
 		"@tanstack/query-core": "^5.59.13",
