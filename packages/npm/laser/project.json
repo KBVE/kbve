@@ -28,6 +28,13 @@
 				"packageRoot": "dist/packages/npm/laser"
 			}
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx e2e laser-e2e"],
+				"parallel": false
+			}
+		},
 		"publish": {
 			"executor": "nx:run-commands",
 			"options": {
