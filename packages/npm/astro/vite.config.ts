@@ -1,4 +1,4 @@
-/// <reference types='vitest' />
+/// <reference types="vitest/config" />
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 import dts from 'vite-plugin-dts';
@@ -18,7 +18,6 @@ export default defineConfig({
 			entryRoot: 'src',
 			tsconfigPath: path.join(__dirname, 'tsconfig.lib.json'),
 			outDir: '../../../dist/packages/npm/astro',
-			skipDiagnostics: true,
 		}),
 	],
 
