@@ -17,7 +17,7 @@ export interface AesEncryptResult {
 
 export interface AesEncryptOptions {
 	/** Optional 12-byte IV. If omitted, a random IV is generated. */
-	iv?: Uint8Array;
+	iv?: Uint8Array<ArrayBuffer>;
 }
 
 export interface AesDecryptOptions {
@@ -59,7 +59,7 @@ export interface Pbkdf2Options {
 	/** The password / passphrase */
 	password: string;
 	/** Salt as Uint8Array. If omitted, a random 16-byte salt is generated. */
-	salt?: Uint8Array;
+	salt?: Uint8Array<ArrayBuffer>;
 	/** Number of iterations. Default: 600_000 */
 	iterations?: number;
 	/** Hash function to use. Default: 'SHA-256' */
@@ -72,7 +72,7 @@ export interface DerivedKeyResult {
 	/** The derived CryptoKey, usable with AES-GCM */
 	key: CryptoKey;
 	/** The salt used (so it can be stored alongside ciphertext) */
-	salt: Uint8Array;
+	salt: Uint8Array<ArrayBuffer>;
 	/** Number of iterations used */
 	iterations: number;
 }

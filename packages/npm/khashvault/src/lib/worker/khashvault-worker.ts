@@ -105,7 +105,7 @@ const khashvaultWorkerAPI = {
 		byteLength: number,
 		algorithm?: HashAlgorithm,
 	): Promise<{ hex: string }> {
-		const view = new Uint8Array(buffer, 0, byteLength);
+		const view = new Uint8Array(new Uint8Array(buffer, 0, byteLength));
 		const result = await hashBytes(view, algorithm);
 		return { hex: result.hex };
 	},

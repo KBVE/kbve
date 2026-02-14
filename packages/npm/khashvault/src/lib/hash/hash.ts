@@ -29,7 +29,7 @@ export async function hash(
  * Hash raw bytes.
  */
 export async function hashBytes(
-	data: Uint8Array | ArrayBuffer,
+	data: Uint8Array<ArrayBuffer> | ArrayBuffer,
 	algorithm: HashAlgorithm = 'SHA-256',
 ): Promise<HashResult> {
 	try {

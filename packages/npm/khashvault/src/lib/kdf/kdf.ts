@@ -56,7 +56,7 @@ export async function deriveKey(
  */
 export async function deriveRawBits(
 	options: Pbkdf2Options,
-): Promise<{ bits: ArrayBuffer; salt: Uint8Array; iterations: number }> {
+): Promise<{ bits: ArrayBuffer; salt: Uint8Array<ArrayBuffer>; iterations: number }> {
 	try {
 		const subtle = getSubtle();
 		const salt =
