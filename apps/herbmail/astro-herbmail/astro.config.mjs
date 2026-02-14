@@ -13,6 +13,9 @@ export default defineConfig({
       customCss: [
         './src/styles/global.css',
       ],
+      components: {
+        Footer: './src/components/starlight/Footer.astro',
+      },
       sidebar: [
         {
           label: 'Guides',

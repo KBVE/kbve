@@ -1,4 +1,6 @@
 ---
+import { DroidProvider } from '@kbve/astro';
+
 interface Props {
   title: string;
   description?: string;
@@ -17,6 +19,7 @@ const { title, description = 'Herbmail - Herbal Email Solutions' } = Astro.props
     <title>{title}</title>
   </head>
   <body>
+    <DroidProvider client:only="react" />
     <slot />
   </body>
 </html>
