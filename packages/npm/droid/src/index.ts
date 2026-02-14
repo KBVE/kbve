@@ -7,36 +7,25 @@ export * from './lib/mod/mod-urls';
 export * from './lib/gateway';
 export * from './lib/state';
 
+// Vite ?worker&url imports — bundles each worker as JS and returns the URL string
+import canvasWorkerUrl from './lib/workers/canvas-worker?worker&url';
+import dbWorkerUrl from './lib/workers/db-worker?worker&url';
+import wsWorkerUrl from './lib/workers/ws-worker?worker&url';
+import supabaseSharedWorkerUrl from './lib/workers/supabase-shared-worker?worker&url';
+import supabaseDbWorkerUrl from './lib/workers/supabase-db-worker?worker&url';
+
 export const workerURLs = {
-	canvasWorker: new URL(
-		'./lib/workers/canvas-worker.js',
-		import.meta.url,
-	),
-	dbWorker: new URL('./lib/workers/db-worker.js', import.meta.url),
-	wsWorker: new URL('./lib/workers/ws-worker.js', import.meta.url),
-	supabaseSharedWorker: new URL(
-		'./lib/workers/supabase-shared-worker.js',
-		import.meta.url,
-	),
-	supabaseDbWorker: new URL(
-		'./lib/workers/supabase-db-worker.js',
-		import.meta.url,
-	),
+	canvasWorker: canvasWorkerUrl,
+	dbWorker: dbWorkerUrl,
+	wsWorker: wsWorkerUrl,
+	supabaseSharedWorker: supabaseSharedWorkerUrl,
+	supabaseDbWorker: supabaseDbWorkerUrl,
 };
 
 export const workerStrings = {
-	canvasWorker: new URL(
-		'./lib/workers/canvas-worker.js',
-		import.meta.url,
-	).toString(),
-	dbWorker: new URL('./lib/workers/db-worker.js', import.meta.url).toString(),
-	wsWorker: new URL('./lib/workers/ws-worker.js', import.meta.url).toString(),
-	supabaseSharedWorker: new URL(
-		'./lib/workers/supabase-shared-worker.js',
-		import.meta.url,
-	).toString(),
-	supabaseDbWorker: new URL(
-		'./lib/workers/supabase-db-worker.js',
-		import.meta.url,
-	).toString(),
+	canvasWorker: canvasWorkerUrl,
+	dbWorker: dbWorkerUrl,
+	wsWorker: wsWorkerUrl,
+	supabaseSharedWorker: supabaseSharedWorkerUrl,
+	supabaseDbWorker: supabaseDbWorkerUrl,
 };

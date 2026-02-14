@@ -13,6 +13,10 @@ import { SharedWorkerStrategy } from './strategies/SharedWorkerStrategy';
 import { WebWorkerStrategy } from './strategies/WebWorkerStrategy';
 import { DirectStrategy } from './strategies/DirectStrategy';
 
+// Vite ?worker&url imports — bundles workers as JS and returns their URL
+import defaultSharedWorkerUrl from '../workers/supabase-shared-worker?worker&url';
+import defaultDbWorkerUrl from '../workers/supabase-db-worker?worker&url';
+
 /**
  * SupabaseGateway: Unified interface for all Supabase operations
  *
@@ -39,18 +43,14 @@ export class SupabaseGateway implements ISupabaseStrategy {
 
     switch (this.strategyType) {
       case 'shared-worker': {
-        const sharedUrl = workerUrls.sharedWorker
-          ?? new URL('../workers/supabase-shared-worker.js', import.meta.url).href;
-        const dbUrl = workerUrls.dbWorker
-          ?? new URL('../workers/supabase-db-worker.js', import.meta.url).href;
+        const sharedUrl = workerUrls.sharedWorker ?? defaultSharedWorkerUrl;
+        const dbUrl = workerUrls.dbWorker ?? defaultDbWorkerUrl;
         this.strategy = new SharedWorkerStrategy(sharedUrl, dbUrl, poolSize);
         break;
       }
       case 'web-worker': {
-        const wsUrl = workerUrls.webSocketWorker
-          ?? new URL('../workers/supabase-shared-worker.js', import.meta.url).href;
-        const dbUrl = workerUrls.dbWorker
-          ?? new URL('../workers/supabase-db-worker.js', import.meta.url).href;
+        const wsUrl = workerUrls.webSocketWorker ?? defaultSharedWorkerUrl;
+        const dbUrl = workerUrls.dbWorker ?? defaultDbWorkerUrl;
         this.strategy = new WebWorkerStrategy(wsUrl, dbUrl, poolSize);
         break;
       }
