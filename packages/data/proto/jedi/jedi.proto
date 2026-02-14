@@ -43,7 +43,7 @@ enum MessageKind {
 
     // ───── Reserved / Future Use (Bits 24–31)
     EXTERNAL        = 8388608;
-    RESERVED_25     = 16777216;
+    CLICKHOUSE      = 16777216;
     RESERVED_26     = 33554432;
     RESERVED_27     = 67108864;
     RESERVED_28     = 134217728;
