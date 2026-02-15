@@ -304,7 +304,7 @@ jobs:
                   { "name": "disoxide", "target": "container", "condition": "${{ needs.alter.outputs.disoxide }}" },
                   { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" },
                   { "name": "kbve-hyperlane", "target": "container", "condition": "${{ needs.alter.outputs.hyperlane }}" },
-                  { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "herbmail/axum-herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" }
+                  { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" }
                 ]
 
     generate_e2e_docker_matrix:
