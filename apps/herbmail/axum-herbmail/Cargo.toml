@@ -36,6 +36,10 @@ kbve = { path = "../../../packages/rust/kbve" }
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }
 
+[dev-dependencies]
+serial_test = "3"
+http-body-util = "0.1"
+
 [features]
 default = []
 jemalloc = ["dep:tikv-jemallocator"]
