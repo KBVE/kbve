@@ -92,7 +92,7 @@
         "context": ".",
         "file": "apps/herbmail/axum-herbmail/Dockerfile",
         "metadata": {
-          "images": ["herbmail/axum-herbmail"],
+          "images": ["ghcr.io/kbve/herbmail", "herbmail/axum-herbmail"],
           "load": true,
           "tags": ["0.1.0", "0.1"]
         },
@@ -105,10 +105,10 @@
             "tags": ["0.1.0", "0.1"],
             "push": true,
             "cache-from": [
-              "type=registry,ref=herbmail/axum-herbmail:buildcache"
+              "type=registry,ref=ghcr.io/kbve/herbmail:buildcache"
             ],
             "cache-to": [
-              "type=registry,ref=herbmail/axum-herbmail:buildcache,mode=max"
+              "type=registry,ref=ghcr.io/kbve/herbmail:buildcache,mode=max"
             ]
           }
         }
