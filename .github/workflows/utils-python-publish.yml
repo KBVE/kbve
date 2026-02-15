@@ -6,6 +6,9 @@ on:
       project:
         required: true
         type: string
+      pypi_name:
+        required: true
+        type: string
     secrets:
       PYPI_TOKEN:
         required: true
@@ -60,17 +63,34 @@ jobs:
       - name: Install uv
         uses: astral-sh/setup-uv@v6
 
-      - name: Run e2e for ${{ inputs.project }}
-        shell: bash
-        run: pnpm nx e2e ${{ inputs.project }}
+      - name: Check version against PyPI
+        id: version_check
+        run: |
+          LOCAL_VERSION=$(grep -m1 '^version' "packages/python/${{ inputs.pypi_name }}/pyproject.toml" \
+            | sed 's/version = "\(.*\)"/\1/')
+          echo "Local version: $LOCAL_VERSION"
+
+          REGISTRY_VERSION=$(curl -s "https://pypi.org/pypi/${{ inputs.pypi_name }}/json" \
+            | jq -r '.info.version // "0.0.0"')
+          echo "Registry version: $REGISTRY_VERSION"
+
+          if [ "$LOCAL_VERSION" = "$REGISTRY_VERSION" ]; then
+            echo "Version $LOCAL_VERSION already published — skipping."
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New version $LOCAL_VERSION (registry has $REGISTRY_VERSION) — publishing."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Build ${{ inputs.project }}
+        if: steps.version_check.outputs.should_publish == 'true'
         shell: bash
-        run: pnpm nx build ${{ inputs.project }}
+        run: pnpm nx build ${{ inputs.project }} --no-cloud
 
       - name: Publish distribution to PyPI
+        if: steps.version_check.outputs.should_publish == 'true'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.PYPI_TOKEN }}
-          packages-dir: packages/python/${{ inputs.project == 'python-fudster' && 'fudster' || 'kbve' }}/dist/
+          packages-dir: packages/python/${{ inputs.pypi_name }}/dist/

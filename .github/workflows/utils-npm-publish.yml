@@ -24,10 +24,10 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Setup Node v20
+      - name: Setup Node v22
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           registry-url: https://registry.npmjs.org/
 
       - name: Setup pnpm
@@ -53,33 +53,27 @@ jobs:
       - name: Install pnpm dependencies
         run: pnpm install
 
-      - name: Install npm
-        run: npm install --legacy-peer-deps
+      - name: Check version against npm registry
+        id: version_check
+        run: |
+          LOCAL_VERSION=$(jq -r '.version' "packages/npm/${{ inputs.project }}/package.json")
+          echo "Local version: $LOCAL_VERSION"
 
-      - name: Print Environment Info
-        run: npx nx report
+          REGISTRY_VERSION=$(npm view "@kbve/${{ inputs.project }}" version 2>/dev/null || echo "0.0.0")
+          echo "Registry version: $REGISTRY_VERSION"
 
-    #   - name: Build KBVE ${{ inputs.project }} NPM Package
-    #     uses: ./.github/actions/kbve-shell
-    #     with:
-    #       flag: "-nx ${{ inputs.project }}:build"
-    #       create_pull_request: false
-    #       github_token: ${{ secrets.GITHUB_TOKEN }}
+          if [ "$LOCAL_VERSION" = "$REGISTRY_VERSION" ]; then
+            echo "Version $LOCAL_VERSION already published — skipping."
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "New version $LOCAL_VERSION (registry has $REGISTRY_VERSION) — publishing."
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
 
-      - name: Run e2e for ${{ inputs.project }}
-        shell: bash
-        run: pnpm nx e2e ${{ inputs.project }}
-
-      - name: Build KBVE ${{ inputs.project }} NPM Package
+      - name: Build and Publish ${{ inputs.project }} NPM Package
+        if: steps.version_check.outputs.should_publish == 'true'
         shell: bash
         run: ./kbve.sh -nx ${{ inputs.project }}:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
           NPM_CONFIG_PROVENANCE: true
-
-
-      # - name: Publish NPM Package
-      #   run: npx nx run ${{ inputs.project }}:nx-release-publish
-      #   env:
-      #     NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-      #     NPM_CONFIG_PROVENANCE: true

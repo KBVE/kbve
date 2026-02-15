@@ -1,26 +1,24 @@
-name: Rust Crate Test
+name: NPM Package Test
 
 on:
     workflow_call:
         inputs:
-            package:
+            project:
                 required: true
                 type: string
 
 jobs:
     test:
+        name: Test ${{ inputs.project }} NPM Package
         runs-on: ubuntu-latest
         permissions:
             contents: read
 
         steps:
-            - name: Checkout repository
+            - name: Checkout the monorepo
               uses: actions/checkout@v4
-
-            - name: Rust ToolChain
-              uses: dtolnay/rust-toolchain@stable
               with:
-                  components: clippy
+                  fetch-depth: 0
 
             - name: Setup Node v22
               uses: actions/setup-node@v4
@@ -48,5 +46,5 @@ jobs:
             - name: Install pnpm Dependencies
               run: pnpm install
 
-            - name: Nx e2e ${{ inputs.package }}
-              run: pnpm nx e2e ${{ inputs.package }} --no-cloud
+            - name: Nx e2e ${{ inputs.project }}
+              run: pnpm nx e2e ${{ inputs.project }} --no-cloud

@@ -10,7 +10,7 @@
         "{options.target-dir}"
       ],
       "options": {
-        "target-dir": "dist/target/rust_soul"
+        "target-dir": "dist/target/soul"
       },
       "configurations": {
         "production": {
@@ -24,7 +24,7 @@
         "{options.target-dir}"
       ],
       "options": {
-        "target-dir": "dist/target/rust_soul"
+        "target-dir": "dist/target/soul"
       },
       "configurations": {
         "production": {
@@ -35,7 +35,7 @@
     "e2e": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["nx test rust_soul"],
+        "commands": ["nx test soul"],
         "parallel": false
       }
     },
@@ -45,7 +45,7 @@
         "{options.target-dir}"
       ],
       "options": {
-        "target-dir": "dist/target/rust_soul"
+        "target-dir": "dist/target/soul"
       }
     }
   },
