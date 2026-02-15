@@ -126,7 +126,12 @@ jobs:
             - name: Push Docker Images
               if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}
               run: |
-                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '${{ inputs.image }}' | grep -v '<none>')
+                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '${{ inputs.image }}' | grep -v '<none>' || true)
+                  if [ -z "$IMAGES" ]; then
+                    echo "::error::No images found matching '${{ inputs.image }}'. Listing all images:"
+                    docker images
+                    exit 1
+                  fi
                   echo "Pushing images:"
                   echo "$IMAGES"
                   for IMG in $IMAGES; do
