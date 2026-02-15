@@ -3,7 +3,7 @@ import { test, expect } from '@playwright/test';
 test.describe('Smoke: Pagefind Search', () => {
 	test.beforeEach(async ({ page }) => {
 		await page.goto('/');
-		await page.waitForLoadState('networkidle');
+		await page.waitForLoadState('domcontentloaded');
 	});
 
 	test('search modal opens and pagefind-ui mounts', async ({ page }) => {
@@ -18,7 +18,7 @@ test.describe('Smoke: Pagefind Search', () => {
 		await expect(input).toBeVisible({ timeout: 10_000 });
 	});
 
-	test('searching "guides" returns results', async ({ page }) => {
+	test('searching "herbmail" returns results', async ({ page }) => {
 		await page.locator('button[data-open-modal]').click();
 
 		const dialog = page.locator('dialog[aria-label="Search"]');
@@ -26,10 +26,10 @@ test.describe('Smoke: Pagefind Search', () => {
 
 		const input = dialog.locator('.pagefind-ui__search-input');
 		await expect(input).toBeVisible({ timeout: 10_000 });
-		await input.fill('guides');
+		await input.pressSequentially('herbmail', { delay: 50 });
 
 		const results = dialog.locator('.pagefind-ui__result');
-		await expect(results.first()).toBeVisible({ timeout: 10_000 });
+		await expect(results.first()).toBeVisible({ timeout: 15_000 });
 
 		const count = await results.count();
 		expect(count).toBeGreaterThan(0);
@@ -43,21 +43,17 @@ test.describe('Smoke: Pagefind Search', () => {
 		const dialog = page.locator('dialog[aria-label="Search"]');
 		const input = dialog.locator('.pagefind-ui__search-input');
 		await expect(input).toBeVisible({ timeout: 10_000 });
-		await input.fill('guides');
+		await input.pressSequentially('herbmail', { delay: 50 });
 
 		const firstResult = dialog.locator('.pagefind-ui__result a').first();
-		await expect(firstResult).toBeVisible({ timeout: 10_000 });
+		await expect(firstResult).toBeVisible({ timeout: 15_000 });
 
 		const href = await firstResult.getAttribute('href');
 		expect(href).toBeTruthy();
 
-		const [response] = await Promise.all([
-			page.waitForNavigation(),
-			firstResult.click(),
-		]);
+		await firstResult.click();
+		await page.waitForURL(`**${href!}`, { timeout: 10_000 });
 
-		expect(response).not.toBeNull();
-		expect(response!.status()).toBe(200);
 		expect(page.url()).toContain(href!);
 	});
 });

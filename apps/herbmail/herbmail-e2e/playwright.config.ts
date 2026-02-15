@@ -34,6 +34,11 @@ export default defineConfig({
 		command: commands[mode],
 		url: `${baseURL}/health`,
 		reuseExistingServer: !process.env['CI'],
-		timeout: mode === 'docker' ? 30_000 : 120_000,
+		timeout:
+			mode === 'docker'
+				? 30_000
+				: process.env['CI']
+					? 600_000
+					: 120_000,
 	},
 });

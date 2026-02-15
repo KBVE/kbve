@@ -62,7 +62,7 @@ test.describe('Smoke: Cache-Control Headers', () => {
 		});
 
 		await page.goto('/');
-		await page.waitForLoadState('networkidle');
+		await page.waitForLoadState('domcontentloaded');
 
 		if (astroRequests.length > 0) {
 			for (const req of astroRequests) {
