@@ -1,0 +1,26 @@
+{
+  "name": "herbmail",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/herbmail",
+  "targets": {
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "nx e2e axum-herbmail",
+          "nx e2e herbmail-e2e"
+        ],
+        "parallel": false
+      }
+    },
+    "container": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["nx container axum-herbmail"],
+        "parallel": false
+      }
+    }
+  },
+  "tags": []
+}

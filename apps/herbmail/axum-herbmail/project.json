@@ -57,6 +57,13 @@
         }
       }
     },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["nx test axum-herbmail"],
+        "parallel": false
+      }
+    },
     "container": {
       "executor": "nx:run-commands",
       "options": {
