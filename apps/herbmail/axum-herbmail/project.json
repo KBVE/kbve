@@ -79,9 +79,17 @@
     "container": {
       "executor": "nx:run-commands",
       "dependsOn": ["container-prep"],
+      "defaultConfiguration": "local",
       "options": {
-        "commands": ["./kbve.sh -nx axum-herbmail:containerx"],
         "parallel": false
+      },
+      "configurations": {
+        "local": {
+          "commands": ["./kbve.sh -nx axum-herbmail:containerx"]
+        },
+        "production": {
+          "commands": ["./kbve.sh -nx axum-herbmail:containerx --configuration=production"]
+        }
       }
     },
     "containerx": {
@@ -91,18 +99,18 @@
         "engine": "docker",
         "context": ".",
         "file": "apps/herbmail/axum-herbmail/Dockerfile",
+        "load": true,
         "metadata": {
           "images": ["ghcr.io/kbve/herbmail", "kbve/herbmail"],
-          "load": true,
           "tags": ["0.1.0", "0.1"]
         },
         "configurations": {
           "local": {
-            "tags": ["0.1.0", "0.1"],
+            "load": true,
             "push": false
           },
           "production": {
-            "tags": ["0.1.0", "0.1"],
+            "load": true,
             "push": false,
             "cache-from": [
               "type=registry,ref=ghcr.io/kbve/herbmail:buildcache"
