@@ -1,12 +1,31 @@
 import { defineConfig } from 'vite';
 import { nxViteTsPaths } from '@nx/vite/plugins/nx-tsconfig-paths.plugin';
 import { nxCopyAssetsPlugin } from '@nx/vite/plugins/nx-copy-assets.plugin';
+import dts from 'vite-plugin-dts';
 import path from 'path';
 
 export default defineConfig(() => ({
   root: __dirname,
   cacheDir: '../../../node_modules/.vite/npm/droid',
-  plugins: [nxViteTsPaths(), nxCopyAssetsPlugin(['*.md'])],
+  plugins: [
+    nxViteTsPaths(),
+    nxCopyAssetsPlugin(['*.md']),
+    dts({
+      entryRoot: 'src',
+      tsconfigPath: path.join(__dirname, 'tsconfig.lib.json'),
+      outDir: '../../../dist/packages/npm/droid',
+    }),
+  ],
+
+  resolve: {
+    alias: {
+      '/workers/canvas-worker': path.resolve(__dirname, 'src/lib/workers/canvas-worker.ts'),
+      '/workers/db-worker': path.resolve(__dirname, 'src/lib/workers/db-worker.ts'),
+      '/workers/ws-worker': path.resolve(__dirname, 'src/lib/workers/ws-worker.ts'),
+      '/workers/supabase-shared-worker': path.resolve(__dirname, 'src/lib/workers/supabase-shared-worker.ts'),
+      '/workers/supabase-db-worker': path.resolve(__dirname, 'src/lib/workers/supabase-db-worker.ts'),
+    },
+  },
 
   build: {
     lib: {

@@ -1,0 +1,41 @@
+{
+	"name": "@kbve/khashvault",
+	"version": "0.1.0",
+	"description": "Browser-side cryptography and secure storage via Web Crypto API + OpenPGP",
+	"keywords": ["crypto", "webcrypto", "aes-gcm", "pgp", "openpgp", "indexeddb", "secure-storage"],
+	"homepage": "https://kbve.com/application/javascript/",
+	"bugs": { "url": "https://github.com/KBVE/kbve/issues" },
+	"repository": { "type": "git", "url": "git+https://github.com/KBVE/kbve.git" },
+	"author": "KBVE <hello@kbve.com>",
+	"license": "MIT",
+	"type": "module",
+	"main": "./khashvault.es.js",
+	"module": "./khashvault.es.js",
+	"types": "./index.d.ts",
+	"exports": {
+		".": {
+			"import": "./khashvault.es.js",
+			"types": "./index.d.ts"
+		}
+	},
+	"files": [
+		"khashvault.es.js",
+		"index.d.ts",
+		"**/*.d.ts",
+		"*.md"
+	],
+	"dependencies": {
+		"openpgp": "^5.11.0"
+	},
+	"peerDependencies": {
+		"@kbve/droid": ">=0.1.0",
+		"comlink": ">=4.0.0"
+	},
+	"peerDependenciesMeta": {
+		"@kbve/droid": { "optional": true },
+		"comlink": { "optional": true }
+	},
+	"publishConfig": {
+		"access": "public"
+	}
+}

@@ -1,0 +1,105 @@
+{
+  "name": "axum-herbmail",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/herbmail/axum-herbmail/src",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./kbve.sh -nx astro-herbmail:build",
+          "STATIC_DIR=./dist/apps/astro-herbmail STATIC_PRECOMPRESSED=false cargo run -p axum-herbmail"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@monodon/rust:build",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-herbmail"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "test": {
+      "executor": "@monodon/rust:test",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-herbmail"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "lint": {
+      "executor": "@monodon/rust:lint",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-herbmail"
+      }
+    },
+    "run": {
+      "executor": "@monodon/rust:run",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-herbmail"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "container": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./kbve.sh -nx astro-herbmail:build",
+          "rm -rf ./apps/herbmail/axum-herbmail/dist/",
+          "mkdir -p ./apps/herbmail/axum-herbmail/dist/",
+          "cp -a ./dist/apps/astro-herbmail/. ./apps/herbmail/axum-herbmail/dist/",
+          "./kbve.sh -nx axum-herbmail:containerx"
+        ],
+        "parallel": false
+      }
+    },
+    "containerx": {
+      "executor": "@nx-tools/nx-container:build",
+      "defaultConfiguration": "local",
+      "options": {
+        "engine": "docker",
+        "context": ".",
+        "file": "apps/herbmail/axum-herbmail/Dockerfile",
+        "metadata": {
+          "images": ["herbmail/axum-herbmail"],
+          "load": true,
+          "tags": ["0.1.0", "0.1"]
+        },
+        "configurations": {
+          "local": {
+            "tags": ["0.1.0", "0.1"],
+            "push": false
+          },
+          "production": {
+            "tags": ["0.1.0", "0.1"],
+            "push": true,
+            "cache-from": [
+              "type=registry,ref=herbmail/axum-herbmail:buildcache"
+            ],
+            "cache-to": [
+              "type=registry,ref=herbmail/axum-herbmail:buildcache,mode=max"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}

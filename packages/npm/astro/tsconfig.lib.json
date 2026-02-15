@@ -3,7 +3,11 @@
 	"compilerOptions": {
 		"outDir": "../../../dist/out-tsc",
 		"declaration": true,
-		"types": ["node"]
+		"composite": true,
+		"types": ["node"],
+		"paths": {
+			"@kbve/droid": ["dist/packages/npm/droid"]
+		}
 	},
 	"include": ["src/**/*.ts", "src/**/*.tsx"],
 	"exclude": [

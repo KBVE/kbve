@@ -10,6 +10,8 @@ pub mod pipe;
 pub mod flex;
 pub mod bitwise;
 pub mod pipe_redis;
+#[cfg(feature = "clickhouse")]
+pub mod pipe_clickhouse;
 
 
 pub use regex::*;

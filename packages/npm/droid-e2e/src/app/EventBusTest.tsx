@@ -24,14 +24,14 @@ export function EventBusTest() {
 		const handleReady = (payload: { timestamp: number }) => {
 			addLog('droid-ready', payload);
 		};
-		const handleModReady = (payload: { meta?: { name: string; version: string }; timestamp: number }) => {
+		const handleModReady = (payload: { meta?: { name: string; version?: string }; timestamp: number }) => {
 			addLog('droid-mod-ready', payload);
 		};
-		const handlePanelOpen = (payload: { id: string; payload?: unknown }) => {
+		const handlePanelOpen = (payload: { id: 'top' | 'right' | 'bottom' | 'left'; payload?: unknown }) => {
 			addLog('panel-open', payload);
 			setPanelStates((prev) => ({ ...prev, [payload.id]: true }));
 		};
-		const handlePanelClose = (payload: { id: string }) => {
+		const handlePanelClose = (payload: { id: 'top' | 'right' | 'bottom' | 'left' }) => {
 			addLog('panel-close', payload);
 			setPanelStates((prev) => ({ ...prev, [payload.id]: false }));
 		};
@@ -53,15 +53,15 @@ export function EventBusTest() {
 		DroidEvents.emit('droid-ready', { timestamp: Date.now() });
 	};
 
-	const emitPanelOpen = (id: string) => {
+	const emitPanelOpen = (id: 'top' | 'right' | 'bottom' | 'left') => {
 		DroidEvents.emit('panel-open', { id });
 	};
 
-	const emitPanelClose = (id: string) => {
+	const emitPanelClose = (id: 'top' | 'right' | 'bottom' | 'left') => {
 		DroidEvents.emit('panel-close', { id });
 	};
 
-	const togglePanel = (id: string) => {
+	const togglePanel = (id: 'top' | 'right' | 'bottom' | 'left') => {
 		if (panelStates[id]) {
 			emitPanelClose(id);
 		} else {

@@ -108,6 +108,123 @@ impl RedisConfig {
   }
 }
 
+#[cfg(feature = "clickhouse")]
+pub struct ClickHouseConfig {
+  pub url: String,
+  pub user: String,
+  pub password: String,
+  pub database: String,
+}
+
+#[cfg(feature = "clickhouse")]
+impl ClickHouseConfig {
+  pub fn from_env() -> Self {
+    let host = get_env("CLICKHOUSE_HOST", "localhost");
+    let port = get_env("CLICKHOUSE_PORT", "8123");
+    let user = get_env("CLICKHOUSE_USER", "default");
+    let password = get_env("CLICKHOUSE_PASSWORD", "");
+    let database = get_env("CLICKHOUSE_DATABASE", "default");
+
+    let url = format!("http://{}:{}", host, port);
+
+    Self { url, user, password, database }
+  }
+
+  pub fn build_client(&self) -> clickhouse::Client {
+    let mut client = clickhouse::Client::default()
+      .with_url(&self.url)
+      .with_user(&self.user)
+      .with_database(&self.database);
+
+    if !self.password.is_empty() {
+      client = client.with_password(&self.password);
+    }
+
+    client
+  }
+
+  pub async fn execute_select(&self, query: &str) -> Result<Vec<serde_json::Value>, JediError> {
+    let http = reqwest::Client::new();
+    let full_query = format!("{} FORMAT JSONEachRow", query);
+
+    let mut req = http
+      .post(&self.url)
+      .query(&[("database", &self.database)])
+      .body(full_query);
+
+    if !self.user.is_empty() {
+      req = req.header("X-ClickHouse-User", &self.user);
+    }
+    if !self.password.is_empty() {
+      req = req.header("X-ClickHouse-Key", &self.password);
+    }
+
+    let resp = req
+      .send()
+      .await
+      .map_err(|e| JediError::Database(Cow::Owned(format!("ClickHouse HTTP error: {}", e))))?;
+
+    if !resp.status().is_success() {
+      let body = resp.text().await.unwrap_or_default();
+      return Err(JediError::Database(Cow::Owned(format!("ClickHouse query failed: {}", body))));
+    }
+
+    let text = resp
+      .text()
+      .await
+      .map_err(|e| JediError::Database(Cow::Owned(format!("ClickHouse response error: {}", e))))?;
+
+    let rows: Vec<serde_json::Value> = text
+      .lines()
+      .filter(|l| !l.is_empty())
+      .map(|l| serde_json::from_str(l))
+      .collect::<Result<_, _>>()
+      .map_err(|e| JediError::Parse(format!("ClickHouse JSON parse error: {}", e)))?;
+
+    Ok(rows)
+  }
+
+  pub async fn execute_insert(&self, table: &str, rows: &[serde_json::Value]) -> Result<(), JediError> {
+    if rows.is_empty() {
+      return Ok(());
+    }
+
+    let body = rows
+      .iter()
+      .map(|r| serde_json::to_string(r))
+      .collect::<Result<Vec<_>, _>>()
+      .map_err(|e| JediError::Parse(format!("ClickHouse JSON serialize error: {}", e)))?
+      .join("\n");
+
+    let insert_query = format!("INSERT INTO {} FORMAT JSONEachRow", table);
+    let http = reqwest::Client::new();
+
+    let mut req = http
+      .post(&self.url)
+      .query(&[("database", &self.database), ("query", &insert_query)])
+      .body(body);
+
+    if !self.user.is_empty() {
+      req = req.header("X-ClickHouse-User", &self.user);
+    }
+    if !self.password.is_empty() {
+      req = req.header("X-ClickHouse-Key", &self.password);
+    }
+
+    let resp = req
+      .send()
+      .await
+      .map_err(|e| JediError::Database(Cow::Owned(format!("ClickHouse HTTP error: {}", e))))?;
+
+    if !resp.status().is_success() {
+      let err_body = resp.text().await.unwrap_or_default();
+      return Err(JediError::Database(Cow::Owned(format!("ClickHouse insert failed: {}", err_body))));
+    }
+
+    Ok(())
+  }
+}
+
 pub struct TwitchAuth {
   pub client_id: String,
   pub client_secret: String,

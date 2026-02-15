@@ -505,6 +505,11 @@ impl EnvelopePipeline for JediEnvelope {
       return super::pipe_redis::pipe_redis(self, ctx).await;
     }
 
+    #[cfg(feature = "clickhouse")]
+    if MessageKind::clickhouse(self.kind) {
+      return super::pipe_clickhouse::pipe_clickhouse(self, ctx).await;
+    }
+
     Err(JediError::Internal("Unsupported MessageKind for EnvelopePipeline".into()))
   }
 

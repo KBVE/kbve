@@ -1,0 +1,76 @@
+name: Utils Python Publish
+
+on:
+  workflow_call:
+    inputs:
+      project:
+        required: true
+        type: string
+    secrets:
+      PYPI_TOKEN:
+        required: true
+
+jobs:
+  publish:
+    name: Publish ${{ inputs.project }} Python Package
+    runs-on: ubuntu-latest
+    environment:
+      name: pypi
+    permissions:
+      contents: read
+      id-token: write
+
+    steps:
+      - name: Checkout the monorepo
+        uses: actions/checkout@v4
+
+      - name: Setup Node v22
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+
+      - name: Setup pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 10
+          run_install: false
+
+      - name: Get pnpm Store
+        id: pnpm-store
+        shell: bash
+        run: |
+          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+      - name: Setup pnpm Cache
+        uses: actions/cache@v4
+        with:
+          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+          restore-keys: |
+            ${{ runner.os }}-pnpm-store-
+
+      - name: Install pnpm dependencies
+        run: pnpm install
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install uv
+        uses: astral-sh/setup-uv@v6
+
+      - name: Run e2e for ${{ inputs.project }}
+        shell: bash
+        run: pnpm nx e2e ${{ inputs.project }}
+
+      - name: Build ${{ inputs.project }}
+        shell: bash
+        run: pnpm nx build ${{ inputs.project }}
+
+      - name: Publish distribution to PyPI
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          user: __token__
+          password: ${{ secrets.PYPI_TOKEN }}
+          packages-dir: packages/python/${{ inputs.project == 'python-fudster' && 'fudster' || 'kbve' }}/dist/
