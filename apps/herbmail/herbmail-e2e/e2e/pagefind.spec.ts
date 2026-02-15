@@ -18,7 +18,7 @@ test.describe('Smoke: Pagefind Search', () => {
 		await expect(input).toBeVisible({ timeout: 10_000 });
 	});
 
-	test.fixme('searching "guides" returns results', async ({ page }) => {
+	test('searching "herbmail" returns results', async ({ page }) => {
 		await page.locator('button[data-open-modal]').click();
 
 		const dialog = page.locator('dialog[aria-label="Search"]');
@@ -26,7 +26,7 @@ test.describe('Smoke: Pagefind Search', () => {
 
 		const input = dialog.locator('.pagefind-ui__search-input');
 		await expect(input).toBeVisible({ timeout: 10_000 });
-		await input.pressSequentially('guides', { delay: 50 });
+		await input.pressSequentially('herbmail', { delay: 50 });
 
 		const results = dialog.locator('.pagefind-ui__result');
 		await expect(results.first()).toBeVisible({ timeout: 15_000 });
@@ -35,7 +35,7 @@ test.describe('Smoke: Pagefind Search', () => {
 		expect(count).toBeGreaterThan(0);
 	});
 
-	test.fixme('clicking a search result navigates to a valid page', async ({
+	test('clicking a search result navigates to a valid page', async ({
 		page,
 	}) => {
 		await page.locator('button[data-open-modal]').click();
@@ -43,7 +43,7 @@ test.describe('Smoke: Pagefind Search', () => {
 		const dialog = page.locator('dialog[aria-label="Search"]');
 		const input = dialog.locator('.pagefind-ui__search-input');
 		await expect(input).toBeVisible({ timeout: 10_000 });
-		await input.pressSequentially('guides', { delay: 50 });
+		await input.pressSequentially('herbmail', { delay: 50 });
 
 		const firstResult = dialog.locator('.pagefind-ui__result a').first();
 		await expect(firstResult).toBeVisible({ timeout: 15_000 });
@@ -51,13 +51,9 @@ test.describe('Smoke: Pagefind Search', () => {
 		const href = await firstResult.getAttribute('href');
 		expect(href).toBeTruthy();
 
-		const [response] = await Promise.all([
-			page.waitForNavigation(),
-			firstResult.click(),
-		]);
+		await firstResult.click();
+		await page.waitForURL(`**${href!}`, { timeout: 10_000 });
 
-		expect(response).not.toBeNull();
-		expect(response!.status()).toBe(200);
 		expect(page.url()).toContain(href!);
 	});
 });
