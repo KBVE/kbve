@@ -47,5 +47,8 @@ jobs:
             - name: Install pnpm Dependencies
               run: pnpm install
 
+            - name: Install Playwright Browsers
+              run: pnpm exec playwright install --with-deps chromium
+
             - name: Nx e2e ${{ inputs.project }}
               run: pnpm nx e2e ${{ inputs.project }} --no-cloud

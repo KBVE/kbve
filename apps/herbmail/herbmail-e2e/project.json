@@ -9,6 +9,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
+					"pnpm exec playwright install --with-deps chromium",
 					"pnpm exec playwright test --config=apps/herbmail/herbmail-e2e/playwright.config.ts"
 				],
 				"cwd": "{workspaceRoot}"
@@ -18,6 +19,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
+					"pnpm exec playwright install --with-deps chromium",
 					"E2E_DOCKER=true pnpm exec playwright test --config=apps/herbmail/herbmail-e2e/playwright.config.ts"
 				],
 				"cwd": "{workspaceRoot}"
