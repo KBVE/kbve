@@ -323,6 +323,29 @@ jobs:
             DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
             MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
+    ## Herbmail
+    test_herbmail:
+        needs: ['deploy', 'alter', 'globals']
+        name: Test Herbmail
+        if: needs.alter.outputs.herbmail == 'true'
+        uses: KBVE/kbve/.github/workflows/docker-test-app.yml@main
+        with:
+            project: herbmail
+
+    publish_herbmail:
+        needs: ['alter', 'test_herbmail']
+        name: Publish Herbmail
+        uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
+        with:
+            project: herbmail
+            target: container
+            image: herbmail/axum-herbmail
+            cargo_toml: apps/herbmail/axum-herbmail/Cargo.toml
+        secrets:
+            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
+            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
+            MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
     #   ! Everything below this line will be removed and replaced with the matrix setup.
 
     #   [CryptoThrone]
