@@ -116,9 +116,19 @@ jobs:
                   username: ${{ github.actor }}
                   password: ${{ secrets.MY_GITHUB_TOKEN }}
 
-            - name: Build and Push Docker Image with Nx
+            - name: Build Docker Image with Nx
               if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               env:
                   INPUT_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
               run: |
-                  pnpm nx run ${{ inputs.project }}:${{ inputs.target }} --configuration=production --push
+                  pnpm nx run ${{ inputs.project }}:${{ inputs.target }} --configuration=production
+
+            - name: Push Docker Images
+              if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}
+              run: |
+                  IMAGES=$(docker images --format '{{.Repository}}:{{.Tag}}' | grep -E '${{ inputs.image }}' | grep -v '<none>')
+                  echo "Pushing images:"
+                  echo "$IMAGES"
+                  for IMG in $IMAGES; do
+                    docker push "$IMG"
+                  done
