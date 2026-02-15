@@ -152,10 +152,19 @@ jobs:
                     }
                 ]
 
-    publish_npm:
-        name: Publish NPM
+    test_npm:
+        name: Test NPM
         needs: ['generate_npm_matrix']
         if: ${{ needs.generate_npm_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/npm-test-package.yml@main
+        with:
+            project: ${{ matrix.project }}
+
+    publish_npm:
+        name: Publish NPM
+        needs: ['generate_npm_matrix', 'test_npm']
         strategy:
             matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-npm-publish.yml@main
@@ -470,22 +479,44 @@ jobs:
     #               password: ${{ secrets.PYPI_API_TOKEN }}
 
     ## Python
-    publish_python_fudster:
+    generate_python_matrix:
         needs: ['deploy', 'alter', 'globals']
-        name: Publish python-fudster
-        if: needs.alter.outputs.py_lib_fudster == 'true'
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                    {
+                      "name": "python-fudster",
+                      "condition": "${{ needs.alter.outputs.py_lib_fudster == 'true' }}",
+                      "project": "python-fudster",
+                      "pypi_name": "fudster"
+                    },
+                    {
+                      "name": "python-kbve",
+                      "condition": "${{ needs.alter.outputs.py_lib_kbve == 'true' }}",
+                      "project": "python-kbve",
+                      "pypi_name": "kbve"
+                    }
+                ]
+
+    test_python:
+        name: Test Python
+        needs: ['generate_python_matrix']
+        if: ${{ needs.generate_python_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_python_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/python-test-package.yml@main
+        with:
+            project: ${{ matrix.project }}
+
+    publish_python:
+        name: Publish Python
+        needs: ['generate_python_matrix', 'test_python']
+        strategy:
+            matrix: ${{ fromJson(needs.generate_python_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-python-publish.yml@main
         with:
-            project: python-fudster
+            project: ${{ matrix.project }}
+            pypi_name: ${{ matrix.pypi_name }}
         secrets:
             PYPI_TOKEN: ${{ secrets.PYPI_API_SCOPE_TOKEN }}
-
-    publish_python_kbve:
-        needs: ['deploy', 'alter', 'globals']
-        name: Publish python-kbve
-        if: needs.alter.outputs.py_lib_kbve == 'true'
-        uses: KBVE/kbve/.github/workflows/utils-python-publish.yml@main
-        with:
-            project: python-kbve
-        secrets:
-            PYPI_TOKEN: ${{ secrets.PYPI_API_TOKEN }}
