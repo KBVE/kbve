@@ -1,0 +1,51 @@
+{
+	"name": "khashvault",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"sourceRoot": "packages/npm/khashvault/src",
+	"projectType": "library",
+	"release": {
+		"version": {
+			"currentVersionResolver": "disk",
+			"preserveLocalDependencyProtocols": false,
+			"manifestRootsToUpdate": ["packages/npm/khashvault"]
+		}
+	},
+	"tags": [],
+	"targets": {
+		"build": {
+			"executor": "@nx/vite:build",
+			"outputs": ["{options.outputPath}"],
+			"options": {
+				"outputPath": "dist/packages/npm/khashvault",
+				"main": "packages/npm/khashvault/src/index.ts",
+				"tsConfig": "packages/npm/khashvault/tsconfig.lib.json",
+				"configFile": "packages/npm/khashvault/vite.config.ts",
+				"assets": ["packages/npm/khashvault/*.md"]
+			}
+		},
+		"nx-release-publish": {
+			"options": {
+				"packageRoot": "dist/packages/npm/khashvault"
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx e2e khashvault-e2e"],
+				"parallel": false
+			}
+		},
+		"publish": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx build khashvault --emptyOutDir=true",
+					"cp packages/npm/khashvault/package.json dist/packages/npm/khashvault/package.json",
+					"cp packages/npm/khashvault/README.md dist/packages/npm/khashvault/README.md",
+					"nx nx-release-publish khashvault"
+				],
+				"parallel": false
+			}
+		}
+	}
+}

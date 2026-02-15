@@ -29,6 +29,13 @@
 				}
 			}
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx test holy"],
+				"parallel": false
+			}
+		},
 		"lint": {
 			"executor": "@monodon/rust:lint",
 			"outputs": ["{options.target-dir}"],

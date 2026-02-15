@@ -98,7 +98,7 @@ define_flag_checks!(
     (local_cache, LocalCache),
     (ai, Ai),
     (external, External),
-    (reserved25, Reserved25),
+    (clickhouse, Clickhouse),
     (reserved26, Reserved26),
     (reserved27, Reserved27),
     (reserved28, Reserved28),
@@ -117,4 +117,7 @@ define_multi_flag_checks!(
     (unwatch,   UNWATCH,   [Redis, Heartbeat, Del, Info]),
     (publish,   PUBLISH,   [Redis, Message, Action]),
     (subscribe, SUBSCRIBE, [Redis, Message, Read]),
+    (ch_insert,  CH_INSERT,  [Clickhouse, Add]),
+    (ch_select,  CH_SELECT,  [Clickhouse, Read]),
+    (ch_ddl,     CH_DDL,     [Clickhouse, Action, Set]),
 );

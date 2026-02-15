@@ -28,6 +28,13 @@
 				"packageRoot": "dist/packages/npm/devops"
 			}
 		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx e2e devops-e2e"],
+				"parallel": false
+			}
+		},
 		"publish": {
 			"executor": "nx:run-commands",
 			"options": {

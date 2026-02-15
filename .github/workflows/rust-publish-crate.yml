@@ -27,9 +27,30 @@ jobs:
             - name: Rust ToolChain
               uses: dtolnay/rust-toolchain@stable
 
+            - name: Check version against crates.io
+              id: version_check
+              run: |
+                  LOCAL_VERSION=$(cargo metadata --no-deps --format-version 1 \
+                    | jq -r '.packages[] | select(.name == "${{ inputs.package }}") | .version')
+                  echo "Local version: $LOCAL_VERSION"
+
+                  REGISTRY_VERSION=$(curl -s "https://crates.io/api/v1/crates/${{ inputs.package }}" \
+                    | jq -r '.crate.max_version // "0.0.0"')
+                  echo "Registry version: $REGISTRY_VERSION"
+
+                  if [ "$LOCAL_VERSION" = "$REGISTRY_VERSION" ]; then
+                    echo "Version $LOCAL_VERSION already published — skipping."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "New version $LOCAL_VERSION (registry has $REGISTRY_VERSION) — publishing."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                  fi
+
             - name: Cargo Login
+              if: steps.version_check.outputs.should_publish == 'true'
               run: cargo login ${{ secrets.CRATES_TOKEN }}
 
             - name: Cargo Publish
+              if: steps.version_check.outputs.should_publish == 'true'
               run: |
                   cargo publish -p ${{ inputs.package }}

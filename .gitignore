@@ -65,6 +65,7 @@ Thumbs.db
 
 .nx/cache
 .nx/workspace-data
+/output.json
 apps/api/.env
 .env
 

@@ -2,8 +2,9 @@ import { useState } from 'react';
 import { WorkerTest } from './WorkerTest';
 import { GatewayTest } from './GatewayTest';
 import { EventBusTest } from './EventBusTest';
+import { StateTest } from './StateTest';
 
-type View = 'menu' | 'workers' | 'gateway' | 'events' | 'all';
+type View = 'menu' | 'workers' | 'gateway' | 'events' | 'state' | 'all';
 
 export function App() {
 	const [view, setView] = useState<View>('menu');
@@ -22,6 +23,9 @@ export function App() {
 				<button data-testid="nav-events" onClick={() => setView('events')}>
 					Events
 				</button>
+				<button data-testid="nav-state" onClick={() => setView('state')}>
+					State
+				</button>
 				<button data-testid="nav-all" onClick={() => setView('all')}>
 					All
 				</button>
@@ -39,6 +43,7 @@ export function App() {
 			{(view === 'workers' || view === 'all') && <WorkerTest />}
 			{(view === 'gateway' || view === 'all') && <GatewayTest />}
 			{(view === 'events' || view === 'all') && <EventBusTest />}
+			{(view === 'state' || view === 'all') && <StateTest />}
 		</div>
 	);
 }

@@ -1,5 +1,5 @@
 {
-  "name": "rust_soul",
+  "name": "soul",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "library",
   "sourceRoot": "packages/rust/soul/src",
@@ -30,6 +30,13 @@
         "production": {
           "release": true
         }
+      }
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["nx test rust_soul"],
+        "parallel": false
       }
     },
     "lint": {
