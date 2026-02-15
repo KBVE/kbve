@@ -2,7 +2,7 @@
   "name": "axum-herbmail",
   "$schema": "../../../node_modules/nx/schemas/project-schema.json",
   "projectType": "application",
-  "sourceRoot": "apps/kbve/herbmail/src",
+  "sourceRoot": "apps/herbmail/axum-herbmail/src",
   "targets": {
     "dev": {
       "executor": "nx:run-commands",
@@ -69,9 +69,9 @@
       "options": {
         "commands": [
           "./kbve.sh -nx astro-herbmail:build",
-          "rm -rf ./apps/kbve/herbmail/dist/",
-          "mkdir -p ./apps/kbve/herbmail/dist/",
-          "cp -a ./dist/apps/astro-herbmail/. ./apps/kbve/herbmail/dist/"
+          "rm -rf ./apps/herbmail/axum-herbmail/dist/",
+          "mkdir -p ./apps/herbmail/axum-herbmail/dist/",
+          "cp -a ./dist/apps/astro-herbmail/. ./apps/herbmail/axum-herbmail/dist/"
         ],
         "parallel": false
       }
@@ -90,7 +90,7 @@
       "options": {
         "engine": "docker",
         "context": ".",
-        "file": "apps/kbve/herbmail/Dockerfile",
+        "file": "apps/herbmail/axum-herbmail/Dockerfile",
         "metadata": {
           "images": ["ghcr.io/kbve/herbmail", "kbve/herbmail"],
           "load": true,
@@ -103,7 +103,7 @@
           },
           "production": {
             "tags": ["0.1.0", "0.1"],
-            "push": true,
+            "push": false,
             "cache-from": [
               "type=registry,ref=ghcr.io/kbve/herbmail:buildcache"
             ],
