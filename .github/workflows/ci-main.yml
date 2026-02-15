@@ -307,17 +307,27 @@ jobs:
                   { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "herbmail/axum-herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" }
                 ]
 
-    ## Herbmail e2e gate (runs before docker matrix publish)
-    test_herbmail:
+    generate_e2e_docker_matrix:
         needs: ['deploy', 'alter', 'globals']
-        name: Test Herbmail
-        if: needs.alter.outputs.herbmail == 'true'
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}" }
+                ]
+
+    test_docker:
+        needs: ['generate_e2e_docker_matrix']
+        name: Test Docker Apps
+        if: ${{ needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_e2e_docker_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/docker-test-app.yml@main
         with:
-            project: herbmail
+            project: ${{ matrix.name }}
 
     publish_docker:
-        needs: ['generate_docker_matrix', 'test_herbmail']
+        needs: ['generate_docker_matrix', 'test_docker']
         name: Publish Docker Images
         if: ${{ !failure() && !cancelled() && needs.generate_docker_matrix.outputs.matrix != 'null' }}
         strategy:
