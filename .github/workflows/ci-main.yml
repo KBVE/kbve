@@ -303,27 +303,11 @@ jobs:
                   { "name": "kilobase", "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
                   { "name": "disoxide", "target": "container", "condition": "${{ needs.alter.outputs.disoxide }}" },
                   { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" },
-                  { "name": "kbve-hyperlane", "target": "container", "condition": "${{ needs.alter.outputs.hyperlane }}" }
-
-
+                  { "name": "kbve-hyperlane", "target": "container", "condition": "${{ needs.alter.outputs.hyperlane }}" },
+                  { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "herbmail/axum-herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" }
                 ]
 
-    publish_docker:
-        needs: ['generate_docker_matrix']
-        name: Publish Docker Images
-        if: ${{ needs.generate_docker_matrix.outputs.matrix != 'null' }}
-        strategy:
-            matrix: ${{ fromJson(needs.generate_docker_matrix.outputs.matrix) }}
-        uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
-        with:
-            project: ${{ matrix.name }}
-            target: ${{ matrix.target }}
-        secrets:
-            DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
-            DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
-            MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-    ## Herbmail
+    ## Herbmail e2e gate (runs before docker matrix publish)
     test_herbmail:
         needs: ['deploy', 'alter', 'globals']
         name: Test Herbmail
@@ -332,15 +316,18 @@ jobs:
         with:
             project: herbmail
 
-    publish_herbmail:
-        needs: ['alter', 'test_herbmail']
-        name: Publish Herbmail
+    publish_docker:
+        needs: ['generate_docker_matrix', 'test_herbmail']
+        name: Publish Docker Images
+        if: ${{ !failure() && !cancelled() && needs.generate_docker_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_docker_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
         with:
-            project: herbmail
-            target: container
-            image: herbmail/axum-herbmail
-            cargo_toml: apps/herbmail/axum-herbmail/Cargo.toml
+            project: ${{ matrix.name }}
+            target: ${{ matrix.target }}
+            image: ${{ matrix.image || '' }}
+            cargo_toml: ${{ matrix.cargo_toml || '' }}
         secrets:
             DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
             DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}

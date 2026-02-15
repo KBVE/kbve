@@ -64,16 +64,23 @@
         "parallel": false
       }
     },
-    "container": {
+    "container-prep": {
       "executor": "nx:run-commands",
       "options": {
         "commands": [
           "./kbve.sh -nx astro-herbmail:build",
           "rm -rf ./apps/herbmail/axum-herbmail/dist/",
           "mkdir -p ./apps/herbmail/axum-herbmail/dist/",
-          "cp -a ./dist/apps/astro-herbmail/. ./apps/herbmail/axum-herbmail/dist/",
-          "./kbve.sh -nx axum-herbmail:containerx"
+          "cp -a ./dist/apps/astro-herbmail/. ./apps/herbmail/axum-herbmail/dist/"
         ],
+        "parallel": false
+      }
+    },
+    "container": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["container-prep"],
+      "options": {
+        "commands": ["./kbve.sh -nx axum-herbmail:containerx"],
         "parallel": false
       }
     },
