@@ -9,6 +9,15 @@ on:
             target:
                 required: true
                 type: string
+            image:
+                required: false
+                type: string
+                default: ''
+            cargo_toml:
+                description: 'Path to Cargo.toml to read version from'
+                required: false
+                type: string
+                default: ''
             branch:
                 required: false
                 type: string
@@ -34,22 +43,45 @@ jobs:
               with:
                 ref: ${{ inputs.branch }}
 
+            - name: Check version against Docker Hub
+              id: version_check
+              if: ${{ inputs.image != '' && inputs.cargo_toml != '' }}
+              run: |
+                  LOCAL_VERSION=$(grep -m1 '^version' "${{ inputs.cargo_toml }}" \
+                    | sed 's/version = "\(.*\)"/\1/')
+                  echo "Local version from Cargo.toml: $LOCAL_VERSION"
+
+                  STATUS=$(curl -s -o /dev/null -w "%{http_code}" \
+                    "https://hub.docker.com/v2/repositories/${{ inputs.image }}/tags/$LOCAL_VERSION")
+
+                  if [ "$STATUS" = "200" ]; then
+                    echo "Tag $LOCAL_VERSION already exists on Docker Hub — skipping."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "Tag $LOCAL_VERSION not found (HTTP $STATUS) — publishing."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                  fi
+
             - name: Setup Node v22
+              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               uses: actions/setup-node@v4
               with:
                   node-version: 22
 
             - name: Setup pnpm v10
+              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               uses: pnpm/action-setup@v3
               with:
                   version: 10
                   run_install: false
 
             - name: Get pnpm Store
+              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               id: pnpm-store
               run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
+              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               uses: actions/cache@v4
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
@@ -58,21 +90,26 @@ jobs:
                       ${{ runner.os }}-pnpm-store-
 
             - name: Install pnpm Dependencies
+              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               run: pnpm install
 
             - name: Set up QEMU
+              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               uses: docker/setup-qemu-action@v3
 
             - name: Set up Docker Buildx
+              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               uses: docker/setup-buildx-action@v3
 
             - name: Login to Docker Hub
+              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               uses: docker/login-action@v3
               with:
                   username: ${{ secrets.DOCKERHUB_USERNAME }}
                   password: ${{ secrets.DOCKERHUB_TOKEN }}
 
             - name: Build and Push Docker Image with Nx
+              if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               env:
                   INPUT_GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
               run: |

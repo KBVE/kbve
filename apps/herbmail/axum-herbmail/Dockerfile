@@ -21,19 +21,22 @@ WORKDIR /app/apps/herbmail/astro-herbmail
 ENV NODE_OPTIONS="--max-old-space-size=4096"
 RUN pnpm exec astro build
 
-# Precompress static assets with gzip -9 (skip askama/ templates)
+# Precompress static assets with brotli-11 + gzip-9 (keep originals)
 WORKDIR /app/dist/apps/astro-herbmail
-RUN apk add --no-cache gzip && \
+RUN apk add --no-cache gzip brotli && \
     find . -type f \( \
         -name "*.css" -o \
         -name "*.js" -o \
         -name "*.json" -o \
         -name "*.svg" -o \
         -name "*.xml" -o \
-        -name "*.txt" \
-    \) -exec sh -c 'gzip -9 -c "$1" > "$1.gz" && rm "$1"' _ {} \; && \
-    find . -type f -name "*.html" ! -path "*/askama/*" -exec sh -c 'gzip -9 -c "$1" > "$1.gz" && rm "$1"' _ {} \; && \
-    echo "Precompression complete"
+        -name "*.txt" -o \
+        -name "*.html" \
+    \) ! -path "*/askama/*" -exec sh -c ' \
+        gzip -9 -k "$1" && \
+        brotli --best --keep "$1" \
+    ' _ {} \; && \
+    echo "Precompression complete (brotli-11 + gzip-9)"
 
 # ============================================================================
 # [STAGE B] - Rust Base Image
