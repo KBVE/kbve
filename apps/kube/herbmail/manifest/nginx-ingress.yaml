@@ -4,9 +4,16 @@ metadata:
   name: herbmail-ingress
   namespace: herbmail
   annotations:
-    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-http"
 spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - herbmail.com
+        - www.herbmail.com
+      secretName: herbmail-tls
   rules:
   - host: herbmail.com
     http:
