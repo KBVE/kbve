@@ -327,11 +327,12 @@ create_worktree() {
         cp "$main_repo/.env" "$worktree_dir/.env"
     fi
 
-    # Copy .env.local if it exists
-    if [ -f "$main_repo/.env.local" ]; then
-        echo "Copying .env.local from main repo..."
-        cp "$main_repo/.env.local" "$worktree_dir/.env.local"
-    fi
+    # Generate .env.local with Nx workspace root pointing to the worktree
+    echo "Generating .env.local for Nx..."
+    cat > "$worktree_dir/.env.local" <<ENVEOF
+NX_WORKSPACE_ROOT=$worktree_dir
+NX_DAEMON=false
+ENVEOF
 
     # Install dependencies
     echo "Installing pnpm dependencies in worktree..."
