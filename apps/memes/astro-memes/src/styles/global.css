@@ -1,1 +1,33 @@
-@import 'tailwindcss';
+@layer base, starlight, theme, components, utilities, my-overrides;
+
+@import '@astrojs/starlight-tailwind';
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+:root {
+  --sl-color-accent-low: #ecfeff;
+  --sl-color-accent: #06b6d4;
+  --sl-color-accent-high: #0e7490;
+  --sl-color-text-accent: #0891b2;
+  --sl-color-link: #06b6d4;
+  --sl-color-link-hover: #22d3ee;
+  --sl-color-bg-accent: #cffafe;
+  --sl-color-code-bg: #083344;
+  --sl-color-border: #67e8f9;
+}
+
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #083344;
+  --sl-color-accent: #06b6d4;
+  --sl-color-accent-high: #67e8f9;
+  --sl-color-text-accent: #22d3ee;
+  --sl-color-link: #22d3ee;
+  --sl-color-link-hover: #67e8f9;
+  --sl-color-bg-accent: #164e63;
+  --sl-color-code-bg: #083344;
+  --sl-color-border: #0e7490;
+}
+
+@layer my-overrides {
+
+}

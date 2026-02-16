@@ -1,0 +1,127 @@
+{
+  "name": "axum-memes",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/memes/axum-memes/src",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./kbve.sh -nx astro-memes:build",
+          "STATIC_DIR=./dist/apps/astro-memes STATIC_PRECOMPRESSED=false cargo run -p axum-memes"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@monodon/rust:build",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-memes"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "test": {
+      "executor": "@monodon/rust:test",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-memes"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "lint": {
+      "executor": "@monodon/rust:lint",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-memes"
+      }
+    },
+    "run": {
+      "executor": "@monodon/rust:run",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-memes"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["nx test axum-memes"],
+        "parallel": false
+      }
+    },
+    "container-prep": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./kbve.sh -nx astro-memes:build",
+          "rm -rf ./apps/memes/axum-memes/dist/",
+          "mkdir -p ./apps/memes/axum-memes/dist/",
+          "cp -a ./dist/apps/astro-memes/. ./apps/memes/axum-memes/dist/"
+        ],
+        "parallel": false
+      }
+    },
+    "container": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["container-prep"],
+      "defaultConfiguration": "local",
+      "options": {
+        "parallel": false
+      },
+      "configurations": {
+        "local": {
+          "commands": ["./kbve.sh -nx axum-memes:containerx"]
+        },
+        "production": {
+          "commands": ["./kbve.sh -nx axum-memes:containerx --configuration=production"]
+        }
+      }
+    },
+    "containerx": {
+      "executor": "@nx-tools/nx-container:build",
+      "defaultConfiguration": "local",
+      "options": {
+        "engine": "docker",
+        "context": ".",
+        "file": "apps/memes/axum-memes/Dockerfile",
+        "load": true,
+        "metadata": {
+          "images": ["ghcr.io/kbve/memes", "kbve/memes"],
+          "tags": ["0.1.0", "0.1"]
+        },
+        "configurations": {
+          "local": {
+            "load": true,
+            "push": false
+          },
+          "production": {
+            "load": true,
+            "push": false,
+            "cache-from": [
+              "type=registry,ref=ghcr.io/kbve/memes:buildcache"
+            ],
+            "cache-to": [
+              "type=registry,ref=ghcr.io/kbve/memes:buildcache,mode=max"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}
