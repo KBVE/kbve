@@ -41,6 +41,9 @@ subjects:
 - kind: ServiceAccount
   name: kbve-external-secrets
   namespace: kbve
+- kind: ServiceAccount
+  name: herbmail-external-secrets
+  namespace: herbmail
 ---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1

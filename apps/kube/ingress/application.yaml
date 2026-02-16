@@ -19,6 +19,12 @@ spec:
         - repoURL: https://github.com/kbve/kbve
           targetRevision: main
           path: apps/kube/ingress/manifests
+    ignoreDifferences:
+        - group: admissionregistration.k8s.io
+          kind: ValidatingWebhookConfiguration
+          name: ingress-nginx-admission
+          jsonPointers:
+              - /webhooks/0/clientConfig/caBundle
     destination:
         server: https://kubernetes.default.svc
         namespace: ingress-nginx

@@ -32,6 +32,18 @@ spec:
                           metadata:
                               annotations:
                                   cert-manager.io/http01-ingress-path-type: 'Prefix'
+
+            # --- Solver 3: HERBMAIL.COM domains ---
+            - selector:
+                  dnsZones:
+                      - herbmail.com
+              http01:
+                  ingress:
+                      ingressClassName: nginx
+                      ingressTemplate:
+                          metadata:
+                              annotations:
+                                  cert-manager.io/http01-ingress-path-type: 'Prefix'
 ---
 apiVersion: cert-manager.io/v1
 kind: ClusterIssuer
