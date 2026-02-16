@@ -304,7 +304,8 @@ jobs:
                   { "name": "disoxide", "target": "container", "condition": "${{ needs.alter.outputs.disoxide }}" },
                   { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" },
                   { "name": "kbve-hyperlane", "target": "container", "condition": "${{ needs.alter.outputs.hyperlane }}" },
-                  { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" }
+                  { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" },
+                  { "name": "memes", "target": "container", "condition": "${{ needs.alter.outputs.memes }}", "image": "kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml" }
                 ]
 
     generate_e2e_docker_matrix:
@@ -313,7 +314,8 @@ jobs:
         with:
             items: |
                 [
-                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}" }
+                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}" },
+                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}" }
                 ]
 
     test_docker:
@@ -342,6 +344,29 @@ jobs:
             DOCKERHUB_USERNAME: ${{ secrets.DOCKERHUB_USERNAME }}
             DOCKERHUB_TOKEN: ${{ secrets.DOCKERHUB_TOKEN }}
             MY_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+    generate_kube_update_matrix:
+        needs: ['deploy', 'alter', 'globals']
+        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
+        with:
+            items: |
+                [
+                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}", "image_name": "ghcr.io/kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml", "deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml" },
+                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}", "image_name": "ghcr.io/kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml", "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml" }
+                ]
+
+    update_kube_manifests:
+        needs: ['generate_kube_update_matrix', 'publish_docker']
+        name: Update Kube Manifests
+        if: ${{ !failure() && !cancelled() && needs.generate_kube_update_matrix.outputs.matrix != 'null' }}
+        strategy:
+            matrix: ${{ fromJson(needs.generate_kube_update_matrix.outputs.matrix) }}
+        uses: KBVE/kbve/.github/workflows/utils-update-kube-manifest.yml@main
+        with:
+            app_name: ${{ matrix.name }}
+            image_name: ${{ matrix.image_name }}
+            cargo_toml: ${{ matrix.cargo_toml }}
+            deployment_yaml: ${{ matrix.deployment_yaml }}
 
     #   ! Everything below this line will be removed and replaced with the matrix setup.
 

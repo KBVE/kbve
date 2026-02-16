@@ -1,37 +1,30 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: herbmail-ingress
-  namespace: herbmail
+  name: memes-ingress
+  namespace: memes
   annotations:
+    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/ssl-redirect: "true"
-    cert-manager.io/cluster-issuer: "letsencrypt-http"
 spec:
-  ingressClassName: nginx
-  tls:
-    - hosts:
-        - herbmail.com
-        - www.herbmail.com
-      secretName: herbmail-tls
   rules:
-  - host: herbmail.com
+  - host: meme.sh
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: herbmail-service
+            name: memes-service
             port:
               number: 4321
-  - host: www.herbmail.com
+  - host: www.meme.sh
     http:
       paths:
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: herbmail-service
+            name: memes-service
             port:
               number: 4321

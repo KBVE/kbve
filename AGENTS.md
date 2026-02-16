@@ -1,3 +1,59 @@
+# Worktree Workflow
+
+All work must happen in isolated git worktrees branched from `dev`. Never commit directly to `dev` or `main`.
+
+## Flow
+
+1. **Create worktree** from the latest `dev`:
+   ```bash
+   git fetch origin dev
+   git worktree add ../kbve-<task-name> dev -b trunk/<task-name>-<MM-DD-YYYY>
+   ```
+
+2. **Set up Nx environment** so it roots to the worktree (not the main repo):
+   ```bash
+   # Create .env.local in the worktree root
+   NX_WORKSPACE_ROOT=/absolute/path/to/worktree
+   NX_DAEMON=false
+   ```
+
+3. **Install dependencies**:
+   ```bash
+   cd ../kbve-<task-name> && pnpm install
+   ```
+
+4. **Do work** — make changes, test, iterate.
+
+5. **Commit** using conventional commits (`feat`, `fix`, `refactor`, `chore`, etc.):
+   ```bash
+   git add <files>
+   git commit -m "feat(scope): short description"
+   ```
+
+6. **Push and PR to `dev`**:
+   ```bash
+   git push -u origin trunk/<task-name>-<MM-DD-YYYY>
+   gh pr create --base dev --title "feat(scope): short description" --body "..."
+   ```
+
+7. **After merge**, clean up:
+   ```bash
+   git worktree remove ../kbve-<task-name>
+   git branch -d trunk/<task-name>-<MM-DD-YYYY>
+   ```
+
+## Rules
+
+- Branch naming: `trunk/<task-name>-<MM-DD-YYYY>`
+- Worktree path: `../kbve-<task-name>` (adjacent to main repo)
+- Always `pnpm install` in new worktrees
+- Always create `.env.local` with `NX_WORKSPACE_ROOT` pointing to the worktree
+- PRs target `dev`, never `main`
+- No co-authoring lines in commits
+- Keep PR descriptions concise
+
+---
+
 <!-- nx configuration start-->
 <!-- Leave the start & end comments to automatically receive updates. -->
 

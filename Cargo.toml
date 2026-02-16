@@ -16,6 +16,7 @@ members = [
 	'packages/rust/soul',
 	'apps/discord/disoxide',
 	'apps/herbmail/axum-herbmail',
+	'apps/memes/axum-memes',
 ]
 
 [profile.dev]
