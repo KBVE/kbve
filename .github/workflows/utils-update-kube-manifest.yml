@@ -1,0 +1,119 @@
+name: Update Kube Deployment Manifest
+
+on:
+    workflow_call:
+        inputs:
+            app_name:
+                description: 'Application name (e.g., herbmail)'
+                required: true
+                type: string
+            image_name:
+                description: 'Full image name without tag matching the manifest (e.g., ghcr.io/kbve/herbmail)'
+                required: true
+                type: string
+            cargo_toml:
+                description: 'Path to Cargo.toml to read version from (on main branch)'
+                required: true
+                type: string
+            deployment_yaml:
+                description: 'Path to the deployment YAML file relative to repo root'
+                required: true
+                type: string
+
+jobs:
+    update-manifest:
+        runs-on: ubuntu-latest
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - name: Checkout main branch to read version
+              uses: actions/checkout@v4
+              with:
+                  ref: main
+                  path: main-ref
+
+            - name: Extract version from Cargo.toml
+              id: version
+              run: |
+                  NEW_VER=$(grep -m1 '^version' "main-ref/${{ inputs.cargo_toml }}" \
+                    | sed 's/version = "\(.*\)"/\1/')
+                  echo "new_version=$NEW_VER" >> "$GITHUB_OUTPUT"
+                  echo "Resolved version: $NEW_VER"
+
+            - name: Checkout dev branch
+              uses: actions/checkout@v4
+              with:
+                  ref: dev
+                  token: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Check if update is needed
+              id: check
+              run: |
+                  CURRENT_TAG=$(grep -oP 'image: \S+:\K[^\s"]+' "${{ inputs.deployment_yaml }}" | head -1)
+                  echo "current_tag=$CURRENT_TAG" >> "$GITHUB_OUTPUT"
+                  if [ "$CURRENT_TAG" = "${{ steps.version.outputs.new_version }}" ]; then
+                    echo "skip=true" >> "$GITHUB_OUTPUT"
+                    echo "Manifest already at version ${{ steps.version.outputs.new_version }} — skipping."
+                  else
+                    echo "skip=false" >> "$GITHUB_OUTPUT"
+                    echo "Will update from $CURRENT_TAG to ${{ steps.version.outputs.new_version }}"
+                  fi
+
+            - name: Update deployment manifest
+              if: steps.check.outputs.skip == 'false'
+              run: |
+                  FILE="${{ inputs.deployment_yaml }}"
+                  NEW_VER="${{ steps.version.outputs.new_version }}"
+                  IMAGE="${{ inputs.image_name }}"
+                  OLD_TAG="${{ steps.check.outputs.current_tag }}"
+
+                  # Update image tag
+                  sed -i "s|image: ${IMAGE}:.*|image: ${IMAGE}:${NEW_VER}|g" "$FILE"
+
+                  # Update version label if present (anchored on old tag value)
+                  sed -i "s|version: \"${OLD_TAG}\"|version: \"${NEW_VER}\"|g" "$FILE"
+
+                  # Update rollout-restart annotation if present
+                  TIMESTAMP=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+                  sed -i "s|rollout-restart: \".*\"|rollout-restart: \"${TIMESTAMP}\"|g" "$FILE"
+
+                  echo "Updated manifest:"
+                  grep -E 'image:|version:|rollout-restart:' "$FILE"
+
+            - name: Create PR with manifest update
+              if: steps.check.outputs.skip == 'false'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  BRANCH_NAME="kube-deploy-${{ inputs.app_name }}-v${{ steps.version.outputs.new_version }}"
+
+                  # Check if branch already exists remotely (handle re-runs)
+                  if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
+                    echo "Branch $BRANCH_NAME already exists — skipping PR creation."
+                    exit 0
+                  fi
+
+                  git checkout -b "$BRANCH_NAME"
+                  git add "${{ inputs.deployment_yaml }}"
+                  git commit -m "chore(kube): update ${{ inputs.app_name }} to v${{ steps.version.outputs.new_version }}"
+                  git push -u origin "$BRANCH_NAME"
+
+                  PR_BODY="## Automated Kube Manifest Update
+
+                  - **App:** ${{ inputs.app_name }}
+                  - **Image:** \`${{ inputs.image_name }}:${{ steps.version.outputs.new_version }}\`
+                  - **Manifest:** \`${{ inputs.deployment_yaml }}\`
+                  - **Previous version:** \`${{ steps.check.outputs.current_tag }}\`
+
+                  Created automatically after Docker image publish."
+
+                  gh pr create \
+                    -B dev \
+                    -H "$BRANCH_NAME" \
+                    --title "chore(kube): update ${{ inputs.app_name }} to v${{ steps.version.outputs.new_version }}" \
+                    --body "$PR_BODY"
