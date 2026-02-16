@@ -68,6 +68,7 @@ Thumbs.db
 /output.json
 apps/api/.env
 .env
+.env.local
 
 # Expo
 node_modules/

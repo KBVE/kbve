@@ -30,166 +30,74 @@
 # Script Configuration
 
 
-UNTIY_SUBMODULE_PATH="/apps/saber/Assets/Plugins"
-UNITY_SUBMODULE_URL="https://github.com/KBVE/unity-plugins-rentearth.git"
+# Install a brew package if the command is not already available
+brew_install() {
+    local cmd="$1"
+    local pkg="${2:-$1}"  # package name defaults to command name
+    if command -v "$cmd" >/dev/null 2>&1; then
+        echo "$cmd is already installed. ($(command -v "$cmd"))"
+    else
+        echo "Installing $pkg via Homebrew..."
+        brew install "$pkg"
+    fi
+}
 
-UNITY_PLUGIN_LIBCEF="https://utfs.io/f/3257923f-3183-4250-9181-8a8bf97714bc-i8psgx.dll"
-UNITY_PLUGIN_LIBCEF_PATH=""
+# Full toolchain install via Homebrew
+install_brew_toolchain() {
+    brew_check
 
-UNITY_PLUGIN_LIBCEF_CODECS="https://utfs.io/f/4d91b407-38f3-4f71-85ee-8e26145b8eba-fkm4gm.dll"
-UNITY_PLUGIN_LIBCEF_CODECS_PATH=""
+    echo "=== Installing KBVE development toolchain ==="
 
+    brew_install rustc rust
+    brew_install node node
+    brew_install pnpm pnpm
+    brew_install python3 python@3.12
+    brew_install poetry poetry
+    brew_install dotnet dotnet
+    brew_install protoc protobuf
+    brew_install tmux tmux
+
+    echo ""
+    echo "=== Toolchain install complete ==="
+    echo "Rust:     $(rustc --version 2>/dev/null || echo 'not found')"
+    echo "Node:     $(node --version 2>/dev/null || echo 'not found')"
+    echo "pnpm:     $(pnpm --version 2>/dev/null || echo 'not found')"
+    echo "Python:   $(python3 --version 2>/dev/null || echo 'not found')"
+    echo "Poetry:   $(poetry --version 2>/dev/null || echo 'not found')"
+    echo ".NET:     $(dotnet --version 2>/dev/null || echo 'not found')"
+    echo "Protobuf: $(protoc --version 2>/dev/null || echo 'not found')"
+}
 
 # Function to install and prepare Rust
 install_rust() {
-    # Check if Rust is already installed
-    if command -v rustc >/dev/null 2>&1; then
-        echo "Rust is already installed."
-        echo "Rust version: $(rustc --version)"
-        echo "Rustup version: $(rustup --version 2>/dev/null || echo 'rustup not found')"
-        return 0
-    fi
-
-    # Check if Homebrew is available
     brew_check
-
-    local session_name="rust-installation"
-    local install_command="brew install rust"
-
-    # Check if the tmux session exists
-    if ! tmux has-session -t "$session_name" 2>/dev/null; then
-        echo "Creating a new tmux session named '$session_name' for Rust installation."
-        tmux new-session -s "$session_name" -d
-        # Send the Rust installation command to the session
-        tmux send-keys -t "$session_name" "$install_command" C-m
-        echo "Rust installation command has been sent to the tmux session '$session_name'."
-    else
-        echo "Tmux session '$session_name' already exists."
-    fi
-
-    # Attach to the tmux session
-    tmux attach-session -t "$session_name"
+    brew_install rustc rust
 }
 
-# Function to install and prepare NodeJS
+# Function to install and prepare NodeJS + pnpm
 install_node_pnpm() {
-    # Check if Node.js is already installed
-    if command -v node >/dev/null 2>&1; then
-        echo "Node.js is already installed."
-        echo "Node.js version: $(node --version)"
-    fi
-
-    # Check if pnpm is already installed
-    if command -v pnpm >/dev/null 2>&1; then
-        echo "pnpm is already installed."
-        echo "pnpm version: $(pnpm --version)"
-    fi
-
-    # If both are installed, return early
-    if command -v node >/dev/null 2>&1 && command -v pnpm >/dev/null 2>&1; then
-        echo "Both Node.js and pnpm are already installed."
-        return 0
-    fi
-
-    # Check if Homebrew is available
     brew_check
-
-    local session_name="node-pnpm-installation"
-    local install_commands=""
-
-    # Prepare installation commands based on what's missing
-    if ! command -v node >/dev/null 2>&1; then
-        install_commands="brew install node"
-        echo "Will install Node.js via Homebrew..."
-    fi
-
-    if ! command -v pnpm >/dev/null 2>&1; then
-        if [ -n "$install_commands" ]; then
-            install_commands="$install_commands && brew install pnpm"
-        else
-            install_commands="brew install pnpm"
-        fi
-        echo "Will install pnpm via Homebrew..."
-    fi
-
-    # Check if the tmux session exists
-    if ! tmux has-session -t "$session_name" 2>/dev/null; then
-        echo "Creating a new tmux session named '$session_name' for Node.js and pnpm installation."
-        tmux new-session -s "$session_name" -d
-        # Send the installation commands to the session
-        tmux send-keys -t "$session_name" "$install_commands" C-m
-        echo "Installation commands have been sent to the tmux session '$session_name'."
-    else
-        echo "Tmux session '$session_name' already exists."
-    fi
-
-    # Attach to the tmux session
-    tmux attach-session -t "$session_name"
+    brew_install node node
+    brew_install pnpm pnpm
 }
 
-# Functions to install and prepare DotNet
+# Function to install and prepare DotNet
 install_dotnet() {
-    local session_name="dotnet-installation"
-    local install_dotnet_command="wget https://dot.net/v1/dotnet-install.sh && chmod +x dotnet-install.sh && ./dotnet-install.sh --channel 7.0 --version latest"
-
-    # Check if the tmux session exists
-    if ! tmux has-session -t "$session_name" 2>/dev/null; then
-        echo "Creating a new tmux session named '$session_name' for .NET 7 installation."
-        tmux new-session -s "$session_name" -d
-        # Send the .NET 7 installation command to the session
-        tmux send-keys -t "$session_name" "$install_dotnet_command" C-m
-        echo ".NET 7 installation command has been sent to the tmux session '$session_name'."
-    else
-        echo "Tmux session '$session_name' already exists."
-    fi
-
-    # Attach to the tmux session
-    tmux attach-session -t "$session_name"
+    brew_check
+    brew_install dotnet dotnet
 }
 
-# Functions to install and prepare Poetry
+# Function to install and prepare Python + Poetry
 install_python_and_poetry() {
-    local session_name="python-poetry-installation"
-    local install_python_command="pyenv install 3.12.0 && pyenv global 3.12.0"
-    local install_poetry_command="curl -sSL https://install.python-poetry.org | python3 -"
-
-    # Check if the tmux session exists
-    if ! tmux has-session -t "$session_name" 2>/dev/null; then
-        echo "Creating a new tmux session named '$session_name' for Python 3.12 and Poetry installation."
-        tmux new-session -s "$session_name" -d
-        # Send the Python 3.12 installation command to the session
-        tmux send-keys -t "$session_name" "$install_python_command" C-m
-        # Send the Poetry installation command to the session
-        tmux send-keys -t "$session_name" "$install_poetry_command" C-m
-        echo "Python 3.12 and Poetry installation commands have been sent to the tmux session '$session_name'."
-    else
-        echo "Tmux session '$session_name' already exists."
-    fi
-
-    # Attach to the tmux session
-    tmux attach-session -t "$session_name"
+    brew_check
+    brew_install python3 python@3.12
+    brew_install poetry poetry
 }
 
-# Function to run 'pnpm install' within a tmux session in the current directory
+# Function to run 'pnpm install' for the monorepo
 install_monorepo() {
-    local session_name="monorepo-installation"
-    local install_command="pnpm install"
-
-    # Check if the tmux session exists
-    if ! tmux has-session -t "$session_name" 2>/dev/null; then
-        echo "Creating a new tmux session named '$session_name' for monorepo installation."
-        tmux new-session -s "$session_name" -d
-        # Navigate to the current directory in the new session
-        tmux send-keys -t "$session_name" "cd $(pwd)" C-m
-        # Send the 'pnpm install' command to the session
-        tmux send-keys -t "$session_name" "$install_command" C-m
-        echo "'pnpm install' command has been sent to the tmux session '$session_name'."
-    else
-        echo "Tmux session '$session_name' already exists."
-    fi
-
-    # Attach to the tmux session
-    tmux attach-session -t "$session_name"
+    echo "Running pnpm install..."
+    pnpm install
 }
 
 # Function to add optional submodule
@@ -216,6 +124,15 @@ addOptionalSubmodule() {
     awk '!seen[$0]++' .gitignore > temp && mv temp .gitignore
 }
 
+
+# Portable sed -i (macOS requires '' argument, Linux does not)
+sed_i() {
+    if [[ "$OSTYPE" == "darwin"* ]]; then
+        sed -i '' "$@"
+    else
+        sed -i "$@"
+    fi
+}
 
 # Function to check if a command is installed
 is_installed() {
@@ -265,13 +182,7 @@ prepare_disoxide_container() {
     echo "Copying Astro build output to disoxide/dist..."
     cp -a ./dist/apps/astro-discord/. ./apps/discord/disoxide/dist/
 
-    echo "[Prep] Prepared disoxide build. You can now run: pnpm nx run disoxide:containerx [--push]"
-    #echo "Building container with optional push... here we can loop back and pre-compress the files"
-    #if [[ "$1" == "--push" ]]; then
-        # pnpm nx run disoxide:containerx --push
-    #else
-        # pnpm nx run disoxide:containerx
-    #fi
+    echo "[Prep] Prepared disoxide build. You can now run: pnpm nx run disoxide:containerx"
 }
 
 # Function for atomic patching. 
@@ -370,12 +281,107 @@ zeta_function() {
     git switch -c "${PATCH_NAME}"
 }
 
+# Create a git worktree with proper env setup for Nx
+create_worktree() {
+    local description="$1"
+    local base_branch="${2:-dev}"
+
+    if [ -z "$description" ]; then
+        echo "Usage: $0 -worktree <description> [base_branch]"
+        echo "  description: short name for the worktree (e.g., 'fix-auth')"
+        echo "  base_branch: branch to base off of (default: dev)"
+        return 1
+    fi
+
+    # Determine the main repo root (where .git dir lives)
+    local main_repo
+    main_repo=$(git rev-parse --show-toplevel)
+
+    # Clean description for branch/dir name
+    local clean_name
+    clean_name=$(echo "$description" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g')
+    local date_suffix
+    date_suffix=$(date +'%m-%d-%Y')
+    local branch_name="trunk/${clean_name}-${date_suffix}"
+    local worktree_dir="${main_repo}-${clean_name}"
+
+    # Check if worktree dir already exists
+    if [ -d "$worktree_dir" ]; then
+        echo "Worktree directory already exists: $worktree_dir"
+        echo "Remove it first with: git worktree remove $worktree_dir"
+        return 1
+    fi
+
+    # Fetch latest
+    echo "Fetching latest from origin..."
+    git fetch origin "$base_branch"
+
+    # Create worktree
+    echo "Creating worktree at: $worktree_dir"
+    echo "Branch: $branch_name (based on $base_branch)"
+    git worktree add "$worktree_dir" -b "$branch_name" "origin/$base_branch"
+
+    # Copy .env if it exists in the main repo (gitignored, won't be in worktree)
+    if [ -f "$main_repo/.env" ]; then
+        echo "Copying .env from main repo..."
+        cp "$main_repo/.env" "$worktree_dir/.env"
+    fi
+
+    # Generate .env.local with Nx workspace root pointing to the worktree
+    echo "Generating .env.local for Nx..."
+    cat > "$worktree_dir/.env.local" <<ENVEOF
+NX_WORKSPACE_ROOT=$worktree_dir
+NX_DAEMON=false
+ENVEOF
+
+    # Install dependencies
+    echo "Installing pnpm dependencies in worktree..."
+    (cd "$worktree_dir" && pnpm install)
+
+    echo ""
+    echo "=== Worktree ready ==="
+    echo "  Path:   $worktree_dir"
+    echo "  Branch: $branch_name"
+    echo ""
+    echo "cd $worktree_dir"
+}
+
+# Remove a git worktree by name
+remove_worktree() {
+    local description="$1"
+
+    if [ -z "$description" ]; then
+        echo "Usage: $0 -worktree-rm <description>"
+        echo ""
+        echo "Active worktrees:"
+        git worktree list
+        return 1
+    fi
+
+    local main_repo
+    main_repo=$(git rev-parse --show-toplevel)
+    local clean_name
+    clean_name=$(echo "$description" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g')
+    local worktree_dir="${main_repo}-${clean_name}"
+
+    if [ ! -d "$worktree_dir" ]; then
+        echo "Worktree not found: $worktree_dir"
+        echo ""
+        echo "Active worktrees:"
+        git worktree list
+        return 1
+    fi
+
+    echo "Removing worktree: $worktree_dir"
+    git worktree remove "$worktree_dir"
+    echo "Done."
+}
 
 # Function to manage a tmux session
 manage_tmux_session() {
     # Assign the first argument to session_name
     local session_name="$1"
-    # Ass the 2nd argue.
+    # Assign the second argument to command
     local command="$2"
 
     if ! tmux has-session -t "$session_name" 2>/dev/null; then
@@ -409,7 +415,7 @@ bump_cargo_version() {
             local new_version=$(echo "$current_version" | sed "s/\.[0-9]\+$/.$new_last_digit/")
 
             # Replace the old version with the new version in Cargo.toml
-            sed -i "s/version = \"$current_version\"/version = \"$new_version\"/" Cargo.toml
+            sed_i "s/version = \"$current_version\"/version = \"$new_version\"/" Cargo.toml
             echo "Version bumped in $package_dir/Cargo.toml to $new_version"
         else
             echo "Cargo.toml not found in $package_dir"
@@ -453,7 +459,7 @@ bump_python_package_version() {
     local new_version="$base_version.$new_patch_version"
 
     # Replace the old version with the new version in pyproject.toml
-    sed -i "s/version = \"$current_version\"/version = \"$new_version\"/" "$pyproject_file"
+    sed_i "s/version = \"$current_version\"/version = \"$new_version\"/" "$pyproject_file"
     echo "Version bumped in $pyproject_file to $new_version"
 }
 
@@ -503,7 +509,7 @@ create_markdown() {
     cp "$template_path" "$markdown_filename"
 
     # Replace $kbve_date with the current date in the new markdown file
-    sed -i "s/\$kbve_date/$current_date/" "$markdown_filename"
+    sed_i "s/\$kbve_date/$current_date/" "$markdown_filename"
 
     echo "Markdown file created at $markdown_filename using template from $template_path with date replaced"
 }
@@ -539,15 +545,7 @@ execmdx_function() {
 }
 
 
-# Function to run pnpm nx with an argument
-# 4-9-2024
-# run_pnpm_nx() {
-#     local argument="$1"
-#     pnpm nx run "$argument"
-# }
-
-
-# Function to run pnpm nx with additional arguements under the cloud.
+# Function to run pnpm nx with additional arguments under the cloud.
 run_pnpm_nxc() {
     echo "Running pnpm nx with arguments: $@"
     pnpm nx run "$@"
@@ -566,13 +564,6 @@ build_pnpm_nx() {
     pnpm nx build "$argument"
 }
 
-# Function to generate a ULID
-generate_ulid() {
-    echo "Not Ready Yet!"
-}
-
-
-
 # Main execution
 case "$1" in
     -check)
@@ -588,6 +579,9 @@ case "$1" in
         ;;
     -root)
         check_root
+        ;;
+    -brew)
+        install_brew_toolchain
         ;;
     -installrust)
         install_rust
@@ -693,11 +687,13 @@ case "$1" in
          [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
         build_pnpm_nx "$2"
         ;;
-    -rentearthplugin)
-        addOptionalSubmodule "$UNITY_SUBMODULE_PATH" "$UNITY_SUBMODULE_URL"
+    -worktree)
+        shift
+        create_worktree "$@"
         ;;
-    -ulid)
-        generate_ulid
+    -worktree-rm)
+        shift
+        remove_worktree "$@"
         ;;
     -preparehyperlane)
         prepare_hyperlane_container
@@ -722,16 +718,14 @@ case "$1" in
             echo "diesel_ext executed and output redirect to erust db models"
 
             # Remove Diesel
-            sed -i '/diesel(/d' ../erust/src/state/dbmodels.rs
+            sed_i '/diesel(/d' ../erust/src/state/dbmodels.rs
             echo "Clearing out Diesel from DBModels"
 
             # Patching includes
-            # sed -i 's/(Queryable, Debug, Identifiable)/(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)/g' ../erust/src/state/dbmodels.rs
-            sed -i 's/(Queryable, Debug)/(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)/g' ../erust/src/state/dbmodels.rs
+            sed_i 's/(Queryable, Debug)/(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)/g' ../erust/src/state/dbmodels.rs
             echo "Patching Part 1 of the DBModels"
 
-
-            grep -q 'use serde_json::' "../erust/src/state/dbmodels.rs" || sed -i '5 a use serde_json::{Value as Json};' "../erust/src/state/dbmodels.rs"
+            grep -q 'use serde_json::' "../erust/src/state/dbmodels.rs" || sed_i '5 a use serde_json::{Value as Json};' "../erust/src/state/dbmodels.rs"
             echo "Patching Part 2 of the DBModels"
 
             # Execute diesel_ext and redirect output
@@ -741,11 +735,11 @@ case "$1" in
 
             # Patching the models.rs inside of src.
             { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use serde_json::{ Value as Json};'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
-            sed -i 's/#\[derive(Queryable,/#\[derive(Queryable, Serialize, Deserialize,/' src/models.rs
+            sed_i 's/#\[derive(Queryable,/#\[derive(Queryable, Serialize, Deserialize,/' src/models.rs
             echo "Patching models.rs"
 
             # Patching the Identifiable
-            sed -i -e 's/, Identifiable//' src/models.rs
+            sed_i 's/, Identifiable//' src/models.rs
             echo "Patched Identifiable from models.rs"
             
             # Protobuf — generate to centralized packages/data/proto/kbve/
@@ -753,19 +747,19 @@ case "$1" in
             echo "Created Protos"
 
             # Patching Binary Protobuf
-            sed -i 's/\/\* TODO: unknown type Binary \*\//bytes/g' ../data/proto/kbve/kbveproto.proto
+            sed_i 's/\/\* TODO: unknown type Binary \*\//bytes/g' ../data/proto/kbve/kbveproto.proto
             echo "Patching Binary from Protos"
 
             # Patching Integer Protobuf
-            sed -i 's/\/\* TODO: unknown type Integer \*\//int64/g' ../data/proto/kbve/kbveproto.proto
+            sed_i 's/\/\* TODO: unknown type Integer \*\//int64/g' ../data/proto/kbve/kbveproto.proto
             echo "Patching Integer from Protos"
 
             # Patching Unsign Bigint Protobuf
-            sed -i 's/\/\* TODO: unknown type Unsigned<Bigint> \*\//uint64/g' ../data/proto/kbve/kbveproto.proto
+            sed_i 's/\/\* TODO: unknown type Unsigned<Bigint> \*\//uint64/g' ../data/proto/kbve/kbveproto.proto
             echo "Patching Unsign BigInt from Protos"
 
             # Patching Decimal Protobuf
-            sed -i 's/\/\* TODO: unknown type Decimal \*\//string/g' ../data/proto/kbve/kbveproto.proto
+            sed_i 's/\/\* TODO: unknown type Decimal \*\//string/g' ../data/proto/kbve/kbveproto.proto
             echo "Patching Decimal as string for Protos"
 
             # Return to the original directory
@@ -786,6 +780,39 @@ case "$1" in
         fi
         ;;
     *)
-        echo "Invalid usage. Options: '-check', '-ping', '-root', '-reset', '-studio'."
+        echo "Usage: $0 [command]"
+        echo ""
+        echo "Setup:"
+        echo "  -brew              Install full dev toolchain via Homebrew"
+        echo "  -install           Run pnpm install for monorepo"
+        echo "  -installrust       Install Rust via Homebrew"
+        echo "  -installnode       Install Node.js + pnpm via Homebrew"
+        echo "  -installnet        Install .NET via Homebrew"
+        echo "  -installpy         Install Python + Poetry via Homebrew"
+        echo ""
+        echo "Development:"
+        echo "  -nx [cmd]          Run pnpm nx (no cloud)"
+        echo "  -nxc [cmd]         Run pnpm nx (with cloud)"
+        echo "  -build [project]   Build with pnpm nx"
+        echo "  -studio            Launch API studio (tmux)"
+        echo "  -graph             Launch Nx graph (tmux)"
+        echo "  -report            Run Nx report (tmux)"
+        echo "  -reset             Reinstall deps + reset Nx cache"
+        echo ""
+        echo "Git:"
+        echo "  -atomic [desc]     Create atomic branch from dev"
+        echo "  -zeta [desc]       Create zeta patch branch"
+        echo "  -worktree <name> [base]  Create worktree with env + deps"
+        echo "  -worktree-rm <name>      Remove a worktree"
+        echo ""
+        echo "Version:"
+        echo "  -cargobump [pkg]   Bump Cargo.toml patch version"
+        echo "  -pythonbump [dir]  Bump pyproject.toml patch version"
+        echo ""
+        echo "Utilities:"
+        echo "  -check [cmds...]   Check if commands are installed"
+        echo "  -ping [domain]     Check connectivity to domain"
+        echo "  -root              Check if running as root"
+        echo "  -db                Generate diesel schema + protobuf"
         ;;
 esac
