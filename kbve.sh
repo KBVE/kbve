@@ -281,12 +281,106 @@ zeta_function() {
     git switch -c "${PATCH_NAME}"
 }
 
+# Create a git worktree with proper env setup for Nx
+create_worktree() {
+    local description="$1"
+    local base_branch="${2:-dev}"
+
+    if [ -z "$description" ]; then
+        echo "Usage: $0 -worktree <description> [base_branch]"
+        echo "  description: short name for the worktree (e.g., 'fix-auth')"
+        echo "  base_branch: branch to base off of (default: dev)"
+        return 1
+    fi
+
+    # Determine the main repo root (where .git dir lives)
+    local main_repo
+    main_repo=$(git rev-parse --show-toplevel)
+
+    # Clean description for branch/dir name
+    local clean_name
+    clean_name=$(echo "$description" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g')
+    local date_suffix
+    date_suffix=$(date +'%m-%d-%Y')
+    local branch_name="trunk/${clean_name}-${date_suffix}"
+    local worktree_dir="${main_repo}-${clean_name}"
+
+    # Check if worktree dir already exists
+    if [ -d "$worktree_dir" ]; then
+        echo "Worktree directory already exists: $worktree_dir"
+        echo "Remove it first with: git worktree remove $worktree_dir"
+        return 1
+    fi
+
+    # Fetch latest
+    echo "Fetching latest from origin..."
+    git fetch origin "$base_branch"
+
+    # Create worktree
+    echo "Creating worktree at: $worktree_dir"
+    echo "Branch: $branch_name (based on $base_branch)"
+    git worktree add "$worktree_dir" -b "$branch_name" "origin/$base_branch"
+
+    # Copy .env if it exists in the main repo (gitignored, won't be in worktree)
+    if [ -f "$main_repo/.env" ]; then
+        echo "Copying .env from main repo..."
+        cp "$main_repo/.env" "$worktree_dir/.env"
+    fi
+
+    # Copy .env.local if it exists
+    if [ -f "$main_repo/.env.local" ]; then
+        echo "Copying .env.local from main repo..."
+        cp "$main_repo/.env.local" "$worktree_dir/.env.local"
+    fi
+
+    # Install dependencies
+    echo "Installing pnpm dependencies in worktree..."
+    (cd "$worktree_dir" && pnpm install)
+
+    echo ""
+    echo "=== Worktree ready ==="
+    echo "  Path:   $worktree_dir"
+    echo "  Branch: $branch_name"
+    echo ""
+    echo "cd $worktree_dir"
+}
+
+# Remove a git worktree by name
+remove_worktree() {
+    local description="$1"
+
+    if [ -z "$description" ]; then
+        echo "Usage: $0 -worktree-rm <description>"
+        echo ""
+        echo "Active worktrees:"
+        git worktree list
+        return 1
+    fi
+
+    local main_repo
+    main_repo=$(git rev-parse --show-toplevel)
+    local clean_name
+    clean_name=$(echo "$description" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g')
+    local worktree_dir="${main_repo}-${clean_name}"
+
+    if [ ! -d "$worktree_dir" ]; then
+        echo "Worktree not found: $worktree_dir"
+        echo ""
+        echo "Active worktrees:"
+        git worktree list
+        return 1
+    fi
+
+    echo "Removing worktree: $worktree_dir"
+    git worktree remove "$worktree_dir"
+    echo "Done."
+}
 
 # Function to manage a tmux session
 manage_tmux_session() {
     # Assign the first argument to session_name
     local session_name="$1"
-    # Ass the 2nd argue.
+    # Assign the second argument to command
     local command="$2"
 
     if ! tmux has-session -t "$session_name" 2>/dev/null; then
@@ -592,6 +686,14 @@ case "$1" in
          [ -z "$2" ] && { echo "No argument specified. Usage: $0 -nx [argument]"; exit 1; }
         build_pnpm_nx "$2"
         ;;
+    -worktree)
+        shift
+        create_worktree "$@"
+        ;;
+    -worktree-rm)
+        shift
+        remove_worktree "$@"
+        ;;
     -preparehyperlane)
         prepare_hyperlane_container
         ;;
@@ -699,6 +801,8 @@ case "$1" in
         echo "Git:"
         echo "  -atomic [desc]     Create atomic branch from dev"
         echo "  -zeta [desc]       Create zeta patch branch"
+        echo "  -worktree <name> [base]  Create worktree with env + deps"
+        echo "  -worktree-rm <name>      Remove a worktree"
         echo ""
         echo "Version:"
         echo "  -cargobump [pkg]   Bump Cargo.toml patch version"
