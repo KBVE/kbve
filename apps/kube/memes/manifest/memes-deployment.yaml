@@ -1,0 +1,65 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: memes-deployment
+  namespace: memes
+  labels:
+    app: memes
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: memes
+  template:
+    metadata:
+      annotations:
+        rollout-restart: "2026-02-15T00:00:00Z"
+      labels:
+        app: memes
+        version: "0.1.0"
+    spec:
+      containers:
+      - name: memes
+        image: ghcr.io/kbve/memes:0.1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4321
+          protocol: TCP
+        env:
+        - name: PORT
+          value: "4321"
+        - name: SUPABASE_URL
+          value: "http://kong.kilobase.svc.cluster.local:8000"
+        - name: SUPABASE_ANON_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: anon-key
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: service-role-key
+        resources:
+          requests:
+            memory: "512Mi"
+            cpu: "2000m"
+          limits:
+            memory: "1024Mi"
+            cpu: "4000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: memes-service
+  namespace: memes
+  labels:
+    app: memes
+spec:
+  type: ClusterIP
+  selector:
+    app: memes
+  ports:
+  - port: 4321
+    targetPort: 4321
+    protocol: TCP

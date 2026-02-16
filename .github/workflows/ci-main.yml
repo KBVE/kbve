@@ -304,7 +304,8 @@ jobs:
                   { "name": "disoxide", "target": "container", "condition": "${{ needs.alter.outputs.disoxide }}" },
                   { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" },
                   { "name": "kbve-hyperlane", "target": "container", "condition": "${{ needs.alter.outputs.hyperlane }}" },
-                  { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" }
+                  { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" },
+                  { "name": "memes", "target": "container", "condition": "${{ needs.alter.outputs.memes }}", "image": "kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml" }
                 ]
 
     generate_e2e_docker_matrix:
@@ -313,7 +314,8 @@ jobs:
         with:
             items: |
                 [
-                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}" }
+                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}" },
+                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}" }
                 ]
 
     test_docker:
@@ -349,7 +351,8 @@ jobs:
         with:
             items: |
                 [
-                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}", "image_name": "ghcr.io/kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml", "deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml" }
+                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}", "image_name": "ghcr.io/kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml", "deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml" },
+                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}", "image_name": "ghcr.io/kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml", "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml" }
                 ]
 
     update_kube_manifests:
