@@ -4,8 +4,7 @@ use std::{net::SocketAddr, time::Duration};
 use axum::{
     extract::Request,
     http::{header, HeaderName, HeaderValue},
-    middleware::Next,
-    response::{IntoResponse, Response},
+    response::IntoResponse,
     routing::get,
     Router,
 };
