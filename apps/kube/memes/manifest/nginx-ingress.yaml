@@ -4,9 +4,17 @@ metadata:
   name: memes-ingress
   namespace: memes
   annotations:
-    kubernetes.io/ingress.class: nginx
     nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    cert-manager.io/cluster-issuer: "letsencrypt-http"
+    nginx.ingress.kubernetes.io/proxy-pass-headers: "Cross-Origin-Opener-Policy,Cross-Origin-Embedder-Policy,Cross-Origin-Resource-Policy"
 spec:
+  ingressClassName: nginx
+  tls:
+    - hosts:
+        - meme.sh
+        - www.meme.sh
+      secretName: memes-tls
   rules:
   - host: meme.sh
     http:
