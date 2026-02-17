@@ -2,7 +2,7 @@ use anyhow::Result;
 use std::net::SocketAddr;
 use tokio::io::{AsyncBufReadExt, AsyncWriteExt, BufReader};
 use tokio::net::{TcpListener, TcpStream};
-use tracing::{info, warn, error};
+use tracing::{info, warn};
 
 use crate::auth::jwt;
 
@@ -27,10 +27,10 @@ pub async fn serve() -> Result<()> {
     }
 }
 
-async fn handle_irc_client(mut client: TcpStream, peer: SocketAddr) -> Result<()> {
+async fn handle_irc_client(client: TcpStream, peer: SocketAddr) -> Result<()> {
     info!(peer = %peer, "New IRC connection");
 
-    let (reader, mut writer) = client.split();
+    let (reader, mut writer) = client.into_split();
     let mut buf_reader = BufReader::new(reader);
     let mut line = String::new();
 
@@ -87,15 +87,12 @@ async fn handle_irc_client(mut client: TcpStream, peer: SocketAddr) -> Result<()
     ergo.write_all(nick_cmd.as_bytes()).await?;
     ergo.write_all(user_cmd.as_bytes()).await?;
 
-    // Reassemble the client stream (buf_reader has the remaining data)
-    let client = buf_reader.into_inner().unsplit(writer);
-
-    // Bidirectional proxy
-    let (mut client_read, mut client_write) = tokio::io::split(client);
-    let (mut ergo_read, mut ergo_write) = tokio::io::split(ergo);
+    // Bidirectional proxy using owned halves
+    let mut client_read = buf_reader;
+    let (mut ergo_read, mut ergo_write) = ergo.into_split();
 
     let c2e = tokio::io::copy(&mut client_read, &mut ergo_write);
-    let e2c = tokio::io::copy(&mut ergo_read, &mut client_write);
+    let e2c = tokio::io::copy(&mut ergo_read, &mut writer);
 
     tokio::select! {
         _ = c2e => {},
