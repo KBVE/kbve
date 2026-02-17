@@ -1,0 +1,23 @@
+{
+  "name": "irc",
+  "$schema": "../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/irc",
+  "targets": {
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["nx test irc-gateway", "nx e2e irc-e2e"],
+        "parallel": false
+      }
+    },
+    "container": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["nx container irc-gateway"],
+        "parallel": false
+      }
+    }
+  },
+  "tags": []
+}

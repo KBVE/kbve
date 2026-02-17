@@ -18,7 +18,7 @@ test.describe('Smoke: Pagefind Search', () => {
 		await expect(input).toBeVisible({ timeout: 10_000 });
 	});
 
-	test('searching "herbmail" returns results', async ({ page }) => {
+	test('searching "getting started" returns results', async ({ page }) => {
 		await page.locator('button[data-open-modal]').click();
 
 		const dialog = page.locator('dialog[aria-label="Search"]');
@@ -26,7 +26,7 @@ test.describe('Smoke: Pagefind Search', () => {
 
 		const input = dialog.locator('.pagefind-ui__search-input');
 		await expect(input).toBeVisible({ timeout: 10_000 });
-		await input.pressSequentially('herbmail', { delay: 50 });
+		await input.pressSequentially('getting started', { delay: 50 });
 
 		const results = dialog.locator('.pagefind-ui__result');
 		await expect(results.first()).toBeVisible({ timeout: 15_000 });
@@ -43,7 +43,7 @@ test.describe('Smoke: Pagefind Search', () => {
 		const dialog = page.locator('dialog[aria-label="Search"]');
 		const input = dialog.locator('.pagefind-ui__search-input');
 		await expect(input).toBeVisible({ timeout: 10_000 });
-		await input.pressSequentially('herbmail', { delay: 50 });
+		await input.pressSequentially('getting started', { delay: 50 });
 
 		const firstResult = dialog.locator('.pagefind-ui__result a').first();
 		await expect(firstResult).toBeVisible({ timeout: 15_000 });
