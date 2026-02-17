@@ -4,7 +4,7 @@ use std::{net::SocketAddr, time::Duration};
 use axum::{
     extract::Request,
     http::{header, HeaderName, HeaderValue},
-    response::IntoResponse,
+    response::{Html, IntoResponse},
     routing::get,
     Router,
 };
@@ -73,11 +73,16 @@ fn router() -> Router {
         .layer(tower_http::limit::RequestBodyLimitLayer::new(1024 * 1024));
 
     Router::new()
+        .route("/", get(index))
         .route("/health", get(health))
         .route("/ws", get(crate::gateway::websocket::ws_handler))
         .route("/webirc", get(crate::gateway::websocket::ws_handler))
         .nest("/api/v1", crate::gateway::rest::api_router())
         .layer(middleware)
+}
+
+async fn index() -> Html<&'static str> {
+    Html(include_str!("../../templates/index.html"))
 }
 
 async fn health() -> impl IntoResponse {
