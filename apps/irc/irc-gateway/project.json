@@ -1,0 +1,123 @@
+{
+  "name": "irc-gateway",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/irc/irc-gateway/src",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "ERGO_WS_URL=ws://localhost:8080 ERGO_IRC_HOST=localhost ERGO_IRC_PORT=6667 cargo run -p irc-gateway"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@monodon/rust:build",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/irc-gateway"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "test": {
+      "executor": "@monodon/rust:test",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/irc-gateway"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "lint": {
+      "executor": "@monodon/rust:lint",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/irc-gateway"
+      }
+    },
+    "run": {
+      "executor": "@monodon/rust:run",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/irc-gateway"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["nx test irc-gateway"],
+        "parallel": false
+      }
+    },
+    "container-prep": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "mkdir -p ./apps/irc/irc-gateway/dist/"
+        ],
+        "parallel": false
+      }
+    },
+    "container": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["container-prep"],
+      "defaultConfiguration": "local",
+      "options": {
+        "parallel": false
+      },
+      "configurations": {
+        "local": {
+          "commands": ["./kbve.sh -nx irc-gateway:containerx"]
+        },
+        "production": {
+          "commands": ["./kbve.sh -nx irc-gateway:containerx --configuration=production"]
+        }
+      }
+    },
+    "containerx": {
+      "executor": "@nx-tools/nx-container:build",
+      "defaultConfiguration": "local",
+      "options": {
+        "engine": "docker",
+        "context": ".",
+        "file": "apps/irc/irc-gateway/Dockerfile",
+        "load": true,
+        "metadata": {
+          "images": ["ghcr.io/kbve/irc-gateway", "kbve/irc-gateway"],
+          "tags": ["0.1.0", "0.1"]
+        },
+        "configurations": {
+          "local": {
+            "load": true,
+            "push": false
+          },
+          "production": {
+            "load": true,
+            "push": false,
+            "cache-from": [
+              "type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache"
+            ],
+            "cache-to": [
+              "type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache,mode=max"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}
