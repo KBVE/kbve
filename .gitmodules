@@ -2,3 +2,6 @@
 	path = apps/postgres
 	url = https://github.com/kbve/postgres.git
 	branch = develop
+[submodule "apps/irc/ergo"]
+	path = apps/irc/ergo
+	url = https://github.com/kbve/ergo
