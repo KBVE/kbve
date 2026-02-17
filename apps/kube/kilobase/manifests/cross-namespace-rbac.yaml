@@ -47,6 +47,9 @@ subjects:
 - kind: ServiceAccount
   name: memes-external-secrets
   namespace: memes
+- kind: ServiceAccount
+  name: irc-gateway-external-secrets
+  namespace: irc
 ---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1
