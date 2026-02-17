@@ -316,7 +316,8 @@ jobs:
             items: |
                 [
                   { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}" },
-                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}" }
+                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}" },
+                  { "name": "irc", "condition": "${{ needs.alter.outputs.irc_gateway }}" }
                 ]
 
     test_docker:
