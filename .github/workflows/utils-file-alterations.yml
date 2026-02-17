@@ -69,6 +69,9 @@ on:
       memes:
         description: "Memes app changed"
         value: ${{ jobs.alter.outputs.memes }}
+      irc_gateway:
+        description: "IRC Gateway changed"
+        value: ${{ jobs.alter.outputs.irc_gateway }}
       astro_rareicon:
         description: "Rareicon.com changed"
         value: ${{ jobs.alter.outputs.astro_rareicon }}
@@ -146,6 +149,7 @@ jobs:
       astro_herbmail: ${{ steps.delta.outputs.astro_herbmail_any_changed }}
       herbmail: ${{ steps.delta.outputs.herbmail_any_changed }}
       memes: ${{ steps.delta.outputs.memes_any_changed }}
+      irc_gateway: ${{ steps.delta.outputs.irc_gateway_any_changed }}
       astro_rareicon: ${{ steps.delta.outputs.astro_rareicon_any_changed }}
       rareicon_unity: ${{ steps.delta.outputs.rareicon_unity_any_changed }}
       droid: ${{ steps.delta.outputs.droid_any_changed }}
@@ -214,6 +218,8 @@ jobs:
                 - 'apps/herbmail/**'
             memes:
                 - 'apps/memes/**'
+            irc_gateway:
+                - 'apps/irc/irc-gateway/**'
             astro_rareicon:
                 - 'apps/rareicon/rareicon.com/**'
             discordsh:

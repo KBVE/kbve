@@ -1,0 +1,73 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: irc-gateway-deployment
+  namespace: irc
+  labels:
+    app: irc-gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: irc-gateway
+  template:
+    metadata:
+      labels:
+        app: irc-gateway
+        version: "0.1.0"
+    spec:
+      containers:
+      - name: irc-gateway
+        image: ghcr.io/kbve/irc-gateway:0.1.0
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 4321
+          protocol: TCP
+          name: http
+        - containerPort: 6667
+          protocol: TCP
+          name: irc
+        env:
+        - name: HTTP_PORT
+          value: "4321"
+        - name: IRC_PROXY_PORT
+          value: "6667"
+        - name: ERGO_WS_URL
+          value: "ws://ergo-irc-service.irc.svc.cluster.local:8080"
+        - name: ERGO_IRC_HOST
+          value: "ergo-irc-service.irc.svc.cluster.local"
+        - name: ERGO_IRC_PORT
+          value: "6667"
+        - name: JWT_SECRET
+          valueFrom:
+            secretKeyRef:
+              name: supabase-shared
+              key: jwt-secret
+        resources:
+          requests:
+            memory: "256Mi"
+            cpu: "500m"
+          limits:
+            memory: "512Mi"
+            cpu: "1000m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: irc-gateway-service
+  namespace: irc
+  labels:
+    app: irc-gateway
+spec:
+  type: ClusterIP
+  selector:
+    app: irc-gateway
+  ports:
+  - port: 4321
+    targetPort: 4321
+    protocol: TCP
+    name: http
+  - port: 6667
+    targetPort: 6667
+    protocol: TCP
+    name: irc
