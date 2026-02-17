@@ -44,6 +44,9 @@ subjects:
 - kind: ServiceAccount
   name: herbmail-external-secrets
   namespace: herbmail
+- kind: ServiceAccount
+  name: memes-external-secrets
+  namespace: memes
 ---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1
