@@ -9,7 +9,7 @@ const baseURL = `http://localhost:${port}`;
 const jwtSecret = 'e2e-test-secret-do-not-use-in-production';
 
 const commands: Record<string, string> = {
-	dev: `JWT_SECRET=${jwtSecret} ERGO_WS_URL=ws://localhost:8080 ERGO_IRC_HOST=localhost ERGO_IRC_PORT=6667 cargo run -p irc-gateway`,
+	dev: `STATIC_DIR=./dist/apps/astro-irc STATIC_PRECOMPRESSED=false JWT_SECRET=${jwtSecret} ERGO_WS_URL=ws://localhost:8080 ERGO_IRC_HOST=localhost ERGO_IRC_PORT=6667 cargo run -p irc-gateway`,
 	docker: `docker run --rm -p ${port}:${port} -e JWT_SECRET=${jwtSecret} kbve/irc-gateway:0.1.0`,
 };
 
