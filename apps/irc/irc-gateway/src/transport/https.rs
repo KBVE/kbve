@@ -2,9 +2,8 @@ use anyhow::Result;
 use std::{net::SocketAddr, time::Duration};
 
 use axum::{
-    extract::Request,
     http::{header, HeaderName, HeaderValue},
-    response::{Html, IntoResponse},
+    response::IntoResponse,
     routing::get,
     Router,
 };
@@ -24,7 +23,10 @@ pub async fn serve() -> Result<()> {
 
     info!("HTTP listening on http://{addr}");
 
-    let app = router();
+    let static_config = crate::astro::StaticConfig::from_env();
+    info!(dir = %static_config.base_dir.display(), precompressed = static_config.precompressed, "static file serving");
+
+    let app = router(&static_config);
 
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
@@ -33,7 +35,7 @@ pub async fn serve() -> Result<()> {
     Ok(())
 }
 
-fn router() -> Router {
+fn router(static_config: &crate::astro::StaticConfig) -> Router {
     let max_inflight: usize = num_cpus::get().max(1) * 1024;
 
     let middleware = tower::ServiceBuilder::new()
@@ -72,17 +74,15 @@ fn router() -> Router {
         .load_shed()
         .layer(tower_http::limit::RequestBodyLimitLayer::new(1024 * 1024));
 
-    Router::new()
-        .route("/", get(index))
+    let static_router = crate::astro::build_static_router(static_config);
+
+    let api_router = Router::new()
         .route("/health", get(health))
         .route("/ws", get(crate::gateway::websocket::ws_handler))
         .route("/webirc", get(crate::gateway::websocket::ws_handler))
-        .nest("/api/v1", crate::gateway::rest::api_router())
-        .layer(middleware)
-}
+        .nest("/api/v1", crate::gateway::rest::api_router());
 
-async fn index() -> Html<&'static str> {
-    Html(include_str!("../../templates/index.html"))
+    static_router.merge(api_router).layer(middleware)
 }
 
 async fn health() -> impl IntoResponse {
@@ -125,7 +125,7 @@ async fn shutdown_signal() {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use axum::{body::Body, http::StatusCode};
+    use axum::{body::Body, extract::Request, http::StatusCode};
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 
