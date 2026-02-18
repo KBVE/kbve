@@ -1,4 +1,30 @@
 # ============================================================================
+# [STAGE A] - Precompress Static Assets (built by container-prep on host)
+# ============================================================================
+FROM --platform=linux/amd64 ubuntu:24.04 AS astro-precompressor
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends gzip brotli && \
+    rm -rf /var/lib/apt/lists/*
+
+COPY apps/irc/irc-gateway/dist /static
+
+WORKDIR /static
+RUN find . -type f \( \
+        -name "*.css" -o \
+        -name "*.js" -o \
+        -name "*.json" -o \
+        -name "*.svg" -o \
+        -name "*.xml" -o \
+        -name "*.txt" -o \
+        -name "*.html" \
+    \) -exec sh -c ' \
+        gzip -9 -k "$1" && \
+        brotli --best --keep "$1" \
+    ' _ {} \; && \
+    echo "Precompression complete (brotli-11 + gzip-9)"
+
+# ============================================================================
 # [STAGE B] - Rust Base Image
 # ============================================================================
 FROM --platform=linux/amd64 rust:1.90-slim AS rust-base
@@ -66,6 +92,9 @@ FROM rust-base AS builder
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 
+# Copy Astro build output (precompressed)
+COPY --from=astro-precompressor /static /app/apps/irc/irc-gateway/templates/dist
+
 # Use the same minimal workspace
 COPY --from=planner /app/Cargo.toml ./
 COPY Cargo.lock ./
@@ -129,6 +158,8 @@ COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-
 WORKDIR /app
 
 COPY --from=builder /app/target/release/irc-gateway /app/irc-gateway
+
+COPY --from=builder /app/apps/irc/irc-gateway/templates/dist /app/templates/dist
 
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"

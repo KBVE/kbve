@@ -1,3 +1,4 @@
+mod astro;
 mod auth;
 mod gateway;
 mod transport;

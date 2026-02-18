@@ -3,12 +3,13 @@
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
 	"sourceRoot": "apps/irc/irc-e2e/e2e",
-	"implicitDependencies": ["irc-gateway"],
+	"implicitDependencies": ["irc-gateway", "astro-irc"],
 	"targets": {
 		"e2e": {
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
+					"./kbve.sh -nx astro-irc:build",
 					"pnpm exec playwright install --with-deps chromium",
 					"pnpm exec playwright test --config=apps/irc/irc-e2e/playwright.config.ts"
 				],
