@@ -41,15 +41,41 @@
     </div>
 
     <script>
-      // Clear local auth state and redirect
-      Object.keys(localStorage).forEach((key) => {
-        if (key.includes('supabase') || key.includes('sb-')) {
-          localStorage.removeItem(key);
+      import { authBridge } from '../../lib/supa';
+
+      (async () => {
+        try {
+          await authBridge.signOut();
+        } catch (err) {
+          console.log('[Logout] AuthBridge sign-out skipped:', err);
         }
-      });
-      setTimeout(() => {
-        window.location.href = '/?_=' + Date.now();
-      }, 500);
+
+        // Clear IndexedDB auth database
+        try {
+          await new Promise<boolean>((resolve, reject) => {
+            const req = indexedDB.deleteDatabase('sb-auth-v2');
+            req.onsuccess = () => resolve(true);
+            req.onerror = () => reject(req.error);
+            req.onblocked = () => setTimeout(() => resolve(true), 200);
+          });
+        } catch (err) {
+          console.warn('[Logout] Failed to clear IndexedDB:', err);
+        }
+
+        // Clear localStorage supabase keys
+        Object.keys(localStorage).forEach((key) => {
+          if (key.includes('supabase') || key.includes('sb-')) {
+            localStorage.removeItem(key);
+          }
+        });
+
+        document.querySelector('p')!.textContent = 'Signed out successfully';
+        document.querySelector('.sub')!.textContent = 'Redirecting to home...';
+
+        setTimeout(() => {
+          window.location.href = '/?_=' + Date.now();
+        }, 500);
+      })();
     </script>
   </body>
 </html>
