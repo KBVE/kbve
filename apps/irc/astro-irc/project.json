@@ -1,0 +1,67 @@
+{
+  "name": "astro-irc",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/irc/astro-irc/src",
+  "tags": [],
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/irc/astro-irc",
+        "commands": [
+          "rm -rf .astro",
+          "nx exec -- astro sync",
+          "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro dev"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/irc/astro-irc",
+        "commands": [
+          "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
+        ],
+        "parallel": false
+      }
+    },
+    "preview": {
+      "dependsOn": [
+        {
+          "target": "build",
+          "projects": "self"
+        }
+      ],
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/irc/astro-irc",
+        "commands": [
+          "nx exec -- astro preview"
+        ],
+        "parallel": false
+      }
+    },
+    "check": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/irc/astro-irc",
+        "commands": [
+          "nx exec -- astro check"
+        ],
+        "parallel": false
+      }
+    },
+    "sync": {
+      "executor": "nx:run-commands",
+      "options": {
+        "cwd": "apps/irc/astro-irc",
+        "commands": [
+          "nx exec -- astro sync"
+        ],
+        "parallel": false
+      }
+    }
+  }
+}
