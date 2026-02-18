@@ -360,21 +360,162 @@ remove_worktree() {
 
     local main_repo
     main_repo=$(git rev-parse --show-toplevel)
+
+    # Guard: abort if we cannot resolve the repo root.
+    if [ -z "$main_repo" ] || [ ! -d "$main_repo/.git" ]; then
+        echo "ERROR: Could not resolve git repository root."
+        return 1
+    fi
+
     local clean_name
     clean_name=$(echo "$description" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g')
+
+    # Guard: abort if the sanitized name is empty.
+    if [ -z "$clean_name" ]; then
+        echo "ERROR: Description sanitized to empty string."
+        return 1
+    fi
+
     local worktree_dir="${main_repo}-${clean_name}"
 
+    # If the directory is already gone, prune stale git metadata and clean
+    # any orphaned submodule worktree back-references, then exit.
     if [ ! -d "$worktree_dir" ]; then
-        echo "Worktree not found: $worktree_dir"
+        echo "Worktree directory not found: $worktree_dir"
+        echo "Pruning any stale metadata..."
+        git worktree prune
+        _cleanup_submodule_worktree_refs "$main_repo" "$worktree_dir"
         echo ""
         echo "Active worktrees:"
         git worktree list
         return 1
     fi
 
+    # Guard: verify this is actually a git worktree (contains a .git file
+    # that points back to the main repo) and not an unrelated directory.
+    if [ ! -f "$worktree_dir/.git" ]; then
+        echo "ERROR: $worktree_dir does not appear to be a git worktree."
+        echo "  Missing .git file. Refusing to remove."
+        return 1
+    fi
+
+    # Guard: prevent removing the worktree you are currently inside of.
+    local current_dir
+    current_dir=$(pwd -P)
+    local resolved_wt
+    resolved_wt=$(cd "$worktree_dir" && pwd -P)
+    if [ "${current_dir##"$resolved_wt"}" != "$current_dir" ]; then
+        echo "ERROR: Your current directory is inside this worktree."
+        echo "  cd out of $worktree_dir first, then retry."
+        return 1
+    fi
+
+    # Warn about uncommitted changes so the user doesn't lose work.
+    if [ -n "$(git -C "$worktree_dir" status --porcelain 2>/dev/null)" ]; then
+        echo "WARNING: Worktree has uncommitted changes:"
+        git -C "$worktree_dir" status --short
+        echo ""
+        echo "Proceeding with removal in 3 seconds... (Ctrl+C to abort)"
+        sleep 3
+    fi
+
+    # Detect the branch checked out in this worktree for the cleanup hint.
+    local wt_branch
+    wt_branch=$(git -C "$worktree_dir" rev-parse --abbrev-ref HEAD 2>/dev/null)
+
     echo "Removing worktree: $worktree_dir"
-    git worktree remove "$worktree_dir"
+
+    # --- Step 1: Deinit submodules ---
+    # Worktree submodules share the main repo's .git/modules/ directory.
+    # Removing the worktree without deinit leaves stale gitdir references
+    # inside .git/modules/<submodule>/worktrees/ which can crash editors
+    # (e.g. VS Code) and break future worktree or submodule operations.
+    if [ -f "$worktree_dir/.gitmodules" ]; then
+        echo "Deinitializing submodules in worktree..."
+        git -C "$worktree_dir" submodule deinit --all -f 2>/dev/null || true
+
+        # If deinit failed to fully clean submodule dirs (e.g. corrupt .git
+        # file refs), remove them manually so git worktree remove won't choke.
+        local sm_path
+        while IFS= read -r sm_path; do
+            [ -z "$sm_path" ] && continue
+            local sm_dir="$worktree_dir/$sm_path"
+            if [ -d "$sm_dir" ] && [ -f "$sm_dir/.git" ]; then
+                echo "  Cleaning leftover submodule dir: $sm_path"
+                rm -rf "$sm_dir"
+            fi
+        done < <(git config -f "$worktree_dir/.gitmodules" \
+            --get-regexp '^submodule\..*\.path$' 2>/dev/null | awk '{print $2}')
+    fi
+
+    # --- Step 2: Unlock if locked ---
+    # A locked worktree cannot be removed; unlock it first.
+    git worktree unlock "$worktree_dir" 2>/dev/null || true
+
+    # --- Step 3: Remove the worktree ---
+    # Try clean removal, then force, then manual fallback.
+    if git worktree remove "$worktree_dir" 2>/dev/null; then
+        echo "Worktree removed cleanly."
+    elif git worktree remove --force "$worktree_dir" 2>/dev/null; then
+        echo "Worktree force-removed."
+    else
+        echo "Git worktree remove failed, removing directory manually..."
+        rm -rf "$worktree_dir"
+    fi
+
+    # --- Step 4: Prune stale worktree metadata from .git/worktrees ---
+    git worktree prune
+
+    # --- Step 5: Clean submodule worktree back-references ---
+    # git worktree prune only cleans .git/worktrees/. Submodules maintain
+    # their own worktree refs in .git/modules/<submodule>/worktrees/<id>/
+    # which persist after removal and cause editors to crash on stale paths.
+    _cleanup_submodule_worktree_refs "$main_repo" "$worktree_dir"
+
+    # --- Step 6: Verify removal ---
+    if [ -d "$worktree_dir" ]; then
+        echo ""
+        echo "WARNING: Directory still exists: $worktree_dir"
+        echo "  It may be held open by another process (e.g. VS Code, IDE)."
+        echo "  Close any editors using this path, then run:"
+        echo "    rm -rf $worktree_dir && git worktree prune"
+        return 1
+    fi
+
+    echo ""
+    if [ -n "$wt_branch" ] && [ "$wt_branch" != "HEAD" ]; then
+        echo "Worktree removed. If the branch is no longer needed, delete it with:"
+        echo "  git branch -d $wt_branch"
+    else
+        echo "Worktree removed."
+    fi
+    echo ""
     echo "Done."
+}
+
+# Clean stale submodule worktree back-references from .git/modules/.
+# Git does NOT clean these with 'git worktree prune'; they are the primary
+# cause of editor crashes after worktree removal in repos with submodules.
+_cleanup_submodule_worktree_refs() {
+    local main_repo="$1"
+    local worktree_dir="$2"
+    local modules_dir="$main_repo/.git/modules"
+
+    [ -d "$modules_dir" ] || return 0
+
+    local gitdir_file
+    while IFS= read -r gitdir_file; do
+        # Each gitdir file contains the absolute path to a worktree's .git.
+        # If it points into the removed worktree, its parent dir is stale.
+        local target
+        target=$(cat "$gitdir_file" 2>/dev/null)
+        if [ -n "$target" ] && [[ "$target" == "$worktree_dir"* ]]; then
+            local stale_dir
+            stale_dir=$(dirname "$gitdir_file")
+            echo "  Cleaning stale submodule ref: $stale_dir"
+            rm -rf "$stale_dir"
+        fi
+    done < <(find "$modules_dir" -path "*/worktrees/*/gitdir" -type f 2>/dev/null)
 }
 
 # Function to manage a tmux session
