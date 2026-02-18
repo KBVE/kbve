@@ -22,6 +22,8 @@
       "options": {
         "cwd": "apps/irc/astro-irc",
         "commands": [
+          "rm -rf .astro",
+          "nx exec -- astro sync",
           "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
         ],
         "parallel": false
