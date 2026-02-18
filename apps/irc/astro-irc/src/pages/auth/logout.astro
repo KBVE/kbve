@@ -1,0 +1,81 @@
+---
+// Sign-out handler
+---
+
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width" />
+    <title>Signing out...</title>
+    <style>
+      body {
+        margin: 0;
+        font-family: system-ui, -apple-system, sans-serif;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        background: #0f1117;
+        color: #e1e4e8;
+      }
+      .container { text-align: center; }
+      .spinner {
+        width: 40px;
+        height: 40px;
+        margin: 0 auto 1rem;
+        border: 3px solid #30363d;
+        border-top-color: #6366f1;
+        border-radius: 50%;
+        animation: spin 0.8s linear infinite;
+      }
+      @keyframes spin { to { transform: rotate(360deg); } }
+      .sub { font-size: 0.875rem; color: #8b949e; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="spinner"></div>
+      <p>Signing out...</p>
+      <p class="sub">Please wait</p>
+    </div>
+
+    <script>
+      import { authBridge } from '../../lib/supa';
+
+      (async () => {
+        try {
+          await authBridge.signOut();
+        } catch (err) {
+          console.log('[Logout] AuthBridge sign-out skipped:', err);
+        }
+
+        // Clear IndexedDB auth database
+        try {
+          await new Promise<boolean>((resolve, reject) => {
+            const req = indexedDB.deleteDatabase('sb-auth-v2');
+            req.onsuccess = () => resolve(true);
+            req.onerror = () => reject(req.error);
+            req.onblocked = () => setTimeout(() => resolve(true), 200);
+          });
+        } catch (err) {
+          console.warn('[Logout] Failed to clear IndexedDB:', err);
+        }
+
+        // Clear localStorage supabase keys
+        Object.keys(localStorage).forEach((key) => {
+          if (key.includes('supabase') || key.includes('sb-')) {
+            localStorage.removeItem(key);
+          }
+        });
+
+        document.querySelector('p')!.textContent = 'Signed out successfully';
+        document.querySelector('.sub')!.textContent = 'Redirecting to home...';
+
+        setTimeout(() => {
+          window.location.href = '/?_=' + Date.now();
+        }, 500);
+      })();
+    </script>
+  </body>
+</html>

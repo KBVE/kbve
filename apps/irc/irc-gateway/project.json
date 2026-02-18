@@ -8,7 +8,8 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "ERGO_WS_URL=ws://localhost:8080 ERGO_IRC_HOST=localhost ERGO_IRC_PORT=6667 cargo run -p irc-gateway"
+          "./kbve.sh -nx astro-irc:build",
+          "STATIC_DIR=./dist/apps/astro-irc STATIC_PRECOMPRESSED=false ERGO_WS_URL=ws://localhost:8080 ERGO_IRC_HOST=localhost ERGO_IRC_PORT=6667 cargo run -p irc-gateway"
         ],
         "parallel": false
       }
@@ -67,7 +68,10 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "mkdir -p ./apps/irc/irc-gateway/dist/"
+          "./kbve.sh -nx astro-irc:build",
+          "rm -rf ./apps/irc/irc-gateway/dist/",
+          "mkdir -p ./apps/irc/irc-gateway/dist/",
+          "cp -a ./dist/apps/astro-irc/. ./apps/irc/irc-gateway/dist/"
         ],
         "parallel": false
       }
