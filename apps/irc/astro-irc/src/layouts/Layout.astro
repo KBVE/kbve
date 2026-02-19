@@ -1,4 +1,7 @@
 ---
+import { DroidProvider } from '@kbve/astro';
+import { workerURLs } from '../lib/workers';
+
 interface Props {
   title: string;
   description?: string;
@@ -17,10 +20,7 @@ const { title, description = 'KBVE IRC - Chat Client' } = Astro.props;
     <title>{title}</title>
   </head>
   <body>
+    <DroidProvider client:only="react" workerURLs={workerURLs} />
     <slot />
   </body>
 </html>
-
-<style is:global>
-  @import '../styles/global.css';
-</style>

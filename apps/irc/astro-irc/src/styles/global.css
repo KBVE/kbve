@@ -1,23 +1,33 @@
-@import 'tailwindcss/theme.css';
-@import 'tailwindcss/utilities.css';
+@layer base, starlight, theme, components, utilities, my-overrides;
+
+@import '@astrojs/starlight-tailwind';
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
 
 :root {
-  --irc-bg: #0f1117;
-  --irc-surface: #161b22;
-  --irc-border: #30363d;
-  --irc-text: #e1e4e8;
-  --irc-muted: #8b949e;
-  --irc-accent: #6366f1;
-  --irc-accent-light: #818cf8;
+  --sl-color-accent-low: #eef2ff;
+  --sl-color-accent: #6366f1;
+  --sl-color-accent-high: #4338ca;
+  --sl-color-text-accent: #4f46e5;
+  --sl-color-link: #6366f1;
+  --sl-color-link-hover: #818cf8;
+  --sl-color-bg-accent: #e0e7ff;
+  --sl-color-code-bg: #1e1b4b;
+  --sl-color-border: #a5b4fc;
 }
 
-html {
-  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-  background: var(--irc-bg);
-  color: var(--irc-text);
+:root[data-theme='dark'] {
+  --sl-color-accent-low: #1e1b4b;
+  --sl-color-accent: #6366f1;
+  --sl-color-accent-high: #a5b4fc;
+  --sl-color-text-accent: #818cf8;
+  --sl-color-link: #818cf8;
+  --sl-color-link-hover: #a5b4fc;
+  --sl-color-bg-accent: #312e81;
+  --sl-color-code-bg: #1e1b4b;
+  --sl-color-border: #4338ca;
 }
 
-body {
-  margin: 0;
-  min-height: 100vh;
+@layer my-overrides {
+
 }

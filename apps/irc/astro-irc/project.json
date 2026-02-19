@@ -11,8 +11,8 @@
         "cwd": "apps/irc/astro-irc",
         "commands": [
           "rm -rf .astro",
-          "nx exec -- astro sync",
-          "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro dev"
+          "npx astro sync",
+          "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" npx astro dev"
         ],
         "parallel": false
       }
@@ -22,9 +22,7 @@
       "options": {
         "cwd": "apps/irc/astro-irc",
         "commands": [
-          "rm -rf .astro",
-          "nx exec -- astro sync",
-          "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
+          "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" npx astro build"
         ],
         "parallel": false
       }
@@ -40,7 +38,7 @@
       "options": {
         "cwd": "apps/irc/astro-irc",
         "commands": [
-          "nx exec -- astro preview"
+          "npx astro preview"
         ],
         "parallel": false
       }
@@ -50,7 +48,7 @@
       "options": {
         "cwd": "apps/irc/astro-irc",
         "commands": [
-          "nx exec -- astro check"
+          "npx astro check"
         ],
         "parallel": false
       }
@@ -60,7 +58,7 @@
       "options": {
         "cwd": "apps/irc/astro-irc",
         "commands": [
-          "nx exec -- astro sync"
+          "npx astro sync"
         ],
         "parallel": false
       }
