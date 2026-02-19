@@ -4,7 +4,7 @@ metadata:
   name: notification-bot
   namespace: discord
 spec:
-  replicas: 1
+  replicas: 0
   selector:
     matchLabels:
       app: notification-bot
