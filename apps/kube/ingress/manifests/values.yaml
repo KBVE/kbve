@@ -88,8 +88,5 @@ defaultBackend:
 tcp:
     6667: 'irc/ergo-irc-service:6667'
     6697: 'irc/ergo-irc-service:6697'
-    1935: 'restream/restreamer-tcp:1935'
-    1936: 'restream/restreamer-tcp:1936'
 
-udp:
-    6000: 'restream/restreamer-udp:6000'
+udp: {}
