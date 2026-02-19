@@ -40,7 +40,7 @@ resources:
   - clickhouse-crds/application.yaml
   - clickhouse-operator/application.yaml
   - clickhouse/application.yaml
-  - restream/application.yaml
+
   - rentearth/application.yaml
   - cityvote/application.yaml
   - herbmail/application.yaml
