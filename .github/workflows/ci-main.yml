@@ -354,7 +354,8 @@ jobs:
             items: |
                 [
                   { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}", "image_name": "ghcr.io/kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml", "deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml" },
-                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}", "image_name": "ghcr.io/kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml", "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml" }
+                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}", "image_name": "ghcr.io/kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml", "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml" },
+                  { "name": "irc-gateway", "condition": "${{ needs.alter.outputs.irc_gateway }}", "image_name": "ghcr.io/kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml", "deployment_yaml": "apps/kube/irc/manifests/irc-gateway-deployment.yaml" }
                 ]
 
     update_kube_manifests:
