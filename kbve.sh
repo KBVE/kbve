@@ -328,15 +328,21 @@ create_worktree() {
     fi
 
     # Generate .env.local with Nx workspace root pointing to the worktree
+    # NX_WORKSPACE_DATA_DIRECTORY prevents cross-worktree daemon/cache crosstalk
     echo "Generating .env.local for Nx..."
+    local worktree_basename
+    worktree_basename=$(basename "$worktree_dir")
     cat > "$worktree_dir/.env.local" <<ENVEOF
 NX_WORKSPACE_ROOT=$worktree_dir
+NX_WORKSPACE_DATA_DIRECTORY=.nx/workspace-data-${worktree_basename}
 NX_DAEMON=false
 ENVEOF
 
-    # Install dependencies
+    # Install dependencies and reset Nx cache
     echo "Installing pnpm dependencies in worktree..."
     (cd "$worktree_dir" && pnpm install)
+    echo "Resetting Nx cache in worktree..."
+    (cd "$worktree_dir" && pnpm nx reset)
 
     echo ""
     echo "=== Worktree ready ==="
