@@ -12,6 +12,8 @@ spec:
       app: irc-gateway
   template:
     metadata:
+      annotations:
+        rollout-restart: "2026-02-18T00:00:00Z"
       labels:
         app: irc-gateway
         version: "0.1.0"
