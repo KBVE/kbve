@@ -22,10 +22,12 @@ All work must happen in isolated git worktrees branched from `dev`. Never commit
    NX_WORKSPACE_ROOT=/absolute/path/to/worktree
    NX_WORKSPACE_ROOT_PATH=/absolute/path/to/worktree
    NX_WORKSPACE_DATA_DIRECTORY=.nx/workspace-data-<worktree-basename>
+   NX_CACHE_DIRECTORY=.nx/cache
    NX_DAEMON=false
    ```
    `NX_WORKSPACE_ROOT_PATH` is critical — Nx resolves the workspace root at module-load time (before dotenv), so it must be a real shell env var. Use `./kbve.sh -nx` (which auto-sources `.env.local`) or manually `export NX_WORKSPACE_ROOT_PATH=$PWD` after entering the worktree.
    `NX_WORKSPACE_DATA_DIRECTORY` gives each worktree its own project-graph/daemon cache, preventing cross-worktree crosstalk.
+   `NX_CACHE_DIRECTORY` isolates the task cache per worktree so cached outputs don't collide across checkouts.
 
 3. **Install dependencies** (skipped if `kbve.sh -worktree` was used):
    ```bash
@@ -61,7 +63,8 @@ All work must happen in isolated git worktrees branched from `dev`. Never commit
 - Branch naming: `trunk/<task-name>-<MM-DD-YYYY>`
 - Worktree path: `../kbve-<task-name>` (adjacent to main repo)
 - Always `pnpm install` in new worktrees
-- Always create `.env.local` with `NX_WORKSPACE_ROOT`, `NX_WORKSPACE_DATA_DIRECTORY`, and `NX_DAEMON=false` — or use `./kbve.sh -worktree` which handles this automatically
+- Always create `.env.local` with `NX_WORKSPACE_ROOT`, `NX_WORKSPACE_DATA_DIRECTORY`, `NX_CACHE_DIRECTORY`, and `NX_DAEMON=false` — or use `./kbve.sh -worktree` which handles this automatically
+- **Always use `./kbve.sh -nx` instead of bare `pnpm nx` in worktrees** — it sources `.env.local` before running Nx, ensuring daemon/cache isolation is applied. Running `pnpm nx` directly skips `.env.local` and can cause stale graph or cache collisions
 - PRs target `dev`, never `main`
 - No co-authoring lines in commits
 - Keep PR descriptions concise
