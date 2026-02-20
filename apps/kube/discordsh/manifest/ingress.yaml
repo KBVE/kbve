@@ -1,10 +1,10 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: disoxide-ingress
-  namespace: disoxide
+  name: discordsh-ingress
+  namespace: discordsh
   labels:
-    app: disoxide
+    app: discordsh
   annotations:
     nginx.ingress.kubernetes.io/rewrite-target: /
     nginx.ingress.kubernetes.io/ssl-redirect: "true"
@@ -18,7 +18,7 @@ spec:
   tls:
   - hosts:
     - discord.sh
-    secretName: disoxide-tls
+    secretName: discordsh-tls
   rules:
   - host: discord.sh
     http:
@@ -27,6 +27,6 @@ spec:
         pathType: Prefix
         backend:
           service:
-            name: disoxide-service
+            name: discordsh-service
             port:
               number: 80

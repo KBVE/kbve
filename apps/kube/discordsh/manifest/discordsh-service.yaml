@@ -1,17 +1,17 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: disoxide-service
-  namespace: disoxide
+  name: discordsh-service
+  namespace: discordsh
   labels:
-    app: disoxide
+    app: discordsh
     tier: frontend
 spec:
   type: ClusterIP
   selector:
-    app: disoxide
+    app: discordsh
   ports:
     - name: http
       protocol: TCP
       port: 80
-      targetPort: 3000
+      targetPort: 4321
