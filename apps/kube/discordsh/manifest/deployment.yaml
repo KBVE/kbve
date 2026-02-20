@@ -1,43 +1,37 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: disoxide
-  namespace: disoxide
+  name: discordsh
+  namespace: discordsh
   labels:
-    app: disoxide
+    app: discordsh
     tier: frontend
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: disoxide
+      app: discordsh
   template:
     metadata:
       labels:
-        app: disoxide
+        app: discordsh
         tier: frontend
     spec:
-      serviceAccountName: disoxide-sa
+      serviceAccountName: discordsh-sa
       containers:
-      - name: disoxide
-        image: kbve/disoxide:1.4.9
+      - name: discordsh
+        image: kbve/discordsh:0.1.0
         imagePullPolicy: Always
         ports:
         - name: http
-          containerPort: 3000
+          containerPort: 4321
           protocol: TCP
         envFrom:
         - configMapRef:
-            name: disoxide-config
+            name: discordsh-config
         - secretRef:
-            name: disoxide-redis-secret
+            name: discordsh-redis-secret
         env:
-        - name: NODE_ENV
-          value: "production"
-        - name: PORT
-          value: "3000"
-        - name: HOST
-          value: "0.0.0.0"
         - name: REDIS_HOST
           value: "redis-master.redis.svc.cluster.local"
         - name: REDIS_PORT
@@ -51,7 +45,7 @@ spec:
             cpu: "500m"
         livenessProbe:
           httpGet:
-            path: /
+            path: /health
             port: http
           initialDelaySeconds: 30
           periodSeconds: 10
@@ -59,7 +53,7 @@ spec:
           failureThreshold: 3
         readinessProbe:
           httpGet:
-            path: /
+            path: /health
             port: http
           initialDelaySeconds: 10
           periodSeconds: 5
