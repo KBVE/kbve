@@ -18,6 +18,7 @@ members = [
 	'apps/herbmail/axum-herbmail',
 	'apps/memes/axum-memes',
 	'apps/irc/irc-gateway',
+	'apps/discordsh/axum-discordsh',
 ]
 
 [profile.dev]
