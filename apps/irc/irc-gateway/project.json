@@ -85,10 +85,16 @@
       },
       "configurations": {
         "local": {
-          "commands": ["./kbve.sh -nx irc-gateway:containerx"]
+          "commands": [
+            "./kbve.sh -nx irc-gateway:containerx",
+            "VERSION=$(grep '^version' apps/irc/irc-gateway/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/irc-gateway:latest kbve/irc-gateway:$VERSION && docker tag ghcr.io/kbve/irc-gateway:latest ghcr.io/kbve/irc-gateway:$VERSION && echo \"Tagged kbve/irc-gateway:$VERSION\""
+          ]
         },
         "production": {
-          "commands": ["./kbve.sh -nx irc-gateway:containerx --configuration=production"]
+          "commands": [
+            "./kbve.sh -nx irc-gateway:containerx --configuration=production",
+            "VERSION=$(grep '^version' apps/irc/irc-gateway/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/irc-gateway:latest kbve/irc-gateway:$VERSION && docker tag ghcr.io/kbve/irc-gateway:latest ghcr.io/kbve/irc-gateway:$VERSION && echo \"Tagged kbve/irc-gateway:$VERSION\""
+          ]
         }
       }
     },
@@ -102,7 +108,7 @@
         "load": true,
         "metadata": {
           "images": ["ghcr.io/kbve/irc-gateway", "kbve/irc-gateway"],
-          "tags": ["0.1.1", "0.1", "latest"]
+          "tags": ["latest"]
         },
         "configurations": {
           "local": {
