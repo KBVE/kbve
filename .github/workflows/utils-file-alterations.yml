@@ -33,9 +33,6 @@ on:
       kilobase:
         description: "Kilobase package changed"
         value: ${{ jobs.alter.outputs.kilobase }}
-      disoxide:
-        description: "Disoxide package changed"
-        value: ${{ jobs.alter.outputs.disoxide }}
       hyperlane:
         description: "Hyperlane package changed"
         value: ${{ jobs.alter.outputs.hyperlane }}
@@ -139,7 +136,6 @@ jobs:
       erust_crate: ${{ steps.delta.outputs.erust_crate_any_changed }}
       holy_crate: ${{ steps.delta.outputs.holy_crate_any_changed }}
       kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
-      disoxide: ${{ steps.delta.outputs.disoxide_any_changed }}
       hyperlane: ${{ steps.delta.outputs.hyperlane_any_changed }}
       # py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}  # Atlas migrated into pydesk
       py_lib_fudster: ${{ steps.delta.outputs.py_lib_fudster_any_changed }}
@@ -192,8 +188,6 @@ jobs:
                 - 'packages/rust/holy/src/**'
             kilobase:
                 -  'apps/kbve/kilobase/README.md'
-            disoxide:
-                - 'apps/discord/disoxide/README.md'
             hyperlane:
                 - 'apps/kbve/kbve-hyperlane/README.md'
             rareicon_unity:
@@ -223,7 +217,7 @@ jobs:
             astro_rareicon:
                 - 'apps/rareicon/rareicon.com/**'
             discordsh:
-                - 'apps/discord.sh/**'
+                - 'apps/discordsh/**'
             proxy:
                 - 'apps/proxy/**'
             saber:
