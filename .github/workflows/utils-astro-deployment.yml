@@ -6,7 +6,7 @@ on:
       node_version:
         description: "Node.js version"
         required: false
-        default: "22"
+        default: "24"
         type: string
       pnpm_version:
         description: "PNPM version"
