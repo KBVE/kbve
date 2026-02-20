@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { readFileSync } from 'fs';
 
 const mode =
 	process.env['E2E_DOCKER'] === 'true' ? 'docker' : 'dev';
@@ -6,9 +7,12 @@ const mode =
 const port = 4321;
 const baseURL = `http://localhost:${port}`;
 
+const cargoToml = readFileSync('apps/discordsh/axum-discordsh/Cargo.toml', 'utf-8');
+const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
+
 const commands: Record<string, string> = {
 	dev: 'pnpm exec nx dev axum-discordsh',
-	docker: `docker run --rm -p ${port}:${port} kbve/discordsh:0.1.0`,
+	docker: `docker run --rm -p ${port}:${port} kbve/discordsh:${version}`,
 };
 
 export default defineConfig({
