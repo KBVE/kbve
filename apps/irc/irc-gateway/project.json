@@ -74,7 +74,7 @@
         "local": {
           "commands": [
             "./kbve.sh -nx irc-gateway:containerx",
-            "VERSION=$(grep '^version' apps/irc/irc-gateway/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/irc-gateway:latest kbve/irc-gateway:$VERSION && docker tag ghcr.io/kbve/irc-gateway:latest ghcr.io/kbve/irc-gateway:$VERSION && echo \"Tagged kbve/irc-gateway:$VERSION\""
+            "VERSION=$(grep '^version' apps/irc/irc-gateway/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/irc-gateway:latest kbve/irc-gateway:$VERSION && echo \"Tagged kbve/irc-gateway:$VERSION\""
           ]
         },
         "production": {
@@ -105,26 +105,30 @@
         "engine": "docker",
         "context": ".",
         "file": "apps/irc/irc-gateway/Dockerfile",
-        "load": true,
-        "metadata": {
-          "images": ["ghcr.io/kbve/irc-gateway", "kbve/irc-gateway"],
-          "tags": ["latest"]
-        },
-        "configurations": {
-          "local": {
-            "load": true,
-            "push": false
-          },
-          "production": {
-            "load": true,
-            "push": false,
-            "cache-from": [
-              "type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache"
-            ],
-            "cache-to": [
-              "type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache,mode=max"
-            ]
+        "load": true
+      },
+      "configurations": {
+        "local": {
+          "load": true,
+          "push": false,
+          "metadata": {
+            "images": ["kbve/irc-gateway"],
+            "tags": ["latest"]
           }
+        },
+        "production": {
+          "load": true,
+          "push": false,
+          "metadata": {
+            "images": ["ghcr.io/kbve/irc-gateway", "kbve/irc-gateway"],
+            "tags": ["latest"]
+          },
+          "cache-from": [
+            "type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache"
+          ],
+          "cache-to": [
+            "type=registry,ref=ghcr.io/kbve/irc-gateway:buildcache,mode=max"
+          ]
         }
       }
     }

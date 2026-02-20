@@ -60,7 +60,7 @@ jobs:
             - name: Setup Node v22
               uses: actions/setup-node@v4
               with:
-                  node-version: 22
+                  node-version: 24
 
             - name: Setup pnpm
               uses: pnpm/action-setup@v3
@@ -355,10 +355,10 @@ jobs:
               with:
                   fetch-depth: 0
 
-            - name: Setup Node v20
+            - name: Setup Node v24
               uses: actions/setup-node@v4
               with:
-                  node-version: 20
+                  node-version: 24
 
             - name: Setup pnpm
               uses: pnpm/action-setup@v3
@@ -403,95 +403,6 @@ jobs:
                   user_name: 'h0lybyte'
                   commit_message: ${{ github.event.head_commit.message }}
                   rsync_option: '-avrh --delete'
-
-    #   [ATLAS] -> Publish (As App) - NOTE: Atlas has been migrated into pydesk. Disabled.
-    # python_atlas_build:
-    #     needs: ['deploy', 'alter', 'globals']
-    #     name: Python Atlas Module Publish
-    #     if: needs.alter.outputs.atlas == 'true'
-    #     runs-on: 'ubuntu-latest'
-    #     steps:
-    #         - name: Checkout the repository using git
-    #           uses: actions/checkout@v4
-    #
-    #         - name: Setup Node v20
-    #           uses: actions/setup-node@v4
-    #           with:
-    #               node-version: 20
-    #
-    #         - name: Setup pnpm
-    #           uses: pnpm/action-setup@v3
-    #           with:
-    #               version: 9
-    #               run_install: false
-    #
-    #         - name: Get pnpm Store
-    #           shell: bash
-    #           run: |
-    #               echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_ENV
-    #
-    #         - name: Setup pnpm Cache
-    #           uses: actions/cache@v4
-    #           with:
-    #               path: ${{ env.STORE_PATH }}
-    #               key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
-    #               restore-keys: |
-    #                   ${{ runner.os }}-pnpm-store-
-    #
-    #         - name: Install pnpm dependencies
-    #           run: pnpm install
-    #
-    #         - name: Python Install
-    #           uses: actions/setup-python@v4
-    #           with:
-    #               python-version: '3.x'
-    #
-    #         - name: Poetry Install
-    #           uses: snok/install-poetry@v1
-    #
-    #         - name: Atlas Build
-    #           shell: bash
-    #           run: |
-    #               pnpm nx build atlas
-    #
-    #         - name: Store the Atlas distribution packages
-    #           uses: actions/upload-artifact@v4
-    #           with:
-    #               name: atlas-python-package-distributions
-    #               path: apps/atlas/dist/
-
-    # q_release:
-    #     needs: ['deploy', 'alter', 'globals']
-    #     name: Q Crates Publish
-    #     if: needs.alter.outputs.q == 'true'
-    #     uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
-    #     with:
-    #         package: q
-    #     secrets:
-    #         CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
-
-    # NOTE: Atlas has been migrated into pydesk. Disabled.
-    # python_atlas_publish:
-    #     needs: ['deploy', 'alter', 'python_atlas_build']
-    #     name: Atlas KBVE Pypi Publish
-    #     if: needs.alter.outputs.atlas == 'true'
-    #     runs-on: ubuntu-latest
-    #     environment:
-    #         name: pypi
-    #         url: https://pypi.org/p/kbve
-    #     permissions:
-    #         id-token: write
-    #     steps:
-    #         - name: Download all the dists
-    #           uses: actions/download-artifact@v4
-    #           with:
-    #               name: atlas-python-package-distributions
-    #               path: dist/
-    #         - name: Publish distribution 📦 to PyPI
-    #           uses: pypa/gh-action-pypi-publish@release/v1
-    #           with:
-    #               user: __token__
-    #               password: ${{ secrets.PYPI_API_TOKEN }}
 
     ## Python
     generate_python_matrix:
