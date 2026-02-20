@@ -1,0 +1,111 @@
+---
+import { ReactChatRoom } from './ReactChatRoom';
+
+interface Props {
+  wsUrl?: string;
+}
+
+const { wsUrl } = Astro.props;
+---
+
+<div class="chat-container">
+  <div class="chat-skeleton" id="chat-skeleton">
+    <div class="skeleton-bar"></div>
+    <div class="skeleton-body">
+      <div class="skeleton-sidebar">
+        <div class="skeleton-line w-20"></div>
+        <div class="skeleton-line w-16"></div>
+        <div class="skeleton-line w-24"></div>
+      </div>
+      <div class="skeleton-feed">
+        <div class="skeleton-line w-3/4"></div>
+        <div class="skeleton-line w-1/2"></div>
+        <div class="skeleton-line w-2/3"></div>
+        <div class="skeleton-line w-1/3"></div>
+        <div class="skeleton-line w-3/5"></div>
+      </div>
+    </div>
+    <div class="skeleton-input"></div>
+  </div>
+
+  <ReactChatRoom client:only="react" wsUrl={wsUrl} />
+</div>
+
+<style>
+  .chat-container {
+    width: 100%;
+    min-height: 600px;
+  }
+
+  .chat-skeleton {
+    width: 100%;
+    height: 600px;
+    border-radius: 0.75rem;
+    border: 1px solid var(--sl-color-border);
+    background: var(--sl-color-bg);
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .chat-container:has([data-reactroot]) .chat-skeleton,
+  .chat-container:has(.flex) .chat-skeleton {
+    display: none;
+  }
+
+  .skeleton-bar {
+    height: 2.25rem;
+    background: color-mix(in srgb, var(--sl-color-bg-accent) 50%, transparent);
+    border-bottom: 1px solid var(--sl-color-border);
+  }
+
+  .skeleton-body {
+    display: flex;
+    flex: 1;
+    min-height: 0;
+  }
+
+  .skeleton-sidebar {
+    width: 12rem;
+    border-right: 1px solid var(--sl-color-border);
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .skeleton-feed {
+    flex: 1;
+    padding: 1rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.75rem;
+  }
+
+  .skeleton-input {
+    height: 3.5rem;
+    border-top: 1px solid var(--sl-color-border);
+    background: color-mix(in srgb, var(--sl-color-bg-accent) 30%, transparent);
+  }
+
+  .skeleton-line {
+    height: 0.875rem;
+    border-radius: 0.25rem;
+    background: color-mix(in srgb, var(--sl-color-gray-5) 40%, transparent);
+    animation: shimmer 1.5s ease-in-out infinite alternate;
+  }
+
+  .w-20 { width: 5rem; }
+  .w-16 { width: 4rem; }
+  .w-24 { width: 6rem; }
+  .w-1\/3 { width: 33%; }
+  .w-1\/2 { width: 50%; }
+  .w-3\/5 { width: 60%; }
+  .w-2\/3 { width: 66%; }
+  .w-3\/4 { width: 75%; }
+
+  @keyframes shimmer {
+    from { opacity: 0.4; }
+    to { opacity: 0.7; }
+  }
+</style>
