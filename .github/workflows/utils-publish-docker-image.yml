@@ -66,7 +66,7 @@ jobs:
               if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               uses: actions/setup-node@v4
               with:
-                  node-version: 22
+                  node-version: 24
 
             - name: Setup pnpm v10
               if: ${{ steps.version_check.outputs.should_publish != 'false' }}
