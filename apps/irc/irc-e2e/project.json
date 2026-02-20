@@ -13,6 +13,7 @@
 					"pnpm exec playwright install --with-deps chromium",
 					"pnpm exec playwright test --config=apps/irc/irc-e2e/playwright.config.ts"
 				],
+				"parallel": false,
 				"cwd": "{workspaceRoot}"
 			}
 		},
