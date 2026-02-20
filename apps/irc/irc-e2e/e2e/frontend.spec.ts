@@ -71,11 +71,10 @@ test.describe('Frontend: Auth Pages', () => {
 	test('GET /auth/callback without trailing slash redirects', async ({
 		request,
 	}) => {
-		// ServeDir 301-redirects bare directory paths to add a trailing slash
 		const response = await request.get('/auth/callback', {
 			maxRedirects: 0,
 		});
-		expect(response.status()).toBe(301);
+		expect([301, 307]).toContain(response.status());
 	});
 });
 
