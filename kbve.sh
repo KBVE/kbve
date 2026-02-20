@@ -336,6 +336,7 @@ create_worktree() {
 NX_WORKSPACE_ROOT=$worktree_dir
 NX_WORKSPACE_ROOT_PATH=$worktree_dir
 NX_WORKSPACE_DATA_DIRECTORY=.nx/workspace-data-${worktree_basename}
+NX_CACHE_DIRECTORY=.nx/cache
 NX_DAEMON=false
 ENVEOF
 

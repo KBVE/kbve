@@ -192,10 +192,6 @@ ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321
-ENV IRC_PROXY_PORT=6667
-ENV ERGO_WS_URL=ws://ergo-irc-service.irc.svc.cluster.local:8080
-ENV ERGO_IRC_HOST=ergo-irc-service.irc.svc.cluster.local
-ENV ERGO_IRC_PORT=6667
 ENV RUST_LOG=info
 
 EXPOSE 4321
