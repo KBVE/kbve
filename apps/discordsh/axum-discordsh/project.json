@@ -1,0 +1,127 @@
+{
+  "name": "axum-discordsh",
+  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
+  "projectType": "application",
+  "sourceRoot": "apps/discordsh/axum-discordsh/src",
+  "targets": {
+    "dev": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./kbve.sh -nx astro-discordsh:build",
+          "STATIC_DIR=./dist/apps/astro-discordsh STATIC_PRECOMPRESSED=false cargo run -p axum-discordsh"
+        ],
+        "parallel": false
+      }
+    },
+    "build": {
+      "executor": "@monodon/rust:build",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-discordsh"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "test": {
+      "executor": "@monodon/rust:test",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-discordsh"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "lint": {
+      "executor": "@monodon/rust:lint",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-discordsh"
+      }
+    },
+    "run": {
+      "executor": "@monodon/rust:run",
+      "outputs": ["{options.target-dir}"],
+      "options": {
+        "target-dir": "dist/target/axum-discordsh"
+      },
+      "configurations": {
+        "production": {
+          "release": true
+        }
+      }
+    },
+    "e2e": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": ["nx test axum-discordsh"],
+        "parallel": false
+      }
+    },
+    "container-prep": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "./kbve.sh -nx astro-discordsh:build",
+          "rm -rf ./apps/discordsh/axum-discordsh/dist/",
+          "mkdir -p ./apps/discordsh/axum-discordsh/dist/",
+          "cp -a ./dist/apps/astro-discordsh/. ./apps/discordsh/axum-discordsh/dist/"
+        ],
+        "parallel": false
+      }
+    },
+    "container": {
+      "executor": "nx:run-commands",
+      "dependsOn": ["container-prep"],
+      "defaultConfiguration": "local",
+      "options": {
+        "parallel": false
+      },
+      "configurations": {
+        "local": {
+          "commands": ["./kbve.sh -nx axum-discordsh:containerx"]
+        },
+        "production": {
+          "commands": ["./kbve.sh -nx axum-discordsh:containerx --configuration=production"]
+        }
+      }
+    },
+    "containerx": {
+      "executor": "@nx-tools/nx-container:build",
+      "defaultConfiguration": "local",
+      "options": {
+        "engine": "docker",
+        "context": ".",
+        "file": "apps/discordsh/axum-discordsh/Dockerfile",
+        "load": true,
+        "metadata": {
+          "images": ["ghcr.io/kbve/discordsh", "kbve/discordsh"],
+          "tags": ["0.1.0", "0.1"]
+        },
+        "configurations": {
+          "local": {
+            "load": true,
+            "push": false
+          },
+          "production": {
+            "load": true,
+            "push": false,
+            "cache-from": [
+              "type=registry,ref=ghcr.io/kbve/discordsh:buildcache"
+            ],
+            "cache-to": [
+              "type=registry,ref=ghcr.io/kbve/discordsh:buildcache,mode=max"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "tags": []
+}
