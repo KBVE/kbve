@@ -85,10 +85,16 @@
       },
       "configurations": {
         "local": {
-          "commands": ["./kbve.sh -nx axum-herbmail:containerx"]
+          "commands": [
+            "./kbve.sh -nx axum-herbmail:containerx",
+            "VERSION=$(grep '^version' apps/herbmail/axum-herbmail/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/herbmail:latest kbve/herbmail:$VERSION && echo \"Tagged kbve/herbmail:$VERSION\""
+          ]
         },
         "production": {
-          "commands": ["./kbve.sh -nx axum-herbmail:containerx --configuration=production"]
+          "commands": [
+            "./kbve.sh -nx axum-herbmail:containerx --configuration=production",
+            "VERSION=$(grep '^version' apps/herbmail/axum-herbmail/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/herbmail:latest kbve/herbmail:$VERSION && docker tag ghcr.io/kbve/herbmail:latest ghcr.io/kbve/herbmail:$VERSION && echo \"Tagged kbve/herbmail:$VERSION\""
+          ]
         }
       }
     },
@@ -99,26 +105,30 @@
         "engine": "docker",
         "context": ".",
         "file": "apps/herbmail/axum-herbmail/Dockerfile",
-        "load": true,
-        "metadata": {
-          "images": ["ghcr.io/kbve/herbmail", "kbve/herbmail"],
-          "tags": ["0.1.0", "0.1"]
-        },
-        "configurations": {
-          "local": {
-            "load": true,
-            "push": false
-          },
-          "production": {
-            "load": true,
-            "push": false,
-            "cache-from": [
-              "type=registry,ref=ghcr.io/kbve/herbmail:buildcache"
-            ],
-            "cache-to": [
-              "type=registry,ref=ghcr.io/kbve/herbmail:buildcache,mode=max"
-            ]
+        "load": true
+      },
+      "configurations": {
+        "local": {
+          "load": true,
+          "push": false,
+          "metadata": {
+            "images": ["kbve/herbmail"],
+            "tags": ["latest"]
           }
+        },
+        "production": {
+          "load": true,
+          "push": false,
+          "metadata": {
+            "images": ["ghcr.io/kbve/herbmail", "kbve/herbmail"],
+            "tags": ["latest"]
+          },
+          "cache-from": [
+            "type=registry,ref=ghcr.io/kbve/herbmail:buildcache"
+          ],
+          "cache-to": [
+            "type=registry,ref=ghcr.io/kbve/herbmail:buildcache,mode=max"
+          ]
         }
       }
     }

@@ -7,7 +7,6 @@ on:
 
 
 env:
-  # atlas_action: none  # NOTE: Atlas has been migrated into pydesk
   YTID: ''
   GENRE: ''
   TITLE: ''
@@ -26,7 +25,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install dependencies
         run: |
@@ -52,36 +51,6 @@ jobs:
         run: |
           echo "Matched action is: ${{ steps.title-parser.outputs.action }}"
 
-  # NOTE: Atlas has been migrated into pydesk. This job is disabled.
-  # handle_atlas:
-  #   name: 'Handle Atlas Ticket'
-  #   runs-on: ubuntu-latest
-  #   needs: ['process_issue']
-  #   permissions:
-  #     issues: write
-  #     contents: read
-  #   if: needs.process_issue.outputs.matched_action == 'atlas_action'
-  #   steps:
-  #     - name: Set up Node.js
-  #       uses: actions/setup-node@v4
-  #       with:
-  #         node-version: '20'
-  #
-  #     - name: Install dependencies
-  #       run: |
-  #         npm install @kbve/devops
-  #
-  #     - name: Atlas Debug Comment
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #       uses: actions/github-script@v7
-  #       with:
-  #         script: |
-  #           const { _$gha_createIssueComment } = await import('@kbve/devops');
-  #           const body = '[DEBUG] Processing [Atlas](https://kbve.com/project/atlas/) Action v0.0.11';
-  #           await _$gha_createIssueComment(github, context, body);
-
-
   handle_music:
     name: 'Handle Music Ticket'
     runs-on: ubuntu-latest
@@ -98,21 +67,11 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Install dependencies
         run: |
           npm install @kbve/devops
-
-      # - name: Music Debug Comment
-      #   env:
-      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-      #   uses: actions/github-script@v7
-      #   with:
-      #     script: |
-      #       const { _$gha_createIssueComment } = await import('@kbve/devops');
-      #       const body = '[DEBUG] Processing [Music](https://kbve.com/music/) Action v0.0.11';
-      #       await _$gha_createIssueComment(github, context, body);
 
       - name: Call Groq for Music
         env:
@@ -191,7 +150,7 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '24'
 
       - name: Setup pnpm
         uses: pnpm/action-setup@v3
