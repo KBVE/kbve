@@ -8,7 +8,7 @@ const baseURL = `http://localhost:${port}`;
 
 const commands: Record<string, string> = {
 	dev: 'pnpm exec nx dev axum-discordsh',
-	docker: `docker run --rm -p ${port}:${port} discordsh/axum-discordsh:0.1.0`,
+	docker: `docker run --rm -p ${port}:${port} kbve/discordsh:0.1.0`,
 };
 
 export default defineConfig({
