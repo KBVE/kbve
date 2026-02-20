@@ -14,7 +14,7 @@ const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
 
 const commands: Record<string, string> = {
 	dev: `STATIC_DIR=./dist/apps/astro-irc STATIC_PRECOMPRESSED=false JWT_SECRET=${jwtSecret} ERGO_WS_URL=ws://localhost:8080 ERGO_IRC_HOST=localhost ERGO_IRC_PORT=6667 cargo run -p irc-gateway`,
-	docker: `docker run --rm -p ${port}:${port} -e JWT_SECRET=${jwtSecret} kbve/irc-gateway:${version}`,
+	docker: `docker run --rm --name irc-e2e-test -p ${port}:${port} -e JWT_SECRET=${jwtSecret} kbve/irc-gateway:${version}`,
 };
 
 export default defineConfig({

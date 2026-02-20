@@ -19,6 +19,7 @@
     },
     "build": {
       "executor": "nx:run-commands",
+      "outputs": ["{workspaceRoot}/dist/apps/astro-irc"],
       "options": {
         "cwd": "apps/irc/astro-irc",
         "commands": [
