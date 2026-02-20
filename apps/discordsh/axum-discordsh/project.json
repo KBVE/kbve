@@ -85,10 +85,16 @@
       },
       "configurations": {
         "local": {
-          "commands": ["./kbve.sh -nx axum-discordsh:containerx"]
+          "commands": [
+            "./kbve.sh -nx axum-discordsh:containerx",
+            "VERSION=$(grep '^version' apps/discordsh/axum-discordsh/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh:latest kbve/discordsh:$VERSION && docker tag ghcr.io/kbve/discordsh:latest ghcr.io/kbve/discordsh:$VERSION && echo \"Tagged kbve/discordsh:$VERSION\""
+          ]
         },
         "production": {
-          "commands": ["./kbve.sh -nx axum-discordsh:containerx --configuration=production"]
+          "commands": [
+            "./kbve.sh -nx axum-discordsh:containerx --configuration=production",
+            "VERSION=$(grep '^version' apps/discordsh/axum-discordsh/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh:latest kbve/discordsh:$VERSION && docker tag ghcr.io/kbve/discordsh:latest ghcr.io/kbve/discordsh:$VERSION && echo \"Tagged kbve/discordsh:$VERSION\""
+          ]
         }
       }
     },
@@ -102,7 +108,7 @@
         "load": true,
         "metadata": {
           "images": ["ghcr.io/kbve/discordsh", "kbve/discordsh"],
-          "tags": ["0.1.0", "0.1"]
+          "tags": ["latest"]
         },
         "configurations": {
           "local": {
