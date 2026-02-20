@@ -6,8 +6,15 @@
   "targets": {
     "e2e": {
       "executor": "nx:run-commands",
+      "cache": false,
       "options": {
-        "commands": ["nx test irc-gateway", "nx e2e irc-e2e"],
+        "commands": [
+          "nx test irc-gateway --no-cloud",
+          "nx e2e irc-e2e --no-cloud",
+          "docker rm -f irc-e2e-test 2>/dev/null || true",
+          "nx container irc-gateway --configuration=local --no-cloud",
+          "nx e2e:docker irc-e2e --no-cloud; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC"
+        ],
         "parallel": false
       }
     },

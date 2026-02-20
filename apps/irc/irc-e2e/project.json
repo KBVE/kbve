@@ -7,6 +7,7 @@
 	"targets": {
 		"e2e": {
 			"executor": "nx:run-commands",
+			"cache": false,
 			"options": {
 				"commands": [
 					"./kbve.sh -nx astro-irc:build",
@@ -19,11 +20,13 @@
 		},
 		"e2e:docker": {
 			"executor": "nx:run-commands",
+			"cache": false,
 			"options": {
 				"commands": [
 					"pnpm exec playwright install --with-deps chromium",
-					"E2E_DOCKER=true pnpm exec playwright test --config=apps/irc/irc-e2e/playwright.config.ts"
+					"E2E_DOCKER=true pnpm exec playwright test --config=apps/irc/irc-e2e/playwright.config.ts; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC"
 				],
+				"parallel": false,
 				"cwd": "{workspaceRoot}"
 			}
 		}
