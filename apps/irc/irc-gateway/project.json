@@ -64,21 +64,8 @@
         "parallel": false
       }
     },
-    "container-prep": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          "./kbve.sh -nx astro-irc:build",
-          "rm -rf ./apps/irc/irc-gateway/dist/",
-          "mkdir -p ./apps/irc/irc-gateway/dist/",
-          "cp -a ./dist/apps/astro-irc/. ./apps/irc/irc-gateway/dist/"
-        ],
-        "parallel": false
-      }
-    },
     "container": {
       "executor": "nx:run-commands",
-      "dependsOn": ["container-prep"],
       "defaultConfiguration": "local",
       "options": {
         "parallel": false
