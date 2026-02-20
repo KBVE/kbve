@@ -1,0 +1,18 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ChatRoom from '../components/chat/ChatRoom.astro';
+---
+
+<Layout title="Chat - KBVE IRC" description="Real-time IRC chat powered by Ergo">
+  <main class="chat-page">
+    <ChatRoom wsUrl="wss://irc.kbve.com/ws" />
+  </main>
+</Layout>
+
+<style>
+  .chat-page {
+    max-width: 72rem;
+    margin: 0 auto;
+    padding: 1.5rem 1rem;
+  }
+</style>
