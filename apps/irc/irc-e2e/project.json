@@ -6,28 +6,20 @@
 	"implicitDependencies": ["irc-gateway", "astro-irc"],
 	"targets": {
 		"e2e": {
-			"executor": "nx:run-commands",
+			"executor": "@nx/playwright:playwright",
 			"cache": false,
 			"options": {
-				"commands": [
-					"./kbve.sh -nx astro-irc:build",
-					"pnpm exec playwright install --with-deps chromium",
-					"pnpm exec playwright test --config=apps/irc/irc-e2e/playwright.config.ts"
-				],
-				"parallel": false,
-				"cwd": "{workspaceRoot}"
+				"config": "apps/irc/irc-e2e/playwright.config.ts"
 			}
 		},
 		"e2e:docker": {
-			"executor": "nx:run-commands",
+			"executor": "@nx/playwright:playwright",
 			"cache": false,
 			"options": {
-				"commands": [
-					"pnpm exec playwright install --with-deps chromium",
-					"E2E_DOCKER=true pnpm exec playwright test --config=apps/irc/irc-e2e/playwright.config.ts; EC=$?; docker rm -f irc-e2e-test 2>/dev/null || true; exit $EC"
-				],
-				"parallel": false,
-				"cwd": "{workspaceRoot}"
+				"config": "apps/irc/irc-e2e/playwright.config.ts",
+				"env": {
+					"E2E_DOCKER": "true"
+				}
 			}
 		}
 	},
