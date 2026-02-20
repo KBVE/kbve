@@ -1,7 +1,7 @@
 apiVersion: argoproj.io/v1alpha1
 kind: Application
 metadata:
-  name: disoxide
+  name: discordsh
   namespace: argocd
   finalizers:
     - resources-finalizer.argocd.argoproj.io
@@ -10,10 +10,10 @@ spec:
   source:
     repoURL: https://github.com/KBVE/kbve
     targetRevision: HEAD
-    path: apps/kube/disoxide/manifest
+    path: apps/kube/discordsh/manifest
   destination:
     server: https://kubernetes.default.svc
-    namespace: disoxide
+    namespace: discordsh
   syncPolicy:
     automated:
       prune: true

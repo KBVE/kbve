@@ -1,10 +1,10 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: disoxide-config
-  namespace: disoxide
+  name: discordsh-config
+  namespace: discordsh
   labels:
-    app: disoxide
+    app: discordsh
 data:
   PUBLIC_SUPABASE_URL: "https://api.kbve.com"
   PUBLIC_SUPABASE_ANON_KEY: "placeholder-anon-key"
