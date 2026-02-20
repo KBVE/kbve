@@ -174,43 +174,8 @@ jobs:
             NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
 
     ## Astro
-    generate_astro_matrix:
-        needs: ['deploy', 'alter', 'globals']
-        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-        with:
-            items: |
-                [
-                    {
-                      "name": "astro_memes",
-                      "condition": "${{ needs.alter.outputs.astro_memes == 'true' }}",
-                      "node_version": "22",
-                      "pnpm_version": "10",
-                      "build_command": "astro-memes:build",
-                      "source_path": "dist/apps/astro-memes/",
-                      "destination_repo": "KBVE/meme.sh",
-                      "destination_folder": "/docs",
-                      "destination_branch": "main"
-                    }
-                ]
-
-    build_astro:
-        name: Build Astro Projects
-        needs: ['generate_astro_matrix']
-        if: ${{ needs.generate_astro_matrix.outputs.matrix != 'null' }}
-        strategy:
-            matrix: ${{ fromJson(needs.generate_astro_matrix.outputs.matrix) }}
-        uses: KBVE/kbve/.github/workflows/utils-astro-deployment.yml@main
-        with:
-            node_version: ${{ matrix.node_version }}
-            pnpm_version: ${{ matrix.pnpm_version }}
-            build_command: ${{ matrix.build_command }}
-            source_path: ${{ matrix.source_path }}
-            destination_repo: ${{ matrix.destination_repo }}
-            destination_folder: ${{ matrix.destination_folder }}
-            destination_branch: ${{ matrix.destination_branch }}
-
-        secrets:
-            GITHUB_PAT: ${{ secrets.UNITY_PAT }}
+    # NOTE: astro_memes GitHub Pages deployment removed — meme.sh is now deployed
+    # exclusively via the Docker/k8s pipeline (axum-memes container triggered by `memes` output).
 
     #  "target_platforms": "[\"StandaloneWindows64\", \"WebGL\"]",
     generate_unity_matrix:
