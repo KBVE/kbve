@@ -334,6 +334,7 @@ create_worktree() {
     worktree_basename=$(basename "$worktree_dir")
     cat > "$worktree_dir/.env.local" <<ENVEOF
 NX_WORKSPACE_ROOT=$worktree_dir
+NX_WORKSPACE_ROOT_PATH=$worktree_dir
 NX_WORKSPACE_DATA_DIRECTORY=.nx/workspace-data-${worktree_basename}
 NX_DAEMON=false
 ENVEOF
@@ -342,14 +343,17 @@ ENVEOF
     echo "Installing pnpm dependencies in worktree..."
     (cd "$worktree_dir" && pnpm install)
     echo "Resetting Nx cache in worktree..."
-    (cd "$worktree_dir" && pnpm nx reset)
+    (cd "$worktree_dir" && export NX_WORKSPACE_ROOT_PATH="$worktree_dir" && pnpm nx reset)
 
     echo ""
     echo "=== Worktree ready ==="
     echo "  Path:   $worktree_dir"
     echo "  Branch: $branch_name"
     echo ""
-    echo "cd $worktree_dir"
+    echo "Run the following to enter the worktree:"
+    echo "  cd $worktree_dir && export NX_WORKSPACE_ROOT_PATH=\$PWD"
+    echo ""
+    echo "Or use ./kbve.sh -nx from within the worktree (auto-sources .env.local)."
 }
 
 # Remove a git worktree by name
@@ -692,8 +696,20 @@ execmdx_function() {
 }
 
 
+# Source .env.local if present so NX_WORKSPACE_ROOT_PATH is set for worktrees.
+# Nx resolves the workspace root at module-load time (before dotenv),
+# so NX_WORKSPACE_ROOT_PATH must be a real shell env var.
+_load_env_local() {
+    if [ -f ".env.local" ]; then
+        set -a
+        . .env.local
+        set +a
+    fi
+}
+
 # Function to run pnpm nx with additional arguments under the cloud.
 run_pnpm_nxc() {
+    _load_env_local
     echo "Running pnpm nx with arguments: $@"
     pnpm nx run "$@"
 }
@@ -701,12 +717,14 @@ run_pnpm_nxc() {
 # Function to run pnpm nx with additional arguments without the cloud.
 run_pnpm_nx() {
     # Note: "$@" passes all arguments received by the function as-is
+    _load_env_local
     echo "Running pnpm nx with arguments: $@"
     pnpm nx run "$@" --no-cloud
 }
 
 # Function to build pnpm nx with an argument
 build_pnpm_nx() {
+    _load_env_local
     local argument="$1"
     pnpm nx build "$argument"
 }
