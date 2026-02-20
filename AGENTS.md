@@ -20,9 +20,11 @@ All work must happen in isolated git worktrees branched from `dev`. Never commit
    ```bash
    # .env.local in the worktree root
    NX_WORKSPACE_ROOT=/absolute/path/to/worktree
+   NX_WORKSPACE_ROOT_PATH=/absolute/path/to/worktree
    NX_WORKSPACE_DATA_DIRECTORY=.nx/workspace-data-<worktree-basename>
    NX_DAEMON=false
    ```
+   `NX_WORKSPACE_ROOT_PATH` is critical — Nx resolves the workspace root at module-load time (before dotenv), so it must be a real shell env var. Use `./kbve.sh -nx` (which auto-sources `.env.local`) or manually `export NX_WORKSPACE_ROOT_PATH=$PWD` after entering the worktree.
    `NX_WORKSPACE_DATA_DIRECTORY` gives each worktree its own project-graph/daemon cache, preventing cross-worktree crosstalk.
 
 3. **Install dependencies** (skipped if `kbve.sh -worktree` was used):

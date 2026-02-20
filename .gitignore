@@ -63,8 +63,7 @@ Thumbs.db
 
 .astro
 
-.nx/cache
-.nx/workspace-data
+.nx/
 /output.json
 apps/api/.env
 .env
