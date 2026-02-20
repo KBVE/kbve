@@ -76,17 +76,15 @@ fn router() -> Router {
         .load_shed()
         .layer(tower_http::limit::RequestBodyLimitLayer::new(1024 * 1024));
 
-    let static_router = crate::astro::build_static_router(&static_config)
-        .layer(axum::middleware::from_fn(fix_ts_mime))
-        .layer(axum::middleware::from_fn(cache_headers));
+    let static_router = crate::astro::build_static_router(&static_config);
 
     let public_router = Router::new()
         .route("/health", get(health));
 
-    let dynamic_router = public_router;
-
     static_router
-        .merge(dynamic_router)
+        .merge(public_router)
+        .layer(axum::middleware::from_fn(fix_ts_mime))
+        .layer(axum::middleware::from_fn(cache_headers))
         .layer(middleware)
 }
 
