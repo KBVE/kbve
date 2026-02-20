@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://discord.sh/sitemap-index.xml
