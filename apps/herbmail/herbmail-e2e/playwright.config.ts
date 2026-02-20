@@ -1,4 +1,5 @@
 import { defineConfig, devices } from '@playwright/test';
+import { readFileSync } from 'fs';
 
 const mode =
 	process.env['E2E_DOCKER'] === 'true' ? 'docker' : 'dev';
@@ -6,9 +7,14 @@ const mode =
 const port = 4321;
 const baseURL = `http://localhost:${port}`;
 
+const cargoToml = readFileSync('apps/herbmail/axum-herbmail/Cargo.toml', 'utf-8');
+const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
+
+const killPort = `lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 1;`;
+
 const commands: Record<string, string> = {
-	dev: 'pnpm exec nx dev axum-herbmail',
-	docker: `docker run --rm -p ${port}:${port} herbmail/axum-herbmail:0.1.0`,
+	dev: 'nx dev axum-herbmail --no-cloud',
+	docker: `${killPort} docker run --rm --name herbmail-e2e-test -p ${port}:${port} kbve/herbmail:${version}`,
 };
 
 export default defineConfig({
@@ -33,7 +39,7 @@ export default defineConfig({
 	webServer: {
 		command: commands[mode],
 		url: `${baseURL}/health`,
-		reuseExistingServer: !process.env['CI'],
+		reuseExistingServer: mode === 'dev' && !process.env['CI'],
 		timeout:
 			mode === 'docker'
 				? 30_000

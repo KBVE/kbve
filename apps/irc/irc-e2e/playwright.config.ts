@@ -12,9 +12,11 @@ const jwtSecret = 'e2e-test-secret-do-not-use-in-production';
 const cargoToml = readFileSync('apps/irc/irc-gateway/Cargo.toml', 'utf-8');
 const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
 
+const killPort = `lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 1;`;
+
 const commands: Record<string, string> = {
 	dev: `JWT_SECRET=${jwtSecret} nx dev irc-gateway --no-cloud`,
-	docker: `docker run --rm --name irc-e2e-test -p ${port}:${port} -e JWT_SECRET=${jwtSecret} kbve/irc-gateway:${version}`,
+	docker: `${killPort} docker run --rm --name irc-e2e-test -p ${port}:${port} -e JWT_SECRET=${jwtSecret} kbve/irc-gateway:${version}`,
 };
 
 export default defineConfig({
@@ -39,7 +41,7 @@ export default defineConfig({
 	webServer: {
 		command: commands[mode],
 		url: `${baseURL}/health`,
-		reuseExistingServer: !process.env['CI'],
+		reuseExistingServer: mode === 'dev' && !process.env['CI'],
 		timeout:
 			mode === 'docker'
 				? 30_000
