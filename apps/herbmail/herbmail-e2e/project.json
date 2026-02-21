@@ -16,10 +16,7 @@
 			"executor": "@nx/playwright:playwright",
 			"cache": false,
 			"options": {
-				"config": "apps/herbmail/herbmail-e2e/playwright.config.ts",
-				"env": {
-					"E2E_DOCKER": "true"
-				}
+				"config": "apps/herbmail/herbmail-e2e/playwright.docker.config.ts"
 			}
 		}
 	},
