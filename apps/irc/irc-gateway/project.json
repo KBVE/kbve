@@ -111,10 +111,7 @@
         "local": {
           "load": true,
           "push": false,
-          "metadata": {
-            "images": ["kbve/irc-gateway"],
-            "tags": ["latest"]
-          }
+          "tags": ["kbve/irc-gateway:latest"]
         },
         "production": {
           "load": true,
