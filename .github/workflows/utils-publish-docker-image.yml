@@ -62,7 +62,7 @@ jobs:
                     echo "should_publish=true" >> "$GITHUB_OUTPUT"
                   fi
 
-            - name: Setup Node v22
+            - name: Setup Node v24
               if: ${{ steps.version_check.outputs.should_publish != 'false' }}
               uses: actions/setup-node@v4
               with:
