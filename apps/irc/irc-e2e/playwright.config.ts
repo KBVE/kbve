@@ -1,5 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
+import { resolve } from 'path';
 
+const workspaceRoot = resolve(__dirname, '../../..');
 const port = 4321;
 const baseURL = `http://localhost:${port}`;
 
@@ -26,6 +28,7 @@ export default defineConfig({
 	],
 	webServer: {
 		command: `JWT_SECRET=${jwtSecret} ./kbve.sh -nx irc-gateway:dev`,
+		cwd: workspaceRoot,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,
 		timeout: process.env['CI'] ? 600_000 : 120_000,

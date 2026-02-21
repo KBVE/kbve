@@ -1,12 +1,14 @@
 import { defineConfig, devices } from '@playwright/test';
 import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
+const workspaceRoot = resolve(__dirname, '../../..');
 const port = 4321;
 const baseURL = `http://localhost:${port}`;
 
 const jwtSecret = 'e2e-test-secret-do-not-use-in-production';
 
-const cargoToml = readFileSync('apps/irc/irc-gateway/Cargo.toml', 'utf-8');
+const cargoToml = readFileSync(resolve(workspaceRoot, 'apps/irc/irc-gateway/Cargo.toml'), 'utf-8');
 const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
 
 const killPort = `lsof -ti:${port} | xargs kill -9 2>/dev/null; sleep 1;`;
