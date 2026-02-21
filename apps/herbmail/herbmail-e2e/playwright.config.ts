@@ -23,7 +23,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: 'pnpm nx dev axum-herbmail --no-cloud',
+		command: './kbve.sh -nx axum-herbmail:dev',
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,
 		timeout: process.env['CI'] ? 600_000 : 120_000,

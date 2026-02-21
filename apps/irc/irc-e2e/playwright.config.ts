@@ -25,7 +25,7 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: `JWT_SECRET=${jwtSecret} pnpm nx dev irc-gateway --no-cloud`,
+		command: `JWT_SECRET=${jwtSecret} ./kbve.sh -nx irc-gateway:dev`,
 		url: `${baseURL}/health`,
 		reuseExistingServer: false,
 		timeout: process.env['CI'] ? 600_000 : 120_000,
