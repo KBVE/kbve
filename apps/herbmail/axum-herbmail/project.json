@@ -111,10 +111,7 @@
         "local": {
           "load": true,
           "push": false,
-          "metadata": {
-            "images": ["kbve/herbmail"],
-            "tags": ["latest"]
-          }
+          "tags": ["kbve/herbmail:latest"]
         },
         "production": {
           "load": true,
