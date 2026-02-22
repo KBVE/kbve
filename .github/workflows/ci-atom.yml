@@ -5,11 +5,50 @@ on:
         branches:
             - 'atom-*'
 
+concurrency:
+    group: atom-${{ github.ref_name }}
+    cancel-in-progress: true
+
+permissions: {}
+
 jobs:
+    # Job 0: Early gate — block unauthorized actors before any work happens
+    authorize_actor:
+        name: 'Authorize Actor'
+        runs-on: ubuntu-latest
+        timeout-minutes: 5
+
+        steps:
+            - name: Check actor authorization
+              uses: actions/github-script@v8
+              with:
+                  script: |
+                      const AUTHORIZED_USERS = [
+                        { username: 'h0lybyte', id: 5599058 },
+                      ];
+
+                      const actor = context.actor;
+                      const actorId = context.payload.sender?.id;
+
+                      console.log(`Actor: ${actor} (ID: ${actorId})`);
+
+                      const isAuthorized = AUTHORIZED_USERS.some(user =>
+                        user.username === actor && user.id === actorId
+                      );
+
+                      if (!isAuthorized) {
+                        core.setFailed(`Unauthorized actor: ${actor} (ID: ${actorId}). Atomic branch workflow is restricted.`);
+                        return;
+                      }
+
+                      console.log(`Authorized actor: ${actor}`);
+
     # Job 1: Validate the branch name and extract metadata
     validate_branch:
         name: 'Validate Branch'
         runs-on: ubuntu-latest
+        needs: authorize_actor
+        timeout-minutes: 5
         outputs:
             branch_name: ${{ steps.validate.outputs.branch_name }}
             branch_valid: ${{ steps.validate.outputs.valid }}
@@ -64,6 +103,7 @@ jobs:
         name: 'Ensure Dev Branch'
         runs-on: ubuntu-latest
         needs: validate_branch
+        timeout-minutes: 5
         permissions:
             contents: write
         outputs:
@@ -73,7 +113,7 @@ jobs:
         steps:
             - name: Check if dev branch exists
               id: check
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
@@ -98,7 +138,7 @@ jobs:
             - name: Create dev branch if missing
               id: create
               if: steps.check.outputs.exists == 'false'
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
@@ -125,6 +165,7 @@ jobs:
         name: 'Check PR Status'
         runs-on: ubuntu-latest
         needs: [validate_branch, ensure_dev_branch]
+        timeout-minutes: 5
         permissions:
             pull-requests: read
         outputs:
@@ -135,7 +176,7 @@ jobs:
         steps:
             - name: Check for existing PR
               id: check
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
@@ -168,6 +209,7 @@ jobs:
         runs-on: ubuntu-latest
         needs: [validate_branch, check_pr_status]
         if: needs.check_pr_status.outputs.pr_exists == 'false'
+        timeout-minutes: 5
         permissions:
             contents: read
             pull-requests: write
@@ -180,7 +222,7 @@ jobs:
         steps:
             - name: Create new PR
               id: create
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
@@ -214,7 +256,7 @@ jobs:
                           body: prBody,
                           draft: false
                         });
-                        
+
                         // Add labels
                         await github.rest.issues.addLabels({
                           owner: context.repo.owner,
@@ -222,7 +264,7 @@ jobs:
                           issue_number: pr.data.number,
                           labels: ['atomic-branch', 'auto-pr']
                         });
-                        
+
                         console.log(`Created PR #${pr.data.number}: ${pr.data.html_url}`);
                         core.setOutput('created', 'true');
                         core.setOutput('number', pr.data.number.toString());
@@ -232,48 +274,61 @@ jobs:
                         core.setFailed(`Failed to create PR: ${error.message}`);
                       }
 
-    # Job 5: Workflow summary (always runs)
-    workflow_summary:
-        name: 'Workflow Summary'
+    # Job 5: Run lint + test on affected projects
+    run_tests:
+        name: 'Run Tests'
         runs-on: ubuntu-latest
-        needs: [validate_branch, check_pr_status, create_pr]
-        if: always()
+        needs: [check_pr_status, create_pr]
+        if: always() && !failure() && !cancelled() && (needs.check_pr_status.outputs.pr_exists == 'true' || needs.create_pr.outputs.pr_created == 'true')
+        timeout-minutes: 30
+        permissions:
+            contents: read
 
         steps:
-            - name: Generate summary
-              run: |
-                  echo "## 🚀 Atomic Branch Workflow Summary"
-                  echo ""
-                  echo "**Branch:** ${{ needs.validate_branch.outputs.branch_name }}"
-                  echo ""
+            - name: Checkout
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
 
-                  # Check if PR exists or was created
-                  if [[ "${{ needs.check_pr_status.outputs.pr_exists }}" == "true" ]]; then
-                    echo "### ✅ Existing PR Found"
-                    echo "- PR #${{ needs.check_pr_status.outputs.pr_number }}"
-                    echo "- URL: ${{ needs.check_pr_status.outputs.pr_url }}"
-                  elif [[ "${{ needs.create_pr.outputs.pr_created }}" == "true" ]]; then
-                    echo "### ✅ New PR Created"
-                    echo "- PR #${{ needs.create_pr.outputs.pr_number }}"
-                    echo "- URL: ${{ needs.create_pr.outputs.pr_url }}"
-                  else
-                    echo "### ⚠️ No PR Created"
-                    echo "Check previous job logs for details."
-                  fi
+            - name: Setup Node v24
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
 
-                  echo ""
-                  echo "### 📝 Next Steps"
-                  echo "1. Review the PR changes"
-                  echo "2. Ensure all checks pass"
-                  echo "3. Approve and merge when ready"
-                  echo "4. Branch will be auto-deleted after merge"
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 10
+                  run_install: false
 
-    # Security check job - validates PR author against authorized users
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Lint affected projects
+              run: pnpm nx affected --target=lint --base=origin/dev --head=HEAD --no-cloud
+
+            - name: Test affected projects
+              run: pnpm nx affected --target=test --base=origin/dev --head=HEAD --no-cloud
+
+    # Job 6: Security check — defense-in-depth validation of PR author
     security_check:
         name: 'Security Check - Validate Author'
         runs-on: ubuntu-latest
-        needs: [check_pr_status, create_pr]
-        if: always() && (needs.check_pr_status.outputs.pr_exists == 'true' || needs.create_pr.outputs.pr_created == 'true')
+        needs: [check_pr_status, create_pr, run_tests]
+        if: always() && needs.run_tests.result == 'success' && (needs.check_pr_status.outputs.pr_exists == 'true' || needs.create_pr.outputs.pr_created == 'true')
+        timeout-minutes: 5
         permissions:
             pull-requests: read
         outputs:
@@ -286,15 +341,13 @@ jobs:
         steps:
             - name: Check PR and Authorization
               id: check_authorization
-              uses: actions/github-script@v7
+              uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
-                      // Define authorized users with their GitHub IDs
+                      // Defense-in-depth: validate PR author matches authorized users
                       const AUTHORIZED_USERS = [
-                        { username: 'h0lybyte', id: '5599058' },
-                        // Add more authorized users here:
-                        // { username: 'fudster', id: 'USER_ID_HERE' },
+                        { username: 'h0lybyte', id: 5599058 },
                       ];
 
                       // Get PR number from previous jobs
@@ -304,7 +357,7 @@ jobs:
                       } else if ('${{ needs.create_pr.outputs.pr_created }}' === 'true') {
                         prNumber = '${{ needs.create_pr.outputs.pr_number }}';
                       }
-                      
+
                       if (!prNumber) {
                         console.log('No PR found to check');
                         core.setOutput('is_authorized', 'false');
@@ -324,29 +377,29 @@ jobs:
                         });
 
                         const authorUsername = pr.data.user.login;
-                        const authorId = pr.data.user.id.toString();
-                        
+                        const authorId = pr.data.user.id;
+
                         console.log(`Found PR #${pr.data.number} by ${authorUsername} (ID: ${authorId})`);
 
                         // Check if user is authorized
-                        const isAuthorized = AUTHORIZED_USERS.some(user => 
-                          user.username === authorUsername && 
+                        const isAuthorized = AUTHORIZED_USERS.some(user =>
+                          user.username === authorUsername &&
                           user.id === authorId
                         );
 
                         if (isAuthorized) {
-                          console.log(`✅ User ${authorUsername} is authorized for auto-merge`);
+                          console.log(`User ${authorUsername} is authorized for auto-merge`);
                         } else {
-                          console.log(`❌ User ${authorUsername} is not authorized for auto-merge`);
+                          console.log(`User ${authorUsername} is not authorized for auto-merge`);
                         }
 
                         // Set outputs
                         core.setOutput('is_authorized', isAuthorized.toString());
                         core.setOutput('author_username', authorUsername);
-                        core.setOutput('author_id', authorId);
+                        core.setOutput('author_id', authorId.toString());
                         core.setOutput('pr_number', pr.data.number.toString());
                         core.setOutput('pr_url', pr.data.html_url);
-                        
+
                       } catch (error) {
                         console.error(`Error checking PR: ${error.message}`);
                         core.setOutput('is_authorized', 'false');
@@ -366,16 +419,16 @@ jobs:
                     echo "URL: ${{ steps.check_authorization.outputs.pr_url }}"
                   else
                     echo "## Security Check Summary"
-                    echo "⚠️ No PR found to check"
+                    echo "No PR found to check"
                   fi
 
-    # Auto-merge job - only runs if security check passes
+    # Job 7: Auto-merge — only runs if security check passes
     auto_merge:
         name: 'Auto-Merge Authorized PRs'
         runs-on: ubuntu-latest
         needs: [security_check]
-        # Only run if security check passed and user is authorized
         if: needs.security_check.outputs.is_authorized == 'true'
+        timeout-minutes: 10
         permissions:
             contents: write
             pull-requests: write
@@ -384,7 +437,7 @@ jobs:
         steps:
             - name: Verify authorization status
               run: |
-                  echo "🔒 Security check passed!"
+                  echo "Security check passed!"
                   echo "Authorized user: ${{ needs.security_check.outputs.author_username }}"
                   echo "PR #${{ needs.security_check.outputs.pr_number }}: ${{ needs.security_check.outputs.pr_url }}"
                   echo "Proceeding with auto-merge..."
@@ -396,7 +449,7 @@ jobs:
                   script: |
                       const prNumber = '${{ needs.security_check.outputs.pr_number }}';
                       const authorUsername = '${{ needs.security_check.outputs.author_username }}';
-                      
+
                       if (!prNumber) {
                         core.setFailed('PR number not found');
                         return;
@@ -410,9 +463,9 @@ jobs:
                           repo: context.repo.repo,
                           pull_number: parseInt(prNumber),
                           event: 'APPROVE',
-                          body: `✅ Auto-approved by atomic workflow for authorized user: ${authorUsername}`
+                          body: `Auto-approved by atomic workflow for authorized user: ${authorUsername}`
                         });
-                        
+
                         console.log(`PR #${prNumber} approved`);
                       } catch (error) {
                         console.error(`Failed to approve PR: ${error.message}`);
@@ -425,7 +478,7 @@ jobs:
                   github-token: ${{ secrets.UNITY_PAT }}
                   script: |
                       const prNumber = '${{ needs.security_check.outputs.pr_number }}';
-                      
+
                       if (!prNumber) {
                         core.setFailed('PR number not found');
                         return;
@@ -440,11 +493,11 @@ jobs:
                           pull_number: parseInt(prNumber),
                           merge_method: 'squash'
                         });
-                        
+
                         console.log(`Auto-merge (squash) enabled for PR #${prNumber}`);
                       } catch (error) {
                         console.log(`Failed to enable auto-merge: ${error.message}`);
-                        
+
                         // Fallback: try to squash merge directly if no branch protections
                         console.log('Attempting direct squash merge...');
                         try {
@@ -455,7 +508,7 @@ jobs:
                             merge_method: 'squash',
                             commit_title: `Atomic: ${context.ref.replace('refs/heads/', '')}`
                           });
-                          
+
                           console.log(`PR #${prNumber} squash merged successfully`);
                         } catch (mergeError) {
                           console.log(`Direct squash merge also failed: ${mergeError.message}`);
@@ -465,7 +518,75 @@ jobs:
 
             - name: Auto-merge success summary
               run: |
-                  echo "🎉 Auto-merge completed!"
-                  echo "✅ User: ${{ needs.security_check.outputs.author_username }}"
-                  echo "✅ PR #${{ needs.security_check.outputs.pr_number }}: ${{ needs.security_check.outputs.pr_url }}"
-                  echo "✅ The atomic branch changes have been merged into dev automatically."
+                  echo "Auto-merge completed!"
+                  echo "User: ${{ needs.security_check.outputs.author_username }}"
+                  echo "PR #${{ needs.security_check.outputs.pr_number }}: ${{ needs.security_check.outputs.pr_url }}"
+                  echo "The atomic branch changes have been merged into dev automatically."
+
+    # Job 8: Workflow summary (always runs for visibility)
+    workflow_summary:
+        name: 'Workflow Summary'
+        runs-on: ubuntu-latest
+        needs: [authorize_actor, validate_branch, check_pr_status, create_pr, run_tests, security_check, auto_merge]
+        if: always()
+        timeout-minutes: 5
+
+        steps:
+            - name: Generate summary
+              run: |
+                  echo "## Atomic Branch Workflow Summary"
+                  echo ""
+                  echo "**Branch:** ${{ github.ref_name }}"
+                  echo "**Actor:** ${{ github.actor }}"
+                  echo ""
+
+                  # Authorization gate
+                  if [[ "${{ needs.authorize_actor.result }}" != "success" ]]; then
+                    echo "### BLOCKED — Unauthorized Actor"
+                    echo "Actor ${{ github.actor }} is not authorized to use atomic branches."
+                    exit 0
+                  fi
+                  echo "### Authorization: PASSED"
+                  echo ""
+
+                  # Branch validation
+                  if [[ "${{ needs.validate_branch.result }}" != "success" ]]; then
+                    echo "### BLOCKED — Invalid Branch Name"
+                    exit 0
+                  fi
+                  echo "### Branch Validation: PASSED"
+                  echo ""
+
+                  # PR status
+                  if [[ "${{ needs.check_pr_status.outputs.pr_exists }}" == "true" ]]; then
+                    echo "### PR: Existing #${{ needs.check_pr_status.outputs.pr_number }}"
+                    echo "- URL: ${{ needs.check_pr_status.outputs.pr_url }}"
+                  elif [[ "${{ needs.create_pr.outputs.pr_created }}" == "true" ]]; then
+                    echo "### PR: Created #${{ needs.create_pr.outputs.pr_number }}"
+                    echo "- URL: ${{ needs.create_pr.outputs.pr_url }}"
+                  else
+                    echo "### PR: Not Created"
+                  fi
+                  echo ""
+
+                  # Tests
+                  if [[ "${{ needs.run_tests.result }}" == "success" ]]; then
+                    echo "### Tests: PASSED"
+                  elif [[ "${{ needs.run_tests.result }}" == "failure" ]]; then
+                    echo "### BLOCKED — Tests Failed"
+                    echo "Fix lint/test errors before auto-merge can proceed."
+                    exit 0
+                  elif [[ "${{ needs.run_tests.result }}" == "skipped" ]]; then
+                    echo "### Tests: SKIPPED"
+                  fi
+                  echo ""
+
+                  # Auto-merge
+                  if [[ "${{ needs.auto_merge.result }}" == "success" ]]; then
+                    echo "### Auto-Merge: COMPLETED"
+                    echo "Changes have been squash-merged into dev."
+                  elif [[ "${{ needs.security_check.outputs.is_authorized }}" != "true" ]]; then
+                    echo "### Auto-Merge: SKIPPED (manual review required)"
+                  else
+                    echo "### Auto-Merge: ${{ needs.auto_merge.result }}"
+                  fi
