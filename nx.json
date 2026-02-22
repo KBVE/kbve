@@ -143,8 +143,6 @@
 		"projects": [
 			"packages/*",
 			"!astro-e2e",
-			"!astro-ve",
-			"!astropad",
 			"!erust",
 			"!holy",
 			"!kbve",
