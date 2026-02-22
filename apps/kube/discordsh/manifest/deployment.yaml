@@ -36,6 +36,13 @@ spec:
           value: "redis-master.redis.svc.cluster.local"
         - name: REDIS_PORT
           value: "6379"
+        - name: SUPABASE_URL
+          value: "http://kong.kilobase.svc.cluster.local:8000"
+        - name: SUPABASE_SERVICE_ROLE_KEY
+          valueFrom:
+            secretKeyRef:
+              name: discordsh-supabase-shared
+              key: service-role-key
         resources:
           requests:
             memory: "256Mi"

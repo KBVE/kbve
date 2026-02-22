@@ -1,19 +1,9 @@
 import { defineConfig, devices } from '@playwright/test';
-import { readFileSync } from 'fs';
+import { resolve } from 'path';
 
-const mode =
-	process.env['E2E_DOCKER'] === 'true' ? 'docker' : 'dev';
-
+const workspaceRoot = resolve(__dirname, '../../..');
 const port = 4321;
 const baseURL = `http://localhost:${port}`;
-
-const cargoToml = readFileSync('apps/discordsh/axum-discordsh/Cargo.toml', 'utf-8');
-const version = cargoToml.match(/^version\s*=\s*"(.+)"/m)?.[1] ?? '0.1.0';
-
-const commands: Record<string, string> = {
-	dev: 'pnpm exec nx dev axum-discordsh',
-	docker: `docker run --rm -p ${port}:${port} kbve/discordsh:${version}`,
-};
 
 export default defineConfig({
 	testDir: './e2e',
@@ -27,7 +17,7 @@ export default defineConfig({
 	},
 	projects: [
 		{
-			name: mode,
+			name: 'dev',
 			use: {
 				...devices['Desktop Chrome'],
 				baseURL,
@@ -35,14 +25,10 @@ export default defineConfig({
 		},
 	],
 	webServer: {
-		command: commands[mode],
+		command: './kbve.sh -nx axum-discordsh:dev',
+		cwd: workspaceRoot,
 		url: `${baseURL}/health`,
-		reuseExistingServer: !process.env['CI'],
-		timeout:
-			mode === 'docker'
-				? 30_000
-				: process.env['CI']
-					? 600_000
-					: 120_000,
+		reuseExistingServer: false,
+		timeout: process.env['CI'] ? 600_000 : 120_000,
 	},
 });

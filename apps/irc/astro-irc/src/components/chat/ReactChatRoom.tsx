@@ -378,7 +378,7 @@ export interface ReactChatRoomProps {
 }
 
 export const ReactChatRoom: React.FC<ReactChatRoomProps> = ({
-  wsUrl = 'wss://irc.kbve.com/ws',
+  wsUrl = 'wss://chat.kbve.com/ws',
 }) => {
   return (
     <div
