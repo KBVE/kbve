@@ -33,6 +33,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends \
         pkg-config \
         libssl-dev \
+        libpq-dev \
         protobuf-compiler \
         libprotobuf-dev && \
     rm -rf /var/lib/apt/lists/*
@@ -150,6 +151,15 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================================================
+# [STAGE H] - libpq runtime (needed by diesel postgres)
+# ============================================================================
+FROM --platform=linux/amd64 ubuntu:24.04 AS libpq-runtime
+
+RUN apt-get update && \
+    apt-get install -y --no-install-recommends libpq5 && \
+    rm -rf /var/lib/apt/lists/*
+
+# ============================================================================
 # [STAGE Z] - Runtime Image (Scratch + Chisel + Jemalloc)
 # ============================================================================
 FROM --platform=linux/amd64 scratch AS runtime
@@ -157,6 +167,8 @@ FROM --platform=linux/amd64 scratch AS runtime
 COPY --from=chisel-builder /rootfs /
 
 COPY --from=jemalloc /usr/lib/x86_64-linux-gnu/libjemalloc.so.2 /usr/lib/x86_64-linux-gnu/libjemalloc.so.2
+
+COPY --from=libpq-runtime /usr/lib/x86_64-linux-gnu/libpq.so.5* /usr/lib/x86_64-linux-gnu/
 
 WORKDIR /app
 
