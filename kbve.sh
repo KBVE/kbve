@@ -20,7 +20,7 @@
 #
 # Usage Examples:
 #   ./kbve.sh -install          # Install monorepo dependencies
-#   ./kbve.sh -atomic "feature" # Create atomic git branch
+#   ./kbve.sh -atomic "feature" # Create atomic worktree from dev
 #   ./kbve.sh -nx build app     # Run Nx build command
 #   ./kbve.sh -studio           # Launch development studio
 #
@@ -185,82 +185,108 @@ prepare_disoxide_container() {
     echo "[Prep] Prepared disoxide build. You can now run: pnpm nx run disoxide:containerx"
 }
 
-# Function for atomic patching. 
+# Create an atomic worktree for small, self-contained changes.
 atomic_function() {
     set -e
-    
-    echo "Creating atomic branch..."
-    
-    # Fetch latest changes
-    git fetch origin
-    
-    # Always start from a fresh dev branch to avoid any local divergence
-    echo "Setting up fresh dev branch..."
-    
-    # Get current branch name
-    current_branch=$(git branch --show-current)
-    
-    # If we're currently on dev, switch to main or staging first
-    if [ "$current_branch" = "dev" ]; then
-        echo "Currently on dev branch, switching away first..."
-        if git show-ref --verify --quiet refs/heads/main; then
-            git switch main
-        elif git show-ref --verify --quiet refs/heads/staging; then
-            git switch staging
-        else
-            # If neither main nor staging exists locally, create a temporary branch
-            git switch -c temp-branch
-        fi
-    fi
-    
-    # Delete local dev if it exists (to avoid any divergence issues)
-    if git show-ref --verify --quiet refs/heads/dev; then
-        echo "Deleting local dev branch to start fresh..."
-        git branch -D dev 2>/dev/null || true
-    fi
-    
-    # Create fresh local dev branch from remote
-    git switch -c dev origin/dev
-    echo "Fresh dev branch created from origin/dev"
-    
+
+    local description="$1"
+
+    # Determine the main repo root
+    local main_repo
+    main_repo=$(git rev-parse --show-toplevel)
+
+    # Fetch latest
+    echo "Fetching latest from origin..."
+    git fetch origin dev
+
     # Generate timestamp
-    GIT_DATE=$(date +'%m%d%H%M')  # Format: MMDDHHMM (e.g., 12151430)
-    
+    local git_date
+    git_date=$(date +'%m%d%H%M')  # Format: MMDDHHMM (e.g., 12151430)
+
     # Build branch name with description
-    if [ "$#" -eq "0" ]; then
-        PATCH_NAME="atom-${GIT_DATE}"
+    local branch_name
+    local clean_name
+    if [ -z "$description" ]; then
+        branch_name="atom-${git_date}"
+        clean_name="atom-${git_date}"
     else
         # Clean the description: lowercase, spaces to hyphens, remove special chars
-        DESCRIPTION=$(echo "$@" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g' | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
-        PATCH_NAME="atom-${GIT_DATE}-${DESCRIPTION}"
+        clean_name=$(echo "$description" | tr '[:upper:]' '[:lower:]' | tr ' ' '-' | sed 's/[^a-z0-9-]//g' | sed 's/-\+/-/g' | sed 's/^-\|-$//g')
+        branch_name="atom-${git_date}-${clean_name}"
+        clean_name="atom-${clean_name}"
     fi
-    
+
     # Validate branch name matches CI workflow requirements
-    if [[ ! "$PATCH_NAME" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
-        echo "Generated branch name '$PATCH_NAME' is invalid!"
+    if [[ ! "$branch_name" =~ ^atom-[a-zA-Z0-9-]+$ ]]; then
+        echo "Generated branch name '$branch_name' is invalid!"
         return 1
     fi
-    
+
     # Length check (same as CI workflow)
-    if [[ ${#PATCH_NAME} -gt 50 ]]; then
-        echo "Branch name too long: ${#PATCH_NAME} characters (max 50)"
+    if [[ ${#branch_name} -gt 50 ]]; then
+        echo "Branch name too long: ${#branch_name} characters (max 50)"
         echo "Try a shorter description"
         return 1
     fi
-    
+
     # Check if branch already exists remotely
-    if git ls-remote --exit-code --heads origin "$PATCH_NAME" > /dev/null 2>&1; then
-        echo "Branch '$PATCH_NAME' already exists remotely!"
+    if git ls-remote --exit-code --heads origin "$branch_name" > /dev/null 2>&1; then
+        echo "Branch '$branch_name' already exists remotely!"
         return 1
     fi
-    
-    # Create the atomic branch
-    echo "Creating atomic branch: $PATCH_NAME"
-    git switch -c "$PATCH_NAME"
-    
-    echo "Atomic branch '$PATCH_NAME' created from fresh dev!"
-    echo "When ready: git add . && git commit -m 'your message' && git push origin $PATCH_NAME"
-    echo "This will automatically create a PR to dev branch"
+
+    local worktree_dir="${main_repo}-${clean_name}"
+
+    # Check if worktree dir already exists
+    if [ -d "$worktree_dir" ]; then
+        echo "Worktree directory already exists: $worktree_dir"
+        echo "Remove it first with: $0 -worktree-rm ${clean_name}"
+        return 1
+    fi
+
+    # Create worktree
+    echo "Creating atomic worktree at: $worktree_dir"
+    echo "Branch: $branch_name (based on dev)"
+    git worktree add "$worktree_dir" -b "$branch_name" "origin/dev"
+
+    # Copy .env if it exists in the main repo
+    if [ -f "$main_repo/.env" ]; then
+        echo "Copying .env from main repo..."
+        cp "$main_repo/.env" "$worktree_dir/.env"
+    fi
+
+    # Generate .env.local with Nx workspace isolation
+    echo "Generating .env.local for Nx..."
+    local worktree_basename
+    worktree_basename=$(basename "$worktree_dir")
+    cat > "$worktree_dir/.env.local" <<ENVEOF
+NX_WORKSPACE_ROOT=$worktree_dir
+NX_WORKSPACE_ROOT_PATH=$worktree_dir
+NX_WORKSPACE_DATA_DIRECTORY=.nx/workspace-data-${worktree_basename}
+NX_CACHE_DIRECTORY=.nx/cache
+NX_DAEMON=false
+ENVEOF
+
+    # Install dependencies and reset Nx cache
+    echo "Installing pnpm dependencies in worktree..."
+    (cd "$worktree_dir" && pnpm install)
+    echo "Resetting Nx cache in worktree..."
+    (cd "$worktree_dir" && export NX_WORKSPACE_ROOT_PATH="$worktree_dir" && pnpm nx reset)
+
+    echo ""
+    echo "=== Atomic worktree ready ==="
+    echo "  Path:   $worktree_dir"
+    echo "  Branch: $branch_name"
+    echo ""
+    echo "Run the following to enter the worktree:"
+    echo "  cd $worktree_dir && export NX_WORKSPACE_ROOT_PATH=\$PWD"
+    echo ""
+    echo "Or use ./kbve.sh -nx from within the worktree (auto-sources .env.local)."
+    echo ""
+    echo "When done, push and ci-atom.yml will auto-create a PR to dev:"
+    echo "  git push -u origin $branch_name"
+    echo ""
+    echo "Cleanup: $0 -worktree-rm ${clean_name}"
 }
 
 # Function for the zeta script
@@ -777,13 +803,7 @@ case "$1" in
         manage_tmux_session "reset" "pnpm install --no-frozen-lockfile && pnpm nx reset"
         ;;
     -atomic)
-        shift  # Remove the first argument '-atomic'
-        atomic_args="$@"
-        # Use the script itself with a special flag to invoke the atomic function
-        manage_tmux_session "git" "$0 -exec_atomic $atomic_args"
-        ;;
-    -exec_atomic)
-        shift  # Remove the '-exec_atomic'
+        shift
         atomic_function "$@"
         ;;
     -zeta)
@@ -966,7 +986,7 @@ case "$1" in
         echo "  -reset             Reinstall deps + reset Nx cache"
         echo ""
         echo "Git:"
-        echo "  -atomic [desc]     Create atomic branch from dev"
+        echo "  -atomic [desc]     Create atomic worktree from dev"
         echo "  -zeta [desc]       Create zeta patch branch"
         echo "  -worktree <name> [base]  Create worktree with env + deps"
         echo "  -worktree-rm <name>      Remove a worktree"
