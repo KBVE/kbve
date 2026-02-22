@@ -1,7 +1,7 @@
 [package]
 name = "axum-discordsh"
 authors = ["kbve", "h0lybyte"]
-version = "0.1.0"
+version = "0.1.1"
 edition = "2021"
 publish = false
 
@@ -32,7 +32,7 @@ serenity = { version = "0.12", default-features = false, features = ["client", "
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi" }
-kbve = { path = "../../../packages/rust/kbve" }
+kbve = { path = "../../../packages/rust/kbve", features = ["supabase"] }
 
 [target.'cfg(not(target_env = "msvc"))'.dependencies]
 tikv-jemallocator = { version = "0.6", optional = true }
