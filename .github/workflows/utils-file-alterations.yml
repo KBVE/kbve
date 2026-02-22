@@ -1,232 +1,216 @@
 name: File Alterations
 
 on:
-  workflow_call:
-    inputs:
-        branch:
-          description: "Branch to check out"
-          required: false
-          type: string
-          default: "main"
+    workflow_call:
+        inputs:
+            branch:
+                description: 'Branch to check out'
+                required: false
+                type: string
+                default: 'main'
 
-    outputs:
-      # ? Rust
-      q_crate:
-        description: "Q package changed"
-        value: ${{ jobs.alter.outputs.q_crate }}
-      jedi_crate:
-        description: "Jedi package changed"
-        value: ${{ jobs.alter.outputs.jedi_crate }}
-      soul_crate:
-        description: "Soul package changed"
-        value: ${{ jobs.alter.outputs.soul_crate }}
-      kbve_crate:
-        description: "KBVE Crate package changed"
-        value: ${{ jobs.alter.outputs.kbve_crate }}
-      erust_crate:
-        description: "ERust Crate package changed"
-        value: ${{ jobs.alter.outputs.erust_crate }}
-      holy_crate:
-        description: "Holy Crate package changed"
-        value: ${{ jobs.alter.outputs.holy_crate }}
-      # ? Docker
-      kilobase:
-        description: "Kilobase package changed"
-        value: ${{ jobs.alter.outputs.kilobase }}
-      hyperlane:
-        description: "Hyperlane package changed"
-        value: ${{ jobs.alter.outputs.hyperlane }}
-      # ? Python
-      notification_bot:
-        description: "Notification Bot"
-        value: ${{ jobs.alter.outputs.notification_bot }}
-      # NOTE: Atlas has been migrated into pydesk. Disabled.
-      # py_atlas:
-      #   description: "Atlas changed"
-      #   value: ${{ jobs.alter.outputs.py_atlas }}
-      py_lib_fudster:
-        description: "Python Fudster library changed"
-        value: ${{ jobs.alter.outputs.py_lib_fudster }}
-      py_lib_kbve:
-        description: "Python KBVE library changed"
-        value: ${{ jobs.alter.outputs.py_lib_kbve }}
-      # ? Astro
-      astro_kbve:
-        description: "KBVE.com changed"
-        value: ${{ jobs.alter.outputs.astro_kbve }}
-      astro_herbmail:
-        description: "Herbmail.com changed"
-        value: ${{ jobs.alter.outputs.astro_herbmail }}
-      herbmail:
-        description: "Herbmail app changed"
-        value: ${{ jobs.alter.outputs.herbmail }}
-      memes:
-        description: "Memes app changed"
-        value: ${{ jobs.alter.outputs.memes }}
-      irc_gateway:
-        description: "IRC Gateway changed"
-        value: ${{ jobs.alter.outputs.irc_gateway }}
-      astro_rareicon:
-        description: "Rareicon.com changed"
-        value: ${{ jobs.alter.outputs.astro_rareicon }}
-      # ? Unity
-      rareicon_unity:
-        description: "Rareicon Unity changed"
-        value: ${{ jobs.alter.outputs.rareicon_unity }}
-      # ? NPM
-      droid:
-        description: "Droid Package changed"
-        value: ${{ jobs.alter.outputs.droid }}
-      # ? Godot
-      pirate17:
-        description: "Pirate 17 Gamejam"
-        value: ${{ jobs.alter.outputs.pirate17 }}
-      discordsh:
-        description: "Discordsh app changed"
-        value: ${{ jobs.alter.outputs.discordsh }}
-      rareicon:
-        description: "Rareicon changed"
-        value: ${{ jobs.alter.outputs.rareicon }}
-      proxy:
-        description: "Proxy changed"
-        value: ${{ jobs.alter.outputs.proxy }}
-      saber:
-        description: "Saber changed"
-        value: ${{ jobs.alter.outputs.saber }}
-      rust_profile:
-        description: "Rust profile changed"
-        value: ${{ jobs.alter.outputs.rust_profile }}
-      cryptothrone:
-        description: "CryptoThrone changed"
-        value: ${{ jobs.alter.outputs.cryptothrone }}
-      docker_void:
-        description: "Dockervoid changed"
-        value: ${{ jobs.alter.outputs.docker_void }}
-      khashvault:
-        description: "Khashvault changed"
-        value: ${{ jobs.alter.outputs.khashvault }}
-      devops:
-        description: "DevOps changed"
-        value: ${{ jobs.alter.outputs.devops }}
-      laser:
-        description: "Laser package changed"
-        value: ${{ jobs.alter.outputs.laser }}
-      worker:
-        description: "Worker changed"
-        value: ${{ jobs.alter.outputs.worker }}
-      asteroids:
-        description: "Asteroids & Droids changed"
-        value: ${{ jobs.alter.outputs.asteroids }}
-
+        outputs:
+            # ? Rust
+            q_crate:
+                description: 'Q package changed'
+                value: ${{ jobs.alter.outputs.q_crate }}
+            jedi_crate:
+                description: 'Jedi package changed'
+                value: ${{ jobs.alter.outputs.jedi_crate }}
+            soul_crate:
+                description: 'Soul package changed'
+                value: ${{ jobs.alter.outputs.soul_crate }}
+            kbve_crate:
+                description: 'KBVE Crate package changed'
+                value: ${{ jobs.alter.outputs.kbve_crate }}
+            erust_crate:
+                description: 'ERust Crate package changed'
+                value: ${{ jobs.alter.outputs.erust_crate }}
+            holy_crate:
+                description: 'Holy Crate package changed'
+                value: ${{ jobs.alter.outputs.holy_crate }}
+            # ? Docker
+            kilobase:
+                description: 'Kilobase package changed'
+                value: ${{ jobs.alter.outputs.kilobase }}
+            # ? Python
+            notification_bot:
+                description: 'Notification Bot'
+                value: ${{ jobs.alter.outputs.notification_bot }}
+            # NOTE: Atlas has been migrated into pydesk. Disabled.
+            # py_atlas:
+            #   description: "Atlas changed"
+            #   value: ${{ jobs.alter.outputs.py_atlas }}
+            py_lib_fudster:
+                description: 'Python Fudster library changed'
+                value: ${{ jobs.alter.outputs.py_lib_fudster }}
+            py_lib_kbve:
+                description: 'Python KBVE library changed'
+                value: ${{ jobs.alter.outputs.py_lib_kbve }}
+            # ? Astro
+            astro_kbve:
+                description: 'KBVE.com changed'
+                value: ${{ jobs.alter.outputs.astro_kbve }}
+            astro_herbmail:
+                description: 'Herbmail.com changed'
+                value: ${{ jobs.alter.outputs.astro_herbmail }}
+            herbmail:
+                description: 'Herbmail app changed'
+                value: ${{ jobs.alter.outputs.herbmail }}
+            memes:
+                description: 'Memes app changed'
+                value: ${{ jobs.alter.outputs.memes }}
+            irc_gateway:
+                description: 'IRC Gateway changed'
+                value: ${{ jobs.alter.outputs.irc_gateway }}
+            astro_rareicon:
+                description: 'Rareicon.com changed'
+                value: ${{ jobs.alter.outputs.astro_rareicon }}
+            # ? Unity
+            rareicon_unity:
+                description: 'Rareicon Unity changed'
+                value: ${{ jobs.alter.outputs.rareicon_unity }}
+            # ? NPM
+            droid:
+                description: 'Droid Package changed'
+                value: ${{ jobs.alter.outputs.droid }}
+            # ? Godot
+            pirate17:
+                description: 'Pirate 17 Gamejam'
+                value: ${{ jobs.alter.outputs.pirate17 }}
+            discordsh:
+                description: 'Discordsh app changed'
+                value: ${{ jobs.alter.outputs.discordsh }}
+            rareicon:
+                description: 'Rareicon changed'
+                value: ${{ jobs.alter.outputs.rareicon }}
+            proxy:
+                description: 'Proxy changed'
+                value: ${{ jobs.alter.outputs.proxy }}
+            saber:
+                description: 'Saber changed'
+                value: ${{ jobs.alter.outputs.saber }}
+            cryptothrone:
+                description: 'CryptoThrone changed'
+                value: ${{ jobs.alter.outputs.cryptothrone }}
+            docker_void:
+                description: 'Dockervoid changed'
+                value: ${{ jobs.alter.outputs.docker_void }}
+            khashvault:
+                description: 'Khashvault changed'
+                value: ${{ jobs.alter.outputs.khashvault }}
+            devops:
+                description: 'DevOps changed'
+                value: ${{ jobs.alter.outputs.devops }}
+            laser:
+                description: 'Laser package changed'
+                value: ${{ jobs.alter.outputs.laser }}
+            worker:
+                description: 'Worker changed'
+                value: ${{ jobs.alter.outputs.worker }}
+            asteroids:
+                description: 'Asteroids & Droids changed'
+                value: ${{ jobs.alter.outputs.asteroids }}
 
 jobs:
-  alter:
-    runs-on: ubuntu-latest
-    name: File Alterations
-    outputs:
-      pirate17: ${{ steps.delta.outputs.pirate17_any_changed }}
-      q_crate: ${{ steps.delta.outputs.q_crate_any_changed }}
-      jedi_crate: ${{ steps.delta.outputs.jedi_crate_any_changed }}
-      soul_crate: ${{ steps.delta.outputs.soul_crate_any_changed }}
-      kbve_crate: ${{ steps.delta.outputs.kbve_crate_any_changed_files }}
-      erust_crate: ${{ steps.delta.outputs.erust_crate_any_changed }}
-      holy_crate: ${{ steps.delta.outputs.holy_crate_any_changed }}
-      kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
-      hyperlane: ${{ steps.delta.outputs.hyperlane_any_changed }}
-      # py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}  # Atlas migrated into pydesk
-      py_lib_fudster: ${{ steps.delta.outputs.py_lib_fudster_any_changed }}
-      py_lib_kbve: ${{ steps.delta.outputs.py_lib_kbve_any_changed }}
-      astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
-      astro_herbmail: ${{ steps.delta.outputs.astro_herbmail_any_changed }}
-      herbmail: ${{ steps.delta.outputs.herbmail_any_changed }}
-      memes: ${{ steps.delta.outputs.memes_any_changed }}
-      irc_gateway: ${{ steps.delta.outputs.irc_gateway_any_changed }}
-      astro_rareicon: ${{ steps.delta.outputs.astro_rareicon_any_changed }}
-      rareicon_unity: ${{ steps.delta.outputs.rareicon_unity_any_changed }}
-      droid: ${{ steps.delta.outputs.droid_any_changed }}
-      discordsh: ${{ steps.delta.outputs.discordsh_any_changed}}
-      proxy: ${{ steps.delta.outputs.proxy_any_changed }}
-      saber: ${{ steps.delta.outputs.saber_any_changed }}
-      rust_profile: ${{ steps.delta.outputs.rust_profile_any_changed }}
-      cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
-      docker_void: ${{ steps.delta.outputs.docker_void_any_changed }}
-      khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
-      devops: ${{ steps.delta.outputs.devops_any_changed }}
-      laser: ${{ steps.delta.outputs.laser_any_changed }}
-      asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
-      notification_bot: ${{ steps.delta.outputs.notificationbot_any_changed }}
+    alter:
+        runs-on: ubuntu-latest
+        name: File Alterations
+        outputs:
+            pirate17: ${{ steps.delta.outputs.pirate17_any_changed }}
+            q_crate: ${{ steps.delta.outputs.q_crate_any_changed }}
+            jedi_crate: ${{ steps.delta.outputs.jedi_crate_any_changed }}
+            soul_crate: ${{ steps.delta.outputs.soul_crate_any_changed }}
+            kbve_crate: ${{ steps.delta.outputs.kbve_crate_any_changed_files }}
+            erust_crate: ${{ steps.delta.outputs.erust_crate_any_changed }}
+            holy_crate: ${{ steps.delta.outputs.holy_crate_any_changed }}
+            kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
+            # py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}  # Atlas migrated into pydesk
+            py_lib_fudster: ${{ steps.delta.outputs.py_lib_fudster_any_changed }}
+            py_lib_kbve: ${{ steps.delta.outputs.py_lib_kbve_any_changed }}
+            astro_kbve: ${{ steps.delta.outputs.astro_kbve_any_changed }}
+            astro_herbmail: ${{ steps.delta.outputs.astro_herbmail_any_changed }}
+            herbmail: ${{ steps.delta.outputs.herbmail_any_changed }}
+            memes: ${{ steps.delta.outputs.memes_any_changed }}
+            irc_gateway: ${{ steps.delta.outputs.irc_gateway_any_changed }}
+            astro_rareicon: ${{ steps.delta.outputs.astro_rareicon_any_changed }}
+            rareicon_unity: ${{ steps.delta.outputs.rareicon_unity_any_changed }}
+            droid: ${{ steps.delta.outputs.droid_any_changed }}
+            discordsh: ${{ steps.delta.outputs.discordsh_any_changed}}
+            proxy: ${{ steps.delta.outputs.proxy_any_changed }}
+            saber: ${{ steps.delta.outputs.saber_any_changed }}
+            cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
+            docker_void: ${{ steps.delta.outputs.docker_void_any_changed }}
+            khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
+            devops: ${{ steps.delta.outputs.devops_any_changed }}
+            laser: ${{ steps.delta.outputs.laser_any_changed }}
+            asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
+            notification_bot: ${{ steps.delta.outputs.notificationbot_any_changed }}
 
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v4
-        with:
-          fetch-depth: 2
+        steps:
+            - name: Checkout the repository
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 2
 
-      - name: File Changes
-        id: delta
-        uses: step-security/changed-files@v47
-        with:
-          files_yaml: |
-            pirate17:
-                - 'apps/gamejam/pirate/pirate17/**'
-            q_crate:
-                - 'packages/rust/q/README.md'
-            jedi_crate:
-                - 'packages/rust/jedi/README.md'
-            soul_crate:
-                - 'packages/rust/soul/src/**'
-            kbve_crate:
-                - 'packages/rust/kbve/src/**'
-            erust_crate:
-                - 'packages/rust/erust/src/**'
-            holy_crate:
-                - 'packages/rust/holy/src/**'
-            kilobase:
-                -  'apps/kbve/kilobase/README.md'
-            hyperlane:
-                - 'apps/kbve/kbve-hyperlane/README.md'
-            rareicon_unity:
-                - 'apps/kbve/astro-kbve/src/content/docs/project/rareicon.mdx'
-            droid:
-                - 'packages/npm/droid/README.md'
-            # py_atlas:  # Atlas migrated into pydesk
-            #     - 'apps/atlas/kbve_atlas/**'
-            py_lib_fudster:
-                - 'packages/python/fudster/fudster/**'
-            py_lib_kbve:
-                - 'packages/python/kbve/kbve/**'
-            notificationbot:
-                - 'apps/discord/notification-bot/README.md'
-            astro_kbve:
-                - 'apps/kbve/astro-kbve/**'
-            astro_herbmail:
-                - 'apps/herbmail/README.md'
-            herbmail:
-                - 'apps/herbmail/**'
-            memes:
-                - 'apps/memes/**'
-            irc_gateway:
-                - 'apps/irc/**'
-            astro_rareicon:
-                - 'apps/rareicon/rareicon.com/**'
-            discordsh:
-                - 'apps/discordsh/**'
-            proxy:
-                - 'apps/proxy/**'
-            saber:
-                - 'apps/saber/**'
-            rustprofile:
-                - 'apps/rust_api_profile/**'
-            dockervoid:
-                - 'migrations/docker/v01d/**'
-            khashvault:
-                - 'packages/khashvault/package.json'
-            devops:
-                - 'packages/npm/devops/package.json'
-            cryptothrone:
-                - 'apps/cryptothrone.com/src/**'
-            laser:
-                - 'packages/npm/laser/package.json'
-            asteroids:
-                - 'apps/gamejam/brackeys/13/**'
-
+            - name: File Changes
+              id: delta
+              uses: step-security/changed-files@v47
+              with:
+                  files_yaml: |
+                      pirate17:
+                          - 'apps/gamejam/pirate/pirate17/**'
+                      q_crate:
+                          - 'packages/rust/q/README.md'
+                      jedi_crate:
+                          - 'packages/rust/jedi/README.md'
+                      soul_crate:
+                          - 'packages/rust/soul/src/**'
+                      kbve_crate:
+                          - 'packages/rust/kbve/src/**'
+                      erust_crate:
+                          - 'packages/rust/erust/src/**'
+                      holy_crate:
+                          - 'packages/rust/holy/src/**'
+                      kilobase:
+                          -  'apps/kbve/kilobase/README.md'
+                      rareicon_unity:
+                          - 'apps/rareicon/**'
+                      droid:
+                          - 'packages/npm/droid/README.md'
+                      # py_atlas:  # Atlas migrated into pydesk
+                      #     - 'apps/atlas/kbve_atlas/**'
+                      py_lib_fudster:
+                          - 'packages/python/fudster/fudster/**'
+                      py_lib_kbve:
+                          - 'packages/python/kbve/kbve/**'
+                      notificationbot:
+                          - 'apps/discord/notification-bot/README.md'
+                      astro_herbmail:
+                          - 'apps/herbmail/README.md'
+                      herbmail:
+                          - 'apps/herbmail/**'
+                      memes:
+                          - 'apps/memes/**'
+                      irc_gateway:
+                          - 'apps/irc/**'
+                      astro_rareicon:
+                          - 'apps/rareicon/rareicon.com/**'
+                      discordsh:
+                          - 'apps/discordsh/**'
+                      proxy:
+                          - 'apps/proxy/**'
+                      saber:
+                          - 'apps/saber/**'
+                      dockervoid:
+                          - 'migrations/docker/v01d/**'
+                      khashvault:
+                          - 'packages/khashvault/package.json'
+                      devops:
+                          - 'packages/npm/devops/package.json'
+                      cryptothrone:
+                          - 'apps/cryptothrone.com/src/**'
+                      laser:
+                          - 'packages/npm/laser/package.json'
+                      asteroids:
+                          - 'apps/gamejam/brackeys/13/**'

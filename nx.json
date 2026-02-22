@@ -36,11 +36,6 @@
 			],
 			"cache": true
 		},
-		"@nx/expo:build": {
-			"cache": true,
-			"dependsOn": ["^build"],
-			"inputs": ["production", "^production"]
-		},
 		"@nx/vite:build": {
 			"cache": true,
 			"dependsOn": ["^build"],
@@ -83,14 +78,6 @@
 		"@nxlv/python",
 		"@monodon/rust",
 		{
-			"plugin": "@nx/next/plugin",
-			"options": {
-				"buildTargetName": "build",
-				"devTargetName": "dev",
-				"startTargetName": "start"
-			}
-		},
-		{
 			"plugin": "@nx/eslint/plugin",
 			"options": {
 				"targetName": "lint"
@@ -129,12 +116,6 @@
 			"component": {
 				"style": "styled-components"
 			}
-		},
-		"@nx/next": {
-			"application": {
-				"style": "styled-components",
-				"linter": "eslint"
-			}
 		}
 	},
 	"nxCloudAccessToken": "MDVjYTYxYmUtNjU1OS00NTJjLWFhYzQtZWE4MDNlNDkwOGZhfHJlYWQ=",
@@ -143,8 +124,6 @@
 		"projects": [
 			"packages/*",
 			"!astro-e2e",
-			"!astro-ve",
-			"!astropad",
 			"!erust",
 			"!holy",
 			"!kbve",

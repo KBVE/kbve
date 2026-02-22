@@ -3,5 +3,4 @@ kind: Kustomization
 namespace: rareicon
 
 resources:
-  - hyperlane-deployment.yaml
-  - nginx-ingress.yaml
+    - nginx-ingress.yaml
