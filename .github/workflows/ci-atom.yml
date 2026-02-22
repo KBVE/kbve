@@ -76,8 +76,8 @@ jobs:
                       exit 1
                   fi
 
-                  # Reserved name check
-                  if [[ "$BRANCH_NAME" =~ (atom-main|atom-dev|atom-master) ]]; then
+                  # Reserved name check (exact match only)
+                  if [[ "$BRANCH_NAME" =~ ^(atom-main|atom-dev|atom-master)$ ]]; then
                       echo "Reserved branch name: $BRANCH_NAME"
                       exit 1
                   fi

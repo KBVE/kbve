@@ -29,6 +29,19 @@ Hardened `ci-atom.yml` with: `authorize_actor` gate (checks GitHub actor ID), `r
 job (lint + test via `nx affected`), top-level `concurrency` group, deny-all `permissions: {}`
 with per-job grants, `timeout-minutes` on all jobs, and standardized all actions to `@v8`.
 
+### ~~#5. Add Concurrency Controls~~ ✓
+
+Added `concurrency` groups to `ci-dev.yml`, `ci-staging.yml` (both `cancel-in-progress: true`)
+and `ci-main.yml` (`cancel-in-progress: false` — production deploys should not be cancelled).
+`ci-atom.yml` already had concurrency from #3.
+
+### ~~#6. Add Job Timeout Limits~~ ✓
+
+Added `timeout-minutes` to all direct jobs in `ci-dev.yml` (10 min PR creation, 30 min
+validation), `ci-staging.yml` (10 min PR creation, 30 min validation), and `ci-main.yml`
+(10 min globals/deploy, 30 min CryptoThrone). `ci-atom.yml` already had timeouts from #3.
+Matrix-based jobs inherit timeouts from their reusable workflow definitions.
+
 ### ~~#8. Fix CryptoThrone pnpm Version Mismatch~~ — Dismissed
 
 CryptoThrone will be migrated into the general ecosystem later, making this a non-issue.
@@ -57,54 +70,6 @@ image vulnerability scanning.
 - `.github/dependabot.yml` (new)
 - `.github/workflows/ci-security.yml` (new)
 - `.github/workflows/utils-publish-docker-image.yml` — add scan step
-
----
-
-### #5. Add Concurrency Controls
-
-**Priority:** Medium
-
-**Problem:** No `concurrency` groups on most workflows. Overlapping runs can conflict.
-
-**Solution:** Add `concurrency` blocks to remaining `ci-*.yml` workflows:
-
-```yaml
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true  # for PR workflows
-```
-
-For `ci-main.yml`, use `cancel-in-progress: false` since production deployments should not
-be cancelled.
-
-**Note:** `ci-atom.yml` already has concurrency controls (added in #3).
-
-**Files:**
-- `.github/workflows/ci-dev.yml`
-- `.github/workflows/ci-staging.yml`
-- `.github/workflows/ci-main.yml`
-
----
-
-### #6. Add Job Timeout Limits
-
-**Priority:** Low
-
-**Problem:** No `timeout-minutes` on most jobs. Hung builds run until GitHub's 6-hour default.
-
-**Solution:** Add `timeout-minutes` to all jobs with these defaults:
-
-| Job Type | Timeout |
-|----------|---------|
-| PR creation / validation / summary | 10 min |
-| Lint / unit tests | 30 min |
-| Docker build + Rust compilation | 60 min |
-| Unity / Godot builds | 90 min |
-
-**Note:** `ci-atom.yml` already has timeouts (added in #3). `ci-dev.yml` and `ci-staging.yml`
-`validate_*` jobs now have 30 min timeouts (added in #1/#2).
-
-**Files:** Remaining workflow files in `.github/workflows/`
 
 ---
 
@@ -167,7 +132,7 @@ The `atom-*` branch workflow is completely undocumented.
 
 - **When to use:** Small, self-contained changes (docs, config, single-file fixes)
 - **Naming convention:** `atom-<description>` (max 50 chars, alphanumeric + hyphens only)
-- **Reserved names:** `atom-main`, `atom-dev`, `atom-master` are blocked
+- **Reserved names:** `atom-main`, `atom-dev`, `atom-master` are blocked (exact match)
 - **Workflow:** Push triggers auto-PR to `dev`, authorized users get auto-merge (squash)
 - **When to use trunk/ instead:** Multi-commit features, iterative testing, many files
 
@@ -181,6 +146,6 @@ The `atom-*` branch workflow is completely undocumented.
 | Phase | Items | Status |
 |-------|-------|--------|
 | **Phase 1** | #1, #2, #3 | ✓ Complete |
-| **Phase 2** | #5, #6 | Next — quick reliability wins |
-| **Phase 3** | #9, #11 | Workflow improvements |
+| **Phase 2** | #5, #6 | ✓ Complete |
+| **Phase 3** | #9, #11 | Next — workflow improvements |
 | **Phase 4** | #4, #7, #10 | Security + polish |
