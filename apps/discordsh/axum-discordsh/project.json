@@ -87,7 +87,7 @@
         "local": {
           "commands": [
             "./kbve.sh -nx axum-discordsh:containerx",
-            "VERSION=$(grep '^version' apps/discordsh/axum-discordsh/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh:latest kbve/discordsh:$VERSION && docker tag ghcr.io/kbve/discordsh:latest ghcr.io/kbve/discordsh:$VERSION && echo \"Tagged kbve/discordsh:$VERSION\""
+            "VERSION=$(grep '^version' apps/discordsh/axum-discordsh/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/discordsh:latest kbve/discordsh:$VERSION && echo \"Tagged kbve/discordsh:$VERSION\""
           ]
         },
         "production": {
