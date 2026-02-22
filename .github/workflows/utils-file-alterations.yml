@@ -33,9 +33,6 @@ on:
             kilobase:
                 description: 'Kilobase package changed'
                 value: ${{ jobs.alter.outputs.kilobase }}
-            hyperlane:
-                description: 'Hyperlane package changed'
-                value: ${{ jobs.alter.outputs.hyperlane }}
             # ? Python
             notification_bot:
                 description: 'Notification Bot'
@@ -93,9 +90,6 @@ on:
             saber:
                 description: 'Saber changed'
                 value: ${{ jobs.alter.outputs.saber }}
-            rust_profile:
-                description: 'Rust profile changed'
-                value: ${{ jobs.alter.outputs.rust_profile }}
             cryptothrone:
                 description: 'CryptoThrone changed'
                 value: ${{ jobs.alter.outputs.cryptothrone }}
@@ -131,7 +125,6 @@ jobs:
             erust_crate: ${{ steps.delta.outputs.erust_crate_any_changed }}
             holy_crate: ${{ steps.delta.outputs.holy_crate_any_changed }}
             kilobase: ${{ steps.delta.outputs.kilobase_any_changed }}
-            hyperlane: ${{ steps.delta.outputs.hyperlane_any_changed }}
             # py_atlas: ${{ steps.delta.outputs.py_atlas_any_changed }}  # Atlas migrated into pydesk
             py_lib_fudster: ${{ steps.delta.outputs.py_lib_fudster_any_changed }}
             py_lib_kbve: ${{ steps.delta.outputs.py_lib_kbve_any_changed }}
@@ -146,7 +139,6 @@ jobs:
             discordsh: ${{ steps.delta.outputs.discordsh_any_changed}}
             proxy: ${{ steps.delta.outputs.proxy_any_changed }}
             saber: ${{ steps.delta.outputs.saber_any_changed }}
-            rust_profile: ${{ steps.delta.outputs.rust_profile_any_changed }}
             cryptothrone: ${{ steps.delta.outputs.cryptothrone_any_changed }}
             docker_void: ${{ steps.delta.outputs.docker_void_any_changed }}
             khashvault: ${{ steps.delta.outputs.khashvault_any_changed }}
@@ -182,8 +174,6 @@ jobs:
                           - 'packages/rust/holy/src/**'
                       kilobase:
                           -  'apps/kbve/kilobase/README.md'
-                      hyperlane:
-                          - 'apps/kbve/kbve-hyperlane/README.md'
                       rareicon_unity:
                           - 'apps/rareicon/**'
                       droid:
@@ -212,8 +202,6 @@ jobs:
                           - 'apps/proxy/**'
                       saber:
                           - 'apps/saber/**'
-                      rustprofile:
-                          - 'apps/rust_api_profile/**'
                       dockervoid:
                           - 'migrations/docker/v01d/**'
                       khashvault:
