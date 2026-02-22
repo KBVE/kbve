@@ -94,6 +94,7 @@
 		"fake-indexeddb": "^6.0.0",
 		"grpc-tools": "^1.12.4",
 		"grpc_tools_node_protoc_ts": "^5.3.3",
+		"husky": "^9.1.7",
 		"install": "^0.13.0",
 		"jest": "30.0.5",
 		"jest-environment-jsdom": "30.0.5",
@@ -103,6 +104,7 @@
 		"jiti": "2.4.2",
 		"jsdom": "~22.1.0",
 		"jsonc-eslint-parser": "^2.1.0",
+		"lint-staged": "^16.2.7",
 		"nanostores": "^0.9.5",
 		"nx": "22.5.0",
 		"postcss": "^8.5.3",
@@ -236,11 +238,27 @@
 		"vaul": "^1.1.1",
 		"zod": "^3.23.8"
 	},
+	"lint-staged": {
+		"*.{ts,tsx,js,jsx}": [
+			"eslint --fix --no-error-on-unmatched-pattern",
+			"prettier --write"
+		],
+		"*.astro": [
+			"prettier --write --plugin=prettier-plugin-astro"
+		],
+		"*.{json,md,yml,yaml,css,scss}": [
+			"prettier --write"
+		],
+		"*.rs": [
+			"rustfmt --check"
+		]
+	},
 	"nx": {
 		"includedScripts": []
 	},
 	"scripts": {
-		"postinstall": "pnpm exec playwright install"
+		"postinstall": "pnpm exec playwright install",
+		"prepare": "husky"
 	},
 	"pnpm": {
 		"onlyBuiltDependencies": [
