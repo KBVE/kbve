@@ -82,7 +82,7 @@ jobs:
 
             - name: Setup pnpm Cache
               if: ${{ steps.version_check.outputs.should_publish != 'false' }}
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}

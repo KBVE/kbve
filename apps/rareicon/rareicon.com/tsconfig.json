@@ -1,48 +1,45 @@
 {
-  //"extends": "../../../tsconfig.base.json",
-  // moving to the astro strict.
-  "extends": "astro/tsconfigs/strict",
-  
-  "compilerOptions": {
-    // Base URL - 11-05-2024
-    "baseUrl": ".",
-    // Enable top-level await, and other modern ESM features
-    "target": "ESNext",
-    "module": "ESNext",
-    // Enable node-style module resolution, for things like npm package imports
-    "moduleResolution": "node",
-    // Enable JSON imports
-    "resolveJsonModule": true,
-    // Enable stricter transpilation for better output
-    "isolatedModules": true,
-    // Astro directly run TypeScript code, no transpilation needed
-    "noEmit": true,
-    // Report an error when importing a file using a casing different from the casing on disk
-    "forceConsistentCasingInFileNames": true,
-    // Properly support importing CJS modules in ESM
-    "esModuleInterop": true,
-    // Skip typechecking libraries and .d.ts files
-    "skipLibCheck": true,
-    // Enable strict mode
-    "strict": true,
-    // Error when a value import is only used as a type
-    "importsNotUsedAsValues": "error",
-    // TypeScript 5.0 changed how `isolatedModules` and `importsNotUsedAsValues` works, deprecating the later
-    // Until the majority of users are on TypeScript 5.0, we'll have to supress those deprecation errors
-    "ignoreDeprecations": "5.0",
-    // Allow JavaScript files to be imported
-    "allowJs": true,
+	//"extends": "../../../tsconfig.base.json",
+	// moving to the astro strict.
+	"extends": "astro/tsconfigs/strict",
 
-    // Plugins 11-05-2024
-    "plugins": [
-      {
-        "name": "@astrojs/ts-plugin"
-      }
-    ],
-    "paths": {
-      "@kbve/astropad": ["../../../packages/astropad/index.ts"],
-      "@kbve/astro-ve": ["../../../packages/astro-ve/index.ts"],
-    }
-  },
-  "include": ["./src"]
+	"compilerOptions": {
+		// Base URL - 11-05-2024
+		"baseUrl": ".",
+		// Enable top-level await, and other modern ESM features
+		"target": "ESNext",
+		"module": "ESNext",
+		// Enable node-style module resolution, for things like npm package imports
+		"moduleResolution": "node",
+		// Enable JSON imports
+		"resolveJsonModule": true,
+		// Enable stricter transpilation for better output
+		"isolatedModules": true,
+		// Astro directly run TypeScript code, no transpilation needed
+		"noEmit": true,
+		// Report an error when importing a file using a casing different from the casing on disk
+		"forceConsistentCasingInFileNames": true,
+		// Properly support importing CJS modules in ESM
+		"esModuleInterop": true,
+		// Skip typechecking libraries and .d.ts files
+		"skipLibCheck": true,
+		// Enable strict mode
+		"strict": true,
+		// Error when a value import is only used as a type
+		"importsNotUsedAsValues": "error",
+		// TypeScript 5.0 changed how `isolatedModules` and `importsNotUsedAsValues` works, deprecating the later
+		// Until the majority of users are on TypeScript 5.0, we'll have to supress those deprecation errors
+		"ignoreDeprecations": "5.0",
+		// Allow JavaScript files to be imported
+		"allowJs": true,
+
+		// Plugins 11-05-2024
+		"plugins": [
+			{
+				"name": "@astrojs/ts-plugin"
+			}
+		],
+		"paths": {}
+	},
+	"include": ["./src"]
 }

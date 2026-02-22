@@ -1,6 +1,0 @@
-{
-  "format": "MM-DD",
-  "folder": "journal",
-  "template": "_bin/_daily.mdx",
-  "autorun": true
-}

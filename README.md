@@ -26,12 +26,12 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/), b
 
 ## Table of Libraries & Apps
 
-| C#                                                                                 | R     | A        | P       | @Apps                                  |
-| ---------------------------------------------------------------------------------- | ----- | -------- | ------- | -------------------------------------- |
-| [kilonet](https://github.com/KBVE/kbve/tree/main/packages/unity/kilonet)           | erust | astropad | kbve    | [kbve.com](https://kbve.com/)          |
+| C#                                                                                 | R     | A        | P       | @Apps                                   |
+| ---------------------------------------------------------------------------------- | ----- | -------- | ------- | --------------------------------------- |
+| [kilonet](https://github.com/KBVE/kbve/tree/main/packages/unity/kilonet)           | erust | astropad | kbve    | [kbve.com](https://kbve.com/)           |
 | [MMExtensions](https://github.com/KBVE/kbve/tree/main/packages/unity/mmextensions) | jedi  |          | fudster | [rentearth.com](https://rentearth.com/) |
-|                                                                                    | holy  |          |         | [herbmail.com](https://herbmail.com/)  |
-|                                                                                    | kbve  |          |         | [rareicon.com](https://rareicon.com/)  |
+|                                                                                    | holy  |          |         | [herbmail.com](https://herbmail.com/)   |
+|                                                                                    | kbve  |          |         | [rareicon.com](https://rareicon.com/)   |
 
 ---
 
@@ -116,7 +116,6 @@ The Richard Stack is known as `Dockerized Integrated Container Kubes`.
     - Portainer
         - We use [Portainer](https://kbve.com/application/portainer/) for Docker/K8s management.
     - KBVE Docker Images via [Hub](https://hub.docker.com/u/kbve)
-        - [kbve:rustprofile](https://hub.docker.com/r/kbve/rustprofile)
         - [kbve:atlas](https://hub.docker.com/r/kbve/atlas)
 - I for Integrations
 
@@ -206,14 +205,6 @@ This package will be deprecated and replace with a `react-api` style package.
 #### API
 
 The API is current being updated! Its split into a NestJS core under `/apps/api/` and micro controllers written in Rust, under `/apps/rust_api_*` with `*` representing a glob wild card.
-
-##### API Rust
-
-Make sure that `Cargo` is installed!
-
-Running the micro controllers for the Rust API is easy!
-
-`pnpm nx run rust_api_profile:run`
 
 ### Apps
 

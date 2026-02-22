@@ -16,36 +16,36 @@ env:
 
 jobs:
     globals:
-      runs-on: ubuntu-latest
-      timeout-minutes: 10
-      name: Global Variables
-      outputs:
-          sha256head: ${{ steps.hash.outputs.sha256head }}
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        name: Global Variables
+        outputs:
+            sha256head: ${{ steps.hash.outputs.sha256head }}
 
-      steps:
-          - name: Checkout Code
-            uses: actions/checkout@v4
-            with:
-                fetch-depth: 0
-                token: ${{ secrets.GITHUB_TOKEN }}
+        steps:
+            - name: Checkout Code
+              uses: actions/checkout@v4
+              with:
+                  fetch-depth: 0
+                  token: ${{ secrets.GITHUB_TOKEN }}
 
-          - name: Configure Git
-            run: |
-                git config user.name "github-actions[bot]"
-                git config user.email "github-actions[bot]@users.noreply.github.com"
+            - name: Configure Git
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          - name: Calculate SHA-256 Hash
-            id: hash
-            run: |
-                echo "sha256head=$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')" >> $GITHUB_OUTPUT
+            - name: Calculate SHA-256 Hash
+              id: hash
+              run: |
+                  echo "sha256head=$(echo -n ${{ github.sha }} | sha256sum | awk '{print $1}')" >> $GITHUB_OUTPUT
 
     call_sync:
         needs: ['globals']
         name: 'Call Sync Workflow'
         uses: KBVE/kbve/.github/workflows/ci-sync.yml@main
         secrets:
-          UNITY_PAT: ${{ secrets.UNITY_PAT }}
-        
+            UNITY_PAT: ${{ secrets.UNITY_PAT }}
+
     alter:
         needs: ['globals']
         name: 'Alpha Alters'
@@ -81,7 +81,7 @@ jobs:
                   echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
@@ -273,7 +273,6 @@ jobs:
                 [
                   { "name": "kilobase", "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
                   { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" },
-                  { "name": "kbve-hyperlane", "target": "container", "condition": "${{ needs.alter.outputs.hyperlane }}" },
                   { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" },
                   { "name": "memes", "target": "container", "condition": "${{ needs.alter.outputs.memes }}", "image": "kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml" },
                   { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },
@@ -380,7 +379,7 @@ jobs:
                   echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
             - name: Setup pnpm Cache
-              uses: actions/cache@v4
+              uses: actions/cache@v5
               with:
                   path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
                   key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}

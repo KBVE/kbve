@@ -16,8 +16,6 @@
 		"baseUrl": ".",
 		"paths": {
 			"@kbve/astro": ["packages/npm/astro/src/index.ts"],
-			"@kbve/astro-ve": ["packages/astro-ve/index.ts"],
-			"@kbve/astropad": ["packages/astropad/index.ts"],
 			"@kbve/devops": ["packages/npm/devops/src/index.ts"],
 			"@kbve/droid": ["packages/npm/droid/src/index.ts"],
 			"@kbve/khashvault": ["packages/npm/khashvault/src/index.ts"],
