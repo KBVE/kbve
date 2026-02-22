@@ -11,11 +11,16 @@ on:
             - 'main'
         types: [opened, synchronize, reopened]
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     staging_to_main_pr:
         name: 'Create/Update Staging to Main PR'
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref_name == 'staging'
+        timeout-minutes: 10
         permissions:
             contents: read
             pull-requests: write
