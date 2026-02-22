@@ -9,39 +9,11 @@
 | **Phase 3** | #9 (kube manifest fix), #11 (AGENTS.md docs)                    | Done   |
 | **Phase 4** | #4 (Dependabot + CodeQL + Trivy), #7 (sync issue spam)          | Done   |
 | **Phase 5** | #10 (husky + lint-staged pre-commit hooks)                      | Done   |
+| **Phase 6** | #12 (grammar fix), #13 (category sync)                          | Done   |
 
 ---
 
 ## Remaining — DevOps Library Improvements
-
-### #12. Fix Grammar Bug in PR Descriptions
-
-**Priority:** Medium
-
-**Problem:** PR bodies say "1 commits" instead of "1 commit". Affects `ci-dev.yml` and `ci-staging.yml`.
-
-**Solution:** Add pluralization logic: `${count} commit${count === 1 ? '' : 's'}`.
-
-**Files:**
-
-- `.github/workflows/ci-dev.yml` — `dev_to_staging_pr` job
-- `.github/workflows/ci-staging.yml` — `staging_to_main_pr` job
-
----
-
-### #13. Sync Commit Categories Between Workflows
-
-**Priority:** Medium
-
-**Problem:** `ci-dev.yml` is missing categories that `ci-staging.yml` already has (perf, refactor, test). Inconsistent categorization across promotion levels.
-
-**Solution:** Align both workflows to use the same 13 categories that `@kbve/devops` already defines in `_$gha_fetchAndCleanCommits()`: feat, fix, docs, ci, perf, build, refactor, revert, style, test, sync, chore, other.
-
-**Files:**
-
-- `.github/workflows/ci-dev.yml` — commit categorization in `dev_to_staging_pr` job
-
----
 
 ### #14. Use @kbve/devops Library for PR Body Generation
 
@@ -90,5 +62,4 @@ Could add a title generator to `@kbve/devops` library.
 
 | Phase       | Items    | Status                                      |
 | ----------- | -------- | ------------------------------------------- |
-| **Phase 6** | #12, #13 | Pending — quick fixes                       |
 | **Phase 7** | #14, #15 | Pending — requires @kbve/devops integration |
