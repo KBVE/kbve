@@ -20,6 +20,11 @@
       "options": {
         "commands": ["nx container axum-discordsh"],
         "parallel": false
+      },
+      "configurations": {
+        "production": {
+          "commands": ["nx container axum-discordsh --configuration=production"]
+        }
       }
     }
   },
