@@ -1,0 +1,50 @@
+name: CI - Security (CodeQL)
+
+on:
+    push:
+        branches:
+            - dev
+            - main
+    pull_request:
+        branches:
+            - staging
+            - main
+
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+    codeql:
+        name: CodeQL Analysis
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            security-events: write
+            contents: read
+
+        strategy:
+            fail-fast: false
+            matrix:
+                language:
+                    - javascript-typescript
+                    - python
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Initialize CodeQL
+              uses: github/codeql-action/init@v3
+              with:
+                  languages: ${{ matrix.language }}
+
+            - name: Auto-build
+              uses: github/codeql-action/autobuild@v3
+
+            - name: Run CodeQL Analysis
+              uses: github/codeql-action/analyze@v3
+              with:
+                  category: /language:${{ matrix.language }}

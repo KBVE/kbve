@@ -82,7 +82,7 @@ jobs:
                   echo "Updated manifest:"
                   grep -E 'image:|version:|rollout-restart:' "$FILE"
 
-            - name: Create PR with manifest update
+            - name: Push manifest update via atom branch
               if: steps.check.outputs.skip == 'false'
               env:
                   GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -90,11 +90,11 @@ jobs:
                   git config user.name "github-actions[bot]"
                   git config user.email "github-actions[bot]@users.noreply.github.com"
 
-                  BRANCH_NAME="kube-deploy-${{ inputs.app_name }}-v${{ steps.version.outputs.new_version }}"
+                  BRANCH_NAME="atom-kube-${{ inputs.app_name }}-v${{ steps.version.outputs.new_version }}"
 
                   # Check if branch already exists remotely (handle re-runs)
                   if git ls-remote --exit-code --heads origin "$BRANCH_NAME" >/dev/null 2>&1; then
-                    echo "Branch $BRANCH_NAME already exists — skipping PR creation."
+                    echo "Branch $BRANCH_NAME already exists — skipping."
                     exit 0
                   fi
 
@@ -103,17 +103,5 @@ jobs:
                   git commit -m "chore(kube): update ${{ inputs.app_name }} to v${{ steps.version.outputs.new_version }}"
                   git push -u origin "$BRANCH_NAME"
 
-                  PR_BODY="## Automated Kube Manifest Update
-
-                  - **App:** ${{ inputs.app_name }}
-                  - **Image:** \`${{ inputs.image_name }}:${{ steps.version.outputs.new_version }}\`
-                  - **Manifest:** \`${{ inputs.deployment_yaml }}\`
-                  - **Previous version:** \`${{ steps.check.outputs.current_tag }}\`
-
-                  Created automatically after Docker image publish."
-
-                  gh pr create \
-                    -B dev \
-                    -H "$BRANCH_NAME" \
-                    --title "chore(kube): update ${{ inputs.app_name }} to v${{ steps.version.outputs.new_version }}" \
-                    --body "$PR_BODY"
+                  echo "Pushed atom branch: $BRANCH_NAME"
+                  echo "ci-atom.yml will auto-create PR to dev and handle merge."

@@ -123,6 +123,16 @@ jobs:
               run: |
                   pnpm nx run ${{ inputs.project }}:${{ inputs.target }} --configuration=production
 
+            - name: Scan Docker image with Trivy
+              if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}
+              uses: aquasecurity/trivy-action@0.28.0
+              with:
+                  image-ref: ${{ inputs.image }}:latest
+                  format: table
+                  exit-code: 0
+                  severity: CRITICAL,HIGH
+                  ignore-unfixed: true
+
             - name: Push Docker Images
               if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}
               run: |
