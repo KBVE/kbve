@@ -141,74 +141,17 @@ jobs:
                         return { exists: false };
                       }
 
-            - name: Create new dev→staging PR
-              if: fromJson(steps.check_changes.outputs.result).hasChanges == true && fromJson(steps.check_pr.outputs.result).exists == false
-              id: create_pr
-              uses: actions/github-script@v8
-              with:
-                  github-token: ${{ secrets.GITHUB_TOKEN }}
-                  script: |
-                      const commitCount = ${{ fromJson(steps.check_changes.outputs.result).commitCount }};
-                      const s = commitCount === 1 ? '' : 's';
-
-                      const pr = await github.rest.pulls.create({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        title: `Release: Dev → Staging (${commitCount} commit${s})`,
-                        head: 'dev',
-                        base: 'staging',
-                        body: `## Release: Dev → Staging
-
-                        This PR contains **${commitCount} atomic commit${s}** ready for staging environment testing.
-                        
-                        ### Staging Checklist
-                        - [ ] Review atomic commits
-                        - [ ] Verify feature completeness  
-                        - [ ] Ready for staging deployment
-                        
-                        ### Merge Strategy
-                        **This PR will be MERGE COMMITTED to preserve atomic commit history**
-                        
-                        ### Changes will be categorized below...
-                        
-                        ---
-                        *This PR is automatically maintained by CI*`,
-                        draft: false
-                      });
-
-                      // Add labels
-                      await github.rest.issues.addLabels({
-                        owner: context.repo.owner,
-                        repo: context.repo.repo,
-                        issue_number: pr.data.number,
-                        labels: ['auto-pr', 'staging', 'dev→staging']
-                      });
-
-                      console.log(`Created PR #${pr.data.number}`);
-                      return { number: pr.data.number, url: pr.data.html_url };
-
-            # Only update PR if we have changes
-            - name: Update PR with categorized commits
+            - name: Create or update dev→staging PR
               if: fromJson(steps.check_changes.outputs.result).hasChanges == true
-              id: update_pr
+              id: upsert_pr
               uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
-                      let prNumber = null;
-                      const checkResult = ${{ toJson(steps.check_pr.outputs.result) }};
-                      const createResult = ${{ toJson(steps.create_pr.outputs.result) }};
-                      
-                      if (checkResult && checkResult.exists) {
-                        prNumber = checkResult.number;
-                      } else if (createResult && createResult.number) {
-                        prNumber = createResult.number;
-                      }
+                      const path = require('path');
+                      const utils = await import(path.resolve('.github/scripts/commit-utils.mjs'));
 
-                      if (!prNumber) {
-                        console.log('No PR number available');
-                        return;
-                      }
+                      const checkResult = ${{ toJson(steps.check_pr.outputs.result) }};
 
                       // Get commits between staging and dev
                       const comparison = await github.rest.repos.compareCommits({
@@ -218,60 +161,53 @@ jobs:
                         head: 'dev'
                       });
 
-                      const commits = comparison.data.commits;
-                      console.log(`Found ${commits.length} commits`);
-                      const s = commits.length === 1 ? '' : 's';
+                      const rawCommits = comparison.data.commits.map(c => ({
+                        message: c.commit.message,
+                        sha: c.sha
+                      }));
+                      console.log(`Found ${rawCommits.length} commits`);
 
-                      // Categorize commits — aligned with @kbve/devops conventions
-                      const categories = {
-                        feat: [], fix: [], docs: [], ci: [], perf: [],
-                        build: [], refactor: [], revert: [], style: [],
-                        test: [], sync: [], chore: [], other: []
-                      };
+                      const { categories } = utils.categorizeCommits(rawCommits);
+                      const title = utils.generateTitle(categories, 'Staging');
+                      const body = utils.formatDevToStagingBody(categories, rawCommits.length);
 
-                      commits.forEach(commit => {
-                        const message = commit.commit.message.split('\n')[0];
-                        const sha = commit.sha.substring(0, 7);
-                        const commitLine = `- ${message} (\`${sha}\`)`;
+                      let prNumber;
+                      if (checkResult && checkResult.exists) {
+                        prNumber = checkResult.number;
+                      } else {
+                        // Create new PR
+                        const pr = await github.rest.pulls.create({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          title,
+                          head: 'dev',
+                          base: 'staging',
+                          body,
+                          draft: false
+                        });
+                        prNumber = pr.data.number;
 
-                        const match = message.match(/^(\w+)(\(.+\))?:/i);
-                        const type = match ? match[1].toLowerCase() : null;
-                        if (type && categories.hasOwnProperty(type)) {
-                          categories[type].push(commitLine);
-                        } else {
-                          categories.other.push(commitLine);
-                        }
-                      });
+                        await github.rest.issues.addLabels({
+                          owner: context.repo.owner,
+                          repo: context.repo.repo,
+                          issue_number: prNumber,
+                          labels: ['auto-pr', 'staging', 'dev→staging']
+                        });
 
-                      // Build PR body
-                      const labelMap = {
-                        feat: 'Features', fix: 'Bug Fixes', docs: 'Documentation',
-                        ci: 'CI/CD', perf: 'Performance', build: 'Build',
-                        refactor: 'Refactoring', revert: 'Reverts', style: 'Style',
-                        test: 'Tests', sync: 'Sync', chore: 'Chores', other: 'Other Changes'
-                      };
-
-                      let prBody = `## Release: Dev → Staging\n\n`;
-                      prBody += `**${commits.length} atomic commit${s}** ready for staging\n\n`;
-
-                      for (const [key, label] of Object.entries(labelMap)) {
-                        if (categories[key].length > 0) {
-                          prBody += `### ${label}\n${categories[key].join('\n')}\n\n`;
-                        }
+                        console.log(`Created PR #${prNumber}`);
                       }
 
-                      prBody += `---\n*This PR is automatically maintained by CI*`;
-
-                      // Update the PR title and body
+                      // Always update title and body to reflect latest commits
                       await github.rest.pulls.update({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         pull_number: prNumber,
-                        title: `Release: Dev → Staging (${commits.length} commit${s})`,
-                        body: prBody
+                        title,
+                        body
                       });
 
-                      console.log(`Updated PR #${prNumber} with categorized commits`);
+                      console.log(`Updated PR #${prNumber} — ${title}`);
+                      return { number: prNumber };
 
             - name: Summary
               run: |

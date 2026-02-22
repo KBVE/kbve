@@ -1,4 +1,4 @@
-import type { CommitCategory, CleanedCommit } from '../../../types';
+import type { CommitCategory, CleanedCommit, ApiCommit, CategorizedResult } from '../../../types';
 
 // --- Minimal GitHub REST API Client Interface ---
 // Typed to match actual usage (Octokit from actions/github-script@v7)
@@ -146,4 +146,5 @@ export function _$gha_extractRepoContext(context: GitHubContext): GitHubRepoInfo
   return { owner, repo };
 }
 
-export type { CommitCategory, CleanedCommit };
+export type { CommitCategory, CleanedCommit, ApiCommit, CategorizedResult };
+export { COMMIT_CATEGORY_LABELS } from '../../../types';
