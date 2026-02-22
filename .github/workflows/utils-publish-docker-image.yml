@@ -70,7 +70,7 @@ jobs:
 
             - name: Setup pnpm v10
               if: ${{ steps.version_check.outputs.should_publish != 'false' }}
-              uses: pnpm/action-setup@v3
+              uses: pnpm/action-setup@v4
               with:
                   version: 10
                   run_install: false
