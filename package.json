@@ -131,7 +131,7 @@
 		"@astropub/worker": "^0.2.0",
 		"@discord/embedded-app-sdk": "^1.7.0",
 		"@dnd-kit/core": "^6.1.0",
-		"@expo/metro-config": "54.0.9",
+		"@expo/metro-config": "54.0.14",
 		"@expo/metro-runtime": "6.1.2",
 		"@gsap/react": "^2.1.2",
 		"@hcaptcha/react-hcaptcha": "^1.11.0",
