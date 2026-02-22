@@ -10,56 +10,45 @@
 | **Phase 4** | #4 (Dependabot + CodeQL + Trivy), #7 (sync issue spam)          | Done   |
 | **Phase 5** | #10 (husky + lint-staged pre-commit hooks)                      | Done   |
 | **Phase 6** | #12 (grammar fix), #13 (category sync)                          | Done   |
+| **Phase 7** | #14 (@kbve/devops integration), #15 (descriptive PR titles)     | Done   |
 
 ---
 
-## Remaining — DevOps Library Improvements
+## Remaining — Utils Workflow Hardening
 
-### #14. Use @kbve/devops Library for PR Body Generation
+### #16. Add permissions + timeouts to utils-\* workflows
 
-**Priority:** High
+**Priority:** Medium
 
-**Problem:** Both `ci-dev.yml` and `ci-staging.yml` duplicate conventional commit parsing inline. The `@kbve/devops` library already has `_$gha_fetchAndCleanCommits()` and `_$gha_formatCommits()` that handle this properly with 13 categories and KBVE branding.
+**Problem:** 10 reusable `utils-*` workflows lack `permissions: {}`, `timeout-minutes`, and `concurrency` blocks. While they inherit some protections from calling workflows, defense-in-depth is better.
 
-**Solution:** Replace inline commit categorization with a reusable workflow step that calls `@kbve/devops` functions. This centralizes the logic and makes future changes to the format apply everywhere.
+**Workflows to harden:**
+- `utils-flyio-deployment.yml`
+- `utils-generate-matrix.yml`
+- `utils-godot-itch-build-pipeline.yml`
+- `utils-unity-azure-deployment.yml`
+- `utils-astro-deployment.yml`
+- `utils-npm-publish.yml`
+- `utils-nx-kbve-shell.yml`
+- `utils-file-alterations.yml`
+- `utils-update-kube-manifest.yml`
+- `utils-publish-docker-image.yml`
+- `utils-python-publish.yml`
 
-**Approach options:**
+**Changes per file:**
+- Add `timeout-minutes` to all jobs (5 min for quick, 30 for builds, 60 for heavy)
+- Add per-job `permissions` with minimal scopes
 
-1. Import `@kbve/devops` in an `actions/github-script` step
-2. Create a small Node script that imports and runs the devops functions
-3. Build a reusable composite action that wraps the devops library
+### #17. Add permissions to ci-dev.yml, ci-staging.yml, ci-main.yml
 
-**Files:**
+**Priority:** Medium
 
-- `.github/workflows/ci-dev.yml` — `dev_to_staging_pr` job
-- `.github/workflows/ci-staging.yml` — `staging_to_main_pr` job
-- Possibly `packages/npm/devops/` — if GHA-specific exports need adjustment
-
----
-
-### #15. Improve PR Titles to Be Descriptive
-
-**Priority:** Low
-
-**Problem:** PR titles are generic ("Release: Dev → Staging"). They don't convey what changed.
-
-**Solution:** Generate descriptive PR titles summarizing the changes, e.g.:
-
-- "Release: 2 features, 1 fix → Staging"
-- "Release: auth system + bug fixes → Main"
-
-Could add a title generator to `@kbve/devops` library.
-
-**Files:**
-
-- `.github/workflows/ci-dev.yml` — PR title in `dev_to_staging_pr`
-- `.github/workflows/ci-staging.yml` — PR title in `staging_to_main_pr`
-- Possibly `packages/npm/devops/` — new title generation function
+**Problem:** These 3 workflows lack top-level `permissions: {}` deny-all. Only ci-atom.yml and ci-security.yml have it.
 
 ---
 
 ## Implementation Order
 
-| Phase       | Items    | Status                                      |
-| ----------- | -------- | ------------------------------------------- |
-| **Phase 7** | #14, #15 | Pending — requires @kbve/devops integration |
+| Phase       | Items    | Status                                |
+| ----------- | -------- | ------------------------------------- |
+| **Phase 8** | #16, #17 | Pending — utils + ci hardening sweep  |
