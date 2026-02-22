@@ -160,17 +160,6 @@ brew_check() {
     echo "Homebrew is installed."
 }
 
-prepare_hyperlane_container() {
-    echo "Cleaning hyperlane/dist..."
-    rm -rf ./apps/kbve/kbve-hyperlane/dist/
-
-    echo "Creating dist directory..."
-    mkdir -p ./apps/kbve/kbve-hyperlane/dist/
-
-    echo "Copying Astro build out..."
-    cp -a ./dist/apps/astro-kbve/. ./apps/kbve/kbve-hyperlane/dist/
-}
-
 # Function to help prepare the Disoxide Container
 prepare_disoxide_container() {
     echo "Cleaning disoxide/dist..."
@@ -880,9 +869,6 @@ case "$1" in
     -worktree-rm)
         shift
         remove_worktree "$@"
-        ;;
-    -preparehyperlane)
-        prepare_hyperlane_container
         ;;
     -preparecontainer)
         prepare_disoxide_container
