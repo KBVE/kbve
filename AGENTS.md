@@ -71,6 +71,48 @@ All work must happen in isolated git worktrees branched from `dev`. Never commit
 
 ---
 
+# Atomic Branches
+
+For small, self-contained changes (docs, config, single-file fixes) that don't need a full worktree.
+
+## Flow
+
+1. **Create branch** from `dev`:
+   ```bash
+   git checkout -b atom-<description> origin/dev
+   ```
+
+2. **Make changes**, commit with conventional commits:
+   ```bash
+   git add <files>
+   git commit -m "fix(scope): short description"
+   ```
+
+3. **Push** — `ci-atom.yml` auto-creates a PR to `dev`:
+   ```bash
+   git push -u origin atom-<description>
+   ```
+   For authorized users, the PR is auto-approved and squash-merged after lint + test pass.
+
+4. **No cleanup needed** — the branch is handled by CI.
+
+## Rules
+
+- **Naming:** `atom-<description>` — alphanumeric + hyphens only, max 50 chars
+- **Reserved names:** `atom-main`, `atom-dev`, `atom-master` are blocked
+- **Authorization:** Only users in the `AUTHORIZED_USERS` list in `ci-atom.yml` get auto-merge
+- **Tests:** `nx affected --target=lint` and `nx affected --target=test` run against `dev` before merge
+- PRs target `dev`, never `main`
+- No co-authoring lines in commits
+
+## When to Use Trunk Worktrees Instead
+
+- Multi-commit features requiring iterative testing
+- Changes spanning many files across multiple projects
+- Work that needs a full Nx environment with `.env.local` isolation
+
+---
+
 <!-- nx configuration start-->
 <!-- Leave the start & end comments to automatically receive updates. -->
 

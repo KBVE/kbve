@@ -1,52 +1,65 @@
-# Plan: `@kbve/astro` — Unified Astro Component Library
+# Plan: CI/CD Pipeline Improvements
 
-## Context
+## Completed
 
-The monorepo has two older Astro packages (`packages/astro-ve` and `packages/astropad`) that are not publishable npm packages. The goal is to create a unified, publishable `@kbve/astro` package under `packages/npm/astro/` with:
+| Phase       | Items                                                           | Status |
+| ----------- | --------------------------------------------------------------- | ------ |
+| **Phase 1** | #1 (test gate dev), #2 (test gate staging), #3 (test gate atom) | Done   |
+| **Phase 2** | #5 (concurrency), #6 (timeouts)                                 | Done   |
+| **Phase 3** | #9 (kube manifest fix), #11 (AGENTS.md docs)                    | Done   |
+| **Phase 4** | #4 (Dependabot + CodeQL + Trivy), #7 (sync issue spam)          | Done   |
+| **Phase 5** | #10 (husky + lint-staged pre-commit hooks)                      | Done   |
+| **Phase 6** | #12 (grammar fix), #13 (category sync)                          | Done   |
 
-- Proper Nx build/publish pipeline (matching `laser` and `droid` patterns)
-- React component support via Astro islands
-- Direct integration with `@kbve/droid` (worker status + event bus)
-- Lean foundation — migrate components from old packages incrementally
+---
 
-Both `astro-ve` and `astropad` will be deprecated immediately.
+## Remaining — DevOps Library Improvements
 
-## Architecture
+### #14. Use @kbve/devops Library for PR Body Generation
 
-**Hybrid build:** Vite compiles TS/TSX → ES module + `.d.ts`. Publish step copies `.astro` source files into dist. `package.json` exports map both.
+**Priority:** High
 
-## File Plan
+**Problem:** Both `ci-dev.yml` and `ci-staging.yml` duplicate conventional commit parsing inline. The `@kbve/devops` library already has `_$gha_fetchAndCleanCommits()` and `_$gha_formatCommits()` that handle this properly with 13 categories and KBVE branding.
 
-```
-packages/npm/astro/
-├── project.json
-├── package.json
-├── vite.config.ts
-├── tsconfig.json
-├── tsconfig.lib.json
-├── tsconfig.spec.json
-├── README.md
-└── src/
-    ├── index.ts
-    ├── hooks/
-    │   ├── useDroid.ts
-    │   └── useDroidEvents.ts
-    ├── react/
-    │   ├── DroidProvider.tsx
-    │   └── DroidStatus.tsx
-    ├── components/
-    │   ├── DroidProvider.astro
-    │   └── DroidStatus.astro
-    └── utils/
-        └── cn.ts
-```
+**Solution:** Replace inline commit categorization with a reusable workflow step that calls `@kbve/devops` functions. This centralizes the logic and makes future changes to the format apply everywhere.
 
-## Commit Plan (conventional, no co-authors)
+**Approach options:**
 
-1. `feat(astro): scaffold @kbve/astro package with build pipeline`
-2. `feat(astro): add useDroid and useDroidEvents hooks`
-3. `feat(astro): add DroidProvider and DroidStatus React components`
-4. `feat(astro): add Astro wrapper components for droid integration`
-5. `feat(astro): add cn utility`
-6. `chore: add @kbve/astro path alias to tsconfig.base`
-7. `chore: deprecate astro-ve and astropad packages`
+1. Import `@kbve/devops` in an `actions/github-script` step
+2. Create a small Node script that imports and runs the devops functions
+3. Build a reusable composite action that wraps the devops library
+
+**Files:**
+
+- `.github/workflows/ci-dev.yml` — `dev_to_staging_pr` job
+- `.github/workflows/ci-staging.yml` — `staging_to_main_pr` job
+- Possibly `packages/npm/devops/` — if GHA-specific exports need adjustment
+
+---
+
+### #15. Improve PR Titles to Be Descriptive
+
+**Priority:** Low
+
+**Problem:** PR titles are generic ("Release: Dev → Staging"). They don't convey what changed.
+
+**Solution:** Generate descriptive PR titles summarizing the changes, e.g.:
+
+- "Release: 2 features, 1 fix → Staging"
+- "Release: auth system + bug fixes → Main"
+
+Could add a title generator to `@kbve/devops` library.
+
+**Files:**
+
+- `.github/workflows/ci-dev.yml` — PR title in `dev_to_staging_pr`
+- `.github/workflows/ci-staging.yml` — PR title in `staging_to_main_pr`
+- Possibly `packages/npm/devops/` — new title generation function
+
+---
+
+## Implementation Order
+
+| Phase       | Items    | Status                                      |
+| ----------- | -------- | ------------------------------------------- |
+| **Phase 7** | #14, #15 | Pending — requires @kbve/devops integration |

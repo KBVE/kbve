@@ -11,11 +11,16 @@ on:
             - 'main'
         types: [opened, synchronize, reopened]
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: true
+
 jobs:
     staging_to_main_pr:
         name: 'Create/Update Staging to Main PR'
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref_name == 'staging'
+        timeout-minutes: 10
         permissions:
             contents: read
             pull-requests: write
@@ -118,16 +123,17 @@ jobs:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
                       const commitCount = ${{ fromJson(steps.check_changes.outputs.result).commitCount }};
-                      
+                      const s = commitCount === 1 ? '' : 's';
+
                       const pr = await github.rest.pulls.create({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        title: `Production Release: Staging → Main (${commitCount} commits)`,
+                        title: `Production Release: Staging → Main (${commitCount} commit${s})`,
                         head: 'staging',
                         base: 'main',
                         body: `## Production Release from Staging
-                        
-                        This PR contains **${commitCount} commits** tested and validated in staging, ready for production deployment.
+
+                        This PR contains **${commitCount} commit${s}** tested and validated in staging, ready for production deployment.
                         
                         ### Pre-merge Checklist
                         - [ ] All tests passing
@@ -191,65 +197,53 @@ jobs:
 
                       const commits = comparison.data.commits;
                       console.log(`Found ${commits.length} commits`);
+                      const s = commits.length === 1 ? '' : 's';
 
-                      // Categorize commits
+                      // Categorize commits — aligned with @kbve/devops conventions
                       const categories = {
-                        feat: [],
-                        fix: [],
-                        docs: [],
-                        perf: [],
-                        refactor: [],
-                        test: [],
-                        ci: [],
-                        chore: [],
-                        other: []
+                        feat: [], fix: [], docs: [], ci: [], perf: [],
+                        build: [], refactor: [], revert: [], style: [],
+                        test: [], sync: [], chore: [], other: []
                       };
 
                       // Track merged PRs for better context
                       const mergedPRs = new Set();
-                      
+
                       commits.forEach(commit => {
                         const message = commit.commit.message;
                         const firstLine = message.split('\n')[0];
                         const sha = commit.sha.substring(0, 7);
-                        
-                        // Check if this is a squashed PR merge
+
                         const prMatch = message.match(/#(\d+)/);
                         if (prMatch) {
                           mergedPRs.add(prMatch[1]);
                         }
-                        
+
                         const commitLine = `- ${firstLine} (\`${sha}\`)`;
-                        
-                        if (message.match(/^feat(\(.+\))?:/i)) {
-                          categories.feat.push(commitLine);
-                        } else if (message.match(/^fix(\(.+\))?:/i)) {
-                          categories.fix.push(commitLine);
-                        } else if (message.match(/^docs(\(.+\))?:/i)) {
-                          categories.docs.push(commitLine);
-                        } else if (message.match(/^perf(\(.+\))?:/i)) {
-                          categories.perf.push(commitLine);
-                        } else if (message.match(/^refactor(\(.+\))?:/i)) {
-                          categories.refactor.push(commitLine);
-                        } else if (message.match(/^test(\(.+\))?:/i)) {
-                          categories.test.push(commitLine);
-                        } else if (message.match(/^ci(\(.+\))?:/i)) {
-                          categories.ci.push(commitLine);
-                        } else if (message.match(/^chore(\(.+\))?:/i)) {
-                          categories.chore.push(commitLine);
+                        const typeMatch = firstLine.match(/^(\w+)(\(.+\))?:/i);
+                        const type = typeMatch ? typeMatch[1].toLowerCase() : null;
+                        if (type && categories.hasOwnProperty(type)) {
+                          categories[type].push(commitLine);
                         } else {
                           categories.other.push(commitLine);
                         }
                       });
 
                       // Build comprehensive PR body
+                      const labelMap = {
+                        feat: 'New Features', fix: 'Bug Fixes', docs: 'Documentation',
+                        ci: 'CI/CD', perf: 'Performance', build: 'Build',
+                        refactor: 'Refactoring', revert: 'Reverts', style: 'Style',
+                        test: 'Tests', sync: 'Sync', chore: 'Chores', other: 'Other Changes'
+                      };
+
                       let prBody = `## Production Release from Staging\n\n`;
                       prBody += `### Summary\n`;
                       prBody += `- **Total Commits:** ${commits.length}\n`;
                       prBody += `- **Merged PRs:** ${mergedPRs.size}\n`;
                       prBody += `- **Target Branch:** main\n`;
                       prBody += `- **Merge Strategy:** Merge Commit\n\n`;
-                      
+
                       prBody += `### Pre-merge Checklist\n`;
                       prBody += `- [ ] All tests passing\n`;
                       prBody += `- [ ] No merge conflicts\n`;
@@ -259,47 +253,26 @@ jobs:
 
                       prBody += `### Changes by Category\n\n`;
 
-                      if (categories.feat.length > 0) {
-                        prBody += `#### New Features\n${categories.feat.join('\n')}\n\n`;
-                      }
-                      if (categories.fix.length > 0) {
-                        prBody += `#### Bug Fixes\n${categories.fix.join('\n')}\n\n`;
-                      }
-                      if (categories.perf.length > 0) {
-                        prBody += `#### Performance Improvements\n${categories.perf.join('\n')}\n\n`;
-                      }
-                      if (categories.refactor.length > 0) {
-                        prBody += `#### Code Refactoring\n${categories.refactor.join('\n')}\n\n`;
-                      }
-                      if (categories.docs.length > 0) {
-                        prBody += `#### Documentation\n${categories.docs.join('\n')}\n\n`;
-                      }
-                      if (categories.test.length > 0) {
-                        prBody += `#### Tests\n${categories.test.join('\n')}\n\n`;
-                      }
-                      if (categories.ci.length > 0) {
-                        prBody += `#### CI/CD\n${categories.ci.join('\n')}\n\n`;
-                      }
-                      if (categories.chore.length > 0) {
-                        prBody += `#### Chores\n${categories.chore.join('\n')}\n\n`;
-                      }
-                      if (categories.other.length > 0) {
-                        prBody += `#### Other Changes\n${categories.other.join('\n')}\n\n`;
+                      for (const [key, label] of Object.entries(labelMap)) {
+                        if (categories[key].length > 0) {
+                          prBody += `#### ${label}\n${categories[key].join('\n')}\n\n`;
+                        }
                       }
 
                       prBody += `### Important Notes\n`;
                       prBody += `- This PR should be **MERGE COMMITTED** to maintain history\n`;
                       prBody += `- Ensure all checks pass before merging\n`;
                       prBody += `- After merge, staging will be automatically synced with main\n\n`;
-                      
+
                       prBody += `---\n`;
                       prBody += `*This PR is automatically maintained by CI • Last updated: ${new Date().toISOString()}*`;
 
-                      // Update the PR
+                      // Update the PR title and body
                       await github.rest.pulls.update({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         pull_number: prNumber,
+                        title: `Production Release: Staging → Main (${commits.length} commit${s})`,
                         body: prBody
                       });
 
@@ -319,6 +292,9 @@ jobs:
         name: 'Validate Staging→Main PR'
         runs-on: ubuntu-latest
         if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'staging'
+        timeout-minutes: 30
+        permissions:
+            contents: read
         steps:
             - name: Checkout
               uses: actions/checkout@v4
@@ -328,11 +304,11 @@ jobs:
             - name: Check for conflicts
               run: |
                   echo "Checking for merge conflicts..."
-                  
+
                   # Try to merge main into staging (dry run)
                   git config user.name "CI Bot"
                   git config user.email "ci@example.com"
-                  
+
                   if git merge --no-commit --no-ff origin/main; then
                     echo "No merge conflicts detected"
                     git merge --abort
@@ -342,13 +318,34 @@ jobs:
                     exit 1
                   fi
 
-            - name: Summary
-              run: |
-                  echo "Staging→Main PR Validation Summary"
-                  echo "======================================"
-                  echo "PR validation completed"
-                  echo "Remember to:"
-                  echo "  - Review all changes carefully"
-                  echo "  - Ensure all tests pass"
-                  echo "  - Use MERGE COMMIT to maintain history"
-                  echo "  - Update version numbers if needed"
+            - name: Setup Node v24
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 24
+
+            - name: Setup pnpm v10
+              uses: pnpm/action-setup@v3
+              with:
+                  version: 10
+                  run_install: false
+
+            - name: Get pnpm Store Path
+              id: pnpm-store
+              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+
+            - name: Setup pnpm Cache
+              uses: actions/cache@v4
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
+
+            - name: Install pnpm Dependencies
+              run: pnpm install
+
+            - name: Lint affected projects
+              run: pnpm nx affected --target=lint --base=origin/main --head=origin/staging --no-cloud
+
+            - name: Test affected projects
+              run: pnpm nx affected --target=test --base=origin/main --head=origin/staging --no-cloud

@@ -6,6 +6,10 @@ on:
         branches:
             - main
 
+concurrency:
+    group: ${{ github.workflow }}-${{ github.ref }}
+    cancel-in-progress: false
+
 env:
     REGISTRY: ghcr.io
     IMAGE_NAME: ${{ github.repository }}
@@ -13,6 +17,7 @@ env:
 jobs:
     globals:
       runs-on: ubuntu-latest
+      timeout-minutes: 10
       name: Global Variables
       outputs:
           sha256head: ${{ steps.hash.outputs.sha256head }}
@@ -53,6 +58,7 @@ jobs:
         needs: ['alter', 'globals']
         name: Deployment
         runs-on: ubuntu-latest
+        timeout-minutes: 10
         steps:
             - name: Checkout the repository using git
               uses: actions/checkout@v4
@@ -346,6 +352,7 @@ jobs:
         name: CryptoThrone Build and Deployment
         if: needs.alter.outputs.cryptothrone == 'true'
         runs-on: 'ubuntu-latest'
+        timeout-minutes: 30
         permissions:
             contents: read
             id-token: write
