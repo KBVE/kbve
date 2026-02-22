@@ -149,16 +149,17 @@ jobs:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
                       const commitCount = ${{ fromJson(steps.check_changes.outputs.result).commitCount }};
-                      
+                      const s = commitCount === 1 ? '' : 's';
+
                       const pr = await github.rest.pulls.create({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        title: `Release: Dev → Staging (${commitCount} commits)`,
+                        title: `Release: Dev → Staging (${commitCount} commit${s})`,
                         head: 'dev',
                         base: 'staging',
                         body: `## Release: Dev → Staging
-                        
-                        This PR contains **${commitCount} atomic commits** ready for staging environment testing.
+
+                        This PR contains **${commitCount} atomic commit${s}** ready for staging environment testing.
                         
                         ### Staging Checklist
                         - [ ] Review atomic commits
@@ -219,67 +220,54 @@ jobs:
 
                       const commits = comparison.data.commits;
                       console.log(`Found ${commits.length} commits`);
+                      const s = commits.length === 1 ? '' : 's';
 
-                      // Categorize commits (your existing logic)
+                      // Categorize commits — aligned with @kbve/devops conventions
                       const categories = {
-                        feat: [],
-                        fix: [],
-                        docs: [],
-                        ci: [],
-                        chore: [],
-                        other: []
+                        feat: [], fix: [], docs: [], ci: [], perf: [],
+                        build: [], refactor: [], revert: [], style: [],
+                        test: [], sync: [], chore: [], other: []
                       };
 
                       commits.forEach(commit => {
                         const message = commit.commit.message.split('\n')[0];
                         const sha = commit.sha.substring(0, 7);
                         const commitLine = `- ${message} (\`${sha}\`)`;
-                        
-                        if (message.match(/^feat(\(.+\))?:/i)) {
-                          categories.feat.push(commitLine);
-                        } else if (message.match(/^fix(\(.+\))?:/i)) {
-                          categories.fix.push(commitLine);
-                        } else if (message.match(/^docs(\(.+\))?:/i)) {
-                          categories.docs.push(commitLine);
-                        } else if (message.match(/^ci(\(.+\))?:/i)) {
-                          categories.ci.push(commitLine);
-                        } else if (message.match(/^chore(\(.+\))?:/i)) {
-                          categories.chore.push(commitLine);
+
+                        const match = message.match(/^(\w+)(\(.+\))?:/i);
+                        const type = match ? match[1].toLowerCase() : null;
+                        if (type && categories.hasOwnProperty(type)) {
+                          categories[type].push(commitLine);
                         } else {
                           categories.other.push(commitLine);
                         }
                       });
 
                       // Build PR body
-                      let prBody = `## Release: Dev → Staging\n\n`;
-                      prBody += `**${commits.length} atomic commits** ready for staging\n\n`;
+                      const labelMap = {
+                        feat: 'Features', fix: 'Bug Fixes', docs: 'Documentation',
+                        ci: 'CI/CD', perf: 'Performance', build: 'Build',
+                        refactor: 'Refactoring', revert: 'Reverts', style: 'Style',
+                        test: 'Tests', sync: 'Sync', chore: 'Chores', other: 'Other Changes'
+                      };
 
-                      if (categories.feat.length > 0) {
-                        prBody += `### Features\n${categories.feat.join('\n')}\n\n`;
-                      }
-                      if (categories.fix.length > 0) {
-                        prBody += `### Bug Fixes\n${categories.fix.join('\n')}\n\n`;
-                      }
-                      if (categories.docs.length > 0) {
-                        prBody += `### Documentation\n${categories.docs.join('\n')}\n\n`;
-                      }
-                      if (categories.ci.length > 0) {
-                        prBody += `### CI/CD\n${categories.ci.join('\n')}\n\n`;
-                      }
-                      if (categories.chore.length > 0) {
-                        prBody += `### Chores\n${categories.chore.join('\n')}\n\n`;
-                      }
-                      if (categories.other.length > 0) {
-                        prBody += `### Other Changes\n${categories.other.join('\n')}\n\n`;
+                      let prBody = `## Release: Dev → Staging\n\n`;
+                      prBody += `**${commits.length} atomic commit${s}** ready for staging\n\n`;
+
+                      for (const [key, label] of Object.entries(labelMap)) {
+                        if (categories[key].length > 0) {
+                          prBody += `### ${label}\n${categories[key].join('\n')}\n\n`;
+                        }
                       }
 
                       prBody += `---\n*This PR is automatically maintained by CI*`;
 
-                      // Update the PR
+                      // Update the PR title and body
                       await github.rest.pulls.update({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         pull_number: prNumber,
+                        title: `Release: Dev → Staging (${commits.length} commit${s})`,
                         body: prBody
                       });
 
