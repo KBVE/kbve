@@ -1,0 +1,51 @@
+version: 2
+
+updates:
+    - package-ecosystem: npm
+      directory: /
+      schedule:
+          interval: weekly
+          day: monday
+      open-pull-requests-limit: 5
+      labels:
+          - dependencies
+          - npm
+
+    - package-ecosystem: pip
+      directory: /
+      schedule:
+          interval: weekly
+          day: monday
+      open-pull-requests-limit: 3
+      labels:
+          - dependencies
+          - python
+
+    - package-ecosystem: cargo
+      directory: /
+      schedule:
+          interval: weekly
+          day: monday
+      open-pull-requests-limit: 3
+      labels:
+          - dependencies
+          - rust
+
+    - package-ecosystem: github-actions
+      directory: /
+      schedule:
+          interval: weekly
+          day: monday
+      open-pull-requests-limit: 5
+      labels:
+          - dependencies
+          - ci
+
+    - package-ecosystem: docker
+      directory: /
+      schedule:
+          interval: monthly
+      open-pull-requests-limit: 3
+      labels:
+          - dependencies
+          - docker
