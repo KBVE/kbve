@@ -216,7 +216,7 @@
 		"react-native-webview": "^13.12.5",
 		"react-resizable-panels": "^2.1.6",
 		"react-spring": "^9.7.4",
-		"react-unity-webgl": "^9.8.0",
+		"react-unity-webgl": "^10.1.6",
 		"react-virtualized-auto-sizer": "^1.0.26",
 		"react-virtuoso": "^4.13.0",
 		"react-window": "^1.8.11",
