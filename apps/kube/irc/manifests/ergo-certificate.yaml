@@ -6,7 +6,7 @@ metadata:
 spec:
     secretName: ergo-irc-tls-secret
     issuerRef:
-        name: letsencrypt-http
+        name: letsencrypt-dns
         kind: ClusterIssuer
     dnsNames:
         - irc.kbve.com
