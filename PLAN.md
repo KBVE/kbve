@@ -1,34 +1,94 @@
 # Plan: CI/CD Pipeline Improvements
 
-## Remaining
+## Completed
 
-### #10. Add Pre-commit Hooks for Local Quality Gates
+| Phase       | Items                                                           | Status |
+| ----------- | --------------------------------------------------------------- | ------ |
+| **Phase 1** | #1 (test gate dev), #2 (test gate staging), #3 (test gate atom) | Done   |
+| **Phase 2** | #5 (concurrency), #6 (timeouts)                                 | Done   |
+| **Phase 3** | #9 (kube manifest fix), #11 (AGENTS.md docs)                    | Done   |
+| **Phase 4** | #4 (Dependabot + CodeQL + Trivy), #7 (sync issue spam)          | Done   |
+| **Phase 5** | #10 (husky + lint-staged pre-commit hooks)                      | Done   |
+
+---
+
+## Remaining — DevOps Library Improvements
+
+### #12. Fix Grammar Bug in PR Descriptions
+
+**Priority:** Medium
+
+**Problem:** PR bodies say "1 commits" instead of "1 commit". Affects `ci-dev.yml` and `ci-staging.yml`.
+
+**Solution:** Add pluralization logic: `${count} commit${count === 1 ? '' : 's'}`.
+
+**Files:**
+
+- `.github/workflows/ci-dev.yml` — `dev_to_staging_pr` job
+- `.github/workflows/ci-staging.yml` — `staging_to_main_pr` job
+
+---
+
+### #13. Sync Commit Categories Between Workflows
+
+**Priority:** Medium
+
+**Problem:** `ci-dev.yml` is missing categories that `ci-staging.yml` already has (perf, refactor, test). Inconsistent categorization across promotion levels.
+
+**Solution:** Align both workflows to use the same 13 categories that `@kbve/devops` already defines in `_$gha_fetchAndCleanCommits()`: feat, fix, docs, ci, perf, build, refactor, revert, style, test, sync, chore, other.
+
+**Files:**
+
+- `.github/workflows/ci-dev.yml` — commit categorization in `dev_to_staging_pr` job
+
+---
+
+### #14. Use @kbve/devops Library for PR Body Generation
+
+**Priority:** High
+
+**Problem:** Both `ci-dev.yml` and `ci-staging.yml` duplicate conventional commit parsing inline. The `@kbve/devops` library already has `_$gha_fetchAndCleanCommits()` and `_$gha_formatCommits()` that handle this properly with 13 categories and KBVE branding.
+
+**Solution:** Replace inline commit categorization with a reusable workflow step that calls `@kbve/devops` functions. This centralizes the logic and makes future changes to the format apply everywhere.
+
+**Approach options:**
+
+1. Import `@kbve/devops` in an `actions/github-script` step
+2. Create a small Node script that imports and runs the devops functions
+3. Build a reusable composite action that wraps the devops library
+
+**Files:**
+
+- `.github/workflows/ci-dev.yml` — `dev_to_staging_pr` job
+- `.github/workflows/ci-staging.yml` — `staging_to_main_pr` job
+- Possibly `packages/npm/devops/` — if GHA-specific exports need adjustment
+
+---
+
+### #15. Improve PR Titles to Be Descriptive
 
 **Priority:** Low
 
-**Problem:** No local enforcement of code quality. Linting and formatting only run in CI.
+**Problem:** PR titles are generic ("Release: Dev → Staging"). They don't convey what changed.
 
-**Solution:** Add husky + lint-staged for lightweight pre-commit checks:
+**Solution:** Generate descriptive PR titles summarizing the changes, e.g.:
 
-- Run ESLint on staged `.ts`, `.tsx`, `.js`, `.jsx`, `.astro` files
-- Run Prettier on staged files
-- Run `cargo fmt --check` on staged `.rs` files (if Rust toolchain is available)
+- "Release: 2 features, 1 fix → Staging"
+- "Release: auth system + bug fixes → Main"
 
-**Note:** Requires `pnpm add -D husky lint-staged` which modifies the lockfile —
-use a trunk worktree, not an atom branch.
+Could add a title generator to `@kbve/devops` library.
 
 **Files:**
-- `package.json` — add `husky` and `lint-staged` devDependencies + config
-- `.husky/pre-commit` (new)
+
+- `.github/workflows/ci-dev.yml` — PR title in `dev_to_staging_pr`
+- `.github/workflows/ci-staging.yml` — PR title in `staging_to_main_pr`
+- Possibly `packages/npm/devops/` — new title generation function
 
 ---
 
 ## Implementation Order
 
-| Phase | Items | Status |
-|-------|-------|--------|
-| **Phase 1** | #1, #2, #3 | Done |
-| **Phase 2** | #5, #6 | Done |
-| **Phase 3** | #9, #11 | Done |
-| **Phase 4** | #4, #7 | Done |
-| **Phase 5** | #10 | Pending — requires trunk worktree |
+| Phase       | Items    | Status                                      |
+| ----------- | -------- | ------------------------------------------- |
+| **Phase 6** | #12, #13 | Pending — quick fixes                       |
+| **Phase 7** | #14, #15 | Pending — requires @kbve/devops integration |
