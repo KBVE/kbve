@@ -130,7 +130,6 @@
 		"@react-three/drei": "^10.7.7",
 		"@react-three/fiber": "^9.5.0",
 		"@react-three/flex": "^1.0.1",
-		"@stylexjs/stylex": "^0.7.5",
 		"@supabase/supabase-js": "^2.95.3",
 		"@swc/helpers": "0.5.18",
 		"@tanstack/query-core": "^5.90.20",
