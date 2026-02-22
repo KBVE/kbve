@@ -8,8 +8,9 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "nx e2e axum-memes",
-          "nx e2e memes-e2e"
+          "nx test axum-memes",
+          "nx container axum-memes",
+          "nx e2e:docker memes-e2e"
         ],
         "parallel": false
       }

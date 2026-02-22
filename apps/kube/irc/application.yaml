@@ -12,6 +12,22 @@ spec:
     destination:
         server: https://kubernetes.default.svc
         namespace: irc
+    ignoreDifferences:
+        - group: cert-manager.io
+          kind: Certificate
+          jsonPointers:
+              - /status
+        - group: networking.k8s.io
+          kind: Ingress
+          jsonPointers:
+              - /status
+              - /metadata/annotations/cert-manager.io~1issuer-name
+              - /metadata/annotations/cert-manager.io~1issuer-kind
+              - /metadata/annotations/cert-manager.io~1issuer-group
+        - group: external-secrets.io
+          kind: ExternalSecret
+          jsonPointers:
+              - /status
     syncPolicy:
         automated:
             selfHeal: true
