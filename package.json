@@ -197,7 +197,6 @@
 		"openpgp": "^6.3.0",
 		"phaser": "^3.86.0",
 		"poly-decomp": "^0.3.0",
-		"preline": "^3.0.1",
 		"react-day-picker": "8.10.1",
 		"react-force-graph": "^1.44.6",
 		"react-grid-layout": "^1.5.0",
