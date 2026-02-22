@@ -1,5 +1,32 @@
 # ============================================================================
-# [STAGE A] - Precompress Static Assets (built by container-prep on host)
+# [STAGE A] - Build Astro Static Site
+# ============================================================================
+FROM --platform=linux/amd64 node:24-alpine AS astro-builder
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+WORKDIR /app
+
+# Copy root dependency and config files (layer-cached separately from source)
+COPY package.json pnpm-lock.yaml .npmrc tsconfig.base.json ./
+
+# Install all dependencies (hoisted mode - all go to root node_modules)
+RUN pnpm install --frozen-lockfile
+
+# Copy workspace package sources (TypeScript path aliases resolve to these)
+COPY packages/npm/astro/ packages/npm/astro/
+COPY packages/npm/droid/ packages/npm/droid/
+
+# Copy astro-discordsh source
+COPY apps/discordsh/astro-discordsh/ apps/discordsh/astro-discordsh/
+
+# Build astro site
+WORKDIR /app/apps/discordsh/astro-discordsh
+RUN rm -rf .astro && npx astro sync && \
+    UV_THREADPOOL_SIZE=4 NODE_OPTIONS="--max-old-space-size=4096" npx astro build
+
+# ============================================================================
+# [STAGE B] - Precompress Static Assets
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS astro-precompressor
 
@@ -7,7 +34,7 @@ RUN apt-get update && \
     apt-get install -y --no-install-recommends gzip brotli && \
     rm -rf /var/lib/apt/lists/*
 
-COPY apps/discordsh/axum-discordsh/dist /static
+COPY --from=astro-builder /app/dist/apps/astro-discordsh /static
 
 WORKDIR /static
 RUN find . -type f \( \
@@ -25,7 +52,7 @@ RUN find . -type f \( \
     echo "Precompression complete (brotli-11 + gzip-9)"
 
 # ============================================================================
-# [STAGE B] - Rust Base Image
+# [STAGE C] - Rust Base Image
 # ============================================================================
 FROM --platform=linux/amd64 rust:1.90-slim AS rust-base
 
@@ -44,7 +71,7 @@ RUN rustup target add x86_64-unknown-linux-gnu && \
 WORKDIR /app
 
 # ============================================================================
-# [STAGE C] - Cargo Chef Planner
+# [STAGE D] - Cargo Chef Planner
 # ============================================================================
 FROM rust-base AS planner
 
@@ -68,7 +95,7 @@ COPY packages/data/proto packages/data/proto
 RUN cargo chef prepare --recipe-path recipe.json
 
 # ============================================================================
-# [STAGE D] - Cargo Chef Builder (Cache Dependencies)
+# [STAGE E] - Cargo Chef Builder (Cache Dependencies)
 # ============================================================================
 FROM rust-base AS builder-deps
 
@@ -85,7 +112,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     cargo chef cook --release --recipe-path recipe.json -p axum-discordsh
 
 # ============================================================================
-# [STAGE E] - Build Application
+# [STAGE F] - Build Application
 # ============================================================================
 FROM rust-base AS builder
 
@@ -115,7 +142,7 @@ RUN --mount=type=cache,target=/usr/local/cargo/registry \
     strip target/release/axum-discordsh
 
 # ============================================================================
-# [STAGE F] - Chisel Ubuntu Base (Minimal Runtime)
+# [STAGE G] - Chisel Ubuntu Base (Minimal Runtime)
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS chisel-builder
 
@@ -140,7 +167,7 @@ RUN chisel cut --release ubuntu-24.04 --root /rootfs \
         openssl_config
 
 # ============================================================================
-# [STAGE G] - Jemalloc
+# [STAGE H] - Jemalloc
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS jemalloc
 
@@ -151,7 +178,7 @@ RUN apt-get update && \
     rm -rf /var/lib/apt/lists/*
 
 # ============================================================================
-# [STAGE H] - libpq runtime (needed by diesel postgres)
+# [STAGE I] - libpq runtime (needed by diesel postgres)
 # ============================================================================
 FROM --platform=linux/amd64 ubuntu:24.04 AS libpq-runtime
 
