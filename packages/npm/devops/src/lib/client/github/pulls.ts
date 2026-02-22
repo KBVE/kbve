@@ -5,8 +5,10 @@ import type {
   GitHubContext,
   CommitCategory,
   CleanedCommit,
+  ApiCommit,
+  CategorizedResult,
 } from './types';
-import { _$gha_extractRepoContext } from './types';
+import { _$gha_extractRepoContext, COMMIT_CATEGORY_LABELS } from './types';
 
 const execAsync = promisify(exec);
 
@@ -82,17 +84,18 @@ export async function _$gha_fetchAndCleanCommits(
   const commitPatterns: {
     [key in keyof Omit<CommitCategory, 'other'>]: RegExp;
   } = {
-    ci: /ci\([^)]+\):.*/gi,
-    fix: /fix\([^)]+\):.*/gi,
-    docs: /docs\([^)]+\):.*/gi,
-    feat: /feat\([^)]+\):.*/gi,
-    perf: /perf\([^)]+\):.*/gi,
-    build: /build\([^)]+\):.*/gi,
-    refactor: /refactor\([^)]+\):.*/gi,
-    revert: /revert\([^)]+\):.*/gi,
-    style: /style\([^)]+\):.*/gi,
-    test: /test\([^)]+\):.*/gi,
-    sync: /sync\([^)]+\):.*/gi,
+    ci: /ci(\([^)]+\))?:.*/gi,
+    fix: /fix(\([^)]+\))?:.*/gi,
+    docs: /docs(\([^)]+\))?:.*/gi,
+    feat: /feat(\([^)]+\))?:.*/gi,
+    perf: /perf(\([^)]+\))?:.*/gi,
+    build: /build(\([^)]+\))?:.*/gi,
+    refactor: /refactor(\([^)]+\))?:.*/gi,
+    revert: /revert(\([^)]+\))?:.*/gi,
+    style: /style(\([^)]+\))?:.*/gi,
+    test: /test(\([^)]+\))?:.*/gi,
+    sync: /sync(\([^)]+\))?:.*/gi,
+    chore: /chore(\([^)]+\))?:.*/gi,
     merge: /Merge pull request.*/gi,
   };
 
@@ -156,6 +159,7 @@ export function _$gha_formatCommits(cleanedCommit: CleanedCommit): string {
     style: 'Style Changes',
     test: 'Tests',
     sync: 'Syncs',
+    chore: 'Chores',
     merge: 'Merge Commits',
     other: 'Other Commits',
   };
@@ -264,4 +268,154 @@ export async function _$gha_createOrUpdatePR(
     console.error('Error creating or updating pull request:', error);
     throw error;
   }
+}
+
+// ---------------------------------------------------------------------------
+// Pure functions for GitHub API-based commit categorization.
+// These accept pre-fetched commit data (no git CLI, no side effects).
+// Used by .github/scripts/commit-utils.mjs as the canonical source of truth.
+// ---------------------------------------------------------------------------
+
+/**
+ * Categorize an array of commits from the GitHub API by conventional
+ * commit type. Scope is optional — matches both `fix(scope):` and `fix:`.
+ */
+export function _$gha_categorizeApiCommits(
+  commits: ApiCommit[],
+): CategorizedResult {
+  const keys = Object.keys(COMMIT_CATEGORY_LABELS) as (keyof CommitCategory)[];
+  const categories = Object.fromEntries(
+    keys.map((k) => [k, [] as string[]]),
+  ) as CommitCategory;
+  const prRefs = new Set<string>();
+
+  for (const { message, sha } of commits) {
+    const firstLine = message.split('\n')[0];
+    const short = sha.substring(0, 7);
+
+    const prMatch = message.match(/#(\d+)/);
+    if (prMatch) prRefs.add(prMatch[1]);
+
+    const commitLine = `- ${firstLine} (\`${short}\`)`;
+    const typeMatch = firstLine.match(/^(\w+)(\(.+\))?:/i);
+    const type = typeMatch ? (typeMatch[1].toLowerCase() as keyof CommitCategory) : null;
+
+    if (firstLine.match(/^Merge pull request/i)) {
+      categories.merge.push(commitLine);
+    } else if (type && type in categories) {
+      categories[type].push(commitLine);
+    } else {
+      categories.other.push(commitLine);
+    }
+  }
+
+  return { categories, prRefs };
+}
+
+/**
+ * Generate a descriptive PR title summarizing what changed.
+ * e.g. "Release: 3 features, 1 fix, 2 CI → Staging"
+ */
+export function _$gha_generatePRTitle(
+  categories: CommitCategory,
+  target: string,
+): string {
+  const titleLabels: Partial<Record<keyof CommitCategory, string>> = {
+    feat: 'feature',
+    fix: 'fix',
+    docs: 'doc',
+    ci: 'CI',
+    perf: 'perf',
+    build: 'build',
+    refactor: 'refactor',
+    test: 'test',
+    chore: 'chore',
+  };
+
+  const parts: string[] = [];
+  for (const [key, singular] of Object.entries(titleLabels)) {
+    const count = categories[key as keyof CommitCategory]?.length || 0;
+    if (count > 0) {
+      const noPlural = ['CI'].includes(singular);
+      const suffix = singular.endsWith('x') ? 'es' : 's';
+      parts.push(
+        `${count} ${singular}${count > 1 && !noPlural ? suffix : ''}`,
+      );
+    }
+  }
+
+  if (parts.length === 0) {
+    const total = Object.values(categories).reduce(
+      (sum, arr) => sum + arr.length,
+      0,
+    );
+    const s = total === 1 ? '' : 's';
+    return `Release: ${total} commit${s} → ${target}`;
+  }
+
+  return `Release: ${parts.join(', ')} → ${target}`;
+}
+
+/**
+ * Format a PR body for dev→staging promotions.
+ */
+export function _$gha_formatDevBody(
+  categories: CommitCategory,
+  totalCommits: number,
+): string {
+  const s = totalCommits === 1 ? '' : 's';
+  let body = `## Release: Dev → Staging\n\n`;
+  body += `**${totalCommits} atomic commit${s}** ready for staging\n\n`;
+
+  for (const [key, label] of Object.entries(COMMIT_CATEGORY_LABELS)) {
+    const items = categories[key as keyof CommitCategory];
+    if (items?.length > 0) {
+      body += `### ${label}\n${items.join('\n')}\n\n`;
+    }
+  }
+
+  body += `---\n*This PR is automatically maintained by CI*`;
+  return body;
+}
+
+/**
+ * Format a PR body for staging→main production releases.
+ */
+export function _$gha_formatProductionBody(
+  categories: CommitCategory,
+  totalCommits: number,
+  mergedPRCount: number,
+): string {
+  const s = totalCommits === 1 ? '' : 's';
+  let body = `## Production Release from Staging\n\n`;
+  body += `### Summary\n`;
+  body += `- **Total Commits:** ${totalCommits}\n`;
+  body += `- **Merged PRs:** ${mergedPRCount}\n`;
+  body += `- **Target Branch:** main\n`;
+  body += `- **Merge Strategy:** Merge Commit\n\n`;
+
+  body += `### Pre-merge Checklist\n`;
+  body += `- [ ] All tests passing\n`;
+  body += `- [ ] No merge conflicts\n`;
+  body += `- [ ] Changes reviewed and approved\n`;
+  body += `- [ ] Version bumped (if applicable)\n`;
+  body += `- [ ] Documentation updated\n\n`;
+
+  body += `### Changes by Category\n\n`;
+
+  for (const [key, label] of Object.entries(COMMIT_CATEGORY_LABELS)) {
+    const items = categories[key as keyof CommitCategory];
+    if (items?.length > 0) {
+      body += `#### ${label}\n${items.join('\n')}\n\n`;
+    }
+  }
+
+  body += `### Important Notes\n`;
+  body += `- This PR should be **MERGE COMMITTED** to maintain history\n`;
+  body += `- Ensure all checks pass before merging\n`;
+  body += `- After merge, staging will be automatically synced with main\n\n`;
+
+  body += `---\n`;
+  body += `*This PR is automatically maintained by CI • Last updated: ${new Date().toISOString()}*`;
+  return body;
 }
