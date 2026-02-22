@@ -81,10 +81,9 @@ on:
       pirate17:
         description: "Pirate 17 Gamejam"
         value: ${{ jobs.alter.outputs.pirate17 }}
-      # TODO:
-      discordsh_website:
-        description: "Discord.sh changed"
-        value: ${{ jobs.alter.outputs.discordsh_website }}
+      discordsh:
+        description: "Discordsh app changed"
+        value: ${{ jobs.alter.outputs.discordsh }}
       rareicon:
         description: "Rareicon changed"
         value: ${{ jobs.alter.outputs.rareicon }}
