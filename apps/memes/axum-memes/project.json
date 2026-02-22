@@ -60,7 +60,7 @@
     "e2e": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["nx test axum-memes"],
+        "commands": ["nx test axum-memes", "nx e2e memes-e2e"],
         "parallel": false
       }
     },
@@ -85,10 +85,16 @@
       },
       "configurations": {
         "local": {
-          "commands": ["./kbve.sh -nx axum-memes:containerx"]
+          "commands": [
+            "./kbve.sh -nx axum-memes:containerx",
+            "VERSION=$(grep '^version' apps/memes/axum-memes/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/memes:latest kbve/memes:$VERSION && echo \"Tagged kbve/memes:$VERSION\""
+          ]
         },
         "production": {
-          "commands": ["./kbve.sh -nx axum-memes:containerx --configuration=production"]
+          "commands": [
+            "./kbve.sh -nx axum-memes:containerx --configuration=production",
+            "VERSION=$(grep '^version' apps/memes/axum-memes/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/memes:latest kbve/memes:$VERSION && docker tag ghcr.io/kbve/memes:latest ghcr.io/kbve/memes:$VERSION && echo \"Tagged kbve/memes:$VERSION\""
+          ]
         }
       }
     },
@@ -99,26 +105,27 @@
         "engine": "docker",
         "context": ".",
         "file": "apps/memes/axum-memes/Dockerfile",
-        "load": true,
-        "metadata": {
-          "images": ["ghcr.io/kbve/memes", "kbve/memes"],
-          "tags": ["0.1.0", "0.1"]
+        "load": true
+      },
+      "configurations": {
+        "local": {
+          "load": true,
+          "push": false,
+          "tags": ["kbve/memes:latest"]
         },
-        "configurations": {
-          "local": {
-            "load": true,
-            "push": false
+        "production": {
+          "load": true,
+          "push": false,
+          "metadata": {
+            "images": ["ghcr.io/kbve/memes", "kbve/memes"],
+            "tags": ["latest"]
           },
-          "production": {
-            "load": true,
-            "push": false,
-            "cache-from": [
-              "type=registry,ref=ghcr.io/kbve/memes:buildcache"
-            ],
-            "cache-to": [
-              "type=registry,ref=ghcr.io/kbve/memes:buildcache,mode=max"
-            ]
-          }
+          "cache-from": [
+            "type=registry,ref=ghcr.io/kbve/memes:buildcache"
+          ],
+          "cache-to": [
+            "type=registry,ref=ghcr.io/kbve/memes:buildcache,mode=max"
+          ]
         }
       }
     }

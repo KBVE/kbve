@@ -60,7 +60,7 @@
     "e2e": {
       "executor": "nx:run-commands",
       "options": {
-        "commands": ["nx test axum-discordsh"],
+        "commands": ["nx test axum-discordsh", "nx e2e discordsh-e2e"],
         "parallel": false
       }
     },
@@ -105,26 +105,27 @@
         "engine": "docker",
         "context": ".",
         "file": "apps/discordsh/axum-discordsh/Dockerfile",
-        "load": true,
-        "metadata": {
-          "images": ["ghcr.io/kbve/discordsh", "kbve/discordsh"],
-          "tags": ["latest"]
+        "load": true
+      },
+      "configurations": {
+        "local": {
+          "load": true,
+          "push": false,
+          "tags": ["kbve/discordsh:latest"]
         },
-        "configurations": {
-          "local": {
-            "load": true,
-            "push": false
+        "production": {
+          "load": true,
+          "push": false,
+          "metadata": {
+            "images": ["ghcr.io/kbve/discordsh", "kbve/discordsh"],
+            "tags": ["latest"]
           },
-          "production": {
-            "load": true,
-            "push": false,
-            "cache-from": [
-              "type=registry,ref=ghcr.io/kbve/discordsh:buildcache"
-            ],
-            "cache-to": [
-              "type=registry,ref=ghcr.io/kbve/discordsh:buildcache,mode=max"
-            ]
-          }
+          "cache-from": [
+            "type=registry,ref=ghcr.io/kbve/discordsh:buildcache"
+          ],
+          "cache-to": [
+            "type=registry,ref=ghcr.io/kbve/discordsh:buildcache,mode=max"
+          ]
         }
       }
     }

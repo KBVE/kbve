@@ -6,23 +6,17 @@
 	"implicitDependencies": ["axum-memes", "astro-memes"],
 	"targets": {
 		"e2e": {
-			"executor": "nx:run-commands",
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
 			"options": {
-				"commands": [
-					"pnpm exec playwright install --with-deps chromium",
-					"pnpm exec playwright test --config=apps/memes/memes-e2e/playwright.config.ts"
-				],
-				"cwd": "{workspaceRoot}"
+				"config": "apps/memes/memes-e2e/playwright.config.ts"
 			}
 		},
 		"e2e:docker": {
-			"executor": "nx:run-commands",
+			"executor": "@nx/playwright:playwright",
+			"cache": false,
 			"options": {
-				"commands": [
-					"pnpm exec playwright install --with-deps chromium",
-					"E2E_DOCKER=true pnpm exec playwright test --config=apps/memes/memes-e2e/playwright.config.ts"
-				],
-				"cwd": "{workspaceRoot}"
+				"config": "apps/memes/memes-e2e/playwright.docker.config.ts"
 			}
 		}
 	},

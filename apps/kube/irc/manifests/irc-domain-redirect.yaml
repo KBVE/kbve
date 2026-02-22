@@ -1,22 +1,19 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-    name: irc-gateway-ingress
+    name: irc-domain-redirect
     namespace: irc
     annotations:
         cert-manager.io/cluster-issuer: letsencrypt-http
-        nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-        nginx.ingress.kubernetes.io/proxy-send-timeout: "3600"
-        nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
-        nginx.ingress.kubernetes.io/upstream-hash-by: "$remote_addr"
+        nginx.ingress.kubernetes.io/permanent-redirect: "https://chat.kbve.com$request_uri"
 spec:
     ingressClassName: nginx
     tls:
         - hosts:
-              - chat.kbve.com
-          secretName: irc-gateway-tls-secret
+              - irc.kbve.com
+          secretName: irc-domain-redirect-tls-secret
     rules:
-        - host: chat.kbve.com
+        - host: irc.kbve.com
           http:
               paths:
                   - path: /
