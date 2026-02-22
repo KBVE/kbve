@@ -8,8 +8,9 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "nx e2e axum-herbmail",
-          "nx e2e herbmail-e2e"
+          "nx test axum-herbmail",
+          "nx container axum-herbmail",
+          "nx e2e:docker herbmail-e2e"
         ],
         "parallel": false
       }

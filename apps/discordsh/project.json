@@ -8,8 +8,9 @@
       "executor": "nx:run-commands",
       "options": {
         "commands": [
-          "nx e2e axum-discordsh",
-          "nx e2e discordsh-e2e"
+          "nx test axum-discordsh",
+          "nx container axum-discordsh",
+          "nx e2e:docker discordsh-e2e"
         ],
         "parallel": false
       }
