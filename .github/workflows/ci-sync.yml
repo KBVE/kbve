@@ -16,7 +16,6 @@ jobs:
         runs-on: ubuntu-latest
         permissions:
             contents: write
-            issues: write
 
         steps:
             - name: Safe sync dev with main
@@ -82,34 +81,22 @@ jobs:
                           console.log(`   - ${comparison.data.ahead_by} commits ahead of main`);
                           console.log(`   - ${comparison.data.behind_by} commits behind main`);
                           console.log('🟡 Dev has unreleased atomic commits - preserving them');
-                          
-                          // Create an informational issue (not an error!)
-                          const issueBody = `## 📈 Development Status Report
 
-                            Dev branch contains **${comparison.data.ahead_by} atomic commits** that haven't been released to main yet.
+                          // Write to job summary instead of creating an issue
+                          await core.summary
+                            .addHeading('Dev Sync Status', 2)
+                            .addRaw(`Dev branch contains **${comparison.data.ahead_by} atomic commits** not yet released to main.\n\n`)
+                            .addTable([
+                              [{data: 'Metric', header: true}, {data: 'Value', header: true}],
+                              ['Dev ahead by', `${comparison.data.ahead_by} commits`],
+                              ['Dev behind by', `${comparison.data.behind_by} commits`],
+                              ['Last main commit', `\`${mainSha.substring(0, 7)}\``],
+                              ['Last dev commit', `\`${devSha.substring(0, 7)}\``],
+                            ])
+                            .addRaw('\n**This is normal.** Dev contains work-in-progress atomic commits that will be released through the staging process. No action needed.')
+                            .write();
 
-                            **Current Status:**
-                            - Dev ahead by: ${comparison.data.ahead_by} commits
-                            - Dev behind by: ${comparison.data.behind_by} commits
-                            - Last main commit: \`${mainSha.substring(0, 7)}\`
-                            - Last dev commit: \`${devSha.substring(0, 7)}\`
-
-                            **This is normal!** Dev contains work-in-progress atomic commits that will be released through the staging process.
-
-                            **No action needed** - sync was skipped to preserve development work.
-
-                            ---
-                            *This status report was automatically created by the sync workflow.*`;
-
-                          await github.rest.issues.create({
-                              owner,
-                              repo,
-                              title: `📊 Dev Sync Status: ${comparison.data.ahead_by} unreleased commits`,
-                              body: issueBody,
-                              labels: ['sync-status', 'info', 'development']
-                          });
-                          
-                          console.log('📝 Created development status issue');
+                          console.log('📝 Wrote status to job summary');
                       }
 
     sync_staging_with_main:
