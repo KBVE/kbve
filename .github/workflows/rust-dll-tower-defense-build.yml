@@ -23,7 +23,7 @@ jobs:
                   cargo +nightly build -Z build-std=std,panic_abort -Z unstable-options --target x86_64-pc-windows-msvc --release --out-dir dist/windows
 
             - name: Upload DLL as Artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: rust_godot_towerdefense
                   path: apps/rentearth/rust_godot_towerdefense/dist/windows/*.dll
