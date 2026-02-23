@@ -81,7 +81,8 @@ const styles = {
 	} as React.CSSProperties,
 
 	avatarRing: {
-		boxShadow: '0 0 0 2px color-mix(in srgb, var(--sl-color-accent) 25%, transparent)',
+		boxShadow:
+			'0 0 0 2px color-mix(in srgb, var(--sl-color-accent) 25%, transparent)',
 	} as React.CSSProperties,
 
 	userMenu: {
@@ -109,8 +110,7 @@ export default function ReactNavBar({
 	const modalId = useStore($modalId);
 	const modalOpen = modalId === SIGNIN_MODAL;
 
-	const { signInWithOAuth, loading: authLoading } =
-		useAuthBridge(authBridge);
+	const { signInWithOAuth, loading: authLoading } = useAuthBridge(authBridge);
 	const busy = authLoading;
 
 	const currentPath = useStore($currentPath);
@@ -196,8 +196,7 @@ export default function ReactNavBar({
 				className={`${cls} flex items-center justify-center`}
 				style={{
 					backgroundColor: 'var(--sl-color-accent-low)',
-				}}
-			>
+				}}>
 				<User
 					size={large ? 18 : ICON_SIZE}
 					style={{
@@ -214,64 +213,53 @@ export default function ReactNavBar({
 		return (
 			<div
 				data-auth-ready
-				className="absolute inset-0 z-[1] flex items-center justify-center"
-			>
+				className="absolute inset-0 z-[1] flex items-center justify-center">
 				{auth.tone === 'auth' ? (
-					<div className="group relative flex items-center">
-						<button
-							ref={avatarBtnRef}
-							type="button"
-							onClick={() => {
-								if (!avatarBtnRef.current) return;
-								const r =
-									avatarBtnRef.current.getBoundingClientRect();
-								setMenuPos({
-									top: r.bottom + 8,
-									right: window.innerWidth - r.right,
-								});
-								setMenuOpen((v) => !v);
-							}}
-							className="flex items-center gap-1.5 rounded-full px-2 py-0.5 transition-colors duration-150 hover:bg-white/5 focus:outline-none"
-							aria-label="User menu"
-							aria-expanded={menuOpen}
-							aria-haspopup="true"
-						>
-							<Avatar />
-							<span
-								className="text-xs font-medium max-w-[4rem] truncate"
+					<button
+						ref={avatarBtnRef}
+						type="button"
+						onClick={() => {
+							if (!avatarBtnRef.current) return;
+							const r =
+								avatarBtnRef.current.getBoundingClientRect();
+							setMenuPos({
+								top: r.bottom + 8,
+								right: window.innerWidth - r.right,
+							});
+							setMenuOpen((v) => !v);
+						}}
+						className="flex items-center justify-center w-full h-full rounded-[0.375rem] transition-colors duration-150 focus:outline-none"
+						aria-label="User menu"
+						aria-expanded={menuOpen}
+						aria-haspopup="true"
+						data-auth-avatar="">
+						{auth.avatar ? (
+							<img
+								src={auth.avatar}
+								alt={auth.name}
+								className="rounded-full"
 								style={{
-									color: slVar(
-										'--sl-color-white',
-										'#e2e8f0',
-									),
+									width: '1.25rem',
+									height: '1.25rem',
+									...styles.avatarRing,
 								}}
-							>
-								{auth.name}
-							</span>
-						</button>
-					</div>
+							/>
+						) : (
+							<User
+								size={ICON_SIZE}
+								style={{
+									color: 'var(--sl-color-text-accent)',
+								}}
+							/>
+						)}
+					</button>
 				) : (
 					<button
 						type="button"
 						onClick={() => openModal(SIGNIN_MODAL)}
-						className="inline-flex items-center gap-1.5 rounded-full font-medium px-3 text-xs transition-colors duration-150 h-7 whitespace-nowrap"
-						style={styles.accentBtn}
-						onMouseEnter={(e) => {
-							Object.assign(
-								e.currentTarget.style,
-								styles.accentBtnHover,
-							);
-						}}
-						onMouseLeave={(e) => {
-							Object.assign(
-								e.currentTarget.style,
-								styles.accentBtn,
-							);
-						}}
-					>
-						<LogIn size={14} />
-						Sign In
-					</button>
+						className="absolute inset-0 rounded-[0.375rem] focus:outline-none"
+						aria-label="Sign in"
+					/>
 				)}
 			</div>
 		);
@@ -302,8 +290,7 @@ export default function ReactNavBar({
 						className="text-sm font-medium"
 						style={{
 							color: slVar('--sl-color-white', '#e2e8f0'),
-						}}
-					>
+						}}>
 						{auth.name}
 					</span>
 					<a
@@ -321,8 +308,7 @@ export default function ReactNavBar({
 								'--sl-color-gray-2',
 								'#a1a1aa',
 							);
-						}}
-					>
+						}}>
 						<LogOut size={ICON_SIZE} />
 						Sign out
 					</a>
@@ -337,8 +323,7 @@ export default function ReactNavBar({
 				className="inline-flex items-center gap-1.5 w-full px-4 py-3 text-sm font-medium transition-colors duration-150"
 				style={{
 					color: 'var(--sl-color-text-accent)',
-				}}
-			>
+				}}>
 				<LogIn size={ICON_SIZE} />
 				Sign In
 			</button>
@@ -359,8 +344,7 @@ export default function ReactNavBar({
 						)}
 						role="dialog"
 						aria-modal="true"
-						aria-label="Navigation menu"
-					>
+						aria-label="Navigation menu">
 						<div
 							className="absolute inset-0 bg-black/50 backdrop-blur-sm"
 							onClick={doCloseDrawer}
@@ -373,14 +357,12 @@ export default function ReactNavBar({
 									? 'translate-x-0'
 									: 'translate-x-full',
 							)}
-							style={styles.surface}
-						>
+							style={styles.surface}>
 							<div
 								className="flex items-center justify-between px-4 py-3"
 								style={{
 									borderBottom: `1px solid ${slVar('--sl-color-hairline', '#27272a')}`,
-								}}
-							>
+								}}>
 								<span
 									className="text-sm font-semibold"
 									style={{
@@ -388,8 +370,7 @@ export default function ReactNavBar({
 											'--sl-color-white',
 											'#e2e8f0',
 										),
-									}}
-								>
+									}}>
 									Discord.sh
 								</span>
 								<button
@@ -402,8 +383,7 @@ export default function ReactNavBar({
 											'--sl-color-gray-3',
 											'#71717a',
 										),
-									}}
-								>
+									}}>
 									<X size={ICON_SIZE} />
 								</button>
 							</div>
@@ -445,8 +425,7 @@ export default function ReactNavBar({
 															'--sl-color-gray-2',
 															'#a1a1aa',
 														);
-											}}
-										>
+											}}>
 											<item.icon size={ICON_SIZE} />
 											{item.label}
 										</a>
@@ -458,8 +437,7 @@ export default function ReactNavBar({
 								style={{
 									borderTop: `1px solid ${slVar('--sl-color-hairline', '#27272a')}`,
 								}}
-								className="py-2"
-							>
+								className="py-2">
 								<DrawerAuth />
 							</div>
 						</div>
@@ -479,8 +457,7 @@ export default function ReactNavBar({
 							top: menuPos.top,
 							right: menuPos.right,
 						}}
-						role="menu"
-					>
+						role="menu">
 						<div className="flex items-center gap-2.5 px-3 pb-2.5 mb-1">
 							<Avatar large />
 							<div className="min-w-0">
@@ -491,14 +468,12 @@ export default function ReactNavBar({
 											'--sl-color-white',
 											'#e2e8f0',
 										),
-									}}
-								>
+									}}>
 									{auth.name}
 								</div>
 								<div
 									className="text-xs truncate"
-									style={{ color: '#7e8590' }}
-								>
+									style={{ color: '#7e8590' }}>
 									Online
 								</div>
 							</div>
@@ -524,8 +499,7 @@ export default function ReactNavBar({
 											'transparent';
 										e.currentTarget.style.color = '#7e8590';
 									}}
-									role="menuitem"
-								>
+									role="menuitem">
 									<item.icon size={ICON_SIZE} />
 									{item.label}
 								</a>
@@ -553,8 +527,7 @@ export default function ReactNavBar({
 									e.currentTarget.style.color =
 										'var(--sl-color-text-accent)';
 								}}
-								role="menuitem"
-							>
+								role="menuitem">
 								<LogOut size={ICON_SIZE} />
 								Sign Out
 							</a>
@@ -574,12 +547,10 @@ export default function ReactNavBar({
 						onClick={(e) => {
 							if (e.target === e.currentTarget && !busy)
 								closeModal(SIGNIN_MODAL);
-						}}
-					>
+						}}>
 						<div
 							className="w-full max-w-sm rounded-xl shadow-2xl p-5"
-							style={styles.surface}
-						>
+							style={styles.surface}>
 							<div className="flex items-center justify-between mb-4">
 								<h2
 									className="text-base font-semibold"
@@ -588,8 +559,7 @@ export default function ReactNavBar({
 											'--sl-color-white',
 											'#e2e8f0',
 										),
-									}}
-								>
+									}}>
 									Sign in to Discord.sh
 								</h2>
 								<button
@@ -603,8 +573,7 @@ export default function ReactNavBar({
 									onClick={() =>
 										!busy && closeModal(SIGNIN_MODAL)
 									}
-									aria-label="Close"
-								>
+									aria-label="Close">
 									<X size={ICON_SIZE} />
 								</button>
 							</div>
@@ -614,10 +583,8 @@ export default function ReactNavBar({
 									className="mb-3 text-xs rounded-md px-3 py-2"
 									style={{
 										color: '#fca5a5',
-										backgroundColor:
-											'rgba(239,68,68,0.1)',
-									}}
-								>
+										backgroundColor: 'rgba(239,68,68,0.1)',
+									}}>
 									{auth.error}
 								</div>
 							)}
@@ -639,8 +606,7 @@ export default function ReactNavBar({
 									onMouseLeave={(e) => {
 										e.currentTarget.style.backgroundColor =
 											'#5865F2';
-									}}
-								>
+									}}>
 									<DiscordIcon className="w-5 h-5" />
 									Continue with Discord
 								</button>
@@ -661,8 +627,7 @@ export default function ReactNavBar({
 									onMouseLeave={(e) => {
 										e.currentTarget.style.backgroundColor =
 											'#24292f';
-									}}
-								>
+									}}>
 									<GitHubIcon className="w-5 h-5" />
 									Continue with GitHub
 								</button>
@@ -683,8 +648,7 @@ export default function ReactNavBar({
 									onMouseLeave={(e) => {
 										e.currentTarget.style.backgroundColor =
 											'#9146FF';
-									}}
-								>
+									}}>
 									<TwitchIcon className="w-5 h-5" />
 									Continue with Twitch
 								</button>
@@ -697,8 +661,7 @@ export default function ReactNavBar({
 										'--sl-color-gray-3',
 										'#71717a',
 									),
-								}}
-							>
+								}}>
 								Your session syncs automatically across all
 								tabs.
 							</p>
