@@ -7,6 +7,6 @@ from .health import HealthProvider
 
 __all__ = [
     'CoreProvider',
-    'ServicesProvider', 
+    'ServicesProvider',
     'HealthProvider'
 ]

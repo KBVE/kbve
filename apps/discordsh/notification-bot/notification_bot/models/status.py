@@ -8,15 +8,33 @@ import discord
 
 class StatusState(Enum):
     """Bot status state enumeration with emoji, color, image URL, and display name"""
-    OFFLINE = ("🔴", discord.Color.red(), "https://octodex.github.com/images/deckfailcat.png", "Offline")
-    PENDING = ("🟡", discord.Color.orange(), "https://octodex.github.com/images/octobiwan.jpg", "Pending")
-    STARTING = ("🟡", discord.Color.orange(), "https://octodex.github.com/images/dunetocat.png", "Starting...")
-    STOPPING = ("🟠", discord.Color.orange(), "https://octodex.github.com/images/dunetocat.png", "Stopping...")
-    ONLINE = ("🟢", discord.Color.green(), "https://octodex.github.com/images/megacat-2.png", "Online & Ready")
-    GREEN = ("🟢", discord.Color.green(), "https://octodex.github.com/images/megacat-2.png", "Online & Ready")
-    INITIALIZING = ("🟡", discord.Color.yellow(), "https://octodex.github.com/images/universetocat.png", "Initializing")
-    ERROR = ("⚠️", discord.Color.dark_red(), "https://octodex.github.com/images/dunetocat.png", "Error")
-    UNKNOWN = ("❓", discord.Color.greyple(), "https://octodex.github.com/images/dunetocat.png", "Unknown")
+    OFFLINE = (
+        "red_circle", discord.Color.red(),
+        "https://octodex.github.com/images/deckfailcat.png", "Offline")
+    PENDING = (
+        "yellow_circle", discord.Color.orange(),
+        "https://octodex.github.com/images/octobiwan.jpg", "Pending")
+    STARTING = (
+        "yellow_circle", discord.Color.orange(),
+        "https://octodex.github.com/images/dunetocat.png", "Starting...")
+    STOPPING = (
+        "orange_circle", discord.Color.orange(),
+        "https://octodex.github.com/images/dunetocat.png", "Stopping...")
+    ONLINE = (
+        "green_circle", discord.Color.green(),
+        "https://octodex.github.com/images/megacat-2.png", "Online & Ready")
+    GREEN = (
+        "green_circle", discord.Color.green(),
+        "https://octodex.github.com/images/megacat-2.png", "Online & Ready")
+    INITIALIZING = (
+        "yellow_circle", discord.Color.yellow(),
+        "https://octodex.github.com/images/universetocat.png", "Initializing")
+    ERROR = (
+        "warning", discord.Color.dark_red(),
+        "https://octodex.github.com/images/dunetocat.png", "Error")
+    UNKNOWN = (
+        "question", discord.Color.greyple(),
+        "https://octodex.github.com/images/dunetocat.png", "Unknown")
 
     def __init__(self, emoji: str, color: discord.Color, image_url: str, display_name: str):
         self.emoji = emoji
@@ -27,7 +45,7 @@ class StatusState(Enum):
 
 class BotStatusModel(BaseModel):
     """Pydantic model for bot status management with health metrics"""
-    
+
     # Bot status fields
     state: StatusState = Field(default=StatusState.UNKNOWN, description="Current bot status state")
     initialized: bool = Field(default=False, description="Whether bot is initialized")
@@ -40,7 +58,7 @@ class BotStatusModel(BaseModel):
     current_shard: Optional[int] = Field(default=None, description="Current shard ID for manual sharding")
     shard_info: Dict[str, Any] = Field(default_factory=dict, description="Per-shard information")
     custom_message: Optional[str] = Field(default=None, description="Custom status message")
-    
+
     # Health metrics fields
     memory_usage_mb: float = Field(default=0.0, description="Memory usage in MB")
     memory_percent: float = Field(default=0.0, description="Memory usage as percentage")
@@ -52,7 +70,7 @@ class BotStatusModel(BaseModel):
     system_memory_used_percent: float = Field(default=0.0, description="System memory usage percentage")
     health_status: str = Field(default="UNKNOWN", description="Overall health status")
     pid: int = Field(default=0, description="Process ID")
-    
+
     @classmethod
     def from_status_dict(cls, status_dict: dict, health_data: Optional[dict] = None) -> 'BotStatusModel':
         """Create BotStatusModel from status dictionary with optional health data"""
@@ -69,7 +87,7 @@ class BotStatusModel(BaseModel):
             state = StatusState.OFFLINE
         else:
             state = StatusState.UNKNOWN
-        
+
         # Base model data
         model_data = {
             'state': state,
@@ -84,13 +102,13 @@ class BotStatusModel(BaseModel):
             'shard_info': status_dict.get('shard_info', {}),
             'custom_message': status_dict.get('custom_message')
         }
-        
+
         # Add health data if provided
         if health_data:
             memory_info = health_data.get('memory', {})
             cpu_info = health_data.get('cpu', {})
             process_info = health_data.get('process', {})
-            
+
             model_data.update({
                 'memory_usage_mb': memory_info.get('process_memory_mb', 0.0),
                 'memory_percent': memory_info.get('process_memory_percent', 0.0),
@@ -103,27 +121,27 @@ class BotStatusModel(BaseModel):
                 'health_status': health_data.get('health_status', 'UNKNOWN'),
                 'pid': process_info.get('pid', 0)
             })
-            
+
         return cls(**model_data)
-    
+
     def get_status_description(self) -> str:
         """Get detailed status description"""
         if self.custom_message:
             return self.custom_message
         return self.state.display_name
-    
+
     def get_emoji(self) -> str:
         """Get emoji for current state"""
         return self.state.emoji
-    
+
     def get_color(self) -> discord.Color:
         """Get Discord color for current state"""
         return self.state.color
-    
+
     def get_image_url(self) -> str:
         """Get image URL for current state"""
         return self.state.image_url
-    
+
     def get_health_based_color(self) -> discord.Color:
         """Get color based on health status, overriding normal state color if unhealthy"""
         if self.health_status == "CRITICAL":
@@ -134,27 +152,27 @@ class BotStatusModel(BaseModel):
             return self.state.color
         else:
             return self.state.color
-    
+
     def get_memory_bar(self, width: int = 10) -> str:
         """Get a visual memory usage bar"""
         if self.memory_percent <= 0:
-            return "▱" * width
-        
+            return "empty" * width
+
         filled = int((self.memory_percent / 100) * width)
         filled = min(filled, width)
-        
+
         # Choose bar character based on usage level
         if self.memory_percent > 90:
-            bar_char = "🟥"
+            bar_char = "R"
         elif self.memory_percent > 70:
-            bar_char = "🟧"
+            bar_char = "O"
         else:
-            bar_char = "🟩"
-            
-        empty_char = "⬜"
-        
+            bar_char = "G"
+
+        empty_char = "_"
+
         return bar_char * filled + empty_char * (width - filled)
-    
+
     model_config = {
         "json_encoders": {
             discord.Color: lambda v: v.value
