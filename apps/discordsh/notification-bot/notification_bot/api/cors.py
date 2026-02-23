@@ -4,7 +4,7 @@ from fastapi.middleware.cors import CORSMiddleware
 # Optimized CORS origins
 ALLOWED_ORIGINS = [
     "http://localhost:8086",
-    "http://localhost:4321", 
+    "http://localhost:4321",
     "http://localhost:1337",
     "http://localhost",
     "http://localhost:8080",
@@ -13,6 +13,7 @@ ALLOWED_ORIGINS = [
     "https://supabase.kbve.com",
     "https://kbve.com",
 ]
+
 
 def CORS(app: FastAPI) -> None:
     """Add optimized CORS middleware to FastAPI app"""

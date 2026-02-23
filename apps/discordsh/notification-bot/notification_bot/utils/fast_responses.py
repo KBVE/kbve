@@ -2,7 +2,7 @@
 Ultra-fast response system using TypeAdapter + orjson + Starlette
 """
 from datetime import datetime
-from typing import Dict, Any, TypeVar, Type, Union
+from typing import Dict, Any, TypeVar, Type
 from fastapi import Response
 from pydantic import TypeAdapter
 from typing_extensions import TypedDict
@@ -41,19 +41,19 @@ _adapters: Dict[Type[TypedDict], TypeAdapter] = {
 def fast_response(data: T, response_type: Type[T], status_code: int = 200) -> Response:
     """
     Ultra-fast response using pre-initialized TypeAdapter + orjson
-    
+
     Args:
         data: Response data matching the TypedDict schema
         response_type: TypedDict class for validation
         status_code: HTTP status code
-        
+
     Returns:
         Optimized Starlette Response
     """
     adapter = _adapters[response_type]
     validated_data = adapter.validate_python(data)
     json_content = adapter.dump_json(validated_data)
-    
+
     return Response(
         content=json_content,
         status_code=status_code,
@@ -72,7 +72,7 @@ def success_response(message: str, data: Dict[str, Any] = None) -> Response:
         return fast_response(response_data, DataResponse)
     else:
         response_data = StandardResponse(
-            status="success", 
+            status="success",
             message=message
         )
         return fast_response(response_data, StandardResponse)
@@ -106,17 +106,17 @@ def health_response(
         bot=bot_status,
         system=health_data.get("system", {})
     )
-    
+
     # Add error if present
     if "error" in health_data:
         response_data["error"] = health_data["error"]
-    
+
     return fast_response(response_data, HealthResponse)
 
 
 def bot_status_response(
     message: str,
-    status: str = "success", 
+    status: str = "success",
     **kwargs
 ) -> Response:
     """Create optimized bot status response"""
@@ -156,12 +156,12 @@ def tracker_status_response(
 def user_response(user_data: Dict[str, Any] = None, message: str = None) -> Response:
     """Create optimized user response"""
     response_data = UserResponse(status="success")
-    
+
     if user_data:
         response_data["user"] = user_data
     if message:
         response_data["message"] = message
-        
+
     return fast_response(response_data, UserResponse)
 
 
@@ -181,14 +181,14 @@ def user_providers_response(
 ) -> Response:
     """Create optimized user providers response"""
     response_data = UserProvidersResponse(status="success")
-    
+
     if user_id:
         response_data["user_id"] = user_id
     if providers:
         response_data["providers"] = providers
     if message:
         response_data["message"] = message
-        
+
     return fast_response(response_data, UserProvidersResponse)
 
 
@@ -204,8 +204,8 @@ def sync_response(
         synced_providers=synced_providers,
         total_synced=total_synced
     )
-    
+
     if error:
         response_data["error"] = error
-        
+
     return fast_response(response_data, SyncResponse)

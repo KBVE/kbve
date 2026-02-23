@@ -1,5 +1,5 @@
 [package]
-name = "rust_soul"
+name = "soul"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.0"
 edition = "2021"

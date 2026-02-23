@@ -54,6 +54,9 @@ jobs:
     godot-build:
         name: Godot Build Job
         runs-on: ubuntu-latest
+        timeout-minutes: 60
+        permissions:
+            contents: read
         container:
             image: barichello/godot-ci:${{ inputs.godot_version }}
         env:
@@ -92,6 +95,9 @@ jobs:
         name: Godot Itch Deployment
         needs: ['godot-build']
         runs-on: ubuntu-latest
+        timeout-minutes: 15
+        permissions:
+            contents: read
         if: inputs.deploy_to_itch == true
         steps:
             - name: Checkout repository
@@ -110,7 +116,7 @@ jobs:
               uses: KikimoraGames/itch-publish@v0.0.3
               with:
                   butlerApiKey: ${{ secrets.butler_api }}
-                  gameData: "build/web"
+                  gameData: 'build/web'
                   itchUsername: ${{ inputs.itch_username }}
                   itchGameId: ${{ inputs.itch_gameid }}
                   buildChannel: webgl

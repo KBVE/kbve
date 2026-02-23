@@ -1,2 +1,2 @@
-pub mod player_entity;
 pub mod npc_entity;
+pub mod player_entity;
