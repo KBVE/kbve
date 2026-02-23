@@ -21,7 +21,7 @@ socket2 = "0.6.1"
 num_cpus = "1.17.0"
 dotenvy = "0.15"
 tokio-tungstenite = "0.26"
-jsonwebtoken = "9"
+jsonwebtoken = "10.3.0"
 futures-util = { version = "0.3", default-features = false, features = ["sink"] }
 
 # Workspace path dependencies

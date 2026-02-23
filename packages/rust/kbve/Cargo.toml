@@ -33,11 +33,11 @@ axum-extra = { version = "0.12.1", features = ["cookie"] }
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 dashmap = { version = "6.1.0", features = ["serde"] }
-jsonwebtoken = "8.3.0"
+jsonwebtoken = "10.3.0"
 rand_core = { version = "0.6.4", features = ["std"] }
 tokio = { version = "1.0", features = ["full"] }
 thiserror = "2"
-time = "0.3.36"
+time = "0.3.47"
 reqwest = { version = "0.12", default-features = false, features = [
     "json",
     "rustls-tls",
