@@ -1,8 +1,8 @@
 {
-	"name": "pydiscordsh",
+	"name": "notification-bot",
 	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
-	"sourceRoot": "apps/discord/pydiscordsh/pydiscordsh",
+	"sourceRoot": "apps/discordsh/notification-bot/notification-bot",
 	"release": {
 		"version": {
 			"generator": "@nxlv/python:release-version",
@@ -15,7 +15,7 @@
 			"executor": "@nxlv/python:run-commands",
 			"options": {
 				"command": "poetry lock --no-update",
-				"cwd": "apps/discord/pydiscordsh"
+				"cwd": "apps/discordsh/notification-bot"
 			}
 		},
 		"add": {
@@ -34,7 +34,7 @@
 			"executor": "@nxlv/python:build",
 			"outputs": ["{projectRoot}/dist"],
 			"options": {
-				"outputPath": "apps/discord/pydiscordsh/dist",
+				"outputPath": "apps/discordsh/notification-bot/dist",
 				"publish": false,
 				"lockedVersions": true,
 				"bundleLocalDependencies": true
@@ -54,22 +54,22 @@
 		"lint": {
 			"executor": "@nxlv/python:flake8",
 			"outputs": [
-				"{workspaceRoot}/reports/apps/discord/pydiscordsh/pylint.txt"
+				"{workspaceRoot}/reports/apps/discordsh/notification-bot/pylint.txt"
 			],
 			"options": {
-				"outputFile": "reports/apps/discord/pydiscordsh/pylint.txt"
+				"outputFile": "reports/apps/discordsh/notification-bot/pylint.txt"
 			},
 			"cache": true
 		},
 		"test": {
 			"executor": "@nxlv/python:run-commands",
 			"outputs": [
-				"{workspaceRoot}/reports/apps/discord/pydiscordsh/unittests",
-				"{workspaceRoot}/coverage/apps/discord/pydiscordsh"
+				"{workspaceRoot}/reports/apps/discordsh/notification-bot/unittests",
+				"{workspaceRoot}/coverage/apps/discordsh/notification-bot"
 			],
 			"options": {
 				"command": "poetry run pytest tests/",
-				"cwd": "apps/discord/pydiscordsh"
+				"cwd": "apps/discordsh/notification-bot"
 			},
 			"cache": true
 		},
@@ -78,28 +78,28 @@
 			"defaultConfiguration": "local",
 			"options": {
 				"engine": "docker",
-				"context": "apps/discord/pydiscordsh",
-				"file": "apps/discord/pydiscordsh/Dockerfile",
+				"context": "apps/discordsh/notification-bot",
+				"file": "apps/discordsh/notification-bot/Dockerfile",
 				"platforms": ["linux/amd64"],
 				"metadata": {
-					"images": ["kbve/pydiscordsh"],
+					"images": ["kbve/notification-bot"],
 					"load": true,
-					"tags": ["1.46", "1.46.0"]
+					"tags": ["1.7.2"]
 				},
 				"configurations": {
 					"local": {
-						"tags": ["1.46", "1.46.0"],
+						"tags": ["1.7.2"],
 						"push": false
 					},
 					"production": {
-						"tags": ["1.46", "1.46.0"],
+						"tags": ["1.7.2"],
 						"push": true,
 						"customBuildOptions": "--push",
 						"cache-from": [
-							"type=registry,ref=kbve/pydiscordsh:buildcache"
+							"type=registry,ref=kbve/notification-bot:buildcache"
 						],
 						"cache-to": [
-							"type=registry,ref=kbve/pydiscordsh:buildcache,mode=max"
+							"type=registry,ref=kbve/notification-bot:buildcache,mode=max"
 						]
 					}
 				}
@@ -110,11 +110,11 @@
 			"options": {
 				"commands": [
 					{
-						"command": "pnpm nx container pydiscordsh",
+						"command": "pnpm nx container notification-bot",
 						"forwardAllArgs": false
 					},
 					{
-						"command": "docker run --env-file .env -p 3000:3000 kbve/pydiscordsh:1.46",
+						"command": "docker run --env-file .env -p 3000:3000 kbve/notification-bot:1.7.2",
 						"forwardAllArgs": false
 					}
 				],
