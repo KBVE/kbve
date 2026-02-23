@@ -2,51 +2,50 @@ apiVersion: kustomize.config.k8s.io/v1beta1
 kind: Kustomization
 
 metadata:
-  name: kube-applications
-  annotations:
-    description: "Main kustomization for all Kubernetes applications managed by ArgoCD"
-    maintainer: "kbve"
-    updated-by: "h0lybyte"
-    last-updated: "2025-07-31"
+    name: kube-applications
+    annotations:
+        description: 'Main kustomization for all Kubernetes applications managed by ArgoCD'
+        maintainer: 'kbve'
+        updated-by: 'h0lybyte'
+        last-updated: '2025-07-31'
 
 resources:
-  - argocd/application.yaml
-  - namespace/application.yaml
-  - cnpg/application.yaml
-  - cnpg/plugins-application.yaml
-  - metallb/application.yaml
-  - ingress/application.yaml
-  - cert-manager/application.yaml
-  - sealed-secrets/application.yaml
-  - external-secrets/application.yaml
-  - monitoring/application.yaml
-  - redis/application.yaml
-  - storage/application.yaml
-  - irc/application.yaml
-  - kilobase/application.yaml
-  - kong/application.yaml
-  - auth/application.yaml
-  - postgrest/application.yaml
-  - realtime/application.yaml
-  - storage-api/application.yaml
-  - meta/application.yaml
-  - analytics/application.yaml
-  - studio/application.yaml
-  - vector/application.yaml
-  - discordsh/application.yaml
-  - notification-bot/application.yaml
-  - functions/application.yaml
-  - kbve/application.yaml
-  - clickhouse-crds/application.yaml
-  - clickhouse-operator/application.yaml
-  - clickhouse/application.yaml
+    - argocd/application.yaml
+    - namespace/application.yaml
+    - cnpg/application.yaml
+    - cnpg/plugins-application.yaml
+    - metallb/application.yaml
+    - ingress/application.yaml
+    - cert-manager/application.yaml
+    - sealed-secrets/application.yaml
+    - external-secrets/application.yaml
+    - monitoring/application.yaml
+    - redis/application.yaml
+    - storage/application.yaml
+    - irc/application.yaml
+    - kilobase/application.yaml
+    - kong/application.yaml
+    - auth/application.yaml
+    - postgrest/application.yaml
+    - realtime/application.yaml
+    - storage-api/application.yaml
+    - meta/application.yaml
+    - analytics/application.yaml
+    - studio/application.yaml
+    - vector/application.yaml
+    - discordsh/application.yaml
+    - notification-bot/application.yaml
+    - functions/application.yaml
+    - kbve/application.yaml
+    - clickhouse-crds/application.yaml
+    - clickhouse-operator/application.yaml
+    - clickhouse/application.yaml
 
-  - rentearth/application.yaml
-  - cityvote/application.yaml
-  - herbmail/application.yaml
-  - memes/application.yaml
-  # GitHub Actions Runner Controller (ARC)
-  # Consolidated: controller includes helm chart + sealed secret + RBAC
-  # Consolidated: runners includes helm chart + ExternalSecret/SecretStore
-  - github/controller/application.yaml
-  - github/runners/application.yaml
+    - cityvote/application.yaml
+    - herbmail/application.yaml
+    - memes/application.yaml
+    # GitHub Actions Runner Controller (ARC)
+    # Consolidated: controller includes helm chart + sealed secret + RBAC
+    # Consolidated: runners includes helm chart + ExternalSecret/SecretStore
+    - github/controller/application.yaml
+    - github/runners/application.yaml

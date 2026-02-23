@@ -1,54 +1,54 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: kilobase-api
-  namespace: kilobase
-  annotations:
-    nginx.ingress.kubernetes.io/rewrite-target: /
-    nginx.ingress.kubernetes.io/proxy-body-size: "10m"
-    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
-    nginx.ingress.kubernetes.io/proxy-read-timeout: "3600"
-    cert-manager.io/cluster-issuer: "letsencrypt-prod"
-    nginx.ingress.kubernetes.io/proxy-buffer-size: "160k"
-    nginx.ingress.kubernetes.io/proxy-buffers-number: "64"
-    nginx.ingress.kubernetes.io/client-header-buffer-size: "160k"
-    nginx.ingress.kubernetes.io/large-client-header-buffers: "64 160k"
-    nginx.ingress.kubernetes.io/client-body-buffer-size: "160k"
-    nginx.ingress.kubernetes.io/enable-cors: "true"
-    nginx.ingress.kubernetes.io/cors-allow-origin: "https://discord.sh,https://*.discord.sh,https://kbve.com,https://*.kbve.com,https://meme.sh,https://*.meme.sh,https://rentearth.com,https://*.rentearth.com,https://herbmail.com,https://*.herbmail.com,http://localhost:4321,http://localhost:3000"
-    nginx.ingress.kubernetes.io/cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
-    nginx.ingress.kubernetes.io/cors-allow-headers: "DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Profile,Accept-Version"
-    nginx.ingress.kubernetes.io/cors-allow-credentials: "true"
-    nginx.ingress.kubernetes.io/proxy-http-version: "1.1"
-    nginx.ingress.kubernetes.io/proxy-set-headers: "Host $host;X-Real-IP $remote_addr;X-Forwarded-For $proxy_add_x_forwarded_for;X-Forwarded-Proto $scheme"
-    nginx.ingress.kubernetes.io/upstream-hash-by: "$http_upgrade"
-    nginx.ingress.kubernetes.io/proxy-connect-timeout: "3600"
+    name: kilobase-api
+    namespace: kilobase
+    annotations:
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        nginx.ingress.kubernetes.io/proxy-body-size: '10m'
+        nginx.ingress.kubernetes.io/proxy-send-timeout: '300'
+        nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+        cert-manager.io/cluster-issuer: 'letsencrypt-prod'
+        nginx.ingress.kubernetes.io/proxy-buffer-size: '160k'
+        nginx.ingress.kubernetes.io/proxy-buffers-number: '64'
+        nginx.ingress.kubernetes.io/client-header-buffer-size: '160k'
+        nginx.ingress.kubernetes.io/large-client-header-buffers: '64 160k'
+        nginx.ingress.kubernetes.io/client-body-buffer-size: '160k'
+        nginx.ingress.kubernetes.io/enable-cors: 'true'
+        nginx.ingress.kubernetes.io/cors-allow-origin: 'https://discord.sh,https://*.discord.sh,https://kbve.com,https://*.kbve.com,https://meme.sh,https://*.meme.sh,https://herbmail.com,https://*.herbmail.com,http://localhost:4321,http://localhost:3000'
+        nginx.ingress.kubernetes.io/cors-allow-methods: 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD'
+        nginx.ingress.kubernetes.io/cors-allow-headers: 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Profile,Accept-Version'
+        nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+        nginx.ingress.kubernetes.io/proxy-http-version: '1.1'
+        nginx.ingress.kubernetes.io/proxy-set-headers: 'Host $host;X-Real-IP $remote_addr;X-Forwarded-For $proxy_add_x_forwarded_for;X-Forwarded-Proto $scheme'
+        nginx.ingress.kubernetes.io/upstream-hash-by: '$http_upgrade'
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
 
 spec:
-  ingressClassName: nginx
-  rules:
-  - host: api.kbve.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: kong-kong-proxy
-            port:
-              number: 80
-  - host: supabase.kbve.com
-    http:
-      paths:
-      - path: /
-        pathType: Prefix
-        backend:
-          service:
-            name: kong-kong-proxy
-            port:
-              number: 80
-  tls:
-  - hosts:
-    - api.kbve.com
-    - supabase.kbve.com
-    secretName: kilobase-api-tls
+    ingressClassName: nginx
+    rules:
+        - host: api.kbve.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: kong-kong-proxy
+                            port:
+                                number: 80
+        - host: supabase.kbve.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: kong-kong-proxy
+                            port:
+                                number: 80
+    tls:
+        - hosts:
+              - api.kbve.com
+              - supabase.kbve.com
+          secretName: kilobase-api-tls

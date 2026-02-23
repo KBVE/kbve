@@ -6,80 +6,83 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: kilobase-secrets-reader-for-discord
-  namespace: kilobase
-  labels:
-    app.kubernetes.io/name: kilobase
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/managed-by: argocd
+    name: kilobase-secrets-reader-for-discord
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: rbac
+        app.kubernetes.io/managed-by: argocd
 rules:
-- apiGroups: [""]
-  resources: ["secrets"]
-  resourceNames: ["supabase-jwt", "supabase-postgres", "supabase-db", "twitch-oauth-config"]
-  verbs: ["get", "list", "watch"]
+    - apiGroups: ['']
+      resources: ['secrets']
+      resourceNames:
+          [
+              'supabase-jwt',
+              'supabase-postgres',
+              'supabase-db',
+              'twitch-oauth-config',
+          ]
+      verbs: ['get', 'list', 'watch']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: notification-bot-read-secrets
-  namespace: kilobase
-  labels:
-    app.kubernetes.io/name: kilobase
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/managed-by: argocd
+    name: notification-bot-read-secrets
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: rbac
+        app.kubernetes.io/managed-by: argocd
 roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: kilobase-secrets-reader-for-discord
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: kilobase-secrets-reader-for-discord
 subjects:
-- kind: ServiceAccount
-  name: notification-bot
-  namespace: discord
-- kind: ServiceAccount
-  name: rentearth-external-secrets
-  namespace: rentearth
-- kind: ServiceAccount
-  name: kbve-external-secrets
-  namespace: kbve
-- kind: ServiceAccount
-  name: herbmail-external-secrets
-  namespace: herbmail
-- kind: ServiceAccount
-  name: memes-external-secrets
-  namespace: memes
-- kind: ServiceAccount
-  name: irc-gateway-external-secrets
-  namespace: irc
+    - kind: ServiceAccount
+      name: notification-bot
+      namespace: discord
+    - kind: ServiceAccount
+      name: kbve-external-secrets
+      namespace: kbve
+    - kind: ServiceAccount
+      name: herbmail-external-secrets
+      namespace: herbmail
+    - kind: ServiceAccount
+      name: memes-external-secrets
+      namespace: memes
+    - kind: ServiceAccount
+      name: irc-gateway-external-secrets
+      namespace: irc
 ---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: kilobase-services-reader-for-discord
-  namespace: kilobase
-  labels:
-    app.kubernetes.io/name: kilobase
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/managed-by: argocd
+    name: kilobase-services-reader-for-discord
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: rbac
+        app.kubernetes.io/managed-by: argocd
 rules:
-- apiGroups: [""]
-  resources: ["services", "endpoints"]
-  verbs: ["get", "list"]
+    - apiGroups: ['']
+      resources: ['services', 'endpoints']
+      verbs: ['get', 'list']
 ---
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: notification-bot-read-services
-  namespace: kilobase
-  labels:
-    app.kubernetes.io/name: kilobase
-    app.kubernetes.io/component: rbac
-    app.kubernetes.io/managed-by: argocd
+    name: notification-bot-read-services
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: rbac
+        app.kubernetes.io/managed-by: argocd
 roleRef:
-  apiGroup: rbac.authorization.k8s.io
-  kind: Role
-  name: kilobase-services-reader-for-discord
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: kilobase-services-reader-for-discord
 subjects:
-- kind: ServiceAccount
-  name: notification-bot
-  namespace: discord
+    - kind: ServiceAccount
+      name: notification-bot
+      namespace: discord
