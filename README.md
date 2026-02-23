@@ -26,12 +26,12 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/), b
 
 ## Table of Libraries & Apps
 
-| C#                                                                                 | R     | A        | P       | @Apps                                   |
-| ---------------------------------------------------------------------------------- | ----- | -------- | ------- | --------------------------------------- |
-| [kilonet](https://github.com/KBVE/kbve/tree/main/packages/unity/kilonet)           | erust | astropad | kbve    | [kbve.com](https://kbve.com/)           |
-| [MMExtensions](https://github.com/KBVE/kbve/tree/main/packages/unity/mmextensions) | jedi  |          | fudster | [rentearth.com](https://rentearth.com/) |
-|                                                                                    | holy  |          |         | [herbmail.com](https://herbmail.com/)   |
-|                                                                                    | kbve  |          |         |                                         |
+| C#                                                                                 | R     | A        | P       | @Apps                                 |
+| ---------------------------------------------------------------------------------- | ----- | -------- | ------- | ------------------------------------- |
+| [kilonet](https://github.com/KBVE/kbve/tree/main/packages/unity/kilonet)           | erust | astropad | kbve    | [kbve.com](https://kbve.com/)         |
+| [MMExtensions](https://github.com/KBVE/kbve/tree/main/packages/unity/mmextensions) | jedi  |          | fudster |                                       |
+|                                                                                    | holy  |          |         | [herbmail.com](https://herbmail.com/) |
+|                                                                                    | kbve  |          |         |                                       |
 
 ---
 

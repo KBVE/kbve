@@ -7445,26 +7445,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_godot_towerdefense"
-version = "0.1.0"
-dependencies = [
- "bevy_ecs",
- "godot",
- "http 1.4.0",
- "infer",
- "objc2 0.6.3",
- "papaya 0.1.9",
- "rand 0.8.5",
- "raw-window-handle",
- "rstar",
- "serde",
- "serde_json",
- "windows 0.59.0",
- "wry 0.46.3",
- "wry 0.48.1",
-]
-
-[[package]]
 name = "rust_soul"
 version = "0.1.0"
 dependencies = [

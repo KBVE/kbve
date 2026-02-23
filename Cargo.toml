@@ -7,8 +7,6 @@ members = [
 	'packages/rust/holy',
 	'packages/rust/jedi',
 	'apps/kbve/kilobase',
-
-	'apps/rentearth/rust_godot_towerdefense',
 	'packages/rust/q',
 	'packages/rust/soul',
 	'apps/herbmail/axum-herbmail',
