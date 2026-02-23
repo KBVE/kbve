@@ -11,6 +11,8 @@ updates:
       labels:
           - dependencies
           - npm
+          - security
+          - update
 
     - package-ecosystem: pip
       directory: /
@@ -22,6 +24,8 @@ updates:
       labels:
           - dependencies
           - python
+          - security
+          - update
 
     - package-ecosystem: cargo
       directory: /
@@ -33,6 +37,8 @@ updates:
       labels:
           - dependencies
           - rust
+          - security
+          - update
 
     - package-ecosystem: github-actions
       directory: /
@@ -44,6 +50,8 @@ updates:
       labels:
           - dependencies
           - ci
+          - security
+          - update
 
     - package-ecosystem: docker
       directory: /
@@ -54,3 +62,5 @@ updates:
       labels:
           - dependencies
           - docker
+          - security
+          - update
