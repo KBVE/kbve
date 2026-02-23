@@ -1,10 +1,10 @@
 use pgrx::bgworkers::*;
+use pgrx::datum::{DatumWithOid, IntoDatum};
 use pgrx::prelude::*;
 use pgrx::spi::SpiError;
-use pgrx::datum::{DatumWithOid, IntoDatum};
 use std::time::Duration;
-mod sql;
 mod jobs;
+mod sql;
 use crate::jobs::JobInfo;
 
 pgrx::pg_module_magic!();
@@ -37,14 +37,10 @@ pub extern "C-unwind" fn _PG_init() {
 #[pg_guard]
 #[unsafe(no_mangle)]
 pub extern "C-unwind" fn smart_matview_worker_main(arg: pg_sys::Datum) {
-     let max_sleep_secs = unsafe {
-        i32::from_polymorphic_datum(arg, false, pg_sys::INT4OID)
-            .unwrap_or(30)
-    };
+    let max_sleep_secs =
+        unsafe { i32::from_polymorphic_datum(arg, false, pg_sys::INT4OID).unwrap_or(30) };
 
-    BackgroundWorker::attach_signal_handlers(
-        SignalWakeFlags::SIGHUP | SignalWakeFlags::SIGTERM
-    );
+    BackgroundWorker::attach_signal_handlers(SignalWakeFlags::SIGHUP | SignalWakeFlags::SIGTERM);
 
     BackgroundWorker::connect_worker_to_spi(Some("postgres"), None);
 
@@ -90,7 +86,7 @@ fn run_worker_loop(max_sleep_secs: i32) {
         }
 
         // Periodic maintenance: log cleanup
-        if cycle_count % maintenance_interval == 0 {
+        if cycle_count.is_multiple_of(maintenance_interval) {
             if let Err(e) = run_maintenance() {
                 pgrx::log!("ERROR: Maintenance cycle failed: {}", e);
             }
@@ -119,15 +115,15 @@ fn run_worker_loop(max_sleep_secs: i32) {
 fn get_seconds_until_next_job() -> Result<Option<i64>, pgrx::spi::Error> {
     BackgroundWorker::transaction(|| {
         Spi::connect(|client| {
-            let result = client.select(
+            let mut result = client.select(
                 "SELECT EXTRACT(EPOCH FROM (MIN(next_refresh) - NOW()))::BIGINT as secs
                  FROM matview_refresh_jobs WHERE is_active = true",
                 None,
-                &[]
+                &[],
             )?;
 
-            for row in result {
-                return Ok(row.get_by_name::<i64, _>("secs")?);
+            if let Some(row) = result.next() {
+                return row.get_by_name::<i64, _>("secs");
             }
             Ok(None)
         })
@@ -144,7 +140,7 @@ fn run_maintenance() -> Result<(), pgrx::spi::Error> {
             let result = client.select(
                 "SELECT cleanup_matview_refresh_logs(7) as deleted_count",
                 None,
-                &[]
+                &[],
             )?;
 
             for row in result {
@@ -164,7 +160,7 @@ fn run_maintenance() -> Result<(), pgrx::spi::Error> {
 
 fn get_table_change_count(schema: &str, table: &str) -> Result<i64, String> {
     Spi::connect(|client| {
-        let result = client.select(
+        let mut result = client.select(
             "SELECT (COALESCE(n_tup_ins, 0) + COALESCE(n_tup_upd, 0) + COALESCE(n_tup_del, 0)) as change_count
              FROM pg_stat_user_tables
              WHERE schemaname = $1 AND relname = $2",
@@ -175,7 +171,7 @@ fn get_table_change_count(schema: &str, table: &str) -> Result<i64, String> {
             ]
         )?;
 
-        for row in result {
+        if let Some(row) = result.next() {
             return Ok(row.get_by_name::<i64, _>("change_count")?
                 .unwrap_or(0));
         }
@@ -192,7 +188,7 @@ fn update_change_count(job_id: i32, new_count: i64) -> Result<(), pgrx::spi::Err
             &[
                 unsafe { DatumWithOid::new(job_id.into_datum().unwrap(), pg_sys::INT4OID) },
                 unsafe { DatumWithOid::new(new_count.into_datum().unwrap(), pg_sys::INT8OID) },
-            ]
+            ],
         )?;
         Ok(())
     })
@@ -208,8 +204,10 @@ fn increment_skip_count(job: &JobInfo) -> Result<(), pgrx::spi::Error> {
             None,
             &[
                 unsafe { DatumWithOid::new(job.id.into_datum().unwrap(), pg_sys::INT4OID) },
-                unsafe { DatumWithOid::new(job.interval_secs.into_datum().unwrap(), pg_sys::INT4OID) },
-            ]
+                unsafe {
+                    DatumWithOid::new(job.interval_secs.into_datum().unwrap(), pg_sys::INT4OID)
+                },
+            ],
         )?;
         Ok(())
     })
@@ -221,7 +219,7 @@ fn increment_skip_count(job: &JobInfo) -> Result<(), pgrx::spi::Error> {
 
 fn check_has_unique_index(schema: &str, view_name: &str) -> Result<bool, String> {
     Spi::connect(|client| {
-        let result = client.select(
+        let mut result = client.select(
             "SELECT EXISTS (
                 SELECT 1 FROM pg_indexes
                 WHERE schemaname = $1 AND tablename = $2
@@ -231,15 +229,15 @@ fn check_has_unique_index(schema: &str, view_name: &str) -> Result<bool, String>
             &[
                 unsafe { DatumWithOid::new(schema.into_datum().unwrap(), pg_sys::TEXTOID) },
                 unsafe { DatumWithOid::new(view_name.into_datum().unwrap(), pg_sys::TEXTOID) },
-            ]
+            ],
         )?;
 
-        for row in result {
-            return Ok(row.get_by_name::<bool, _>("has_unique")?
-                .unwrap_or(false));
+        if let Some(row) = result.next() {
+            return Ok(row.get_by_name::<bool, _>("has_unique")?.unwrap_or(false));
         }
         Ok(false)
-    }).map_err(|e: SpiError| e.to_string())
+    })
+    .map_err(|e: SpiError| e.to_string())
 }
 
 fn update_unique_index_status(job_id: i32, has_unique: bool) -> Result<(), pgrx::spi::Error> {
@@ -250,7 +248,7 @@ fn update_unique_index_status(job_id: i32, has_unique: bool) -> Result<(), pgrx:
             &[
                 unsafe { DatumWithOid::new(job_id.into_datum().unwrap(), pg_sys::INT4OID) },
                 unsafe { DatumWithOid::new(has_unique.into_datum().unwrap(), pg_sys::BOOLOID) },
-            ]
+            ],
         )?;
         Ok(())
     })
@@ -273,7 +271,7 @@ fn process_refresh_cycle() -> Result<(), pgrx::spi::Error> {
                  ORDER BY next_refresh NULLS FIRST
                  LIMIT 10",
                 None,
-                &[]
+                &[],
             )?;
 
             let mut jobs = Vec::new();
@@ -309,15 +307,24 @@ fn process_single_job(job: &JobInfo) -> Result<JobOutcome, pgrx::spi::Error> {
     if let Some(ref source_table) = job.source_table {
         match get_table_change_count(&job.schema, source_table) {
             Ok(current_count) if current_count >= 0 && current_count == job.last_change_count => {
-                log!("SKIP: {}.{} — no changes in source table '{}' (count: {})",
-                     job.schema, job.view_name, source_table, current_count);
+                log!(
+                    "SKIP: {}.{} — no changes in source table '{}' (count: {})",
+                    job.schema,
+                    job.view_name,
+                    source_table,
+                    current_count
+                );
                 increment_skip_count(job)?;
                 return Ok(JobOutcome::Skipped);
             }
             Ok(_) => { /* data changed, proceed with refresh */ }
             Err(e) => {
-                log!("WARNING: Could not check change count for {}.{}: {} — proceeding with refresh",
-                     job.schema, source_table, e);
+                log!(
+                    "WARNING: Could not check change count for {}.{}: {} — proceeding with refresh",
+                    job.schema,
+                    source_table,
+                    e
+                );
             }
         }
     }
@@ -331,28 +338,44 @@ fn process_single_job(job: &JobInfo) -> Result<JobOutcome, pgrx::spi::Error> {
             val
         }
         Err(e) => {
-            log!("WARNING: Could not check unique index for {}.{}: {}",
-                 job.schema, job.view_name, e);
+            log!(
+                "WARNING: Could not check unique index for {}.{}: {}",
+                job.schema,
+                job.view_name,
+                e
+            );
             job.has_unique_index
         }
     };
 
     if !has_unique {
-        log!("WARNING: {}.{} lacks a UNIQUE index — using ACCESS EXCLUSIVE lock (blocking reads). \
+        log!(
+            "WARNING: {}.{} lacks a UNIQUE index — using ACCESS EXCLUSIVE lock (blocking reads). \
               Add a UNIQUE index to enable CONCURRENT refresh.",
-             job.schema, job.view_name);
+            job.schema,
+            job.view_name
+        );
     }
 
-    log!("Processing refresh for {}.{} (job_id: {}, concurrent: {})",
-         job.schema, job.view_name, job.id, has_unique);
+    log!(
+        "Processing refresh for {}.{} (job_id: {}, concurrent: {})",
+        job.schema,
+        job.view_name,
+        job.id,
+        has_unique
+    );
 
     let refresh_result = refresh_materialized_view_standalone(job, has_unique);
     update_next_refresh_standalone(job)?;
 
     match refresh_result {
         Ok(duration_ms) => {
-            log!("SUCCESS: Refreshed {}.{} in {}ms",
-                 job.schema, job.view_name, duration_ms);
+            log!(
+                "SUCCESS: Refreshed {}.{} in {}ms",
+                job.schema,
+                job.view_name,
+                duration_ms
+            );
             log_refresh_success_standalone(job.id, duration_ms)?;
 
             // Update change count after successful refresh
@@ -363,8 +386,12 @@ fn process_single_job(job: &JobInfo) -> Result<JobOutcome, pgrx::spi::Error> {
             }
         }
         Err(error_msg) => {
-            log!("ERROR: Failed to refresh {}.{}: {}",
-                 job.schema, job.view_name, error_msg);
+            log!(
+                "ERROR: Failed to refresh {}.{}: {}",
+                job.schema,
+                job.view_name,
+                error_msg
+            );
             log_refresh_failure_standalone(job.id, &error_msg)?;
         }
     }
@@ -372,27 +399,39 @@ fn process_single_job(job: &JobInfo) -> Result<JobOutcome, pgrx::spi::Error> {
     Ok(JobOutcome::Refreshed)
 }
 
-fn refresh_materialized_view_standalone(job: &JobInfo, has_unique_index: bool) -> Result<i32, String> {
+fn refresh_materialized_view_standalone(
+    job: &JobInfo,
+    has_unique_index: bool,
+) -> Result<i32, String> {
     let start_time = std::time::Instant::now();
 
     // Check if view is populated
     let is_populated = Spi::connect(|client| {
-        let result = client.select(
+        let mut result = client.select(
             "SELECT ispopulated FROM pg_matviews WHERE schemaname = $1 AND matviewname = $2",
             None,
             &[
-                unsafe { DatumWithOid::new(job.schema.clone().into_datum().unwrap(), pg_sys::TEXTOID) },
-                unsafe { DatumWithOid::new(job.view_name.clone().into_datum().unwrap(), pg_sys::TEXTOID) },
-            ]
+                unsafe {
+                    DatumWithOid::new(job.schema.clone().into_datum().unwrap(), pg_sys::TEXTOID)
+                },
+                unsafe {
+                    DatumWithOid::new(job.view_name.clone().into_datum().unwrap(), pg_sys::TEXTOID)
+                },
+            ],
         )?;
 
-        for row in result {
-            return Ok(row.get_by_name::<bool, _>("ispopulated").unwrap_or(Some(false)).unwrap_or(false));
+        if let Some(row) = result.next() {
+            return Ok(row
+                .get_by_name::<bool, _>("ispopulated")
+                .unwrap_or(Some(false))
+                .unwrap_or(false));
         }
         Ok(false)
-    }).map_err(|e: SpiError| e.to_string())?;
+    })
+    .map_err(|e: SpiError| e.to_string())?;
 
-    let refresh_strategies = get_refresh_strategies(&job.schema, &job.view_name, is_populated, has_unique_index);
+    let refresh_strategies =
+        get_refresh_strategies(&job.schema, &job.view_name, is_populated, has_unique_index);
 
     // Try refresh strategies
     let mut last_error = String::new();
@@ -407,8 +446,11 @@ fn refresh_materialized_view_standalone(job: &JobInfo, has_unique_index: bool) -
             Err(e) => {
                 last_error = e.to_string();
                 if attempt == 0 && refresh_strategies.len() > 1 {
-                    pgrx::log!("WARNING: Concurrent refresh failed for {}.{}, trying regular refresh",
-                              job.schema, job.view_name);
+                    pgrx::log!(
+                        "WARNING: Concurrent refresh failed for {}.{}, trying regular refresh",
+                        job.schema,
+                        job.view_name
+                    );
                 }
             }
         }
@@ -422,7 +464,12 @@ fn quote_ident(ident: &str) -> String {
     format!("\"{}\"", ident.replace('"', "\"\""))
 }
 
-fn get_refresh_strategies(schema: &str, view_name: &str, is_populated: bool, has_unique_index: bool) -> Vec<String> {
+fn get_refresh_strategies(
+    schema: &str,
+    view_name: &str,
+    is_populated: bool,
+    has_unique_index: bool,
+) -> Vec<String> {
     let qualified = format!("{}.{}", quote_ident(schema), quote_ident(view_name));
     if is_populated && has_unique_index {
         // Safe to try CONCURRENT — view is populated and has UNIQUE index
@@ -446,8 +493,10 @@ fn update_next_refresh_standalone(job: &JobInfo) -> Result<(), pgrx::spi::Error>
             None,
             &[
                 unsafe { DatumWithOid::new(job.id.into_datum().unwrap(), pg_sys::INT4OID) },
-                unsafe { DatumWithOid::new(job.interval_secs.into_datum().unwrap(), pg_sys::INT4OID) },
-            ]
+                unsafe {
+                    DatumWithOid::new(job.interval_secs.into_datum().unwrap(), pg_sys::INT4OID)
+                },
+            ],
         )?;
         Ok(())
     })
@@ -467,7 +516,10 @@ fn log_refresh_success_standalone(job_id: i32, duration_ms: i32) -> Result<(), p
     })
 }
 
-fn log_refresh_failure_standalone(job_id: i32, error_message: &str) -> Result<(), pgrx::spi::Error> {
+fn log_refresh_failure_standalone(
+    job_id: i32,
+    error_message: &str,
+) -> Result<(), pgrx::spi::Error> {
     Spi::connect(|client| {
         client.select(
             "INSERT INTO matview_refresh_log (job_id, status, error_message) VALUES ($1, 'Failed', $2)",
@@ -621,7 +673,9 @@ mod tests {
     #[test]
     fn test_quote_ident_sql_keywords() {
         // SQL reserved words used as identifiers must be safely quoted
-        for keyword in &["SELECT", "DROP", "INSERT", "DELETE", "UPDATE", "TABLE", "FROM", "WHERE"] {
+        for keyword in &[
+            "SELECT", "DROP", "INSERT", "DELETE", "UPDATE", "TABLE", "FROM", "WHERE",
+        ] {
             let result = quote_ident(keyword);
             assert_eq!(result, format!("\"{}\"", keyword));
         }
@@ -649,7 +703,10 @@ mod tests {
         // Should NOT contain a bare semicolon outside quotes
         let qualified = &strategies[0]["REFRESH MATERIALIZED VIEW CONCURRENTLY ".len()..];
         // The entire thing should be a single quoted identifier pair
-        assert!(qualified.contains("\"\""), "Internal quotes must be escaped");
+        assert!(
+            qualified.contains("\"\""),
+            "Internal quotes must be escaped"
+        );
     }
 
     #[test]
@@ -666,12 +723,8 @@ mod tests {
 
     #[test]
     fn test_strategies_sql_injection_both_params() {
-        let strategies = get_refresh_strategies(
-            "'; DROP TABLE t; --",
-            "\"; DROP TABLE t; --",
-            true,
-            true,
-        );
+        let strategies =
+            get_refresh_strategies("'; DROP TABLE t; --", "\"; DROP TABLE t; --", true, true);
         // Both should be properly quoted — single quotes in schema pass through,
         // double quotes in view_name get escaped
         assert_eq!(strategies.len(), 2);
@@ -716,7 +769,7 @@ mod kilobase_tests {
             "SELECT EXISTS (
                 SELECT 1 FROM information_schema.tables
                 WHERE table_name = 'matview_refresh_jobs'
-            )"
+            )",
         );
         assert_eq!(result, Ok(Some(true)));
     }
@@ -727,7 +780,7 @@ mod kilobase_tests {
             "SELECT EXISTS (
                 SELECT 1 FROM information_schema.tables
                 WHERE table_name = 'matview_refresh_log'
-            )"
+            )",
         );
         assert_eq!(result, Ok(Some(true)));
     }
@@ -739,7 +792,7 @@ mod kilobase_tests {
             "SELECT EXISTS (
                 SELECT 1 FROM information_schema.columns
                 WHERE table_name = 'matview_refresh_jobs' AND column_name = 'source_table'
-            )"
+            )",
         );
         assert_eq!(source_table_exists, Ok(Some(true)));
 
@@ -747,7 +800,7 @@ mod kilobase_tests {
             "SELECT EXISTS (
                 SELECT 1 FROM information_schema.columns
                 WHERE table_name = 'matview_refresh_jobs' AND column_name = 'has_unique_index'
-            )"
+            )",
         );
         assert_eq!(has_unique_exists, Ok(Some(true)));
 
@@ -755,7 +808,7 @@ mod kilobase_tests {
             "SELECT EXISTS (
                 SELECT 1 FROM information_schema.columns
                 WHERE table_name = 'matview_refresh_jobs' AND column_name = 'skip_count'
-            )"
+            )",
         );
         assert_eq!(skip_count_exists, Ok(Some(true)));
 
@@ -763,7 +816,7 @@ mod kilobase_tests {
             "SELECT EXISTS (
                 SELECT 1 FROM information_schema.columns
                 WHERE table_name = 'matview_refresh_jobs' AND column_name = 'last_change_count'
-            )"
+            )",
         );
         assert_eq!(change_count_exists, Ok(Some(true)));
     }
@@ -771,46 +824,57 @@ mod kilobase_tests {
     #[pg_test]
     fn test_register_matview_validates_existence() {
         // Should fail for non-existent matview
-        let result = Spi::run(
-            "SELECT register_matview_refresh('public', 'nonexistent_view_xyz', 300)"
-        );
+        let result =
+            Spi::run("SELECT register_matview_refresh('public', 'nonexistent_view_xyz', 300)");
         assert!(result.is_err());
     }
 
     #[pg_test]
     fn test_register_and_unregister_matview() {
         // Create a test matview
-        Spi::run("CREATE MATERIALIZED VIEW test_mv AS SELECT 1 as id, 'test'::text as name").unwrap();
+        Spi::run("CREATE MATERIALIZED VIEW test_mv AS SELECT 1 as id, 'test'::text as name")
+            .unwrap();
         Spi::run("CREATE UNIQUE INDEX idx_test_mv_id ON test_mv(id)").unwrap();
 
         // Register it
-        let job_id = Spi::get_one::<i32>(
-            "SELECT register_matview_refresh('public', 'test_mv', 120)"
-        ).unwrap().unwrap();
+        let job_id =
+            Spi::get_one::<i32>("SELECT register_matview_refresh('public', 'test_mv', 120)")
+                .unwrap()
+                .unwrap();
         assert!(job_id > 0);
 
         // Verify it was registered
-        let is_active = Spi::get_one::<bool>(
-            &format!("SELECT is_active FROM matview_refresh_jobs WHERE id = {}", job_id)
-        ).unwrap().unwrap();
+        let is_active = Spi::get_one::<bool>(&format!(
+            "SELECT is_active FROM matview_refresh_jobs WHERE id = {}",
+            job_id
+        ))
+        .unwrap()
+        .unwrap();
         assert!(is_active);
 
         // Verify UNIQUE index was detected
-        let has_unique = Spi::get_one::<bool>(
-            &format!("SELECT has_unique_index FROM matview_refresh_jobs WHERE id = {}", job_id)
-        ).unwrap().unwrap();
+        let has_unique = Spi::get_one::<bool>(&format!(
+            "SELECT has_unique_index FROM matview_refresh_jobs WHERE id = {}",
+            job_id
+        ))
+        .unwrap()
+        .unwrap();
         assert!(has_unique);
 
         // Unregister
-        let unregistered = Spi::get_one::<bool>(
-            "SELECT unregister_matview_refresh('public', 'test_mv')"
-        ).unwrap().unwrap();
+        let unregistered =
+            Spi::get_one::<bool>("SELECT unregister_matview_refresh('public', 'test_mv')")
+                .unwrap()
+                .unwrap();
         assert!(unregistered);
 
         // Verify it's inactive
-        let is_active = Spi::get_one::<bool>(
-            &format!("SELECT is_active FROM matview_refresh_jobs WHERE id = {}", job_id)
-        ).unwrap().unwrap();
+        let is_active = Spi::get_one::<bool>(&format!(
+            "SELECT is_active FROM matview_refresh_jobs WHERE id = {}",
+            job_id
+        ))
+        .unwrap()
+        .unwrap();
         assert!(!is_active);
 
         // Cleanup
@@ -823,12 +887,17 @@ mod kilobase_tests {
         Spi::run("CREATE MATERIALIZED VIEW test_mv_no_unique AS SELECT 1 as id").unwrap();
 
         let job_id = Spi::get_one::<i32>(
-            "SELECT register_matview_refresh('public', 'test_mv_no_unique', 300)"
-        ).unwrap().unwrap();
+            "SELECT register_matview_refresh('public', 'test_mv_no_unique', 300)",
+        )
+        .unwrap()
+        .unwrap();
 
-        let has_unique = Spi::get_one::<bool>(
-            &format!("SELECT has_unique_index FROM matview_refresh_jobs WHERE id = {}", job_id)
-        ).unwrap().unwrap();
+        let has_unique = Spi::get_one::<bool>(&format!(
+            "SELECT has_unique_index FROM matview_refresh_jobs WHERE id = {}",
+            job_id
+        ))
+        .unwrap()
+        .unwrap();
         assert!(!has_unique);
 
         // Cleanup
@@ -849,11 +918,17 @@ mod kilobase_tests {
             "SELECT EXTRACT(EPOCH FROM (
                 (SELECT next_refresh FROM matview_refresh_jobs WHERE view_name = 'stagger_mv2') -
                 (SELECT next_refresh FROM matview_refresh_jobs WHERE view_name = 'stagger_mv1')
-            ))::FLOAT8"
-        ).unwrap().unwrap();
+            ))::FLOAT8",
+        )
+        .unwrap()
+        .unwrap();
 
         // The difference should be approximately 10 seconds (the stagger offset)
-        assert!(time_diff.abs() > 5.0, "Stagger offset should create at least 5s gap, got {}s", time_diff);
+        assert!(
+            time_diff.abs() > 5.0,
+            "Stagger offset should create at least 5s gap, got {}s",
+            time_diff
+        );
 
         // Cleanup
         Spi::run("DROP MATERIALIZED VIEW stagger_mv1").unwrap();
@@ -867,12 +942,17 @@ mod kilobase_tests {
         Spi::run("CREATE MATERIALIZED VIEW test_mv_src AS SELECT * FROM test_source").unwrap();
 
         let job_id = Spi::get_one::<i32>(
-            "SELECT register_matview_refresh('public', 'test_mv_src', 120, 'test_source')"
-        ).unwrap().unwrap();
+            "SELECT register_matview_refresh('public', 'test_mv_src', 120, 'test_source')",
+        )
+        .unwrap()
+        .unwrap();
 
-        let source = Spi::get_one::<String>(
-            &format!("SELECT source_table FROM matview_refresh_jobs WHERE id = {}", job_id)
-        ).unwrap().unwrap();
+        let source = Spi::get_one::<String>(&format!(
+            "SELECT source_table FROM matview_refresh_jobs WHERE id = {}",
+            job_id
+        ))
+        .unwrap()
+        .unwrap();
         assert_eq!(source, "test_source");
 
         // Cleanup
@@ -883,17 +963,13 @@ mod kilobase_tests {
     #[pg_test]
     fn test_cleanup_function_exists() {
         // Should not error
-        let result = Spi::get_one::<i32>(
-            "SELECT cleanup_matview_refresh_logs(7)"
-        );
+        let result = Spi::get_one::<i32>("SELECT cleanup_matview_refresh_logs(7)");
         assert!(result.is_ok());
     }
 
     #[pg_test]
     fn test_health_check_returns_data() {
-        let result = Spi::get_one::<i32>(
-            "SELECT active_jobs FROM kilobase_health_check()"
-        );
+        let result = Spi::get_one::<i32>("SELECT active_jobs FROM kilobase_health_check()");
         assert!(result.is_ok());
     }
 
