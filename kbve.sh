@@ -160,20 +160,6 @@ brew_check() {
     echo "Homebrew is installed."
 }
 
-# Function to help prepare the Disoxide Container
-prepare_disoxide_container() {
-    echo "Cleaning disoxide/dist..."
-    rm -rf ./apps/discord/disoxide/dist/
-
-    echo "Creating dist directory..."
-    mkdir -p ./apps/discord/disoxide/dist/
-
-    echo "Copying Astro build output to disoxide/dist..."
-    cp -a ./dist/apps/astro-discord/. ./apps/discord/disoxide/dist/
-
-    echo "[Prep] Prepared disoxide build. You can now run: pnpm nx run disoxide:containerx"
-}
-
 # Create an atomic worktree for small, self-contained changes.
 atomic_function() {
     set -e
@@ -869,9 +855,6 @@ case "$1" in
     -worktree-rm)
         shift
         remove_worktree "$@"
-        ;;
-    -preparecontainer)
-        prepare_disoxide_container
         ;;
     -db)
         if is_installed "diesel_ext"; then

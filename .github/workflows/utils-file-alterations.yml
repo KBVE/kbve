@@ -185,7 +185,7 @@ jobs:
                       py_lib_kbve:
                           - 'packages/python/kbve/kbve/**'
                       notificationbot:
-                          - 'apps/discord/notification-bot/README.md'
+                          - 'apps/discordsh/notification-bot/README.md'
                       astro_herbmail:
                           - 'apps/herbmail/README.md'
                       herbmail:

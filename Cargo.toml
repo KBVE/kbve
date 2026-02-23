@@ -11,7 +11,6 @@ members = [
 	'apps/rentearth/rust_godot_towerdefense',
 	'packages/rust/q',
 	'packages/rust/soul',
-	'apps/discord/disoxide',
 	'apps/herbmail/axum-herbmail',
 	'apps/memes/axum-memes',
 	'apps/irc/irc-gateway',
