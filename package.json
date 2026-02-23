@@ -114,7 +114,6 @@
 		"@gsap/react": "^2.1.2",
 		"@hcaptcha/react-hcaptcha": "^2.0.2",
 		"@hookform/resolvers": "^5.2.2",
-		"@million/lint": "^1.0.14",
 		"@peculiar/webcrypto": "^1.5.0",
 		"@react-three/drei": "^10.7.7",
 		"@react-three/fiber": "^9.5.0",
