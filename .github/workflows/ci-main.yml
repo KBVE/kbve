@@ -55,6 +55,8 @@ jobs:
         needs: ['globals']
         name: 'Alpha Alters'
         if: github.repository == 'kbve/kbve'
+        permissions:
+            contents: read
         uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
         with:
             branch: 'main'
@@ -119,6 +121,8 @@ jobs:
         name: Publish Godot Game on Itch
         needs: ['generate_godot_matrix']
         if: ${{ needs.generate_godot_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
         strategy:
             matrix: ${{ fromJson(needs.generate_godot_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-godot-itch-build-pipeline.yml@main
@@ -167,6 +171,8 @@ jobs:
         name: Test NPM
         needs: ['generate_npm_matrix']
         if: ${{ needs.generate_npm_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
         strategy:
             matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/npm-test-package.yml@main
@@ -176,6 +182,9 @@ jobs:
     publish_npm:
         name: Publish NPM
         needs: ['generate_npm_matrix', 'test_npm']
+        permissions:
+            contents: read
+            id-token: write
         strategy:
             matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-npm-publish.yml@main
@@ -210,6 +219,8 @@ jobs:
         needs: ['generate_crates_matrix']
         name: Test Rust Crates
         if: ${{ needs.generate_crates_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
         strategy:
             matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/rust-test-crate.yml@main
@@ -219,6 +230,12 @@ jobs:
     publish_crates:
         needs: ['generate_crates_matrix', 'test_crates']
         name: Publish Rust Crates
+        permissions:
+            id-token: write
+            contents: write
+            packages: write
+            issues: write
+            pull-requests: write
         strategy:
             matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
@@ -257,6 +274,8 @@ jobs:
         needs: ['generate_e2e_docker_matrix']
         name: Test Docker Apps
         if: ${{ needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
         strategy:
             matrix: ${{ fromJson(needs.generate_e2e_docker_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/docker-test-app.yml@main
@@ -267,6 +286,9 @@ jobs:
         needs: ['generate_docker_matrix', 'test_docker']
         name: Publish Docker Images
         if: ${{ !failure() && !cancelled() && needs.generate_docker_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
+            packages: write
         strategy:
             matrix: ${{ fromJson(needs.generate_docker_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
@@ -296,6 +318,9 @@ jobs:
         needs: ['generate_kube_update_matrix', 'publish_docker']
         name: Update Kube Manifests
         if: ${{ !failure() && !cancelled() && needs.generate_kube_update_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: write
+            pull-requests: write
         strategy:
             matrix: ${{ fromJson(needs.generate_kube_update_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-update-kube-manifest.yml@main
@@ -397,6 +422,8 @@ jobs:
         name: Test Python
         needs: ['generate_python_matrix']
         if: ${{ needs.generate_python_matrix.outputs.matrix != 'null' }}
+        permissions:
+            contents: read
         strategy:
             matrix: ${{ fromJson(needs.generate_python_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/python-test-package.yml@main
@@ -406,6 +433,9 @@ jobs:
     publish_python:
         name: Publish Python
         needs: ['generate_python_matrix', 'test_python']
+        permissions:
+            contents: read
+            id-token: write
         strategy:
             matrix: ${{ fromJson(needs.generate_python_matrix.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-python-publish.yml@main
