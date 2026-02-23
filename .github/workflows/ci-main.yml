@@ -24,7 +24,7 @@ jobs:
 
         steps:
             - name: Checkout Code
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
                   token: ${{ secrets.GITHUB_TOKEN }}
@@ -61,7 +61,7 @@ jobs:
         timeout-minutes: 10
         steps:
             - name: Checkout the repository using git
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Setup Node v24
               uses: actions/setup-node@v4
@@ -357,7 +357,7 @@ jobs:
             id-token: write
         steps:
             - name: Checkout the monorepo using git
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                   fetch-depth: 0
 

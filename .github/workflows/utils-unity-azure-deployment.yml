@@ -95,7 +95,7 @@ jobs:
 
             - name: Use Local Repo if Azure not provided
               if: ${{ inputs.azure_repo_url == '' }}
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Unity Cache
               uses: actions/cache@v5
