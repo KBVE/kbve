@@ -122,7 +122,10 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 		return new Promise<T>((resolve, reject) => {
 			if (!this.port)
 				return reject(new Error('SharedWorker unavailable'));
-			this.pending.set(id, { resolve, reject });
+			this.pending.set(id, {
+				resolve: resolve as (value: unknown) => void,
+				reject,
+			});
 			this.port.postMessage({ id, type, payload });
 		});
 	}

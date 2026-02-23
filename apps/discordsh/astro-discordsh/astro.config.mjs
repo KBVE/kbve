@@ -9,6 +9,7 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Discord.sh',
+      favicon: '/favicon.svg',
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/kbve/kbve' },
         { icon: 'discord', label: 'Discord', href: 'https://kbve.com/discord' },
