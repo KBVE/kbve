@@ -7500,26 +7500,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "rust_soul"
-version = "0.1.0"
-dependencies = [
- "axum 0.8.8",
- "bitflags 2.11.0",
- "borsh 1.6.0",
- "borsh-derive 1.6.0",
- "papaya 0.1.9",
- "serde",
- "serde_json",
- "solana-client",
- "solana-program",
- "solana-sdk",
- "thiserror 2.0.18",
- "tokio",
- "tracing",
- "tracing-subscriber",
-]
-
-[[package]]
 name = "rustc-hash"
 version = "1.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -10312,6 +10292,26 @@ dependencies = [
  "solana-serialize-utils",
  "solana-short-vec",
  "solana-system-interface",
+]
+
+[[package]]
+name = "soul"
+version = "0.1.0"
+dependencies = [
+ "axum 0.8.8",
+ "bitflags 2.11.0",
+ "borsh 1.6.0",
+ "borsh-derive 1.6.0",
+ "papaya 0.1.9",
+ "serde",
+ "serde_json",
+ "solana-client",
+ "solana-program",
+ "solana-sdk",
+ "thiserror 2.0.18",
+ "tokio",
+ "tracing",
+ "tracing-subscriber",
 ]
 
 [[package]]
