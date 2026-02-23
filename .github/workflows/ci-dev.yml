@@ -98,7 +98,7 @@ jobs:
               if: fromJson(steps.check_changes.outputs.result).hasChanges == false
               run: |
                   echo "Dev to Staging PR Status: NOT NEEDED"
-                  
+
                   if [[ "${{ fromJson(steps.check_changes.outputs.result).stagingAhead }}" == "true" ]]; then
                       echo "Staging is ${{ fromJson(steps.check_changes.outputs.result).stagingAheadBy }} commits ahead of dev"
                       echo "This is normal after a release - staging contains the latest tested code"
@@ -107,7 +107,7 @@ jobs:
                       echo "Dev and staging are synchronized"
                       echo "No new atomic commits to promote yet"
                   fi
-                  
+
                   echo ""
                   echo "This is a normal state that indicates:"
                   echo "- No new atomic commits have been merged to dev since last promotion"
@@ -151,7 +151,7 @@ jobs:
                       const path = require('path');
                       const utils = await import(path.resolve('.github/scripts/commit-utils.mjs'));
 
-                      const checkResult = ${{ toJson(steps.check_pr.outputs.result) }};
+                      const checkResult = ${{ steps.check_pr.outputs.result || 'null' }};
 
                       // Get commits between staging and dev
                       const comparison = await github.rest.repos.compareCommits({
