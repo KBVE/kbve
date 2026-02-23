@@ -25,7 +25,7 @@ jobs:
             contents: read
             pull-requests: write
             issues: write
-        
+
         steps:
             - name: Checkout
               uses: actions/checkout@v6
@@ -125,7 +125,7 @@ jobs:
                       const path = require('path');
                       const utils = await import(path.resolve('.github/scripts/commit-utils.mjs'));
 
-                      const checkResult = ${{ toJson(steps.check_pr.outputs.result) }};
+                      const checkResult = ${{ steps.check_pr.outputs.result || 'null' }};
 
                       // Get commits between main and staging
                       const comparison = await github.rest.repos.compareCommits({
