@@ -44,6 +44,9 @@ jobs:
     call_sync:
         needs: ['globals']
         name: 'Call Sync Workflow'
+        permissions:
+            contents: write
+            issues: write
         uses: KBVE/kbve/.github/workflows/ci-sync.yml@main
         secrets:
             UNITY_PAT: ${{ secrets.UNITY_PAT }}
