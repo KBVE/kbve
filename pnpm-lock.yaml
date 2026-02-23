@@ -20,8 +20,8 @@ importers:
                 specifier: ^2.1.2
                 version: 2.1.2(gsap@3.13.0)(react@19.2.4)
             '@hcaptcha/react-hcaptcha':
-                specifier: ^1.11.0
-                version: 1.12.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+                specifier: ^2.0.2
+                version: 2.0.2
             '@hookform/resolvers':
                 specifier: ^3.9.1
                 version: 3.10.0(react-hook-form@7.55.0(react@19.2.4))
@@ -107,11 +107,11 @@ importers:
                 specifier: ^1.4.1
                 version: 1.4.2(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
             lucide:
-                specifier: ^0.523.0
-                version: 0.523.0
+                specifier: ^0.575.0
+                version: 0.575.0
             lucide-react:
-                specifier: ^0.395.0
-                version: 0.395.0(react@19.2.4)
+                specifier: ^0.575.0
+                version: 0.575.0(react@19.2.4)
             marked:
                 specifier: ^13.0.3
                 version: 13.0.3
@@ -3325,20 +3325,11 @@ packages:
                 integrity: sha512-foQZKJig7Ob0BMAYBfcJk8d77QtOe7Wo4ox7ff1lQYoNNAb6jwcY1ncdoy2e9wQZzvNy7ODZCYJkK8kzmcAnAg==,
             }
 
-    '@hcaptcha/loader@2.0.0':
+    '@hcaptcha/react-hcaptcha@2.0.2':
         resolution:
             {
-                integrity: sha512-fFQH6ApU/zCCl6Y1bnbsxsp1Er/lKX+qlgljrpWDeFcenpEtoP68hExlKSXECospzKLeSWcr06cbTjlR/x3IJA==,
+                integrity: sha512-VbuH6VJ6m3BHmVBHs0fL9t+suZd7PQEqCzqL2BiUbBvbHI3XfvSgdiug2QiEPN8zskbPTIV/FfGPF53JCckrow==,
             }
-
-    '@hcaptcha/react-hcaptcha@1.12.0':
-        resolution:
-            {
-                integrity: sha512-QiHnQQ52k8SJJSHkc3cq4TlYzag7oPd4f5ZqnjVSe4fJDSlZaOQFtu5F5AYisVslwaitdDELPVLRsRJxiiI0Aw==,
-            }
-        peerDependencies:
-            react: '>= 16.3.0'
-            react-dom: '>= 16.3.0'
 
     '@hono/node-server@1.14.4':
         resolution:
@@ -18667,18 +18658,18 @@ packages:
             }
         engines: { node: '>=12' }
 
-    lucide-react@0.395.0:
+    lucide-react@0.575.0:
         resolution:
             {
-                integrity: sha512-6hzdNH5723A4FLaYZWpK50iyZH8iS2Jq5zuPRRotOFkhu6kxxJiebVdJ72tCR5XkiIeYFOU5NUawFZOac+VeYw==,
+                integrity: sha512-VuXgKZrk0uiDlWjGGXmKV6MSk9Yy4l10qgVvzGn2AWBx1Ylt0iBexKOAoA6I7JO3m+M9oeovJd3yYENfkUbOeg==,
             }
         peerDependencies:
-            react: ^16.5.1 || ^17.0.0 || ^18.0.0
+            react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
-    lucide@0.523.0:
+    lucide@0.575.0:
         resolution:
             {
-                integrity: sha512-tiIp5xEP4kpeulfT1J+a/NEaIZGT1k6RyMS3evQWfHRhJvR8uTat/+lN4wnX5qIexOwN02BhmcyMHBNwt+jkLA==,
+                integrity: sha512-+xwqZpvrqPioU8bSH49zH2xARfnKyZgIjdnfbex0CrURB3q4wNFhinYN1Z9Q3lE16Q/6N9iEXnStvyS3c70RKw==,
             }
 
     luxon@3.5.0:
@@ -29985,14 +29976,7 @@ snapshots:
             '@hapi/hoek': 9.3.0
         optional: true
 
-    '@hcaptcha/loader@2.0.0': {}
-
-    '@hcaptcha/react-hcaptcha@1.12.0(react-dom@19.2.4(react@19.2.4))(react@19.2.4)':
-        dependencies:
-            '@babel/runtime': 7.27.6
-            '@hcaptcha/loader': 2.0.0
-            react: 19.2.4
-            react-dom: 19.2.4(react@19.2.4)
+    '@hcaptcha/react-hcaptcha@2.0.2': {}
 
     '@hono/node-server@1.14.4(hono@4.8.3)':
         dependencies:
@@ -41373,11 +41357,11 @@ snapshots:
 
     lru-cache@7.18.3: {}
 
-    lucide-react@0.395.0(react@19.2.4):
+    lucide-react@0.575.0(react@19.2.4):
         dependencies:
             react: 19.2.4
 
-    lucide@0.523.0: {}
+    lucide@0.575.0: {}
 
     luxon@3.5.0: {}
 
