@@ -316,6 +316,14 @@ jobs:
             - name: Install pnpm Dependencies
               run: pnpm install
 
+            - name: Setup Python
+              uses: actions/setup-python@v6
+              with:
+                  python-version: '3.12'
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
+
             - name: Lint affected projects
               run: pnpm nx affected --target=lint --base=origin/dev --head=HEAD --no-cloud
 
@@ -527,7 +535,16 @@ jobs:
     workflow_summary:
         name: 'Workflow Summary'
         runs-on: ubuntu-latest
-        needs: [authorize_actor, validate_branch, check_pr_status, create_pr, run_tests, security_check, auto_merge]
+        needs:
+            [
+                authorize_actor,
+                validate_branch,
+                check_pr_status,
+                create_pr,
+                run_tests,
+                security_check,
+                auto_merge,
+            ]
         if: always()
         timeout-minutes: 5
 

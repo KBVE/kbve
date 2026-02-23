@@ -251,6 +251,14 @@ jobs:
             - name: Install pnpm Dependencies
               run: pnpm install
 
+            - name: Setup Python
+              uses: actions/setup-python@v6
+              with:
+                  python-version: '3.12'
+
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
+
             - name: Lint affected projects
               run: pnpm nx affected --target=lint --base=origin/main --head=origin/staging --no-cloud
 
