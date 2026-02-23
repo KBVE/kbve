@@ -39,7 +39,7 @@ jobs:
 
         steps:
             - name: Checkout Repository
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
               with:
                 ref: ${{ inputs.branch }}
 
@@ -64,7 +64,7 @@ jobs:
 
             - name: Setup Node v24
               if: ${{ steps.version_check.outputs.should_publish != 'false' }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: 24
 
@@ -125,7 +125,7 @@ jobs:
 
             - name: Scan Docker image with Trivy
               if: ${{ steps.version_check.outputs.should_publish != 'false' && inputs.image != '' }}
-              uses: aquasecurity/trivy-action@0.28.0
+              uses: aquasecurity/trivy-action@0.34.1
               with:
                   image-ref: ${{ inputs.image }}:latest
                   format: table

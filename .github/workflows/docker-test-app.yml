@@ -16,7 +16,7 @@ jobs:
 
         steps:
             - name: Checkout the monorepo
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Rust ToolChain
               uses: dtolnay/rust-toolchain@stable
@@ -35,7 +35,7 @@ jobs:
                       ${{ runner.os }}-cargo-
 
             - name: Setup Node v24
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: 24
 

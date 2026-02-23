@@ -1,78 +1,68 @@
 {
-  "name": "q",
-  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "projectType": "library",
-  "sourceRoot": "packages/rust/q/src",
-  "targets": {
-    "build": {
-      "executor": "@monodon/rust:build",
-      "outputs": [
-        "{options.target-dir}"
-      ],
-      "options": {
-        "target-dir": "dist/target/q"
-      },
-      "configurations": {
-        "production": {
-          "release": true
-        }
-      }
-    },
-    "test": {
-      "executor": "@monodon/rust:test",
-      "outputs": [
-        "{options.target-dir}"
-      ],
-      "options": {
-        "target-dir": "dist/target/q"
-      },
-      "configurations": {
-        "production": {
-          "release": true
-        }
-      }
-    },
-    "lint": {
-      "executor": "@monodon/rust:lint",
-      "outputs": [
-        "{options.target-dir}"
-      ],
-      "options": {
-        "target-dir": "dist/target/q"
-      }
-    },
+	"name": "q",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "library",
+	"sourceRoot": "packages/rust/q/src",
+	"targets": {
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/q"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/q"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/q"
+			}
+		},
 
-    "e2e": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": ["nx test q"],
-        "parallel": false
-      }
-    },
-    "build-mac": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "packages/rust/q",
-        "commands": [
-          "cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos --release",
-          "mkdir -p release/addons/q/macos",
-          "cp dist/macos/*.dylib release/addons/q/macos/"
-        ],
-        "parallel": false
-      }
-    },
+		"e2e": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx test q"],
+				"parallel": false
+			}
+		},
+		"build-mac": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "packages/rust/q",
+				"commands": [
+					"cargo +nightly build -Z build-std=std,panic_abort  -Z unstable-options --target aarch64-apple-darwin --artifact-dir dist/macos --release",
+					"mkdir -p release/addons/q/macos",
+					"cp dist/macos/*.dylib release/addons/q/macos/"
+				],
+				"parallel": false
+			}
+		},
 
-    "debug-mac": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          "pnpm nx run q:build-mac",
-          "mkdir -p apps/rentearth/re-game/addons/q/macos",
-          "cp packages/rust/q/release/addons/q/macos/*.dylib apps/rentearth/re-game/addons/q/macos/"
-        ],
-        "parallel": false
-      }
-    }
-  },
-  "tags": []
+		"debug-mac": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["pnpm nx run q:build-mac"],
+				"parallel": false
+			}
+		}
+	},
+	"tags": []
 }

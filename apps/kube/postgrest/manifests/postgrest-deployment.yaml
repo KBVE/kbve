@@ -1,95 +1,95 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: postgrest
-  namespace: kilobase
-  labels:
-    app: postgrest
-    component: rest
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: postgrest
-  template:
-    metadata:
-      labels:
+    name: postgrest
+    namespace: kilobase
+    labels:
         app: postgrest
         component: rest
-    spec:
-      serviceAccountName: postgrest-sa
-      containers:
-      - name: postgrest
-        image: postgrest/postgrest:v13.0.4
-        command: ["postgrest"]
-        ports:
-        - containerPort: 3000
-          name: http
-        env:
-        # Use PGRST_DB_URI from external secret (preferred method)
-        - name: PGRST_DB_URI
-          valueFrom:
-            secretKeyRef:
-              name: postgrest-db-config
-              key: PGRST_DB_URI
-        
-        # PostgREST configuration
-        - name: PGRST_DB_SCHEMAS
-          value: "public,storage,graphql_public,tracker,profile,rentearth"
-        - name: PGRST_DB_ANON_ROLE
-          value: "anon"
-        - name: PGRST_DB_USE_LEGACY_GUCS
-          value: "false"
-        - name: PGRST_SERVER_PORT
-          value: "3000"
-        
-        # JWT configuration from secret
-        - name: PGRST_JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: supabase-jwt
-              key: secret
-        - name: PGRST_APP_SETTINGS_JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: supabase-jwt
-              key: secret
-        - name: PGRST_APP_SETTINGS_JWT_EXP
-          valueFrom:
-            secretKeyRef:
-              name: supabase-jwt
-              key: expiry
-        
-        # Health checks
-        livenessProbe:
-          httpGet:
-            path: /
-            port: 3000
-          initialDelaySeconds: 30
-          periodSeconds: 30
-          timeoutSeconds: 5
-          failureThreshold: 3
-        
-        readinessProbe:
-          httpGet:
-            path: /
-            port: 3000
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        
-        # Resource limits
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "200m"
-          limits:
-            memory: "1Gi"
-            cpu: "1000m"
-        
-        # Security context to fix user ID issues
-        securityContext:
-          runAsUser: 1000
-          runAsGroup: 1000
-          runAsNonRoot: true
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: postgrest
+    template:
+        metadata:
+            labels:
+                app: postgrest
+                component: rest
+        spec:
+            serviceAccountName: postgrest-sa
+            containers:
+                - name: postgrest
+                  image: postgrest/postgrest:v13.0.4
+                  command: ['postgrest']
+                  ports:
+                      - containerPort: 3000
+                        name: http
+                  env:
+                      # Use PGRST_DB_URI from external secret (preferred method)
+                      - name: PGRST_DB_URI
+                        valueFrom:
+                            secretKeyRef:
+                                name: postgrest-db-config
+                                key: PGRST_DB_URI
+
+                      # PostgREST configuration
+                      - name: PGRST_DB_SCHEMAS
+                        value: 'public,storage,graphql_public,tracker,profile'
+                      - name: PGRST_DB_ANON_ROLE
+                        value: 'anon'
+                      - name: PGRST_DB_USE_LEGACY_GUCS
+                        value: 'false'
+                      - name: PGRST_SERVER_PORT
+                        value: '3000'
+
+                      # JWT configuration from secret
+                      - name: PGRST_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-jwt
+                                key: secret
+                      - name: PGRST_APP_SETTINGS_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-jwt
+                                key: secret
+                      - name: PGRST_APP_SETTINGS_JWT_EXP
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-jwt
+                                key: expiry
+
+                  # Health checks
+                  livenessProbe:
+                      httpGet:
+                          path: /
+                          port: 3000
+                      initialDelaySeconds: 30
+                      periodSeconds: 30
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+
+                  readinessProbe:
+                      httpGet:
+                          path: /
+                          port: 3000
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+
+                  # Resource limits
+                  resources:
+                      requests:
+                          memory: '256Mi'
+                          cpu: '200m'
+                      limits:
+                          memory: '1Gi'
+                          cpu: '1000m'
+
+                  # Security context to fix user ID issues
+                  securityContext:
+                      runAsUser: 1000
+                      runAsGroup: 1000
+                      runAsNonRoot: true

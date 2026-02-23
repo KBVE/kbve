@@ -12,7 +12,7 @@ jobs:
         if: github.event.label.name == 'codex'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -27,7 +27,7 @@ jobs:
         if: github.event.label.name == 'enhancement'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -42,7 +42,7 @@ jobs:
         if: github.event.label.name == 'update'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -57,7 +57,7 @@ jobs:
         if: github.event.label.name == 'media'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -71,7 +71,7 @@ jobs:
         if: github.event.label.name == 'bug'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -85,7 +85,7 @@ jobs:
         if: github.event.label.name == 'todo'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -99,7 +99,7 @@ jobs:
         if: github.event.label.name == 'backlog'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -113,7 +113,7 @@ jobs:
         if: github.event.label.name == 'help wanted'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -126,7 +126,7 @@ jobs:
         if: github.event.label.name == 'staging'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -142,7 +142,7 @@ jobs:
         if: github.event.label.name == '0'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -156,7 +156,7 @@ jobs:
         if: github.event.label.name == '1'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -170,7 +170,7 @@ jobs:
         if: github.event.label.name == '2'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -184,7 +184,7 @@ jobs:
         if: github.event.label.name == '3'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -198,7 +198,7 @@ jobs:
         if: github.event.label.name == '4'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -212,7 +212,7 @@ jobs:
         if: github.event.label.name == '5'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}
@@ -227,7 +227,7 @@ jobs:
         if: github.event.label.name == '6'
         runs-on: ubuntu-latest
         steps:
-            -   uses: actions/checkout@v4
+            -   uses: actions/checkout@v6
             -   uses: ./.github/actions/gql-project-migration
                 with:
                     token: ${{ secrets.KBVE_PAT }}

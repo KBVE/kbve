@@ -1,6 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://bx7uhqjy1ja7v"]
-
-[ext_resource type="Script" path="res://Scenes/maps/grid_map_node.gd" id="1_tduoo"]
-
-[node name="GridMapNode" type="Node"]
-script = ExtResource("1_tduoo")
