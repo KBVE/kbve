@@ -18,7 +18,7 @@ exclude = [
 crate-type = ["cdylib"]
 
 [dependencies]
-rand = "0.9.2"
+rand = "0.10.0"
 godot = { version = "0.3.5", features = ["experimental-wasm", "experimental-threads"] }
 bevy_ecs = { version = "0.15.1", features = ["default"] }
 rstar = "0.12.2"
