@@ -131,7 +131,7 @@ jobs:
 
         steps:
             - name: Download WebGL Build
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v7
               id: download
               with:
                   name: Build-WebGL
@@ -154,7 +154,7 @@ jobs:
         runs-on: ubuntu-latest
         steps:
         -   name: Download WebGL Build
-            uses: actions/download-artifact@v4
+            uses: actions/download-artifact@v7
             id: download
             with:
                 name: Build-WebGL
