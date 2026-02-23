@@ -1,7 +1,7 @@
-use godot::prelude::*;
-use serde::{Serialize, Deserialize};
 use crate::data::abstract_data_map::AbstractDataMap;
 use crate::data::vector_data::vector2_serde;
+use godot::prelude::*;
+use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct PlayerData {
@@ -23,7 +23,6 @@ pub struct PlayerData {
 }
 
 impl AbstractDataMap for PlayerData {}
-
 
 impl PlayerData {
     pub fn set_position(&mut self, position: Vector2) {

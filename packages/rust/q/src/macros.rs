@@ -1,18 +1,16 @@
 #[macro_export]
 macro_rules! connect_signal {
-  ($obj:expr, $signal:expr, $method:expr) => {
-    {
+    ($obj:expr, $signal:expr, $method:expr) => {{
         let callable = $obj.base().callable($method);
         if !$obj.base().is_connected($signal, &callable) {
             $obj.base_mut().connect($signal, &callable);
         }
-    }
-  };
+    }};
 }
 
 #[macro_export]
 macro_rules! find_game_manager {
-  ($self:ident) => {
+    ($self:ident) => {
         match $self.base().get_parent() {
             Some(parent) => {
                 let game_manager: Gd<GameManager> = parent.cast::<GameManager>();
@@ -40,5 +38,5 @@ macro_rules! find_game_manager {
                 module_path!()
             ),
         }
-  };
+    };
 }

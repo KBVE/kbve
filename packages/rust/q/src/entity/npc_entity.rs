@@ -1,7 +1,7 @@
-use godot::prelude::*;
-use godot::classes::Sprite2D;
-use crate::data::npc_data::{NPCData, NPCState};
 use crate::data::abstract_data_map::AbstractDataMap;
+use crate::data::npc_data::{NPCData, NPCState};
+use godot::classes::Sprite2D;
+use godot::prelude::*;
 
 #[derive(GodotClass)]
 #[class(base = Node)]
@@ -62,7 +62,7 @@ impl NPCEntity {
             NPCState::DEFENDING => self.handle_defend(),
             NPCState::PATROLLING => self.handle_patrol(),
             NPCState::ESCAPING => self.handle_escape(),
-            _ => {},
+            _ => {}
         }
     }
 
@@ -86,7 +86,7 @@ impl NPCEntity {
     }
 
     fn handle_patrol(&mut self) {
-        let patrol_direction = Vector2::new(0.5, 0.0); 
+        let patrol_direction = Vector2::new(0.5, 0.0);
         self.data.set_velocity(patrol_direction * self.speed);
     }
 

@@ -2,9 +2,9 @@ use godot::classes::{Control, IControl, Os, ProjectSettings};
 use godot::prelude::*;
 
 #[cfg(target_os = "macos")]
-use crate::macos::macos_wry_browser_options::MacOSWryBrowserOptions;
+use crate::platform::macos::MacOSWryBrowserOptions;
 #[cfg(target_os = "windows")]
-use crate::windows::windows_wry_browser_options::WindowsWryBrowserOptions;
+use crate::platform::windows::WindowsWryBrowserOptions;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
 use wry::{
