@@ -13,7 +13,7 @@ let onStatusCallback: ((status: string) => void) | null = null;
 
 // Heartbeat
 let heartbeatTimer: ReturnType<typeof setInterval> | null = null;
-let lastPongTime: number = 0;
+let lastPongTime = 0;
 const HEARTBEAT_INTERVAL_MS = 30000;
 const HEARTBEAT_TIMEOUT_MS = 60000;
 
@@ -31,7 +31,10 @@ function startHeartbeat() {
 			stopHeartbeat();
 			return;
 		}
-		if (lastPongTime > 0 && Date.now() - lastPongTime > HEARTBEAT_TIMEOUT_MS) {
+		if (
+			lastPongTime > 0 &&
+			Date.now() - lastPongTime > HEARTBEAT_TIMEOUT_MS
+		) {
 			console.warn('[WS] Heartbeat timeout — closing connection');
 			stopHeartbeat();
 			ws.close(1001, 'Heartbeat timeout');
@@ -59,14 +62,18 @@ function broadcastStatus(status: string) {
 function attemptReconnect() {
 	if (!lastUrl || reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
 		if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-			console.error(`[WS] Max reconnect attempts (${MAX_RECONNECT_ATTEMPTS}) reached`);
+			console.error(
+				`[WS] Max reconnect attempts (${MAX_RECONNECT_ATTEMPTS}) reached`,
+			);
 			broadcastStatus('failed');
 		}
 		return;
 	}
 
 	reconnectAttempts++;
-	console.log(`[WS] Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`);
+	console.log(
+		`[WS] Reconnecting (${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS})...`,
+	);
 	broadcastStatus('reconnecting');
 
 	reconnectTimer = setTimeout(() => {

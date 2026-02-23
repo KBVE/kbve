@@ -14,7 +14,7 @@
 		"lock": {
 			"executor": "@nxlv/python:run-commands",
 			"options": {
-				"command": "poetry lock --no-update",
+				"command": "uv lock",
 				"cwd": "apps/discordsh/notification-bot"
 			}
 		},
@@ -46,7 +46,6 @@
 			"options": {
 				"silent": false,
 				"args": "",
-				"cacheDir": ".cache/pypoetry",
 				"verbose": false,
 				"debug": false
 			}
@@ -68,7 +67,7 @@
 				"{workspaceRoot}/coverage/apps/discordsh/notification-bot"
 			],
 			"options": {
-				"command": "poetry run pytest tests/",
+				"command": "uv run pytest tests/",
 				"cwd": "apps/discordsh/notification-bot"
 			},
 			"cache": true

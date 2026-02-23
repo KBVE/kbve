@@ -1,33 +1,153 @@
-@layer base, starlight, theme, components, utilities, my-overrides;
+@layer base, starlight, theme, components, utilities, galaxy, my-overrides;
 
 @import '@astrojs/starlight-tailwind';
 @import 'tailwindcss/theme.css' layer(theme);
 @import 'tailwindcss/utilities.css' layer(utilities);
 
 :root {
-  --sl-color-accent-low: #eef2ff;
-  --sl-color-accent: #6366f1;
-  --sl-color-accent-high: #4338ca;
-  --sl-color-text-accent: #4f46e5;
-  --sl-color-link: #6366f1;
-  --sl-color-link-hover: #818cf8;
-  --sl-color-bg-accent: #e0e7ff;
-  --sl-color-code-bg: #1e1b4b;
-  --sl-color-border: #a5b4fc;
+	--sl-color-accent-low: #f5f3ff;
+	--sl-color-accent: #8b5cf6;
+	--sl-color-accent-high: #6d28d9;
+	--sl-color-text-accent: #7c3aed;
+	--sl-color-link: #8b5cf6;
+	--sl-color-link-hover: #a78bfa;
+	--sl-color-bg-accent: #ede9fe;
+	--sl-color-code-bg: #1e1033;
+	--sl-color-border: #c4b5fd;
+}
+:root[data-theme='dark'] {
+	--sl-color-accent-low: #1e1033;
+	--sl-color-accent: #8b5cf6;
+	--sl-color-accent-high: #c4b5fd;
+	--sl-color-text-accent: #a78bfa;
+	--sl-color-link: #a78bfa;
+	--sl-color-link-hover: #c4b5fd;
+	--sl-color-bg-accent: #3b1f6e;
+	--sl-color-code-bg: #1e1033;
+	--sl-color-border: #4c1d95;
 }
 
-:root[data-theme='dark'] {
-  --sl-color-accent-low: #1e1b4b;
-  --sl-color-accent: #6366f1;
-  --sl-color-accent-high: #a5b4fc;
-  --sl-color-text-accent: #818cf8;
-  --sl-color-link: #818cf8;
-  --sl-color-link-hover: #a5b4fc;
-  --sl-color-bg-accent: #312e81;
-  --sl-color-code-bg: #1e1b4b;
-  --sl-color-border: #4338ca;
+@layer utilities {
+	.focus-ring {
+		@apply ring-violet-500 ring-offset-2 focus:outline-none focus-visible:ring-2;
+	}
+}
+@layer components {
+	.sl-link-button {
+		@apply bg-violet-600 hover:bg-violet-700 text-white;
+	}
+	.sl-markdown-content a {
+		@apply text-violet-600 hover:text-violet-700 dark:text-violet-400 dark:hover:text-violet-300;
+	}
 }
 
 @layer my-overrides {
+}
 
+/* Honeycomb loader — from Uiverse.io by boryanakrasteva */
+@keyframes honeycomb {
+	0%,
+	20%,
+	80%,
+	100% {
+		opacity: 0;
+		transform: scale(0);
+	}
+	30%,
+	70% {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+.honeycomb {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 24px;
+	position: relative;
+	width: 24px;
+}
+
+.honeycomb div {
+	animation: honeycomb 2.1s infinite backwards;
+	background: var(--sl-color-accent);
+	height: 12px;
+	margin-top: 6px;
+	position: absolute;
+	width: 24px;
+}
+
+.honeycomb div::after,
+.honeycomb div::before {
+	content: '';
+	border-left: 12px solid transparent;
+	border-right: 12px solid transparent;
+	position: absolute;
+	left: 0;
+	right: 0;
+}
+
+.honeycomb div::after {
+	top: -6px;
+	border-bottom: 6px solid var(--sl-color-accent);
+}
+
+.honeycomb div::before {
+	bottom: -6px;
+	border-top: 6px solid var(--sl-color-accent);
+}
+
+.honeycomb div:nth-child(1) {
+	animation-delay: 0s;
+	left: -28px;
+	top: 0;
+}
+.honeycomb div:nth-child(2) {
+	animation-delay: 0.1s;
+	left: -14px;
+	top: 22px;
+}
+.honeycomb div:nth-child(3) {
+	animation-delay: 0.2s;
+	left: 14px;
+	top: 22px;
+}
+.honeycomb div:nth-child(4) {
+	animation-delay: 0.3s;
+	left: 28px;
+	top: 0;
+}
+.honeycomb div:nth-child(5) {
+	animation-delay: 0.4s;
+	left: 14px;
+	top: -22px;
+}
+.honeycomb div:nth-child(6) {
+	animation-delay: 0.5s;
+	left: -14px;
+	top: -22px;
+}
+.honeycomb div:nth-child(7) {
+	animation-delay: 0.6s;
+	left: 0;
+	top: 0;
+}
+
+/* Auth crossfade — content fades in beneath the honeycomb as it fades out */
+@keyframes auth-reveal {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+[data-auth-ready] {
+	animation: auth-reveal 2s ease-in-out;
+}
+
+@view-transition {
+	navigation: auto;
 }

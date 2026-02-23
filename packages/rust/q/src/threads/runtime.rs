@@ -1,12 +1,12 @@
+use dashmap::DashMap;
+use godot::prelude::*;
 use std::{future::Future, rc::Rc, sync::Arc};
-use godot::{classes::Engine, prelude::*};
 use tokio::{
     runtime::{self, Runtime},
-    sync::mpsc::{self, UnboundedSender, UnboundedReceiver},
+    sync::mpsc::{self, UnboundedReceiver, UnboundedSender},
     sync::oneshot,
     task::JoinHandle,
 };
-use papaya::HashMap;
 
 #[derive(Debug)]
 pub enum MapMessage {
@@ -28,12 +28,11 @@ pub struct RuntimeManager {
     base: Base<Object>,
     runtime: Rc<Runtime>,
     sender: Option<UnboundedSender<MapMessage>>,
-    global_map: Arc<HashMap<String, String>>,
+    global_map: Arc<DashMap<String, String>>,
     godot_callback_tx: Option<UnboundedSender<GodotCallback>>,
     godot_callback_rx: Option<UnboundedReceiver<GodotCallback>>,
     owner: Option<Gd<Object>>,
 }
-
 
 #[godot_api]
 impl IObject for RuntimeManager {
@@ -47,18 +46,17 @@ impl IObject for RuntimeManager {
             .enable_all()
             .build()
             .expect("[Q] -> Failed to create Tokio runtime");
-        
+
         Self {
             base,
             runtime: Rc::new(runtime),
             sender: None,
-            global_map: Arc::new(HashMap::new()),
+            global_map: Arc::new(DashMap::new()),
             godot_callback_tx: None,
             godot_callback_rx: None,
             owner: None,
         }
     }
-
 }
 
 #[godot_api]
@@ -80,16 +78,16 @@ impl RuntimeManager {
             while let Some(message) = map_rx.recv().await {
                 match message {
                     MapMessage::Insert(key, value) => {
-                        global_map.pin().insert(key, value);
+                        global_map.insert(key, value);
                     }
                     MapMessage::Remove(key) => {
-                        global_map.pin().remove(&key);
+                        global_map.remove(&key);
                     }
                     MapMessage::Update(key, value) => {
-                        global_map.pin().insert(key, value);
+                        global_map.insert(key, value);
                     }
                     MapMessage::Get(key, response_tx) => {
-                        let value = global_map.pin().get(&key).cloned();
+                        let value = global_map.get(&key).map(|r| r.value().clone());
                         let _ = response_tx.send(value.clone());
                         if let Some(value) = value {
                             let _ = godot_tx.send(GodotCallback {
@@ -144,7 +142,7 @@ impl RuntimeManager {
         rx.await.ok().flatten()
     }
 
-    pub fn global_map(&self) -> Arc<HashMap<String, String>> {
+    pub fn global_map(&self) -> Arc<DashMap<String, String>> {
         self.global_map.clone()
     }
 

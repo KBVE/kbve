@@ -10,7 +10,3 @@ The More Mountain Extensions is a package designed to provide utility functions 
 ## KiloNet
 
 This is a core extension that we will be extending out in other unity applications / extensions, providing generic utility functions.
-
-## UnityJS
-
-The unity javascript package is for simple FFI / interop between unity and the web browser.

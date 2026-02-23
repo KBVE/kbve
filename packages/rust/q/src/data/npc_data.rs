@@ -1,10 +1,9 @@
-use godot::prelude::*;
-use papaya::HashMap;
-use serde::{Serialize, Deserialize};
 use bitflags::bitflags;
+use godot::prelude::*;
+use serde::{Deserialize, Serialize};
+
 use crate::data::abstract_data_map::AbstractDataMap;
 use crate::data::vector_data::vector2_serde;
-
 
 bitflags! {
     #[derive(Default, Serialize, Deserialize, Copy, Clone, PartialEq, Eq, Debug)]
@@ -43,7 +42,13 @@ pub struct NPCData {
 impl AbstractDataMap for NPCData {}
 
 impl NPCData {
-    pub fn new(npc_id: &str, npc_type: &str, position: Vector2, health: f32, state: NPCState) -> Self {
+    pub fn new(
+        npc_id: &str,
+        npc_type: &str,
+        position: Vector2,
+        health: f32,
+        state: NPCState,
+    ) -> Self {
         Self {
             npc_id: npc_id.to_string(),
             npc_type: npc_type.to_string(),

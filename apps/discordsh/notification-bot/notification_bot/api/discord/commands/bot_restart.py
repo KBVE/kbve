@@ -10,7 +10,7 @@ router = APIRouter()
 
 
 @router.post("/bot-restart", response_model=None)
-@bot_action("Discord bot restarted successfully")  
+@bot_action("Discord bot restarted successfully")
 async def restart_bot(discord_bot: "BotService") -> Response:
     """Restart the Discord bot"""
     await discord_bot.restart_bot()

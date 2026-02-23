@@ -105,6 +105,9 @@ on:
 jobs:
     alter:
         runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
         name: File Alterations
         outputs:
             pirate17: ${{ steps.delta.outputs.pirate17_any_changed }}

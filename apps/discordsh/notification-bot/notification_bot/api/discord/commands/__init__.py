@@ -10,7 +10,7 @@ from .health import router as health_router
 
 __all__ = [
     'bot_online_router',
-    'bot_offline_router', 
+    'bot_offline_router',
     'bot_restart_router',
     'bot_force_restart_router',
     'cleanup_thread_router',

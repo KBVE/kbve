@@ -5,149 +5,347 @@ const currentPath = Astro.url.pathname;
 ---
 
 <nav class="nav-bar not-content flex items-center gap-1">
-  {/* Desktop nav links */}
-  <div class="desktop-links">
-    <a href="/" class:list={['nav-link', { active: currentPath === '/' || currentPath === '' }]} data-astro-prefetch title="Home">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></svg>
-    </a>
-    <a href="/guides/getting-started" class:list={['nav-link', { active: currentPath.startsWith('/guides') || currentPath.startsWith('/reference') }]} data-astro-prefetch title="Docs">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"></path></svg>
-    </a>
-    <a href="/dashboard" class:list={['nav-link', { active: currentPath.startsWith('/dashboard') }]} data-astro-prefetch title="Dashboard">
-      <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></svg>
-    </a>
-  </div>
+	{/* Desktop nav links — uniform icon row */}
+	<div class="desktop-links">
+		<a
+			href="/"
+			class:list={[
+				'nav-link',
+				{ active: currentPath === '/' || currentPath === '' },
+			]}
+			data-astro-prefetch
+			data-tooltip-id="home">
+			<svg
+				class="nav-icon"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round">
+				<path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z">
+				</path><polyline points="9 22 9 12 15 12 15 22"></polyline>
+			</svg>
+		</a>
+		<a
+			href="/guides/getting-started"
+			class:list={[
+				'nav-link',
+				{
+					active:
+						currentPath.startsWith('/guides') ||
+						currentPath.startsWith('/reference'),
+				},
+			]}
+			data-astro-prefetch
+			data-tooltip-id="docs">
+			<svg
+				class="nav-icon"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round">
+				<path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"></path><path
+					d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z">
+				</path>
+			</svg>
+		</a>
+		<a
+			href="/dashboard"
+			class:list={[
+				'nav-link',
+				{ active: currentPath.startsWith('/dashboard') },
+			]}
+			data-astro-prefetch
+			data-tooltip-id="dashboard">
+			<svg
+				class="nav-icon"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round">
+				<rect x="3" y="3" width="7" height="7"></rect><rect
+					x="14"
+					y="3"
+					width="7"
+					height="7">
+				</rect><rect x="14" y="14" width="7" height="7"></rect><rect
+					x="3"
+					y="14"
+					width="7"
+					height="7">
+				</rect>
+			</svg>
+		</a>
 
-  {/* Desktop auth container — skeleton until React hydrates */}
-  <div id="nav-auth-desktop" class="desktop-auth">
-    <div class="auth-skeleton">
-      <div class="honeycomb"><div></div><div></div><div></div><div></div><div></div><div></div><div></div></div>
-    </div>
-  </div>
+		{
+			/* Auth icon slot — static login icon with skeleton z-overlay, no tooltip (has dropdown) */
+		}
+		<div id="nav-auth-desktop" class="nav-link nav-auth-icon">
+			<svg
+				class="nav-icon auth-login-icon"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round">
+				<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4">
+				</path><polyline points="10 17 15 12 10 7"></polyline><line
+					x1="15"
+					y1="12"
+					x2="3"
+					y2="12">
+				</line>
+			</svg>
+			<div class="auth-skeleton">
+				<div class="skeleton-pulse"></div>
+			</div>
+		</div>
+	</div>
 
-  {/* Mobile hamburger */}
-  <button id="nav-hamburger" type="button" class="hamburger-btn" aria-label="Open menu">
-    <svg class="hamburger-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-      <line x1="3" y1="12" x2="21" y2="12"></line>
-      <line x1="3" y1="6" x2="21" y2="6"></line>
-      <line x1="3" y1="18" x2="21" y2="18"></line>
-    </svg>
-  </button>
+	{/* Single shared tooltip — positioned via $activeTooltip nanostore */}
+	<div id="nav-tooltip" class="nav-tooltip" aria-hidden="true">
+		<span id="nav-tooltip-text"></span>
+	</div>
 
-  {/* React handles: auth state, portals, drawer, modal */}
-  <ReactNavBar client:only="react" currentPath={currentPath} />
+	{/* Mobile hamburger */}
+	<button
+		id="nav-hamburger"
+		type="button"
+		class="hamburger-btn"
+		aria-label="Open menu">
+		<svg
+			class="hamburger-icon"
+			viewBox="0 0 24 24"
+			fill="none"
+			stroke="currentColor"
+			stroke-width="2"
+			stroke-linecap="round"
+			stroke-linejoin="round">
+			<line x1="3" y1="12" x2="21" y2="12"></line>
+			<line x1="3" y1="6" x2="21" y2="6"></line>
+			<line x1="3" y1="18" x2="21" y2="18"></line>
+		</svg>
+	</button>
+
+	{/* React handles: auth state, portals, drawer, modal */}
+	<ReactNavBar client:only="react" currentPath={currentPath} />
 </nav>
 
+<script>
+	import { $activeTooltip, openTooltip, closeTooltip } from '@kbve/droid';
+
+	const LABELS: Record<string, string> = {
+		home: 'Home',
+		docs: 'Docs',
+		dashboard: 'Dashboard',
+	};
+
+	function setup() {
+		const tooltip = document.getElementById('nav-tooltip');
+		const text = document.getElementById('nav-tooltip-text');
+		if (!tooltip || !text) return;
+
+		// Attach hover listeners to each nav icon with a tooltip ID
+		document
+			.querySelectorAll<HTMLElement>('[data-tooltip-id]')
+			.forEach((el) => {
+				el.addEventListener('mouseenter', () => {
+					const id = el.dataset.tooltipId;
+					if (id) openTooltip(id);
+				});
+				el.addEventListener('mouseleave', () => closeTooltip());
+			});
+
+		// Subscribe to the shared store — position and show the single tooltip element
+		$activeTooltip.subscribe((id) => {
+			if (!id || !LABELS[id]) {
+				tooltip.style.opacity = '0';
+				tooltip.style.pointerEvents = 'none';
+				return;
+			}
+
+			const trigger = document.querySelector<HTMLElement>(
+				`[data-tooltip-id="${id}"]`,
+			);
+			if (!trigger) return;
+
+			const rect = trigger.getBoundingClientRect();
+			text.textContent = LABELS[id];
+			tooltip.style.opacity = '1';
+			tooltip.style.left = `${rect.left + rect.width / 2}px`;
+			tooltip.style.top = `${rect.bottom + 6}px`;
+		});
+	}
+
+	// Run on initial load and after view transitions
+	setup();
+	document.addEventListener('astro:after-swap', setup);
+</script>
+
 <style>
-  .nav-bar {
-    gap: 0.25rem;
-  }
+	.nav-bar {
+		gap: 0.25rem;
+	}
 
-  .desktop-links {
-    display: none;
-    align-items: center;
-    gap: 0.125rem;
-  }
+	.desktop-links {
+		display: none;
+		align-items: center;
+		gap: 0.25rem;
+	}
 
-  .desktop-auth {
-    display: none;
-    align-items: center;
-    justify-content: center;
-    margin-left: 0.25rem;
-    min-width: 5.5rem;
-    height: 1.75rem;
-    position: relative;
-    border-radius: 999px;
-    background-color: rgba(12, 15, 20, 0.6);
-    border: 1px solid rgba(255, 255, 255, 0.06);
-  }
+	/* Auth icon slot */
+	.nav-auth-icon {
+		position: relative;
+		cursor: pointer;
+	}
 
-  .auth-skeleton {
-    position: absolute;
-    inset: 0;
-    z-index: 2;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    opacity: 1;
-    transition: opacity 2s ease-in-out;
-    pointer-events: none;
-  }
+	.auth-login-icon {
+		transition: opacity 300ms ease;
+	}
 
-  .desktop-auth:has([data-auth-ready]) .auth-skeleton {
-    opacity: 0;
-  }
+	/* Hide login icon when React renders the avatar */
+	.nav-auth-icon:has([data-auth-avatar]) .auth-login-icon {
+		opacity: 0;
+		pointer-events: none;
+	}
 
-  .hamburger-btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 0.375rem;
-    border: none;
-    background: none;
-    color: var(--sl-color-gray-2, #a1a1aa);
-    cursor: pointer;
-    transition: color 150ms ease;
-  }
-  .hamburger-btn:hover {
-    color: var(--sl-color-white, #e2e8f0);
-  }
-  .hamburger-icon {
-    width: 1.25rem;
-    height: 1.25rem;
-  }
+	.auth-skeleton {
+		position: absolute;
+		inset: 0;
+		z-index: 2;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		opacity: 1;
+		transition: opacity 2s ease-in-out;
+		pointer-events: none;
+	}
 
-  @media (min-width: 768px) {
-    .desktop-links {
-      display: flex;
-    }
-    .desktop-auth {
-      display: flex;
-    }
-    .hamburger-btn {
-      display: none;
-    }
-  }
+	.nav-auth-icon:has([data-auth-ready]) .auth-skeleton {
+		opacity: 0;
+	}
 
-  .nav-icon {
-    width: 1rem;
-    height: 1rem;
-    flex-shrink: 0;
-    opacity: 0.8;
-  }
+	.skeleton-pulse {
+		width: 0.75rem;
+		height: 0.75rem;
+		border-radius: 50%;
+		background: var(--sl-color-accent);
+		animation: skeleton-pulse 1.5s ease-in-out infinite;
+	}
 
-  .nav-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 2rem;
-    height: 2rem;
-    border-radius: 0.375rem;
-    color: var(--sl-color-gray-2, #94a3b8);
-    text-decoration: none;
-    transition: background-color 150ms ease, color 150ms ease;
-  }
+	@keyframes skeleton-pulse {
+		0%,
+		100% {
+			opacity: 0.2;
+			transform: scale(0.7);
+		}
+		50% {
+			opacity: 0.7;
+			transform: scale(1);
+		}
+	}
 
-  .nav-link:hover {
-    background-color: var(--sl-color-gray-6, rgba(148, 163, 184, 0.1));
-    color: var(--sl-color-white, #e2e8f0);
-  }
+	/* Shared tooltip — single element, positioned via JS */
+	.nav-tooltip {
+		position: fixed;
+		z-index: 50;
+		transform: translateX(-50%);
+		padding: 0.25rem 0.625rem;
+		border-radius: 0.375rem;
+		background: var(--sl-color-bg-nav, #18181b);
+		border: 1px solid var(--sl-color-hairline, #27272a);
+		color: var(--sl-color-white, #e2e8f0);
+		font-size: 0.6875rem;
+		font-weight: 500;
+		letter-spacing: 0.01em;
+		pointer-events: none;
+		opacity: 0;
+		transition: opacity 150ms ease;
+		white-space: nowrap;
+		box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+	}
 
-  .nav-link.active {
-    background-color: var(--sl-color-accent-low);
-    color: var(--sl-color-accent);
-  }
+	.hamburger-btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.25rem;
+		height: 2.25rem;
+		border-radius: 0.375rem;
+		border: none;
+		background: none;
+		color: var(--sl-color-gray-2, #a1a1aa);
+		cursor: pointer;
+		transition: color 150ms ease;
+	}
+	.hamburger-btn:hover {
+		color: var(--sl-color-white, #e2e8f0);
+	}
+	.hamburger-icon {
+		width: 1.25rem;
+		height: 1.25rem;
+	}
 
-  .nav-link:hover .nav-icon,
-  .nav-link.active .nav-icon {
-    opacity: 1;
-  }
+	@media (min-width: 768px) {
+		.desktop-links {
+			display: flex;
+		}
+		.hamburger-btn {
+			display: none;
+		}
+	}
 
-  @media (max-width: 767px) {
-    .nav-bar {
-      gap: 0.5rem;
-    }
-  }
+	.nav-icon {
+		width: 1rem;
+		height: 1rem;
+		flex-shrink: 0;
+		opacity: 0.8;
+	}
+
+	.nav-link {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		border-radius: 0.375rem;
+		color: var(--sl-color-gray-2, #94a3b8);
+		text-decoration: none;
+		transition:
+			background-color 150ms ease,
+			color 150ms ease,
+			transform 200ms ease,
+			box-shadow 200ms ease;
+	}
+
+	.nav-link:hover {
+		background-color: var(--sl-color-gray-6, rgba(148, 163, 184, 0.1));
+		color: var(--sl-color-white, #e2e8f0);
+		transform: scale(1.1);
+		box-shadow: 0 2px 8px rgba(139, 92, 246, 0.15);
+	}
+
+	.nav-link.active {
+		background-color: var(--sl-color-accent-low);
+		color: var(--sl-color-accent);
+		box-shadow: 0 0 0 1px
+			color-mix(in srgb, var(--sl-color-accent) 30%, transparent);
+	}
+
+	.nav-link:hover .nav-icon,
+	.nav-link.active .nav-icon {
+		opacity: 1;
+	}
+
+	@media (max-width: 767px) {
+		.nav-bar {
+			gap: 0.5rem;
+		}
+	}
 </style>

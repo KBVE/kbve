@@ -10,6 +10,8 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: false
 
+permissions: {}
+
 env:
     REGISTRY: ghcr.io
     IMAGE_NAME: ${{ github.repository }}

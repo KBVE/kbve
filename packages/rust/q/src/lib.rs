@@ -1,19 +1,15 @@
 use godot::prelude::*;
 
-mod macros;
-mod manager;
-mod extensions;
+mod core;
 mod data;
 mod entity;
-
-#[cfg(target_os = "macos")]
-mod macos;
-
-#[cfg(target_os = "windows")]
-mod windows;
+mod extensions;
+mod macros;
+mod manager;
+mod threads;
 
 #[cfg(any(target_os = "macos", target_os = "windows"))]
-mod threads;
+mod platform;
 
 struct Q;
 
@@ -25,10 +21,7 @@ unsafe impl ExtensionLibrary for Q {
         match level {
             InitLevel::Scene => {
                 let mut engine = godot::classes::Engine::singleton();
-                engine.register_singleton(
-                    RuntimeManager::SINGLETON,
-                    &RuntimeManager::new_alloc(),
-                );
+                engine.register_singleton(RuntimeManager::SINGLETON, &RuntimeManager::new_alloc());
             }
             _ => (),
         }

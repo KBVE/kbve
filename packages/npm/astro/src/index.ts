@@ -23,10 +23,13 @@ export {
 	bootRouter,
 	$drawerOpen,
 	$modalId,
+	$activeTooltip,
 	openDrawer,
 	closeDrawer,
 	openModal,
 	closeModal,
+	openTooltip,
+	closeTooltip,
 } from '@kbve/droid';
 export type { AuthTone, AuthState } from '@kbve/droid';
 
