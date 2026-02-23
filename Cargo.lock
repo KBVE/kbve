@@ -429,19 +429,6 @@ checksum = "175571dd1d178ced59193a6fc02dde1b972eb0bc56c892cde9beeceac5bf0f6b"
 
 [[package]]
 name = "askama"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5d4744ed2eef2645831b441d8f5459689ade2ab27c854488fbab1fbe94fce1a7"
-dependencies = [
- "askama_derive 0.13.1",
- "itoa 1.0.17",
- "percent-encoding",
- "serde",
- "serde_json",
-]
-
-[[package]]
-name = "askama"
 version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "08e1676b346cadfec169374f949d7490fd80a24193d37d2afce0c047cf695e57"
@@ -455,28 +442,11 @@ dependencies = [
 
 [[package]]
 name = "askama_derive"
-version = "0.13.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d661e0f57be36a5c14c48f78d09011e67e0cb618f269cca9f2fd8d15b68c46ac"
-dependencies = [
- "askama_parser 0.13.0",
- "basic-toml",
- "memchr",
- "proc-macro2",
- "quote",
- "rustc-hash 2.1.1",
- "serde",
- "serde_derive",
- "syn 2.0.117",
-]
-
-[[package]]
-name = "askama_derive"
 version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7661ff56517787343f376f75db037426facd7c8d3049cef8911f1e75016f3a37"
 dependencies = [
- "askama_parser 0.15.4",
+ "askama_parser",
  "basic-toml",
  "memchr",
  "proc-macro2",
@@ -493,19 +463,7 @@ version = "0.15.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "713ee4dbfd1eb719c2dab859465b01fa1d21cb566684614a713a6b7a99a4e47b"
 dependencies = [
- "askama_derive 0.15.4",
-]
-
-[[package]]
-name = "askama_parser"
-version = "0.13.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "cf315ce6524c857bb129ff794935cf6d42c82a6cff60526fe2a63593de4d0d4f"
-dependencies = [
- "memchr",
- "serde",
- "serde_derive",
- "winnow 0.7.14",
+ "askama_derive",
 ]
 
 [[package]]
@@ -889,14 +847,11 @@ checksum = "edca88bc138befd0323b20752846e6587272d3b03b0343c8ea28a6f819e6e71f"
 dependencies = [
  "async-trait",
  "axum-core 0.4.5",
- "base64 0.22.1",
  "bytes",
  "futures-util",
  "http 1.4.0",
  "http-body 1.0.1",
  "http-body-util",
- "hyper 1.8.1",
- "hyper-util",
  "itoa 1.0.17",
  "matchit 0.7.3",
  "memchr",
@@ -905,17 +860,10 @@ dependencies = [
  "pin-project-lite",
  "rustversion",
  "serde",
- "serde_json",
- "serde_path_to_error",
- "serde_urlencoded",
- "sha1",
  "sync_wrapper 1.0.2",
- "tokio",
- "tokio-tungstenite 0.24.0",
  "tower 0.5.3",
  "tower-layer",
  "tower-service",
- "tracing",
 ]
 
 [[package]]
@@ -973,7 +921,6 @@ dependencies = [
  "sync_wrapper 1.0.2",
  "tower-layer",
  "tower-service",
- "tracing",
 ]
 
 [[package]]
@@ -997,15 +944,15 @@ dependencies = [
 
 [[package]]
 name = "axum-discordsh"
-version = "0.1.5"
+version = "0.1.6"
 dependencies = [
  "anyhow",
- "askama 0.15.4",
+ "askama",
  "axum 0.8.8",
- "axum-extra 0.12.5",
+ "axum-extra",
  "dotenvy",
  "http-body-util",
- "jedi 0.2.1",
+ "jedi",
  "kbve",
  "num_cpus",
  "serde",
@@ -1020,61 +967,6 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
-]
-
-[[package]]
-name = "axum-extra"
-version = "0.9.6"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "c794b30c904f0a1c2fb7740f7df7f7972dfaa14ef6f57cb6178dc63e5dca2f04"
-dependencies = [
- "axum 0.7.9",
- "axum-core 0.4.5",
- "bytes",
- "fastrand",
- "futures-util",
- "headers",
- "http 1.4.0",
- "http-body 1.0.1",
- "http-body-util",
- "mime",
- "multer",
- "pin-project-lite",
- "serde",
- "tower 0.5.3",
- "tower-layer",
- "tower-service",
-]
-
-[[package]]
-name = "axum-extra"
-version = "0.10.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9963ff19f40c6102c76756ef0a46004c0d58957d87259fc9208ff8441c12ab96"
-dependencies = [
- "axum 0.8.8",
- "axum-core 0.5.6",
- "bytes",
- "cookie",
- "form_urlencoded",
- "futures-util",
- "headers",
- "http 1.4.0",
- "http-body 1.0.1",
- "http-body-util",
- "mime",
- "pin-project-lite",
- "prost 0.13.5",
- "rustversion",
- "serde_core",
- "serde_html_form",
- "serde_json",
- "serde_path_to_error",
- "tokio",
- "tokio-util",
- "tower-layer",
- "tower-service",
- "tracing",
 ]
 
 [[package]]
@@ -1113,12 +1005,12 @@ name = "axum-herbmail"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "askama 0.15.4",
+ "askama",
  "axum 0.8.8",
- "axum-extra 0.12.5",
+ "axum-extra",
  "dotenvy",
  "http-body-util",
- "jedi 0.2.1",
+ "jedi",
  "kbve",
  "num_cpus",
  "serde",
@@ -1150,12 +1042,12 @@ name = "axum-memes"
 version = "0.1.0"
 dependencies = [
  "anyhow",
- "askama 0.15.4",
+ "askama",
  "axum 0.8.8",
- "axum-extra 0.12.5",
+ "axum-extra",
  "dotenvy",
  "http-body-util",
- "jedi 0.2.1",
+ "jedi",
  "kbve",
  "num_cpus",
  "serde",
@@ -2624,45 +2516,6 @@ dependencies = [
  "block-buffer 0.10.4",
  "crypto-common",
  "subtle",
-]
-
-[[package]]
-name = "disoxide"
-version = "1.2.0"
-dependencies = [
- "askama 0.13.1",
- "axum 0.8.8",
- "axum-extra 0.10.3",
- "bb8",
- "bb8-postgres",
- "bitflags 2.11.0",
- "bytes",
- "chrono",
- "flexbuffers",
- "futures-util",
- "http 1.4.0",
- "http-body-util",
- "hyper 1.8.1",
- "hyper-util",
- "jedi 0.2.0",
- "papaya 0.2.3",
- "prost 0.13.5",
- "prost-build",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tikv-jemallocator",
- "tokio",
- "tokio-postgres",
- "tonic",
- "tonic-build",
- "tonic-health",
- "tonic-reflection",
- "tower 0.5.3",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "ulid",
 ]
 
 [[package]]
@@ -4235,16 +4088,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "hdrhistogram"
-version = "7.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "765c9198f173dd59ce26ff9f95ef0aafd0a0fe01fb9d72841bc5066a4c06511d"
-dependencies = [
- "byteorder",
- "num-traits",
-]
-
-[[package]]
 name = "headers"
 version = "0.4.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4829,11 +4672,11 @@ version = "0.1.1"
 dependencies = [
  "anyhow",
  "axum 0.8.8",
- "axum-extra 0.12.5",
+ "axum-extra",
  "dotenvy",
  "futures-util",
  "http-body-util",
- "jedi 0.2.1",
+ "jedi",
  "jsonwebtoken 9.3.1",
  "kbve",
  "num_cpus",
@@ -4940,61 +4783,13 @@ dependencies = [
 
 [[package]]
 name = "jedi"
-version = "0.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2deda9f99546f4a6034b325077c0c4aaec90030dd05d693fef94f01bad13b084"
-dependencies = [
- "ammonia",
- "async-trait",
- "axum 0.8.8",
- "axum-extra 0.10.3",
- "bb8",
- "bb8-postgres",
- "bitflags 2.11.0",
- "bytes",
- "bytes-utils",
- "chrono",
- "crossbeam",
- "dashmap 6.1.0",
- "flexbuffers",
- "fred",
- "futures-util",
- "http-body-util",
- "hyper 1.8.1",
- "hyper-util",
- "once_cell",
- "papaya 0.2.3",
- "prost 0.13.5",
- "prost-types",
- "regex",
- "reqwest 0.12.28",
- "rustc-hash 2.1.1",
- "serde",
- "serde_json",
- "thiserror 2.0.18",
- "tokio",
- "tokio-postgres",
- "tonic",
- "tonic-build",
- "tonic-health",
- "tonic-reflection",
- "tower 0.5.3",
- "tower-http",
- "tracing",
- "tracing-subscriber",
- "twitch-irc",
- "ulid",
-]
-
-[[package]]
-name = "jedi"
 version = "0.2.1"
 dependencies = [
  "ammonia",
- "askama 0.15.4",
+ "askama",
  "async-trait",
  "axum 0.8.8",
- "axum-extra 0.12.5",
+ "axum-extra",
  "bb8",
  "bb8-postgres",
  "bitflags 2.11.0",
@@ -5127,15 +4922,15 @@ dependencies = [
  "ammonia",
  "anyhow",
  "argon2",
- "askama 0.15.4",
+ "askama",
  "async-trait",
  "axum 0.8.8",
- "axum-extra 0.12.5",
+ "axum-extra",
  "chrono",
  "dashmap 6.1.0",
  "diesel",
  "dotenvy",
- "jedi 0.2.0",
+ "jedi",
  "jsonwebtoken 8.3.0",
  "num-bigint 0.4.6",
  "once_cell",
@@ -5522,23 +5317,6 @@ checksum = "ac9557c559cd6fc9867e122e20d2cbefc9ca29d80d027a8e39310920ed2f0a97"
 dependencies = [
  "num-traits",
  "pxfm",
-]
-
-[[package]]
-name = "multer"
-version = "3.1.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "83e87776546dc87511aa5ee218730c92b666d7264ab6ed41f9d215af9cd5224b"
-dependencies = [
- "bytes",
- "encoding_rs",
- "futures-util",
- "http 1.4.0",
- "httparse",
- "memchr",
- "mime",
- "spin 0.9.8",
- "version_check",
 ]
 
 [[package]]
@@ -6272,9 +6050,9 @@ dependencies = [
 
 [[package]]
 name = "owo-colors"
-version = "4.2.3"
+version = "4.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9c6901729fa79e91a0913333229e9ca5dc725089d1c363b2f4b4760709dc4a52"
+checksum = "d211803b9b6b570f68772237e415a029d5a50c65d382910b879fb19d3271f94d"
 dependencies = [
  "supports-color",
 ]
@@ -7622,7 +7400,7 @@ dependencies = [
  "cc",
  "libc",
  "once_cell",
- "spin 0.5.2",
+ "spin",
  "untrusted 0.7.1",
  "web-sys",
  "winapi",
@@ -7664,51 +7442,6 @@ dependencies = [
  "heapless",
  "num-traits",
  "smallvec",
-]
-
-[[package]]
-name = "rust_godot_towerdefense"
-version = "0.1.0"
-dependencies = [
- "bevy_ecs",
- "godot",
- "http 1.4.0",
- "infer",
- "objc2 0.6.3",
- "papaya 0.1.9",
- "rand 0.8.5",
- "raw-window-handle",
- "rstar",
- "serde",
- "serde_json",
- "windows 0.59.0",
- "wry 0.46.3",
- "wry 0.48.1",
-]
-
-[[package]]
-name = "rust_rareicon_gameserver"
-version = "0.1.0"
-dependencies = [
- "axum 0.7.9",
- "axum-extra 0.9.6",
- "crossbeam",
- "futures",
- "futures-util",
- "headers",
- "once_cell",
- "prost 0.13.5",
- "reqwest 0.12.28",
- "serde",
- "serde_json",
- "tikv-jemallocator",
- "tokio",
- "tokio-rustls 0.26.4",
- "tokio-tungstenite 0.24.0",
- "tower 0.5.3",
- "tower-http",
- "tracing",
- "tracing-subscriber",
 ]
 
 [[package]]
@@ -10552,12 +10285,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6e63cff320ae2c57904679ba7cb63280a3dc4613885beafb148ee7bf9aa9042d"
 
 [[package]]
-name = "spin"
-version = "0.9.8"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6980e8d7511241f8acf4aebddbb1ff938df5eebe98691418c4468d0b72a96a67"
-
-[[package]]
 name = "spinning_top"
 version = "0.3.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -11107,18 +10834,6 @@ dependencies = [
 
 [[package]]
 name = "tokio-tungstenite"
-version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "edc5f74e248dc973e0dbb7b74c7e0d6fcc301c694ff50049504004ef4d0cdcd9"
-dependencies = [
- "futures-util",
- "log",
- "tokio",
- "tungstenite 0.24.0",
-]
-
-[[package]]
-name = "tokio-tungstenite"
 version = "0.26.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7a9daff607c6d2bf6c16fd681ccb7eecc83e4e2cdc1ca067ffaadfca5de7f084"
@@ -11392,10 +11107,7 @@ checksum = "ebe5ef63511595f1344e2d5cfa636d973292adc0eec1f0ad45fae9f0851ab1d4"
 dependencies = [
  "futures-core",
  "futures-util",
- "hdrhistogram",
- "indexmap 2.13.0",
  "pin-project-lite",
- "slab",
  "sync_wrapper 1.0.2",
  "tokio",
  "tokio-util",
@@ -11574,24 +11286,6 @@ dependencies = [
  "sha1",
  "thiserror 1.0.69",
  "url",
- "utf-8",
-]
-
-[[package]]
-name = "tungstenite"
-version = "0.24.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "18e5b8366ee7a95b16d32197d0b2604b43a0be89dc5fac9f8e96ccafbaedda8a"
-dependencies = [
- "byteorder",
- "bytes",
- "data-encoding",
- "http 1.4.0",
- "httparse",
- "log",
- "rand 0.8.5",
- "sha1",
- "thiserror 1.0.69",
  "utf-8",
 ]
 

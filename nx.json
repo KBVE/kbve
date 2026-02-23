@@ -20,11 +20,7 @@
 			"cache": true
 		},
 		"test": {
-			"inputs": [
-				"default",
-				"^production",
-				"{workspaceRoot}/jest.preset.js"
-			],
+			"inputs": ["default", "^production"],
 			"cache": true
 		},
 		"@nx/eslint:lint": {
@@ -64,7 +60,6 @@
 			"!{projectRoot}/eslint.config.js",
 			"!{projectRoot}/**/?(*.)+(spec|test).[jt]s?(x)?(.snap)",
 			"!{projectRoot}/tsconfig.spec.json",
-			"!{projectRoot}/jest.config.[jt]s",
 			"!{projectRoot}/src/test-setup.[jt]s",
 			"!{projectRoot}/test-setup.[jt]s"
 		],
@@ -99,7 +94,7 @@
 			}
 		}
 	],
-	"defaultProject": "rareicon.com",
+	"defaultProject": "kbve.com",
 	"generators": {
 		"@nx/react": {
 			"application": {

@@ -1,9 +1,0 @@
-syntax = "proto3";
-
-package disoxide;
-
-message UserData {
-  uint32 id = 1;
-  string username = 2;
-  bool active = 3;
-}

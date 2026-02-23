@@ -43,120 +43,6 @@ message GithubProfile {
   optional int32 following = 10;
 }
 
-// =============================================================================
-// RentEarth Character Data (for profile caching)
-// =============================================================================
-
-// Character position in the game world
-message RentEarthPosition {
-  float world_x = 1;
-  float world_y = 2;
-  float world_z = 3;
-  float rotation_yaw = 4;
-}
-
-// 8 core character attributes (DND-inspired)
-// Min 8, Base 10, Soft cap 50, Hard cap 100
-message RentEarthCoreStats {
-  int32 strength = 1;           // STR: Melee damage, carry capacity
-  int32 agility = 2;            // AGI: Speed, crit, attack speed
-  int32 constitution = 3;       // CON: Health, stamina, defense
-  int32 intelligence = 4;       // INT: Mana, spell damage
-  int32 wisdom = 5;             // WIS: Mana regen, cooldowns
-  int32 charisma = 6;           // CHA: Prices, party buffs
-  int32 luck = 7;               // LCK: Drop rates, crit, rare spawns
-  int32 faith = 8;              // FTH: Healing, holy damage, buffs
-  int32 unspent_skill_points = 9;
-}
-
-// Derived combat and utility stats (computed from core + equipment)
-message RentEarthDerivedStats {
-  int32 health_current = 1;
-  int32 health_max = 2;
-  int32 mana_current = 3;
-  int32 mana_max = 4;
-  int32 stamina_current = 5;
-  int32 stamina_max = 6;
-  int32 attack_power = 7;
-  int32 spell_power = 8;
-  int32 defense = 9;
-  int32 magic_resist = 10;
-  float speed = 11;
-  float crit_chance = 12;
-  float crit_damage = 13;
-  int32 combat_rating = 14;
-}
-
-// Character visual customization
-message RentEarthAppearance {
-  int32 skin_color = 1;          // 0-15 palette index
-  int32 body_type = 2;           // 0-4
-  int32 body_height = 3;         // 0-100
-  int32 face_shape = 4;          // 0-7
-  int32 eye_color = 5;           // 0-15
-  int32 eye_shape = 6;           // 0-7
-  int32 eyebrow_style = 7;       // 0-7
-  int32 eyebrow_color = 8;       // 0-15
-  int32 nose_style = 9;          // 0-7
-  int32 mouth_style = 10;        // 0-7
-  int32 hair_style = 11;         // 0-31
-  int32 hair_color = 12;         // 0-15
-  int32 facial_hair_style = 13;  // 0-15 (0=none)
-  int32 facial_hair_color = 14;  // 0-15
-  int32 scar_style = 15;         // 0-7 (0=none)
-  int32 tattoo_style = 16;       // 0-15 (0=none)
-  int32 voice_type = 17;         // 0-7
-}
-
-// Visual type enum for 3D model selection
-enum RentEarthVisualType {
-  RENTEARTH_VISUAL_UNSPECIFIED = 0;
-  RENTEARTH_VISUAL_HUMAN_MALE = 1;
-  RENTEARTH_VISUAL_HUMAN_FEMALE = 2;
-  RENTEARTH_VISUAL_SKELETON_WARRIOR = 3;
-  RENTEARTH_VISUAL_SKELETON_MAGE = 4;
-  RENTEARTH_VISUAL_SKELETON_MINION = 5;
-  RENTEARTH_VISUAL_SKELETON_ROGUE = 6;
-  RENTEARTH_VISUAL_GOBLIN = 7;
-  RENTEARTH_VISUAL_ORC = 8;
-}
-
-// Character summary for profile display
-message RentEarthCharacterSummary {
-  string id = 1;                          // Character UUID
-  int32 slot = 2;                         // Character slot (0-9)
-  string first_name = 3;                  // Character's first name
-  string display_name = 4;                // "first_name of Haus username"
-  RentEarthVisualType visual_type = 5;
-  int64 archetype_flags = 6;              // Unlocked classes (bitfield)
-  int32 level = 7;
-  int64 experience = 8;
-  int64 gold = 9;
-  string current_zone = 10;
-  int32 health_current = 11;
-  int32 health_max = 12;
-  optional string last_login_at = 13;     // ISO timestamp
-  optional int64 total_playtime_seconds = 14;
-  optional string created_at = 15;        // ISO timestamp
-}
-
-// Full character data for detailed view
-message RentEarthCharacterFull {
-  RentEarthCharacterSummary summary = 1;
-  RentEarthPosition position = 2;
-  RentEarthCoreStats core_stats = 3;
-  RentEarthDerivedStats derived_stats = 4;
-  RentEarthAppearance appearance = 5;
-}
-
-// All RentEarth data for a user profile
-message RentEarthProfile {
-  repeated RentEarthCharacterSummary characters = 1;
-  optional RentEarthCharacterFull active_character = 2;
-  optional int64 total_playtime_seconds = 3;
-  optional string last_activity_at = 4;
-}
-
 // Complete user profile
 message UserProfile {
   string user_id = 1;         // UUID from Supabase auth
@@ -178,8 +64,7 @@ message UserProfile {
   bool is_public = 11;        // default: true for kbve.com/@username
   bool show_providers = 12;   // default: true
 
-  // RentEarth game data (optional - only present if user plays RentEarth)
-  optional RentEarthProfile rentearth = 13;
+  reserved 13;  // was: RentEarth game data (removed)
 }
 
 // =============================================================================

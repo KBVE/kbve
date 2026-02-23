@@ -1,203 +1,203 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: supabase-auth
-  namespace: kilobase
-  labels:
-    app: supabase-auth
-    component: auth
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: supabase-auth
-  template:
-    metadata:
-      labels:
+    name: supabase-auth
+    namespace: kilobase
+    labels:
         app: supabase-auth
         component: auth
-    spec:
-      containers:
-      - name: gotrue
-        image: supabase/gotrue:v2.177.0
-        ports:
-        - containerPort: 9999
-          name: http
-        env:
-        # Basic GoTrue configuration
-        - name: GOTRUE_API_HOST
-          value: "0.0.0.0"
-        - name: GOTRUE_API_PORT
-          value: "9999"
-        - name: API_EXTERNAL_URL
-          value: "https://supabase.kbve.com"
-        
-        # Database configuration
-        - name: GOTRUE_DB_DRIVER
-          value: "postgres"
-        - name: GOTRUE_DB_DATABASE_URL
-          valueFrom:
-            secretKeyRef:
-              name: gotrue-database
-              key: database-url
-        
-        # Site configuration - hardcoded for now
-        - name: GOTRUE_SITE_URL
-          value: "https://kbve.com"
-        - name: GOTRUE_URI_ALLOW_LIST
-          value: "https://kbve.com/**,https://*.kbve.com/**,https://api.kbve.com/**,https://discord.sh/**,https://*.discord.sh/**,https://rentearth.com/**,https://*.rentearth.com/**,https://herbmail.com/**,https://*.herbmail.com/**,https://meme.sh/**,https://*.meme.sh/**,http://localhost:4321/**,http://localhost:**,http://localhost:3000/*,http://127.0.0.1:3000/*,http://127.0.0.1:3000/**"
-        - name: GOTRUE_DISABLE_SIGNUP
-          value: "false"
-        
-        # JWT configuration - hardcoded basic values
-        - name: GOTRUE_JWT_ADMIN_ROLES
-          value: "supabase_admin, service_role"
-        - name: GOTRUE_JWT_AUD
-          value: "authenticated"
-        - name: GOTRUE_JWT_DEFAULT_GROUP_NAME
-          value: "authenticated"
-        
-        # Email configuration - hardcoded for simplicity
-        - name: GOTRUE_EXTERNAL_EMAIL_ENABLED
-          value: "true"
-        - name: GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED
-          value: "false"
-        - name: GOTRUE_MAILER_AUTOCONFIRM
-          value: "true"
-        
-        # Phone
-        - name: GOTRUE_SMS_AUTOCONFIRM
-          value: "false"
+spec:
+    replicas: 2
+    selector:
+        matchLabels:
+            app: supabase-auth
+    template:
+        metadata:
+            labels:
+                app: supabase-auth
+                component: auth
+        spec:
+            containers:
+                - name: gotrue
+                  image: supabase/gotrue:v2.177.0
+                  ports:
+                      - containerPort: 9999
+                        name: http
+                  env:
+                      # Basic GoTrue configuration
+                      - name: GOTRUE_API_HOST
+                        value: '0.0.0.0'
+                      - name: GOTRUE_API_PORT
+                        value: '9999'
+                      - name: API_EXTERNAL_URL
+                        value: 'https://supabase.kbve.com'
 
-        # Captcha configuration
-        - name: GOTRUE_SECURITY_CAPTCHA_ENABLED
-          value: "true"
-        - name: GOTRUE_SECURITY_CAPTCHA_PROVIDER
-          value: "hcaptcha"
-        - name: GOTRUE_SECURITY_CAPTCHA_TIMEOUT
-          value: "10s"
-        - name: GOTRUE_SECURITY_CAPTCHA_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: hcaptcha-config
-              key: secret-key
+                      # Database configuration
+                      - name: GOTRUE_DB_DRIVER
+                        value: 'postgres'
+                      - name: GOTRUE_DB_DATABASE_URL
+                        valueFrom:
+                            secretKeyRef:
+                                name: gotrue-database
+                                key: database-url
 
-        # Discord OAuth configuration
-        - name: GOTRUE_EXTERNAL_DISCORD_ENABLED
-          value: "true"
-        - name: GOTRUE_EXTERNAL_DISCORD_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: discord-oauth-config
-              key: client-id
-        - name: GOTRUE_EXTERNAL_DISCORD_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: discord-oauth-config
-              key: client-secret
-        - name: GOTRUE_EXTERNAL_DISCORD_REDIRECT_URI
-          value: "https://supabase.kbve.com/auth/v1/callback"
+                      # Site configuration - hardcoded for now
+                      - name: GOTRUE_SITE_URL
+                        value: 'https://kbve.com'
+                      - name: GOTRUE_URI_ALLOW_LIST
+                        value: 'https://kbve.com/**,https://*.kbve.com/**,https://api.kbve.com/**,https://discord.sh/**,https://*.discord.sh/**,https://herbmail.com/**,https://*.herbmail.com/**,https://meme.sh/**,https://*.meme.sh/**,http://localhost:4321/**,http://localhost:**,http://localhost:3000/*,http://127.0.0.1:3000/*,http://127.0.0.1:3000/**'
+                      - name: GOTRUE_DISABLE_SIGNUP
+                        value: 'false'
 
-        # GitHub OAuth configuration
-        - name: GOTRUE_EXTERNAL_GITHUB_ENABLED
-          value: "true"
-        - name: GOTRUE_EXTERNAL_GITHUB_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: github-oauth-config
-              key: client-id
-        - name: GOTRUE_EXTERNAL_GITHUB_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: github-oauth-config
-              key: client-secret
-        - name: GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI
-          value: "https://supabase.kbve.com/auth/v1/callback"
+                      # JWT configuration - hardcoded basic values
+                      - name: GOTRUE_JWT_ADMIN_ROLES
+                        value: 'supabase_admin, service_role'
+                      - name: GOTRUE_JWT_AUD
+                        value: 'authenticated'
+                      - name: GOTRUE_JWT_DEFAULT_GROUP_NAME
+                        value: 'authenticated'
 
-        # Twitch OAuth configuration
-        - name: GOTRUE_EXTERNAL_TWITCH_ENABLED
-          value: "true"
-        - name: GOTRUE_EXTERNAL_TWITCH_CLIENT_ID
-          valueFrom:
-            secretKeyRef:
-              name: twitch-oauth-config
-              key: client-id
-        - name: GOTRUE_EXTERNAL_TWITCH_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: twitch-oauth-config
-              key: client-secret
-        - name: GOTRUE_EXTERNAL_TWITCH_REDIRECT_URI
-          value: "https://supabase.kbve.com/auth/v1/callback"
+                      # Email configuration - hardcoded for simplicity
+                      - name: GOTRUE_EXTERNAL_EMAIL_ENABLED
+                        value: 'true'
+                      - name: GOTRUE_EXTERNAL_ANONYMOUS_USERS_ENABLED
+                        value: 'false'
+                      - name: GOTRUE_MAILER_AUTOCONFIRM
+                        value: 'true'
 
-        # Secrets from Kubernetes
-        - name: GOTRUE_JWT_EXP
-          valueFrom:
-            secretKeyRef:
-              name: supabase-jwt
-              key: expiry
-        - name: GOTRUE_JWT_SECRET
-          valueFrom:
-            secretKeyRef:
-              name: supabase-jwt
-              key: secret
-        - name: POSTGRES_PASSWORD
-          valueFrom:
-            secretKeyRef:
-              name: supabase-postgres
-              key: password
-              
-        # Health check
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: 9999
-          initialDelaySeconds: 30
-          periodSeconds: 30
-          timeoutSeconds: 5
-          failureThreshold: 3
-          
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: 9999
-          initialDelaySeconds: 10
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-          
-        resources:
-          requests:
-            memory: "128Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-            
-        securityContext:
-          runAsNonRoot: true
-          runAsUser: 1000
-          allowPrivilegeEscalation: false
-          readOnlyRootFilesystem: true
-          capabilities:
-            drop:
-            - ALL
+                      # Phone
+                      - name: GOTRUE_SMS_AUTOCONFIRM
+                        value: 'false'
+
+                      # Captcha configuration
+                      - name: GOTRUE_SECURITY_CAPTCHA_ENABLED
+                        value: 'true'
+                      - name: GOTRUE_SECURITY_CAPTCHA_PROVIDER
+                        value: 'hcaptcha'
+                      - name: GOTRUE_SECURITY_CAPTCHA_TIMEOUT
+                        value: '10s'
+                      - name: GOTRUE_SECURITY_CAPTCHA_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: hcaptcha-config
+                                key: secret-key
+
+                      # Discord OAuth configuration
+                      - name: GOTRUE_EXTERNAL_DISCORD_ENABLED
+                        value: 'true'
+                      - name: GOTRUE_EXTERNAL_DISCORD_CLIENT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: discord-oauth-config
+                                key: client-id
+                      - name: GOTRUE_EXTERNAL_DISCORD_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: discord-oauth-config
+                                key: client-secret
+                      - name: GOTRUE_EXTERNAL_DISCORD_REDIRECT_URI
+                        value: 'https://supabase.kbve.com/auth/v1/callback'
+
+                      # GitHub OAuth configuration
+                      - name: GOTRUE_EXTERNAL_GITHUB_ENABLED
+                        value: 'true'
+                      - name: GOTRUE_EXTERNAL_GITHUB_CLIENT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: github-oauth-config
+                                key: client-id
+                      - name: GOTRUE_EXTERNAL_GITHUB_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: github-oauth-config
+                                key: client-secret
+                      - name: GOTRUE_EXTERNAL_GITHUB_REDIRECT_URI
+                        value: 'https://supabase.kbve.com/auth/v1/callback'
+
+                      # Twitch OAuth configuration
+                      - name: GOTRUE_EXTERNAL_TWITCH_ENABLED
+                        value: 'true'
+                      - name: GOTRUE_EXTERNAL_TWITCH_CLIENT_ID
+                        valueFrom:
+                            secretKeyRef:
+                                name: twitch-oauth-config
+                                key: client-id
+                      - name: GOTRUE_EXTERNAL_TWITCH_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: twitch-oauth-config
+                                key: client-secret
+                      - name: GOTRUE_EXTERNAL_TWITCH_REDIRECT_URI
+                        value: 'https://supabase.kbve.com/auth/v1/callback'
+
+                      # Secrets from Kubernetes
+                      - name: GOTRUE_JWT_EXP
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-jwt
+                                key: expiry
+                      - name: GOTRUE_JWT_SECRET
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-jwt
+                                key: secret
+                      - name: POSTGRES_PASSWORD
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-postgres
+                                key: password
+
+                  # Health check
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: 9999
+                      initialDelaySeconds: 30
+                      periodSeconds: 30
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+
+                  readinessProbe:
+                      httpGet:
+                          path: /health
+                          port: 9999
+                      initialDelaySeconds: 10
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+
+                  resources:
+                      requests:
+                          memory: '128Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+
+                  securityContext:
+                      runAsNonRoot: true
+                      runAsUser: 1000
+                      allowPrivilegeEscalation: false
+                      readOnlyRootFilesystem: true
+                      capabilities:
+                          drop:
+                              - ALL
 
 ---
 apiVersion: v1
 kind: Service
 metadata:
-  name: auth
-  namespace: kilobase
-  labels:
-    app: supabase-auth
-    component: auth
+    name: auth
+    namespace: kilobase
+    labels:
+        app: supabase-auth
+        component: auth
 spec:
-  type: ClusterIP
-  ports:
-  - port: 9999
-    targetPort: 9999
-    protocol: TCP
-    name: http
-  selector:
-    app: supabase-auth
+    type: ClusterIP
+    ports:
+        - port: 9999
+          targetPort: 9999
+          protocol: TCP
+          name: http
+    selector:
+        app: supabase-auth

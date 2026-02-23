@@ -31,14 +31,13 @@ on:
             gh_pages_domain:
                 required: false
                 type: string
-                default: 'unity.rareicon.com'
+                default: ''
 
             gh_pages_repo:
                 required: false
                 type: string
-                default: 'KBVE/unity.rareicon.com'
+                default: ''
 
-    
         secrets:
             unity_license:
                 required: true
@@ -58,7 +57,7 @@ on:
             gh_pages_pat:
                 required: true
                 description: 'Github Pages PAT'
-            
+
 jobs:
     build:
         name: Unity Build Matrix
@@ -95,7 +94,7 @@ jobs:
 
             - name: Use Local Repo if Azure not provided
               if: ${{ inputs.azure_repo_url == '' }}
-              uses: actions/checkout@v4
+              uses: actions/checkout@v6
 
             - name: Unity Cache
               uses: actions/cache@v5
@@ -118,7 +117,7 @@ jobs:
                   targetPlatform: ${{ matrix.target_platform }}
 
             - name: Upload Artifact
-              uses: actions/upload-artifact@v4
+              uses: actions/upload-artifact@v6
               with:
                   name: Build-${{ matrix.target_platform }}
                   path: build/${{ matrix.target_platform }}
@@ -131,7 +130,7 @@ jobs:
 
         steps:
             - name: Download WebGL Build
-              uses: actions/download-artifact@v4
+              uses: actions/download-artifact@v7
               id: download
               with:
                   name: Build-WebGL
@@ -146,41 +145,40 @@ jobs:
                   itchGameId: ${{ inputs.itch_gameid }}
                   buildChannel: webgl
 
-
     gh-pages-deploy:
         name: Deploy WebGL to GitHub Pages
         needs: unity-build
         if: ${{ contains(inputs.target_platforms, 'WebGL') }}
         runs-on: ubuntu-latest
         steps:
-        -   name: Download WebGL Build
-            uses: actions/download-artifact@v4
-            id: download
-            with:
-                name: Build-WebGL
-                path: build/WebGL
+            - name: Download WebGL Build
+              uses: actions/download-artifact@v7
+              id: download
+              with:
+                  name: Build-WebGL
+                  path: build/WebGL
 
-        -   name: Copy WebGL files
-            run: |
-                mkdir -p dist/apps/webapp/
-                cp -R build/WebGL/WebGL/* dist/apps/webapp/
+            - name: Copy WebGL files
+              run: |
+                  mkdir -p dist/apps/webapp/
+                  cp -R build/WebGL/WebGL/* dist/apps/webapp/
 
-        -   name: Create .nojekyll and CNAME files
-            run: |
-                touch dist/apps/webapp/.nojekyll
-                echo "${{ inputs.gh_pages_domain }}" > dist/apps/webapp/CNAME
+            - name: Create .nojekyll and CNAME files
+              run: |
+                  touch dist/apps/webapp/.nojekyll
+                  echo "${{ inputs.gh_pages_domain }}" > dist/apps/webapp/CNAME
 
-        -   name: Deploy to GitHub Pages
-            uses: dobbelina/copy_file_to_another_repo_action@main
-            env:
-                API_TOKEN_GITHUB: ${{ secrets.gh_pages_pat }}
-            with:
-                source_file: 'dist/apps/webapp/'
-                destination_repo: ${{ inputs.gh_pages_repo }}
-                destination_folder: '/docs'
-                destination_branch: 'main'
-                destination_branch_create: 'ghpages-deploy-${{ github.run_id }}'
-                user_email: 'h0lybyte@users.noreply.github.com'
-                user_name: 'h0lybyte'
-                commit_message: 'Deploy Unity WebGL to GH Pages from CI'
-                rsync_option: '-avrh --delete'
+            - name: Deploy to GitHub Pages
+              uses: dobbelina/copy_file_to_another_repo_action@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.gh_pages_pat }}
+              with:
+                  source_file: 'dist/apps/webapp/'
+                  destination_repo: ${{ inputs.gh_pages_repo }}
+                  destination_folder: '/docs'
+                  destination_branch: 'main'
+                  destination_branch_create: 'ghpages-deploy-${{ github.run_id }}'
+                  user_email: 'h0lybyte@users.noreply.github.com'
+                  user_name: 'h0lybyte'
+                  commit_message: 'Deploy Unity WebGL to GH Pages from CI'
+                  rsync_option: '-avrh --delete'
