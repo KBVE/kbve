@@ -33,6 +33,7 @@ on:
 jobs:
     publish:
         runs-on: ubuntu-latest
+        timeout-minutes: 60
         permissions:
             contents: read
             packages: write
@@ -41,7 +42,7 @@ jobs:
             - name: Checkout Repository
               uses: actions/checkout@v6
               with:
-                ref: ${{ inputs.branch }}
+                  ref: ${{ inputs.branch }}
 
             - name: Check version against Docker Hub
               id: version_check

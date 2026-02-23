@@ -13,6 +13,8 @@ concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
+permissions: {}
+
 jobs:
     dev_to_staging_pr:
         name: 'Create/Update Dev to Staging PR'
