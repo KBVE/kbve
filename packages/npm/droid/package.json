@@ -1,71 +1,69 @@
 {
-  "name": "@kbve/droid",
-  "version": "0.1.0",
-  "description": "A manager for web, shared and service workers, aimming to make it as modular and upgradable.",
-  "keywords": [
-    "workers",
-    "management"
-  ],
-  "homepage": "https://kbve.com/application/javascript/",
-  "bugs": {
-    "url": "https://github.com/KBVE/kbve/issues"
-  },
-  "repository": {
-    "type": "git",
-    "url": "git+https://github.com/KBVE/kbve.git"
-  },
-  "author": "KBVE <hello@kbve.com>",
-  "license": "MIT",
-  "type": "module",
-  "main": "./droid.mjs",
-  "module": "./droid.mjs",
-  "types": "./index.d.ts",
-  "exports": {
-    ".": {
-      "import": "./droid.mjs",
-      "require": "./droid.mjs"
-    },
-    "./lib/workers/canvas-worker": "./lib/workers/canvas-worker.js",
-    "./lib/workers/db-worker": "./lib/workers/db-worker.js",
-    "./lib/workers/ws-worker": "./lib/workers/ws-worker.js",
-    "./lib/workers/supabase-shared-worker": "./lib/workers/supabase-shared-worker.js",
-    "./lib/workers/supabase-db-worker": "./lib/workers/supabase-db-worker.js"
-  },
-  "files": [
-    "workers/",
-    "lib/workers/",
-    "lib/gateway/",
-    "assets/",
-    "src/",
-    "comlink*.js",
-    "reference*.js",
-    "droid.mjs",
-    "main.js",
-    "index.js",
-    "index.d.ts",
-    "*.md",
-    "LICENSE",
-    "*.json"
-  ],
-  "dependencies": {
-    "tslib": "^2.3.0",
-    "comlink": "^4.3.1",
-    "nanostores": "^0.9.5",
-    "@nanostores/persistent": "^0.9.1",
-    "dexie": "^4.0.9",
-    "zod": "^3.23.8",
-    "flatbuffers": "^25.9.23",
-    "@bufbuild/protobuf": "^2.5.2"
-  },
-  "peerDependencies": {
-    "@supabase/supabase-js": "^2.95.3"
-  },
-  "peerDependenciesMeta": {
-    "@supabase/supabase-js": {
-      "optional": true
-    }
-  },
-  "publishConfig": {
-    "access": "public"
-  }
+	"name": "@kbve/droid",
+	"version": "0.1.0",
+	"description": "A manager for web, shared and service workers, aimming to make it as modular and upgradable.",
+	"keywords": [
+		"workers",
+		"management"
+	],
+	"homepage": "https://kbve.com/application/javascript/",
+	"bugs": {
+		"url": "https://github.com/KBVE/kbve/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/KBVE/kbve.git"
+	},
+	"author": "KBVE <hello@kbve.com>",
+	"license": "MIT",
+	"type": "module",
+	"main": "./droid.mjs",
+	"module": "./droid.mjs",
+	"types": "./index.d.ts",
+	"exports": {
+		".": {
+			"import": "./droid.mjs",
+			"require": "./droid.mjs"
+		},
+		"./lib/workers/canvas-worker": "./lib/workers/canvas-worker.js",
+		"./lib/workers/db-worker": "./lib/workers/db-worker.js",
+		"./lib/workers/ws-worker": "./lib/workers/ws-worker.js",
+		"./lib/workers/supabase-shared-worker": "./lib/workers/supabase-shared-worker.js",
+		"./lib/workers/supabase-db-worker": "./lib/workers/supabase-db-worker.js"
+	},
+	"files": [
+		"workers/",
+		"lib/workers/",
+		"lib/gateway/",
+		"assets/",
+		"src/",
+		"comlink*.js",
+		"reference*.js",
+		"droid.mjs",
+		"main.js",
+		"index.js",
+		"index.d.ts",
+		"*.md",
+		"LICENSE",
+		"*.json"
+	],
+	"dependencies": {
+		"comlink": "^4.3.1",
+		"nanostores": "^1.1.0",
+		"@nanostores/persistent": "^1.3.3",
+		"dexie": "^4.0.9",
+		"zod": "^3.23.8",
+		"flatbuffers": "^25.2.10"
+	},
+	"peerDependencies": {
+		"@supabase/supabase-js": "^2.95.3"
+	},
+	"peerDependenciesMeta": {
+		"@supabase/supabase-js": {
+			"optional": true
+		}
+	},
+	"publishConfig": {
+		"access": "public"
+	}
 }
