@@ -277,68 +277,14 @@ jobs:
     # Job 5: Run lint + test on affected projects
     run_tests:
         name: 'Run Tests'
-        runs-on: ubuntu-latest
         needs: [check_pr_status, create_pr]
         if: always() && !failure() && !cancelled() && (needs.check_pr_status.outputs.pr_exists == 'true' || needs.create_pr.outputs.pr_created == 'true')
-        timeout-minutes: 30
         permissions:
             contents: read
-
-        steps:
-            - name: Checkout
-              uses: actions/checkout@v6
-              with:
-                  fetch-depth: 0
-
-            - name: Setup Node v24
-              uses: actions/setup-node@v6
-              with:
-                  node-version: 24
-
-            - name: Setup pnpm v10
-              uses: pnpm/action-setup@v4
-              with:
-                  version: 10
-                  run_install: false
-
-            - name: Get pnpm Store Path
-              id: pnpm-store
-              run: echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
-
-            - name: Setup pnpm Cache
-              uses: actions/cache@v5
-              with:
-                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
-                  restore-keys: |
-                      ${{ runner.os }}-pnpm-store-
-
-            - name: Install pnpm Dependencies
-              run: pnpm install
-
-            - name: Setup Python
-              uses: actions/setup-python@v6
-              with:
-                  python-version: '3.12'
-
-            - name: Install uv
-              uses: astral-sh/setup-uv@v7
-
-            - name: Setup PostgreSQL 17 for pgrx
-              run: |
-                  sudo install -d /usr/share/postgresql-common/pgdg
-                  sudo curl -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc --fail https://www.postgresql.org/media/keys/ACCC4CF8.asc
-                  echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list
-                  sudo apt-get update
-                  sudo apt-get install -y postgresql-server-dev-17 libclang-dev
-                  mkdir -p ~/.pgrx
-                  printf '[configs]\npg17 = "/usr/lib/postgresql/17/bin/pg_config"\n' > ~/.pgrx/config.toml
-
-            - name: Lint affected projects
-              run: pnpm nx affected --target=lint --base=origin/dev --head=HEAD --no-cloud
-
-            - name: Test affected projects
-              run: pnpm nx affected --target=test --base=origin/dev --head=HEAD --no-cloud
+        uses: ./.github/workflows/utils-ci-lint-test.yml
+        with:
+            base-ref: origin/dev
+            head-ref: HEAD
 
     # Job 6: Security check — defense-in-depth validation of PR author
     security_check:
