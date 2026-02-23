@@ -63,13 +63,6 @@ on:
             irc_gateway:
                 description: 'IRC Gateway changed'
                 value: ${{ jobs.alter.outputs.irc_gateway }}
-            astro_rareicon:
-                description: 'Rareicon.com changed'
-                value: ${{ jobs.alter.outputs.astro_rareicon }}
-            # ? Unity
-            rareicon_unity:
-                description: 'Rareicon Unity changed'
-                value: ${{ jobs.alter.outputs.rareicon_unity }}
             # ? NPM
             droid:
                 description: 'Droid Package changed'
@@ -81,9 +74,6 @@ on:
             discordsh:
                 description: 'Discordsh app changed'
                 value: ${{ jobs.alter.outputs.discordsh }}
-            rareicon:
-                description: 'Rareicon changed'
-                value: ${{ jobs.alter.outputs.rareicon }}
             proxy:
                 description: 'Proxy changed'
                 value: ${{ jobs.alter.outputs.proxy }}
@@ -133,8 +123,6 @@ jobs:
             herbmail: ${{ steps.delta.outputs.herbmail_any_changed }}
             memes: ${{ steps.delta.outputs.memes_any_changed }}
             irc_gateway: ${{ steps.delta.outputs.irc_gateway_any_changed }}
-            astro_rareicon: ${{ steps.delta.outputs.astro_rareicon_any_changed }}
-            rareicon_unity: ${{ steps.delta.outputs.rareicon_unity_any_changed }}
             droid: ${{ steps.delta.outputs.droid_any_changed }}
             discordsh: ${{ steps.delta.outputs.discordsh_any_changed}}
             proxy: ${{ steps.delta.outputs.proxy_any_changed }}
@@ -174,8 +162,6 @@ jobs:
                           - 'packages/rust/holy/src/**'
                       kilobase:
                           -  'apps/kbve/kilobase/README.md'
-                      rareicon_unity:
-                          - 'apps/rareicon/**'
                       droid:
                           - 'packages/npm/droid/README.md'
                       # py_atlas:  # Atlas migrated into pydesk
@@ -194,8 +180,6 @@ jobs:
                           - 'apps/memes/**'
                       irc_gateway:
                           - 'apps/irc/**'
-                      astro_rareicon:
-                          - 'apps/rareicon/rareicon.com/**'
                       discordsh:
                           - 'apps/discordsh/**'
                       proxy:

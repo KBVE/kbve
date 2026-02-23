@@ -7,7 +7,7 @@ members = [
 	'packages/rust/holy',
 	'packages/rust/jedi',
 	'apps/kbve/kilobase',
-	'apps/rareicon/rust_rareicon_gameserver',
+
 	'apps/rentearth/rust_godot_towerdefense',
 	'packages/rust/q',
 	'packages/rust/soul',
