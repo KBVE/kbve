@@ -1,79 +1,80 @@
 name: Utils NPM Publish
 
 on:
-  workflow_call:
-    inputs:
-      project:
-        required: true
-        type: string
-    secrets:
-      NPM_TOKEN:
-        required: true
+    workflow_call:
+        inputs:
+            project:
+                required: true
+                type: string
+        secrets:
+            NPM_TOKEN:
+                required: true
 
 jobs:
-  publish:
-    name: Publish ${{ inputs.project }} NPM Package
-    runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      id-token: write
+    publish:
+        name: Publish ${{ inputs.project }} NPM Package
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        permissions:
+            contents: read
+            id-token: write
 
-    steps:
-      - name: Checkout the monorepo
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
+        steps:
+            - name: Checkout the monorepo
+              uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
 
-      - name: Setup Node v24
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
-          registry-url: https://registry.npmjs.org/
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
+                  registry-url: https://registry.npmjs.org/
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          run_install: false
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
 
-      - name: Get pnpm Store
-        id: pnpm-store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+            - name: Get pnpm Store
+              id: pnpm-store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
-      - name: Setup pnpm Cache
-        uses: actions/cache@v5
-        with:
-          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
 
-      - name: Install pnpm dependencies
-        run: pnpm install
+            - name: Install pnpm dependencies
+              run: pnpm install
 
-      - name: Check version against npm registry
-        id: version_check
-        run: |
-          LOCAL_VERSION=$(jq -r '.version' "packages/npm/${{ inputs.project }}/package.json")
-          echo "Local version: $LOCAL_VERSION"
+            - name: Check version against npm registry
+              id: version_check
+              run: |
+                  LOCAL_VERSION=$(jq -r '.version' "packages/npm/${{ inputs.project }}/package.json")
+                  echo "Local version: $LOCAL_VERSION"
 
-          REGISTRY_VERSION=$(npm view "@kbve/${{ inputs.project }}" version 2>/dev/null || echo "0.0.0")
-          echo "Registry version: $REGISTRY_VERSION"
+                  REGISTRY_VERSION=$(npm view "@kbve/${{ inputs.project }}" version 2>/dev/null || echo "0.0.0")
+                  echo "Registry version: $REGISTRY_VERSION"
 
-          if [ "$LOCAL_VERSION" = "$REGISTRY_VERSION" ]; then
-            echo "Version $LOCAL_VERSION already published — skipping."
-            echo "should_publish=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "New version $LOCAL_VERSION (registry has $REGISTRY_VERSION) — publishing."
-            echo "should_publish=true" >> "$GITHUB_OUTPUT"
-          fi
+                  if [ "$LOCAL_VERSION" = "$REGISTRY_VERSION" ]; then
+                    echo "Version $LOCAL_VERSION already published — skipping."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "New version $LOCAL_VERSION (registry has $REGISTRY_VERSION) — publishing."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                  fi
 
-      - name: Build and Publish ${{ inputs.project }} NPM Package
-        if: steps.version_check.outputs.should_publish == 'true'
-        shell: bash
-        run: ./kbve.sh -nx ${{ inputs.project }}:publish
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-          NPM_CONFIG_PROVENANCE: true
+            - name: Build and Publish ${{ inputs.project }} NPM Package
+              if: steps.version_check.outputs.should_publish == 'true'
+              shell: bash
+              run: ./kbve.sh -nx ${{ inputs.project }}:publish
+              env:
+                  NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+                  NPM_CONFIG_PROVENANCE: true

@@ -36,9 +36,10 @@ on:
 jobs:
     nx-kbve-shell:
         runs-on: ubuntu-latest
+        timeout-minutes: 15
         permissions:
-            contents: read
-            packages: write
+            contents: write
+            pull-requests: write
 
         steps:
             - name: Checkout Repository
@@ -72,12 +73,11 @@ jobs:
             - name: Install pnpm Dependencies
               run: pnpm install
 
-
             - name: Run NX Command
               shell: bash
               run: |
-                chmod +x ./kbve.sh
-                ./kbve.sh -nx ${{ inputs.project }}:${{ inputs.target }}
+                  chmod +x ./kbve.sh
+                  ./kbve.sh -nx ${{ inputs.project }}:${{ inputs.target }}
 
             - name: Create Pull Request (if enabled)
               if: inputs.create_pull_request == true
@@ -85,14 +85,14 @@ jobs:
                   GITHUB_TOKEN: ${{ secrets.MY_GITHUB_TOKEN }}
               shell: bash
               run: |
-                git config user.name "GitHub Actions"
-                git config user.email "actions@github.com"
+                  git config user.name "GitHub Actions"
+                  git config user.email "actions@github.com"
 
-                BRANCH_NAME="patch-atomic-gha-${{ inputs.pull_request_title }}"
-                git checkout -b "$BRANCH_NAME"
-                git add .
-                ESCAPED_FLAG=$(echo "${{ inputs.project }}:${{ inputs.target }}" | sed "s/'/'\"'\"'/g")
-                git commit -m 'Automated Atomic Patch via ./kbve.sh '"$ESCAPED_FLAG"
-                git push -u origin "$BRANCH_NAME"
+                  BRANCH_NAME="patch-atomic-gha-${{ inputs.pull_request_title }}"
+                  git checkout -b "$BRANCH_NAME"
+                  git add .
+                  ESCAPED_FLAG=$(echo "${{ inputs.project }}:${{ inputs.target }}" | sed "s/'/'\"'\"'/g")
+                  git commit -m 'Automated Atomic Patch via ./kbve.sh '"$ESCAPED_FLAG"
+                  git push -u origin "$BRANCH_NAME"
 
-                gh pr create -B dev -H "$BRANCH_NAME" --title "Automated Atomic Patch : ${{ inputs.pull_request_title }}" --body "This PR includes an automated atomic patch for the monorepo. ${{ inputs.pull_request_body }}"
+                  gh pr create -B dev -H "$BRANCH_NAME" --title "Automated Atomic Patch : ${{ inputs.pull_request_title }}" --body "This PR includes an automated atomic patch for the monorepo. ${{ inputs.pull_request_body }}"

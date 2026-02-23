@@ -1,94 +1,97 @@
-name: "Reusable: Astro Deploy"
+name: 'Reusable: Astro Deploy'
 
 on:
-  workflow_call:
-    inputs:
-      node_version:
-        description: "Node.js version"
-        required: false
-        default: "24"
-        type: string
-      pnpm_version:
-        description: "PNPM version"
-        required: false
-        default: "10"
-        type: string
-      build_command:
-        description: "Build command for the project"
-        required: true
-        type: string
-      source_path:
-        description: "Source file path"
-        required: true
-        type: string
-      destination_repo:
-        description: "Destination repository"
-        required: true
-        type: string
-      destination_folder:
-        description: "Destination folder"
-        required: false
-        default: "/docs"
-        type: string
-      destination_branch:
-        description: "Destination branch"
-        required: false
-        default: "dev"
-        type: string
-    secrets:
-      GITHUB_PAT:
-        required: true
+    workflow_call:
+        inputs:
+            node_version:
+                description: 'Node.js version'
+                required: false
+                default: '24'
+                type: string
+            pnpm_version:
+                description: 'PNPM version'
+                required: false
+                default: '10'
+                type: string
+            build_command:
+                description: 'Build command for the project'
+                required: true
+                type: string
+            source_path:
+                description: 'Source file path'
+                required: true
+                type: string
+            destination_repo:
+                description: 'Destination repository'
+                required: true
+                type: string
+            destination_folder:
+                description: 'Destination folder'
+                required: false
+                default: '/docs'
+                type: string
+            destination_branch:
+                description: 'Destination branch'
+                required: false
+                default: 'dev'
+                type: string
+        secrets:
+            GITHUB_PAT:
+                required: true
 
 jobs:
-  deploy:
-    runs-on: ubuntu-latest
-    steps:
-      - name: Checkout the repository
-        uses: actions/checkout@v6
+    deploy:
+        runs-on: ubuntu-latest
+        timeout-minutes: 30
+        permissions:
+            contents: read
+        steps:
+            - name: Checkout the repository
+              uses: actions/checkout@v6
 
-      - name: Setup Node.js ${{ inputs.node_version }}
-        uses: actions/setup-node@v6
-        with:
-          node-version: ${{ inputs.node_version }}
+            - name: Setup Node.js ${{ inputs.node_version }}
+              uses: actions/setup-node@v6
+              with:
+                  node-version: ${{ inputs.node_version }}
 
-      - name: Setup pnpm ${{ inputs.pnpm_version }}
-        uses: pnpm/action-setup@v4
-        with:
-          version: ${{ inputs.pnpm_version }}
-          run_install: false
+            - name: Setup pnpm ${{ inputs.pnpm_version }}
+              uses: pnpm/action-setup@v4
+              with:
+                  version: ${{ inputs.pnpm_version }}
+                  run_install: false
 
-      - name: Get pnpm Store
-        id: pnpm-store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+            - name: Get pnpm Store
+              id: pnpm-store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
-      - name: Setup pnpm Cache
-        uses: actions/cache@v5
-        with:
-          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
 
-      - name: Install pnpm dependencies
-        run: pnpm install
+            - name: Install pnpm dependencies
+              run: pnpm install
 
-      - name: Build Project
-        shell: bash
-        run: ./kbve.sh -nx ${{ inputs.build_command }}
+            - name: Build Project
+              shell: bash
+              run: ./kbve.sh -nx ${{ inputs.build_command }}
 
-      - name: Deploy to ${{ inputs.destination_repo }}
-        uses: dobbelina/copy_file_to_another_repo_action@main
-        env:
-          API_TOKEN_GITHUB: ${{ secrets.GITHUB_PAT }}
-        with:
-          source_file: ${{ inputs.source_path }}
-          destination_repo: ${{ inputs.destination_repo }}
-          destination_folder: ${{ inputs.destination_folder }}
-          destination_branch: ${{ inputs.destination_branch }}
-          destination_branch_create: "patch-kbve-deploy-${{ github.sha }}"
-          user_email: "5599058+h0lybyte@users.noreply.github.com"
-          user_name: "h0lybyte"
-          commit_message: "${{ github.event.head_commit.message }}"
-          rsync_option: "-avrh --delete"
+            - name: Deploy to ${{ inputs.destination_repo }}
+              uses: dobbelina/copy_file_to_another_repo_action@main
+              env:
+                  API_TOKEN_GITHUB: ${{ secrets.GITHUB_PAT }}
+              with:
+                  source_file: ${{ inputs.source_path }}
+                  destination_repo: ${{ inputs.destination_repo }}
+                  destination_folder: ${{ inputs.destination_folder }}
+                  destination_branch: ${{ inputs.destination_branch }}
+                  destination_branch_create: 'patch-kbve-deploy-${{ github.sha }}'
+                  user_email: '5599058+h0lybyte@users.noreply.github.com'
+                  user_name: 'h0lybyte'
+                  commit_message: '${{ github.event.head_commit.message }}'
+                  rsync_option: '-avrh --delete'

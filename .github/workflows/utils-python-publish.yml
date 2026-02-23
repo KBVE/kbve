@@ -1,96 +1,97 @@
 name: Utils Python Publish
 
 on:
-  workflow_call:
-    inputs:
-      project:
-        required: true
-        type: string
-      pypi_name:
-        required: true
-        type: string
-    secrets:
-      PYPI_TOKEN:
-        required: true
+    workflow_call:
+        inputs:
+            project:
+                required: true
+                type: string
+            pypi_name:
+                required: true
+                type: string
+        secrets:
+            PYPI_TOKEN:
+                required: true
 
 jobs:
-  publish:
-    name: Publish ${{ inputs.project }} Python Package
-    runs-on: ubuntu-latest
-    environment:
-      name: pypi
-    permissions:
-      contents: read
-      id-token: write
+    publish:
+        name: Publish ${{ inputs.project }} Python Package
+        runs-on: ubuntu-latest
+        timeout-minutes: 20
+        environment:
+            name: pypi
+        permissions:
+            contents: read
+            id-token: write
 
-    steps:
-      - name: Checkout the monorepo
-        uses: actions/checkout@v6
+        steps:
+            - name: Checkout the monorepo
+              uses: actions/checkout@v6
 
-      - name: Setup Node v24
-        uses: actions/setup-node@v6
-        with:
-          node-version: 24
+            - name: Setup Node v24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24
 
-      - name: Setup pnpm
-        uses: pnpm/action-setup@v4
-        with:
-          version: 10
-          run_install: false
+            - name: Setup pnpm
+              uses: pnpm/action-setup@v4
+              with:
+                  version: 10
+                  run_install: false
 
-      - name: Get pnpm Store
-        id: pnpm-store
-        shell: bash
-        run: |
-          echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
+            - name: Get pnpm Store
+              id: pnpm-store
+              shell: bash
+              run: |
+                  echo "STORE_PATH=$(pnpm store path --silent)" >> $GITHUB_OUTPUT
 
-      - name: Setup pnpm Cache
-        uses: actions/cache@v5
-        with:
-          path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
-          key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
-          restore-keys: |
-            ${{ runner.os }}-pnpm-store-
+            - name: Setup pnpm Cache
+              uses: actions/cache@v5
+              with:
+                  path: ${{ steps.pnpm-store.outputs.STORE_PATH }}
+                  key: ${{ runner.os }}-pnpm-store-${{ hashFiles('**/pnpm-lock.yaml', 'package.json') }}
+                  restore-keys: |
+                      ${{ runner.os }}-pnpm-store-
 
-      - name: Install pnpm dependencies
-        run: pnpm install
+            - name: Install pnpm dependencies
+              run: pnpm install
 
-      - name: Setup Python
-        uses: actions/setup-python@v6
-        with:
-          python-version: '3.12'
+            - name: Setup Python
+              uses: actions/setup-python@v6
+              with:
+                  python-version: '3.12'
 
-      - name: Install uv
-        uses: astral-sh/setup-uv@v7
+            - name: Install uv
+              uses: astral-sh/setup-uv@v7
 
-      - name: Check version against PyPI
-        id: version_check
-        run: |
-          LOCAL_VERSION=$(grep -m1 '^version' "packages/python/${{ inputs.pypi_name }}/pyproject.toml" \
-            | sed 's/version = "\(.*\)"/\1/')
-          echo "Local version: $LOCAL_VERSION"
+            - name: Check version against PyPI
+              id: version_check
+              run: |
+                  LOCAL_VERSION=$(grep -m1 '^version' "packages/python/${{ inputs.pypi_name }}/pyproject.toml" \
+                    | sed 's/version = "\(.*\)"/\1/')
+                  echo "Local version: $LOCAL_VERSION"
 
-          REGISTRY_VERSION=$(curl -s "https://pypi.org/pypi/${{ inputs.pypi_name }}/json" \
-            | jq -r '.info.version // "0.0.0"')
-          echo "Registry version: $REGISTRY_VERSION"
+                  REGISTRY_VERSION=$(curl -s "https://pypi.org/pypi/${{ inputs.pypi_name }}/json" \
+                    | jq -r '.info.version // "0.0.0"')
+                  echo "Registry version: $REGISTRY_VERSION"
 
-          if [ "$LOCAL_VERSION" = "$REGISTRY_VERSION" ]; then
-            echo "Version $LOCAL_VERSION already published — skipping."
-            echo "should_publish=false" >> "$GITHUB_OUTPUT"
-          else
-            echo "New version $LOCAL_VERSION (registry has $REGISTRY_VERSION) — publishing."
-            echo "should_publish=true" >> "$GITHUB_OUTPUT"
-          fi
+                  if [ "$LOCAL_VERSION" = "$REGISTRY_VERSION" ]; then
+                    echo "Version $LOCAL_VERSION already published — skipping."
+                    echo "should_publish=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "New version $LOCAL_VERSION (registry has $REGISTRY_VERSION) — publishing."
+                    echo "should_publish=true" >> "$GITHUB_OUTPUT"
+                  fi
 
-      - name: Build ${{ inputs.project }}
-        if: steps.version_check.outputs.should_publish == 'true'
-        shell: bash
-        run: pnpm nx build ${{ inputs.project }} --no-cloud
+            - name: Build ${{ inputs.project }}
+              if: steps.version_check.outputs.should_publish == 'true'
+              shell: bash
+              run: pnpm nx build ${{ inputs.project }} --no-cloud
 
-      - name: Publish distribution to PyPI
-        if: steps.version_check.outputs.should_publish == 'true'
-        uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          user: __token__
-          password: ${{ secrets.PYPI_TOKEN }}
-          packages-dir: packages/python/${{ inputs.pypi_name }}/dist/
+            - name: Publish distribution to PyPI
+              if: steps.version_check.outputs.should_publish == 'true'
+              uses: pypa/gh-action-pypi-publish@release/v1
+              with:
+                  user: __token__
+                  password: ${{ secrets.PYPI_TOKEN }}
+                  packages-dir: packages/python/${{ inputs.pypi_name }}/dist/
