@@ -4,13 +4,14 @@ metadata:
     name: irc-domain-redirect
     namespace: irc
     annotations:
-        nginx.ingress.kubernetes.io/permanent-redirect: "https://chat.kbve.com$request_uri"
+        cert-manager.io/cluster-issuer: letsencrypt-http
+        nginx.ingress.kubernetes.io/permanent-redirect: 'https://chat.kbve.com$request_uri'
 spec:
     ingressClassName: nginx
     tls:
         - hosts:
               - irc.kbve.com
-          secretName: ergo-irc-tls-secret
+          secretName: irc-redirect-tls-secret
     rules:
         - host: irc.kbve.com
           http:
