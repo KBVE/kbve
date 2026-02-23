@@ -23,10 +23,7 @@ impl ICanvasLayer for BrowserManager {
         Self {
             base,
             #[cfg(any(target_os = "macos", target_os = "windows"))]
-            browser: Some(Gd::from_init_fn(|base| GodotBrowser::init(base))),
-
-            #[cfg(not(any(target_os = "macos", target_os = "windows")))]
-            browser: None,
+            browser: Some(Gd::from_init_fn(GodotBrowser::init)),
 
             game_manager: None,
         }
