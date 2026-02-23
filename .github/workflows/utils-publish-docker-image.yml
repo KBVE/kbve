@@ -64,7 +64,7 @@ jobs:
 
             - name: Setup Node v24
               if: ${{ steps.version_check.outputs.should_publish != 'false' }}
-              uses: actions/setup-node@v4
+              uses: actions/setup-node@v6
               with:
                   node-version: 24
 
