@@ -121,7 +121,10 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 		return new Promise<T>((resolve, reject) => {
 			if (!this.wsWorker)
 				return reject(new Error('WebSocket worker unavailable'));
-			this.pending.set(id, { resolve, reject });
+			this.pending.set(id, {
+				resolve: resolve as (value: unknown) => void,
+				reject,
+			});
 			this.wsWorker.postMessage({ id, type, payload });
 		});
 	}
