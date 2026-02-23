@@ -2,7 +2,7 @@
 TypedDict response models for ultra-fast serialization
 """
 from typing_extensions import TypedDict, NotRequired
-from typing import Dict, List, Any, Optional
+from typing import Dict, List, Any
 
 
 class StandardResponse(TypedDict):

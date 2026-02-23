@@ -7,9 +7,10 @@ import asyncio
 from typing import Dict, Any, Optional
 from datetime import datetime, timedelta
 
+
 class HealthMonitor:
     """System and process health monitoring utility using psutil with caching"""
-    
+
     def __init__(self, cache_duration_seconds: int = 300):  # 5 minutes default
         self._process = psutil.Process(os.getpid())
         self._start_time = time.time()
@@ -18,17 +19,17 @@ class HealthMonitor:
         self._last_update_time: float = 0
         self._update_lock = asyncio.Lock()
         self._background_task: Optional[asyncio.Task] = None
-    
+
     def get_memory_info(self) -> Dict[str, Any]:
         """Get detailed memory information"""
         try:
             # Process memory info
             memory_info = self._process.memory_info()
             memory_percent = self._process.memory_percent()
-            
+
             # System memory info
             system_memory = psutil.virtual_memory()
-            
+
             return {
                 "process_memory_mb": round(memory_info.rss / 1024 / 1024, 2),
                 "process_memory_percent": round(memory_percent, 2),
@@ -38,17 +39,17 @@ class HealthMonitor:
             }
         except Exception as e:
             return {"error": f"Failed to get memory info: {str(e)}"}
-    
+
     def get_cpu_info(self) -> Dict[str, Any]:
         """Get CPU usage information"""
         try:
             # Process CPU usage (non-blocking - use cached value)
             process_cpu = self._process.cpu_percent(interval=None)
-            
-            # System CPU usage (non-blocking - use cached value)  
+
+            # System CPU usage (non-blocking - use cached value)
             system_cpu = psutil.cpu_percent(interval=None)
             cpu_count = psutil.cpu_count()
-            
+
             return {
                 "process_cpu_percent": round(process_cpu, 2),
                 "system_cpu_percent": round(system_cpu, 2),
@@ -56,7 +57,7 @@ class HealthMonitor:
             }
         except Exception as e:
             return {"error": f"Failed to get CPU info: {str(e)}"}
-    
+
     def get_process_info(self) -> Dict[str, Any]:
         """Get process-specific information"""
         try:
@@ -64,11 +65,11 @@ class HealthMonitor:
             pid = self._process.pid
             threads = self._process.num_threads()
             uptime_seconds = int(time.time() - self._start_time)
-            
+
             # Format uptime
             uptime_delta = timedelta(seconds=uptime_seconds)
             uptime_str = str(uptime_delta)
-            
+
             return {
                 "pid": pid,
                 "thread_count": threads,
@@ -77,7 +78,7 @@ class HealthMonitor:
             }
         except Exception as e:
             return {"error": f"Failed to get process info: {str(e)}"}
-    
+
     def get_health_assessment(self, memory_percent: float, cpu_percent: float) -> str:
         """Assess overall health based on resource usage"""
         # Define thresholds
@@ -87,23 +88,23 @@ class HealthMonitor:
             return "WARNING"
         else:
             return "HEALTHY"
-    
+
     def _is_cache_valid(self) -> bool:
         """Check if cached data is still valid"""
         if self._cached_health_data is None:
             return False
         return (time.time() - self._last_update_time) < self._cache_duration
-    
+
     def _collect_health_data(self) -> Dict[str, Any]:
         """Collect fresh health data (internal method)"""
         timestamp = datetime.now().isoformat()
-        
+
         try:
             # Get individual components with fallbacks
             memory_info = self.get_memory_info()
-            cpu_info = self.get_cpu_info() 
+            cpu_info = self.get_cpu_info()
             process_info = self.get_process_info()
-            
+
             # Handle individual component errors
             if "error" in memory_info:
                 memory_info = {
@@ -113,14 +114,14 @@ class HealthMonitor:
                     "system_memory_available_gb": 0.0,
                     "system_memory_used_percent": 0.0
                 }
-            
+
             if "error" in cpu_info:
                 cpu_info = {
                     "process_cpu_percent": 0.0,
                     "system_cpu_percent": 0.0,
                     "cpu_count": 1
                 }
-            
+
             if "error" in process_info:
                 process_info = {
                     "pid": 0,
@@ -128,12 +129,12 @@ class HealthMonitor:
                     "uptime_seconds": 0,
                     "uptime_formatted": "0:00:00"
                 }
-            
+
             # Determine health status
             memory_percent = memory_info.get("process_memory_percent", 0)
             cpu_percent = cpu_info.get("process_cpu_percent", 0)
             health_status = self.get_health_assessment(memory_percent, cpu_percent)
-            
+
             return {
                 "timestamp": timestamp,
                 "health_status": health_status,
@@ -173,9 +174,9 @@ class HealthMonitor:
         """Start background task to periodically update health data"""
         if self._background_task is not None:
             return  # Already running
-            
+
         self._background_task = asyncio.create_task(self._background_update_loop())
-    
+
     async def stop_background_monitoring(self):
         """Stop background monitoring task"""
         if self._background_task is not None:
@@ -185,7 +186,7 @@ class HealthMonitor:
             except asyncio.CancelledError:
                 pass
             self._background_task = None
-    
+
     async def _background_update_loop(self):
         """Background loop to update health data every cache_duration seconds"""
         while True:
@@ -198,17 +199,17 @@ class HealthMonitor:
                 import logging
                 logging.error(f"Background health monitoring error: {e}")
                 await asyncio.sleep(60)  # Wait 1 minute before retrying on error
-    
+
     async def _update_health_data(self):
         """Update cached health data (thread-safe)"""
         async with self._update_lock:
             # Run the blocking psutil calls in a thread pool
             loop = asyncio.get_event_loop()
             health_data = await loop.run_in_executor(None, self._collect_health_data)
-            
+
             self._cached_health_data = health_data
             self._last_update_time = time.time()
-    
+
     def get_comprehensive_health(self) -> Dict[str, Any]:
         """Get comprehensive health report using cached data"""
         # Return cached data if valid
@@ -218,7 +219,7 @@ class HealthMonitor:
             cache_age = int(time.time() - self._last_update_time)
             cached_data["cache_age_seconds"] = cache_age
             return cached_data
-        
+
         # If no valid cache, collect fresh data synchronously (fallback)
         # This should rarely happen if background monitoring is running
         try:
@@ -252,10 +253,11 @@ class HealthMonitor:
                 "error": f"Health monitoring unavailable: {str(e)}",
                 "cache_age_seconds": -1
             }
-    
+
     async def force_refresh(self):
         """Force refresh of health data (useful for manual refresh button)"""
         await self._update_health_data()
+
 
 # Global health monitor instance
 health_monitor = HealthMonitor()

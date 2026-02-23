@@ -16,7 +16,7 @@ async def bring_bot_online(request: Request) -> StandardResponse:
         container = request.app.state.dishka_container
         async with container() as request_container:
             discord_bot = await request_container.get(DiscordBotService)
-            
+
             await discord_bot.bring_online()
             return {"status": "success", "message": "Discord bot is coming online"}
     except Exception as e:

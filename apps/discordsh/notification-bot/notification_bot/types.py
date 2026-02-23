@@ -12,7 +12,7 @@ from .utils.health_monitor import HealthMonitor
 
 # Simplified type aliases - back to original FromDishka syntax
 BotService = Annotated[DiscordBotService, FromDishka()]
-DbService = Annotated[SupabaseService, FromDishka()] 
+DbService = Annotated[SupabaseService, FromDishka()]
 Monitor = Annotated[HealthMonitor, FromDishka()]
 
 # Manager type aliases

@@ -25,9 +25,9 @@ async def take_bot_offline(request: Request, shutdown_app: bool = False) -> Stan
         container = request.app.state.dishka_container
         async with container() as request_container:
             discord_bot = await request_container.get(DiscordBotService)
-            
+
             await discord_bot.stop_bot(send_message=True)
-            
+
             if shutdown_app:
                 asyncio.create_task(_shutdown_app())
                 return {"status": "success", "message": "Discord bot taken offline. Application will shutdown."}
