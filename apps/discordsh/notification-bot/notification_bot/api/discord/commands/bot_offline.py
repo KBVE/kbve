@@ -2,11 +2,14 @@
 Bot offline command module - Manual Dishka resolution
 """
 import asyncio
+import logging
 import os
 import signal
 from fastapi import APIRouter, Request
 from ....api.discord.discord_service import DiscordBotService
 from ....models.responses import StandardResponse
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter()
 
@@ -34,9 +37,10 @@ async def take_bot_offline(request: Request, shutdown_app: bool = False) -> Stan
             else:
                 return {"status": "success", "message": "Discord bot taken offline"}
     except Exception as e:
+        logger.exception("Failed to take Discord bot offline")
         if "already" in str(e).lower():
-            return {"status": "info", "message": str(e)}
-        return {"status": "error", "message": str(e)}
+            return {"status": "info", "message": "Discord bot is already offline"}
+        return {"status": "error", "message": "Failed to take Discord bot offline"}
 
 
 @router.post("/sign-off", response_model=StandardResponse)
