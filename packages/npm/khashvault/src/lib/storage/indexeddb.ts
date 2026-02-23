@@ -79,9 +79,7 @@ export class SecureIndexedDB {
 						return;
 					}
 					try {
-						const { ciphertext, iv } = JSON.parse(
-							request.result,
-						);
+						const { ciphertext, iv } = JSON.parse(request.result);
 						const decrypted = await aesDecrypt(this.key, {
 							ciphertext,
 							iv,
@@ -132,9 +130,7 @@ export class SecureIndexedDB {
 			tx.objectStore(this.storeName).clear();
 			tx.oncomplete = () => resolve();
 			tx.onerror = () =>
-				reject(
-					new StorageError('Failed to clear IndexedDB store'),
-				);
+				reject(new StorageError('Failed to clear IndexedDB store'));
 		});
 	}
 
@@ -143,18 +139,19 @@ export class SecureIndexedDB {
 		return new Promise<string[]>((resolve, reject) => {
 			const tx = db.transaction(this.storeName, 'readonly');
 			const request = tx.objectStore(this.storeName).getAllKeys();
-			request.onsuccess = () =>
-				resolve(request.result as string[]);
+			request.onsuccess = () => resolve(request.result as string[]);
 			request.onerror = () =>
-				reject(
-					new StorageError('Failed to list IndexedDB keys'),
-				);
+				reject(new StorageError('Failed to list IndexedDB keys'));
 		});
 	}
 
 	close(): void {
 		if (this.dbPromise) {
-			this.dbPromise.then((db) => db.close()).catch(() => {});
+			this.dbPromise
+				.then((db) => db.close())
+				.catch(() => {
+					/* best-effort */
+				});
 			this.dbPromise = null;
 		}
 	}
