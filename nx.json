@@ -94,7 +94,7 @@
 			}
 		}
 	],
-	"defaultProject": "rareicon.com",
+	"defaultProject": "kbve.com",
 	"generators": {
 		"@nx/react": {
 			"application": {

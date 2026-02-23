@@ -183,52 +183,9 @@ jobs:
     # NOTE: astro_memes GitHub Pages deployment removed — meme.sh is now deployed
     # exclusively via the Docker/k8s pipeline (axum-memes container triggered by `memes` output).
 
-    #  "target_platforms": "[\"StandaloneWindows64\", \"WebGL\"]",
-    generate_unity_matrix:
-        needs: ['deploy', 'alter', 'globals']
-        uses: KBVE/kbve/.github/workflows/utils-generate-matrix.yml@main
-        with:
-            items: |
-                [
-                  {
-                    "name": "rareicon",
-                    "condition": "${{ needs.alter.outputs.rareicon_unity == 'true' }}",
-                    "project_path": "azure-rareicon",
-                    "azure_repo_url": "dev.azure.com/kbve/rareicon/_git/rareicon",
-                    "unity_version": "6000.2.6f2",
-                    "target_platforms": "[\"StandaloneWindows64\"]",
-                    "deploy_to_itch": false,
-                    "itch_username": "kbve",
-                    "itch_gameid": "rareicon",
-                    "gh_pages_repo": "KBVE/unity.rareicon.com",
-                    "gh_pages_domain": "unity.rareicon.com"
-                  }
-                ]
-
-    build_unity:
-        name: Build Unity Projects
-        needs: ['generate_unity_matrix']
-        if: ${{ needs.generate_unity_matrix.outputs.matrix != 'null' }}
-        strategy:
-            matrix: ${{ fromJson(needs.generate_unity_matrix.outputs.matrix) }}
-        uses: KBVE/kbve/.github/workflows/utils-unity-azure-deployment.yml@main
-        with:
-            unity_version: ${{ matrix.unity_version }}
-            project_path: ${{ matrix.project_path }}
-            azure_repo_url: ${{ matrix.azure_repo_url }}
-            target_platforms: ${{ matrix.target_platforms }}
-            deploy_to_itch: ${{ matrix.deploy_to_itch }}
-            itch_username: ${{ matrix.itch_username }}
-            itch_gameid: ${{ matrix.itch_gameid }}
-            gh_pages_repo: ${{ matrix.gh_pages_repo }}
-            gh_pages_domain: ${{ matrix.gh_pages_domain }}
-        secrets:
-            unity_license: ${{ secrets.UNITY_LICENSE }}
-            unity_email: ${{ secrets.UNITY_EMAIL }}
-            unity_password: ${{ secrets.UNITY_PASSWORD }}
-            azure_pat: ${{ secrets.AZURE_NOV2025_TOKEN_SECRET  }}
-            butler_api: ${{ secrets.ITCH_API }}
-            gh_pages_pat: ${{ secrets.UNITY_PAT }}
+    #  Unity matrix — currently empty after rareicon removal.
+    #  Re-add entries here when new Unity projects are onboarded.
+    #  generate_unity_matrix / build_unity jobs temporarily removed.
 
     generate_crates_matrix:
         needs: ['deploy', 'alter', 'globals']

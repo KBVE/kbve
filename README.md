@@ -31,7 +31,7 @@ The core of this Monorepo is based upon [Nx Smart Monorepos](https://nx.dev/), b
 | [kilonet](https://github.com/KBVE/kbve/tree/main/packages/unity/kilonet)           | erust | astropad | kbve    | [kbve.com](https://kbve.com/)           |
 | [MMExtensions](https://github.com/KBVE/kbve/tree/main/packages/unity/mmextensions) | jedi  |          | fudster | [rentearth.com](https://rentearth.com/) |
 |                                                                                    | holy  |          |         | [herbmail.com](https://herbmail.com/)   |
-|                                                                                    | kbve  |          |         | [rareicon.com](https://rareicon.com/)   |
+|                                                                                    | kbve  |          |         |                                         |
 
 ---
 
@@ -210,5 +210,4 @@ The API is current being updated! Its split into a NestJS core under `/apps/api/
 
 - HerbMail.com
 - KBVE.com
-- RareIcon.com
 - Discord.sh

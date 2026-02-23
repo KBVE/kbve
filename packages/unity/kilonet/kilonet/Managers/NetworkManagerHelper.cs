@@ -135,6 +135,7 @@ namespace KBVE.Kilonet.Managers
           443,
           TransportType.WebSocket
         ),
+        // TODO: Replace rareicon.com URLs with new server endpoints once the replacement project is onboarded.
         new ConnectionProfile(
           "WebSocketServer",
           "wss://discord.rareicon.com",
