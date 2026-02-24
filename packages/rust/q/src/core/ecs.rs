@@ -1,8 +1,15 @@
 use dashmap::DashMap;
 use serde::{Deserialize, Serialize};
-use ulid::Ulid;
 
-pub type EntityId = Ulid;
+pub type EntityId = u64;
+
+/// Generate a new unique EntityId via a monotonic atomic counter.
+/// No external RNG dependency — safe on all platforms including WASM.
+fn new_entity_id() -> EntityId {
+    use std::sync::atomic::{AtomicU64, Ordering};
+    static COUNTER: AtomicU64 = AtomicU64::new(1);
+    COUNTER.fetch_add(1, Ordering::Relaxed)
+}
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct Transform {
@@ -37,7 +44,7 @@ impl EntityStore {
     }
 
     pub fn spawn(&self, transform: Transform, stats: EntityStats) -> EntityId {
-        let id = Ulid::new();
+        let id = new_entity_id();
         self.transforms.insert(id, transform);
         self.stats.insert(id, stats);
         self.states.insert(id, 0);
