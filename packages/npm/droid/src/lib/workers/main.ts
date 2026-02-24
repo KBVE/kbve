@@ -60,6 +60,12 @@ function initSharedWorker(
 	const url = opts?.workerURL ?? resolveWorkerURL(name);
 	const worker = new SharedWorker(url, { type: 'module' });
 	worker.port.start();
+
+	// Notify worker to clean up this port on tab close/reload
+	window.addEventListener('beforeunload', () => {
+		worker.port.postMessage({ type: 'close' });
+	});
+
 	return worker;
 }
 
@@ -552,8 +558,9 @@ export async function main(opts?: {
 						timestamp: Date.now(),
 						workersFirst: { db: dbFirst, ws: wsFirst },
 					});
-					showWelcomeToast();
 				}
+
+				showWelcomeToast();
 
 				console.log('[KBVE] Global API ready');
 			} catch (err) {
