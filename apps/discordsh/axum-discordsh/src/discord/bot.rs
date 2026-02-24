@@ -4,6 +4,7 @@ use poise::serenity_prelude as serenity;
 use tracing::{info, warn};
 
 use super::commands;
+use super::components;
 
 /// Vault secret UUID for the Discord bot token (shared with the Python notification-bot).
 const DISCORD_TOKEN_VAULT_ID: &str = "39781c47-be8f-4a10-ae3a-714da299ca07";
@@ -11,7 +12,10 @@ const DISCORD_TOKEN_VAULT_ID: &str = "39781c47-be8f-4a10-ae3a-714da299ca07";
 // ── Poise type aliases ──────────────────────────────────────────────────
 
 /// Shared state available to all commands via `ctx.data()`.
-pub struct Data {}
+pub struct Data {
+    /// Instant the bot started; used to compute uptime for the status embed.
+    pub start_time: std::time::Instant,
+}
 
 /// Error type for poise commands.
 pub type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -52,6 +56,27 @@ async fn resolve_token() -> Option<String> {
     None
 }
 
+// ── Event handler ───────────────────────────────────────────────────────
+
+/// Global event handler for poise. Routes component interactions to
+/// the appropriate handler based on custom_id prefix.
+async fn event_handler(
+    ctx: &serenity::Context,
+    event: &serenity::FullEvent,
+    _framework: poise::FrameworkContext<'_, Data, Error>,
+    data: &Data,
+) -> Result<(), Error> {
+    if let serenity::FullEvent::InteractionCreate {
+        interaction: serenity::Interaction::Component(component),
+    } = event
+    {
+        if component.data.custom_id.starts_with("status_") {
+            components::handle_status_component(component, ctx, data).await?;
+        }
+    }
+    Ok(())
+}
+
 // ── Bot startup ─────────────────────────────────────────────────────────
 
 pub async fn start() -> Result<()> {
@@ -70,6 +95,9 @@ pub async fn start() -> Result<()> {
     let framework = poise::Framework::builder()
         .options(poise::FrameworkOptions {
             commands: commands::all(),
+            event_handler: |ctx, event, framework, data| {
+                Box::pin(event_handler(ctx, event, framework, data))
+            },
             ..Default::default()
         })
         .setup(|ctx, ready, framework| {
@@ -99,7 +127,9 @@ pub async fn start() -> Result<()> {
                     }
                 }
 
-                Ok(Data {})
+                Ok(Data {
+                    start_time: std::time::Instant::now(),
+                })
             })
         })
         .build();

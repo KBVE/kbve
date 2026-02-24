@@ -12,8 +12,11 @@ The Rust bot already has production-grade infrastructure (Axum HTTP server, Dock
 
 ### axum-discordsh (Rust) — What Exists
 
-- Serenity 0.12 with basic `EventHandler` (message + ready events)
-- Single `!ping` text command
+- **Poise 0.6.1** slash command framework on **Serenity 0.12.5** (Phase 1 complete)
+- Slash commands: `/ping`, `/status` (rich embed + buttons), `/health`
+- `StatusState` enum with 5 lifecycle states, color/emoji/thumbnail properties
+- Status embed with guild count, shard info, uptime, interactive buttons (Refresh, Cleanup stub, Restart stub)
+- Global `event_handler` routing component interactions by `custom_id` prefix
 - Token resolution from env or Supabase Vault
 - Axum HTTP server with `/health` endpoint
 - Static file serving (Astro frontend)
@@ -38,80 +41,60 @@ The Rust bot already has production-grade infrastructure (Axum HTTP server, Dock
 
 ---
 
-## Phase 1: Slash Command Framework
+## Phase 1: Slash Command Framework ✅
 
-Migrate from Serenity raw `EventHandler` to the `poise` framework for ergonomic slash command support.
+> **Completed** — PR #7216 merged to `dev`.
 
-### Dependencies
+Migrated from Serenity raw `EventHandler` to the **poise 0.6.1** framework (serenity 0.12.5).
 
-```toml
-[dependencies]
-poise = "0.6"  # Built on serenity 0.12, adds slash command framework
-```
-
-### Command Module Structure
-
-```
-src/discord/
-├── mod.rs              # Discord module root
-├── bot.rs              # Bot startup, token resolution, client builder
-├── commands/
-│   ├── mod.rs          # Command registration
-│   ├── ping.rs         # /ping — basic connectivity check
-│   ├── status.rs       # /status — bot status embed with health metrics
-│   ├── health.rs       # /health — detailed health report
-│   └── admin.rs        # /restart, /force-restart — admin-only commands
-└── events.rs           # Event handlers (ready, shard_ready, etc.)
-```
-
-### Implementation
-
-- Define a `Data` struct holding shared state (Supabase client, health monitor, bot metadata)
-- Register commands via `poise::Framework::builder().options(poise::FrameworkOptions { commands: vec![...] })`
-- Use `#[poise::command(slash_command)]` attribute for each command
-- Guild-scoped commands for fast registration during development, global commands for production
-- Permission checks via `#[poise::command(required_permissions = "ADMINISTRATOR")]` for admin commands
-
-### Commands to Implement
-
-| Command          | Description                                  | Permissions |
-| ---------------- | -------------------------------------------- | ----------- |
-| `/ping`          | Responds with latency                        | Everyone    |
-| `/status`        | Shows bot status embed with health data      | Everyone    |
-| `/health`        | Detailed system health (CPU, memory, uptime) | Everyone    |
-| `/restart`       | Restart the bot gracefully                   | Admin       |
-| `/force-restart` | Force restart (kill + respawn)               | Admin       |
-| `/cleanup`       | Clean old messages from status thread        | Admin       |
+- Replaced `struct Handler` / `impl EventHandler` with `poise::Framework::builder()`
+- `Data` struct holds shared state, `Error` and `Context` type aliases
+- Guild-scoped command registration via `GUILD_ID` env var (dev), global registration otherwise
+- Three slash commands: `/ping`, `/status`, `/health`
+- `commands::all()` aggregates all commands for framework registration
+- Intents changed from `GUILD_MESSAGES | MESSAGE_CONTENT` to `non_privileged()`
 
 ---
 
-## Phase 2: Embeds and Interactive Components
+## Phase 2: Embeds and Interactive Components ✅
 
-Port the Python `BotStatusView` embed system to Rust with Serenity's `CreateEmbed` and component interactions.
+> **Completed** — Ported `BotStatusView` embed system to Rust.
 
-### Status Embed
+### What Was Built
 
-Replicate the notification-bot's status embed:
+**`src/discord/embeds/`** — Decoupled embed construction:
 
-- State-based color and thumbnail (Online/Offline/Starting/Stopping/Error)
-- Fields: shard info with latency, guild count, memory usage bar, CPU %, uptime
-- Timestamp of last update
-- Footer with bot version
+- `StatusState` enum (5 variants: Online, Offline, Starting, Stopping, Error) with `color()`, `emoji()`, `label()`, `thumbnail_url()` methods
+- `StatusSnapshot` struct — plain data bag decoupled from poise's `Data`
+- `build_status_embed(&StatusSnapshot) -> CreateEmbed` — pure function, no async, no side effects
+- `format_uptime(Duration) -> String` — "2d 5h 32m 10s" formatting
 
-### Interactive Buttons
+**`src/discord/components/`** — Button row and interaction handling:
 
-Serenity supports message components (buttons, select menus). Implement:
+- Three buttons: **Refresh** (Primary), **Cleanup** (Secondary), **Restart** (Danger)
+- Custom IDs: `status_refresh`, `status_cleanup`, `status_restart`
+- **Refresh** rebuilds the embed and edits in-place via `CreateInteractionResponse::UpdateMessage`
+- **Cleanup** responds with ephemeral stub (actual logic deferred to Phase 4/5)
+- **Restart** checks `member.permissions.administrator()`, rejects non-admins, responds with ephemeral stub
 
-- **Refresh** button — re-fetch health data and edit the embed in-place
-- **Cleanup** button — trigger thread message cleanup
-- **Restart** button — admin-only, requires permission check before executing
+**`src/discord/bot.rs`** — Updated:
 
-### Implementation Approach
+- `Data { start_time: Instant }` for uptime tracking
+- Global `event_handler` routes component interactions by `custom_id` prefix (`"status_"`)
+- Uses poise's `FrameworkOptions::event_handler` for persistent buttons (survive bot restarts)
 
-- Create an `EmbedBuilder` helper in `src/discord/embeds/status.rs` that constructs `CreateEmbed` from health data
-- Use Serenity's `ComponentInteraction` collector for button handling
-- Store a `ComponentInteractionCollector` or use the poise framework's built-in component handling
-- Persist button state with `custom_id` prefixes (e.g., `status_refresh`, `status_cleanup`, `status_restart`)
+**`src/discord/commands/status.rs`** — Updated:
+
+- Builds `StatusSnapshot` from `ctx.data()`, `ctx.cache().guild_count()`, shard ID
+- Sends embed + button row via `poise::CreateReply`
+
+### Deferred to Phase 3+
+
+- CPU/memory/thread metrics (requires `sysinfo` crate — Phase 3)
+- Health thresholds and health-based color override (Phase 3)
+- Actual Cleanup thread deletion logic (Phase 4/5)
+- Actual Restart process signal logic (Phase 4)
+- Shard latency display (Phase 7)
 
 ---
 
@@ -248,60 +231,63 @@ Expand beyond the basic `ready` handler:
 
 ---
 
-## Proposed Source Layout
+## Source Layout
+
+Files marked with ✅ exist and are implemented.
 
 ```
 apps/discordsh/axum-discordsh/src/
-├── main.rs                     # Entry point, tokio runtime
+├── main.rs                        ✅ Entry point, tokio runtime
 ├── discord/
-│   ├── mod.rs                  # Module declarations
-│   ├── bot.rs                  # Bot startup, token resolution, poise framework setup
+│   ├── mod.rs                     ✅ Module declarations (bot, commands, embeds, components)
+│   ├── bot.rs                     ✅ Poise framework setup, Data struct, event_handler
 │   ├── commands/
-│   │   ├── mod.rs              # Command registration
-│   │   ├── ping.rs             # /ping
-│   │   ├── status.rs           # /status (embed + buttons)
-│   │   ├── health.rs           # /health
-│   │   └── admin.rs            # /restart, /force-restart, /cleanup
+│   │   ├── mod.rs                 ✅ Command registration (all())
+│   │   ├── ping.rs                ✅ /ping
+│   │   ├── status.rs              ✅ /status (embed + buttons)
+│   │   ├── health.rs              ✅ /health (text placeholder — Phase 3)
+│   │   └── admin.rs               /restart, /force-restart, /cleanup
 │   ├── embeds/
-│   │   ├── mod.rs
-│   │   └── status.rs           # Status embed builder
+│   │   ├── mod.rs                 ✅ Re-exports
+│   │   ├── status_state.rs        ✅ StatusState enum (5 variants)
+│   │   └── status_embed.rs        ✅ StatusSnapshot + build_status_embed()
 │   ├── components/
-│   │   ├── mod.rs
-│   │   └── status_buttons.rs   # Button interaction handlers
-│   └── events.rs               # Shard/guild event handlers
+│   │   ├── mod.rs                 ✅ Re-exports
+│   │   └── status_buttons.rs      ✅ Button row + interaction handler
+│   └── events.rs                  Shard/guild event handlers (Phase 7)
 ├── health/
-│   ├── mod.rs                  # HealthMonitor
-│   └── metrics.rs              # Metric collection
+│   ├── mod.rs                     HealthMonitor (Phase 3)
+│   └── metrics.rs                 Metric collection (Phase 3)
 ├── tracker/
-│   ├── mod.rs                  # Shard tracker (Supabase)
-│   └── shard.rs                # Shard assignment logic
+│   ├── mod.rs                     Shard tracker — Supabase (Phase 5)
+│   └── shard.rs                   Shard assignment logic (Phase 5)
 ├── transport/
-│   ├── mod.rs
-│   └── https.rs                # Axum HTTP server + API routes
+│   ├── mod.rs                     ✅
+│   └── https.rs                   ✅ Axum HTTP server + API routes
 └── astro/
-    ├── mod.rs
-    └── askama.rs               # Static file serving (existing)
+    ├── mod.rs                     ✅
+    └── askama.rs                  ✅ Static file serving
 ```
 
 ---
 
 ## Execution Order
 
-| Step | Phase | What                                                   | Risk | Notes                       |
-| ---- | ----- | ------------------------------------------------------ | ---- | --------------------------- |
-| 1    | 1     | Add `poise` dependency, scaffold command module        | Low  | No breaking changes         |
-| 2    | 1     | Migrate `!ping` to `/ping` slash command               | Low  | Replace text command        |
-| 3    | 1     | Add `/status` and `/health` commands (text-only first) | Low  | New commands                |
-| 4    | 3     | Add `sysinfo` dependency, implement HealthMonitor      | Low  | New module                  |
-| 5    | 2     | Build status embed with health data                    | Med  | Embed formatting            |
-| 6    | 2     | Add interactive buttons to status embed                | Med  | Component interactions      |
-| 7    | 1     | Add admin commands (`/restart`, `/cleanup`)            | Med  | Permission checks           |
-| 8    | 4     | Expand HTTP API endpoints                              | Low  | Axum routes                 |
-| 9    | 5     | Expand Supabase tracker integration                    | Med  | Depends on kbve crate       |
-| 10   | 6     | Add distributed sharding support                       | High | Multi-instance coordination |
-| 11   | 7     | Expand event handlers                                  | Low  | Additional serenity events  |
-| 12   | —     | Integration testing, Docker verification               | Med  | E2E with discordsh-e2e      |
-| 13   | —     | Deprecate notification-bot, update CI                  | Low  | Remove Python project       |
+| Step | Phase | What                                                      | Risk | Status  |
+| ---- | ----- | --------------------------------------------------------- | ---- | ------- |
+| 1    | 1     | Add `poise` dependency, scaffold command module           | Low  | ✅ Done |
+| 2    | 1     | Migrate `!ping` to `/ping` slash command                  | Low  | ✅ Done |
+| 3    | 1     | Add `/status` and `/health` commands (text-only first)    | Low  | ✅ Done |
+| 4    | 2     | Build status embed with `StatusState` and buttons         | Med  | ✅ Done |
+| 5    | 2     | Add interactive button handling (Refresh/Cleanup/Restart) | Med  | ✅ Done |
+| 6    | 3     | Add `sysinfo` dependency, implement HealthMonitor         | Low  | Next    |
+| 7    | 1     | Add admin commands (`/restart`, `/cleanup`)               | Med  | Pending |
+| 8    | 4     | Expand HTTP API endpoints                                 | Low  | Pending |
+| 9    | 5     | Expand Supabase tracker integration                       | Med  | Pending |
+| 10   | 6     | Add distributed sharding support                          | High | Pending |
+| 11   | 7     | Expand event handlers                                     | Low  | Pending |
+| 12   | —     | Integration testing, Docker verification                  | Med  | Pending |
+| 13   | —     | Deprecate notification-bot, update CI                     | Low  | Pending |
 
 ---
 
