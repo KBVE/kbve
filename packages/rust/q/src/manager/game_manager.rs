@@ -31,12 +31,6 @@ impl INode for GameManager {
 
         let user_data_cache = Some(UserDataCache::new());
 
-        if user_data_cache.is_none() {
-            godot_error!("[GameManager] ERROR: user_data_cache failed to initialize!");
-        } else {
-            godot_print!("[GameManager] user_data_cache initialized.");
-        }
-
         let clock_master = Gd::from_init_fn(|base| ClockMaster::init(base));
         let cache_manager = Gd::from_init_fn(|base| CacheManager::init(base));
         let music_manager = Gd::from_init_fn(|base| MusicManager::init(base));
@@ -103,10 +97,6 @@ impl GameManager {
         &self.music_manager
     }
 
-    // pub fn internal_get_ui_manager(&self) -> &Gd<Maiky> {
-    //   &self.ui_manager
-    // }
-
     pub fn internal_get_clock_master(&self) -> &Gd<ClockMaster> {
         &self.clock_master
     }
@@ -119,11 +109,6 @@ impl GameManager {
     pub fn get_music_manager(&self) -> Gd<MusicManager> {
         self.music_manager.clone()
     }
-
-    // #[func]
-    // pub fn get_ui_manager(&self) -> Gd<Maiky> {
-    //   self.ui_manager.clone()
-    // }
 
     #[func]
     pub fn get_clock_master(&self) -> Gd<ClockMaster> {

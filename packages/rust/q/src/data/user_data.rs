@@ -34,9 +34,9 @@ impl UserData {
             opacity,
             fullscreen,
             theme,
-            global_music_volume: 0.0,
-            global_effects_volume: 0.0,
-            global_sfx_volume: 0.0,
+            global_music_volume,
+            global_effects_volume,
+            global_sfx_volume,
         }
     }
 }

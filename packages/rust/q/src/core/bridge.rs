@@ -80,6 +80,22 @@ impl EventBridge {
                 }
             }
             "despawn_entity" => GameRequest::DespawnEntity { id: payload_str },
+            "update_position" => {
+                let parts: Vec<&str> = payload_str.split(',').collect();
+                if parts.len() == 3 {
+                    if let (Ok(x), Ok(y)) = (parts[1].trim().parse(), parts[2].trim().parse()) {
+                        GameRequest::UpdatePosition {
+                            id: parts[0].trim().to_string(),
+                            x,
+                            y,
+                        }
+                    } else {
+                        GameRequest::Custom(request_str, payload_str)
+                    }
+                } else {
+                    GameRequest::Custom(request_str, payload_str)
+                }
+            }
             _ => GameRequest::Custom(request_str, payload_str),
         };
         let _ = CHANNELS.req_tx.send(request);

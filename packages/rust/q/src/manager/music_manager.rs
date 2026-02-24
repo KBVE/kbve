@@ -165,6 +165,25 @@ impl MusicManager {
         }
     }
 
+    #[func]
+    pub fn play_sfx(&mut self, sfx_path: GString) {
+        let sfx_path = sfx_path.to_string();
+        let audio_stream = self.get_or_cache_sfx(&sfx_path);
+        if let Some(sfx_player) = self.sfx.as_mut() {
+            if let Some(audio_stream) = audio_stream {
+                if sfx_player.is_playing() {
+                    return;
+                }
+
+                sfx_player.set_stream(&audio_stream);
+                sfx_player.set_volume_db(self.global_sfx_volume);
+                sfx_player.play();
+            }
+        } else {
+            godot_warn!("SFX audio player is not initialized.");
+        }
+    }
+
     fn get_or_cache_sfx(&mut self, sfx_path: &str) -> Option<Gd<AudioStream>> {
         self.internal_get_or_create_audio_cache(sfx_path)
     }

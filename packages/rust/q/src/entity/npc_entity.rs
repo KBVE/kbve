@@ -55,14 +55,19 @@ impl INode for NPCEntity {
 #[godot_api]
 impl NPCEntity {
     fn update_behavior(&mut self) {
-        match self.data.get_state() {
-            NPCState::IDLE => self.handle_idle(),
-            NPCState::MOVING => self.handle_movement(),
-            NPCState::ATTACKING => self.handle_attack(),
-            NPCState::DEFENDING => self.handle_defend(),
-            NPCState::PATROLLING => self.handle_patrol(),
-            NPCState::ESCAPING => self.handle_escape(),
-            _ => {}
+        let state = self.data.get_state();
+        if state.contains(NPCState::ESCAPING) {
+            self.handle_escape();
+        } else if state.contains(NPCState::ATTACKING) {
+            self.handle_attack();
+        } else if state.contains(NPCState::DEFENDING) {
+            self.handle_defend();
+        } else if state.contains(NPCState::PATROLLING) {
+            self.handle_patrol();
+        } else if state.contains(NPCState::MOVING) {
+            self.handle_movement();
+        } else {
+            self.handle_idle();
         }
     }
 
@@ -116,14 +121,16 @@ impl NPCEntity {
         &self.data
     }
 
-    fn save_npc_data(&self, file_path: &str) -> bool {
+    #[func]
+    fn save_npc_data(&self, file_path: GString) -> bool {
         godot_print!("Saving NPC data to {}", file_path);
-        self.data.to_save_gfile_json(file_path)
+        self.data.to_save_gfile_json(&file_path.to_string())
     }
 
-    fn load_npc_data(&mut self, file_path: &str) -> bool {
+    #[func]
+    fn load_npc_data(&mut self, file_path: GString) -> bool {
         godot_print!("Loading NPC data from {}", file_path);
-        if let Some(loaded_data) = NPCData::from_load_gfile_json(file_path) {
+        if let Some(loaded_data) = NPCData::from_load_gfile_json(&file_path.to_string()) {
             self.data = loaded_data;
             true
         } else {
