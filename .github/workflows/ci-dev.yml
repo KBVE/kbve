@@ -224,6 +224,8 @@ jobs:
     alter:
         name: 'Dev File Alterations'
         if: github.repository == 'kbve/kbve'
+        permissions:
+            contents: read
         uses: KBVE/kbve/.github/workflows/utils-file-alterations.yml@main
         with:
             branch: 'dev'
