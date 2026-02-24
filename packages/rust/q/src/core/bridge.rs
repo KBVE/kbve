@@ -154,7 +154,7 @@ impl EventBridge {
         let ids = CHANNELS.entity_store.all_entity_ids();
         let mut arr = Array::new();
         for id in ids {
-            arr.push(&GString::from(id.to_string()));
+            arr.push(&GString::from(&id.to_string()));
         }
         arr
     }
