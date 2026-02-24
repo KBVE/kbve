@@ -322,11 +322,15 @@ mod tests {
 
     use crate::health::HealthMonitor;
 
-    /// Build a minimal router with the health endpoints + middleware.
-    fn test_router() -> Router {
+    /// Build a minimal router with all API endpoints + middleware.
+    /// Returns the router and the shared `AppState` so tests can inspect
+    /// state mutations (e.g. `restart_flag`) after calling POST endpoints.
+    fn test_router() -> (Router, Arc<AppState>) {
         let health_monitor = Arc::new(HealthMonitor::new());
         let app_state = Arc::new(AppState::new(health_monitor, None));
-        let state = HttpState { app: app_state };
+        let state = HttpState {
+            app: Arc::clone(&app_state),
+        };
 
         let middleware = tower::ServiceBuilder::new()
             .layer(SetResponseHeaderLayer::overriding(
@@ -342,17 +346,22 @@ mod tests {
                 HeaderValue::from_static("strict-origin-when-cross-origin"),
             ));
 
-        Router::new()
+        let router = Router::new()
             .route("/health", get(health))
             .route("/healthz", get(healthz))
+            .route("/bot-restart", post(bot_restart))
+            .route("/sign-off", post(sign_off))
+            .route("/cleanup-thread", post(cleanup_thread))
             .route("/tracker-status", get(tracker_status))
             .with_state(state)
-            .layer(middleware)
+            .layer(middleware);
+
+        (router, app_state)
     }
 
     #[tokio::test]
     async fn test_health_endpoint() {
-        let app = test_router();
+        let (app, _) = test_router();
         let response = app
             .oneshot(
                 Request::builder()
@@ -371,7 +380,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_healthz_endpoint() {
-        let app = test_router();
+        let (app, _) = test_router();
         let response = app
             .oneshot(
                 Request::builder()
@@ -389,7 +398,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_tracker_status_no_tracker() {
-        let app = test_router();
+        let (app, _) = test_router();
         let response = app
             .oneshot(
                 Request::builder()
@@ -409,7 +418,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_security_headers() {
-        let app = test_router();
+        let (app, _) = test_router();
         let response = app
             .oneshot(
                 Request::builder()
@@ -515,5 +524,71 @@ mod tests {
             .get(header::CONTENT_TYPE)
             .map(|v| v.to_str().unwrap().to_string());
         assert!(ct.is_none() || !ct.unwrap().contains("application/javascript"));
+    }
+
+    #[tokio::test]
+    async fn test_bot_restart_sets_flag() {
+        let (app, state) = test_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/bot-restart")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
+        assert_eq!(json["message"], "Bot restart initiated");
+
+        // Verify the restart flag was actually set
+        assert!(state.restart_flag.load(Ordering::Relaxed));
+    }
+
+    #[tokio::test]
+    async fn test_sign_off_returns_ok() {
+        let (app, _) = test_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/sign-off")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
+        assert_eq!(json["message"], "Shutdown initiated");
+    }
+
+    #[tokio::test]
+    async fn test_cleanup_thread_no_env() {
+        let (app, _) = test_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/cleanup-thread")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "error");
+        assert_eq!(json["message"], "DISCORD_THREAD_ID not set");
     }
 }

@@ -21,10 +21,21 @@ test.describe('Smoke: Page Loading', () => {
 });
 
 test.describe('Smoke: Health Endpoint', () => {
-	test('GET /health returns OK', async ({ request }) => {
+	test('GET /health returns JSON with status ok', async ({ request }) => {
 		const response = await request.get('/health');
 		expect(response.status()).toBe(200);
-		expect(await response.text()).toBe('OK');
+
+		const contentType = response.headers()['content-type'] ?? '';
+		expect(contentType).toContain('application/json');
+
+		const json = await response.json();
+		expect(json.status).toBe('ok');
+	});
+
+	test('GET /healthz returns plain text ok', async ({ request }) => {
+		const response = await request.get('/healthz');
+		expect(response.status()).toBe(200);
+		expect(await response.text()).toBe('ok');
 	});
 });
 
@@ -55,8 +66,7 @@ test.describe('Smoke: Cache-Control Headers', () => {
 			if (new URL(resp.url()).pathname.startsWith('/_astro/')) {
 				astroRequests.push({
 					url: resp.url(),
-					cacheControl:
-						resp.headers()['cache-control'] ?? '',
+					cacheControl: resp.headers()['cache-control'] ?? '',
 				});
 			}
 		});
@@ -92,7 +102,10 @@ test.describe('Smoke: Sitemap Routes', () => {
 
 		test.info().annotations.push(
 			{ type: 'core_routes', description: core.join(', ') },
-			{ type: 'sampled_routes', description: sampled.join(', ') || '(none)' },
+			{
+				type: 'sampled_routes',
+				description: sampled.join(', ') || '(none)',
+			},
 			{
 				type: 'seed',
 				description: process.env['GITHUB_RUN_ID'] || '42 (local)',
