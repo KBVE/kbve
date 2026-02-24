@@ -199,5 +199,8 @@ self.onconnect = (event: MessageEvent) => {
 	ports.add(port);
 	port.start();
 	port.postMessage({ type: isFirst ? 'first-connect' : 'reconnect' });
+	port.addEventListener('message', (e: MessageEvent) => {
+		if (e.data?.type === 'close') ports.delete(port);
+	});
 	expose(wsInstanceAPI, port);
 };

@@ -40,7 +40,15 @@ export function showWelcomeToast(): void {
 	// Auth still loading — subscribe and wait (10s timeout)
 	const timeoutId = setTimeout(() => {
 		unsub();
-		shown = true;
+		if (!shown) {
+			shown = true;
+			addToast({
+				id: `welcome-${Date.now()}`,
+				message: 'Welcome!',
+				severity: 'info',
+				duration: 3000,
+			});
+		}
 	}, 10_000);
 
 	const unsub = $auth.subscribe(() => {
