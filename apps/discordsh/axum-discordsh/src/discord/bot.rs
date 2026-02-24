@@ -1,34 +1,25 @@
 use anyhow::Result;
 use kbve::entity::client::vault::VaultClient;
-use serenity::async_trait;
-use serenity::model::channel::Message;
-use serenity::model::gateway::Ready;
-use serenity::prelude::*;
+use poise::serenity_prelude as serenity;
 use tracing::{info, warn};
+
+use super::commands;
 
 /// Vault secret UUID for the Discord bot token (shared with the Python notification-bot).
 const DISCORD_TOKEN_VAULT_ID: &str = "39781c47-be8f-4a10-ae3a-714da299ca07";
 
-struct Handler;
+// ── Poise type aliases ──────────────────────────────────────────────────
 
-#[async_trait]
-impl EventHandler for Handler {
-    async fn message(&self, ctx: Context, msg: Message) {
-        if msg.author.bot {
-            return;
-        }
+/// Shared state available to all commands via `ctx.data()`.
+pub struct Data {}
 
-        if msg.content == "!ping" {
-            if let Err(e) = msg.channel_id.say(&ctx.http, "Pong!").await {
-                tracing::error!(error = %e, "failed to send message");
-            }
-        }
-    }
+/// Error type for poise commands.
+pub type Error = Box<dyn std::error::Error + Send + Sync>;
 
-    async fn ready(&self, _ctx: Context, ready: Ready) {
-        info!("Discord bot connected as {}", ready.user.name);
-    }
-}
+/// Convenience alias used by all command functions.
+pub type Context<'a> = poise::Context<'a, Data, Error>;
+
+// ── Token resolution (unchanged) ────────────────────────────────────────
 
 /// Resolve the Discord bot token from environment or Supabase Vault.
 ///
@@ -61,6 +52,8 @@ async fn resolve_token() -> Option<String> {
     None
 }
 
+// ── Bot startup ─────────────────────────────────────────────────────────
+
 pub async fn start() -> Result<()> {
     let token = match resolve_token().await {
         Some(t) => t,
@@ -72,10 +65,47 @@ pub async fn start() -> Result<()> {
         }
     };
 
-    let intents = GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT;
+    let intents = serenity::GatewayIntents::non_privileged();
 
-    let mut client = Client::builder(&token, intents)
-        .event_handler(Handler)
+    let framework = poise::Framework::builder()
+        .options(poise::FrameworkOptions {
+            commands: commands::all(),
+            ..Default::default()
+        })
+        .setup(|ctx, ready, framework| {
+            Box::pin(async move {
+                info!("Discord bot connected as {}", ready.user.name);
+
+                // Guild-scoped registration for fast dev iteration;
+                // global registration for production.
+                match std::env::var("GUILD_ID")
+                    .ok()
+                    .and_then(|id| id.parse::<u64>().ok())
+                    .map(serenity::GuildId::new)
+                {
+                    Some(guild_id) => {
+                        info!("Registering commands in guild {guild_id} (dev mode)");
+                        poise::builtins::register_in_guild(
+                            ctx,
+                            &framework.options().commands,
+                            guild_id,
+                        )
+                        .await?;
+                    }
+                    None => {
+                        info!("Registering commands globally (production mode)");
+                        poise::builtins::register_globally(ctx, &framework.options().commands)
+                            .await?;
+                    }
+                }
+
+                Ok(Data {})
+            })
+        })
+        .build();
+
+    let mut client = serenity::ClientBuilder::new(&token, intents)
+        .framework(framework)
         .await?;
 
     info!("Starting Discord bot...");
