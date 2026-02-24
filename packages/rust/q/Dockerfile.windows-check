@@ -1,0 +1,16 @@
+FROM rust:1.88-bookworm
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    gcc-mingw-w64-x86-64 \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN rustup target add x86_64-pc-windows-gnu && \
+    rustup component add rustfmt clippy
+
+WORKDIR /workspace
+
+# Usage (from repo root):
+#   docker build -t q-windows-check -f packages/rust/q/Dockerfile.windows-check .
+#   docker run --rm -v "$(pwd):/workspace" q-windows-check cargo check  -p q --target x86_64-pc-windows-gnu
+#   docker run --rm -v "$(pwd):/workspace" q-windows-check cargo clippy -p q --target x86_64-pc-windows-gnu
