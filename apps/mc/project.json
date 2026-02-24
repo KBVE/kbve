@@ -1,0 +1,41 @@
+{
+	"name": "mc",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/mc",
+	"targets": {
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"docker build -t kbve/mc -f apps/mc/Dockerfile apps/mc"
+				],
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"docker build -t kbve/mc:local -f apps/mc/Dockerfile apps/mc"
+					]
+				}
+			}
+		},
+		"run": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"docker run --rm -p 25565:25565 -v $(pwd)/apps/mc/data:/pumpkin kbve/mc:local"
+				],
+				"parallel": false
+			}
+		},
+		"submodule-update": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["git submodule update --remote apps/mc/pumpkin"],
+				"parallel": false
+			}
+		}
+	},
+	"tags": []
+}
