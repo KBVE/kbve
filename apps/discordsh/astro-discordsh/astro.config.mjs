@@ -9,6 +9,8 @@ export default defineConfig({
   integrations: [
     starlight({
       title: 'Discord.sh',
+      defaultLocale: 'en',
+      locales: { en: { label: 'English' } },
       favicon: '/favicon.svg',
       social: [
         { icon: 'github', label: 'GitHub', href: 'https://github.com/kbve/kbve' },

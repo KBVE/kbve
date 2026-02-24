@@ -95,11 +95,16 @@ function listenFirstConnect(port: MessagePort): Promise<boolean> {
 async function initStorageComlink(opts?: {
 	workerRef?: SharedWorker;
 	workerURL?: string;
+	i18nPath?: string;
+	dataPath?: string;
 }): Promise<{ api: Remote<LocalStorageAPI>; isFirstConnection: boolean }> {
 	const worker = initSharedWorker('db-worker', opts);
 	const firstPromise = listenFirstConnect(worker.port);
 	const api = wrap<LocalStorageAPI>(worker.port);
-	const finalApi = await finalize(api);
+	const finalApi = await finalize(api, {
+		i18nPath: opts?.i18nPath,
+		dataPath: opts?.dataPath,
+	});
 	const isFirstConnection = await firstPromise;
 	return { api: finalApi, isFirstConnection };
 }
@@ -125,12 +130,14 @@ async function initCanvasComlink(opts?: {
 
 async function finalize(
 	api: Remote<LocalStorageAPI>,
+	initOpts?: { i18nPath?: string; dataPath?: string },
 ): Promise<Remote<LocalStorageAPI>> {
 	const version = await api.getVersion();
 	if (version !== EXPECTED_DB_VERSION) {
 		await initializeWorkerDatabase(api, {
 			version: EXPECTED_DB_VERSION,
-			i18nPath: 'https://discord.sh/i18n/db.json',
+			i18nPath: initOpts?.i18nPath,
+			dataPath: initOpts?.dataPath,
 			locale: 'en',
 			defaults: { welcome: 'Welcome!', theme: 'dark' },
 		});
@@ -419,6 +426,8 @@ export async function main(opts?: {
 		wsWorker?: SharedWorker;
 	};
 	gateway?: GatewayConfig;
+	i18nPath?: string;
+	dataPath?: string;
 }) {
 	console.log('[DROID]: Main<T>');
 
@@ -460,6 +469,8 @@ export async function main(opts?: {
 								? opts.workerURLs['dbWorker']
 								: undefined,
 						workerRef: opts?.workerRefs?.dbWorker,
+						i18nPath: opts?.i18nPath,
+						dataPath: opts?.dataPath,
 					});
 
 				const { ws, isFirstConnection: wsFirst } = await initWsComlink({
