@@ -28,6 +28,13 @@
 				"packageRoot": "dist/packages/npm/astro"
 			}
 		},
+		"test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["nx e2e astro-e2e"],
+				"parallel": false
+			}
+		},
 		"e2e": {
 			"executor": "nx:run-commands",
 			"options": {

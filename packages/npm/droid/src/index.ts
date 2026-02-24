@@ -10,6 +10,16 @@ export * from './lib/state';
 
 export type { VirtualNode } from './lib/types/modules';
 
+// Worker-side validation
+export { validateUIMessage } from './lib/workers/validate';
+export type {
+	ValidatedWorkerMessage,
+	UIMessageType,
+} from './lib/workers/validate';
+
+// Canvas UI renderer (for direct worker usage)
+export { CanvasUIRenderer } from './lib/workers/canvas-ui-renderer';
+
 // Vite ?worker&url imports — bundles each worker as JS and returns the URL string
 import canvasWorkerUrl from './lib/workers/canvas-worker?worker&url';
 import dbWorkerUrl from './lib/workers/db-worker?worker&url';

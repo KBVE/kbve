@@ -22,6 +22,8 @@ import {
 } from '../types/ui-event-types';
 import { SupabaseGateway } from '../gateway/SupabaseGateway';
 import type { GatewayConfig } from '../gateway/types';
+import { observeThemeChanges } from '../state/theme-sync';
+import { OverlayManager } from '../state/overlay-manager';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 let initialized = false;
@@ -462,6 +464,11 @@ export async function main(opts?: {
 				gateway = new SupabaseGateway(opts.gateway);
 			}
 
+			const overlay = new OverlayManager({
+				preferredPath: 'auto',
+				canvasWorker: canvas,
+			});
+
 			window.kbve = {
 				...(window.kbve || {}),
 				api,
@@ -471,8 +478,12 @@ export async function main(opts?: {
 				data,
 				mod,
 				events,
+				overlay,
 				...(gateway ? { gateway } : {}),
 			};
+
+			// Sync theme CSS vars to Dexie for worker access
+			observeThemeChanges(api);
 
 			await i18n.ready;
 

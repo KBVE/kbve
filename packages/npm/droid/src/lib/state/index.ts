@@ -21,3 +21,12 @@ export {
 } from './ui';
 
 export { $toasts, addToast, removeToast } from './toasts';
+
+export {
+	syncThemeToDexie,
+	broadcastThemeChange,
+	observeThemeChanges,
+} from './theme-sync';
+
+export { OverlayManager } from './overlay-manager';
+export type { RenderPath } from './overlay-manager';
