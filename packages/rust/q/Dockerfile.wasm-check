@@ -5,6 +5,11 @@ RUN rustup target add wasm32-unknown-unknown && \
 
 WORKDIR /workspace
 
+# NOTE: As of godot-rust 0.4.5, `cargo check` for wasm32-unknown-unknown fails
+# due to upstream godot-ffi struct size assertions (GDExtensionScriptInstanceInfo3,
+# GDExtensionInitialization, etc.) that assume 64-bit pointer widths.
+# This Dockerfile is ready to use once godot-rust resolves their wasm32 support.
+#
 # Usage (from repo root):
 #   docker build -t q-wasm-check -f packages/rust/q/Dockerfile.wasm-check .
 #   docker run --rm -v "$(pwd):/workspace" q-wasm-check cargo check  -p q --target wasm32-unknown-unknown
