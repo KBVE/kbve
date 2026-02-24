@@ -5,6 +5,7 @@ use std::time::Instant;
 use poise::serenity_prelude as serenity;
 use tokio::sync::{Notify, RwLock};
 
+use crate::discord::game::SessionStore;
 use crate::health::HealthMonitor;
 use crate::tracker::ShardTracker;
 
@@ -40,6 +41,10 @@ pub struct AppState {
     /// Serenity HTTP client, stored during bot setup so HTTP endpoints
     /// (e.g. `/cleanup-thread`) can make Discord API calls.
     pub bot_http: RwLock<Option<Arc<serenity::Http>>>,
+
+    // ── Game sessions ────────────────────────────────────────────────
+    /// In-memory store for Embed Dungeon game sessions.
+    pub sessions: Arc<SessionStore>,
 }
 
 impl AppState {
@@ -52,6 +57,7 @@ impl AppState {
             restart_flag: AtomicBool::new(false),
             shard_manager: RwLock::new(None),
             bot_http: RwLock::new(None),
+            sessions: Arc::new(SessionStore::new()),
         }
     }
 }

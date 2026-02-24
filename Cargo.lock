@@ -932,12 +932,14 @@ dependencies = [
  "askama",
  "axum 0.8.8",
  "axum-extra",
+ "dashmap 6.1.0",
  "dotenvy",
  "http-body-util",
  "jedi",
  "kbve",
  "num_cpus",
  "poise",
+ "rand 0.8.5",
  "reqwest 0.13.2",
  "serde",
  "serde_json",
@@ -952,6 +954,7 @@ dependencies = [
  "tower-http",
  "tracing",
  "tracing-subscriber",
+ "uuid",
 ]
 
 [[package]]

@@ -77,6 +77,8 @@ async fn event_handler(
         } => {
             if component.data.custom_id.starts_with("status_") {
                 components::handle_status_component(component, ctx, data).await?;
+            } else if component.data.custom_id.starts_with("dng|") {
+                super::game::router::handle_game_component(component, ctx, data).await?;
             }
         }
 
@@ -90,6 +92,18 @@ async fn event_handler(
                 shard_id,
                 "Bot ready"
             );
+
+            // Spawn session cleanup task for Embed Dungeon
+            {
+                let sessions = data.app.sessions.clone();
+                tokio::spawn(async move {
+                    let mut interval = tokio::time::interval(Duration::from_secs(60));
+                    loop {
+                        interval.tick().await;
+                        sessions.cleanup_expired(Duration::from_secs(600));
+                    }
+                });
+            }
 
             // Record shard in tracker (best-effort)
             if let Some(ref tracker) = data.app.tracker {
