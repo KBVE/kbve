@@ -62,20 +62,26 @@ export function ModalOverlay({
 		};
 	}, [open]);
 
-	if (!open) return null;
-
 	return createPortal(
 		<div
-			className="fixed inset-0 z-[9998] flex items-center justify-center bg-black/50 backdrop-blur-sm p-4"
+			className={cn(
+				'fixed inset-0 z-[9998] flex items-center justify-center p-4 transition-all duration-200',
+				open
+					? 'opacity-100 visible pointer-events-auto bg-black/50 backdrop-blur-sm'
+					: 'opacity-0 invisible pointer-events-none',
+			)}
 			role="dialog"
-			aria-modal="true"
+			aria-modal={open}
+			aria-hidden={!open}
 			aria-label={title ?? 'Modal'}
 			onClick={(e) => {
-				if (closeOnBackdrop && e.target === e.currentTarget) close(id);
+				if (open && closeOnBackdrop && e.target === e.currentTarget)
+					close(id);
 			}}>
 			<div
 				className={cn(
-					'w-full max-w-lg rounded-xl shadow-2xl p-6 bg-zinc-900 text-zinc-100',
+					'w-full max-w-lg rounded-xl shadow-2xl p-6 bg-zinc-900 text-zinc-100 transition-transform duration-200',
+					open ? 'scale-100' : 'scale-95',
 					className,
 				)}>
 				{title && (

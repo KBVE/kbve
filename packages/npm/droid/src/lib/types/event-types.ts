@@ -25,7 +25,16 @@ export const DroidReadySchema = z.object({
 	timestamp: z.number(),
 });
 
+export const DroidFirstConnectSchema = z.object({
+	timestamp: z.number(),
+	workersFirst: z.object({
+		db: z.boolean(),
+		ws: z.boolean(),
+	}),
+});
+
 export const DroidEventSchemas = {
+	'droid-first-connect': DroidFirstConnectSchema,
 	'droid-ready': DroidReadySchema,
 	'droid-mod-ready': DroidModReadySchema,
 	'panel-open': PanelEventSchema,

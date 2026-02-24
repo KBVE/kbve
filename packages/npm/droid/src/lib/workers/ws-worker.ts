@@ -191,8 +191,13 @@ const wsInstanceAPI = {
 
 export type WSInstance = typeof wsInstanceAPI;
 
+const ports = new Set<MessagePort>();
+
 self.onconnect = (event: MessageEvent) => {
 	const port = event.ports[0];
+	const isFirst = ports.size === 0;
+	ports.add(port);
 	port.start();
+	port.postMessage({ type: isFirst ? 'first-connect' : 'reconnect' });
 	expose(wsInstanceAPI, port);
 };

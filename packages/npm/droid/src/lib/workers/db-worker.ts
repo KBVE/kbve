@@ -53,7 +53,6 @@ function renderHtmlForServer(server: DiscordServer): string {
 
 // --- Comlink-Safe API ---
 const storageAPI = {
-
 	// WebSocket
 
 	async storeWsMessage(key: string, buffer: ArrayBuffer) {
@@ -64,7 +63,7 @@ const storageAPI = {
 	async getWsMessage(key: string) {
 		return (await db.ws_messages.get(key))?.message ?? null;
 	},
-	
+
 	async getAllWsMessages(): Promise<{ key: string; message: any }[]> {
 		const raw = await db.ws_messages.toArray();
 		return raw.sort((a, b) => {
@@ -73,7 +72,7 @@ const storageAPI = {
 			return bt - at;
 		});
 	},
-	
+
 	async clearWsMessages() {
 		await db.ws_messages.clear();
 	},
@@ -98,18 +97,18 @@ const storageAPI = {
 		await db.i18n.bulkPut(entries);
 	},
 	async loadI18nFromJSON(path = 'https://discord.sh/i18n/db.json') {
-	const res = await fetch(path);
-	const data = await res.json();
-	await storageAPI.putI18nBatch(data);
+		const res = await fetch(path);
+		const data = await res.json();
+		await storageAPI.putI18nBatch(data);
 	},
 	async getAllI18nKeys(): Promise<string[]> {
-		return await db.i18n.toCollection().primaryKeys() as string[];
+		return (await db.i18n.toCollection().primaryKeys()) as string[];
 	},
 
 	async loadServersFromJSON(path = 'https://discord.sh/data/servers.json') {
 		const res = await fetch(path);
 		const data = await res.json();
-	
+
 		// The JSON should be a Record<string, DiscordServer>
 		const servers: DiscordServer[] = Object.values(data);
 		await storageAPI.putServers(servers);
@@ -119,21 +118,27 @@ const storageAPI = {
 	// HTML PreRender
 	async syncHtmlFromServers() {
 		const allServers = await db.servers.toArray();
-		const existingHtmlKeys = await db.htmlservers.toCollection().primaryKeys();
+		const existingHtmlKeys = await db.htmlservers
+			.toCollection()
+			.primaryKeys();
 		const missing: { key: string; value: string }[] = [];
-	
+
 		for (const server of allServers) {
 			if (!existingHtmlKeys.includes(server.server_id)) {
 				const html = renderHtmlForServer(server);
 				missing.push({ key: server.server_id, value: html });
 			}
 		}
-	
+
 		if (missing.length > 0) {
 			await db.htmlservers.bulkPut(missing);
-			console.info(`[syncHtmlFromServers] Generated ${missing.length} HTML cards.`);
+			console.info(
+				`[syncHtmlFromServers] Generated ${missing.length} HTML cards.`,
+			);
 		} else {
-			console.info('[syncHtmlFromServers] All servers already have HTML cards.');
+			console.info(
+				'[syncHtmlFromServers] All servers already have HTML cards.',
+			);
 		}
 	},
 
@@ -217,8 +222,13 @@ const storageAPI = {
 
 export type LocalStorageAPI = typeof storageAPI;
 
+const ports = new Set<MessagePort>();
+
 self.onconnect = (event: MessageEvent) => {
 	const port = event.ports[0];
+	const isFirst = ports.size === 0;
+	ports.add(port);
 	port.start();
+	port.postMessage({ type: isFirst ? 'first-connect' : 'reconnect' });
 	expose(storageAPI, port);
 };
