@@ -1,9 +1,4 @@
 #[cfg(target_os = "linux")]
-use std::ffi::c_void;
-#[cfg(target_os = "linux")]
-use std::ptr::NonNull;
-
-#[cfg(target_os = "linux")]
 use godot::classes::DisplayServer;
 #[cfg(target_os = "linux")]
 use godot::classes::display_server::HandleType;
@@ -30,7 +25,7 @@ impl HasWindowHandle for LinuxWryBrowserOptions {
         }
 
         unsafe {
-            let xlib_handle = XlibWindowHandle::new(window_handle as u32);
+            let xlib_handle = XlibWindowHandle::new(window_handle as std::ffi::c_ulong);
             Ok(WindowHandle::borrow_raw(RawWindowHandle::Xlib(xlib_handle)))
         }
     }

@@ -8,7 +8,7 @@ description = "Q is a Rust GDExtension crate for Godot, offering a Game Manager,
 homepage = "https://kbve.com/application/rust/"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/q"
 readme = "README.md"
-rust-version = "1.85"
+rust-version = "1.88"
 exclude = [
     "release/*",
     "docs/*",
