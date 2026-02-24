@@ -679,3 +679,1050 @@ No phase introduces a circular dependency.
     - `window.kbve.events.on('modal-opened', (p) => console.log('modal!', p))` — register listener
     - Call `openModal('test')` — listener fires, `$modalId.get()` returns `'test'`
 6. **Worker integration test:** From a mod worker, call `ctx.emitFromWorker({ type: 'toast', payload: { id: 'w1', message: 'From worker', severity: 'success' } })` — toast appears in `$toasts` on main thread
+
+---
+
+---
+
+# Dual-Path Rendering: Worker Canvas + Main-Thread DOM
+
+> Extension to the event system plan. Introduces off-thread OffscreenCanvas rendering for UI overlays alongside the existing DOM path, with Dexie as the theme color bridge and worker-side Zod validation.
+
+## Motivation
+
+Phases 1–6 established the event bus, typed payloads, and React rendering components — but everything still renders on the main thread. For apps with heavy main-thread workloads (Three.js scenes, complex layouts, frequent re-renders), painting toasts/tooltips/modals in React adds jank.
+
+**OffscreenCanvas** lets a dedicated worker paint overlay UI without touching the DOM or blocking the main thread. However, canvas-rendered overlays can't provide:
+
+- Keyboard/screen-reader accessibility (`role`, `aria-*`, focus management)
+- Text selection or copy
+- Interactive form inputs (buttons, links, inputs)
+
+**Solution: dual-path rendering.** Each overlay component has two implementations — a DOM path (React, accessible, interactive) and a Canvas path (worker-rendered, zero main-thread paint). Consumers choose or the system auto-selects based on capability detection.
+
+---
+
+## Architecture Overview
+
+```
+Main Thread                                  Worker Thread (canvas-worker)
+┌────────────────────────────────────┐      ┌──────────────────────────────────────┐
+│  ThemeSync                         │      │  CanvasUIRenderer                    │
+│  ┌──────────────────────────────┐  │      │  ┌──────────────────────────────┐    │
+│  │ getComputedStyle(root)       │  │      │  │ Reads theme from Dexie       │    │
+│  │ resolve --sl-color-* values  │  │      │  │ Listens BroadcastChannel     │    │
+│  │ → Dexie settings.put()      │──┼──────┼──│ → re-reads on 'theme-sync'   │    │
+│  │ → BroadcastChannel.post()   │  │      │  │                              │    │
+│  └──────────────────────────────┘  │      │  │ Zod-validates payloads       │    │
+│                                    │      │  │ BEFORE postMessage to main   │    │
+│  DualOverlayManager                │      │  │                              │    │
+│  ┌──────────────────────────────┐  │      │  │ Renders toasts/tooltips/     │    │
+│  │ 'dom' path:                 │  │      │  │ modals on OffscreenCanvas    │    │
+│  │   React <ToastContainer/>   │  │      │  └──────────────────────────────┘    │
+│  │   React <ModalOverlay/>     │  │      │                                      │
+│  │   React <TooltipOverlay/>   │  │      │  Queue (ToastPayload[])              │
+│  │                             │  │      │  ┌──────────────────────────────┐    │
+│  │ 'canvas' path:              │  │      │  │ addToast → push to queue     │    │
+│  │   <canvas> ──transfer──────►┼──┼──────┼──│ removeToast → splice queue   │    │
+│  │   OffscreenCanvas           │  │      │  │ rAF loop → draw from queue   │    │
+│  │   (transparent overlay)     │  │      │  └──────────────────────────────┘    │
+│  └──────────────────────────────┘  │      └──────────────────────────────────────┘
+│                                    │
+│  $toasts / $modalId / $tooltip     │      Dexie (IndexedDB)
+│  nanostores (unchanged)            │      ┌──────────────────────────────┐
+│                                    │      │ settings table               │
+│                                    │      │  'theme:accent' → '#8b5cf6'  │
+│                                    │      │  'theme:bg'     → '#1e1033'  │
+│                                    │      │  'theme:text'   → '#a78bfa'  │
+│                                    │      │  'theme:border' → '#4c1d95'  │
+│                                    │      │  'theme:mode'   → 'dark'     │
+│                                    │      └──────────────────────────────┘
+└────────────────────────────────────┘
+```
+
+### Key principles
+
+1. **Worker-side Zod validation** — validate payloads _before_ `postMessage`, not after. Invalid data never crosses the thread boundary. Main-thread `emitFromWorker` becomes a thin dispatcher.
+2. **Dexie as theme bridge** — main thread reads resolved CSS custom property values via `getComputedStyle()`, writes them to the Dexie `settings` table. Workers read from Dexie. No DOM access required.
+3. **BroadcastChannel for live theme updates** — when the user toggles dark/light, main thread writes new colors to Dexie and broadcasts `'theme-sync'`. All workers re-read immediately.
+4. **Canvas overlay is transparent** — the `<canvas>` element sits above the page via `position: fixed; pointer-events: none; z-index: 9999`. It only paints overlay items. Click-through is preserved.
+5. **DOM path is the default** — Canvas path is opt-in. Degradation is automatic: if `OffscreenCanvas` isn't supported or the consumer doesn't opt in, DOM components render as before.
+
+---
+
+## Phase 7: Worker-Side Zod Validation
+
+**Package:** `@kbve/droid`
+**Depends on:** Phase 1 (schemas exist)
+
+### Problem
+
+Currently, workers produce raw payloads and the main thread validates with `safeParse` inside `emitFromWorker`. This means invalid data has already crossed the `postMessage` boundary — wasted serialization/deserialization and a delayed error report.
+
+### Solution
+
+Create a worker-safe validation utility that workers import directly. Vite bundles workers as ES modules (confirmed in `vite.config.ts`), so they can import Zod.
+
+### New file: `src/lib/workers/validate.ts`
+
+```ts
+import {
+	ToastPayloadSchema,
+	TooltipPayloadSchema,
+	ModalPayloadSchema,
+} from '../types/ui-event-types';
+import type { z } from 'zod';
+
+type UIMessageType =
+	| 'toast'
+	| 'toast-remove'
+	| 'tooltip-open'
+	| 'tooltip-close'
+	| 'modal-open'
+	| 'modal-close';
+
+const SCHEMAS: Partial<Record<UIMessageType, z.ZodType<any>>> = {
+	toast: ToastPayloadSchema,
+	'tooltip-open': TooltipPayloadSchema,
+	'modal-open': ModalPayloadSchema,
+};
+
+export interface ValidatedWorkerMessage {
+	type: UIMessageType;
+	payload: any;
+}
+
+/**
+ * Validate a UI message payload BEFORE postMessage to main thread.
+ * Returns the validated message or throws with a descriptive error.
+ *
+ * Usage (inside worker):
+ *   const msg = validateUIMessage('toast', rawPayload);
+ *   emitFromWorker(msg); // guaranteed valid
+ */
+export function validateUIMessage(
+	type: UIMessageType,
+	payload: unknown,
+): ValidatedWorkerMessage {
+	const schema = SCHEMAS[type];
+	if (schema) {
+		const result = schema.safeParse(payload);
+		if (!result.success) {
+			throw new Error(
+				`[KBVE Worker] Invalid ${type} payload: ${result.error.message}`,
+			);
+		}
+		return { type, payload: result.data };
+	}
+	// Types without full schemas (toast-remove, tooltip-close, modal-close)
+	// only require an id field
+	if (
+		type === 'toast-remove' ||
+		type === 'tooltip-close' ||
+		type === 'modal-close'
+	) {
+		if (!payload || typeof (payload as any).id !== 'string') {
+			throw new Error(`[KBVE Worker] ${type} requires { id: string }`);
+		}
+	}
+	return { type, payload };
+}
+```
+
+### Modify: `src/lib/workers/main.ts` — `emitFromWorker`
+
+Simplify the main-thread side. Since workers pre-validate, `emitFromWorker` trusts the payload shape but still routes to the correct state function. The `safeParse` calls become optional safety nets (logged as warnings if they ever fire, indicating a worker skipped validation).
+
+### Modify: `src/index.ts`
+
+Export `validateUIMessage` so mod workers and custom workers can import it:
+
+```ts
+export { validateUIMessage } from './lib/workers/validate';
+```
+
+---
+
+## Phase 8: Dexie Theme Bridge
+
+**Package:** `@kbve/droid`
+**Depends on:** Phase 7 (validation utility), existing Dexie infra
+
+### Problem
+
+Canvas workers need to know the current theme colors (accent, background, text, border) to render overlays that match the site. Workers have no access to `getComputedStyle()` or CSS custom properties.
+
+### Solution
+
+Main thread resolves CSS variables → writes resolved hex/rgb values to the existing Dexie `settings` table → workers read via `dbGet`.
+
+### Starlight CSS variables to sync
+
+Each app customizes these `--sl-color-*` variables. We sync the **resolved** values (not the variable names):
+
+| Dexie key           | CSS variable source                      | Purpose               |
+| ------------------- | ---------------------------------------- | --------------------- |
+| `theme:mode`        | `document.documentElement.dataset.theme` | `'light'` or `'dark'` |
+| `theme:accent`      | `--sl-color-accent`                      | Primary accent color  |
+| `theme:accent-low`  | `--sl-color-accent-low`                  | Low-contrast accent   |
+| `theme:accent-high` | `--sl-color-accent-high`                 | High-contrast accent  |
+| `theme:bg`          | `--sl-color-bg`                          | Page background       |
+| `theme:bg-accent`   | `--sl-color-bg-accent`                   | Accent background     |
+| `theme:text`        | `--sl-color-text`                        | Primary text          |
+| `theme:text-accent` | `--sl-color-text-accent`                 | Accent text           |
+| `theme:border`      | `--sl-color-border`                      | Border color          |
+| `theme:white`       | `--sl-color-white`                       | White reference       |
+| `theme:black`       | `--sl-color-black`                       | Black reference       |
+
+### New file: `src/lib/state/theme-sync.ts`
+
+```ts
+import type { Remote } from 'comlink';
+import type { LocalStorageAPI } from '../workers/db-worker';
+
+const THEME_VARS = [
+	'accent',
+	'accent-low',
+	'accent-high',
+	'bg',
+	'bg-accent',
+	'text',
+	'text-accent',
+	'border',
+	'white',
+	'black',
+] as const;
+
+/**
+ * Read resolved CSS custom property values from the document root
+ * and persist them to Dexie so workers can access theme colors.
+ */
+export async function syncThemeToDexie(
+	api: Remote<LocalStorageAPI>,
+): Promise<void> {
+	const root = document.documentElement;
+	const styles = getComputedStyle(root);
+	const mode = root.dataset.theme ?? 'dark';
+
+	await api.dbSet('theme:mode', mode);
+
+	for (const name of THEME_VARS) {
+		const value = styles.getPropertyValue(`--sl-color-${name}`).trim();
+		if (value) {
+			await api.dbSet(`theme:${name}`, value);
+		}
+	}
+}
+
+/**
+ * Broadcast a theme-sync event so workers re-read colors from Dexie.
+ */
+export function broadcastThemeChange(): void {
+	try {
+		const bc = new BroadcastChannel('kbve_theme');
+		bc.postMessage({ type: 'theme-sync', timestamp: Date.now() });
+		bc.close();
+	} catch {
+		// BroadcastChannel not available — workers won't get live updates
+	}
+}
+
+/**
+ * Observe theme attribute changes and auto-sync.
+ * Call once from main() after Dexie is initialized.
+ */
+export function observeThemeChanges(api: Remote<LocalStorageAPI>): void {
+	// MutationObserver on document.documentElement data-theme attribute
+	const observer = new MutationObserver(async (mutations) => {
+		for (const mutation of mutations) {
+			if (
+				mutation.type === 'attributes' &&
+				mutation.attributeName === 'data-theme'
+			) {
+				await syncThemeToDexie(api);
+				broadcastThemeChange();
+			}
+		}
+	});
+
+	observer.observe(document.documentElement, {
+		attributes: true,
+		attributeFilter: ['data-theme'],
+	});
+
+	// Initial sync
+	void syncThemeToDexie(api);
+}
+```
+
+### Modify: `src/lib/workers/main.ts` — `main()`
+
+After Dexie is initialized and `window.kbve` is set up, call `observeThemeChanges(api)`:
+
+```ts
+import { observeThemeChanges } from '../state/theme-sync';
+
+// Inside main(), after window.kbve assignment:
+observeThemeChanges(api);
+```
+
+### Worker-side theme reading
+
+Workers read theme colors from Dexie via the existing `dbGet` API and listen for changes on BroadcastChannel:
+
+```ts
+// Inside any worker that needs theme colors:
+const accent = await api.dbGet('theme:accent'); // → '#8b5cf6'
+const bg = await api.dbGet('theme:bg'); // → '#1e1033'
+const mode = await api.dbGet('theme:mode'); // → 'dark'
+
+// Live updates:
+const bc = new BroadcastChannel('kbve_theme');
+bc.onmessage = async () => {
+	// Re-read all theme colors from Dexie
+	const newAccent = await api.dbGet('theme:accent');
+	// ... re-render with new colors
+};
+```
+
+---
+
+## Phase 9: CanvasUIRenderer — Toast/Tooltip/Modal on OffscreenCanvas
+
+**Package:** `@kbve/droid`
+**Depends on:** Phases 7, 8
+
+### Problem
+
+The existing `canvas-worker.ts` handles generic canvas bindings (static/animated/dynamic demo modes) but has no concept of UI overlays. We need a dedicated renderer that can paint toasts, tooltips, and modals on an OffscreenCanvas using theme colors from Dexie.
+
+### Approach
+
+Extend the canvas worker with a `CanvasUIRenderer` class that:
+
+- Maintains an internal queue of active toasts (mirrors `$toasts` but worker-local)
+- Receives overlay commands via Comlink method calls (`addCanvasToast`, `removeCanvasToast`, `showCanvasTooltip`, `showCanvasModal`)
+- Reads theme colors from Dexie on init and on `'theme-sync'` broadcasts
+- Paints overlays using Canvas 2D API (rounded rects, text, icons via path data)
+- Manages animation frames for toast enter/exit transitions and auto-dismiss
+
+### New file: `src/lib/workers/canvas-ui-renderer.ts`
+
+```ts
+import type {
+	ToastPayload,
+	TooltipPayload,
+	ModalPayload,
+} from '../types/ui-event-types';
+
+interface ThemeColors {
+	accent: string;
+	accentLow: string;
+	accentHigh: string;
+	bg: string;
+	bgAccent: string;
+	text: string;
+	textAccent: string;
+	border: string;
+	white: string;
+	black: string;
+	mode: 'light' | 'dark';
+}
+
+const SEVERITY_COLORS: Record<
+	string,
+	{ bg: string; border: string; text: string }
+> = {
+	success: { bg: '#065f46', border: '#10b981', text: '#d1fae5' },
+	warning: { bg: '#78350f', border: '#f59e0b', text: '#fef3c7' },
+	error: { bg: '#7f1d1d', border: '#ef4444', text: '#fee2e2' },
+	info: { bg: '#1e3a5f', border: '#3b82f6', text: '#dbeafe' },
+};
+
+interface ActiveToast extends ToastPayload {
+	createdAt: number;
+	opacity: number; // 0–1, for fade in/out
+	y: number; // current Y position
+	targetY: number; // target Y position
+}
+
+export class CanvasUIRenderer {
+	private ctx: OffscreenCanvasRenderingContext2D | null = null;
+	private canvas: OffscreenCanvas | null = null;
+	private toasts: ActiveToast[] = [];
+	private tooltip: TooltipPayload | null = null;
+	private modal: ModalPayload | null = null;
+	private theme: ThemeColors = {
+		/* defaults */
+	} as ThemeColors;
+	private animFrame: number | null = null;
+	private dbGet: ((key: string) => Promise<string | null>) | null = null;
+
+	async bind(
+		canvas: OffscreenCanvas,
+		dbGet: (key: string) => Promise<string | null>,
+	): Promise<void> {
+		this.canvas = canvas;
+		this.ctx = canvas.getContext('2d');
+		this.dbGet = dbGet;
+		await this.refreshTheme();
+		this.startLoop();
+	}
+
+	async refreshTheme(): Promise<void> {
+		if (!this.dbGet) return;
+		this.theme = {
+			accent: (await this.dbGet('theme:accent')) ?? '#8b5cf6',
+			accentLow: (await this.dbGet('theme:accent-low')) ?? '#1e1033',
+			accentHigh: (await this.dbGet('theme:accent-high')) ?? '#c4b5fd',
+			bg: (await this.dbGet('theme:bg')) ?? '#0a0a0a',
+			bgAccent: (await this.dbGet('theme:bg-accent')) ?? '#3b1f6e',
+			text: (await this.dbGet('theme:text')) ?? '#e0e0e0',
+			textAccent: (await this.dbGet('theme:text-accent')) ?? '#a78bfa',
+			border: (await this.dbGet('theme:border')) ?? '#4c1d95',
+			white: (await this.dbGet('theme:white')) ?? '#ffffff',
+			black: (await this.dbGet('theme:black')) ?? '#000000',
+			mode:
+				((await this.dbGet('theme:mode')) as 'light' | 'dark') ??
+				'dark',
+		};
+	}
+
+	addToast(payload: ToastPayload): void {
+		const yOffset = 20 + this.toasts.length * 80;
+		this.toasts.push({
+			...payload,
+			createdAt: Date.now(),
+			opacity: 0,
+			y: yOffset - 20,
+			targetY: yOffset,
+		});
+	}
+
+	removeToast(id: string): void {
+		const idx = this.toasts.findIndex((t) => t.id === id);
+		if (idx !== -1) this.toasts.splice(idx, 1);
+		this.recalcPositions();
+	}
+
+	showTooltip(payload: TooltipPayload | null): void {
+		this.tooltip = payload;
+	}
+
+	showModal(payload: ModalPayload | null): void {
+		this.modal = payload;
+	}
+
+	private recalcPositions(): void {
+		this.toasts.forEach((t, i) => {
+			t.targetY = 20 + i * 80;
+		});
+	}
+
+	private startLoop(): void {
+		const draw = () => {
+			this.render();
+			this.animFrame = requestAnimationFrame(draw);
+		};
+		draw();
+	}
+
+	private render(): void {
+		if (!this.ctx || !this.canvas) return;
+		const { width, height } = this.canvas;
+		this.ctx.clearRect(0, 0, width, height);
+
+		// Auto-dismiss expired toasts
+		const now = Date.now();
+		this.toasts = this.toasts.filter((t) => {
+			if (
+				t.duration &&
+				t.duration > 0 &&
+				now - t.createdAt > t.duration
+			) {
+				return false;
+			}
+			return true;
+		});
+		this.recalcPositions();
+
+		// Animate toasts
+		for (const toast of this.toasts) {
+			// Fade in
+			if (toast.opacity < 1)
+				toast.opacity = Math.min(1, toast.opacity + 0.05);
+			// Slide to target
+			toast.y += (toast.targetY - toast.y) * 0.15;
+			this.drawToast(toast, width);
+		}
+
+		// Draw modal backdrop + content
+		if (this.modal) {
+			this.drawModal(width, height);
+		}
+	}
+
+	private drawToast(toast: ActiveToast, canvasWidth: number): void {
+		if (!this.ctx) return;
+		const ctx = this.ctx;
+		const w = 320;
+		const h = 64;
+		const x = canvasWidth - w - 20;
+		const y = toast.y;
+		const colors = SEVERITY_COLORS[toast.severity] ?? SEVERITY_COLORS.info;
+
+		ctx.globalAlpha = toast.opacity;
+
+		// Background
+		ctx.fillStyle = colors.bg;
+		this.roundRect(ctx, x, y, w, h, 8);
+		ctx.fill();
+
+		// Border
+		ctx.strokeStyle = colors.border;
+		ctx.lineWidth = 1.5;
+		this.roundRect(ctx, x, y, w, h, 8);
+		ctx.stroke();
+
+		// Text
+		ctx.fillStyle = colors.text;
+		ctx.font = '14px system-ui, -apple-system, sans-serif';
+		ctx.fillText(toast.message, x + 12, y + 24, w - 24);
+
+		// Severity label
+		ctx.font = 'bold 10px system-ui, sans-serif';
+		ctx.fillStyle = colors.border;
+		ctx.fillText(toast.severity.toUpperCase(), x + 12, y + 48);
+
+		ctx.globalAlpha = 1;
+	}
+
+	private drawModal(canvasWidth: number, canvasHeight: number): void {
+		if (!this.ctx || !this.modal) return;
+		const ctx = this.ctx;
+
+		// Backdrop
+		ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+		ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+		// Modal box
+		const w = Math.min(500, canvasWidth - 40);
+		const h = 300;
+		const x = (canvasWidth - w) / 2;
+		const y = (canvasHeight - h) / 2;
+
+		ctx.fillStyle = this.theme.bg;
+		this.roundRect(ctx, x, y, w, h, 12);
+		ctx.fill();
+
+		ctx.strokeStyle = this.theme.border;
+		ctx.lineWidth = 1;
+		this.roundRect(ctx, x, y, w, h, 12);
+		ctx.stroke();
+
+		// Title
+		if (this.modal.title) {
+			ctx.fillStyle = this.theme.text;
+			ctx.font = 'bold 18px system-ui, sans-serif';
+			ctx.fillText(this.modal.title, x + 20, y + 36, w - 40);
+		}
+
+		// ID label
+		ctx.fillStyle = this.theme.textAccent;
+		ctx.font = '12px system-ui, sans-serif';
+		ctx.fillText(this.modal.id, x + 20, y + 60, w - 40);
+	}
+
+	private roundRect(
+		ctx: OffscreenCanvasRenderingContext2D,
+		x: number,
+		y: number,
+		w: number,
+		h: number,
+		r: number,
+	): void {
+		ctx.beginPath();
+		ctx.moveTo(x + r, y);
+		ctx.lineTo(x + w - r, y);
+		ctx.quadraticCurveTo(x + w, y, x + w, y + r);
+		ctx.lineTo(x + w, y + h - r);
+		ctx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+		ctx.lineTo(x + r, y + h);
+		ctx.quadraticCurveTo(x, y + h, x, y + h - r);
+		ctx.lineTo(x, y + r);
+		ctx.quadraticCurveTo(x, y, x + r, y);
+		ctx.closePath();
+	}
+
+	unbind(): void {
+		if (this.animFrame !== null) {
+			cancelAnimationFrame(this.animFrame);
+			this.animFrame = null;
+		}
+		this.ctx = null;
+		this.canvas = null;
+		this.toasts = [];
+		this.tooltip = null;
+		this.modal = null;
+	}
+}
+```
+
+### Modify: `src/lib/workers/canvas-worker.ts`
+
+Import and expose `CanvasUIRenderer` alongside the existing `CanvasManager`:
+
+```ts
+import { CanvasUIRenderer } from './canvas-ui-renderer';
+
+const uiRenderer = new CanvasUIRenderer();
+
+// Extend exposed API:
+const CanvasManager = {
+	// ... existing bindCanvas/unbindCanvas ...
+
+	// UI overlay canvas
+	async bindUICanvas(
+		canvas: OffscreenCanvas,
+		dbGet: (key: string) => Promise<string | null>,
+	) {
+		await uiRenderer.bind(canvas, dbGet);
+	},
+	unbindUICanvas() {
+		uiRenderer.unbind();
+	},
+	addCanvasToast(payload: ToastPayload) {
+		uiRenderer.addToast(payload);
+	},
+	removeCanvasToast(id: string) {
+		uiRenderer.removeToast(id);
+	},
+	showCanvasTooltip(payload: TooltipPayload | null) {
+		uiRenderer.showTooltip(payload);
+	},
+	showCanvasModal(payload: ModalPayload | null) {
+		uiRenderer.showModal(payload);
+	},
+	refreshUITheme() {
+		return uiRenderer.refreshTheme();
+	},
+};
+```
+
+### BroadcastChannel listener inside canvas-worker
+
+```ts
+// At top level of canvas-worker.ts:
+try {
+	const bc = new BroadcastChannel('kbve_theme');
+	bc.onmessage = () => {
+		uiRenderer.refreshTheme();
+	};
+} catch {
+	// BroadcastChannel unavailable in this context
+}
+```
+
+---
+
+## Phase 10: Dual-Path Overlay Manager
+
+**Package:** `@kbve/droid`
+**Depends on:** Phases 8, 9
+
+### Problem
+
+Consumers need a single API that routes overlay commands to either the DOM path or the Canvas path. The choice should be explicit (consumer opts in) or automatic (capability detection).
+
+### New file: `src/lib/state/overlay-manager.ts`
+
+```ts
+import type { Remote } from 'comlink';
+import type { CanvasWorkerAPI } from '../workers/canvas-worker';
+import { addToast, removeToast } from './toasts';
+import { openTooltip, closeTooltip, openModal, closeModal } from './ui';
+import type {
+	ToastPayload,
+	TooltipPayload,
+	ModalPayload,
+} from '../types/ui-event-types';
+
+export type RenderPath = 'dom' | 'canvas' | 'auto';
+
+interface OverlayManagerConfig {
+	preferredPath: RenderPath;
+	canvasWorker?: Remote<CanvasWorkerAPI>;
+}
+
+/**
+ * Unified overlay manager that routes to DOM or Canvas rendering.
+ *
+ * - 'dom': Uses nanostores → React components (Phases 1–6)
+ * - 'canvas': Uses CanvasUIRenderer in canvas-worker (Phase 9)
+ * - 'auto': Uses canvas if OffscreenCanvas is available AND a canvas worker
+ *           is bound, otherwise falls back to DOM
+ */
+export class OverlayManager {
+	private path: RenderPath;
+	private canvasWorker: Remote<CanvasWorkerAPI> | null;
+	private canvasBound = false;
+
+	constructor(config: OverlayManagerConfig) {
+		this.path = config.preferredPath;
+		this.canvasWorker = config.canvasWorker ?? null;
+	}
+
+	private get effectivePath(): 'dom' | 'canvas' {
+		if (this.path === 'canvas' && this.canvasBound && this.canvasWorker) {
+			return 'canvas';
+		}
+		if (this.path === 'auto' && this.canvasBound && this.canvasWorker) {
+			return 'canvas';
+		}
+		return 'dom';
+	}
+
+	/**
+	 * Bind a <canvas> element for off-thread overlay rendering.
+	 * Must be called before canvas path can be used.
+	 */
+	async bindCanvas(
+		canvasEl: HTMLCanvasElement,
+		dbGet: (key: string) => Promise<string | null>,
+	): Promise<void> {
+		if (!this.canvasWorker) {
+			console.warn('[OverlayManager] No canvas worker available');
+			return;
+		}
+		const offscreen = canvasEl.transferControlToOffscreen();
+		await (this.canvasWorker as any).bindUICanvas(offscreen, dbGet);
+		this.canvasBound = true;
+	}
+
+	// ── Toast ──
+	toast(payload: ToastPayload): void {
+		if (this.effectivePath === 'canvas') {
+			void (this.canvasWorker as any)?.addCanvasToast(payload);
+		}
+		// Always update DOM state (nanostores) so event listeners and
+		// any DOM-rendered components stay in sync
+		addToast(payload);
+	}
+
+	dismissToast(id: string): void {
+		if (this.effectivePath === 'canvas') {
+			void (this.canvasWorker as any)?.removeCanvasToast(id);
+		}
+		removeToast(id);
+	}
+
+	// ── Tooltip ──
+	showTooltip(payload: TooltipPayload): void {
+		if (this.effectivePath === 'canvas') {
+			void (this.canvasWorker as any)?.showCanvasTooltip(payload);
+		}
+		openTooltip(payload.id);
+	}
+
+	hideTooltip(id?: string): void {
+		if (this.effectivePath === 'canvas') {
+			void (this.canvasWorker as any)?.showCanvasTooltip(null);
+		}
+		closeTooltip(id);
+	}
+
+	// ── Modal ──
+	showModal(payload: ModalPayload): void {
+		if (this.effectivePath === 'canvas') {
+			void (this.canvasWorker as any)?.showCanvasModal(payload);
+		}
+		openModal(payload.id);
+	}
+
+	hideModal(id?: string): void {
+		if (this.effectivePath === 'canvas') {
+			void (this.canvasWorker as any)?.showCanvasModal(null);
+		}
+		closeModal(id);
+	}
+
+	/** Switch rendering path at runtime */
+	setPath(path: RenderPath): void {
+		this.path = path;
+	}
+
+	/** Unbind canvas and clean up */
+	async destroy(): Promise<void> {
+		if (this.canvasBound && this.canvasWorker) {
+			await (this.canvasWorker as any).unbindUICanvas();
+			this.canvasBound = false;
+		}
+	}
+}
+```
+
+### Design decision: always update nanostores
+
+Even when using the canvas path, the `OverlayManager` always writes to nanostores (`addToast`, `openModal`, etc.). This means:
+
+- Event bus listeners still fire (analytics, logging)
+- If both DOM and Canvas components are mounted (e.g., during transition), they stay in sync
+- `$toasts.get()` always reflects truth regardless of render path
+
+---
+
+## Phase 11: Canvas Overlay Component (`@kbve/astro`)
+
+**Package:** `@kbve/astro`
+**Depends on:** Phase 10
+
+### New file: `src/react/CanvasOverlay.tsx`
+
+A thin React component that mounts a full-viewport `<canvas>` and transfers it to the canvas worker.
+
+```tsx
+import { useRef, useEffect } from 'react';
+import type { OverlayManager } from '@kbve/droid';
+
+interface CanvasOverlayProps {
+	overlayManager: OverlayManager;
+	dbGet: (key: string) => Promise<string | null>;
+	zIndex?: number;
+}
+
+export function CanvasOverlay({
+	overlayManager,
+	dbGet,
+	zIndex = 9999,
+}: CanvasOverlayProps) {
+	const canvasRef = useRef<HTMLCanvasElement>(null);
+
+	useEffect(() => {
+		const canvas = canvasRef.current;
+		if (!canvas) return;
+
+		// Size to viewport
+		const resize = () => {
+			canvas.width = window.innerWidth;
+			canvas.height = window.innerHeight;
+		};
+		resize();
+		window.addEventListener('resize', resize);
+
+		// Transfer to worker
+		void overlayManager.bindCanvas(canvas, dbGet);
+
+		return () => {
+			window.removeEventListener('resize', resize);
+			void overlayManager.destroy();
+		};
+	}, [overlayManager, dbGet]);
+
+	return (
+		<canvas
+			ref={canvasRef}
+			style={{
+				position: 'fixed',
+				top: 0,
+				left: 0,
+				width: '100vw',
+				height: '100vh',
+				pointerEvents: 'none',
+				zIndex,
+			}}
+			aria-hidden="true"
+		/>
+	);
+}
+```
+
+**Note:** `aria-hidden="true"` and `pointer-events: none` ensure the canvas overlay doesn't interfere with accessibility or click events. The DOM-rendered components (from Phase 6) handle all accessible interactions.
+
+### New file: `src/components/CanvasOverlay.astro`
+
+```astro
+---
+import { CanvasOverlay as ReactCanvasOverlay } from '../react/CanvasOverlay';
+---
+
+<ReactCanvasOverlay client:only="react" />
+```
+
+---
+
+## Phase 12: Export & Integration
+
+**Package:** both `@kbve/droid` and `@kbve/astro`
+**Depends on:** Phases 7–11
+
+### Modify: `@kbve/droid` `src/index.ts`
+
+```ts
+// Worker-side validation
+export { validateUIMessage } from './lib/workers/validate';
+export type { ValidatedWorkerMessage } from './lib/workers/validate';
+
+// Theme sync
+export {
+	syncThemeToDexie,
+	broadcastThemeChange,
+	observeThemeChanges,
+} from './lib/state/theme-sync';
+
+// Overlay manager
+export { OverlayManager } from './lib/state/overlay-manager';
+export type { RenderPath } from './lib/state/overlay-manager';
+
+// Canvas UI renderer (for direct worker usage)
+export { CanvasUIRenderer } from './lib/workers/canvas-ui-renderer';
+```
+
+### Modify: `@kbve/droid` `src/lib/state/index.ts`
+
+```ts
+export {
+	syncThemeToDexie,
+	broadcastThemeChange,
+	observeThemeChanges,
+} from './theme-sync';
+export { OverlayManager } from './overlay-manager';
+export type { RenderPath } from './overlay-manager';
+```
+
+### Modify: `@kbve/astro` `src/index.ts`
+
+```ts
+// Canvas overlay
+export { CanvasOverlay } from './react/CanvasOverlay';
+
+// Re-export from droid
+export { OverlayManager } from '@kbve/droid';
+export type { RenderPath } from '@kbve/droid';
+```
+
+### Modify: `@kbve/droid` `src/lib/workers/main.ts` — `main()`
+
+Wire theme observation and expose `OverlayManager` on `window.kbve`:
+
+```ts
+import { observeThemeChanges } from '../state/theme-sync';
+import { OverlayManager } from '../state/overlay-manager';
+
+// Inside main(), after window.kbve assignment:
+observeThemeChanges(api);
+
+const overlay = new OverlayManager({
+	preferredPath: 'auto',
+	canvasWorker: canvas,
+});
+
+window.kbve = {
+	...window.kbve,
+	overlay,
+};
+```
+
+---
+
+## Updated File Summary
+
+### New files (Phases 7–12): 5
+
+| Package | Path                                    | Purpose                                             |
+| ------- | --------------------------------------- | --------------------------------------------------- |
+| `droid` | `src/lib/workers/validate.ts`           | Worker-side Zod validation utility                  |
+| `droid` | `src/lib/state/theme-sync.ts`           | CSS var → Dexie bridge + MutationObserver           |
+| `droid` | `src/lib/workers/canvas-ui-renderer.ts` | CanvasUIRenderer class for off-thread overlay paint |
+| `droid` | `src/lib/state/overlay-manager.ts`      | Dual-path routing (DOM / Canvas / auto)             |
+| `astro` | `src/react/CanvasOverlay.tsx`           | React canvas element with worker transfer           |
+
+### Modified files (Phases 7–12): 5
+
+| Package | Path                               | Change                                                            |
+| ------- | ---------------------------------- | ----------------------------------------------------------------- |
+| `droid` | `src/lib/workers/canvas-worker.ts` | Expose UI renderer methods + BroadcastChannel listen              |
+| `droid` | `src/lib/workers/main.ts`          | Theme observation, OverlayManager init, simplified emitFromWorker |
+| `droid` | `src/lib/state/index.ts`           | Re-export theme-sync and overlay-manager                          |
+| `droid` | `src/index.ts`                     | Export new modules                                                |
+| `astro` | `src/index.ts`                     | Export CanvasOverlay and OverlayManager pass-through              |
+
+---
+
+## Updated Phase Dependency Graph
+
+```
+Phases 1–6 (merged in PR #7218)
+───────────────────────────────
+Phase 1 ─── Typed Payloads
+   └──► Phase 2 ─── Wire emit() into state
+           └──► Phase 3 ─── Extend emitFromWorker
+                   └──► Phase 4 ─── Export from droid
+                           └──► Phase 5 ─── React hooks
+                                   └──► Phase 6 ─── Rendering components (DOM path)
+
+Phases 7–12 (this PR)
+─────────────────────
+Phase 7 ─── Worker-side Zod validation
+   │
+   └──► Phase 8 ─── Dexie theme bridge
+           │
+           └──► Phase 9 ─── CanvasUIRenderer
+                   │
+                   └──► Phase 10 ─── OverlayManager (dual-path router)
+                           │
+                           └──► Phase 11 ─── CanvasOverlay component (astro)
+                                   │
+                                   └──► Phase 12 ─── Exports & main() integration
+```
+
+---
+
+## Dual-Path Decision Matrix
+
+| Scenario                                 | Recommended path | Why                                                     |
+| ---------------------------------------- | ---------------- | ------------------------------------------------------- |
+| Toast notification (display only)        | Canvas           | No interaction needed, pure visual, offload main thread |
+| Modal with form inputs                   | DOM              | Requires focus management, keyboard nav, form elements  |
+| Tooltip on hover (text only)             | Canvas           | Ephemeral, no interaction beyond hover                  |
+| Modal with accessible content            | DOM              | Screen reader support, ARIA roles, focus trap           |
+| High-frequency toasts (game/monitoring)  | Canvas           | Avoids React re-render storm                            |
+| Toast with action button (undo, dismiss) | DOM              | Requires click handling                                 |
+| Worker-produced overlay                  | Canvas           | Data already in worker, skip main-thread round-trip     |
+| SSR/SEO-relevant content                 | DOM              | Canvas content is invisible to crawlers                 |
+
+### Auto-detection logic (`'auto'` path)
+
+```
+if (typeof OffscreenCanvas !== 'undefined'
+    && canvasWorker is bound
+    && canvas element is transferred) {
+  → use 'canvas' path
+} else {
+  → use 'dom' path (fallback, always works)
+}
+```
+
+---
+
+## Verification (Phases 7–12)
+
+1. **Build droid:** `./kbve.sh -nx droid:build` — compiles with new validate, theme-sync, canvas-ui-renderer, overlay-manager
+2. **Build astro:** `./kbve.sh -nx astro:build` — compiles with CanvasOverlay
+3. **Run droid tests:** `./kbve.sh -nx droid:test` — existing tests pass
+4. **No circular deps:** Verify no file in `packages/npm/droid/src/` imports from `@kbve/astro`
+5. **Theme sync test (browser):**
+    - Open app, check Dexie → `settings` table has `theme:accent`, `theme:bg`, etc.
+    - Toggle dark/light mode → values update in Dexie
+    - BroadcastChannel `'kbve_theme'` fires on toggle
+6. **Canvas overlay test:**
+    - Mount `<CanvasOverlay>` component
+    - Call `overlay.toast({ id: 'test', message: 'Hello', severity: 'info' })`
+    - Toast appears rendered on canvas (not in DOM)
+    - Verify `pointer-events: none` — can click through canvas to page content
+7. **Dual-path test:**
+    - Set `overlay.setPath('dom')` → toasts render in React `<ToastContainer>`
+    - Set `overlay.setPath('canvas')` → toasts render on `<canvas>`
+    - Set `overlay.setPath('auto')` → uses canvas if bound, DOM otherwise
+8. **Worker validation test:**
+    - From mod worker, call `validateUIMessage('toast', { bad: 'data' })` → throws
+    - Call `validateUIMessage('toast', validPayload)` → returns validated message

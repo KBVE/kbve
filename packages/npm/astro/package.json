@@ -36,7 +36,8 @@
 		"./components/AskamaAlert.astro": "./components/AskamaAlert.astro",
 		"./components/AskamaSection.astro": "./components/AskamaSection.astro",
 		"./components/AskamaStat.astro": "./components/AskamaStat.astro",
-		"./components/ToastContainer.astro": "./components/ToastContainer.astro"
+		"./components/ToastContainer.astro": "./components/ToastContainer.astro",
+		"./components/CanvasOverlay.astro": "./components/CanvasOverlay.astro"
 	},
 	"files": [
 		"astro.es.js",

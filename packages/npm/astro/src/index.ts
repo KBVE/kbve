@@ -62,6 +62,14 @@ export {
 	ModalPayloadSchema,
 } from '@kbve/droid';
 
+// Canvas overlay
+export { CanvasOverlay } from './react/CanvasOverlay';
+export type { CanvasOverlayProps } from './react/CanvasOverlay';
+
+// Overlay manager (pass-through from @kbve/droid)
+export { OverlayManager } from '@kbve/droid';
+export type { RenderPath } from '@kbve/droid';
+
 // Gateway (pass-through from @kbve/droid)
 export { SupabaseGateway } from '@kbve/droid';
 
