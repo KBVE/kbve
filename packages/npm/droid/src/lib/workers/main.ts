@@ -27,6 +27,7 @@ import { OverlayManager } from '../state/overlay-manager';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 let initialized = false;
+let _initPromise: Promise<void> | null = null;
 
 export function resolveWorkerURL(name: string, fallback?: string): string {
 	if (!name)
@@ -408,103 +409,112 @@ export async function main(opts?: {
 		}
 	}
 
+	if (_initPromise) {
+		await _initPromise;
+		return;
+	}
+
 	const needsInit =
 		!window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux;
 
 	if (needsInit) {
-		try {
-			console.log('[DROID] Initializing workers...');
+		_initPromise = (async () => {
+			try {
+				console.log('[DROID] Initializing workers...');
 
-			const canvas = await initCanvasComlink({
-				workerRef: opts?.workerRefs?.canvasWorker,
-				workerURL: opts?.workerURLs?.['canvasWorker'],
-			});
+				const canvas = await initCanvasComlink({
+					workerRef: opts?.workerRefs?.canvasWorker,
+					workerURL: opts?.workerURLs?.['canvasWorker'],
+				});
 
-			const api = await initStorageComlink({
-				workerURL:
-					typeof opts?.workerURLs?.['dbWorker'] === 'string'
-						? opts.workerURLs['dbWorker']
-						: undefined,
-				workerRef: opts?.workerRefs?.dbWorker,
-			});
+				const api = await initStorageComlink({
+					workerURL:
+						typeof opts?.workerURLs?.['dbWorker'] === 'string'
+							? opts.workerURLs['dbWorker']
+							: undefined,
+					workerRef: opts?.workerRefs?.dbWorker,
+				});
 
-			const ws = await initWsComlink({
-				workerRef: opts?.workerRefs?.wsWorker,
-				workerURL: opts?.workerURLs?.['wsWorker'],
-			});
+				const ws = await initWsComlink({
+					workerRef: opts?.workerRefs?.wsWorker,
+					workerURL: opts?.workerURLs?.['wsWorker'],
+				});
 
-			console.log('[DROID] Initializing mod manager...');
-			const mod = await getModManager(
-				(url) => opts?.workerURLs?.[url] ?? url,
-			);
-			const events = DroidEvents;
+				console.log('[DROID] Initializing mod manager...');
+				const mod = await getModManager(
+					(url) => opts?.workerURLs?.[url] ?? url,
+				);
+				const events = DroidEvents;
 
-			for (const handle of Object.values(mod.registry)) {
-				if (typeof handle.instance.init === 'function') {
-					await handle.instance.init({
-						emitFromWorker: uiux.emitFromWorker,
+				for (const handle of Object.values(mod.registry)) {
+					if (typeof handle.instance.init === 'function') {
+						await handle.instance.init({
+							emitFromWorker: uiux.emitFromWorker,
+						});
+					}
+					events.emit('droid-mod-ready', {
+						meta: handle.meta,
+						timestamp: Date.now(),
 					});
 				}
-				events.emit('droid-mod-ready', {
-					meta: handle.meta,
+
+				bridgeWsToDb(ws, api);
+
+				const data = scopeData;
+				i18n.api = api;
+				i18n.ready = i18n.hydrateLocale('en');
+
+				// Initialize SupabaseGateway if config is provided
+				let gateway: SupabaseGateway | undefined;
+				if (opts?.gateway) {
+					console.log('[DROID] Initializing SupabaseGateway...');
+					gateway = new SupabaseGateway(opts.gateway);
+				}
+
+				const overlay = new OverlayManager({
+					preferredPath: 'auto',
+					canvasWorker: canvas,
+				});
+
+				window.kbve = {
+					...(window.kbve || {}),
+					api,
+					i18n,
+					uiux: { ...uiux, worker: canvas },
+					ws,
+					data,
+					mod,
+					events,
+					overlay,
+					...(gateway ? { gateway } : {}),
+				};
+
+				// Sync theme CSS vars to Dexie for worker access
+				observeThemeChanges(api);
+
+				await i18n.ready;
+
+				window.kbve.events.emit('droid-ready', {
 					timestamp: Date.now(),
 				});
-			}
 
-			bridgeWsToDb(ws, api);
-
-			const data = scopeData;
-			i18n.api = api;
-			i18n.ready = i18n.hydrateLocale('en');
-
-			// Initialize SupabaseGateway if config is provided
-			let gateway: SupabaseGateway | undefined;
-			if (opts?.gateway) {
-				console.log('[DROID] Initializing SupabaseGateway...');
-				gateway = new SupabaseGateway(opts.gateway);
-			}
-
-			const overlay = new OverlayManager({
-				preferredPath: 'auto',
-				canvasWorker: canvas,
-			});
-
-			window.kbve = {
-				...(window.kbve || {}),
-				api,
-				i18n,
-				uiux: { ...uiux, worker: canvas },
-				ws,
-				data,
-				mod,
-				events,
-				overlay,
-				...(gateway ? { gateway } : {}),
-			};
-
-			// Sync theme CSS vars to Dexie for worker access
-			observeThemeChanges(api);
-
-			await i18n.ready;
-
-			window.kbve.events.emit('droid-ready', {
-				timestamp: Date.now(),
-			});
-
-			document.addEventListener('astro:page-load', () => {
-				console.debug(
-					'[KBVE] Re-dispatched droid-ready after astro:page-load',
-				);
-				window.kbve?.events.emit('droid-ready', {
-					timestamp: Date.now(),
+				document.addEventListener('astro:page-load', () => {
+					console.debug(
+						'[KBVE] Re-dispatched droid-ready after astro:page-load',
+					);
+					window.kbve?.events.emit('droid-ready', {
+						timestamp: Date.now(),
+					});
 				});
-			});
 
-			console.log('[KBVE] Global API ready');
-		} catch (err) {
-			console.error('[DROID] Initialization error:', err);
-			throw err;
-		}
+				console.log('[KBVE] Global API ready');
+			} catch (err) {
+				_initPromise = null;
+				console.error('[DROID] Initialization error:', err);
+				throw err;
+			}
+		})();
+		await _initPromise;
 	} else {
 		console.log('[KBVE] Already initialized');
 	}
