@@ -35,6 +35,17 @@
 				"commands": ["git submodule update --remote apps/mc/pumpkin"],
 				"parallel": false
 			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"nx container mc --configuration=local --no-cloud",
+					"nx e2e mc-e2e --no-cloud"
+				],
+				"parallel": false
+			}
 		}
 	},
 	"tags": []

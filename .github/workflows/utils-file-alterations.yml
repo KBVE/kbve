@@ -97,6 +97,9 @@ on:
             asteroids:
                 description: 'Asteroids & Droids changed'
                 value: ${{ jobs.alter.outputs.asteroids }}
+            mc:
+                description: 'MC Pumpkin server changed'
+                value: ${{ jobs.alter.outputs.mc }}
 
 jobs:
     alter:
@@ -132,6 +135,7 @@ jobs:
             devops: ${{ steps.delta.outputs.devops_any_changed }}
             laser: ${{ steps.delta.outputs.laser_any_changed }}
             asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
+            mc: ${{ steps.delta.outputs.mc_any_changed }}
 
         steps:
             - name: Checkout the repository
@@ -194,3 +198,5 @@ jobs:
                           - 'packages/npm/laser/package.json'
                       asteroids:
                           - 'apps/gamejam/brackeys/13/**'
+                      mc:
+                          - 'apps/mc/**'
