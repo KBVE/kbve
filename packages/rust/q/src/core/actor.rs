@@ -5,7 +5,7 @@ use std::time::Duration;
 
 use crossbeam_channel::{Receiver, Sender};
 
-use crate::core::ecs::{EntityStats, EntityStore, Transform};
+use crate::core::ecs::{EntityId, EntityStats, EntityStore, Transform};
 use crate::core::event::{GameEvent, GameRequest};
 
 pub struct Actor {
@@ -69,20 +69,20 @@ impl Actor {
                 });
             }
             GameRequest::DespawnEntity { id } => {
-                if let Ok(ulid) = id.parse::<ulid::Ulid>() {
-                    self.entity_store.despawn(&ulid);
+                if let Ok(eid) = id.parse::<EntityId>() {
+                    self.entity_store.despawn(&eid);
                     let _ = self.event_tx.send(GameEvent::EntityDespawned { id });
                 }
             }
             GameRequest::UpdatePosition { id, x, y } => {
-                if let Ok(ulid) = id.parse::<ulid::Ulid>() {
+                if let Ok(eid) = id.parse::<EntityId>() {
                     let (q, r) = self
                         .entity_store
-                        .get_transform(&ulid)
+                        .get_transform(&eid)
                         .map(|t| (t.q, t.r))
                         .unwrap_or((0, 0));
                     let transform = Transform { q, r, x, y };
-                    self.entity_store.update_transform(&ulid, transform);
+                    self.entity_store.update_transform(&eid, transform);
                     let _ = self.event_tx.send(GameEvent::PositionUpdated { id, x, y });
                 }
             }

@@ -8,7 +8,7 @@ description = "Q is a Rust GDExtension crate for Godot, offering a Game Manager,
 homepage = "https://kbve.com/application/rust/"
 repository = "https://github.com/KBVE/kbve/tree/main/packages/rust/q"
 readme = "README.md"
-rust-version = "1.85"
+rust-version = "1.88"
 exclude = [
     "release/*",
     "docs/*",
@@ -18,11 +18,9 @@ exclude = [
 crate-type = ["cdylib"]
 
 [dependencies]
-rand = "0.10.0"
-godot = { version = "0.3.5", features = ["experimental-wasm", "experimental-threads"] }
+godot = { version = "0.4.5", features = ["experimental-wasm", "experimental-threads"] }
 dashmap = "6.1.0"
 crossbeam-channel = "0.5.15"
-ulid = "1.2.1"
 serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 bitflags = { version = "2.9.0", features = ["serde"] }
@@ -30,7 +28,7 @@ bitflags = { version = "2.9.0", features = ["serde"] }
 
 [target."cfg(target_os = \"macos\")".dependencies]
 objc2 = "0.6.3"
-wry = { version = "0.53.5", features = ["transparent", "devtools"] }
+wry = { version = "0.54.2", features = ["transparent", "devtools"] }
 raw-window-handle = "0.6.2"
 http = "1.4.0"
 infer = "0.19.0"
@@ -44,7 +42,7 @@ windows = { version = "0.62.2", features = [
     "Win32_System_Threading",
     "Win32_UI_WindowsAndMessaging",
 ] }
-wry = { version = "0.53.5", features = ["transparent", "devtools"] }
+wry = { version = "0.54.2", features = ["transparent", "devtools"] }
 raw-window-handle = "0.6.2"
 http = "1.4.0"
 infer = "0.19.0"
@@ -52,7 +50,7 @@ tokio = { version = "1.49", features = ["full", "rt-multi-thread"] }
 
 
 [target."cfg(target_os = \"linux\")".dependencies]
-wry = { version = "0.53.5", features = ["transparent", "devtools"] }
+wry = { version = "0.54.2", features = ["transparent", "devtools"] }
 raw-window-handle = "0.6.2"
 http = "1.4.0"
 infer = "0.19.0"

@@ -62,7 +62,7 @@ pub trait AbstractDataMap: Serialize + for<'de> Deserialize<'de> + Sized {
     fn to_save_gfile_json(&self, file_path: &str) -> bool {
         let json_string = self.to_json();
         if let Ok(mut file) = GFile::open(file_path, ModeFlags::WRITE) {
-            let _ = file.write_gstring_line(&GString::from(json_string));
+            let _ = file.write_gstring_line(&GString::from(&json_string));
             true
         } else {
             godot_error!("Failed to save data to file: {}", file_path);
