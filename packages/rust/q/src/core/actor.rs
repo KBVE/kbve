@@ -1,4 +1,5 @@
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
 
@@ -18,6 +19,7 @@ impl Actor {
         entity_store: Arc<EntityStore>,
         request_rx: Receiver<GameRequest>,
         event_tx: Sender<GameEvent>,
+        shutdown_flag: Arc<AtomicBool>,
     ) -> JoinHandle<()> {
         thread::Builder::new()
             .name("game-actor".into())
@@ -27,18 +29,25 @@ impl Actor {
                     request_rx,
                     event_tx,
                 };
-                loop {
-                    actor.tick();
+                while !shutdown_flag.load(Ordering::Relaxed) {
+                    if actor.tick() {
+                        break;
+                    }
                     thread::sleep(Duration::from_millis(16));
                 }
             })
             .expect("Failed to spawn actor thread")
     }
 
-    fn tick(&self) {
+    /// Returns true if the actor should shut down.
+    fn tick(&self) -> bool {
         while let Ok(request) = self.request_rx.try_recv() {
+            if matches!(request, GameRequest::Shutdown) {
+                return true;
+            }
             self.handle_request(request);
         }
+        false
     }
 
     fn handle_request(&self, request: GameRequest) {
@@ -80,6 +89,7 @@ impl Actor {
             GameRequest::Custom(event_type, payload) => {
                 let _ = self.event_tx.send(GameEvent::Custom(event_type, payload));
             }
+            GameRequest::Shutdown => {}
         }
     }
 }
