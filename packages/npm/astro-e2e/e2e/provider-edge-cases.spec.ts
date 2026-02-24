@@ -198,6 +198,12 @@ test.describe('Cross-page navigation', () => {
 			.getByTestId('rapid-fire-test')
 			.waitFor({ state: 'visible', timeout: 10_000 });
 
+		// Wait for droid init (emits auto droid-ready) then clear
+		await page.waitForFunction(() => !!(window as any).kbve?.api, {
+			timeout: 10_000,
+		});
+		await page.getByTestId('clear-rapid').click();
+
 		// Interact with the page
 		await page.getByTestId('emit-burst').click();
 		await expect(page.getByTestId('rapid-log')).toHaveAttribute(
