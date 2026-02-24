@@ -1,6 +1,7 @@
 import { useEffect, useRef, useCallback } from 'react';
 import { useToast } from '../hooks/useToast';
 import { cn } from '../utils/cn';
+import { $toasts } from '@kbve/droid';
 import type { ToastPayload } from '@kbve/droid';
 
 const SEVERITY_STYLES: Record<string, string> = {
@@ -120,6 +121,35 @@ export function ToastContainer({
 	const hasToasts = entries.length > 0;
 
 	const handleDismiss = useCallback((id: string) => remove(id), [remove]);
+
+	// Cross-island CustomEvent bridge: syncs toasts from DroidEvents
+	// when nanostores modules are duplicated across Astro islands
+	useEffect(() => {
+		const onAdded = (e: Event) => {
+			const payload = (e as CustomEvent).detail as ToastPayload;
+			if (!payload?.id) return;
+			const current = $toasts.get();
+			if (!current[payload.id]) {
+				$toasts.set({ ...current, [payload.id]: payload });
+			}
+		};
+		const onRemoved = (e: Event) => {
+			const { id } = (e as CustomEvent).detail as { id: string };
+			if (!id) return;
+			const current = $toasts.get();
+			if (current[id]) {
+				const next = { ...current };
+				delete next[id];
+				$toasts.set(next);
+			}
+		};
+		window.addEventListener('toast-added', onAdded);
+		window.addEventListener('toast-removed', onRemoved);
+		return () => {
+			window.removeEventListener('toast-added', onAdded);
+			window.removeEventListener('toast-removed', onRemoved);
+		};
+	}, []);
 
 	return (
 		<div
