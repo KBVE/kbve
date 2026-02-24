@@ -1,4 +1,5 @@
 use crate::data::abstract_data_map::AbstractDataMap;
+use crate::debug_print;
 use dashmap::DashMap;
 use godot::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -97,14 +98,14 @@ impl UserDataCache {
         self.save_user_data(&default_data);
         self.save_to_file(file_path, &default_data);
 
-        godot_print!("[UserDataCache] New user data saved successfully.");
+        debug_print!("[UserDataCache] New user data saved successfully.");
 
         default_data
     }
 
     pub fn save_to_file(&self, file_path: &str, user_data: &UserData) {
         if user_data.to_save_gfile_json(file_path) {
-            godot_print!("[UserDataCache] Successfully saved user settings.");
+            debug_print!("[UserDataCache] Successfully saved user settings.");
         } else {
             godot_error!(
                 "[UserDataCache] ERROR: Failed to save user settings to `{}`!",
@@ -114,10 +115,10 @@ impl UserDataCache {
     }
 
     pub fn load_from_file(&mut self, file_path: &str) -> Option<UserData> {
-        godot_print!("[UserDataCache] Attempting to load file: {}", file_path);
+        debug_print!("[UserDataCache] Loading file: {}", file_path);
 
         if let Some(user_data) = UserData::from_load_gfile_json(file_path) {
-            godot_print!("[UserDataCache] Successfully loaded user settings.");
+            debug_print!("[UserDataCache] Settings loaded.");
             self.save_user_data(&user_data);
             Some(user_data)
         } else {
@@ -130,10 +131,9 @@ impl UserDataCache {
     }
 
     pub fn save_user_data(&mut self, user_data: &UserData) {
-        godot_print!("[UserDataCache] Storing user data in cache...");
         let new_map = user_data.to_variant_map();
         self.map = new_map;
-        godot_print!("[UserDataCache] User data successfully cached.");
+        debug_print!("[UserDataCache] User data cached.");
     }
 
     pub fn load_user_data(&self) -> Option<UserData> {

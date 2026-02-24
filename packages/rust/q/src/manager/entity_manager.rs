@@ -1,3 +1,4 @@
+use crate::debug_print;
 use dashmap::DashMap;
 use godot::prelude::*;
 
@@ -16,7 +17,7 @@ pub struct EntityManager {
 #[godot_api]
 impl INode for EntityManager {
     fn init(base: Base<Node>) -> Self {
-        godot_print!("[EntityManager] Initializing...");
+        debug_print!("[EntityManager] Initializing...");
 
         EntityManager {
             base,
@@ -27,7 +28,7 @@ impl INode for EntityManager {
     }
 
     fn ready(&mut self) {
-        godot_print!("[EntityManager] Ready!");
+        debug_print!("[EntityManager] Ready.");
     }
 }
 
@@ -35,7 +36,7 @@ impl INode for EntityManager {
 impl EntityManager {
     #[func]
     pub fn set_local_player(&mut self, player: Gd<PlayerEntity>) {
-        godot_print!("[EntityManager] Setting local player.");
+        debug_print!("[EntityManager] Setting local player.");
         self.local_player = Some(player.clone());
         self.base_mut().add_child(&player.upcast::<Node>());
     }

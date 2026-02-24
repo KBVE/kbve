@@ -150,6 +150,21 @@ impl EventBridge {
     }
 
     #[func]
+    pub fn get_all_entity_ids(&self) -> Array<GString> {
+        let ids = CHANNELS.entity_store.all_entity_ids();
+        let mut arr = Array::new();
+        for id in ids {
+            arr.push(&GString::from(id.to_string()));
+        }
+        arr
+    }
+
+    #[func]
+    pub fn despawn_all(&self) {
+        CHANNELS.entity_store.despawn_all();
+    }
+
+    #[func]
     pub fn shutdown(&self) {
         CHANNELS.shutdown_flag.store(true, Ordering::Relaxed);
         let _ = CHANNELS.req_tx.send(GameRequest::Shutdown);
