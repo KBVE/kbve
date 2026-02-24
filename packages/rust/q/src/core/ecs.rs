@@ -94,6 +94,27 @@ impl EntityStore {
     pub fn all_entity_ids(&self) -> Vec<EntityId> {
         self.transforms.iter().map(|entry| *entry.key()).collect()
     }
+
+    pub fn entities_with_state(&self, mask: u32) -> Vec<EntityId> {
+        self.states
+            .iter()
+            .filter(|entry| *entry.value() & mask != 0)
+            .map(|entry| *entry.key())
+            .collect()
+    }
+
+    pub fn get_all_transforms(&self) -> Vec<(EntityId, Transform)> {
+        self.transforms
+            .iter()
+            .map(|entry| (*entry.key(), entry.value().clone()))
+            .collect()
+    }
+
+    pub fn despawn_all(&self) {
+        self.transforms.clear();
+        self.stats.clear();
+        self.states.clear();
+    }
 }
 
 impl Default for EntityStore {
@@ -259,6 +280,67 @@ mod tests {
         assert_eq!(t.r, t2.r);
         assert_eq!(t.x, t2.x);
         assert_eq!(t.y, t2.y);
+    }
+
+    #[test]
+    fn entities_with_state_filters_by_mask() {
+        let store = EntityStore::new();
+        let id1 = store.spawn(test_transform(0.0, 0.0), test_stats());
+        let id2 = store.spawn(test_transform(1.0, 1.0), test_stats());
+        let id3 = store.spawn(test_transform(2.0, 2.0), test_stats());
+
+        store.set_state(&id1, 0b0001);
+        store.set_state(&id2, 0b0010);
+        store.set_state(&id3, 0b0011);
+
+        let matching = store.entities_with_state(0b0001);
+        assert_eq!(matching.len(), 2);
+        assert!(matching.contains(&id1));
+        assert!(matching.contains(&id3));
+    }
+
+    #[test]
+    fn get_all_transforms_returns_snapshot() {
+        let store = EntityStore::new();
+        store.spawn(
+            Transform {
+                q: 1,
+                r: 2,
+                x: 3.0,
+                y: 4.0,
+            },
+            test_stats(),
+        );
+        store.spawn(
+            Transform {
+                q: 5,
+                r: 6,
+                x: 7.0,
+                y: 8.0,
+            },
+            test_stats(),
+        );
+
+        let all = store.get_all_transforms();
+        assert_eq!(all.len(), 2);
+    }
+
+    #[test]
+    fn despawn_all_clears_everything() {
+        let store = EntityStore::new();
+        let id1 = store.spawn(test_transform(0.0, 0.0), test_stats());
+        let id2 = store.spawn(test_transform(1.0, 1.0), test_stats());
+        store.set_state(&id1, 42);
+        store.set_state(&id2, 99);
+
+        assert_eq!(store.entity_count(), 2);
+
+        store.despawn_all();
+
+        assert_eq!(store.entity_count(), 0);
+        assert!(store.get_transform(&id1).is_none());
+        assert!(store.get_stats(&id2).is_none());
+        assert!(store.get_state(&id1).is_none());
     }
 
     #[test]
