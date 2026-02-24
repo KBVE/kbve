@@ -6,6 +6,7 @@ use crate::discord::embeds::{StatusSnapshot, StatusState, build_status_embed};
 #[poise::command(slash_command)]
 pub async fn status(ctx: Context<'_>) -> Result<(), Error> {
     let data = ctx.data();
+    let health = data.health_monitor.snapshot().await;
 
     let snap = StatusSnapshot {
         state: StatusState::Online,
@@ -13,6 +14,7 @@ pub async fn status(ctx: Context<'_>) -> Result<(), Error> {
         guild_count: ctx.cache().guild_count(),
         shard_id: Some(ctx.serenity_context().shard_id.0),
         uptime: data.start_time.elapsed(),
+        health,
     };
 
     let embed = build_status_embed(&snap);

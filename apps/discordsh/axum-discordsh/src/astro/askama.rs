@@ -14,13 +14,13 @@ pub struct AstroTemplate<'a> {
 }
 
 impl<'a> AstroTemplate<'a> {
-    pub fn new(
-        content: &'a str,
-        path: &'a str,
-        title: &'a str,
-        description: &'a str,
-    ) -> Self {
-        Self { content, path, title, description }
+    pub fn new(content: &'a str, path: &'a str, title: &'a str, description: &'a str) -> Self {
+        Self {
+            content,
+            path,
+            title,
+            description,
+        }
     }
 }
 
@@ -32,7 +32,11 @@ impl<T: Template> IntoResponse for TemplateResponse<T> {
             Ok(html) => Html(html).into_response(),
             Err(err) => {
                 tracing::error!(error = %err, "template rendering failed");
-                (StatusCode::INTERNAL_SERVER_ERROR, "Failed to render template").into_response()
+                (
+                    StatusCode::INTERNAL_SERVER_ERROR,
+                    "Failed to render template",
+                )
+                    .into_response()
             }
         }
     }

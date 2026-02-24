@@ -36,13 +36,15 @@ pub fn build_status_action_row() -> serenity::CreateActionRow {
 ///
 /// This is the single bridge between poise `Data` + serenity cache and the
 /// decoupled `StatusSnapshot` the embed builder expects.
-fn collect_snapshot(data: &Data, cache: &serenity::Cache) -> StatusSnapshot {
+async fn collect_snapshot(data: &Data, cache: &serenity::Cache) -> StatusSnapshot {
+    let health = data.health_monitor.snapshot().await;
     StatusSnapshot {
         state: StatusState::Online,
         version: env!("CARGO_PKG_VERSION"),
         guild_count: cache.guild_count(),
         shard_id: None,
         uptime: data.start_time.elapsed(),
+        health,
     }
 }
 
@@ -62,7 +64,8 @@ pub async fn handle_status_component(
         ID_STATUS_REFRESH => {
             info!(user = %interaction.user.name, "Status refresh button pressed");
 
-            let snap = collect_snapshot(data, &ctx.cache);
+            data.health_monitor.force_refresh().await;
+            let snap = collect_snapshot(data, &ctx.cache).await;
             let embed = build_status_embed(&snap);
             let components = vec![build_status_action_row()];
 
