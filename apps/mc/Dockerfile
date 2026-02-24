@@ -32,6 +32,10 @@ COPY --from=builder /built-plugins/ /pumpkin/plugins/
 
 WORKDIR /pumpkin
 
+# Bake in custom server config and icon
+COPY ./data/config/configuration.toml /pumpkin/config/configuration.toml
+COPY ./data/server_icon.png /pumpkin/server_icon.png
+
 RUN apk add --no-cache libgcc && chown -R 2613:2613 .
 
 ENV RUST_BACKTRACE=1
