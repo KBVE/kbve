@@ -1,19 +1,28 @@
 use anyhow::Result;
+use std::sync::Arc;
 use std::{net::SocketAddr, time::Duration};
 
 use axum::{
-    extract::Request,
-    http::{header, HeaderName, HeaderValue},
+    Json, Router,
+    extract::{Request, State},
+    http::{HeaderName, HeaderValue, header},
     middleware::Next,
     response::{IntoResponse, Response},
     routing::get,
-    Router,
 };
 use tokio::net::TcpListener;
 use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::info;
 
-pub async fn serve() -> Result<()> {
+use crate::health::HealthMonitor;
+
+/// Shared state available to all Axum handlers.
+#[derive(Clone)]
+struct HttpState {
+    health_monitor: Arc<HealthMonitor>,
+}
+
+pub async fn serve(health_monitor: Arc<HealthMonitor>) -> Result<()> {
     let host = std::env::var("HTTP_HOST").unwrap_or_else(|_| "0.0.0.0".into());
     let port: u16 = std::env::var("HTTP_PORT")
         .ok()
@@ -25,7 +34,8 @@ pub async fn serve() -> Result<()> {
 
     info!("HTTP listening on http://{addr}");
 
-    let app = router();
+    let state = HttpState { health_monitor };
+    let app = router(state);
 
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
@@ -34,7 +44,7 @@ pub async fn serve() -> Result<()> {
     Ok(())
 }
 
-fn router() -> Router {
+fn router(state: HttpState) -> Router {
     let max_inflight: usize = num_cpus::get().max(1) * 1024;
 
     let static_config = crate::astro::StaticConfig::from_env();
@@ -64,10 +74,16 @@ fn router() -> Router {
                 if err.is::<tower::timeout::error::Elapsed>() {
                     (axum::http::StatusCode::REQUEST_TIMEOUT, "request timed out")
                 } else if err.is::<tower::load_shed::error::Overloaded>() {
-                    (axum::http::StatusCode::SERVICE_UNAVAILABLE, "service overloaded")
+                    (
+                        axum::http::StatusCode::SERVICE_UNAVAILABLE,
+                        "service overloaded",
+                    )
                 } else {
                     tracing::warn!(error = %err, "middleware error");
-                    (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "internal server error")
+                    (
+                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                        "internal server error",
+                    )
                 }
             },
         ))
@@ -80,18 +96,26 @@ fn router() -> Router {
         .layer(axum::middleware::from_fn(fix_ts_mime))
         .layer(axum::middleware::from_fn(cache_headers));
 
-    let public_router = Router::new()
-        .route("/health", get(health));
+    let dynamic_router = Router::new()
+        .route("/health", get(health))
+        .with_state(state);
 
-    let dynamic_router = public_router;
-
-    static_router
-        .merge(dynamic_router)
-        .layer(middleware)
+    static_router.merge(dynamic_router).layer(middleware)
 }
 
-async fn health() -> impl IntoResponse {
-    "OK"
+/// JSON health endpoint with system metrics.
+async fn health(State(state): State<HttpState>) -> impl IntoResponse {
+    match state.health_monitor.snapshot().await {
+        Some(snap) => Json(serde_json::json!({
+            "status": "ok",
+            "health": snap,
+        })),
+        None => Json(serde_json::json!({
+            "status": "ok",
+            "health": null,
+            "message": "Health data not yet available"
+        })),
+    }
 }
 
 /// Set Cache-Control based on request path.
@@ -112,10 +136,9 @@ async fn cache_headers(request: Request, next: Next) -> Response {
         "public, max-age=86400"
     };
 
-    response.headers_mut().insert(
-        header::CACHE_CONTROL,
-        HeaderValue::from_static(cache_value),
-    );
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static(cache_value));
 
     response
 }
@@ -135,7 +158,7 @@ async fn fix_ts_mime(request: Request, next: Next) -> Response {
 }
 
 fn tuned_listener(addr: SocketAddr) -> Result<TcpListener> {
-    use socket2::{Socket, Domain, Type, Protocol};
+    use socket2::{Domain, Protocol, Socket, Type};
 
     let domain = match addr {
         SocketAddr::V4(_) => Domain::IPV4,
@@ -174,9 +197,11 @@ mod tests {
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 
-    /// Build a minimal router with just the health endpoint + middleware
-    /// (no static file serving, which requires a real directory).
+    /// Build a minimal router with just the health endpoint + middleware.
     fn test_router() -> Router {
+        let health_monitor = Arc::new(HealthMonitor::new());
+        let state = HttpState { health_monitor };
+
         let middleware = tower::ServiceBuilder::new()
             .layer(SetResponseHeaderLayer::overriding(
                 header::X_CONTENT_TYPE_OPTIONS,
@@ -193,6 +218,7 @@ mod tests {
 
         Router::new()
             .route("/health", get(health))
+            .with_state(state)
             .layer(middleware)
     }
 
@@ -211,7 +237,8 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        assert_eq!(&body[..], b"OK");
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
     }
 
     #[tokio::test]
@@ -231,10 +258,7 @@ mod tests {
             response.headers().get("x-content-type-options").unwrap(),
             "nosniff"
         );
-        assert_eq!(
-            response.headers().get("x-frame-options").unwrap(),
-            "DENY"
-        );
+        assert_eq!(response.headers().get("x-frame-options").unwrap(), "DENY");
         assert_eq!(
             response.headers().get("referrer-policy").unwrap(),
             "strict-origin-when-cross-origin"
@@ -274,12 +298,7 @@ mod tests {
             .layer(axum::middleware::from_fn(cache_headers));
 
         let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
             .await
             .unwrap();
 

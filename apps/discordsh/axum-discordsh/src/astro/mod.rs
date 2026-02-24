@@ -1,9 +1,9 @@
 pub mod askama;
 
 use axum::{
-    http::{header, StatusCode},
-    response::IntoResponse,
     Router,
+    http::{StatusCode, header},
+    response::IntoResponse,
 };
 use std::convert::Infallible;
 use std::path::PathBuf;
@@ -23,7 +23,10 @@ impl StaticConfig {
         let precompressed = std::env::var("STATIC_PRECOMPRESSED")
             .map(|v| v != "0" && v.to_lowercase() != "false")
             .unwrap_or(true);
-        Self { base_dir, precompressed }
+        Self {
+            base_dir,
+            precompressed,
+        }
     }
 }
 
@@ -33,9 +36,8 @@ pub fn build_static_router(config: &StaticConfig) -> Router {
 
     // Read Astro's 404.html at startup for the not-found fallback
     let not_found_html = Arc::new(
-        std::fs::read_to_string(base.join("404.html")).unwrap_or_else(|_| {
-            "<html><body><h1>404 - Not Found</h1></body></html>".to_string()
-        }),
+        std::fs::read_to_string(base.join("404.html"))
+            .unwrap_or_else(|_| "<html><body><h1>404 - Not Found</h1></body></html>".to_string()),
     );
 
     let serve_dir = |path: PathBuf| {

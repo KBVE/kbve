@@ -1,7 +1,9 @@
 mod astro;
 mod discord;
+mod health;
 mod transport;
 
+use std::sync::Arc;
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -22,19 +24,22 @@ async fn main() -> anyhow::Result<()> {
     // Tracing
     tracing_subscriber::registry()
         .with(
-            tracing_subscriber::EnvFilter::try_from_default_env()
-                .unwrap_or_else(|_| {
-                    format!("{}=info,tower_http=debug", env!("CARGO_CRATE_NAME")).into()
-                }),
+            tracing_subscriber::EnvFilter::try_from_default_env().unwrap_or_else(|_| {
+                format!("{}=info,tower_http=debug", env!("CARGO_CRATE_NAME")).into()
+            }),
         )
         .with(tracing_subscriber::fmt::layer())
         .init();
 
     info!("Discordsh v{}", env!("CARGO_PKG_VERSION"));
 
+    // Shared health monitor
+    let health_monitor = Arc::new(health::HealthMonitor::new());
+    health_monitor.spawn_background_task();
+
     // Transports
-    let http = tokio::spawn(transport::https::serve());
-    let bot = tokio::spawn(discord::bot::start());
+    let http = tokio::spawn(transport::https::serve(Arc::clone(&health_monitor)));
+    let bot = tokio::spawn(discord::bot::start(Arc::clone(&health_monitor)));
 
     tokio::select! {
         res = http => {

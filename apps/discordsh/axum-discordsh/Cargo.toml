@@ -30,6 +30,7 @@ num_cpus = "1.17.0"
 dotenvy = "0.15"
 serenity = { version = "0.12.5", default-features = false, features = ["client", "gateway", "model", "rustls_backend", "cache"] }
 poise = "0.6.1"
+sysinfo = "0.38.2"
 
 # Workspace path dependencies
 jedi = { path = "../../../packages/rust/jedi" }

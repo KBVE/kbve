@@ -1,3 +1,5 @@
+use std::sync::Arc;
+
 use anyhow::Result;
 use kbve::entity::client::vault::VaultClient;
 use poise::serenity_prelude as serenity;
@@ -5,6 +7,7 @@ use tracing::{info, warn};
 
 use super::commands;
 use super::components;
+use crate::health::HealthMonitor;
 
 /// Vault secret UUID for the Discord bot token (shared with the Python notification-bot).
 const DISCORD_TOKEN_VAULT_ID: &str = "39781c47-be8f-4a10-ae3a-714da299ca07";
@@ -15,6 +18,8 @@ const DISCORD_TOKEN_VAULT_ID: &str = "39781c47-be8f-4a10-ae3a-714da299ca07";
 pub struct Data {
     /// Instant the bot started; used to compute uptime for the status embed.
     pub start_time: std::time::Instant,
+    /// Shared health monitor for system metrics.
+    pub health_monitor: Arc<HealthMonitor>,
 }
 
 /// Error type for poise commands.
@@ -79,7 +84,7 @@ async fn event_handler(
 
 // ── Bot startup ─────────────────────────────────────────────────────────
 
-pub async fn start() -> Result<()> {
+pub async fn start(health_monitor: Arc<HealthMonitor>) -> Result<()> {
     let token = match resolve_token().await {
         Some(t) => t,
         None => {
@@ -100,7 +105,7 @@ pub async fn start() -> Result<()> {
             },
             ..Default::default()
         })
-        .setup(|ctx, ready, framework| {
+        .setup(move |ctx, ready, framework| {
             Box::pin(async move {
                 info!("Discord bot connected as {}", ready.user.name);
 
@@ -129,6 +134,7 @@ pub async fn start() -> Result<()> {
 
                 Ok(Data {
                     start_time: std::time::Instant::now(),
+                    health_monitor,
                 })
             })
         })
