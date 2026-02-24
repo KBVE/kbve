@@ -1,9 +1,13 @@
 mod astro;
 mod discord;
 mod health;
+mod state;
+mod tracker;
 mod transport;
 
 use std::sync::Arc;
+use std::sync::atomic::Ordering;
+use std::time::Duration;
 use tracing::info;
 use tracing_subscriber::{layer::SubscriberExt, util::SubscriberInitExt};
 
@@ -37,24 +41,49 @@ async fn main() -> anyhow::Result<()> {
     let health_monitor = Arc::new(health::HealthMonitor::new());
     health_monitor.spawn_background_task();
 
-    // Transports
-    let http = tokio::spawn(transport::https::serve(Arc::clone(&health_monitor)));
-    let bot = tokio::spawn(discord::bot::start(Arc::clone(&health_monitor)));
+    // Optional shard tracker (requires Supabase env vars)
+    let tracker = tracker::ShardTracker::from_env();
 
-    tokio::select! {
-        res = http => {
-            if let Ok(Err(e)) = res {
-                tracing::error!(error = %e, "HTTP server exited with error");
+    // Central application state shared by HTTP server and Discord bot
+    let app_state = Arc::new(state::AppState::new(health_monitor, tracker));
+
+    // HTTP server runs for the lifetime of the process
+    let http = tokio::spawn(transport::https::serve(Arc::clone(&app_state)));
+
+    // Bot restart loop: restarts when restart_flag is set, exits otherwise
+    loop {
+        let app = Arc::clone(&app_state);
+        let bot = tokio::spawn(discord::bot::start(app));
+
+        tokio::select! {
+            res = bot => {
+                if let Ok(Err(e)) = &res {
+                    tracing::error!(error = %e, "Discord bot exited with error");
+                }
+
+                if app_state.restart_flag.load(Ordering::Relaxed) {
+                    app_state.restart_flag.store(false, Ordering::Relaxed);
+                    info!("Restarting Discord bot in 2s...");
+                    tokio::time::sleep(Duration::from_secs(2)).await;
+                    continue;
+                }
+                // Not a restart → exit
+                break;
+            },
+            _ = app_state.shutdown_notify.notified() => {
+                info!("Shutdown requested via API");
+                break;
+            },
+            _ = tokio::signal::ctrl_c() => {
+                info!("shutdown signal received");
+                break;
             }
-        },
-        res = bot => {
-            if let Ok(Err(e)) = res {
-                tracing::error!(error = %e, "Discord bot exited with error");
-            }
-        },
-        _ = tokio::signal::ctrl_c() => {
-            info!("shutdown signal received");
         }
+    }
+
+    // Let HTTP server wind down
+    if let Ok(Err(e)) = http.await {
+        tracing::error!(error = %e, "HTTP server exited with error");
     }
 
     Ok(())

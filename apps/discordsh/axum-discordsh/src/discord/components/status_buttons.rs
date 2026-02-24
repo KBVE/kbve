@@ -37,13 +37,13 @@ pub fn build_status_action_row() -> serenity::CreateActionRow {
 /// This is the single bridge between poise `Data` + serenity cache and the
 /// decoupled `StatusSnapshot` the embed builder expects.
 async fn collect_snapshot(data: &Data, cache: &serenity::Cache) -> StatusSnapshot {
-    let health = data.health_monitor.snapshot().await;
+    let health = data.app.health_monitor.snapshot().await;
     StatusSnapshot {
         state: StatusState::Online,
         version: env!("CARGO_PKG_VERSION"),
         guild_count: cache.guild_count(),
         shard_id: None,
-        uptime: data.start_time.elapsed(),
+        uptime: data.app.start_time.elapsed(),
         health,
     }
 }
@@ -64,7 +64,7 @@ pub async fn handle_status_component(
         ID_STATUS_REFRESH => {
             info!(user = %interaction.user.name, "Status refresh button pressed");
 
-            data.health_monitor.force_refresh().await;
+            data.app.health_monitor.force_refresh().await;
             let snap = collect_snapshot(data, &ctx.cache).await;
             let embed = build_status_embed(&snap);
             let components = vec![build_status_action_row()];
@@ -86,16 +86,66 @@ pub async fn handle_status_component(
         ID_STATUS_CLEANUP => {
             info!(user = %interaction.user.name, "Status cleanup button pressed");
 
+            let thread_id = match std::env::var("DISCORD_THREAD_ID")
+                .ok()
+                .and_then(|s| s.parse::<u64>().ok())
+            {
+                Some(id) => serenity::ChannelId::new(id),
+                None => {
+                    interaction
+                        .create_response(
+                            &ctx.http,
+                            serenity::CreateInteractionResponse::Message(
+                                serenity::CreateInteractionResponseMessage::new()
+                                    .content("DISCORD_THREAD_ID is not configured.")
+                                    .ephemeral(true),
+                            ),
+                        )
+                        .await?;
+                    return Ok(true);
+                }
+            };
+
+            // Acknowledge immediately then run cleanup in background
             interaction
                 .create_response(
                     &ctx.http,
                     serenity::CreateInteractionResponse::Message(
                         serenity::CreateInteractionResponseMessage::new()
-                            .content("Cleanup is not yet implemented.")
+                            .content("Cleanup initiated...")
                             .ephemeral(true),
                     ),
                 )
                 .await?;
+
+            let http = ctx.http.clone();
+            tokio::spawn(async move {
+                let messages = match thread_id
+                    .messages(&http, serenity::GetMessages::new().limit(50))
+                    .await
+                {
+                    Ok(msgs) => msgs,
+                    Err(e) => {
+                        tracing::warn!(error = %e, "Failed to fetch thread messages for cleanup");
+                        return;
+                    }
+                };
+
+                let bot_user_id = http.get_current_user().await.map(|u| u.id).ok();
+                let to_delete: Vec<serenity::MessageId> = messages
+                    .iter()
+                    .filter(|m| bot_user_id.is_some_and(|id| m.author.id == id))
+                    .map(|m| m.id)
+                    .collect();
+
+                let count = to_delete.len();
+                if count > 1 {
+                    let _ = thread_id.delete_messages(&http, &to_delete).await;
+                } else if count == 1 {
+                    let _ = thread_id.delete_message(&http, to_delete[0]).await;
+                }
+                info!(deleted = count, "Thread cleanup complete");
+            });
 
             Ok(true)
         }
@@ -128,11 +178,18 @@ pub async fn handle_status_component(
                     &ctx.http,
                     serenity::CreateInteractionResponse::Message(
                         serenity::CreateInteractionResponseMessage::new()
-                            .content("Restart is not yet implemented.")
+                            .content("Restarting bot...")
                             .ephemeral(true),
                     ),
                 )
                 .await?;
+
+            data.app
+                .restart_flag
+                .store(true, std::sync::atomic::Ordering::Relaxed);
+            if let Some(sm) = data.app.shard_manager.read().await.as_ref() {
+                sm.shutdown_all().await;
+            }
 
             Ok(true)
         }

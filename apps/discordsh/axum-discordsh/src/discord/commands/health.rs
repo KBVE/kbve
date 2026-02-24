@@ -6,7 +6,7 @@ use poise::serenity_prelude as serenity;
 pub async fn health(ctx: Context<'_>) -> Result<(), Error> {
     let data = ctx.data();
 
-    let snap = match data.health_monitor.snapshot().await {
+    let snap = match data.app.health_monitor.snapshot().await {
         Some(s) => s,
         None => {
             ctx.say("Health data is not yet available. Please try again in a moment.")
