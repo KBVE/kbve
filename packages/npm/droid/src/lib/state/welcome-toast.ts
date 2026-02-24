@@ -18,7 +18,17 @@ export function showWelcomeToast(): void {
 			});
 			return true;
 		}
-		if (auth.tone === 'anon' || auth.tone === 'error') {
+		if (auth.tone === 'anon') {
+			shown = true;
+			addToast({
+				id: `welcome-${Date.now()}`,
+				message: 'Welcome!',
+				severity: 'info',
+				duration: 3000,
+			});
+			return true;
+		}
+		if (auth.tone === 'error') {
 			shown = true;
 			return true;
 		}
