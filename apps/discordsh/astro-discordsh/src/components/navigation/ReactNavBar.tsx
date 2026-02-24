@@ -11,6 +11,7 @@ import {
 	closeDrawer,
 	openModal,
 	closeModal,
+	addToast,
 	useAuthBridge,
 	cn,
 	DiscordIcon,
@@ -171,6 +172,12 @@ export default function ReactNavBar({
 			try {
 				await signInWithOAuth(p);
 				closeModal(SIGNIN_MODAL);
+				addToast({
+					id: `auth-ok-${Date.now()}`,
+					message: 'Signed in successfully!',
+					severity: 'success',
+					duration: 4000,
+				});
 			} catch {
 				// useAuthBridge tracks the error
 			}
