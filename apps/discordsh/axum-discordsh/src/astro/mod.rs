@@ -103,11 +103,16 @@ mod tests {
     use super::*;
     use serial_test::serial;
 
+    // SAFETY: These tests use #[serial] to ensure no concurrent env access.
+    // Edition 2024 requires unsafe blocks for set_var/remove_var.
+
     #[test]
     #[serial]
     fn test_static_config_defaults() {
-        std::env::remove_var("STATIC_DIR");
-        std::env::remove_var("STATIC_PRECOMPRESSED");
+        unsafe {
+            std::env::remove_var("STATIC_DIR");
+            std::env::remove_var("STATIC_PRECOMPRESSED");
+        }
 
         let config = StaticConfig::from_env();
         assert_eq!(config.base_dir, PathBuf::from("templates/dist"));
@@ -117,44 +122,48 @@ mod tests {
     #[test]
     #[serial]
     fn test_static_config_custom_dir() {
-        std::env::set_var("STATIC_DIR", "/tmp/my-static");
-        std::env::remove_var("STATIC_PRECOMPRESSED");
+        unsafe {
+            std::env::set_var("STATIC_DIR", "/tmp/my-static");
+            std::env::remove_var("STATIC_PRECOMPRESSED");
+        }
 
         let config = StaticConfig::from_env();
         assert_eq!(config.base_dir, PathBuf::from("/tmp/my-static"));
         assert!(config.precompressed);
 
-        std::env::remove_var("STATIC_DIR");
+        unsafe { std::env::remove_var("STATIC_DIR") };
     }
 
     #[test]
     #[serial]
     fn test_static_config_precompressed_false() {
-        std::env::remove_var("STATIC_DIR");
-        std::env::set_var("STATIC_PRECOMPRESSED", "false");
+        unsafe {
+            std::env::remove_var("STATIC_DIR");
+            std::env::set_var("STATIC_PRECOMPRESSED", "false");
+        }
 
         let config = StaticConfig::from_env();
         assert!(!config.precompressed);
 
-        std::env::set_var("STATIC_PRECOMPRESSED", "0");
+        unsafe { std::env::set_var("STATIC_PRECOMPRESSED", "0") };
         let config = StaticConfig::from_env();
         assert!(!config.precompressed);
 
-        std::env::remove_var("STATIC_PRECOMPRESSED");
+        unsafe { std::env::remove_var("STATIC_PRECOMPRESSED") };
     }
 
     #[test]
     #[serial]
     fn test_static_config_precompressed_true_variants() {
-        std::env::set_var("STATIC_PRECOMPRESSED", "true");
+        unsafe { std::env::set_var("STATIC_PRECOMPRESSED", "true") };
         assert!(StaticConfig::from_env().precompressed);
 
-        std::env::set_var("STATIC_PRECOMPRESSED", "1");
+        unsafe { std::env::set_var("STATIC_PRECOMPRESSED", "1") };
         assert!(StaticConfig::from_env().precompressed);
 
-        std::env::set_var("STATIC_PRECOMPRESSED", "yes");
+        unsafe { std::env::set_var("STATIC_PRECOMPRESSED", "yes") };
         assert!(StaticConfig::from_env().precompressed);
 
-        std::env::remove_var("STATIC_PRECOMPRESSED");
+        unsafe { std::env::remove_var("STATIC_PRECOMPRESSED") };
     }
 }
