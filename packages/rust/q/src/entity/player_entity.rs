@@ -72,7 +72,7 @@ impl PlayerEntity {
         }
 
         if direction.length() > 0.0 {
-            self.data.set_velocity(direction * self.speed);
+            self.data.set_velocity(direction.normalized() * self.speed);
         } else {
             self.data.set_velocity(Vector2::ZERO);
         }
@@ -91,14 +91,16 @@ impl PlayerEntity {
         }
     }
 
-    fn save_player_data(&self, file_path: &str) -> bool {
+    #[func]
+    fn save_player_data(&self, file_path: GString) -> bool {
         godot_print!("Saving player data to {}", file_path);
-        self.data.to_save_gfile_json(file_path)
+        self.data.to_save_gfile_json(&file_path.to_string())
     }
 
-    fn load_player_data(&mut self, file_path: &str) -> bool {
+    #[func]
+    fn load_player_data(&mut self, file_path: GString) -> bool {
         godot_print!("Loading player data from {}", file_path);
-        if let Some(loaded_data) = PlayerData::from_load_gfile_json(file_path) {
+        if let Some(loaded_data) = PlayerData::from_load_gfile_json(&file_path.to_string()) {
             self.data = loaded_data;
             true
         } else {

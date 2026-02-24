@@ -67,7 +67,12 @@ impl Actor {
             }
             GameRequest::UpdatePosition { id, x, y } => {
                 if let Ok(ulid) = id.parse::<ulid::Ulid>() {
-                    let transform = Transform { q: 0, r: 0, x, y };
+                    let (q, r) = self
+                        .entity_store
+                        .get_transform(&ulid)
+                        .map(|t| (t.q, t.r))
+                        .unwrap_or((0, 0));
+                    let transform = Transform { q, r, x, y };
                     self.entity_store.update_transform(&ulid, transform);
                     let _ = self.event_tx.send(GameEvent::PositionUpdated { id, x, y });
                 }
