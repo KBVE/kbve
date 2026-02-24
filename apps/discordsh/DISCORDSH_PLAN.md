@@ -290,20 +290,53 @@ apps/discordsh/axum-discordsh/src/
 | 9    | 5     | Supabase ShardTracker integration                         | Med  | ✅ Done |
 | 10   | 6     | Configurable sharding support                             | High | ✅ Done |
 | 11   | 7     | Expanded event handlers                                   | Low  | ✅ Done |
-| 12   | —     | Integration testing, Docker verification                  | Med  | Next    |
-| 13   | —     | Deprecate notification-bot, update CI                     | Low  | Pending |
+| 12   | —     | Integration testing, Docker verification                  | Med  | ✅ Done |
+| 13   | —     | Deprecate notification-bot, update CI                     | Low  | ✅ Done |
 
 ---
 
-## Deprecation Plan for notification-bot
+## Phase 8: Integration Testing & CI Deprecation ✅
 
-Once the Rust bot reaches feature parity:
+> **Completed** — Steps 12 and 13.
 
-1. Run both bots in parallel with the Python bot in read-only mode (no writes to tracker)
-2. Verify Rust bot handles all slash commands and embeds correctly
-3. Update CI/CD pipelines to remove notification-bot build/deploy
-4. Remove `apps/discordsh/notification-bot/` directory
-5. Update Nx project configuration
+### Step 12: Integration Testing & Docker Verification
+
+**E2E test fix** (`discordsh-e2e/e2e/smoke.spec.ts`):
+
+- Fixed `/health` test to parse JSON response (`json.status === "ok"`) instead of expecting plain text `"OK"`
+- Added `/healthz` plain-text liveness probe test
+- Added `Content-Type: application/json` assertion on `/health`
+
+**Rust integration tests** (`src/transport/https.rs`):
+
+- Expanded `test_router()` to include all 6 HTTP endpoints (was 3 GET-only)
+- Refactored to return `(Router, Arc<AppState>)` so tests can verify state mutations
+- `test_bot_restart_sets_flag` — POST `/bot-restart` sets restart flag, returns success JSON
+- `test_sign_off_returns_ok` — POST `/sign-off` returns shutdown-initiated JSON
+- `test_cleanup_thread_no_env` — POST `/cleanup-thread` returns error when `DISCORD_THREAD_ID` unset
+
+**Test count:** 29 Rust unit/integration tests (was 26).
+
+**Docker:** No changes needed — 9-stage Dockerfile with cargo-chef, jemalloc, scratch runtime is production-ready.
+
+### Step 13: Deprecate notification-bot, Update CI
+
+- Removed `notification-bot` entry from `generate_docker_matrix` in `ci-main.yml`
+- Removed `notification_bot` output from `utils-file-alterations.yml` (declaration, mapping, and trigger)
+- Kept `apps/discordsh/notification-bot/` directory as archive (not deleted)
+- `discordsh` file alteration trigger (`apps/discordsh/**`) already subsumes notification-bot path
+
+---
+
+## Deprecation Plan for notification-bot ✅
+
+> **Completed** — notification-bot removed from CI pipelines.
+
+1. ~~Run both bots in parallel with the Python bot in read-only mode~~ Skipped — Rust bot verified via E2E
+2. ~~Verify Rust bot handles all slash commands and embeds correctly~~ ✅ Done
+3. ~~Update CI/CD pipelines to remove notification-bot build/deploy~~ ✅ Done
+4. `apps/discordsh/notification-bot/` kept as archive for reference
+5. ~~Update Nx project configuration~~ Not needed — Nx targets only run when explicitly invoked
 
 ---
 

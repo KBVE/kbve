@@ -251,7 +251,6 @@ jobs:
             items: |
                 [
                   { "name": "kilobase", "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
-                  { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" },
                   { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" },
                   { "name": "memes", "target": "container", "condition": "${{ needs.alter.outputs.memes }}", "image": "kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml" },
                   { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },

@@ -33,10 +33,6 @@ on:
             kilobase:
                 description: 'Kilobase package changed'
                 value: ${{ jobs.alter.outputs.kilobase }}
-            # ? Python
-            notification_bot:
-                description: 'Notification Bot'
-                value: ${{ jobs.alter.outputs.notification_bot }}
             # NOTE: Atlas has been migrated into pydesk. Disabled.
             # py_atlas:
             #   description: "Atlas changed"
@@ -136,7 +132,6 @@ jobs:
             devops: ${{ steps.delta.outputs.devops_any_changed }}
             laser: ${{ steps.delta.outputs.laser_any_changed }}
             asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
-            notification_bot: ${{ steps.delta.outputs.notificationbot_any_changed }}
 
         steps:
             - name: Checkout the repository
@@ -173,8 +168,6 @@ jobs:
                           - 'packages/python/fudster/fudster/**'
                       py_lib_kbve:
                           - 'packages/python/kbve/kbve/**'
-                      notificationbot:
-                          - 'apps/discordsh/notification-bot/README.md'
                       astro_herbmail:
                           - 'apps/herbmail/README.md'
                       herbmail:
