@@ -2,7 +2,7 @@
 name = "axum-discordsh"
 authors = ["kbve", "h0lybyte"]
 version = "0.1.8"
-edition = "2021"
+edition = "2024"
 publish = false
 
 [dependencies]
