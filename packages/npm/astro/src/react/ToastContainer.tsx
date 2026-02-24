@@ -20,7 +20,6 @@ function VNodeSlot({ vnode }: { vnode: any }) {
 		let cancelled = false;
 		import('@kbve/droid').then((mod) => {
 			if (cancelled || !ref.current) return;
-			// Access renderVNode from the workers/tools module via the droid entry
 			const renderVNode = (mod as any).renderVNode;
 			if (typeof renderVNode === 'function') {
 				ref.current.innerHTML = '';
@@ -36,40 +35,56 @@ function VNodeSlot({ vnode }: { vnode: any }) {
 	return <div ref={ref} />;
 }
 
-function ToastItem({
+function PooledToastSlot({
 	toast,
 	onDismiss,
 }: {
-	toast: ToastPayload;
+	toast: ToastPayload | null;
 	onDismiss: (id: string) => void;
 }) {
 	useEffect(() => {
+		if (!toast) return;
 		const duration = toast.duration ?? DEFAULT_DURATION;
 		if (duration <= 0) return;
 		const timer = setTimeout(() => onDismiss(toast.id), duration);
 		return () => clearTimeout(timer);
-	}, [toast.id, toast.duration, onDismiss]);
+	}, [toast?.id, toast?.duration, onDismiss]);
+
+	const active = toast !== null;
 
 	return (
 		<div
-			role="alert"
 			className={cn(
-				'rounded-lg px-4 py-3 shadow-lg backdrop-blur-md',
-				SEVERITY_STYLES[toast.severity] ?? SEVERITY_STYLES.info,
-			)}>
-			<div className="flex items-start justify-between gap-2">
-				<div className="flex-1">
-					<p className="text-sm font-medium">{toast.message}</p>
-					{toast.vnode && <VNodeSlot vnode={toast.vnode} />}
+				'transition-all duration-200',
+				active
+					? 'opacity-100 visible max-h-40 pointer-events-auto'
+					: 'opacity-0 invisible max-h-0 overflow-hidden pointer-events-none',
+			)}
+			aria-hidden={!active}>
+			{active && (
+				<div
+					role="alert"
+					className={cn(
+						'rounded-lg px-4 py-3 shadow-lg backdrop-blur-md',
+						SEVERITY_STYLES[toast.severity] ?? SEVERITY_STYLES.info,
+					)}>
+					<div className="flex items-start justify-between gap-2">
+						<div className="flex-1">
+							<p className="text-sm font-medium">
+								{toast.message}
+							</p>
+							{toast.vnode && <VNodeSlot vnode={toast.vnode} />}
+						</div>
+						<button
+							type="button"
+							onClick={() => onDismiss(toast.id)}
+							className="text-current opacity-60 hover:opacity-100 transition-opacity"
+							aria-label="Dismiss">
+							&times;
+						</button>
+					</div>
 				</div>
-				<button
-					type="button"
-					onClick={() => onDismiss(toast.id)}
-					className="text-current opacity-60 hover:opacity-100 transition-opacity"
-					aria-label="Dismiss">
-					&times;
-				</button>
-			</div>
+			)}
 		</div>
 	);
 }
@@ -102,22 +117,24 @@ export function ToastContainer({
 }: ToastContainerProps) {
 	const { toasts, remove } = useToast();
 	const entries = Object.values(toasts).slice(0, maxVisible);
+	const hasToasts = entries.length > 0;
 
 	const handleDismiss = useCallback((id: string) => remove(id), [remove]);
 
-	if (entries.length === 0) return null;
-
 	return (
 		<div
+			aria-hidden={!hasToasts}
 			className={cn(
 				'fixed z-[9999] flex flex-col gap-2 w-80 pointer-events-none',
 				POSITION_CLASSES[position],
 				className,
 			)}>
-			{entries.map((toast) => (
-				<div key={toast.id} className="pointer-events-auto">
-					<ToastItem toast={toast} onDismiss={handleDismiss} />
-				</div>
+			{Array.from({ length: maxVisible }, (_, i) => (
+				<PooledToastSlot
+					key={`toast-slot-${i}`}
+					toast={entries[i] ?? null}
+					onDismiss={handleDismiss}
+				/>
 			))}
 		</div>
 	);

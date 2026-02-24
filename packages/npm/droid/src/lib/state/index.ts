@@ -22,6 +22,8 @@ export {
 
 export { $toasts, addToast, removeToast } from './toasts';
 
+export { showWelcomeToast } from './welcome-toast';
+
 export {
 	syncThemeToDexie,
 	broadcastThemeChange,

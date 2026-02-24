@@ -39,17 +39,23 @@ export function TooltipOverlay({
 		});
 	}, [open, anchorId]);
 
-	if (!open) return null;
-
 	return createPortal(
 		<div
 			role="tooltip"
+			aria-hidden={!open}
 			className={cn(
 				'absolute z-[9997] px-3 py-2 rounded-lg bg-zinc-800 text-zinc-200 text-sm shadow-lg',
-				'transform -translate-x-1/2',
+				'transform -translate-x-1/2 transition-opacity duration-150',
+				open && pos
+					? 'opacity-100 visible'
+					: 'opacity-0 invisible pointer-events-none',
 				className,
 			)}
-			style={pos ? { top: pos.top, left: pos.left } : undefined}>
+			style={
+				open && pos
+					? { top: pos.top, left: pos.left }
+					: { top: -9999, left: -9999 }
+			}>
 			{children ?? content ?? null}
 		</div>,
 		document.body,

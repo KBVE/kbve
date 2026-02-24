@@ -24,6 +24,7 @@ import { SupabaseGateway } from '../gateway/SupabaseGateway';
 import type { GatewayConfig } from '../gateway/types';
 import { observeThemeChanges } from '../state/theme-sync';
 import { OverlayManager } from '../state/overlay-manager';
+import { showWelcomeToast } from '../state/welcome-toast';
 
 const EXPECTED_DB_VERSION = '1.0.3';
 let initialized = false;
@@ -72,21 +73,46 @@ function initDedicatedWorker(
 	return new Worker(url, { type: 'module' });
 }
 
+function listenFirstConnect(port: MessagePort): Promise<boolean> {
+	return new Promise<boolean>((resolve) => {
+		const handler = (e: MessageEvent) => {
+			if (e.data?.type === 'first-connect') {
+				resolve(true);
+				port.removeEventListener('message', handler);
+			} else if (e.data?.type === 'reconnect') {
+				resolve(false);
+				port.removeEventListener('message', handler);
+			}
+		};
+		port.addEventListener('message', handler);
+		setTimeout(() => {
+			port.removeEventListener('message', handler);
+			resolve(false);
+		}, 5_000);
+	});
+}
+
 async function initStorageComlink(opts?: {
 	workerRef?: SharedWorker;
 	workerURL?: string;
-}): Promise<Remote<LocalStorageAPI>> {
+}): Promise<{ api: Remote<LocalStorageAPI>; isFirstConnection: boolean }> {
 	const worker = initSharedWorker('db-worker', opts);
+	const firstPromise = listenFirstConnect(worker.port);
 	const api = wrap<LocalStorageAPI>(worker.port);
-	return await finalize(api);
+	const finalApi = await finalize(api);
+	const isFirstConnection = await firstPromise;
+	return { api: finalApi, isFirstConnection };
 }
 
 async function initWsComlink(opts?: {
 	workerRef?: SharedWorker;
 	workerURL?: string;
-}): Promise<Remote<WSInstance>> {
+}): Promise<{ ws: Remote<WSInstance>; isFirstConnection: boolean }> {
 	const worker = initSharedWorker('ws-worker', opts);
-	return wrap<WSInstance>(worker.port);
+	const firstPromise = listenFirstConnect(worker.port);
+	const ws = wrap<WSInstance>(worker.port);
+	const isFirstConnection = await firstPromise;
+	return { ws, isFirstConnection };
 }
 
 async function initCanvasComlink(opts?: {
@@ -427,18 +453,21 @@ export async function main(opts?: {
 					workerURL: opts?.workerURLs?.['canvasWorker'],
 				});
 
-				const api = await initStorageComlink({
-					workerURL:
-						typeof opts?.workerURLs?.['dbWorker'] === 'string'
-							? opts.workerURLs['dbWorker']
-							: undefined,
-					workerRef: opts?.workerRefs?.dbWorker,
-				});
+				const { api, isFirstConnection: dbFirst } =
+					await initStorageComlink({
+						workerURL:
+							typeof opts?.workerURLs?.['dbWorker'] === 'string'
+								? opts.workerURLs['dbWorker']
+								: undefined,
+						workerRef: opts?.workerRefs?.dbWorker,
+					});
 
-				const ws = await initWsComlink({
+				const { ws, isFirstConnection: wsFirst } = await initWsComlink({
 					workerRef: opts?.workerRefs?.wsWorker,
 					workerURL: opts?.workerURLs?.['wsWorker'],
 				});
+
+				const isLeaderTab = dbFirst && wsFirst;
 
 				console.log('[DROID] Initializing mod manager...');
 				const mod = await getModManager(
@@ -506,6 +535,14 @@ export async function main(opts?: {
 						timestamp: Date.now(),
 					});
 				});
+
+				if (isLeaderTab) {
+					events.emit('droid-first-connect', {
+						timestamp: Date.now(),
+						workersFirst: { db: dbFirst, ws: wsFirst },
+					});
+					showWelcomeToast();
+				}
 
 				console.log('[KBVE] Global API ready');
 			} catch (err) {
