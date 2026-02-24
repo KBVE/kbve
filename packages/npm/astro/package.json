@@ -2,10 +2,21 @@
 	"name": "@kbve/astro",
 	"version": "0.1.0",
 	"description": "Unified Astro component library with React support and @kbve/droid integration",
-	"keywords": ["astro", "react", "droid", "workers", "components"],
+	"keywords": [
+		"astro",
+		"react",
+		"droid",
+		"workers",
+		"components"
+	],
 	"homepage": "https://kbve.com/application/javascript/",
-	"bugs": { "url": "https://github.com/KBVE/kbve/issues" },
-	"repository": { "type": "git", "url": "git+https://github.com/KBVE/kbve.git" },
+	"bugs": {
+		"url": "https://github.com/KBVE/kbve/issues"
+	},
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/KBVE/kbve.git"
+	},
 	"author": "KBVE <hello@kbve.com>",
 	"license": "MIT",
 	"type": "module",
@@ -24,7 +35,8 @@
 		"./components/AskamaHero.astro": "./components/AskamaHero.astro",
 		"./components/AskamaAlert.astro": "./components/AskamaAlert.astro",
 		"./components/AskamaSection.astro": "./components/AskamaSection.astro",
-		"./components/AskamaStat.astro": "./components/AskamaStat.astro"
+		"./components/AskamaStat.astro": "./components/AskamaStat.astro",
+		"./components/ToastContainer.astro": "./components/ToastContainer.astro"
 	},
 	"files": [
 		"astro.es.js",
@@ -37,10 +49,16 @@
 		"react": ">=18.0.0",
 		"react-dom": ">=18.0.0",
 		"astro": ">=4.0.0",
-		"@kbve/droid": ">=0.1.0"
+		"@kbve/droid": ">=0.1.0",
+		"@nanostores/react": ">=0.7.0"
 	},
 	"peerDependenciesMeta": {
-		"astro": { "optional": true }
+		"astro": {
+			"optional": true
+		},
+		"@nanostores/react": {
+			"optional": true
+		}
 	},
 	"dependencies": {
 		"clsx": "^2.1.1",
