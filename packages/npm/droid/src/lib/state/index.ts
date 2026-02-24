@@ -19,3 +19,5 @@ export {
 	openModal,
 	closeModal,
 } from './ui';
+
+export { $toasts, addToast, removeToast } from './toasts';

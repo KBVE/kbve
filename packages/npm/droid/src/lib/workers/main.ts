@@ -10,6 +10,16 @@ import { scopeData } from './data';
 import { dispatchAsync, renderVNode } from './tools';
 import type { PanelPayload, PanelId } from '../types/panel-types';
 import { DroidEvents } from './events';
+import {
+	addToast as _addToast,
+	removeToast as _removeToast,
+} from '../state/toasts';
+import { openTooltip, closeTooltip, openModal, closeModal } from '../state/ui';
+import {
+	ToastPayloadSchema,
+	TooltipPayloadSchema,
+	ModalPayloadSchema,
+} from '../types/ui-event-types';
 import { SupabaseGateway } from '../gateway/SupabaseGateway';
 import type { GatewayConfig } from '../gateway/types';
 
@@ -84,7 +94,9 @@ async function initCanvasComlink(opts?: {
 	return wrap<CanvasWorkerAPI>(worker);
 }
 
-async function finalize(api: Remote<LocalStorageAPI>): Promise<Remote<LocalStorageAPI>> {
+async function finalize(
+	api: Remote<LocalStorageAPI>,
+): Promise<Remote<LocalStorageAPI>> {
 	const version = await api.getVersion();
 	if (version !== EXPECTED_DB_VERSION) {
 		await initializeWorkerDatabase(api, {
@@ -135,12 +147,14 @@ export const uiux = {
 		const panels = { ...uiuxState.get().panelManager };
 		panels[id] = { open: true, payload };
 		uiuxState.setKey('panelManager', panels);
+		DroidEvents.emit('panel-open', { id, payload });
 	},
 
 	closePanel(id: PanelId) {
 		const panels = { ...uiuxState.get().panelManager };
 		panels[id] = { open: false, payload: undefined };
 		uiuxState.setKey('panelManager', panels);
+		DroidEvents.emit('panel-close', { id });
 	},
 
 	togglePanel(id: PanelId, payload?: PanelPayload) {
@@ -148,18 +162,31 @@ export const uiux = {
 		const isOpen = panels[id]?.open ?? false;
 		panels[id] = { open: !isOpen, payload: !isOpen ? payload : undefined };
 		uiuxState.setKey('panelManager', panels);
+		if (!isOpen) {
+			DroidEvents.emit('panel-open', { id, payload });
+		} else {
+			DroidEvents.emit('panel-close', { id });
+		}
 	},
 
 	setTheme(theme: 'light' | 'dark' | 'auto') {
 		uiuxState.setKey('themeManager', { theme });
 	},
 
+	/** @deprecated Use addToast() from '@kbve/droid' state exports instead. */
 	addToast(id: string, data: any) {
+		console.warn(
+			'[KBVE] uiux.addToast is deprecated. Use addToast() from @kbve/droid.',
+		);
 		const toasts = { ...uiuxState.get().toastManager, [id]: data };
 		uiuxState.setKey('toastManager', toasts);
 	},
 
+	/** @deprecated Use removeToast() from '@kbve/droid' state exports instead. */
 	removeToast(id: string) {
+		console.warn(
+			'[KBVE] uiux.removeToast is deprecated. Use removeToast() from @kbve/droid.',
+		);
 		const toasts = { ...uiuxState.get().toastManager };
 		delete toasts[id];
 		uiuxState.setKey('toastManager', toasts);
@@ -171,7 +198,9 @@ export const uiux = {
 		mode: 'static' | 'animated' | 'dynamic' = 'animated',
 	) {
 		const offscreen = canvasEl.transferControlToOffscreen();
-		await (window.kbve?.uiux as Record<string, any>)?.['worker']?.bindCanvas(panelId, offscreen, mode);
+		await (window.kbve?.uiux as Record<string, any>)?.[
+			'worker'
+		]?.bindCanvas(panelId, offscreen, mode);
 	},
 
 	closeAllPanels() {
@@ -183,11 +212,14 @@ export const uiux = {
 	},
 
 	emitFromWorker(msg: any) {
+		// Existing: VNode injection
 		if (msg.type === 'injectVNode' && msg.vnode) {
 			dispatchAsync(() => {
 				const target = document.getElementById('bento-grid-inject');
 				if (!target) {
-					console.warn('[KBVE] No injection target found: #bento-grid-inject');
+					console.warn(
+						'[KBVE] No injection target found: #bento-grid-inject',
+					);
 					return;
 				}
 
@@ -200,7 +232,64 @@ export const uiux = {
 
 				target.appendChild(el);
 			});
+			return;
 		}
+
+		// Toast from worker
+		if (msg.type === 'toast' && msg.payload) {
+			const parsed = ToastPayloadSchema.safeParse(msg.payload);
+			if (!parsed.success) {
+				console.error(
+					'[KBVE] Invalid toast payload from worker:',
+					parsed.error,
+				);
+				return;
+			}
+			_addToast(parsed.data);
+			return;
+		}
+		if (msg.type === 'toast-remove' && msg.payload?.id) {
+			_removeToast(msg.payload.id);
+			return;
+		}
+
+		// Tooltip from worker
+		if (msg.type === 'tooltip-open' && msg.payload) {
+			const parsed = TooltipPayloadSchema.safeParse(msg.payload);
+			if (!parsed.success) {
+				console.error(
+					'[KBVE] Invalid tooltip payload from worker:',
+					parsed.error,
+				);
+				return;
+			}
+			openTooltip(parsed.data.id);
+			return;
+		}
+		if (msg.type === 'tooltip-close') {
+			closeTooltip(msg.payload?.id);
+			return;
+		}
+
+		// Modal from worker
+		if (msg.type === 'modal-open' && msg.payload) {
+			const parsed = ModalPayloadSchema.safeParse(msg.payload);
+			if (!parsed.success) {
+				console.error(
+					'[KBVE] Invalid modal payload from worker:',
+					parsed.error,
+				);
+				return;
+			}
+			openModal(parsed.data.id);
+			return;
+		}
+		if (msg.type === 'modal-close') {
+			closeModal(msg.payload?.id);
+			return;
+		}
+
+		console.warn('[KBVE] Unknown worker UI message type:', msg.type);
 	},
 };
 
@@ -330,9 +419,10 @@ export async function main(opts?: {
 			});
 
 			const api = await initStorageComlink({
-				workerURL: typeof opts?.workerURLs?.['dbWorker'] === 'string'
-					? opts.workerURLs['dbWorker']
-					: undefined,
+				workerURL:
+					typeof opts?.workerURLs?.['dbWorker'] === 'string'
+						? opts.workerURLs['dbWorker']
+						: undefined,
 				workerRef: opts?.workerRefs?.dbWorker,
 			});
 

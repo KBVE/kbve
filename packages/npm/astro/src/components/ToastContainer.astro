@@ -1,0 +1,28 @@
+---
+import { ToastContainer as ReactToastContainer } from '../react/ToastContainer';
+
+interface Props {
+	position?:
+		| 'top-right'
+		| 'top-left'
+		| 'bottom-right'
+		| 'bottom-left'
+		| 'top-center'
+		| 'bottom-center';
+	maxVisible?: number;
+	class?: string;
+}
+
+const {
+	position = 'top-right',
+	maxVisible = 5,
+	class: className,
+} = Astro.props;
+---
+
+<ReactToastContainer
+	client:only="react"
+	position={position}
+	maxVisible={maxVisible}
+	className={className}
+/>

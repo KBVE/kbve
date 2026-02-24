@@ -1,5 +1,10 @@
 import { z } from 'zod';
 import { PanelIdSchema } from './panel-types';
+import {
+	ToastPayloadSchema,
+	TooltipPayloadSchema,
+	ModalPayloadSchema,
+} from './ui-event-types';
 
 export const ModMetaSchema = z.object({
 	name: z.string(),
@@ -21,15 +26,25 @@ export const DroidReadySchema = z.object({
 });
 
 export const DroidEventSchemas = {
-	'droid-ready': DroidReadySchema, 
+	'droid-ready': DroidReadySchema,
 	'droid-mod-ready': DroidModReadySchema,
 	'panel-open': PanelEventSchema,
 	'panel-close': PanelEventSchema,
+	'toast-added': ToastPayloadSchema,
+	'toast-removed': ToastPayloadSchema.pick({ id: true }),
+	'tooltip-opened': TooltipPayloadSchema,
+	'tooltip-closed': TooltipPayloadSchema.pick({ id: true }),
+	'modal-opened': ModalPayloadSchema,
+	'modal-closed': ModalPayloadSchema.pick({ id: true }),
 };
 
 export type DroidEventMap = {
-	[K in keyof typeof DroidEventSchemas]: z.infer<(typeof DroidEventSchemas)[K]>;
+	[K in keyof typeof DroidEventSchemas]: z.infer<
+		(typeof DroidEventSchemas)[K]
+	>;
 };
 
 export type EventKey = keyof DroidEventMap;
-export type EventHandler<K extends EventKey> = (payload: DroidEventMap[K]) => void;
+export type EventHandler<K extends EventKey> = (
+	payload: DroidEventMap[K],
+) => void;
