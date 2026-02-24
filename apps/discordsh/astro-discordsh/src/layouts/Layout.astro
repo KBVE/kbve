@@ -21,7 +21,12 @@ const { title, description = 'Discord.sh - Discord Bot & Tools' } = Astro.props;
 		<title>{title}</title>
 	</head>
 	<body>
-		<DroidProvider client:only="react" workerURLs={workerURLs} />
+		<DroidProvider
+			client:only="react"
+			workerURLs={workerURLs}
+			i18nPath="/i18n/db.json"
+			dataPath="/data/servers.json"
+		/>
 		<OverlayShell client:only="react" />
 		<slot />
 	</body>

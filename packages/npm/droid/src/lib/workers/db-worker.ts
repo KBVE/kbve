@@ -96,8 +96,14 @@ const storageAPI = {
 		}));
 		await db.i18n.bulkPut(entries);
 	},
-	async loadI18nFromJSON(path = 'https://discord.sh/i18n/db.json') {
+	async loadI18nFromJSON(path: string) {
 		const res = await fetch(path);
+		if (!res.ok) {
+			console.warn(
+				`[db-worker] i18n fetch failed: ${res.status} ${res.statusText}`,
+			);
+			return;
+		}
 		const data = await res.json();
 		await storageAPI.putI18nBatch(data);
 	},
@@ -105,8 +111,14 @@ const storageAPI = {
 		return (await db.i18n.toCollection().primaryKeys()) as string[];
 	},
 
-	async loadServersFromJSON(path = 'https://discord.sh/data/servers.json') {
+	async loadServersFromJSON(path: string) {
 		const res = await fetch(path);
+		if (!res.ok) {
+			console.warn(
+				`[db-worker] servers fetch failed: ${res.status} ${res.statusText}`,
+			);
+			return;
+		}
 		const data = await res.json();
 
 		// The JSON should be a Record<string, DiscordServer>
