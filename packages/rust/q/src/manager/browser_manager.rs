@@ -4,7 +4,7 @@ use crate::manager::game_manager::GameManager;
 use godot::classes::{CanvasLayer, ICanvasLayer, IControl};
 use godot::prelude::*;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 use crate::platform::browser::GodotBrowser;
 
 #[derive(GodotClass)]
@@ -14,7 +14,7 @@ pub struct BrowserManager {
 
     game_manager: Option<Gd<GameManager>>,
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     browser: Option<Gd<GodotBrowser>>,
 }
 
@@ -23,7 +23,7 @@ impl ICanvasLayer for BrowserManager {
     fn init(base: Base<Self::Base>) -> Self {
         Self {
             base,
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
             browser: Some(Gd::from_init_fn(GodotBrowser::init)),
 
             game_manager: None,
@@ -32,7 +32,7 @@ impl ICanvasLayer for BrowserManager {
 
     fn ready(&mut self) {
         find_game_manager!(self);
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
         {
             // use raw_window_handle::HasWindowHandle;
             let browser_clone = self.browser.clone();
@@ -93,7 +93,7 @@ impl BrowserManager {
     pub fn on_window_resize(&self) {
         godot_print!("[BrowserManager] Browser Event Trigger...");
 
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
         {
             if let Some(ref browser) = self.browser {
                 godot_print!("[BrowserManager] Resizing browser after window resize event.");
@@ -104,10 +104,12 @@ impl BrowserManager {
 
     #[func]
     pub fn open_url(&self, url: GString) {
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
         {
             if let Some(ref browser) = self.browser {
-                godot_print!("[BrowserManager] Opening URL: {} called...", url);
+                browser.bind().open_url(url.clone());
+            } else {
+                godot_warn!("[BrowserManager] Browser not initialized. Cannot open URL.");
             }
         }
 
