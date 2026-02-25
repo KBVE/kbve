@@ -5,6 +5,10 @@
 	"sourceRoot": "apps/mc/mc-e2e/e2e",
 	"implicitDependencies": ["mc"],
 	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
 		"e2e": {
 			"executor": "nx:run-commands",
 			"cache": false,
