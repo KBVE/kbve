@@ -55,10 +55,10 @@ spec:
                   resources:
                       requests:
                           memory: '1Gi'
-                          cpu: '1000m'
+                          cpu: '4000m'
                       limits:
                           memory: '4Gi'
-                          cpu: '4000m'
+                          cpu: '8000m'
                   livenessProbe:
                       tcpSocket:
                           port: java
