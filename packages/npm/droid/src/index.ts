@@ -1,3 +1,5 @@
+export type { KBVEGlobal } from './types';
+
 export * from './lib/droid';
 export * from './lib/types/bento';
 export * from './lib/types/event-types';

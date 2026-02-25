@@ -112,6 +112,9 @@ impl ShardTracker {
     }
 
     /// Record (upsert) a shard assignment discovered from Discord.
+    ///
+    /// Uses PostgREST upsert on the `(cluster_name, shard_id)` unique constraint
+    /// so pod restarts update the existing row instead of returning a 409 conflict.
     pub async fn record_shard(
         &self,
         instance_id: &str,
@@ -128,6 +131,7 @@ impl ShardTracker {
             "shard_id": shard_id,
             "total_shards": total_shards,
             "status": "active",
+            "last_heartbeat": now_iso8601(),
             "guild_count": guild_count,
             "latency_ms": latency_ms,
             "hostname": hostname,
@@ -135,15 +139,18 @@ impl ShardTracker {
         });
 
         let mut headers = self.headers();
-        // Upsert on (instance_id, cluster_name)
+        // PostgREST upsert: merge on the unique constraint columns
         headers.insert(
             "Prefer",
             HeaderValue::from_static("resolution=merge-duplicates,return=representation"),
         );
 
+        // Specify conflict columns so PostgREST knows which constraint to match
+        let url = format!("{}?on_conflict=cluster_name,shard_id", self.table_url());
+
         let res = self
             .client
-            .post(self.table_url())
+            .post(&url)
             .headers(headers)
             .json(&body)
             .send()

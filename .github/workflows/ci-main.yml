@@ -312,7 +312,8 @@ jobs:
                   { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}", "image_name": "ghcr.io/kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml", "deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml" },
                   { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}", "image_name": "ghcr.io/kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml", "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml" },
                   { "name": "irc-gateway", "condition": "${{ needs.alter.outputs.irc_gateway }}", "image_name": "ghcr.io/kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml", "deployment_yaml": "apps/kube/irc/manifests/irc-gateway-deployment.yaml" },
-                  { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}", "image_name": "ghcr.io/kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml", "deployment_yaml": "apps/kube/discordsh/manifest/deployment.yaml" }
+                  { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}", "image_name": "ghcr.io/kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml", "deployment_yaml": "apps/kube/discordsh/manifest/deployment.yaml" },
+                  { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}", "image_name": "ghcr.io/kbve/mc", "cargo_toml": "apps/mc/plugins/kbve-mc-plugin/Cargo.toml", "deployment_yaml": "apps/kube/mc/manifest/deployment.yaml" }
                 ]
 
     update_kube_manifests:

@@ -188,7 +188,8 @@ export function ToastContainer({
 	const handleDismiss = useCallback((id: string) => remove(id), [remove]);
 
 	// Cross-island CustomEvent bridge: syncs toasts from DroidEvents
-	// when nanostores modules are duplicated across Astro islands
+	// when nanostores modules are duplicated across Astro islands.
+	// On mount, drains any toasts queued before this island was ready.
 	useEffect(() => {
 		const onAdded = (e: Event) => {
 			const payload = (e as CustomEvent).detail as ToastPayload;
@@ -210,6 +211,19 @@ export function ToastContainer({
 		};
 		window.addEventListener('toast-added', onAdded);
 		window.addEventListener('toast-removed', onRemoved);
+
+		// Drain toasts queued before this island mounted (race condition fix)
+		const pending = window.__kbveToastQueue;
+		if (pending && pending.length > 0) {
+			const current = $toasts.get();
+			const merged = { ...current };
+			for (const toast of pending) {
+				if (!merged[toast.id]) merged[toast.id] = toast;
+			}
+			$toasts.set(merged);
+			pending.length = 0;
+		}
+
 		return () => {
 			window.removeEventListener('toast-added', onAdded);
 			window.removeEventListener('toast-removed', onRemoved);

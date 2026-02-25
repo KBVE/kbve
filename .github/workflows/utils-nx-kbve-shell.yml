@@ -75,9 +75,11 @@ jobs:
 
             - name: Run NX Command
               shell: bash
+              env:
+                  NX_CMD: ${{ inputs.project }}:${{ inputs.target }}
               run: |
                   chmod +x ./kbve.sh
-                  ./kbve.sh -nx ${{ inputs.project }}:${{ inputs.target }}
+                  ./kbve.sh -nx $NX_CMD
 
             - name: Create Pull Request (if enabled)
               if: inputs.create_pull_request == true

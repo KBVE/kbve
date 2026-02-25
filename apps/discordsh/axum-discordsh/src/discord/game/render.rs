@@ -8,24 +8,46 @@ const COLOR_SAFE: u32 = 0x2ECC71; // green
 const COLOR_COMBAT: u32 = 0xE67E22; // orange
 const COLOR_CRITICAL: u32 = 0xE74C3C; // red
 const COLOR_GAME_OVER: u32 = 0x95A5A6; // grey
+const COLOR_VICTORY: u32 = 0xF1C40F; // gold
+const COLOR_REST: u32 = 0x3498DB; // blue
 
 fn phase_color(session: &SessionState) -> u32 {
-    if matches!(session.phase, GamePhase::GameOver(_)) {
-        return COLOR_GAME_OVER;
+    match &session.phase {
+        GamePhase::GameOver(GameOverReason::Victory) => COLOR_VICTORY,
+        GamePhase::GameOver(_) => COLOR_GAME_OVER,
+        _ if session.player.hp <= session.player.max_hp / 4 => COLOR_CRITICAL,
+        GamePhase::Combat => COLOR_COMBAT,
+        GamePhase::Rest => COLOR_REST,
+        _ => COLOR_SAFE,
     }
-    if session.player.hp <= session.player.max_hp / 4 {
-        return COLOR_CRITICAL;
-    }
-    if session.phase == GamePhase::Combat {
-        return COLOR_COMBAT;
-    }
-    COLOR_SAFE
 }
 
 // ── HP bar ──────────────────────────────────────────────────────────
 
-/// Render an HP bar like `[###--] 32/50`.
-pub fn hp_bar(current: i32, max: i32, width: usize) -> String {
+/// Render an HP bar like `♥♥♥♥♡` **32/50**
+///
+/// Each heart represents `points_per_heart` HP (default 10).
+/// ♥ = filled, ♡ = empty.
+pub fn hp_bar(current: i32, max: i32, points_per_heart: i32) -> String {
+    let current = current.max(0);
+    let total_hearts = (max + points_per_heart - 1) / points_per_heart;
+    let filled_hearts = current / points_per_heart;
+    let empty_hearts = total_hearts - filled_hearts;
+
+    format!(
+        "{}{}  **{}/{}**",
+        "\u{2665}".repeat(filled_hearts as usize),
+        "\u{2661}".repeat(empty_hearts as usize),
+        current,
+        max
+    )
+}
+
+/// Render a block progress bar like `♦ [████░░░░░░]` **20/60**
+///
+/// Useful for expandable resource pools (mana, stamina, XP, etc.)
+/// where the total can grow over time.
+pub fn progress_bar(label: &str, current: i32, max: i32, width: usize) -> String {
     let current = current.max(0);
     let ratio = if max > 0 {
         current as f32 / max as f32
@@ -36,7 +58,8 @@ pub fn hp_bar(current: i32, max: i32, width: usize) -> String {
     let empty = width.saturating_sub(filled);
 
     format!(
-        "`[{}{}]` {}/{}",
+        "{} `[{}{}]` **{}/{}**",
+        label,
         "\u{2588}".repeat(filled),
         "\u{2591}".repeat(empty),
         current,
@@ -48,12 +71,39 @@ pub fn hp_bar(current: i32, max: i32, width: usize) -> String {
 
 pub fn intent_description(intent: &Intent) -> String {
     match intent {
-        Intent::Attack { dmg } => format!("Preparing to attack ({} dmg)", dmg),
-        Intent::HeavyAttack { dmg } => format!("Winding up a heavy blow ({} dmg)", dmg),
-        Intent::Defend { armor } => format!("Bracing for defense (+{} armor)", armor),
-        Intent::Charge => "Charging up something powerful...".to_owned(),
-        Intent::Flee => "Looking for an escape...".to_owned(),
+        Intent::Attack { dmg } => format!("\u{2660} Attack ({dmg} dmg)"),
+        Intent::HeavyAttack { dmg } => {
+            format!("\u{2620} Heavy blow ({dmg} dmg)")
+        }
+        Intent::Defend { armor } => {
+            format!("\u{2726} Brace (+{armor} armor)")
+        }
+        Intent::Charge => "\u{2605} Charging...".to_owned(),
+        Intent::Flee => "\u{2663} Retreating...".to_owned(),
     }
+}
+
+// ── Effect display ──────────────────────────────────────────────────
+
+fn format_effects(effects: &[EffectInstance]) -> Option<String> {
+    if effects.is_empty() {
+        return None;
+    }
+    let parts: Vec<String> = effects
+        .iter()
+        .map(|e| {
+            let label = match e.kind {
+                EffectKind::Poison => "\u{2622} Poison",     // ☢
+                EffectKind::Burning => "\u{2666} Burning",   // ♦
+                EffectKind::Bleed => "\u{2660} Bleed",       // ♠
+                EffectKind::Shielded => "\u{2726} Shielded", // ✦
+                EffectKind::Weakened => "\u{2727} Weakened", // ✧
+                EffectKind::Stunned => "\u{2620} Stunned",   // ☠
+            };
+            format!("{label} ({} turns)", e.turns_left)
+        })
+        .collect();
+    Some(parts.join(", "))
 }
 
 // ── Embed builder ───────────────────────────────────────────────────
@@ -63,21 +113,25 @@ pub fn intent_description(intent: &Intent) -> String {
 /// Pure function — no async, no side effects.
 pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
     let title = format!(
-        "\u{1F56F}\u{FE0F} The Glass Catacombs \u{2014} Room {}: {}",
+        "The Glass Catacombs -- Room {}: {}",
         session.room.index + 1,
         session.room.name
     );
 
-    let description = if matches!(session.phase, GamePhase::GameOver(GameOverReason::Victory)) {
-        "You have conquered The Glass Catacombs! Glory awaits.".to_owned()
-    } else if matches!(session.phase, GamePhase::GameOver(GameOverReason::Defeated)) {
-        "Your adventure ends here. The catacombs claim another soul.".to_owned()
-    } else if matches!(session.phase, GamePhase::GameOver(GameOverReason::Escaped)) {
-        "You escaped the dungeon, living to fight another day.".to_owned()
-    } else if matches!(session.phase, GamePhase::GameOver(GameOverReason::Expired)) {
-        "The session has expired due to inactivity.".to_owned()
-    } else {
-        format!("{}\n\n*What do you do?*", session.room.description)
+    let description = match &session.phase {
+        GamePhase::GameOver(GameOverReason::Victory) => {
+            "You have conquered The Glass Catacombs. Glory awaits.".to_owned()
+        }
+        GamePhase::GameOver(GameOverReason::Defeated) => {
+            "Your adventure ends here. The catacombs claim another soul.".to_owned()
+        }
+        GamePhase::GameOver(GameOverReason::Escaped) => {
+            "You escaped the dungeon, living to fight another day.".to_owned()
+        }
+        GamePhase::GameOver(GameOverReason::Expired) => {
+            "Session expired due to inactivity.".to_owned()
+        }
+        _ => format!("*{}*", session.room.description),
     };
 
     let mut embed = serenity::CreateEmbed::new()
@@ -86,25 +140,30 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
         .color(phase_color(session));
 
     // Player stats field
-    let player_field = format!(
-        "HP: {}\nArmor: {}\nGold: {}",
+    let mut player_lines = vec![
         hp_bar(session.player.hp, session.player.max_hp, 10),
-        session.player.armor,
-        session.player.gold
-    );
-    embed = embed.field("\u{2694}\u{FE0F} Player", player_field, true);
+        format!(
+            "DEF `{}`  Gold `{}`",
+            session.player.armor, session.player.gold
+        ),
+    ];
+    if let Some(fx) = format_effects(&session.player.effects) {
+        player_lines.push(format!("Status: {fx}"));
+    }
+    embed = embed.field("-- Player --", player_lines.join("\n"), true);
 
     // Enemy field (if in combat)
     if let Some(ref enemy) = session.enemy {
-        let enemy_field = format!(
-            "{} (Lv.{})\nHP: {}\nArmor: {}\nIntent: {}",
-            enemy.name,
-            enemy.level,
+        let mut enemy_lines = vec![
+            format!("**{}** (Lv.{})", enemy.name, enemy.level),
             hp_bar(enemy.hp, enemy.max_hp, 10),
-            enemy.armor,
-            intent_description(&enemy.intent)
-        );
-        embed = embed.field("\u{1F47E} Enemy", enemy_field, true);
+            format!("DEF `{}`", enemy.armor),
+            intent_description(&enemy.intent),
+        ];
+        if let Some(fx) = format_effects(&enemy.effects) {
+            enemy_lines.push(format!("Status: {fx}"));
+        }
+        embed = embed.field("-- Enemy --", enemy_lines.join("\n"), true);
     }
 
     // Room modifiers
@@ -115,23 +174,20 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
             .iter()
             .map(|m| match m {
                 RoomModifier::Fog { accuracy_penalty } => {
-                    format!(
-                        "\u{1F32B}\u{FE0F} Fog: accuracy -{:.0}%",
-                        accuracy_penalty * 100.0
-                    )
+                    format!("Fog -- accuracy -{:.0}%", accuracy_penalty * 100.0)
                 }
                 RoomModifier::Blessing { heal_bonus } => {
-                    format!("\u{2728} Blessing: +{} heal", heal_bonus)
+                    format!("Blessing -- +{heal_bonus} heal")
                 }
                 RoomModifier::Cursed { dmg_multiplier } => {
                     format!(
-                        "\u{1F480} Cursed: +{:.0}% damage taken",
+                        "Cursed -- +{:.0}% damage taken",
                         (dmg_multiplier - 1.0) * 100.0
                     )
                 }
             })
             .collect();
-        embed = embed.field("Room Effects", mods.join("\n"), false);
+        embed = embed.field("-- Room Effects --", mods.join("\n"), false);
     }
 
     // Combat log (last 5 entries)
@@ -144,15 +200,15 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
             .collect::<Vec<_>>()
             .into_iter()
             .rev()
-            .map(|s| format!("> {}", s))
+            .map(|s| format!("| {s}"))
             .collect::<Vec<_>>()
             .join("\n");
-        embed = embed.field("\u{1F4DC} Log", log_display, false);
+        embed = embed.field("-- Log --", log_display, false);
     }
 
     // Footer
     embed = embed.footer(serenity::CreateEmbedFooter::new(format!(
-        "Turn {} \u{2022} Session {}",
+        "Turn {}  //  Session {}",
         session.turn, session.short_id
     )));
 
@@ -171,36 +227,27 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         GamePhase::Exploring | GamePhase::Rest | GamePhase::Looting
     );
 
-    // Primary button row
+    // Primary button row — no emojis, clean labels, color conveys meaning
     let buttons = vec![
-        serenity::CreateButton::new(format!("dng|{}|atk|", sid))
+        serenity::CreateButton::new(format!("dng|{sid}|atk|"))
             .label("Attack")
             .style(serenity::ButtonStyle::Danger)
-            .emoji(serenity::ReactionType::Unicode(
-                "\u{2694}\u{FE0F}".to_owned(),
-            ))
             .disabled(game_over || !in_combat),
-        serenity::CreateButton::new(format!("dng|{}|def|", sid))
+        serenity::CreateButton::new(format!("dng|{sid}|def|"))
             .label("Defend")
             .style(serenity::ButtonStyle::Primary)
-            .emoji(serenity::ReactionType::Unicode(
-                "\u{1F6E1}\u{FE0F}".to_owned(),
-            ))
             .disabled(game_over || !in_combat),
-        serenity::CreateButton::new(format!("dng|{}|item|", sid))
-            .label("Item")
+        serenity::CreateButton::new(format!("dng|{sid}|item|"))
+            .label("Items")
             .style(serenity::ButtonStyle::Secondary)
-            .emoji(serenity::ReactionType::Unicode("\u{1F9EA}".to_owned()))
             .disabled(game_over || session.player.inventory.iter().all(|s| s.qty == 0)),
-        serenity::CreateButton::new(format!("dng|{}|explore|", sid))
+        serenity::CreateButton::new(format!("dng|{sid}|explore|"))
             .label("Explore")
             .style(serenity::ButtonStyle::Success)
-            .emoji(serenity::ReactionType::Unicode("\u{1F9ED}".to_owned()))
             .disabled(game_over || !exploring),
-        serenity::CreateButton::new(format!("dng|{}|flee|", sid))
+        serenity::CreateButton::new(format!("dng|{sid}|flee|"))
             .label("Flee")
             .style(serenity::ButtonStyle::Secondary)
-            .emoji(serenity::ReactionType::Unicode("\u{1F3C3}".to_owned()))
             .disabled(game_over),
     ];
 
@@ -216,7 +263,7 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             .filter_map(|s| {
                 super::content::find_item(&s.item_id).map(|def| {
                     serenity::CreateSelectMenuOption::new(
-                        format!("{} {} (x{})", def.emoji, def.name, s.qty),
+                        format!("{} (x{})", def.name, s.qty),
                         format!("{}|{}", s.item_id, s.qty),
                     )
                     .description(def.description)
@@ -226,10 +273,10 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
 
         if !options.is_empty() {
             let select = serenity::CreateSelectMenu::new(
-                format!("dng|{}|useitem|select", sid),
+                format!("dng|{sid}|useitem|select"),
                 serenity::CreateSelectMenuKind::String { options },
             )
-            .placeholder("Choose an item to use...");
+            .placeholder("Select an item...");
 
             rows.push(serenity::CreateActionRow::SelectMenu(select));
         }
@@ -269,25 +316,61 @@ mod tests {
     fn hp_bar_full() {
         let bar = hp_bar(50, 50, 10);
         assert!(bar.contains("50/50"));
-        assert!(bar.contains("\u{2588}\u{2588}\u{2588}"));
+        // 50 / 10 = 5 filled hearts
+        assert!(bar.contains("\u{2665}\u{2665}\u{2665}\u{2665}\u{2665}"));
+        assert!(!bar.contains("\u{2661}")); // no empty hearts
     }
 
     #[test]
     fn hp_bar_empty() {
         let bar = hp_bar(0, 50, 10);
         assert!(bar.contains("0/50"));
+        // 0 filled, 5 empty
+        assert!(bar.contains("\u{2661}\u{2661}\u{2661}\u{2661}\u{2661}"));
+        assert!(!bar.contains("\u{2665}")); // no filled hearts
+    }
+
+    #[test]
+    fn hp_bar_half() {
+        let bar = hp_bar(25, 50, 10);
+        assert!(bar.contains("25/50"));
+        // 25 / 10 = 2 filled, 3 empty
+        assert!(bar.contains("\u{2665}\u{2665}"));
+        assert!(bar.contains("\u{2661}\u{2661}\u{2661}"));
     }
 
     #[test]
     fn hp_bar_negative_clamped() {
         let bar = hp_bar(-5, 50, 10);
         assert!(bar.contains("0/50"));
+        assert!(!bar.contains("\u{2665}")); // no filled hearts
     }
 
     #[test]
     fn intent_descriptions() {
-        assert!(intent_description(&Intent::Attack { dmg: 5 }).contains("5 dmg"));
-        assert!(intent_description(&Intent::Charge).contains("Charging"));
+        let atk = intent_description(&Intent::Attack { dmg: 5 });
+        assert!(atk.contains("5 dmg"));
+        assert!(atk.contains("\u{2660}")); // ♠
+        let charge = intent_description(&Intent::Charge);
+        assert!(charge.contains("Charging"));
+        assert!(charge.contains("\u{2605}")); // ★
+    }
+
+    #[test]
+    fn format_effects_empty() {
+        assert!(format_effects(&[]).is_none());
+    }
+
+    #[test]
+    fn format_effects_single() {
+        let effects = vec![EffectInstance {
+            kind: EffectKind::Poison,
+            stacks: 1,
+            turns_left: 3,
+        }];
+        let result = format_effects(&effects).unwrap();
+        assert!(result.contains("\u{2622} Poison")); // ☢ Poison
+        assert!(result.contains("3 turns"));
     }
 
     #[test]
@@ -355,5 +438,19 @@ mod tests {
         let mut session = test_session();
         session.player.hp = 5;
         assert_eq!(phase_color(&session), COLOR_CRITICAL);
+    }
+
+    #[test]
+    fn phase_color_victory_is_gold() {
+        let mut session = test_session();
+        session.phase = GamePhase::GameOver(GameOverReason::Victory);
+        assert_eq!(phase_color(&session), COLOR_VICTORY);
+    }
+
+    #[test]
+    fn phase_color_rest_is_blue() {
+        let mut session = test_session();
+        session.phase = GamePhase::Rest;
+        assert_eq!(phase_color(&session), COLOR_REST);
     }
 }
