@@ -25,9 +25,7 @@ spec:
                 - name: mc
                   image: ghcr.io/kbve/mc:0.1.1
                   imagePullPolicy: Always
-                  env:
-                      - name: RESOURCE_PACK_URL
-                        value: 'https://mc.kbve.com/kbve-resource-pack.zip'
+                  command: ['/bin/pumpkin']
                   ports:
                       - name: java
                         containerPort: 25565
