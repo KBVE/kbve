@@ -6,16 +6,52 @@
 	"targets": {
 		"container": {
 			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
 			"options": {
-				"commands": [
-					"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker build -t kbve/mc:$VERSION -t kbve/mc:latest -f apps/mc/Dockerfile apps/mc"
-				],
 				"parallel": false
 			},
 			"configurations": {
 				"local": {
 					"commands": [
-						"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker build -t kbve/mc:$VERSION -t kbve/mc:local -f apps/mc/Dockerfile apps/mc"
+						"./kbve.sh -nx mc:containerx",
+						"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:latest kbve/mc:$VERSION && docker tag kbve/mc:latest kbve/mc:local && echo \"Tagged kbve/mc:$VERSION and kbve/mc:local\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx mc:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:latest kbve/mc:$VERSION && docker tag ghcr.io/kbve/mc:latest ghcr.io/kbve/mc:$VERSION && echo \"Tagged kbve/mc:$VERSION and ghcr.io/kbve/mc:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/mc",
+				"file": "apps/mc/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/mc:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": ["ghcr.io/kbve/mc", "kbve/mc"],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/mc:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/mc:buildcache,mode=max"
 					]
 				}
 			}

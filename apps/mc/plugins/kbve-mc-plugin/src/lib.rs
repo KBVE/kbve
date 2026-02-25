@@ -1,23 +1,32 @@
 #![allow(unused_imports, clippy::async_yields_async)]
 
-use std::sync::Arc;
 use std::sync::atomic::Ordering;
+use std::sync::{Arc, LazyLock};
 use std::time::Duration;
 
+use dashmap::DashMap;
 use pumpkin::command::args::players::PlayersArgumentConsumer;
 use pumpkin::command::args::{ConsumedArgs, FindArgDefaultName};
 use pumpkin::command::dispatcher::CommandError;
 use pumpkin::command::tree::CommandTree;
 use pumpkin::command::tree::builder::{argument_default_name, literal};
 use pumpkin::command::{CommandExecutor, CommandResult, CommandSender};
+use pumpkin::entity::EntityBase;
 use pumpkin::plugin::api::Context;
+use pumpkin::plugin::player::player_interact_entity_event::PlayerInteractEntityEvent;
 use pumpkin::plugin::player::player_join::PlayerJoinEvent;
 use pumpkin::plugin::{BoxFuture, EventHandler, EventPriority};
 use pumpkin::server::Server;
 use pumpkin_api_macros::plugin_impl;
+use pumpkin_data::damage::DamageType;
 use pumpkin_data::data_component::DataComponent;
-use pumpkin_data::data_component_impl::{CustomNameImpl, DataComponentImpl, ItemModelImpl};
+use pumpkin_data::data_component_impl::{
+    CustomNameImpl, DamageImpl, DataComponentImpl, ItemModelImpl, MaxDamageImpl,
+};
 use pumpkin_data::item::Item;
+use pumpkin_data::particle::Particle;
+use pumpkin_protocol::java::server::play::ActionType;
+use pumpkin_util::Hand;
 use pumpkin_util::math::position::BlockPos;
 use pumpkin_util::math::vector2::Vector2;
 use pumpkin_util::math::vector3::Vector3;
@@ -168,36 +177,77 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
 }
 
 // ---------------------------------------------------------------------------
-// /kbve give <coin|sword> command
+// Item registry — DashMap keyed by command name
 // ---------------------------------------------------------------------------
 
-struct GiveCoinExecutor;
-struct GiveSwordExecutor;
-
-fn give_custom_item(item: &'static Item, model: &str, name: &str) -> ItemStack {
-    let mut stack = ItemStack::new(1, item);
-    stack.patch.push((
-        DataComponent::ItemModel,
-        Some(
-            ItemModelImpl {
-                model: model.to_string(),
-            }
-            .to_dyn(),
-        ),
-    ));
-    stack.patch.push((
-        DataComponent::CustomName,
-        Some(
-            CustomNameImpl {
-                name: name.to_string(),
-            }
-            .to_dyn(),
-        ),
-    ));
-    stack
+struct ItemDef {
+    base_item_key: &'static str,
+    model: &'static str,
+    display_name: &'static str,
+    message_color: NamedColor,
+    particle: Option<(Particle, i32)>,
+    max_damage: Option<i32>,
 }
 
-impl CommandExecutor for GiveCoinExecutor {
+static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|| {
+    let map = DashMap::new();
+    map.insert(
+        "coin",
+        ItemDef {
+            base_item_key: "gold_nugget",
+            model: "kbve:kbve_coin",
+            display_name: "KBVE Coin",
+            message_color: NamedColor::Gold,
+            particle: None,
+            max_damage: None,
+        },
+    );
+    map.insert(
+        "sword",
+        ItemDef {
+            base_item_key: "diamond_sword",
+            model: "kbve:kbve_sword",
+            display_name: "KBVE Sword",
+            message_color: NamedColor::Aqua,
+            particle: None,
+            max_damage: None,
+        },
+    );
+    map.insert(
+        "rust_stone",
+        ItemDef {
+            base_item_key: "stone",
+            model: "kbve:rust_stone",
+            display_name: "Rust Stone",
+            message_color: NamedColor::Red,
+            particle: Some((Particle::Flame, 15)),
+            max_damage: None,
+        },
+    );
+    map.insert(
+        "spartan_shield",
+        ItemDef {
+            base_item_key: "shield",
+            model: "kbve:spartan_shield",
+            display_name: "Spartan Shield",
+            message_color: NamedColor::DarkRed,
+            particle: Some((Particle::Flame, 10)),
+            // Vanilla shield = 336; mid-tier, breaks faster
+            max_damage: Some(200),
+        },
+    );
+    map
+});
+
+// ---------------------------------------------------------------------------
+// /kbve give <item> <player> — generic executor backed by ITEM_REGISTRY
+// ---------------------------------------------------------------------------
+
+struct GiveItemExecutor {
+    item_key: &'static str,
+}
+
+impl CommandExecutor for GiveItemExecutor {
     fn execute<'a>(
         &'a self,
         sender: &'a CommandSender,
@@ -205,50 +255,80 @@ impl CommandExecutor for GiveCoinExecutor {
         args: &'a ConsumedArgs<'a>,
     ) -> CommandResult<'a> {
         Box::pin(async move {
+            let def = ITEM_REGISTRY
+                .get(self.item_key)
+                .ok_or_else(|| CommandError::CommandFailed(TextComponent::text("Unknown item")))?;
+
             let targets = PlayersArgumentConsumer.find_arg_default_name(args)?;
-            let item = Item::from_registry_key("gold_nugget").ok_or_else(|| {
-                CommandError::CommandFailed(TextComponent::text("gold_nugget not found"))
+            let item = Item::from_registry_key(def.base_item_key).ok_or_else(|| {
+                CommandError::CommandFailed(TextComponent::text(format!(
+                    "{} not found",
+                    def.base_item_key
+                )))
             })?;
 
             for target in targets {
-                let mut stack = give_custom_item(item, "kbve:kbve_coin", "KBVE Coin");
+                let mut stack = ItemStack::new(1, item);
+                stack.patch.push((
+                    DataComponent::ItemModel,
+                    Some(
+                        ItemModelImpl {
+                            model: def.model.to_string(),
+                        }
+                        .to_dyn(),
+                    ),
+                ));
+                stack.patch.push((
+                    DataComponent::CustomName,
+                    Some(
+                        CustomNameImpl {
+                            name: def.display_name.to_string(),
+                        }
+                        .to_dyn(),
+                    ),
+                ));
+
+                if let Some(max_dmg) = def.max_damage {
+                    stack.patch.push((
+                        DataComponent::MaxDamage,
+                        Some(
+                            MaxDamageImpl {
+                                max_damage: max_dmg,
+                            }
+                            .to_dyn(),
+                        ),
+                    ));
+                    stack.patch.push((
+                        DataComponent::Damage,
+                        Some(DamageImpl { damage: 0 }.to_dyn()),
+                    ));
+                }
+
                 target.inventory().insert_stack_anywhere(&mut stack).await;
                 if !stack.is_empty() {
                     target.drop_item(stack).await;
                 }
-            }
 
-            sender
-                .send_message(TextComponent::text("Gave KBVE Coin!").color_named(NamedColor::Gold))
-                .await;
-            Ok(1)
-        })
-    }
-}
-
-impl CommandExecutor for GiveSwordExecutor {
-    fn execute<'a>(
-        &'a self,
-        sender: &'a CommandSender,
-        _server: &'a Server,
-        args: &'a ConsumedArgs<'a>,
-    ) -> CommandResult<'a> {
-        Box::pin(async move {
-            let targets = PlayersArgumentConsumer.find_arg_default_name(args)?;
-            let item = Item::from_registry_key("diamond_sword").ok_or_else(|| {
-                CommandError::CommandFailed(TextComponent::text("diamond_sword not found"))
-            })?;
-
-            for target in targets {
-                let mut stack = give_custom_item(item, "kbve:kbve_sword", "KBVE Sword");
-                target.inventory().insert_stack_anywhere(&mut stack).await;
-                if !stack.is_empty() {
-                    target.drop_item(stack).await;
+                if let Some((particle, count)) = &def.particle {
+                    let pos = target.living_entity.entity.pos.load();
+                    target
+                        .world()
+                        .spawn_particle(
+                            Vector3::new(pos.x, pos.y + 1.0, pos.z),
+                            Vector3::new(0.3, 0.5, 0.3),
+                            0.05,
+                            *count,
+                            *particle,
+                        )
+                        .await;
                 }
             }
 
             sender
-                .send_message(TextComponent::text("Gave KBVE Sword!").color_named(NamedColor::Aqua))
+                .send_message(
+                    TextComponent::text(format!("Gave {}!", def.display_name))
+                        .color_named(def.message_color),
+                )
                 .await;
             Ok(1)
         })
@@ -256,18 +336,99 @@ impl CommandExecutor for GiveSwordExecutor {
 }
 
 fn kbve_command_tree() -> CommandTree {
-    CommandTree::new(["kbve"], "KBVE custom items").then(
-        literal("give")
-            .then(
-                literal("coin")
-                    .then(argument_default_name(PlayersArgumentConsumer).execute(GiveCoinExecutor)),
-            )
-            .then(
-                literal("sword").then(
-                    argument_default_name(PlayersArgumentConsumer).execute(GiveSwordExecutor),
-                ),
+    let mut give = literal("give");
+    for entry in ITEM_REGISTRY.iter() {
+        let key = *entry.key();
+        give = give.then(
+            literal(key).then(
+                argument_default_name(PlayersArgumentConsumer)
+                    .execute(GiveItemExecutor { item_key: key }),
             ),
-    )
+        );
+    }
+    CommandTree::new(["kbve"], "KBVE custom items").then(give)
+}
+
+// ---------------------------------------------------------------------------
+// Shield block handler — reflects damage when attacker hits a shield holder
+// ---------------------------------------------------------------------------
+
+struct ShieldBlockHandler;
+
+impl EventHandler<PlayerInteractEntityEvent> for ShieldBlockHandler {
+    fn handle<'a>(
+        &'a self,
+        _server: &'a Arc<Server>,
+        event: &'a PlayerInteractEntityEvent,
+    ) -> BoxFuture<'a, ()> {
+        let attacker = Arc::clone(&event.player);
+        let target = Arc::clone(&event.target);
+        let action = event.action.clone();
+
+        Box::pin(async move {
+            if !matches!(action, ActionType::Attack) {
+                return;
+            }
+
+            let Some(target_player) = target.get_player() else {
+                return;
+            };
+
+            // Check both hands for the Spartan Shield
+            let has_shield = {
+                let off_hand = target_player
+                    .inventory()
+                    .get_stack_in_hand(Hand::Left)
+                    .await;
+                let stack = off_hand.lock().await;
+                let off = stack
+                    .get_data_component::<ItemModelImpl>()
+                    .is_some_and(|m| m.model == "kbve:spartan_shield");
+
+                if off {
+                    true
+                } else {
+                    let main_hand = target_player.inventory().held_item();
+                    let stack = main_hand.lock().await;
+                    stack
+                        .get_data_component::<ItemModelImpl>()
+                        .is_some_and(|m| m.model == "kbve:spartan_shield")
+                }
+            };
+
+            if !has_shield {
+                return;
+            }
+
+            // Deal 3 thorns damage back to the attacker
+            attacker
+                .damage_with_context(
+                    &*attacker,
+                    3.0,
+                    DamageType::THORNS,
+                    None,
+                    Some(target_player),
+                    None,
+                )
+                .await;
+
+            // Degrade the shield (1 durability per reflected hit)
+            target_player.damage_held_item(1).await;
+
+            // Visual feedback — flame burst on the attacker
+            let pos = attacker.living_entity.entity.pos.load();
+            attacker
+                .world()
+                .spawn_particle(
+                    Vector3::new(pos.x, pos.y + 1.0, pos.z),
+                    Vector3::new(0.2, 0.3, 0.2),
+                    0.02,
+                    8,
+                    Particle::Flame,
+                )
+                .await;
+        })
+    }
 }
 
 // ---------------------------------------------------------------------------
@@ -326,11 +487,14 @@ impl KbveMcPlugin {
     async fn on_load(&mut self, context: Arc<Context>) -> Result<(), String> {
         eprintln!("[kbve-mc-plugin] on_load START");
 
-        // Register welcome event handler
+        // Register event handlers
         context
             .register_event(Arc::new(WelcomeHandler), EventPriority::Normal, false)
             .await;
-        eprintln!("[kbve-mc-plugin] Welcome handler registered");
+        context
+            .register_event(Arc::new(ShieldBlockHandler), EventPriority::Normal, false)
+            .await;
+        eprintln!("[kbve-mc-plugin] Event handlers registered");
 
         // Register /kbve command permission (Allow = all players can use it)
         if let Err(e) = context

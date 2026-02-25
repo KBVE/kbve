@@ -1,0 +1,6 @@
+{
+	"parent": "minecraft:item/handheld",
+	"textures": {
+		"layer0": "kbve:item/weapons/kbve_sword"
+	}
+}
