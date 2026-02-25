@@ -87,10 +87,14 @@ COPY ./data/server_icon.png /pumpkin/server_icon.png
 COPY --from=pack-builder /kbve-resource-pack.zip /pumpkin/resource-pack.zip
 COPY --from=pack-builder /features.toml /pumpkin/config/features.toml
 
+# Entrypoint: templates RESOURCE_PACK_URL env var into features.toml at startup
+COPY ./entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
 RUN apk add --no-cache libgcc && chown -R 2613:2613 .
 
 ENV RUST_BACKTRACE=1
 EXPOSE 25565 8080 25575
 USER 2613:2613
-ENTRYPOINT [ "/bin/pumpkin" ]
+ENTRYPOINT ["/entrypoint.sh"]
 HEALTHCHECK CMD nc -z 127.0.0.1 25565 || exit 1

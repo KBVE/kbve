@@ -5,6 +5,8 @@ metadata:
     namespace: mc
     labels:
         app: mc
+    annotations:
+        metallb.universe.tf/allow-shared-ip: 'shared-public-ip'
 spec:
     type: LoadBalancer
     selector:

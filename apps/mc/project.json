@@ -22,6 +22,12 @@
 						"./kbve.sh -nx mc:containerx --configuration=production",
 						"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:latest kbve/mc:$VERSION && docker tag ghcr.io/kbve/mc:latest ghcr.io/kbve/mc:$VERSION && echo \"Tagged kbve/mc:$VERSION and ghcr.io/kbve/mc:$VERSION\""
 					]
+				},
+				"ci": {
+					"commands": [
+						"./kbve.sh -nx mc:containerx --configuration=ci",
+						"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:latest kbve/mc:$VERSION && docker tag kbve/mc:latest kbve/mc:local && echo \"Tagged kbve/mc:$VERSION and kbve/mc:local\""
+					]
 				}
 			}
 		},
@@ -56,6 +62,13 @@
 					"cache-to": [
 						"type=registry,ref=ghcr.io/kbve/mc:buildcache,mode=max"
 					]
+				},
+				"ci": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/mc:latest"],
+					"cache-from": ["type=gha"],
+					"cache-to": ["type=gha,mode=max"]
 				}
 			}
 		},
@@ -78,12 +91,23 @@
 		"e2e": {
 			"executor": "nx:run-commands",
 			"cache": false,
+			"defaultConfiguration": "local",
 			"options": {
-				"commands": [
-					"nx container mc --configuration=local --no-cloud",
-					"nx e2e mc-e2e --no-cloud"
-				],
 				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"nx container mc --configuration=local --no-cloud",
+						"nx e2e mc-e2e --no-cloud"
+					]
+				},
+				"ci": {
+					"commands": [
+						"nx container mc --configuration=ci --no-cloud",
+						"nx e2e mc-e2e --no-cloud"
+					]
+				}
 			}
 		}
 	},
