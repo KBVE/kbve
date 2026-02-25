@@ -1,10 +1,11 @@
 import { defineConfig, devices } from '@playwright/test';
 
-const mode = process.env['E2E_STATIC'] === 'true'
-	? 'static'
-	: process.env['E2E_PREVIEW'] === 'true'
-		? 'preview'
-		: 'dev';
+const mode =
+	process.env['E2E_STATIC'] === 'true'
+		? 'static'
+		: process.env['E2E_PREVIEW'] === 'true'
+			? 'preview'
+			: 'dev';
 
 const ports = { dev: 4302, preview: 4303, static: 4304 } as const;
 const port = ports[mode];
@@ -18,6 +19,7 @@ const commands: Record<string, string> = {
 
 export default defineConfig({
 	testDir: './e2e',
+	globalTeardown: './e2e/global-teardown.ts',
 	fullyParallel: true,
 	forbidOnly: !!process.env['CI'],
 	retries: process.env['CI'] ? 2 : 0,
@@ -39,6 +41,6 @@ export default defineConfig({
 		command: commands[mode],
 		url: baseURL,
 		reuseExistingServer: !process.env['CI'],
-		timeout: 30_000,
+		timeout: 120_000,
 	},
 });
