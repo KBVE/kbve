@@ -11,10 +11,11 @@
 			"options": {
 				"commands": [
 					"docker rm -f mc-e2e-test 2>/dev/null || true",
-					"docker run -d --name mc-e2e-test -p 25565:25565 kbve/mc:local",
-					"npx vitest run --config apps/mc/mc-e2e/vitest.config.ts; EC=$?; docker rm -f mc-e2e-test 2>/dev/null || true; exit $EC"
+					"docker run -d --name mc-e2e-test -p 25565:25565 -p 8080:8080 kbve/mc:local",
+					"npx vitest run; EC=$?; docker rm -f mc-e2e-test 2>/dev/null || true; exit $EC"
 				],
-				"parallel": false
+				"parallel": false,
+				"cwd": "apps/mc/mc-e2e"
 			}
 		}
 	},
