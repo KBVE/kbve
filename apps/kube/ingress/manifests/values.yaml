@@ -88,5 +88,7 @@ defaultBackend:
 tcp:
     6667: 'irc/ergo-irc-service:6667'
     6697: 'irc/ergo-irc-service:6697'
+    25565: 'mc/mc-service:25565'
 
-udp: {}
+udp:
+    19132: 'mc/mc-service:19132'
