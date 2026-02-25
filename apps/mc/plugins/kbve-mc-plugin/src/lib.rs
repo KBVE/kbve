@@ -1,4 +1,4 @@
-#![allow(unused_imports)]
+#![allow(unused_imports, clippy::async_yields_async)]
 
 use std::sync::Arc;
 use std::sync::atomic::Ordering;
@@ -365,6 +365,12 @@ impl KbveMcPlugin {
 
 #[plugin_impl]
 pub struct KbveMcPlugin;
+
+impl Default for KbveMcPlugin {
+    fn default() -> Self {
+        Self
+    }
+}
 
 impl KbveMcPlugin {
     pub fn new() -> Self {
