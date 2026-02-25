@@ -24,11 +24,30 @@ fn phase_color(session: &SessionState) -> u32 {
 
 // ── HP bar ──────────────────────────────────────────────────────────
 
-/// Render an HP bar like `[####------] 32/50`
+/// Render an HP bar like `♥♥♥♥♡` **32/50**
 ///
-/// Uses `#` for filled and `-` for empty inside a monospace code block
-/// so the bar aligns cleanly in Discord embeds.
-pub fn hp_bar(current: i32, max: i32, width: usize) -> String {
+/// Each heart represents `points_per_heart` HP (default 10).
+/// ♥ = filled, ♡ = empty.
+pub fn hp_bar(current: i32, max: i32, points_per_heart: i32) -> String {
+    let current = current.max(0);
+    let total_hearts = (max + points_per_heart - 1) / points_per_heart;
+    let filled_hearts = current / points_per_heart;
+    let empty_hearts = total_hearts - filled_hearts;
+
+    format!(
+        "{}{}  **{}/{}**",
+        "\u{2665}".repeat(filled_hearts as usize),
+        "\u{2661}".repeat(empty_hearts as usize),
+        current,
+        max
+    )
+}
+
+/// Render a block progress bar like `♦ [████░░░░░░]` **20/60**
+///
+/// Useful for expandable resource pools (mana, stamina, XP, etc.)
+/// where the total can grow over time.
+pub fn progress_bar(label: &str, current: i32, max: i32, width: usize) -> String {
     let current = current.max(0);
     let ratio = if max > 0 {
         current as f32 / max as f32
@@ -39,9 +58,10 @@ pub fn hp_bar(current: i32, max: i32, width: usize) -> String {
     let empty = width.saturating_sub(filled);
 
     format!(
-        "`[{}{}]` **{}/{}**",
-        "#".repeat(filled),
-        "-".repeat(empty),
+        "{} `[{}{}]` **{}/{}**",
+        label,
+        "\u{2588}".repeat(filled),
+        "\u{2591}".repeat(empty),
         current,
         max
     )
@@ -51,11 +71,15 @@ pub fn hp_bar(current: i32, max: i32, width: usize) -> String {
 
 pub fn intent_description(intent: &Intent) -> String {
     match intent {
-        Intent::Attack { dmg } => format!(">> Attack ({dmg} dmg)"),
-        Intent::HeavyAttack { dmg } => format!(">> Heavy blow ({dmg} dmg)"),
-        Intent::Defend { armor } => format!(">> Brace (+{armor} armor)"),
-        Intent::Charge => ">> Charging...".to_owned(),
-        Intent::Flee => ">> Retreating...".to_owned(),
+        Intent::Attack { dmg } => format!("\u{2660} Attack ({dmg} dmg)"),
+        Intent::HeavyAttack { dmg } => {
+            format!("\u{2620} Heavy blow ({dmg} dmg)")
+        }
+        Intent::Defend { armor } => {
+            format!("\u{2726} Brace (+{armor} armor)")
+        }
+        Intent::Charge => "\u{2605} Charging...".to_owned(),
+        Intent::Flee => "\u{2663} Retreating...".to_owned(),
     }
 }
 
@@ -69,12 +93,12 @@ fn format_effects(effects: &[EffectInstance]) -> Option<String> {
         .iter()
         .map(|e| {
             let label = match e.kind {
-                EffectKind::Poison => "Poison",
-                EffectKind::Burning => "Burning",
-                EffectKind::Bleed => "Bleed",
-                EffectKind::Shielded => "Shielded",
-                EffectKind::Weakened => "Weakened",
-                EffectKind::Stunned => "Stunned",
+                EffectKind::Poison => "\u{2622} Poison",     // ☢
+                EffectKind::Burning => "\u{2666} Burning",   // ♦
+                EffectKind::Bleed => "\u{2660} Bleed",       // ♠
+                EffectKind::Shielded => "\u{2726} Shielded", // ✦
+                EffectKind::Weakened => "\u{2727} Weakened", // ✧
+                EffectKind::Stunned => "\u{2620} Stunned",   // ☠
             };
             format!("{label} ({} turns)", e.turns_left)
         })
@@ -117,10 +141,7 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
 
     // Player stats field
     let mut player_lines = vec![
-        format!(
-            "HP  {}",
-            hp_bar(session.player.hp, session.player.max_hp, 10)
-        ),
+        hp_bar(session.player.hp, session.player.max_hp, 10),
         format!(
             "DEF `{}`  Gold `{}`",
             session.player.armor, session.player.gold
@@ -135,7 +156,7 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
     if let Some(ref enemy) = session.enemy {
         let mut enemy_lines = vec![
             format!("**{}** (Lv.{})", enemy.name, enemy.level),
-            format!("HP  {}", hp_bar(enemy.hp, enemy.max_hp, 10)),
+            hp_bar(enemy.hp, enemy.max_hp, 10),
             format!("DEF `{}`", enemy.armor),
             intent_description(&enemy.intent),
         ];
@@ -295,33 +316,44 @@ mod tests {
     fn hp_bar_full() {
         let bar = hp_bar(50, 50, 10);
         assert!(bar.contains("50/50"));
-        assert!(bar.contains("##########"));
+        // 50 / 10 = 5 filled hearts
+        assert!(bar.contains("\u{2665}\u{2665}\u{2665}\u{2665}\u{2665}"));
+        assert!(!bar.contains("\u{2661}")); // no empty hearts
     }
 
     #[test]
     fn hp_bar_empty() {
         let bar = hp_bar(0, 50, 10);
         assert!(bar.contains("0/50"));
-        assert!(bar.contains("----------"));
+        // 0 filled, 5 empty
+        assert!(bar.contains("\u{2661}\u{2661}\u{2661}\u{2661}\u{2661}"));
+        assert!(!bar.contains("\u{2665}")); // no filled hearts
     }
 
     #[test]
     fn hp_bar_half() {
         let bar = hp_bar(25, 50, 10);
         assert!(bar.contains("25/50"));
-        assert!(bar.contains("#####-----"));
+        // 25 / 10 = 2 filled, 3 empty
+        assert!(bar.contains("\u{2665}\u{2665}"));
+        assert!(bar.contains("\u{2661}\u{2661}\u{2661}"));
     }
 
     #[test]
     fn hp_bar_negative_clamped() {
         let bar = hp_bar(-5, 50, 10);
         assert!(bar.contains("0/50"));
+        assert!(!bar.contains("\u{2665}")); // no filled hearts
     }
 
     #[test]
     fn intent_descriptions() {
-        assert!(intent_description(&Intent::Attack { dmg: 5 }).contains("5 dmg"));
-        assert!(intent_description(&Intent::Charge).contains("Charging"));
+        let atk = intent_description(&Intent::Attack { dmg: 5 });
+        assert!(atk.contains("5 dmg"));
+        assert!(atk.contains("\u{2660}")); // ♠
+        let charge = intent_description(&Intent::Charge);
+        assert!(charge.contains("Charging"));
+        assert!(charge.contains("\u{2605}")); // ★
     }
 
     #[test]
@@ -337,7 +369,7 @@ mod tests {
             turns_left: 3,
         }];
         let result = format_effects(&effects).unwrap();
-        assert!(result.contains("Poison"));
+        assert!(result.contains("\u{2622} Poison")); // ☢ Poison
         assert!(result.contains("3 turns"));
     }
 
