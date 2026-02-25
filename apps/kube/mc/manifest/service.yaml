@@ -6,7 +6,7 @@ metadata:
     labels:
         app: mc
     annotations:
-        metallb.universe.tf/allow-shared-ip: 'shared-public-ip'
+        metallb.io/allow-shared-ip: 'shared-public-ip'
 spec:
     type: LoadBalancer
     selector:
