@@ -39,10 +39,10 @@ jobs:
 
                   if git merge --no-commit --no-ff origin/main; then
                     echo "No merge conflicts detected"
-                    git merge --abort
+                    git merge --abort 2>/dev/null || git reset --hard HEAD
                   else
                     echo "Merge conflicts detected! Please resolve before merging."
-                    git merge --abort
+                    git merge --abort 2>/dev/null || git reset --hard HEAD
                     exit 1
                   fi
 
