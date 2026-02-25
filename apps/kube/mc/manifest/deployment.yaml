@@ -23,7 +23,7 @@ spec:
                 fsGroup: 2613
             containers:
                 - name: mc
-                  image: ghcr.io/kbve/mc:latest
+                  image: ghcr.io/kbve/mc:0.1.1
                   imagePullPolicy: Always
                   env:
                       - name: RESOURCE_PACK_URL
