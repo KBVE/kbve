@@ -7,4 +7,4 @@
 	url = https://github.com/kbve/ergo
 [submodule "apps/mc/pumpkin"]
 	path = apps/mc/pumpkin
-	url = https://github.com/Pumpkin-MC/Pumpkin
+	url = https://github.com/KBVE/Pumpkin

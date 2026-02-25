@@ -14,4 +14,7 @@ pumpkin = { path = "../../pumpkin/pumpkin" }
 pumpkin-api-macros = { path = "../../pumpkin/pumpkin-api-macros" }
 pumpkin-macros = { path = "../../pumpkin/pumpkin-macros" }
 pumpkin-util = { path = "../../pumpkin/pumpkin-util" }
+pumpkin-data = { path = "../../pumpkin/pumpkin-data" }
+pumpkin-world = { path = "../../pumpkin/pumpkin-world" }
 tokio = { version = "1", features = ["rt-multi-thread"] }
+axum = "0.8"
