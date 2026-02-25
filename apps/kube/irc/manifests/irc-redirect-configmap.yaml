@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: irc-redirect-html
+    namespace: irc
+data:
+    index.html: |
+        <!DOCTYPE html>
+        <html lang="en">
+        <head>
+          <meta charset="UTF-8">
+          <meta http-equiv="refresh" content="0;url=https://chat.kbve.com">
+          <title>Redirecting to KBVE Chat</title>
+        </head>
+        <body>
+          <p>Redirecting to <a href="https://chat.kbve.com">chat.kbve.com</a>...</p>
+          <script>window.location.replace("https://chat.kbve.com" + window.location.pathname + window.location.search);</script>
+        </body>
+        </html>
