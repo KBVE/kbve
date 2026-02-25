@@ -211,6 +211,62 @@ jobs:
                       console.log(`Updated PR #${prNumber} — ${title}`);
                       return { number: prNumber };
 
+            - name: Enable auto-merge with clean commit title
+              if: fromJson(steps.check_changes.outputs.result).hasChanges == true
+              uses: actions/github-script@v8
+              with:
+                  github-token: ${{ secrets.GITHUB_TOKEN }}
+                  script: |
+                      const path = require('path');
+                      const utils = await import(path.resolve('.github/scripts/commit-utils.mjs'));
+                      const prResult = ${{ steps.upsert_pr.outputs.result }};
+                      const prNumber = prResult.number;
+
+                      // Get PR node_id and title
+                      const pr = await github.rest.pulls.get({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        pull_number: prNumber
+                      });
+
+                      // Generate clean merge commit body (plain text, no markdown UI)
+                      const comparison = await github.rest.repos.compareCommits({
+                        owner: context.repo.owner,
+                        repo: context.repo.repo,
+                        base: 'staging',
+                        head: 'dev'
+                      });
+                      const rawCommits = comparison.data.commits.map(c => ({
+                        message: c.commit.message,
+                        sha: c.sha
+                      }));
+                      const { categories } = utils.categorizeCommits(rawCommits);
+                      const mergeBody = utils.formatMergeCommitBody(categories, rawCommits.length, 'staging');
+
+                      try {
+                        await github.graphql(`
+                          mutation($prId: ID!, $headline: String!, $body: String!) {
+                            enablePullRequestAutoMerge(input: {
+                              pullRequestId: $prId
+                              commitHeadline: $headline
+                              commitBody: $body
+                              mergeMethod: MERGE
+                            }) {
+                              pullRequest { number }
+                            }
+                          }
+                        `, {
+                          prId: pr.data.node_id,
+                          headline: pr.data.title,
+                          body: mergeBody
+                        });
+                        console.log(`Auto-merge enabled for PR #${prNumber} with title: ${pr.data.title}`);
+                      } catch (error) {
+                        console.log(`Could not enable auto-merge: ${error.message}`);
+                        console.log('Ensure "Allow auto-merge" is enabled in repo settings and branch protection is configured on staging');
+                        console.log('PR will need manual merge — use the PR title as the merge commit message');
+                      }
+
             - name: Summary
               run: |
                   if [[ "${{ fromJson(steps.check_changes.outputs.result).hasChanges }}" == "true" ]]; then

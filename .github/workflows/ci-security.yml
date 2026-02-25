@@ -34,7 +34,6 @@ jobs:
                 language:
                     - javascript-typescript
                     - python
-                    - rust
 
         steps:
             - name: Checkout
@@ -60,6 +59,40 @@ jobs:
               uses: github/codeql-action/analyze@v4
               with:
                   category: /language:${{ matrix.language }}
+
+    codeql-rust:
+        name: CodeQL Rust Analysis
+        runs-on: ubuntu-latest
+        if: github.event_name == 'schedule'
+        timeout-minutes: 120
+        permissions:
+            security-events: write
+            contents: read
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  submodules: recursive
+
+            - name: Initialize CodeQL
+              uses: github/codeql-action/init@v4
+              with:
+                  languages: rust
+                  queries: security-and-quality
+                  config: |
+                      paths-ignore:
+                          - 'apps/mc/pumpkin'
+                          - 'apps/irc/ergo'
+                          - 'apps/postgres'
+
+            - name: Auto-build
+              uses: github/codeql-action/autobuild@v4
+
+            - name: Run CodeQL Analysis
+              uses: github/codeql-action/analyze@v4
+              with:
+                  category: /language:rust
 
     dependency-review:
         name: Dependency Review
