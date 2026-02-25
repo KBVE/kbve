@@ -16,7 +16,7 @@ use pumpkin::plugin::{BoxFuture, EventHandler, EventPriority};
 use pumpkin::server::Server;
 use pumpkin_api_macros::plugin_impl;
 use pumpkin_data::data_component::DataComponent;
-use pumpkin_data::data_component_impl::{DataComponentImpl, ItemModelImpl};
+use pumpkin_data::data_component_impl::{CustomNameImpl, DataComponentImpl, ItemModelImpl};
 use pumpkin_data::item::Item;
 use pumpkin_util::math::position::BlockPos;
 use pumpkin_util::math::vector2::Vector2;
@@ -47,6 +47,11 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
 
             eprintln!("[kbve-mc-plugin] Sending welcome to {name} ({uuid})");
 
+            // Capture BEFORE the sleep — spawn_java_player runs concurrently and
+            // sets has_played_before = true at world/mod.rs:1881 during the delay.
+            let is_first_join = !player.has_played_before.load(Ordering::Relaxed);
+            eprintln!("[kbve-mc-plugin] is_first_join={is_first_join} for {name}");
+
             // Brief delay so the client finishes the login sequence before we send messages.
             // Use std::thread::sleep because the cdylib plugin has its own tokio statics
             // and cannot access the host runtime's timer driver.
@@ -65,21 +70,31 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
 
             // For first-time players, ensure they spawn on solid ground (not ocean).
             // Pumpkin defaults world spawn to (0, y, 0) which is often ocean.
-            if !player.has_played_before.load(Ordering::Relaxed) {
+            // We check the world spawn surface block (not player position, since
+            // gravity may have moved them to the ocean floor during the sleep).
+            if is_first_join {
                 let world = player.world();
-                let pos = player.position();
-                let feet_y = pos.y as i32 - 1;
-                let block_below = world
-                    .get_block(&BlockPos::new(pos.x as i32, feet_y, pos.z as i32))
+                let info = server.level_info.load();
+                let spawn_x = info.spawn_x;
+                let spawn_z = info.spawn_z;
+
+                let top_y = world.get_top_block(Vector2::new(spawn_x, spawn_z)).await;
+                let surface_block = world
+                    .get_block(&BlockPos::new(spawn_x, top_y, spawn_z))
                     .await;
 
-                if !block_below.is_solid() {
+                eprintln!(
+                    "[kbve-mc-plugin] Spawn surface check at ({}, {}, {}): solid={}",
+                    spawn_x,
+                    top_y,
+                    spawn_z,
+                    surface_block.is_solid(),
+                );
+
+                if !surface_block.is_solid() {
                     eprintln!(
                         "[kbve-mc-plugin] {name} spawned on non-solid ground, searching for land..."
                     );
-
-                    let origin_x = pos.x as i32;
-                    let origin_z = pos.z as i32;
 
                     // Search in expanding rings (chunk-sized steps) for solid ground
                     'search: for radius in 1..=20u32 {
@@ -96,24 +111,25 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                         ];
 
                         for (dx, dz) in offsets {
-                            let check_x = origin_x + dx;
-                            let check_z = origin_z + dz;
-                            let top_y = world.get_top_block(Vector2::new(check_x, check_z)).await;
-                            let top_block = world
-                                .get_block(&BlockPos::new(check_x, top_y, check_z))
+                            let check_x = spawn_x + dx;
+                            let check_z = spawn_z + dz;
+                            let check_top =
+                                world.get_top_block(Vector2::new(check_x, check_z)).await;
+                            let check_block = world
+                                .get_block(&BlockPos::new(check_x, check_top, check_z))
                                 .await;
 
-                            if top_block.is_solid() {
+                            if check_block.is_solid() {
                                 let land_pos = Vector3::new(
                                     f64::from(check_x) + 0.5,
-                                    f64::from(top_y + 1),
+                                    f64::from(check_top + 1),
                                     f64::from(check_z) + 0.5,
                                 );
 
                                 eprintln!(
                                     "[kbve-mc-plugin] Found land at ({}, {}, {}) — teleporting {name}",
                                     check_x,
-                                    top_y + 1,
+                                    check_top + 1,
                                     check_z,
                                 );
 
@@ -123,14 +139,14 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                                 let current_info = server.level_info.load();
                                 let mut new_info = (**current_info).clone();
                                 new_info.spawn_x = check_x;
-                                new_info.spawn_y = top_y + 1;
+                                new_info.spawn_y = check_top + 1;
                                 new_info.spawn_z = check_z;
                                 server.level_info.store(Arc::new(new_info));
 
                                 eprintln!(
                                     "[kbve-mc-plugin] World spawn updated to ({}, {}, {})",
                                     check_x,
-                                    top_y + 1,
+                                    check_top + 1,
                                     check_z,
                                 );
 
@@ -158,13 +174,22 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
 struct GiveCoinExecutor;
 struct GiveSwordExecutor;
 
-fn give_custom_item(item: &'static Item, model: &str) -> ItemStack {
+fn give_custom_item(item: &'static Item, model: &str, name: &str) -> ItemStack {
     let mut stack = ItemStack::new(1, item);
     stack.patch.push((
         DataComponent::ItemModel,
         Some(
             ItemModelImpl {
                 model: model.to_string(),
+            }
+            .to_dyn(),
+        ),
+    ));
+    stack.patch.push((
+        DataComponent::CustomName,
+        Some(
+            CustomNameImpl {
+                name: name.to_string(),
             }
             .to_dyn(),
         ),
@@ -186,7 +211,7 @@ impl CommandExecutor for GiveCoinExecutor {
             })?;
 
             for target in targets {
-                let mut stack = give_custom_item(item, "kbve:kbve_coin");
+                let mut stack = give_custom_item(item, "kbve:kbve_coin", "KBVE Coin");
                 target.inventory().insert_stack_anywhere(&mut stack).await;
                 if !stack.is_empty() {
                     target.drop_item(stack).await;
@@ -215,7 +240,7 @@ impl CommandExecutor for GiveSwordExecutor {
             })?;
 
             for target in targets {
-                let mut stack = give_custom_item(item, "kbve:kbve_sword");
+                let mut stack = give_custom_item(item, "kbve:kbve_sword", "KBVE Sword");
                 target.inventory().insert_stack_anywhere(&mut stack).await;
                 if !stack.is_empty() {
                     target.drop_item(stack).await;
