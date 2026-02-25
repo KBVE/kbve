@@ -9,6 +9,7 @@ metadata:
         metallb.io/allow-shared-ip: 'shared-public-ip'
 spec:
     type: LoadBalancer
+    externalTrafficPolicy: Local
     selector:
         app: mc
     ports:
