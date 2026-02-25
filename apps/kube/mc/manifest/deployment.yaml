@@ -31,9 +31,11 @@ spec:
                   ports:
                       - name: java
                         containerPort: 25565
+                        hostPort: 25565
                         protocol: TCP
                       - name: bedrock
                         containerPort: 19132
+                        hostPort: 19132
                         protocol: UDP
                       - name: resource-pack
                         containerPort: 8080
