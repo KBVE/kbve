@@ -11,28 +11,61 @@ RUN rustup component add rustfmt
 FROM chef AS planner
 RUN cargo chef prepare --recipe-path recipe.json
 
-# --- Pumpkin: cook dependencies (cached until Cargo.toml/lock changes) ---
-FROM chef AS builder
+# --- Cook: compile third-party deps (cached until Cargo.toml/lock changes) ---
+FROM chef AS deps
 COPY --from=planner /pumpkin/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo chef cook --release --recipe-path recipe.json
 
-# Build Pumpkin server (only recompiles changed source, deps are cached)
-COPY ./pumpkin /pumpkin
+# --- Foundation: leaf + data crates (rarely change, cached aggressively) ---
+FROM deps AS foundation
+COPY ./pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
+COPY ./pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
+COPY ./pumpkin/pumpkin-util /pumpkin/pumpkin-util
+COPY ./pumpkin/pumpkin-data /pumpkin/pumpkin-data
+COPY ./pumpkin/pumpkin-macros /pumpkin/pumpkin-macros
+COPY ./pumpkin/pumpkin-config /pumpkin/pumpkin-config
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --release \
+    -p pumpkin-nbt \
+    -p pumpkin-api-macros \
+    -p pumpkin-util \
+    -p pumpkin-data \
+    -p pumpkin-macros \
+    -p pumpkin-config
+
+# --- Core: engine crates (protocol, world, inventory) ---
+FROM foundation AS core
+COPY ./pumpkin/pumpkin-world /pumpkin/pumpkin-world
+COPY ./pumpkin/pumpkin-protocol /pumpkin/pumpkin-protocol
+COPY ./pumpkin/pumpkin-inventory /pumpkin/pumpkin-inventory
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --release \
+    -p pumpkin-world \
+    -p pumpkin-protocol \
+    -p pumpkin-inventory
+
+# --- Pumpkin: build server (parallel with plugin) ---
+FROM core AS builder
+COPY ./pumpkin/pumpkin /pumpkin/pumpkin
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo build --release && cp target/release/pumpkin ./pumpkin.release
 
-# Build plugins (path deps to pumpkin crates, use mount cache)
+# --- Plugin: build (parallel with pumpkin, reuses all pre-compiled crates) ---
+FROM core AS plugin-builder
+COPY ./pumpkin/pumpkin /pumpkin/pumpkin
 COPY ./plugins /plugins
-RUN --mount=type=cache,sharing=private,target=/plugins/kbve-mc-plugin/target \
-    --mount=type=cache,target=/usr/local/cargo/git/db \
+ENV CARGO_TARGET_DIR=/pumpkin/target
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo build --release --manifest-path /plugins/kbve-mc-plugin/Cargo.toml \
     && mkdir -p /built-plugins \
-    && cp /plugins/kbve-mc-plugin/target/release/libkbve_mc_plugin.so /built-plugins/ 2>/dev/null \
-    || cp /plugins/kbve-mc-plugin/target/release/libkbve_mc_plugin.dylib /built-plugins/ 2>/dev/null \
+    && cp /pumpkin/target/release/libkbve_mc_plugin.so /built-plugins/ 2>/dev/null \
+    || cp /pumpkin/target/release/libkbve_mc_plugin.dylib /built-plugins/ 2>/dev/null \
     || true
 
 # --- Resource pack ---
@@ -47,7 +80,7 @@ RUN SHA1=$(sha1sum /kbve-resource-pack.zip | awk '{print $1}') && \
 FROM alpine:3.23
 
 COPY --from=builder /pumpkin/pumpkin.release /bin/pumpkin
-COPY --from=builder /built-plugins/ /pumpkin/plugins/
+COPY --from=plugin-builder /built-plugins/ /pumpkin/plugins/
 
 WORKDIR /pumpkin
 
