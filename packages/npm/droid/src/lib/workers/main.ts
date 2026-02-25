@@ -1,13 +1,14 @@
-import { wrap, transfer, proxy } from 'comlink';
+import { wrap, proxy } from 'comlink';
 import type { Remote } from 'comlink';
 import { persistentMap } from '@nanostores/persistent';
 import type { LocalStorageAPI } from './db-worker';
 import type { WSInstance } from './ws-worker';
-import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
+import { initializeWorkerDatabase } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
 import { getModManager } from '../mod/mod-manager';
 import { scopeData } from './data';
 import { dispatchAsync, renderVNode } from './tools';
+import type { VirtualNode } from '../types/modules';
 import type { PanelPayload, PanelId } from '../types/panel-types';
 import { DroidEvents } from './events';
 import {
@@ -26,6 +27,17 @@ import { observeThemeChanges } from '../state/theme-sync';
 import { OverlayManager } from '../state/overlay-manager';
 import { showWelcomeToast } from '../state/welcome-toast';
 
+/** Messages emitted from workers to the main thread for UI side-effects. */
+type WorkerUIMessage =
+	| { type: 'injectVNode'; vnode: VirtualNode }
+	| { type: 'toast'; payload: unknown }
+	| { type: 'toast-remove'; payload: { id: string } }
+	| { type: 'tooltip-open'; payload: unknown }
+	| { type: 'tooltip-close'; payload?: { id: string } }
+	| { type: 'modal-open'; payload: unknown }
+	| { type: 'modal-close'; payload?: { id: string } }
+	| { type: string; [key: string]: unknown };
+
 const EXPECTED_DB_VERSION = '1.0.3';
 let initialized = false;
 let _initPromise: Promise<void> | null = null;
@@ -35,7 +47,9 @@ export function resolveWorkerURL(name: string, fallback?: string): string {
 		throw new Error('[resolveWorkerURL] Worker name must be defined');
 
 	if (typeof window !== 'undefined') {
-		const globalMap = (window as any).kbveWorkerURLs;
+		const globalMap = (
+			window as unknown as Record<string, Record<string, string>>
+		).kbveWorkerURLs;
 		if (globalMap?.[name]) return globalMap[name];
 	}
 
@@ -162,7 +176,7 @@ const uiuxState = persistentMap<{
 		}
 	>;
 	themeManager: { theme: 'light' | 'dark' | 'auto' };
-	toastManager: Record<string, any>;
+	toastManager: Record<string, unknown>;
 	scrollY: number;
 }>(
 	'uiux-state',
@@ -216,7 +230,7 @@ export const uiux = {
 	},
 
 	/** @deprecated Use addToast() from '@kbve/droid' state exports instead. */
-	addToast(id: string, data: any) {
+	addToast(id: string, data: unknown) {
 		console.warn(
 			'[KBVE] uiux.addToast is deprecated. Use addToast() from @kbve/droid.',
 		);
@@ -240,9 +254,10 @@ export const uiux = {
 		mode: 'static' | 'animated' | 'dynamic' = 'animated',
 	) {
 		const offscreen = canvasEl.transferControlToOffscreen();
-		await (window.kbve?.uiux as Record<string, any>)?.[
+		const worker = (window.kbve?.uiux as Record<string, unknown>)?.[
 			'worker'
-		]?.bindCanvas(panelId, offscreen, mode);
+		] as Remote<CanvasWorkerAPI> | undefined;
+		await worker?.bindCanvas(panelId, offscreen, mode);
 	},
 
 	closeAllPanels() {
@@ -253,7 +268,7 @@ export const uiux = {
 		uiuxState.setKey('panelManager', panels);
 	},
 
-	emitFromWorker(msg: any) {
+	emitFromWorker(msg: WorkerUIMessage) {
 		// Existing: VNode injection
 		if (msg.type === 'injectVNode' && msg.vnode) {
 			dispatchAsync(() => {

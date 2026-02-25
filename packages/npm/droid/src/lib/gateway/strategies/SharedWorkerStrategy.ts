@@ -9,6 +9,17 @@ import type {
 import { WorkerPool } from '../WorkerPool';
 import { getWorkerCommunication } from '../WorkerCommunication';
 
+/** Union of all possible messages arriving on the SharedWorker port. */
+interface SharedWorkerEvent {
+	id?: string;
+	type?: string;
+	ok?: boolean;
+	data?: unknown;
+	error?: string;
+	key?: string;
+	payload?: unknown;
+}
+
 /**
  * SharedWorkerStrategy: Uses SharedWorker for WebSocket + DB Worker Pool
  *
@@ -30,7 +41,7 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 			reject: (reason?: unknown) => void;
 		}
 	>();
-	private listeners = new Map<string, Set<(p: any) => void>>();
+	private listeners = new Map<string, Set<(p: unknown) => void>>();
 	private comm = getWorkerCommunication();
 	private sharedWorkerUrl: string | URL;
 	private dbWorkerUrl: string | URL;
@@ -54,7 +65,7 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 	async init(
 		url: string,
 		anonKey: string,
-		options?: any,
+		options?: Record<string, unknown>,
 	): Promise<SessionResponse> {
 		console.log('[SharedWorkerStrategy] Initializing...');
 
@@ -63,7 +74,8 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 			name: 'supabase-shared',
 		});
 		this.port = this.worker.port;
-		this.port.onmessage = (e) => this.onMessage(e.data);
+		this.port.onmessage = (e: MessageEvent<SharedWorkerEvent>) =>
+			this.onMessage(e.data);
 		this.port.start();
 
 		this.workerPool = new WorkerPool({
@@ -79,7 +91,7 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 		});
 
 		const poolInitPromises = Array.from({ length: this.poolSize }, () =>
-			this.workerPool!.send('init', { url, anonKey, options }),
+			this.workerPool?.send('init', { url, anonKey, options }),
 		);
 
 		await Promise.all([sharedWorkerInit, ...poolInitPromises]);
@@ -91,7 +103,7 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 		return sharedWorkerInit;
 	}
 
-	private onMessage(msg: any) {
+	private onMessage(msg: SharedWorkerEvent) {
 		if (msg?.type === 'ready' || msg?.type === 'auth') {
 			this.emit(msg.type, msg);
 			return;
@@ -111,13 +123,15 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 
 		const { id, ok, data, error } = msg ?? {};
 		if (id && this.pending.has(id)) {
-			const { resolve, reject } = this.pending.get(id)!;
+			const pending = this.pending.get(id);
+			if (!pending) return;
+			const { resolve, reject } = pending;
 			this.pending.delete(id);
 			ok ? resolve(data) : reject(new Error(error));
 		}
 	}
 
-	private send<T>(type: string, payload?: any): Promise<T> {
+	private send<T>(type: string, payload?: unknown): Promise<T> {
 		const id = crypto.randomUUID();
 		return new Promise<T>((resolve, reject) => {
 			if (!this.port)
@@ -130,11 +144,11 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 		});
 	}
 
-	on(event: string, callback: (payload: any) => void): () => void {
+	on(event: string, callback: (payload: unknown) => void): () => void {
 		if (!this.listeners.has(event)) {
 			this.listeners.set(event, new Set());
 		}
-		this.listeners.get(event)!.add(callback);
+		this.listeners.get(event)?.add(callback);
 
 		return () => {
 			const set = this.listeners.get(event);
@@ -145,7 +159,7 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 		};
 	}
 
-	private emit(event: string, payload: any) {
+	private emit(event: string, payload: unknown) {
 		this.listeners.get(event)?.forEach((cb) => cb(payload));
 	}
 
@@ -154,8 +168,14 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 		return this.send<SessionResponse>('getSession');
 	}
 
-	signInWithPassword(email: string, password: string): Promise<any> {
-		return this.send('signInWithPassword', { email, password });
+	signInWithPassword(
+		email: string,
+		password: string,
+	): Promise<SessionResponse> {
+		return this.send<SessionResponse>('signInWithPassword', {
+			email,
+			password,
+		});
 	}
 
 	signOut(): Promise<void> {
@@ -163,42 +183,42 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 	}
 
 	// Database (via worker pool)
-	select(table: string, opts?: SelectOptions): Promise<any> {
+	select(table: string, opts?: SelectOptions): Promise<unknown[]> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('from.select', { table, ...(opts ?? {}) });
 	}
 
 	insert(
 		table: string,
-		data: Record<string, any> | Record<string, any>[],
-	): Promise<any> {
+		data: Record<string, unknown> | Record<string, unknown>[],
+	): Promise<unknown[]> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('from.insert', { table, data });
 	}
 
 	update(
 		table: string,
-		data: Record<string, any>,
-		match: Record<string, any>,
-	): Promise<any> {
+		data: Record<string, unknown>,
+		match: Record<string, unknown>,
+	): Promise<unknown[]> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('from.update', { table, data, match });
 	}
 
 	upsert(
 		table: string,
-		data: Record<string, any> | Record<string, any>[],
-	): Promise<any> {
+		data: Record<string, unknown> | Record<string, unknown>[],
+	): Promise<unknown[]> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('from.upsert', { table, data });
 	}
 
-	delete(table: string, match: Record<string, any>): Promise<any> {
+	delete(table: string, match: Record<string, unknown>): Promise<unknown[]> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('from.delete', { table, match });
 	}
 
-	rpc(fn: string, args?: Record<string, any>): Promise<any> {
+	rpc(fn: string, args?: Record<string, unknown>): Promise<unknown> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('rpc', { fn, args });
 	}
@@ -206,8 +226,8 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 	// Realtime (via SharedWorker)
 	subscribePostgres(
 		key: string,
-		params: any,
-		callback: (payload: any) => void,
+		params: Record<string, unknown>,
+		callback: (payload: unknown) => void,
 	): () => void {
 		const off = this.on(`realtime:${key}`, callback);
 		this.send('realtime.subscribe', { key, params }).catch((e) => {
@@ -231,7 +251,7 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 		return this.send('ws.disconnect');
 	}
 
-	sendWebSocketMessage(data: any): Promise<void> {
+	sendWebSocketMessage(data: unknown): Promise<void> {
 		return this.send('ws.send', { data });
 	}
 
@@ -239,12 +259,14 @@ export class SharedWorkerStrategy implements ISupabaseStrategy {
 		return this.send<WebSocketStatus>('ws.status');
 	}
 
-	onWebSocketMessage(callback: (message: any) => void): () => void {
+	onWebSocketMessage(callback: (message: unknown) => void): () => void {
 		return this.on('ws.message', callback);
 	}
 
-	onWebSocketStatus(callback: (status: any) => void): () => void {
-		return this.on('ws.status', callback);
+	onWebSocketStatus(callback: (status: WebSocketStatus) => void): () => void {
+		return this.on('ws.status', (payload) =>
+			callback(payload as WebSocketStatus),
+		);
 	}
 
 	terminate() {
