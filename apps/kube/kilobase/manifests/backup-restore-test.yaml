@@ -276,6 +276,32 @@ spec:
                                   }
                                   trap cleanup EXIT
 
+                                  # ── Step 0: Capture production baselines ────────────
+                                  echo "Step 0: Capturing production data baselines..."
+
+                                  PROD_PRIMARY=$(kubectl get cluster supabase-cluster \
+                                      -n "${NAMESPACE}" \
+                                      -o jsonpath='{.status.currentPrimary}')
+                                  echo "  Production primary pod: ${PROD_PRIMARY}"
+
+                                  prod_sql() {
+                                      local db="${1}"
+                                      local query="${2}"
+                                      kubectl exec "${PROD_PRIMARY}" -n "${NAMESPACE}" \
+                                          -c postgres -- \
+                                          psql -U postgres -d "${db}" -t -A -c "${query}" 2>&1
+                                  }
+
+                                  PROD_USER_COUNT=$(prod_sql supabase "SELECT count(*) FROM auth.users;")
+                                  echo "  Production auth.users count: ${PROD_USER_COUNT}"
+
+                                  if ! [[ "${PROD_USER_COUNT}" =~ ^[0-9]+$ ]]; then
+                                      echo "ERROR: Could not read production user count (got: ${PROD_USER_COUNT})"
+                                      echo "Continuing with threshold of 1 (at least some data must exist)"
+                                      PROD_USER_COUNT=1
+                                  fi
+                                  echo ""
+
                                   # ── Pre-cleanup: remove leftover resources ───────────
                                   echo "Pre-cleanup: removing any leftover test resources..."
                                   kubectl delete cluster "${TEST_CLUSTER}" \
@@ -386,6 +412,37 @@ spec:
                                   check "pgsodium in shared_preload_libraries" "$?" "0"
                                   echo "${libs}" | grep -q "kilobase"
                                   check "kilobase in shared_preload_libraries" "$?" "0"
+
+                                  # Check 6: Data integrity — auth.users count close to production
+                                  echo ""
+                                  echo "  --- Data Integrity Checks ---"
+                                  restored_user_count=$(run_sql supabase "SELECT count(*) FROM auth.users;")
+                                  echo "  Restored auth.users count: ${restored_user_count}"
+                                  echo "  Production auth.users count: ${PROD_USER_COUNT}"
+                                  CHECKS_TOTAL=$((CHECKS_TOTAL + 1))
+                                  if [[ "${restored_user_count}" =~ ^[0-9]+$ ]] && [ "${restored_user_count}" -gt 0 ]; then
+                                      min_expected=$(( PROD_USER_COUNT * 80 / 100 ))
+                                      if [ "${min_expected}" -lt 1 ]; then min_expected=1; fi
+                                      if [ "${restored_user_count}" -ge "${min_expected}" ]; then
+                                          echo "  PASS: auth.users data integrity (${restored_user_count} >= 80% of ${PROD_USER_COUNT})"
+                                          CHECKS_PASSED=$((CHECKS_PASSED + 1))
+                                      else
+                                          echo "  FAIL: auth.users data integrity (${restored_user_count} < 80% of ${PROD_USER_COUNT}, min expected: ${min_expected})"
+                                      fi
+                                  else
+                                      echo "  FAIL: auth.users data integrity (got invalid count: '${restored_user_count}')"
+                                  fi
+
+                                  # Check 7: Data integrity — storage.buckets has data
+                                  restored_bucket_count=$(run_sql supabase "SELECT count(*) FROM storage.buckets;")
+                                  echo "  Restored storage.buckets count: ${restored_bucket_count}"
+                                  CHECKS_TOTAL=$((CHECKS_TOTAL + 1))
+                                  if [[ "${restored_bucket_count}" =~ ^[0-9]+$ ]] && [ "${restored_bucket_count}" -gt 0 ]; then
+                                      echo "  PASS: storage.buckets has data (${restored_bucket_count} rows)"
+                                      CHECKS_PASSED=$((CHECKS_PASSED + 1))
+                                  else
+                                      echo "  FAIL: storage.buckets has no data (got: '${restored_bucket_count}')"
+                                  fi
 
                                   echo ""
                                   echo "=== Results: ${CHECKS_PASSED}/${CHECKS_TOTAL} checks passed ==="
