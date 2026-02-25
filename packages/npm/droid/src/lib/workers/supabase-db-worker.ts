@@ -247,7 +247,7 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 				});
 		}
 	} catch (err: unknown) {
-		console.error(`[DB Worker] Error handling ${type}:`, err);
+		console.error('[DB Worker] Error handling %s:', String(type), err);
 		respond(id, {
 			ok: false,
 			error: err instanceof Error ? err.message : String(err),
