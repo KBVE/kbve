@@ -75,7 +75,13 @@ pub async fn handle_game_component(
         "Game interaction"
     );
 
-    // Apply action
+    // Acknowledge immediately so Discord knows we received the interaction.
+    // This prevents "Unknown interaction" errors when processing takes time.
+    component
+        .create_response(&ctx.http, serenity::CreateInteractionResponse::Acknowledge)
+        .await?;
+
+    // Apply action (now safe — we already acknowledged the interaction)
     match logic::apply_action(&mut session, action, actor) {
         Ok(_logs) => {
             // Render updated embed + components
@@ -83,18 +89,21 @@ pub async fn handle_game_component(
             let components = render::render_components(&session);
 
             component
-                .create_response(
+                .edit_response(
                     &ctx.http,
-                    serenity::CreateInteractionResponse::UpdateMessage(
-                        serenity::CreateInteractionResponseMessage::new()
-                            .embed(embed)
-                            .components(components),
-                    ),
+                    serenity::EditInteractionResponse::new()
+                        .embed(embed)
+                        .components(components),
                 )
                 .await?;
         }
         Err(msg) => {
-            return send_ephemeral(component, ctx, &msg).await;
+            component
+                .edit_response(
+                    &ctx.http,
+                    serenity::EditInteractionResponse::new().content(msg),
+                )
+                .await?;
         }
     }
 

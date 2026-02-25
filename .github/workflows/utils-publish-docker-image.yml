@@ -131,7 +131,7 @@ jobs:
               with:
                   image-ref: ${{ inputs.image }}:latest
                   format: table
-                  exit-code: 0
+                  exit-code: 1
                   severity: CRITICAL,HIGH
                   ignore-unfixed: true
 
