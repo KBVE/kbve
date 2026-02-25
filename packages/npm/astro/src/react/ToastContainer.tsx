@@ -1,14 +1,44 @@
-import { useEffect, useRef, useCallback } from 'react';
+import {
+	useEffect,
+	useRef,
+	useCallback,
+	useState,
+	type CSSProperties,
+} from 'react';
 import { useToast } from '../hooks/useToast';
-import { cn } from '../utils/cn';
 import { $toasts } from '@kbve/droid';
 import type { ToastPayload } from '@kbve/droid';
 
-const SEVERITY_STYLES: Record<string, string> = {
-	success: 'border-l-4 border-green-500 bg-green-900/20 text-green-200',
-	warning: 'border-l-4 border-yellow-500 bg-yellow-900/20 text-yellow-200',
-	error: 'border-l-4 border-red-500 bg-red-900/20 text-red-200',
-	info: 'border-l-4 border-blue-500 bg-blue-900/20 text-blue-200',
+const SEVERITY_STYLES: Record<string, CSSProperties> = {
+	success: {
+		borderLeft: '4px solid var(--sl-color-green, #22c55e)',
+		backgroundColor: 'var(--sl-color-green-low, rgba(20,83,45,0.2))',
+		color: 'var(--sl-color-green-high, #bbf7d0)',
+	},
+	warning: {
+		borderLeft: '4px solid var(--sl-color-orange, #eab308)',
+		backgroundColor: 'var(--sl-color-orange-low, rgba(113,63,18,0.2))',
+		color: 'var(--sl-color-orange-high, #fef08a)',
+	},
+	error: {
+		borderLeft: '4px solid var(--sl-color-red, #ef4444)',
+		backgroundColor: 'var(--sl-color-red-low, rgba(127,29,29,0.2))',
+		color: 'var(--sl-color-red-high, #fecaca)',
+	},
+	info: {
+		borderLeft: '4px solid var(--sl-color-blue, #3b82f6)',
+		backgroundColor: 'var(--sl-color-blue-low, rgba(30,58,138,0.2))',
+		color: 'var(--sl-color-blue-high, #bfdbfe)',
+	},
+};
+
+const POSITION_STYLES: Record<string, CSSProperties> = {
+	'top-right': { top: 16, right: 16 },
+	'top-left': { top: 16, left: 16 },
+	'bottom-right': { bottom: 16, right: 16 },
+	'bottom-left': { bottom: 16, left: 16 },
+	'top-center': { top: 16, left: '50%', transform: 'translateX(-50%)' },
+	'bottom-center': { bottom: 16, left: '50%', transform: 'translateX(-50%)' },
 };
 
 const DEFAULT_DURATION = 5000;
@@ -43,6 +73,8 @@ function PooledToastSlot({
 	toast: ToastPayload | null;
 	onDismiss: (id: string) => void;
 }) {
+	const [hoverDismiss, setHoverDismiss] = useState(false);
+
 	useEffect(() => {
 		if (!toast) return;
 		const duration = toast.duration ?? DEFAULT_DURATION;
@@ -53,25 +85,65 @@ function PooledToastSlot({
 
 	const active = toast !== null;
 
+	const slotStyle: CSSProperties = {
+		transition: 'all 200ms ease',
+		...(active
+			? {
+					opacity: 1,
+					visibility: 'visible' as const,
+					maxHeight: 160,
+					pointerEvents: 'auto' as const,
+				}
+			: {
+					opacity: 0,
+					visibility: 'hidden' as const,
+					maxHeight: 0,
+					overflow: 'hidden',
+					pointerEvents: 'none' as const,
+				}),
+	};
+
+	const alertStyle: CSSProperties = {
+		borderRadius: 8,
+		paddingInline: 16,
+		paddingBlock: 12,
+		boxShadow: 'var(--sl-shadow-lg, 0 10px 15px -3px rgba(0,0,0,0.3))',
+		backdropFilter: 'blur(12px)',
+		...(active
+			? (SEVERITY_STYLES[toast.severity] ?? SEVERITY_STYLES.info)
+			: {}),
+	};
+
+	const dismissStyle: CSSProperties = {
+		background: 'none',
+		border: 'none',
+		color: 'currentColor',
+		opacity: hoverDismiss ? 1 : 0.6,
+		transition: 'opacity 150ms ease',
+		cursor: 'pointer',
+		fontSize: 18,
+		lineHeight: 1,
+		padding: 0,
+	};
+
 	return (
-		<div
-			className={cn(
-				'transition-all duration-200',
-				active
-					? 'opacity-100 visible max-h-40 pointer-events-auto'
-					: 'opacity-0 invisible max-h-0 overflow-hidden pointer-events-none',
-			)}
-			aria-hidden={!active}>
+		<div style={slotStyle} aria-hidden={!active}>
 			{active && (
-				<div
-					role="alert"
-					className={cn(
-						'rounded-lg px-4 py-3 shadow-lg backdrop-blur-md',
-						SEVERITY_STYLES[toast.severity] ?? SEVERITY_STYLES.info,
-					)}>
-					<div className="flex items-start justify-between gap-2">
-						<div className="flex-1">
-							<p className="text-sm font-medium">
+				<div role="alert" style={alertStyle}>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'flex-start',
+							justifyContent: 'space-between',
+							gap: 8,
+						}}>
+						<div style={{ flex: 1 }}>
+							<p
+								style={{
+									fontSize: 'var(--sl-text-sm, 0.875rem)',
+									fontWeight: 500,
+									margin: 0,
+								}}>
 								{toast.message}
 							</p>
 							{toast.vnode && <VNodeSlot vnode={toast.vnode} />}
@@ -79,9 +151,11 @@ function PooledToastSlot({
 						<button
 							type="button"
 							onClick={() => onDismiss(toast.id)}
-							className="text-current opacity-60 hover:opacity-100 transition-opacity"
+							onMouseEnter={() => setHoverDismiss(true)}
+							onMouseLeave={() => setHoverDismiss(false)}
+							style={dismissStyle}
 							aria-label="Dismiss">
-							&times;
+							&#x2715;
 						</button>
 					</div>
 				</div>
@@ -101,15 +175,6 @@ export interface ToastContainerProps {
 		| 'bottom-center';
 	maxVisible?: number;
 }
-
-const POSITION_CLASSES: Record<string, string> = {
-	'top-right': 'top-4 right-4',
-	'top-left': 'top-4 left-4',
-	'bottom-right': 'bottom-4 right-4',
-	'bottom-left': 'bottom-4 left-4',
-	'top-center': 'top-4 left-1/2 -translate-x-1/2',
-	'bottom-center': 'bottom-4 left-1/2 -translate-x-1/2',
-};
 
 export function ToastContainer({
 	className,
@@ -151,14 +216,22 @@ export function ToastContainer({
 		};
 	}, []);
 
+	const containerStyle: CSSProperties = {
+		position: 'fixed',
+		zIndex: 9999,
+		display: 'flex',
+		flexDirection: 'column',
+		gap: 8,
+		width: 320,
+		pointerEvents: 'none',
+		...POSITION_STYLES[position],
+	};
+
 	return (
 		<div
 			aria-hidden={!hasToasts}
-			className={cn(
-				'fixed z-[9999] flex flex-col gap-2 w-80 pointer-events-none',
-				POSITION_CLASSES[position],
-				className,
-			)}>
+			className={className}
+			style={containerStyle}>
 			{Array.from({ length: maxVisible }, (_, i) => (
 				<PooledToastSlot
 					key={`toast-slot-${i}`}

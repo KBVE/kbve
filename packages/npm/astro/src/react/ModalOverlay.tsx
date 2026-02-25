@@ -1,7 +1,6 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useModal } from '../hooks/useModal';
-import { cn } from '../utils/cn';
 
 export interface ModalOverlayProps {
 	id: string;
@@ -22,6 +21,7 @@ export function ModalOverlay({
 }: ModalOverlayProps) {
 	const { isOpen, close } = useModal();
 	const vnodeRef = useRef<HTMLDivElement>(null);
+	const [hoverClose, setHoverClose] = useState(false);
 	const open = isOpen(id);
 
 	// Render VNode if provided and no children
@@ -62,14 +62,61 @@ export function ModalOverlay({
 		};
 	}, [open]);
 
+	const backdropStyle: CSSProperties = {
+		position: 'fixed',
+		inset: 0,
+		zIndex: 9998,
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
+		padding: 16,
+		transition: 'all 200ms ease',
+		...(open
+			? {
+					opacity: 1,
+					visibility: 'visible' as const,
+					pointerEvents: 'auto' as const,
+					backgroundColor:
+						'var(--sl-color-backdrop-overlay, rgba(0,0,0,0.5))',
+					backdropFilter: 'blur(4px)',
+				}
+			: {
+					opacity: 0,
+					visibility: 'hidden' as const,
+					pointerEvents: 'none' as const,
+				}),
+	};
+
+	const panelStyle: CSSProperties = {
+		width: '100%',
+		maxWidth: 512,
+		borderRadius: 12,
+		boxShadow: 'var(--sl-shadow-lg, 0 25px 50px -12px rgba(0,0,0,0.5))',
+		padding: 24,
+		backgroundColor: 'var(--sl-color-bg-nav, #18181b)',
+		color: 'var(--sl-color-text, #f4f4f5)',
+		border: '1px solid var(--sl-color-hairline-light, #27272a)',
+		transition: 'transform 200ms ease',
+		transform: open ? 'scale(1)' : 'scale(0.95)',
+	};
+
+	const closeButtonStyle: CSSProperties = {
+		background: 'none',
+		border: 'none',
+		color: hoverClose
+			? 'var(--sl-color-white, #ffffff)'
+			: 'var(--sl-color-gray-3, #a1a1aa)',
+		transition: 'color 150ms ease',
+		cursor: 'pointer',
+		fontSize: 20,
+		lineHeight: 1,
+		padding: 0,
+	};
+
 	return createPortal(
 		<div
-			className={cn(
-				'fixed inset-0 z-[9998] flex items-center justify-center p-4 transition-all duration-200',
-				open
-					? 'opacity-100 visible pointer-events-auto bg-black/50 backdrop-blur-sm'
-					: 'opacity-0 invisible pointer-events-none',
-			)}
+			style={backdropStyle}
+			className={className}
 			role="dialog"
 			aria-modal={open}
 			aria-hidden={!open}
@@ -78,21 +125,31 @@ export function ModalOverlay({
 				if (open && closeOnBackdrop && e.target === e.currentTarget)
 					close(id);
 			}}>
-			<div
-				className={cn(
-					'w-full max-w-lg rounded-xl shadow-2xl p-6 bg-zinc-900 text-zinc-100 transition-transform duration-200',
-					open ? 'scale-100' : 'scale-95',
-					className,
-				)}>
+			<div style={panelStyle}>
 				{title && (
-					<div className="flex items-center justify-between mb-4">
-						<h2 className="text-lg font-semibold">{title}</h2>
+					<div
+						style={{
+							display: 'flex',
+							alignItems: 'center',
+							justifyContent: 'space-between',
+							marginBottom: 16,
+						}}>
+						<h2
+							style={{
+								fontSize: 'var(--sl-text-lg, 1.125rem)',
+								fontWeight: 600,
+								margin: 0,
+							}}>
+							{title}
+						</h2>
 						<button
 							type="button"
 							onClick={() => close(id)}
-							className="text-zinc-400 hover:text-white transition-colors"
+							onMouseEnter={() => setHoverClose(true)}
+							onMouseLeave={() => setHoverClose(false)}
+							style={closeButtonStyle}
 							aria-label="Close">
-							&times;
+							&#x2715;
 						</button>
 					</div>
 				)}
