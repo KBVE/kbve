@@ -4,3 +4,4 @@ metadata:
     name: mc
     labels:
         name: mc
+        pod-security.kubernetes.io/enforce: privileged
