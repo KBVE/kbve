@@ -11,28 +11,31 @@ RUN rustup component add rustfmt
 FROM chef AS planner
 RUN cargo chef prepare --recipe-path recipe.json
 
-# --- Pumpkin: cook dependencies (cached until Cargo.toml/lock changes) ---
-FROM chef AS builder
+# --- Cook: compile third-party deps (cached until Cargo.toml/lock changes) ---
+FROM chef AS deps
 COPY --from=planner /pumpkin/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo chef cook --release --recipe-path recipe.json
 
-# Build Pumpkin server (only recompiles changed source, deps are cached)
+# --- Pumpkin: build server (parallel with plugin, only workspace crates recompile) ---
+FROM deps AS builder
 COPY ./pumpkin /pumpkin
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo build --release && cp target/release/pumpkin ./pumpkin.release
 
-# Build plugins (path deps to pumpkin crates, use mount cache)
+# --- Plugin: build (parallel with pumpkin, reuses cooked deps via shared target) ---
+FROM deps AS plugin-builder
+COPY ./pumpkin /pumpkin
 COPY ./plugins /plugins
-RUN --mount=type=cache,sharing=private,target=/plugins/kbve-mc-plugin/target \
-    --mount=type=cache,target=/usr/local/cargo/git/db \
+ENV CARGO_TARGET_DIR=/pumpkin/target
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
     cargo build --release --manifest-path /plugins/kbve-mc-plugin/Cargo.toml \
     && mkdir -p /built-plugins \
-    && cp /plugins/kbve-mc-plugin/target/release/libkbve_mc_plugin.so /built-plugins/ 2>/dev/null \
-    || cp /plugins/kbve-mc-plugin/target/release/libkbve_mc_plugin.dylib /built-plugins/ 2>/dev/null \
+    && cp /pumpkin/target/release/libkbve_mc_plugin.so /built-plugins/ 2>/dev/null \
+    || cp /pumpkin/target/release/libkbve_mc_plugin.dylib /built-plugins/ 2>/dev/null \
     || true
 
 # --- Resource pack ---
@@ -47,7 +50,7 @@ RUN SHA1=$(sha1sum /kbve-resource-pack.zip | awk '{print $1}') && \
 FROM alpine:3.23
 
 COPY --from=builder /pumpkin/pumpkin.release /bin/pumpkin
-COPY --from=builder /built-plugins/ /pumpkin/plugins/
+COPY --from=plugin-builder /built-plugins/ /pumpkin/plugins/
 
 WORKDIR /pumpkin
 
