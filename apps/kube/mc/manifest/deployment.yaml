@@ -1,0 +1,75 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: mc
+    namespace: mc
+    labels:
+        app: mc
+spec:
+    replicas: 1
+    strategy:
+        type: Recreate
+    selector:
+        matchLabels:
+            app: mc
+    template:
+        metadata:
+            labels:
+                app: mc
+        spec:
+            securityContext:
+                runAsUser: 2613
+                runAsGroup: 2613
+                fsGroup: 2613
+            containers:
+                - name: mc
+                  image: ghcr.io/kbve/mc:latest
+                  imagePullPolicy: Always
+                  ports:
+                      - name: java
+                        containerPort: 25565
+                        protocol: TCP
+                      - name: bedrock
+                        containerPort: 19132
+                        protocol: UDP
+                      - name: resource-pack
+                        containerPort: 8080
+                        protocol: TCP
+                      - name: rcon
+                        containerPort: 25575
+                        protocol: TCP
+                  volumeMounts:
+                      - name: world-data
+                        mountPath: /pumpkin/worlds
+                      - name: mc-config
+                        mountPath: /pumpkin/config/configuration.toml
+                        subPath: configuration.toml
+                        readOnly: true
+                  resources:
+                      requests:
+                          memory: '512Mi'
+                          cpu: '250m'
+                      limits:
+                          memory: '2Gi'
+                          cpu: '1000m'
+                  livenessProbe:
+                      tcpSocket:
+                          port: java
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  readinessProbe:
+                      tcpSocket:
+                          port: java
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3
+            volumes:
+                - name: world-data
+                  persistentVolumeClaim:
+                      claimName: mc-world-data
+                - name: mc-config
+                  configMap:
+                      name: mc-config
