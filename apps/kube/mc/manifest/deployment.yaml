@@ -50,6 +50,10 @@ spec:
                         mountPath: /pumpkin/config/configuration.toml
                         subPath: configuration.toml
                         readOnly: true
+                      - name: mc-config
+                        mountPath: /pumpkin/config/features.toml
+                        subPath: features.toml
+                        readOnly: true
                   resources:
                       requests:
                           memory: '512Mi'
