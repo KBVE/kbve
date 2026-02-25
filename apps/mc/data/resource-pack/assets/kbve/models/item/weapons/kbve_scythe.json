@@ -1,6 +1,6 @@
 {
 	"parent": "minecraft:item/handheld",
 	"textures": {
-		"layer0": "kbve:item/kbve_scythe"
+		"layer0": "kbve:item/weapons/kbve_scythe"
 	}
 }
