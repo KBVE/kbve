@@ -1,0 +1,399 @@
+# Weekly backup restore fire drill
+# Proves S3 backups can restore into a working CNPG cluster end-to-end.
+# Runs every Sunday at 4 AM UTC. Creates a temporary 1-instance cluster,
+# validates it with SQL health checks, then tears it down.
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+    name: backup-restore-test
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: backup-testing
+        app.kubernetes.io/managed-by: argocd
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+    name: backup-restore-test
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: backup-testing
+        app.kubernetes.io/managed-by: argocd
+rules:
+    - apiGroups: ['postgresql.cnpg.io']
+      resources: ['clusters']
+      verbs: ['create', 'get', 'list', 'watch', 'delete', 'patch']
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'list']
+    - apiGroups: ['']
+      resources: ['pods']
+      verbs: ['get', 'list', 'watch']
+    - apiGroups: ['']
+      resources: ['pods/exec']
+      verbs: ['create']
+    - apiGroups: ['']
+      resources: ['persistentvolumeclaims']
+      verbs: ['get', 'list', 'delete']
+    - apiGroups: ['']
+      resources: ['configmaps']
+      verbs: ['get']
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+    name: backup-restore-test
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: backup-testing
+        app.kubernetes.io/managed-by: argocd
+roleRef:
+    apiGroup: rbac.authorization.k8s.io
+    kind: Role
+    name: backup-restore-test
+subjects:
+    - kind: ServiceAccount
+      name: backup-restore-test
+      namespace: kilobase
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: backup-restore-test-template
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: backup-testing
+        app.kubernetes.io/managed-by: argocd
+data:
+    test-cluster.yaml: |
+        apiVersion: postgresql.cnpg.io/v1
+        kind: Cluster
+        metadata:
+            name: supabase-cluster-restore-test
+            namespace: kilobase
+            labels:
+                app.kubernetes.io/name: kilobase
+                app.kubernetes.io/component: backup-testing
+                kilobase/fire-drill: "true"
+        spec:
+            instances: 1
+            imageName: 'ghcr.io/kbve/postgres:17.4.1.069-kilobase'
+            imagePullPolicy: Always
+            superuserSecret:
+                name: supabase-postgres
+            postgresUID: 101
+            postgresGID: 102
+
+            storage:
+                size: 10Gi
+                storageClass: longhorn
+
+            enableSuperuserAccess: true
+
+            projectedVolumeTemplate:
+                sources:
+                    - secret:
+                          name: supabase-pgsodium
+                          items:
+                              - key: pgsodium_root.key
+                                path: postgresql-custom/pgsodium_root.key
+                    - configMap:
+                          name: pgsodium-getkey
+                          items:
+                              - key: pgsodium_getkey.sh
+                                path: postgresql-custom/pgsodium_getkey.sh
+                                mode: 511
+
+            postgresql:
+                parameters:
+                    cron.database_name: supabase
+                    pg_net.database_name: supabase
+                    vault.getkey_script: '/projected/postgresql-custom/pgsodium_getkey.sh'
+                    pgsodium.getkey_script: '/projected/postgresql-custom/pgsodium_getkey.sh'
+                    auto_explain.log_min_duration: 10s
+                    supautils.extensions_parameter_overrides: '{"pg_cron":{"schema":"pg_catalog"}}'
+                    supautils.policy_grants: '{"postgres":["auth.audit_log_entries","auth.identities","auth.refresh_tokens","auth.sessions","auth.users","realtime.messages","storage.buckets","storage.migrations","storage.objects","storage.s3_multipart_uploads","storage.s3_multipart_uploads_parts"]}'
+                    supautils.drop_trigger_grants: '{"postgres":["auth.audit_log_entries","auth.identities","auth.refresh_tokens","auth.sessions","auth.users","realtime.messages","storage.buckets","storage.migrations","storage.objects","storage.s3_multipart_uploads","storage.s3_multipart_uploads_parts"]}'
+                    supautils.privileged_extensions: 'address_standardizer, address_standardizer_data_us, autoinc, bloom, btree_gin, btree_gist, citext, cube, dblink, dict_int, dict_xsyn, earthdistance, fuzzystrmatch, hstore, http, hypopg, index_advisor, insert_username, intarray, isn, kilobase, ltree, moddatetime, orioledb, pg_buffercache, pg_cron, pg_failover_slots, pg_graphql, pg_hashids, pg_jsonschema, pg_net, pg_prewarm, pg_repack, pg_stat_monitor, pg_stat_statements, pg_tle, pg_trgm, pg_walinspect, pgaudit, pgcrypto, pgjwt, pgroonga, pgroonga_database, pgrouting, pgrowlocks, pgsodium, pgstattuple, pgtap, plcoffee, pljava, plls, plpgsql_check, postgis, postgis_raster, postgis_sfcgal, postgis_tiger_geocoder, postgis_topology, postgres_fdw, refint, rum, seg, sslinfo, supabase_vault, supautils, tablefunc, tcn, tsm_system_rows, tsm_system_time, unaccent, uuid-ossp, vector, wrappers'
+                    supautils.privileged_extensions_custom_scripts_path: '/etc/postgresql-custom/extension-custom-scripts'
+                    supautils.privileged_extensions_superuser: 'supabase_admin'
+                    supautils.privileged_role: 'postgres'
+                    supautils.privileged_role_allowed_configs: 'auto_explain.*, log_lock_waits, log_min_duration_statement, log_min_messages, log_replication_commands, log_statement, log_temp_files, pg_net.batch_size, pg_net.ttl, pg_stat_statements.*, pgaudit.log, pgaudit.log_catalog, pgaudit.log_client, pgaudit.log_level, pgaudit.log_relation, pgaudit.log_rows, pgaudit.log_statement, pgaudit.log_statement_once, pgaudit.role, pgrst.*, plan_filter.*, safeupdate.enabled, session_replication_role, track_io_timing, wal_compression'
+                    supautils.reserved_memberships: 'pg_read_server_files, pg_write_server_files, pg_execute_server_program, supabase_admin, supabase_auth_admin, supabase_storage_admin, supabase_read_only_user, supabase_realtime_admin, supabase_replication_admin, dashboard_user, pgbouncer, authenticator'
+                    supautils.reserved_roles: 'supabase_admin, supabase_auth_admin, supabase_storage_admin, supabase_read_only_user, supabase_realtime_admin, supabase_replication_admin, dashboard_user, pgbouncer, service_role*, authenticator*, authenticated*, anon*'
+
+                pg_hba:
+                    - local all  supabase_admin       scram-sha-256
+                    - local all  all                  peer map=supabase_map
+                    - host  all  all  127.0.0.1/32    trust
+                    - host  all  all  ::1/128         trust
+                    - host  all  all  10.0.0.0/8      scram-sha-256
+                    - host  all  all  172.16.0.0/12   scram-sha-256
+                    - host  all  all  192.168.0.0/16  scram-sha-256
+                    - host  all  all  0.0.0.0/0       scram-sha-256
+                    - host  all  all  ::0/0           scram-sha-256
+
+                pg_ident:
+                    - supabase_map  postgres   postgres
+                    - supabase_map  gotrue     supabase_auth_admin
+                    - supabase_map  postgrest  authenticator
+                    - supabase_map  adminapi   postgres
+
+                shared_preload_libraries:
+                    [
+                        pg_stat_statements,
+                        pg_stat_monitor,
+                        pgaudit,
+                        plpgsql,
+                        plpgsql_check,
+                        pg_cron,
+                        pg_net,
+                        auto_explain,
+                        pg_tle,
+                        supautils,
+                        pgsodium,
+                        supabase_vault,
+                        plan_filter,
+                        kilobase,
+                        pg_failover_slots
+                    ]
+
+            env:
+                - name: JWT_SECRET
+                  valueFrom:
+                      secretKeyRef:
+                          name: supabase-jwt
+                          key: secret
+                - name: JWT_EXP
+                  value: '3600'
+
+            bootstrap:
+                recovery:
+                    source: kilobase-postgres-backup
+
+            externalClusters:
+                - name: kilobase-postgres-backup
+                  barmanObjectStore:
+                      destinationPath: s3://kilobase/barman/backup
+                      serverName: kilobase-postgres-backup
+                      s3Credentials:
+                          accessKeyId:
+                              name: kilobase-s3-secret
+                              key: keyId
+                          secretAccessKey:
+                              name: kilobase-s3-secret
+                              key: accessKey
+                      wal:
+                          compression: gzip
+---
+apiVersion: batch/v1
+kind: CronJob
+metadata:
+    name: backup-restore-test
+    namespace: kilobase
+    labels:
+        app.kubernetes.io/name: kilobase
+        app.kubernetes.io/component: backup-testing
+        app.kubernetes.io/managed-by: argocd
+spec:
+    schedule: '0 4 * * 0'
+    concurrencyPolicy: Forbid
+    successfulJobsHistoryLimit: 3
+    failedJobsHistoryLimit: 3
+    jobTemplate:
+        metadata:
+            labels:
+                app.kubernetes.io/name: kilobase
+                app.kubernetes.io/component: backup-testing
+        spec:
+            ttlSecondsAfterFinished: 86400
+            backoffLimit: 0
+            template:
+                metadata:
+                    labels:
+                        app.kubernetes.io/name: kilobase
+                        app.kubernetes.io/component: backup-testing
+                spec:
+                    serviceAccountName: backup-restore-test
+                    restartPolicy: Never
+                    containers:
+                        - name: restore-test
+                          image: bitnami/kubectl:1.31
+                          resources:
+                              limits:
+                                  cpu: 200m
+                                  memory: 256Mi
+                              requests:
+                                  cpu: 100m
+                                  memory: 128Mi
+                          command:
+                              - /bin/bash
+                              - -c
+                              - |
+                                  set -euo pipefail
+
+                                  TEST_CLUSTER="supabase-cluster-restore-test"
+                                  NAMESPACE="kilobase"
+                                  TIMEOUT=900
+                                  POLL_INTERVAL=15
+
+                                  echo "=== Backup Restore Fire Drill ==="
+                                  echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+                                  echo ""
+
+                                  # ── Cleanup function (always runs via trap) ──────────
+                                  cleanup() {
+                                      echo ""
+                                      echo "=== Cleanup ==="
+                                      echo "Deleting test cluster ${TEST_CLUSTER}..."
+                                      kubectl delete cluster "${TEST_CLUSTER}" \
+                                          -n "${NAMESPACE}" --ignore-not-found --wait=false || true
+
+                                      local i=0
+                                      while kubectl get cluster "${TEST_CLUSTER}" -n "${NAMESPACE}" &>/dev/null; do
+                                          sleep 5
+                                          i=$((i + 5))
+                                          if [ $i -ge 120 ]; then
+                                              echo "WARNING: Cluster CR still exists after 120s, removing finalizers"
+                                              kubectl patch cluster "${TEST_CLUSTER}" -n "${NAMESPACE}" \
+                                                  --type=merge -p '{"metadata":{"finalizers":[]}}' 2>/dev/null || true
+                                              sleep 5
+                                              break
+                                          fi
+                                      done
+
+                                      echo "Deleting test cluster PVCs..."
+                                      kubectl delete pvc -n "${NAMESPACE}" \
+                                          -l "cnpg.io/cluster=${TEST_CLUSTER}" \
+                                          --ignore-not-found || true
+
+                                      echo "Cleanup complete."
+                                  }
+                                  trap cleanup EXIT
+
+                                  # ── Pre-cleanup: remove leftover resources ───────────
+                                  echo "Pre-cleanup: removing any leftover test resources..."
+                                  kubectl delete cluster "${TEST_CLUSTER}" \
+                                      -n "${NAMESPACE}" --ignore-not-found --wait=false || true
+                                  kubectl delete pvc -n "${NAMESPACE}" \
+                                      -l "cnpg.io/cluster=${TEST_CLUSTER}" \
+                                      --ignore-not-found || true
+                                  sleep 10
+
+                                  # ── Step 1: Apply test cluster ──────────────────────
+                                  echo "Step 1: Creating test cluster from S3 backup..."
+                                  kubectl get configmap backup-restore-test-template \
+                                      -n "${NAMESPACE}" \
+                                      -o jsonpath='{.data.test-cluster\.yaml}' | \
+                                      kubectl apply -f -
+                                  echo "Test cluster CR created."
+
+                                  # ── Step 2: Wait for Ready ─────────────────────────
+                                  echo ""
+                                  echo "Step 2: Waiting for test cluster to become Ready (timeout: ${TIMEOUT}s)..."
+                                  elapsed=0
+                                  while true; do
+                                      phase=$(kubectl get cluster "${TEST_CLUSTER}" \
+                                          -n "${NAMESPACE}" \
+                                          -o jsonpath='{.status.phase}' 2>/dev/null || echo "NotFound")
+
+                                      ready=$(kubectl get cluster "${TEST_CLUSTER}" \
+                                          -n "${NAMESPACE}" \
+                                          -o jsonpath='{.status.readyInstances}' 2>/dev/null || echo "0")
+
+                                      echo "  [${elapsed}s] Phase: ${phase}, Ready: ${ready}/1"
+
+                                      if [ "${phase}" = "Cluster in healthy state" ] && [ "${ready}" = "1" ]; then
+                                          echo "Test cluster is Ready!"
+                                          break
+                                      fi
+
+                                      if [ ${elapsed} -ge ${TIMEOUT} ]; then
+                                          echo "ERROR: Timeout waiting for test cluster"
+                                          echo "Final phase: ${phase}"
+                                          kubectl get cluster "${TEST_CLUSTER}" -n "${NAMESPACE}" \
+                                              -o jsonpath='{.status.conditions}' 2>/dev/null || true
+                                          echo ""
+                                          exit 1
+                                      fi
+
+                                      sleep ${POLL_INTERVAL}
+                                      elapsed=$((elapsed + POLL_INTERVAL))
+                                  done
+
+                                  # ── Step 3: SQL Health Checks ───────────────────────
+                                  echo ""
+                                  echo "Step 3: Running SQL health checks..."
+
+                                  TEST_POD="${TEST_CLUSTER}-1"
+                                  kubectl wait pod "${TEST_POD}" \
+                                      -n "${NAMESPACE}" \
+                                      --for=condition=Ready \
+                                      --timeout=60s
+
+                                  run_sql() {
+                                      local db="${1}"
+                                      local query="${2}"
+                                      kubectl exec "${TEST_POD}" -n "${NAMESPACE}" \
+                                          -c postgres -- \
+                                          psql -U postgres -d "${db}" -t -A -c "${query}" 2>&1
+                                  }
+
+                                  CHECKS_PASSED=0
+                                  CHECKS_TOTAL=0
+
+                                  check() {
+                                      local name="${1}"
+                                      local result="${2}"
+                                      local expected="${3}"
+                                      CHECKS_TOTAL=$((CHECKS_TOTAL + 1))
+                                      if [ "${result}" = "${expected}" ]; then
+                                          echo "  PASS: ${name}"
+                                          CHECKS_PASSED=$((CHECKS_PASSED + 1))
+                                      else
+                                          echo "  FAIL: ${name} (got '${result}', expected '${expected}')"
+                                      fi
+                                  }
+
+                                  # Check 1: Basic connectivity
+                                  result=$(run_sql postgres "SELECT 1;")
+                                  check "SELECT 1" "${result}" "1"
+
+                                  # Check 2: supabase database exists
+                                  result=$(run_sql postgres "SELECT 1 FROM pg_database WHERE datname = 'supabase';")
+                                  check "supabase database exists" "${result}" "1"
+
+                                  # Check 3: Key extensions installed
+                                  for ext in pgsodium pg_stat_statements pgaudit; do
+                                      result=$(run_sql postgres "SELECT count(*) FROM pg_extension WHERE extname = '${ext}';")
+                                      check "extension ${ext} installed" "${result}" "1"
+                                  done
+
+                                  # Check 4: auth.users table exists in supabase db
+                                  result=$(run_sql supabase \
+                                      "SELECT count(*) FROM information_schema.tables WHERE table_schema = 'auth' AND table_name = 'users';")
+                                  check "auth.users table exists" "${result}" "1"
+
+                                  # Check 5: shared_preload_libraries
+                                  libs=$(run_sql postgres "SHOW shared_preload_libraries;")
+                                  echo "  Libraries: ${libs}"
+                                  echo "${libs}" | grep -q "pgsodium"
+                                  check "pgsodium in shared_preload_libraries" "$?" "0"
+                                  echo "${libs}" | grep -q "kilobase"
+                                  check "kilobase in shared_preload_libraries" "$?" "0"
+
+                                  echo ""
+                                  echo "=== Results: ${CHECKS_PASSED}/${CHECKS_TOTAL} checks passed ==="
+
+                                  if [ ${CHECKS_PASSED} -lt ${CHECKS_TOTAL} ]; then
+                                      echo "FAILED: Some health checks did not pass"
+                                      exit 1
+                                  fi
+
+                                  echo "Backup restore fire drill SUCCEEDED"
+                                  echo "Timestamp: $(date -u +%Y-%m-%dT%H:%M:%SZ)"
