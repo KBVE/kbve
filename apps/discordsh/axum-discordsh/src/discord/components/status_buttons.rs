@@ -64,19 +64,23 @@ pub async fn handle_status_component(
         ID_STATUS_REFRESH => {
             info!(user = %interaction.user.name, "Status refresh button pressed");
 
+            // Acknowledge immediately so Discord knows we received the interaction.
+            // force_refresh() calls sysinfo which can take 100-500ms on loaded nodes.
+            interaction
+                .create_response(&ctx.http, serenity::CreateInteractionResponse::Acknowledge)
+                .await?;
+
             data.app.health_monitor.force_refresh().await;
             let snap = collect_snapshot(data, &ctx.cache).await;
             let embed = build_status_embed(&snap);
             let components = vec![build_status_action_row()];
 
             interaction
-                .create_response(
+                .edit_response(
                     &ctx.http,
-                    serenity::CreateInteractionResponse::UpdateMessage(
-                        serenity::CreateInteractionResponseMessage::new()
-                            .embed(embed)
-                            .components(components),
-                    ),
+                    serenity::EditInteractionResponse::new()
+                        .embed(embed)
+                        .components(components),
                 )
                 .await?;
 
