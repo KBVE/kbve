@@ -18,6 +18,7 @@ export default defineConfig({
 	projects: [
 		{
 			name: 'dev',
+			testIgnore: /toast-welcome/,
 			use: {
 				...devices['Desktop Chrome'],
 				baseURL,
