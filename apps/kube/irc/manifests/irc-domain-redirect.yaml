@@ -5,7 +5,6 @@ metadata:
     namespace: irc
     annotations:
         cert-manager.io/cluster-issuer: letsencrypt-http
-        nginx.ingress.kubernetes.io/permanent-redirect: 'https://chat.kbve.com$request_uri'
 spec:
     ingressClassName: nginx
     tls:
@@ -20,6 +19,6 @@ spec:
                     pathType: Prefix
                     backend:
                         service:
-                            name: irc-gateway-service
+                            name: irc-redirect-service
                             port:
-                                number: 4321
+                                number: 80

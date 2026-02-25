@@ -20,6 +20,11 @@ jobs:
               with:
                   submodules: true
 
+            - name: Setup Docker Buildx
+              uses: docker/setup-buildx-action@v3
+              with:
+                  driver-opts: network=host
+
             - name: Rust ToolChain
               uses: dtolnay/rust-toolchain@stable
 
@@ -66,4 +71,4 @@ jobs:
               run: pnpm exec playwright install --with-deps chromium
 
             - name: Nx e2e ${{ inputs.project }}
-              run: pnpm nx e2e ${{ inputs.project }} --no-cloud
+              run: pnpm nx e2e ${{ inputs.project }} --configuration=ci --no-cloud

@@ -11,45 +11,45 @@ controller:
         enabled: true
         type: LoadBalancer
         externalTrafficPolicy: Local
+        annotations:
+            metallb.universe.tf/allow-shared-ip: 'shared-public-ip'
 
     config:
-        enable-real-ip: "true"
-        real-ip-header: "X-Forwarded-For"
-        real-ip-recursive: "on"
+        enable-real-ip: 'true'
+        real-ip-header: 'X-Forwarded-For'
+        real-ip-recursive: 'on'
 
         # Critical for handling large headers/tokens
-        proxy-buffer-size: "160k"
-        proxy-buffers: "64 160k"
-        proxy-busy-buffers-size: "320k"
-        large-client-header-buffers: "64 160k"
-        client-header-buffer-size: "160k"
-        client-body-buffer-size: "160k"
-        
+        proxy-buffer-size: '160k'
+        proxy-buffers: '64 160k'
+        proxy-busy-buffers-size: '320k'
+        large-client-header-buffers: '64 160k'
+        client-header-buffer-size: '160k'
+        client-body-buffer-size: '160k'
+
         # Increase timeouts
-        proxy-connect-timeout: "300"
-        proxy-send-timeout: "300"
-        proxy-read-timeout: "300"
-        client-body-timeout: "300"
-        client-header-timeout: "300"
-        
+        proxy-connect-timeout: '300'
+        proxy-send-timeout: '300'
+        proxy-read-timeout: '300'
+        client-body-timeout: '300'
+        client-header-timeout: '300'
+
         # Enable headers-more module for more_set_headers
         # enable-modsecurity: "false"
         # enable-owasp-modsecurity-crs: "false"
-        
+
         # Global CORS settings as fallback
-        enable-cors: "true"
-        cors-allow-origin: "*"
-        cors-allow-credentials: "true"
-        cors-allow-methods: "GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD"
-        cors-allow-headers: "*"
-        
+        enable-cors: 'true'
+        cors-allow-origin: '*'
+        cors-allow-credentials: 'true'
+        cors-allow-methods: 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD'
+        cors-allow-headers: '*'
+
         # Important for handling errors with CORS
         # add-headers: "ingress-nginx/custom-headers"
-        
+
         # Increase body size limit globally
-        proxy-body-size: "50m"
-
-
+        proxy-body-size: '50m'
 
     metrics:
         enabled: true

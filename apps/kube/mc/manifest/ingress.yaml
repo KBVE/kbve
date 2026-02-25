@@ -1,0 +1,28 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: mc-ingress
+    namespace: mc
+    labels:
+        app: mc
+    annotations:
+        cert-manager.io/cluster-issuer: 'letsencrypt-http'
+        nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+        nginx.ingress.kubernetes.io/proxy-body-size: '50m'
+spec:
+    ingressClassName: nginx
+    tls:
+        - hosts:
+              - mc.kbve.com
+          secretName: mc-tls
+    rules:
+        - host: mc.kbve.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: mc-internal-service
+                            port:
+                                number: 8080
