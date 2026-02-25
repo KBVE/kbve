@@ -25,6 +25,12 @@ TARGET_SIZE = (64, 64)
 def resize_image(src: Path, dst: Path) -> None:
     with Image.open(src) as img:
         img = img.convert("RGBA")
+
+        # Auto-trim transparent dead space
+        bbox = img.getbbox()
+        if bbox:
+            img = img.crop(bbox)
+
         img = img.resize(TARGET_SIZE, Image.LANCZOS)
         dst.parent.mkdir(parents=True, exist_ok=True)
         img.save(dst, format="PNG")
