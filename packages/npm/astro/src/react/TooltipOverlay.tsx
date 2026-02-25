@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type CSSProperties } from 'react';
 import { createPortal } from 'react-dom';
 import { useTooltip } from '../hooks/useTooltip';
-import { cn } from '../utils/cn';
 
 export interface TooltipOverlayProps {
 	id: string;
@@ -39,23 +38,42 @@ export function TooltipOverlay({
 		});
 	}, [open, anchorId]);
 
+	const visible = open && pos;
+
+	const tooltipStyle: CSSProperties = {
+		position: 'absolute',
+		zIndex: 9997,
+		paddingInline: 12,
+		paddingBlock: 8,
+		borderRadius: 8,
+		backgroundColor: 'var(--sl-color-gray-5, #27272a)',
+		color: 'var(--sl-color-text, #e4e4e7)',
+		fontSize: 'var(--sl-text-sm, 0.875rem)',
+		boxShadow: 'var(--sl-shadow-md, 0 4px 6px -1px rgba(0,0,0,0.3))',
+		transform: 'translateX(-50%)',
+		transition: 'opacity 150ms ease',
+		...(visible
+			? {
+					opacity: 1,
+					visibility: 'visible' as const,
+					top: pos.top,
+					left: pos.left,
+				}
+			: {
+					opacity: 0,
+					visibility: 'hidden' as const,
+					pointerEvents: 'none' as const,
+					top: -9999,
+					left: -9999,
+				}),
+	};
+
 	return createPortal(
 		<div
 			role="tooltip"
 			aria-hidden={!open}
-			className={cn(
-				'absolute z-[9997] px-3 py-2 rounded-lg bg-zinc-800 text-zinc-200 text-sm shadow-lg',
-				'transform -translate-x-1/2 transition-opacity duration-150',
-				open && pos
-					? 'opacity-100 visible'
-					: 'opacity-0 invisible pointer-events-none',
-				className,
-			)}
-			style={
-				open && pos
-					? { top: pos.top, left: pos.left }
-					: { top: -9999, left: -9999 }
-			}>
+			className={className}
+			style={tooltipStyle}>
 			{children ?? content ?? null}
 		</div>,
 		document.body,
