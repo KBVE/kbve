@@ -19,7 +19,11 @@ RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     cargo chef cook --release --recipe-path recipe.json
 
 # --- Foundation: leaf + data crates (rarely change, cached aggressively) ---
+#     cargo-chef cook strips workspace.lints, so restore the real manifests.
+#     Full workspace build ensures feature unification is correct.
 FROM deps AS foundation
+COPY ./pumpkin/Cargo.toml /pumpkin/Cargo.toml
+COPY ./pumpkin/Cargo.lock /pumpkin/Cargo.lock
 COPY ./pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
 COPY ./pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
 COPY ./pumpkin/pumpkin-util /pumpkin/pumpkin-util
@@ -28,13 +32,7 @@ COPY ./pumpkin/pumpkin-macros /pumpkin/pumpkin-macros
 COPY ./pumpkin/pumpkin-config /pumpkin/pumpkin-config
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
-    cargo build --release \
-    -p pumpkin-nbt \
-    -p pumpkin-api-macros \
-    -p pumpkin-util \
-    -p pumpkin-data \
-    -p pumpkin-macros \
-    -p pumpkin-config
+    cargo build --release
 
 # --- Core: engine crates (protocol, world, inventory) ---
 FROM foundation AS core
@@ -43,10 +41,7 @@ COPY ./pumpkin/pumpkin-protocol /pumpkin/pumpkin-protocol
 COPY ./pumpkin/pumpkin-inventory /pumpkin/pumpkin-inventory
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
-    cargo build --release \
-    -p pumpkin-world \
-    -p pumpkin-protocol \
-    -p pumpkin-inventory
+    cargo build --release
 
 # --- Pumpkin: build server (parallel with plugin) ---
 FROM core AS builder
