@@ -69,7 +69,7 @@ RUN apk add --no-cache zip coreutils
 COPY ./data/resource-pack /resource-pack
 RUN cd /resource-pack && zip -r /kbve-resource-pack.zip . -x '.*' -x '__MACOSX/*'
 RUN SHA1=$(sha1sum /kbve-resource-pack.zip | awk '{print $1}') && \
-    printf '[resource_pack]\nenabled = true\nurl = "http://localhost:8080/kbve-resource-pack.zip"\nsha1 = "%s"\nforce = true\nprompt_message = "KBVE Resource Pack - Custom items and textures"\n\n[networking.rcon]\nenabled = true\naddress = "0.0.0.0:25575"\npassword = "kbve-rcon"\nmax_connections = 5\n' "$SHA1" > /features.toml
+    printf '[resource_pack]\nenabled = true\nurl = "http://localhost:8080/kbve-resource-pack.zip"\nsha1 = "%s"\nforce = true\nprompt_message = "KBVE Resource Pack - Custom items and textures"\n\n[world]\nlighting = "default"\nautosave_ticks = 6000\n\n[world.chunk]\ntype = "anvil"\nwrite_in_place = false\n\n[world.chunk.compression]\nalgorithm = "LZ4"\nlevel = 6\n\n[networking.rcon]\nenabled = true\naddress = "0.0.0.0:25575"\npassword = "kbve-rcon"\nmax_connections = 5\n' "$SHA1" > /features.toml
 
 # --- Final image ---
 FROM alpine:3.23
