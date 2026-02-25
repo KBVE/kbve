@@ -38,7 +38,10 @@
 				"local": {
 					"load": true,
 					"push": false,
-					"tags": ["kbve/mc:latest"]
+					"tags": ["kbve/mc:latest"],
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/mc:buildcache"
+					]
 				},
 				"production": {
 					"load": true,
