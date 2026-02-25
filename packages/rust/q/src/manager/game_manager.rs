@@ -1,3 +1,4 @@
+use crate::debug_print;
 use godot::classes::ICanvasLayer;
 use godot::prelude::*;
 
@@ -27,15 +28,9 @@ pub struct GameManager {
 #[godot_api]
 impl INode for GameManager {
     fn init(base: Base<Self::Base>) -> Self {
-        godot_print!("[GameManager] Initializing...");
+        debug_print!("[GameManager] Initializing...");
 
         let user_data_cache = Some(UserDataCache::new());
-
-        if user_data_cache.is_none() {
-            godot_error!("[GameManager] ERROR: user_data_cache failed to initialize!");
-        } else {
-            godot_print!("[GameManager] user_data_cache initialized.");
-        }
 
         let clock_master = Gd::from_init_fn(|base| ClockMaster::init(base));
         let cache_manager = Gd::from_init_fn(|base| CacheManager::init(base));
@@ -59,7 +54,7 @@ impl INode for GameManager {
     }
 
     fn ready(&mut self) {
-        godot_print!("[GameManager] Ready! Adding children...");
+        debug_print!("[GameManager] Ready! Adding children...");
 
         let cache_manager = self.cache_manager.clone();
         let clock_master = self.clock_master.clone();
@@ -80,7 +75,7 @@ impl INode for GameManager {
             base.add_child(&event_bridge.upcast::<Node>());
         }
 
-        godot_print!("[GameManager] All children added successfully.");
+        debug_print!("[GameManager] All children added successfully.");
     }
 }
 
@@ -103,10 +98,6 @@ impl GameManager {
         &self.music_manager
     }
 
-    // pub fn internal_get_ui_manager(&self) -> &Gd<Maiky> {
-    //   &self.ui_manager
-    // }
-
     pub fn internal_get_clock_master(&self) -> &Gd<ClockMaster> {
         &self.clock_master
     }
@@ -120,11 +111,6 @@ impl GameManager {
         self.music_manager.clone()
     }
 
-    // #[func]
-    // pub fn get_ui_manager(&self) -> Gd<Maiky> {
-    //   self.ui_manager.clone()
-    // }
-
     #[func]
     pub fn get_clock_master(&self) -> Gd<ClockMaster> {
         self.clock_master.clone()
@@ -137,37 +123,24 @@ impl GameManager {
 
     #[func]
     pub fn load_user_settings(&mut self) {
-        godot_print!("[GameManager] Calling Load User Settings...");
-
-        if self.user_data_cache.is_none() {
-            godot_error!("[GameManager] ERROR: user_data_cache is None!");
-        } else {
-            godot_print!("[GameManager] user_data_cache is initialized.");
-        }
-
         let Some(user_data_cache) = self.user_data_cache.as_mut() else {
             godot_error!("[GameManager] ERROR: user_data_cache is None!");
             return;
         };
 
-        godot_print!("[GameManager] Successfully accessed user_data_cache.");
-
         let file_path = "user://settings.json";
-        godot_print!("[GameManager] Attempting to load file: {}", file_path);
+        debug_print!("[GameManager] Loading settings from: {}", file_path);
 
         match user_data_cache.load_from_file(file_path) {
             Some(data) => {
-                godot_print!("[GameManager] Successfully loaded settings file.");
+                debug_print!("[GameManager] Settings loaded successfully.");
                 drop(data);
             }
             None => {
                 godot_warn!("[GameManager] Settings file not found. Creating default settings...");
                 user_data_cache.save_new_user_data(file_path);
-                godot_print!("[GameManager] Default settings created and saved.");
             }
         }
-
-        godot_print!("[GameManager] User settings loaded successfully.");
     }
 
     #[func]
@@ -186,7 +159,7 @@ impl GameManager {
 
         user_data_cache.save_to_file(file_path, &user_data);
 
-        godot_print!("[GameManager] User settings saved.");
+        debug_print!("[GameManager] User settings saved.");
     }
 
     #[func]
@@ -197,13 +170,13 @@ impl GameManager {
         user_data_cache.insert(&key_str, value.clone());
         self.save_user_settings();
 
-        godot_print!("[GameManager] Updated Setting: {} -> {:?}", key_str, value);
+        debug_print!("[GameManager] Updated setting: {} -> {:?}", key_str, value);
     }
 
     #[func]
     fn start_game(&mut self) {
         self.base_mut().emit_signal("game_started", &[]);
-        godot_print!("[GameManager] Game Started!");
+        debug_print!("[GameManager] Game Started!");
     }
 
     #[func]
@@ -212,7 +185,7 @@ impl GameManager {
         if let Some(mut scene_tree) = self.base().get_tree() {
             scene_tree.set_pause(true);
         }
-        godot_print!("[GameManager] Game Paused.");
+        debug_print!("[GameManager] Game Paused.");
     }
 
     #[func]
@@ -221,13 +194,13 @@ impl GameManager {
         if let Some(mut scene_tree) = self.base().get_tree() {
             scene_tree.set_pause(false);
         }
-        godot_print!("[GameManager] Game Resumed.");
+        debug_print!("[GameManager] Game Resumed.");
     }
 
     #[func]
     fn exit_game(&mut self) {
         self.base_mut().emit_signal("game_exited", &[]);
-        godot_print!("[GameManager] Exiting Game...");
+        debug_print!("[GameManager] Exiting Game...");
 
         if let Some(mut scene_tree) = self.base().get_tree() {
             scene_tree.quit();

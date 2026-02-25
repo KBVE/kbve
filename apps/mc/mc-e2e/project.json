@@ -1,0 +1,22 @@
+{
+	"name": "mc-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/mc/mc-e2e/e2e",
+	"implicitDependencies": ["mc"],
+	"targets": {
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f mc-e2e-test 2>/dev/null || true",
+					"docker run -d --name mc-e2e-test -p 25565:25565 kbve/mc:local",
+					"npx vitest run --config apps/mc/mc-e2e/vitest.config.ts; EC=$?; docker rm -f mc-e2e-test 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false
+			}
+		}
+	},
+	"tags": []
+}

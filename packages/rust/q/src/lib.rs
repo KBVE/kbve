@@ -8,14 +8,14 @@ mod macros;
 mod manager;
 mod threads;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 mod platform;
 
 struct Q;
 
 #[gdextension]
 unsafe impl ExtensionLibrary for Q {
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     fn on_level_init(level: InitLevel) {
         use crate::threads::runtime::RuntimeManager;
         match level {
@@ -27,7 +27,7 @@ unsafe impl ExtensionLibrary for Q {
         }
     }
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     fn on_level_deinit(level: InitLevel) {
         use crate::threads::runtime::RuntimeManager;
         match level {
@@ -47,9 +47,9 @@ unsafe impl ExtensionLibrary for Q {
         }
     }
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     fn on_level_init(_level: InitLevel) {}
 
-    #[cfg(not(any(target_os = "macos", target_os = "windows")))]
+    #[cfg(not(any(target_os = "macos", target_os = "windows", target_os = "linux")))]
     fn on_level_deinit(_level: InitLevel) {}
 }

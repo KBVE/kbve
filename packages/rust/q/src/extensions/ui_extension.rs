@@ -1,3 +1,4 @@
+use crate::impl_node_ext_common;
 use godot::classes::control::LayoutPreset;
 use godot::classes::{Button, CanvasLayer, Control};
 use godot::prelude::*;
@@ -12,16 +13,7 @@ pub trait ControlExt {
     fn with_custom_minimum_size(self, size: Vector2) -> Self;
 }
 
-impl ControlExt for Gd<Control> {
-    fn with_name(mut self, name: &str) -> Self {
-        self.set_name(name);
-        self
-    }
-
-    fn with_cache(self, prefix: &str, key: &GString) -> Self {
-        self.with_name(&format!("{}_{}", prefix, key))
-    }
-
+impl_node_ext_common!(ControlExt, Control {
     fn with_anchors_preset(mut self, preset: LayoutPreset) -> Self {
         self.set_anchors_preset(preset);
         self
@@ -36,7 +28,7 @@ impl ControlExt for Gd<Control> {
         self.set_custom_minimum_size(size);
         self
     }
-}
+});
 
 //  Button Extension
 
@@ -50,16 +42,7 @@ pub trait ButtonExt {
     fn with_callback(self, parent: &Gd<Node>, signal_name: &str, params: &[Variant]) -> Self;
 }
 
-impl ButtonExt for Gd<Button> {
-    fn with_name(mut self, name: &str) -> Self {
-        self.set_name(name);
-        self
-    }
-
-    fn with_cache(self, prefix: &str, key: &GString) -> Self {
-        self.with_name(&format!("{}_{}", prefix, key))
-    }
-
+impl_node_ext_common!(ButtonExt, Button {
     fn with_text(mut self, text: &GString) -> Self {
         self.set_text(text);
         self
@@ -98,7 +81,7 @@ impl ButtonExt for Gd<Button> {
         self.connect("pressed", &parent.callable(signal_name).bind(params));
         self
     }
-}
+});
 
 //  Canvas
 
@@ -113,16 +96,7 @@ pub trait CanvasLayerExt {
     fn with_fixed_position(self, offset: Vector2, scale: Vector2) -> Self;
 }
 
-impl CanvasLayerExt for Gd<CanvasLayer> {
-    fn with_name(mut self, name: &str) -> Self {
-        self.set_name(name);
-        self
-    }
-
-    fn with_cache(self, prefix: &str, key: &GString) -> Self {
-        self.with_name(&format!("{}_{}", prefix, key))
-    }
-
+impl_node_ext_common!(CanvasLayerExt, CanvasLayer {
     fn with_follow_viewport(mut self, enabled: bool) -> Self {
         self.set_follow_viewport(enabled);
         self
@@ -151,4 +125,4 @@ impl CanvasLayerExt for Gd<CanvasLayer> {
     fn with_fixed_position(self, offset: Vector2, scale: Vector2) -> Self {
         self.with_offset(offset).with_scale(scale)
     }
-}
+});

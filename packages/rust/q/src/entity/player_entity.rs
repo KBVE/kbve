@@ -1,5 +1,6 @@
 use crate::data::abstract_data_map::AbstractDataMap;
 use crate::data::player_data::PlayerData;
+use crate::debug_print;
 use godot::classes::{Input, Sprite2D};
 use godot::prelude::*;
 
@@ -26,11 +27,10 @@ impl INode for PlayerEntity {
     }
 
     fn ready(&mut self) {
-        godot_print!("[PlayerEntity] Ready! Initializing PlayerEntity...");
+        debug_print!("[PlayerEntity] Initializing...");
 
         if let Some(sprite) = self.base().try_get_node_as::<Sprite2D>("Sprite2D") {
             self.sprite = Some(sprite);
-            godot_print!("[PlayerEntity] Sprite2D found and cached by name.");
         } else {
             godot_warn!("[PlayerEntity] Base could not be cast to Node.");
         }
@@ -72,7 +72,7 @@ impl PlayerEntity {
         }
 
         if direction.length() > 0.0 {
-            self.data.set_velocity(direction * self.speed);
+            self.data.set_velocity(direction.normalized() * self.speed);
         } else {
             self.data.set_velocity(Vector2::ZERO);
         }
@@ -91,14 +91,16 @@ impl PlayerEntity {
         }
     }
 
-    fn save_player_data(&self, file_path: &str) -> bool {
-        godot_print!("Saving player data to {}", file_path);
-        self.data.to_save_gfile_json(file_path)
+    #[func]
+    fn save_player_data(&self, file_path: GString) -> bool {
+        debug_print!("Saving player data to {}", file_path);
+        self.data.to_save_gfile_json(&file_path.to_string())
     }
 
-    fn load_player_data(&mut self, file_path: &str) -> bool {
-        godot_print!("Loading player data from {}", file_path);
-        if let Some(loaded_data) = PlayerData::from_load_gfile_json(file_path) {
+    #[func]
+    fn load_player_data(&mut self, file_path: GString) -> bool {
+        debug_print!("Loading player data from {}", file_path);
+        if let Some(loaded_data) = PlayerData::from_load_gfile_json(&file_path.to_string()) {
             self.data = loaded_data;
             true
         } else {

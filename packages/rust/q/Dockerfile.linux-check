@@ -1,0 +1,20 @@
+FROM rust:1.88-bookworm
+
+RUN apt-get update -qq && \
+    apt-get install -y --no-install-recommends \
+    pkg-config \
+    libgtk-3-dev \
+    libwebkit2gtk-4.1-dev \
+    libayatana-appindicator3-dev \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN rustup component add rustfmt clippy
+
+WORKDIR /workspace
+
+# Usage (from repo root):
+#   docker build -t q-linux-check -f packages/rust/q/Dockerfile.linux-check .
+#   docker run --rm -v "$(pwd):/workspace" q-linux-check cargo check  -p q
+#   docker run --rm -v "$(pwd):/workspace" q-linux-check cargo test   -p q
+#   docker run --rm -v "$(pwd):/workspace" q-linux-check cargo clippy -p q
+#   docker run --rm -v "$(pwd):/workspace" q-linux-check rustfmt --check packages/rust/q/src/**/*.rs

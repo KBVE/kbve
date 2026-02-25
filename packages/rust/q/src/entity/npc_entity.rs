@@ -1,5 +1,6 @@
 use crate::data::abstract_data_map::AbstractDataMap;
 use crate::data::npc_data::{NPCData, NPCState};
+use crate::debug_print;
 use godot::classes::Sprite2D;
 use godot::prelude::*;
 
@@ -32,11 +33,10 @@ impl INode for NPCEntity {
     }
 
     fn ready(&mut self) {
-        godot_print!("[NPCEntity] Ready! Initializing NPCEntity...");
+        debug_print!("[NPCEntity] Initializing...");
 
         if let Some(sprite) = self.base().try_get_node_as::<Sprite2D>("Sprite2D") {
             self.sprite = Some(sprite);
-            godot_print!("[NPCEntity] Sprite2D found and cached by name.");
         } else {
             godot_warn!("[NPCEntity] Base could not be cast to Node.");
         }
@@ -55,14 +55,19 @@ impl INode for NPCEntity {
 #[godot_api]
 impl NPCEntity {
     fn update_behavior(&mut self) {
-        match self.data.get_state() {
-            NPCState::IDLE => self.handle_idle(),
-            NPCState::MOVING => self.handle_movement(),
-            NPCState::ATTACKING => self.handle_attack(),
-            NPCState::DEFENDING => self.handle_defend(),
-            NPCState::PATROLLING => self.handle_patrol(),
-            NPCState::ESCAPING => self.handle_escape(),
-            _ => {}
+        let state = self.data.get_state();
+        if state.contains(NPCState::ESCAPING) {
+            self.handle_escape();
+        } else if state.contains(NPCState::ATTACKING) {
+            self.handle_attack();
+        } else if state.contains(NPCState::DEFENDING) {
+            self.handle_defend();
+        } else if state.contains(NPCState::PATROLLING) {
+            self.handle_patrol();
+        } else if state.contains(NPCState::MOVING) {
+            self.handle_movement();
+        } else {
+            self.handle_idle();
         }
     }
 
@@ -76,12 +81,12 @@ impl NPCEntity {
     }
 
     fn handle_attack(&mut self) {
-        godot_print!("[NPCEntity] Attacking...");
+        debug_print!("[NPCEntity] Attacking...");
         self.data.set_velocity(Vector2::ZERO);
     }
 
     fn handle_defend(&mut self) {
-        godot_print!("[NPCEntity] Defending...");
+        debug_print!("[NPCEntity] Defending...");
         self.data.set_velocity(Vector2::ZERO);
     }
 
@@ -116,14 +121,16 @@ impl NPCEntity {
         &self.data
     }
 
-    fn save_npc_data(&self, file_path: &str) -> bool {
-        godot_print!("Saving NPC data to {}", file_path);
-        self.data.to_save_gfile_json(file_path)
+    #[func]
+    fn save_npc_data(&self, file_path: GString) -> bool {
+        debug_print!("Saving NPC data to {}", file_path);
+        self.data.to_save_gfile_json(&file_path.to_string())
     }
 
-    fn load_npc_data(&mut self, file_path: &str) -> bool {
-        godot_print!("Loading NPC data from {}", file_path);
-        if let Some(loaded_data) = NPCData::from_load_gfile_json(file_path) {
+    #[func]
+    fn load_npc_data(&mut self, file_path: GString) -> bool {
+        debug_print!("Loading NPC data from {}", file_path);
+        if let Some(loaded_data) = NPCData::from_load_gfile_json(&file_path.to_string()) {
             self.data = loaded_data;
             true
         } else {

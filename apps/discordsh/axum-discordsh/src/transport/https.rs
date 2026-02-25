@@ -1,19 +1,30 @@
 use anyhow::Result;
+use std::sync::Arc;
+use std::sync::atomic::Ordering;
 use std::{net::SocketAddr, time::Duration};
 
 use axum::{
-    extract::Request,
-    http::{header, HeaderName, HeaderValue},
+    Json, Router,
+    extract::{Request, State},
+    http::{HeaderName, HeaderValue, header},
     middleware::Next,
     response::{IntoResponse, Response},
-    routing::get,
-    Router,
+    routing::{get, post},
 };
+use poise::serenity_prelude as serenity;
 use tokio::net::TcpListener;
 use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::info;
 
-pub async fn serve() -> Result<()> {
+use crate::state::AppState;
+
+/// Shared state available to all Axum handlers.
+#[derive(Clone)]
+struct HttpState {
+    app: Arc<AppState>,
+}
+
+pub async fn serve(app_state: Arc<AppState>) -> Result<()> {
     let host = std::env::var("HTTP_HOST").unwrap_or_else(|_| "0.0.0.0".into());
     let port: u16 = std::env::var("HTTP_PORT")
         .ok()
@@ -25,7 +36,8 @@ pub async fn serve() -> Result<()> {
 
     info!("HTTP listening on http://{addr}");
 
-    let app = router();
+    let state = HttpState { app: app_state };
+    let app = router(state);
 
     axum::serve(listener, app)
         .with_graceful_shutdown(shutdown_signal())
@@ -34,7 +46,7 @@ pub async fn serve() -> Result<()> {
     Ok(())
 }
 
-fn router() -> Router {
+fn router(state: HttpState) -> Router {
     let max_inflight: usize = num_cpus::get().max(1) * 1024;
 
     let static_config = crate::astro::StaticConfig::from_env();
@@ -64,10 +76,16 @@ fn router() -> Router {
                 if err.is::<tower::timeout::error::Elapsed>() {
                     (axum::http::StatusCode::REQUEST_TIMEOUT, "request timed out")
                 } else if err.is::<tower::load_shed::error::Overloaded>() {
-                    (axum::http::StatusCode::SERVICE_UNAVAILABLE, "service overloaded")
+                    (
+                        axum::http::StatusCode::SERVICE_UNAVAILABLE,
+                        "service overloaded",
+                    )
                 } else {
                     tracing::warn!(error = %err, "middleware error");
-                    (axum::http::StatusCode::INTERNAL_SERVER_ERROR, "internal server error")
+                    (
+                        axum::http::StatusCode::INTERNAL_SERVER_ERROR,
+                        "internal server error",
+                    )
                 }
             },
         ))
@@ -80,19 +98,148 @@ fn router() -> Router {
         .layer(axum::middleware::from_fn(fix_ts_mime))
         .layer(axum::middleware::from_fn(cache_headers));
 
-    let public_router = Router::new()
-        .route("/health", get(health));
+    let dynamic_router = Router::new()
+        .route("/health", get(health))
+        .route("/healthz", get(healthz))
+        .route("/bot-restart", post(bot_restart))
+        .route("/sign-off", post(sign_off))
+        .route("/cleanup-thread", post(cleanup_thread))
+        .route("/tracker-status", get(tracker_status))
+        .with_state(state);
 
-    let dynamic_router = public_router;
-
-    static_router
-        .merge(dynamic_router)
-        .layer(middleware)
+    static_router.merge(dynamic_router).layer(middleware)
 }
 
-async fn health() -> impl IntoResponse {
-    "OK"
+// ── Handlers ────────────────────────────────────────────────────────────
+
+/// JSON health endpoint with system metrics.
+async fn health(State(state): State<HttpState>) -> impl IntoResponse {
+    match state.app.health_monitor.snapshot().await {
+        Some(snap) => Json(serde_json::json!({
+            "status": "ok",
+            "health": snap,
+        })),
+        None => Json(serde_json::json!({
+            "status": "ok",
+            "health": null,
+            "message": "Health data not yet available"
+        })),
+    }
 }
+
+/// Simple liveness probe for Kubernetes.
+async fn healthz() -> &'static str {
+    "ok"
+}
+
+/// Restart the Discord bot (sets restart flag + shuts down shards).
+async fn bot_restart(State(state): State<HttpState>) -> impl IntoResponse {
+    state.app.restart_flag.store(true, Ordering::Relaxed);
+    if let Some(sm) = state.app.shard_manager.read().await.as_ref() {
+        sm.shutdown_all().await;
+    }
+    Json(serde_json::json!({
+        "status": "ok",
+        "message": "Bot restart initiated"
+    }))
+}
+
+/// Graceful shutdown of the entire process.
+async fn sign_off(State(state): State<HttpState>) -> impl IntoResponse {
+    // Shut down bot shards first
+    if let Some(sm) = state.app.shard_manager.read().await.as_ref() {
+        sm.shutdown_all().await;
+    }
+    state.app.shutdown_notify.notify_one();
+    Json(serde_json::json!({
+        "status": "ok",
+        "message": "Shutdown initiated"
+    }))
+}
+
+/// Delete old bot messages from the configured status thread.
+async fn cleanup_thread(State(state): State<HttpState>) -> impl IntoResponse {
+    let thread_id = match std::env::var("DISCORD_THREAD_ID")
+        .ok()
+        .and_then(|s| s.parse::<u64>().ok())
+    {
+        Some(id) => serenity::ChannelId::new(id),
+        None => {
+            return Json(serde_json::json!({
+                "status": "error",
+                "message": "DISCORD_THREAD_ID not set"
+            }));
+        }
+    };
+
+    let http = match state.app.bot_http.read().await.clone() {
+        Some(h) => h,
+        None => {
+            return Json(serde_json::json!({
+                "status": "error",
+                "message": "Bot not connected"
+            }));
+        }
+    };
+
+    // Fetch recent messages
+    let messages = match thread_id
+        .messages(&http, serenity::GetMessages::new().limit(50))
+        .await
+    {
+        Ok(msgs) => msgs,
+        Err(e) => {
+            tracing::warn!(error = %e, "Failed to fetch thread messages");
+            return Json(serde_json::json!({
+                "status": "error",
+                "message": "Failed to fetch messages"
+            }));
+        }
+    };
+
+    // Filter to bot's own messages
+    let bot_user_id = http.get_current_user().await.map(|u| u.id).ok();
+    let to_delete: Vec<serenity::MessageId> = messages
+        .iter()
+        .filter(|m| bot_user_id.is_some_and(|id| m.author.id == id))
+        .map(|m| m.id)
+        .collect();
+
+    let count = to_delete.len();
+    if count > 1 {
+        // Bulk delete (2-100 messages, not older than 14 days)
+        let _ = thread_id.delete_messages(&http, &to_delete).await;
+    } else if count == 1 {
+        let _ = thread_id.delete_message(&http, to_delete[0]).await;
+    }
+
+    Json(serde_json::json!({
+        "status": "ok",
+        "deleted": count
+    }))
+}
+
+/// Query cluster shard status from Supabase tracker.
+async fn tracker_status(State(state): State<HttpState>) -> impl IntoResponse {
+    let cluster = std::env::var("CLUSTER_NAME").unwrap_or_else(|_| "default".into());
+
+    match &state.app.tracker {
+        Some(tracker) => {
+            let shards = tracker.get_cluster_status(&cluster).await;
+            Json(serde_json::json!({
+                "status": "ok",
+                "cluster": cluster,
+                "shards": shards
+            }))
+        }
+        None => Json(serde_json::json!({
+            "status": "ok",
+            "message": "Tracker not configured"
+        })),
+    }
+}
+
+// ── Middleware ───────────────────────────────────────────────────────────
 
 /// Set Cache-Control based on request path.
 async fn cache_headers(request: Request, next: Next) -> Response {
@@ -112,10 +259,9 @@ async fn cache_headers(request: Request, next: Next) -> Response {
         "public, max-age=86400"
     };
 
-    response.headers_mut().insert(
-        header::CACHE_CONTROL,
-        HeaderValue::from_static(cache_value),
-    );
+    response
+        .headers_mut()
+        .insert(header::CACHE_CONTROL, HeaderValue::from_static(cache_value));
 
     response
 }
@@ -135,7 +281,7 @@ async fn fix_ts_mime(request: Request, next: Next) -> Response {
 }
 
 fn tuned_listener(addr: SocketAddr) -> Result<TcpListener> {
-    use socket2::{Socket, Domain, Type, Protocol};
+    use socket2::{Domain, Protocol, Socket, Type};
 
     let domain = match addr {
         SocketAddr::V4(_) => Domain::IPV4,
@@ -174,9 +320,18 @@ mod tests {
     use http_body_util::BodyExt;
     use tower::ServiceExt;
 
-    /// Build a minimal router with just the health endpoint + middleware
-    /// (no static file serving, which requires a real directory).
-    fn test_router() -> Router {
+    use crate::health::HealthMonitor;
+
+    /// Build a minimal router with all API endpoints + middleware.
+    /// Returns the router and the shared `AppState` so tests can inspect
+    /// state mutations (e.g. `restart_flag`) after calling POST endpoints.
+    fn test_router() -> (Router, Arc<AppState>) {
+        let health_monitor = Arc::new(HealthMonitor::new());
+        let app_state = Arc::new(AppState::new(health_monitor, None));
+        let state = HttpState {
+            app: Arc::clone(&app_state),
+        };
+
         let middleware = tower::ServiceBuilder::new()
             .layer(SetResponseHeaderLayer::overriding(
                 header::X_CONTENT_TYPE_OPTIONS,
@@ -191,14 +346,22 @@ mod tests {
                 HeaderValue::from_static("strict-origin-when-cross-origin"),
             ));
 
-        Router::new()
+        let router = Router::new()
             .route("/health", get(health))
-            .layer(middleware)
+            .route("/healthz", get(healthz))
+            .route("/bot-restart", post(bot_restart))
+            .route("/sign-off", post(sign_off))
+            .route("/cleanup-thread", post(cleanup_thread))
+            .route("/tracker-status", get(tracker_status))
+            .with_state(state)
+            .layer(middleware);
+
+        (router, app_state)
     }
 
     #[tokio::test]
     async fn test_health_endpoint() {
-        let app = test_router();
+        let (app, _) = test_router();
         let response = app
             .oneshot(
                 Request::builder()
@@ -211,12 +374,51 @@ mod tests {
 
         assert_eq!(response.status(), StatusCode::OK);
         let body = response.into_body().collect().await.unwrap().to_bytes();
-        assert_eq!(&body[..], b"OK");
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
+    }
+
+    #[tokio::test]
+    async fn test_healthz_endpoint() {
+        let (app, _) = test_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/healthz")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        assert_eq!(&body[..], b"ok");
+    }
+
+    #[tokio::test]
+    async fn test_tracker_status_no_tracker() {
+        let (app, _) = test_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .uri("/tracker-status")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
+        assert_eq!(json["message"], "Tracker not configured");
     }
 
     #[tokio::test]
     async fn test_security_headers() {
-        let app = test_router();
+        let (app, _) = test_router();
         let response = app
             .oneshot(
                 Request::builder()
@@ -231,10 +433,7 @@ mod tests {
             response.headers().get("x-content-type-options").unwrap(),
             "nosniff"
         );
-        assert_eq!(
-            response.headers().get("x-frame-options").unwrap(),
-            "DENY"
-        );
+        assert_eq!(response.headers().get("x-frame-options").unwrap(), "DENY");
         assert_eq!(
             response.headers().get("referrer-policy").unwrap(),
             "strict-origin-when-cross-origin"
@@ -274,12 +473,7 @@ mod tests {
             .layer(axum::middleware::from_fn(cache_headers));
 
         let response = app
-            .oneshot(
-                Request::builder()
-                    .uri("/")
-                    .body(Body::empty())
-                    .unwrap(),
-            )
+            .oneshot(Request::builder().uri("/").body(Body::empty()).unwrap())
             .await
             .unwrap();
 
@@ -330,5 +524,71 @@ mod tests {
             .get(header::CONTENT_TYPE)
             .map(|v| v.to_str().unwrap().to_string());
         assert!(ct.is_none() || !ct.unwrap().contains("application/javascript"));
+    }
+
+    #[tokio::test]
+    async fn test_bot_restart_sets_flag() {
+        let (app, state) = test_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/bot-restart")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
+        assert_eq!(json["message"], "Bot restart initiated");
+
+        // Verify the restart flag was actually set
+        assert!(state.restart_flag.load(Ordering::Relaxed));
+    }
+
+    #[tokio::test]
+    async fn test_sign_off_returns_ok() {
+        let (app, _) = test_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/sign-off")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "ok");
+        assert_eq!(json["message"], "Shutdown initiated");
+    }
+
+    #[tokio::test]
+    async fn test_cleanup_thread_no_env() {
+        let (app, _) = test_router();
+        let response = app
+            .oneshot(
+                Request::builder()
+                    .method("POST")
+                    .uri("/cleanup-thread")
+                    .body(Body::empty())
+                    .unwrap(),
+            )
+            .await
+            .unwrap();
+
+        assert_eq!(response.status(), StatusCode::OK);
+        let body = response.into_body().collect().await.unwrap().to_bytes();
+        let json: serde_json::Value = serde_json::from_slice(&body).unwrap();
+        assert_eq!(json["status"], "error");
+        assert_eq!(json["message"], "DISCORD_THREAD_ID not set");
     }
 }

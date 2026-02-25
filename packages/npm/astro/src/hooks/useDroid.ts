@@ -19,7 +19,11 @@ const initialState: DroidState = {
 	error: null,
 };
 
-export function useDroid(workerURLs?: Record<string, string>): DroidState {
+export function useDroid(
+	workerURLs?: Record<string, string>,
+	i18nPath?: string,
+	dataPath?: string,
+): DroidState {
 	const [state, setState] = useState<DroidState>(initialState);
 
 	useEffect(() => {
@@ -27,7 +31,11 @@ export function useDroid(workerURLs?: Record<string, string>): DroidState {
 
 		async function init() {
 			try {
-				const result = await droid(workerURLs ? { workerURLs } : undefined);
+				const result = await droid({
+					workerURLs,
+					i18nPath,
+					dataPath,
+				});
 				if (cancelled) return;
 
 				const kbve = (window as any).kbve;

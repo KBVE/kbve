@@ -1,0 +1,52 @@
+{
+	"name": "mc",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/mc",
+	"targets": {
+		"container": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker build -t kbve/mc:$VERSION -t kbve/mc:latest -f apps/mc/Dockerfile apps/mc"
+				],
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker build -t kbve/mc:$VERSION -t kbve/mc:local -f apps/mc/Dockerfile apps/mc"
+					]
+				}
+			}
+		},
+		"run": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"docker run --rm -p 25565:25565 -p 8080:8080 -p 25575:25575 kbve/mc:local"
+				],
+				"parallel": false
+			}
+		},
+		"submodule-update": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": ["git submodule update --remote apps/mc/pumpkin"],
+				"parallel": false
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"nx container mc --configuration=local --no-cloud",
+					"nx e2e mc-e2e --no-cloud"
+				],
+				"parallel": false
+			}
+		}
+	},
+	"tags": []
+}

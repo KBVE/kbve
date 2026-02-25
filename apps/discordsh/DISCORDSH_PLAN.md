@@ -12,308 +12,331 @@ The Rust bot already has production-grade infrastructure (Axum HTTP server, Dock
 
 ### axum-discordsh (Rust) — What Exists
 
-- Serenity 0.12 with basic `EventHandler` (message + ready events)
-- Single `!ping` text command
+- **Poise 0.6.1** slash command framework on **Serenity 0.12.5**, Rust edition 2024
+- Slash commands: `/ping`, `/status` (rich embed + buttons), `/health` (rich health embed), `/restart`, `/cleanup`
+- `StatusState` enum with 5 lifecycle states, color/emoji/thumbnail properties
+- Status embed with guild count, shard info, uptime, health metrics, interactive buttons (Refresh, Cleanup, Restart)
+- `HealthMonitor` with background 60s polling via `sysinfo` 0.38.2 — CPU, memory, threads, process metrics
+- Health thresholds: Healthy (≤70%), Warning (70-90%), Critical (>90%) with color-coded embeds
+- Central `AppState` shared between HTTP server and Discord bot (lifecycle control, shard management)
+- `ShardTracker` backed by Supabase PostgREST for distributed shard management
+- HTTP API: `/health`, `/healthz`, `/bot-restart`, `/sign-off`, `/cleanup-thread`, `/tracker-status`
+- Bot restart loop in `main.rs` with `AtomicBool` restart flag + `ShardManager` shutdown
+- Configurable sharding: single (default), distributed (`SHARD_ID`/`SHARD_COUNT`), auto-scaling (`USE_AUTO_SCALING`)
+- Expanded event handler: Ready (tracker + 30s heartbeat), GuildCreate, GuildDelete, InteractionCreate
+- Global `event_handler` routing component interactions by `custom_id` prefix
 - Token resolution from env or Supabase Vault
-- Axum HTTP server with `/health` endpoint
+- Axum HTTP server with security headers, CORS, compression, load shedding
 - Static file serving (Astro frontend)
-- Security headers, CORS, compression, load shedding
 - Docker multi-stage build with jemalloc
-- Internal crate dependencies: `kbve` (Supabase), `jedi`
+- Internal crate dependencies: `kbve` (Supabase), `jedi`, `reqwest` 0.13.2
 
 ### notification-bot (Python) — What Must Be Migrated
 
-| Feature Area          | Details                                                                                      |
-| --------------------- | -------------------------------------------------------------------------------------------- |
-| **Bot lifecycle**     | Start, stop, restart, force-restart, sign-off via HTTP API                                   |
-| **Slash commands**    | Not yet slash commands — exposed as FastAPI POST endpoints called externally                 |
-| **Status embeds**     | Rich embed with health metrics, shard info, interactive buttons (Refresh, Cleanup, Restart)  |
-| **Health monitoring** | CPU, memory, threads, uptime, process info with HEALTHY/WARNING/CRITICAL thresholds          |
-| **Supabase tracker**  | Distributed shard assignment, heartbeat, cluster status, stale shard cleanup                 |
-| **Supabase vault**    | Secret retrieval via Edge Function (already shared with Rust bot)                            |
-| **User management**   | Discord ID lookup, multi-provider linking (Discord, GitHub, Google), sync from auth metadata |
-| **Thread cleanup**    | Delete old bot messages from a status thread                                                 |
-| **Sharding**          | Auto-sharding and distributed sharding (one shard per container)                             |
-| **DI framework**      | Dishka container with scoped providers                                                       |
+| Feature Area          | Status   | Details                                                                                     |
+| --------------------- | -------- | ------------------------------------------------------------------------------------------- |
+| **Bot lifecycle**     | ✅ Done  | Start, stop, restart, sign-off via HTTP API + slash commands                                |
+| **Slash commands**    | ✅ Done  | `/ping`, `/status`, `/health`, `/restart`, `/cleanup`                                       |
+| **Status embeds**     | ✅ Done  | Rich embed with health metrics, shard info, interactive buttons (Refresh, Cleanup, Restart) |
+| **Health monitoring** | ✅ Done  | CPU, memory, threads, uptime, process info with HEALTHY/WARNING/CRITICAL thresholds         |
+| **Supabase tracker**  | ✅ Done  | Distributed shard assignment, heartbeat, cluster status, stale shard cleanup                |
+| **Supabase vault**    | ✅ Done  | Secret retrieval via Edge Function (shared with Python bot)                                 |
+| **User management**   | Deferred | Discord ID lookup, multi-provider linking — only needed for user-facing commands            |
+| **Thread cleanup**    | ✅ Done  | Delete old bot messages from a status thread (HTTP + slash command + button)                |
+| **Sharding**          | ✅ Done  | Single, distributed, and auto-scaling modes                                                 |
+| **DI framework**      | N/A      | Rust uses `Arc<AppState>` instead of Dishka DI — simpler, zero-cost                         |
 
 ---
 
-## Phase 1: Slash Command Framework
+## Phase 1: Slash Command Framework ✅
 
-Migrate from Serenity raw `EventHandler` to the `poise` framework for ergonomic slash command support.
+> **Completed** — PR #7216 merged to `dev`.
 
-### Dependencies
+Migrated from Serenity raw `EventHandler` to the **poise 0.6.1** framework (serenity 0.12.5).
 
-```toml
-[dependencies]
-poise = "0.6"  # Built on serenity 0.12, adds slash command framework
-```
-
-### Command Module Structure
-
-```
-src/discord/
-├── mod.rs              # Discord module root
-├── bot.rs              # Bot startup, token resolution, client builder
-├── commands/
-│   ├── mod.rs          # Command registration
-│   ├── ping.rs         # /ping — basic connectivity check
-│   ├── status.rs       # /status — bot status embed with health metrics
-│   ├── health.rs       # /health — detailed health report
-│   └── admin.rs        # /restart, /force-restart — admin-only commands
-└── events.rs           # Event handlers (ready, shard_ready, etc.)
-```
-
-### Implementation
-
-- Define a `Data` struct holding shared state (Supabase client, health monitor, bot metadata)
-- Register commands via `poise::Framework::builder().options(poise::FrameworkOptions { commands: vec![...] })`
-- Use `#[poise::command(slash_command)]` attribute for each command
-- Guild-scoped commands for fast registration during development, global commands for production
-- Permission checks via `#[poise::command(required_permissions = "ADMINISTRATOR")]` for admin commands
-
-### Commands to Implement
-
-| Command          | Description                                  | Permissions |
-| ---------------- | -------------------------------------------- | ----------- |
-| `/ping`          | Responds with latency                        | Everyone    |
-| `/status`        | Shows bot status embed with health data      | Everyone    |
-| `/health`        | Detailed system health (CPU, memory, uptime) | Everyone    |
-| `/restart`       | Restart the bot gracefully                   | Admin       |
-| `/force-restart` | Force restart (kill + respawn)               | Admin       |
-| `/cleanup`       | Clean old messages from status thread        | Admin       |
+- Replaced `struct Handler` / `impl EventHandler` with `poise::Framework::builder()`
+- `Data` struct holds shared state, `Error` and `Context` type aliases
+- Guild-scoped command registration via `GUILD_ID` env var (dev), global registration otherwise
+- Three slash commands: `/ping`, `/status`, `/health`
+- `commands::all()` aggregates all commands for framework registration
+- Intents changed from `GUILD_MESSAGES | MESSAGE_CONTENT` to `non_privileged()`
 
 ---
 
-## Phase 2: Embeds and Interactive Components
+## Phase 2: Embeds and Interactive Components ✅
 
-Port the Python `BotStatusView` embed system to Rust with Serenity's `CreateEmbed` and component interactions.
+> **Completed** — Ported `BotStatusView` embed system to Rust.
 
-### Status Embed
+### What Was Built
 
-Replicate the notification-bot's status embed:
+**`src/discord/embeds/`** — Decoupled embed construction:
 
-- State-based color and thumbnail (Online/Offline/Starting/Stopping/Error)
-- Fields: shard info with latency, guild count, memory usage bar, CPU %, uptime
-- Timestamp of last update
-- Footer with bot version
+- `StatusState` enum (5 variants: Online, Offline, Starting, Stopping, Error) with `color()`, `emoji()`, `label()`, `thumbnail_url()` methods
+- `StatusSnapshot` struct — plain data bag decoupled from poise's `Data`
+- `build_status_embed(&StatusSnapshot) -> CreateEmbed` — pure function, no async, no side effects
+- `format_uptime(Duration) -> String` — "2d 5h 32m 10s" formatting
 
-### Interactive Buttons
+**`src/discord/components/`** — Button row and interaction handling:
 
-Serenity supports message components (buttons, select menus). Implement:
+- Three buttons: **Refresh** (Primary), **Cleanup** (Secondary), **Restart** (Danger)
+- Custom IDs: `status_refresh`, `status_cleanup`, `status_restart`
+- **Refresh** rebuilds the embed and edits in-place via `CreateInteractionResponse::UpdateMessage`
+- **Cleanup** deletes bot's own messages from configured status thread
+- **Restart** checks `member.permissions.administrator()`, rejects non-admins, triggers shard shutdown + restart
 
-- **Refresh** button — re-fetch health data and edit the embed in-place
-- **Cleanup** button — trigger thread message cleanup
-- **Restart** button — admin-only, requires permission check before executing
+**`src/discord/bot.rs`** — Updated:
 
-### Implementation Approach
+- `Data { app: Arc<AppState> }` wrapping central shared state
+- Global `event_handler` routes component interactions by `custom_id` prefix (`"status_"`)
+- Uses poise's `FrameworkOptions::event_handler` for persistent buttons (survive bot restarts)
 
-- Create an `EmbedBuilder` helper in `src/discord/embeds/status.rs` that constructs `CreateEmbed` from health data
-- Use Serenity's `ComponentInteraction` collector for button handling
-- Store a `ComponentInteractionCollector` or use the poise framework's built-in component handling
-- Persist button state with `custom_id` prefixes (e.g., `status_refresh`, `status_cleanup`, `status_restart`)
+**`src/discord/commands/status.rs`** — Updated:
 
----
+- Builds `StatusSnapshot` from `ctx.data()`, `ctx.cache().guild_count()`, shard ID
+- Sends embed + button row via `poise::CreateReply`
 
-## Phase 3: Health Monitoring
+### Deferred Items
 
-Port the Python `HealthMonitor` to Rust with lower overhead.
-
-### Dependencies
-
-```toml
-[dependencies]
-sysinfo = "0.35"   # Cross-platform system info (CPU, memory, processes)
-```
-
-### Design
-
-```
-src/health/
-├── mod.rs          # HealthMonitor struct with cached metrics
-└── metrics.rs      # Metric collection and thresholds
-```
-
-- Background `tokio::spawn` task that refreshes metrics on interval (configurable, default 60s)
-- Shared state via `Arc<RwLock<HealthSnapshot>>`
-- Thresholds: HEALTHY (<70%), WARNING (70-90%), CRITICAL (>90%) for memory and CPU
-- Expose via both HTTP `/health` endpoint (JSON) and `/status` slash command (embed)
-
-### HealthSnapshot Fields
-
-```rust
-pub struct HealthSnapshot {
-    pub memory_usage_mb: f64,
-    pub memory_percent: f64,
-    pub cpu_percent: f64,
-    pub uptime_seconds: u64,
-    pub uptime_formatted: String,
-    pub thread_count: usize,
-    pub system_memory_total_gb: f64,
-    pub system_memory_used_percent: f64,
-    pub health_status: HealthStatus, // Healthy | Warning | Critical
-    pub pid: u32,
-    pub timestamp: chrono::DateTime<chrono::Utc>,
-}
-```
+- ~~CPU/memory/thread metrics (requires `sysinfo` crate — Phase 3)~~ ✅ Done
+- ~~Health thresholds and health-based color override (Phase 3)~~ ✅ Done
+- ~~Actual Cleanup thread deletion logic (Phase 4/5)~~ ✅ Done
+- ~~Actual Restart process signal logic (Phase 4)~~ ✅ Done
+- Shard latency display (future enhancement)
 
 ---
 
-## Phase 4: HTTP API Endpoints
+## Phase 3: Health Monitoring ✅
 
-Maintain HTTP API compatibility for external orchestration (Kubernetes probes, CI/CD triggers).
+> **Completed** — PR #7223 merged to `dev`.
 
-### Endpoints to Migrate
+### What Was Built
 
-| Method | Path                 | Purpose                                   | Priority |
-| ------ | -------------------- | ----------------------------------------- | -------- |
-| `GET`  | `/health`            | Full health JSON (already exists, expand) | High     |
-| `GET`  | `/healthz`           | Simple liveness probe (200 OK)            | High     |
-| `POST` | `/bot-online`        | Bring bot online                          | Medium   |
-| `POST` | `/bot-offline`       | Take bot offline                          | Medium   |
-| `POST` | `/bot-restart`       | Restart bot                               | Medium   |
-| `POST` | `/bot-force-restart` | Force restart                             | Medium   |
-| `POST` | `/sign-off`          | Graceful shutdown                         | Medium   |
-| `GET`  | `/tracker-status`    | Cluster/shard status                      | Low      |
-| `POST` | `/cleanup-thread`    | Clean status thread messages              | Low      |
+**`src/health/mod.rs`** — Real-time system metrics with `sysinfo` 0.38.2:
 
-### Implementation
+- `HealthMonitor` struct with persistent `RwLock<System>` for accurate CPU deltas
+- Background `tokio::spawn` task: 1s warmup, then 60s interval refreshes
+- `snapshot()` — read lock, clone cached data (cheap)
+- `force_refresh()` — immediate refresh (wired to Refresh button)
+- `spawn_background_task()` — starts the background polling loop
 
-- Add Axum routes in `src/transport/https.rs` alongside existing static file routes
-- Share bot state via Axum `State` extractor (Arc-wrapped)
-- Return generic error messages (no raw exception text — apply the same security pattern from the Python fix)
-- Use `tracing::error!` for server-side exception logging
+**`HealthSnapshot`** (Clone + Serialize):
 
----
+- `memory_usage_mb`, `memory_percent`, `system_memory_total_gb`, `system_memory_used_percent`
+- `cpu_percent` (global CPU %)
+- `thread_count` (Linux-only via `process.tasks()`, 0 on other platforms)
+- `pid`, `uptime_seconds`, `uptime_formatted`
+- `health_status: HealthStatus` — Healthy/Warning/Critical
+- `memory_bar(width) -> String` — emoji progress bar (green/orange/red based on level)
 
-## Phase 5: Supabase Integration
+**`HealthStatus` enum** — Healthy (≤70%), Warning (70-90%), Critical (>90%):
 
-Expand the existing `kbve` crate's Supabase support.
+- `from_usage(memory_percent, cpu_percent)` — threshold classification
+- `color_override()` — None for Healthy (use state color), orange for Warning, red for Critical
+- `emoji()` — green/yellow/red circle
 
-### Vault (Already Working)
+**Wiring:**
 
-- Token resolution from vault is implemented
-- Extend to support additional secrets as needed
+- `Arc<HealthMonitor>` created in `main.rs`, shared via `AppState`
+- HTTP `/health` returns JSON with full system metrics (`{"status": "ok", "health": {...}}`)
+- `/status` embed gains conditional Memory, CPU, Threads, Health fields
+- `/health` slash command shows rich embed with all metrics + color-coded thresholds
+- Refresh button calls `force_refresh()` before re-rendering
 
-### Tracker (Shard Coordination)
-
-Port the distributed shard tracker for multi-instance deployments:
-
-- Shard assignment via Supabase RPC or direct table operations
-- Heartbeat updates on interval
-- Stale shard cleanup
-- Cluster status queries
-
-### User Management (Future)
-
-Port the user lookup and provider linking functionality:
-
-- Discord ID → user profile lookup via RPC
-- Multi-provider relationship queries
-- Provider sync from auth metadata
-
-This is lower priority — only needed if the bot adds user-facing commands beyond status/health.
+**Tests:** 5 unit tests (health_status thresholds, memory_bar, round2 precision)
 
 ---
 
-## Phase 6: Sharding Support
+## Phase 4: HTTP API Endpoints ✅
 
-### Auto-Sharding (Default)
+> **Completed** — PR #7226 merged to `dev`.
 
-- Serenity's `Client::builder` with default sharding (Discord recommends shard count)
-- Track per-shard metrics (latency, guild count, connection state)
+### What Was Built
 
-### Distributed Sharding (Kubernetes)
+**`src/state.rs`** — Central `AppState` shared between HTTP server and Discord bot:
 
-- Environment variables: `SHARD_ID`, `SHARD_COUNT`, `TOTAL_SHARDS`, `CLUSTER_NAME`
-- One shard per container instance
-- Supabase tracker for shard coordination (Phase 5)
-- Graceful shard handoff on shutdown
+- `health_monitor: Arc<HealthMonitor>` — system metrics
+- `tracker: Option<ShardTracker>` — Supabase shard coordination (optional)
+- `start_time: Instant` — for uptime tracking
+- `shutdown_notify: Notify` — cross-subsystem graceful shutdown
+- `restart_flag: AtomicBool` — HTTP/button → bot restart signal
+- `shard_manager: RwLock<Option<Arc<ShardManager>>>` — lifecycle control
+- `bot_http: RwLock<Option<Arc<Http>>>` — serenity HTTP client for API calls
+
+**`src/transport/https.rs`** — 6 HTTP endpoints:
+
+| Method | Path              | Purpose                                    |
+| ------ | ----------------- | ------------------------------------------ |
+| `GET`  | `/health`         | Full health JSON with system metrics       |
+| `GET`  | `/healthz`        | Simple liveness probe (200 "ok")           |
+| `POST` | `/bot-restart`    | Set restart flag + shutdown shards         |
+| `POST` | `/sign-off`       | Graceful process shutdown                  |
+| `POST` | `/cleanup-thread` | Delete bot messages from DISCORD_THREAD_ID |
+| `GET`  | `/tracker-status` | Query cluster shard status from Supabase   |
+
+**`src/main.rs`** — Bot restart loop:
+
+- HTTP server spawned once, runs for process lifetime
+- Bot runs in a loop; on exit, checks `restart_flag` to restart or break
+- `tokio::select!` handles restart, shutdown notify, and Ctrl+C
+
+**Tests:** 2 new HTTP endpoint tests (healthz, tracker_status)
 
 ---
 
-## Phase 7: Event Handlers
+## Phase 5: Supabase Shard Tracker ✅
 
-Expand beyond the basic `ready` handler:
+> **Completed** — PR #7226 merged to `dev`.
 
-| Event                | Purpose                                              |
-| -------------------- | ---------------------------------------------------- |
-| `ready`              | Log connection, record shard info, send status embed |
-| `shard_ready`        | Per-shard tracking and heartbeat                     |
-| `shard_disconnect`   | Update tracker, log reconnection                     |
-| `shard_resumed`      | Log session resume                                   |
-| `guild_create`       | Track new guild joins                                |
-| `guild_delete`       | Track guild departures                               |
-| `interaction_create` | Handle button/component interactions                 |
+### What Was Built
+
+**`src/tracker/mod.rs`** — `ShardTracker` backed by Supabase PostgREST:
+
+- Uses `tracker.cluster_management` table via `Content-Profile: tracker` header
+- Own `reqwest::Client` (kbve `SupabaseClient` lacks non-default schema support)
+- `from_env()` — optional, reads `SUPABASE_URL` + `SUPABASE_SERVICE_ROLE_KEY`
+- `record_shard()` — upsert on Ready event
+- `update_heartbeat()` — PATCH every 30s from spawned heartbeat task
+- `cleanup_assignment()` — mark instance inactive on shutdown
+- `get_cluster_status()` — query active shards for `/tracker-status` endpoint
+- `cleanup_stale()` — RPC call to clean stale assignments
+
+All operations are best-effort — errors logged but never crash the bot.
+
+**Tests:** 3 unit tests (ShardRecord deserialization, null handling, from_env safety)
 
 ---
 
-## Proposed Source Layout
+## Phase 6: Sharding Support ✅
+
+> **Completed** — PR #7226 merged to `dev`.
+
+Three sharding modes configured via environment variables:
+
+| Mode             | Env Vars                                     | Behavior                                                  |
+| ---------------- | -------------------------------------------- | --------------------------------------------------------- |
+| Single (default) | None                                         | `client.start()` — one shard                              |
+| Distributed      | `SHARD_ID` + `SHARD_COUNT`                   | `client.start_shard(id, count)` — one shard per container |
+| Auto-scaling     | `USE_AUTO_SCALING` + optional `TOTAL_SHARDS` | `client.start_shards(total)` — multiple shards            |
+
+Shard manager stored in `AppState` for HTTP/button-triggered shutdown and restart.
+
+---
+
+## Phase 7: Event Handlers ✅
+
+> **Completed** — PR #7226 merged to `dev`.
+
+Event handler embedded in `bot.rs` (not a separate `events.rs` — kept simple):
+
+| Event               | Behavior                                                    |
+| ------------------- | ----------------------------------------------------------- |
+| `Ready`             | Log shard info, record in tracker, spawn 30s heartbeat task |
+| `GuildCreate`       | Log new guild joins (`is_new` check)                        |
+| `GuildDelete`       | Log guild departures                                        |
+| `InteractionCreate` | Route component interactions by `custom_id` prefix          |
+
+---
+
+## Source Layout
+
+Files marked with ✅ exist and are implemented.
 
 ```
 apps/discordsh/axum-discordsh/src/
-├── main.rs                     # Entry point, tokio runtime
+├── main.rs                        ✅ Entry point, tokio runtime, bot restart loop
+├── state.rs                       ✅ AppState — central shared state (Phase 4)
 ├── discord/
-│   ├── mod.rs                  # Module declarations
-│   ├── bot.rs                  # Bot startup, token resolution, poise framework setup
+│   ├── mod.rs                     ✅ Module declarations (bot, commands, embeds, components)
+│   ├── bot.rs                     ✅ Poise framework, Data struct, event_handler, sharding
 │   ├── commands/
-│   │   ├── mod.rs              # Command registration
-│   │   ├── ping.rs             # /ping
-│   │   ├── status.rs           # /status (embed + buttons)
-│   │   ├── health.rs           # /health
-│   │   └── admin.rs            # /restart, /force-restart, /cleanup
+│   │   ├── mod.rs                 ✅ Command registration (all())
+│   │   ├── ping.rs                ✅ /ping
+│   │   ├── status.rs              ✅ /status (embed + buttons)
+│   │   ├── health.rs              ✅ /health (rich health embed)
+│   │   └── admin.rs               ✅ /restart, /cleanup (admin commands)
 │   ├── embeds/
-│   │   ├── mod.rs
-│   │   └── status.rs           # Status embed builder
-│   ├── components/
-│   │   ├── mod.rs
-│   │   └── status_buttons.rs   # Button interaction handlers
-│   └── events.rs               # Shard/guild event handlers
+│   │   ├── mod.rs                 ✅ Re-exports
+│   │   ├── status_state.rs        ✅ StatusState enum (5 variants)
+│   │   └── status_embed.rs        ✅ StatusSnapshot + build_status_embed()
+│   └── components/
+│       ├── mod.rs                 ✅ Re-exports
+│       └── status_buttons.rs      ✅ Button row + interaction handler (Refresh, Cleanup, Restart)
 ├── health/
-│   ├── mod.rs                  # HealthMonitor
-│   └── metrics.rs              # Metric collection
+│   └── mod.rs                     ✅ HealthMonitor, HealthSnapshot, HealthStatus (Phase 3)
 ├── tracker/
-│   ├── mod.rs                  # Shard tracker (Supabase)
-│   └── shard.rs                # Shard assignment logic
+│   └── mod.rs                     ✅ ShardTracker, ShardRecord — Supabase PostgREST (Phase 5)
 ├── transport/
-│   ├── mod.rs
-│   └── https.rs                # Axum HTTP server + API routes
+│   ├── mod.rs                     ✅
+│   └── https.rs                   ✅ Axum HTTP server + 6 API routes (Phase 4)
 └── astro/
-    ├── mod.rs
-    └── askama.rs               # Static file serving (existing)
+    ├── mod.rs                     ✅
+    └── askama.rs                  ✅ Static file serving
 ```
 
 ---
 
 ## Execution Order
 
-| Step | Phase | What                                                   | Risk | Notes                       |
-| ---- | ----- | ------------------------------------------------------ | ---- | --------------------------- |
-| 1    | 1     | Add `poise` dependency, scaffold command module        | Low  | No breaking changes         |
-| 2    | 1     | Migrate `!ping` to `/ping` slash command               | Low  | Replace text command        |
-| 3    | 1     | Add `/status` and `/health` commands (text-only first) | Low  | New commands                |
-| 4    | 3     | Add `sysinfo` dependency, implement HealthMonitor      | Low  | New module                  |
-| 5    | 2     | Build status embed with health data                    | Med  | Embed formatting            |
-| 6    | 2     | Add interactive buttons to status embed                | Med  | Component interactions      |
-| 7    | 1     | Add admin commands (`/restart`, `/cleanup`)            | Med  | Permission checks           |
-| 8    | 4     | Expand HTTP API endpoints                              | Low  | Axum routes                 |
-| 9    | 5     | Expand Supabase tracker integration                    | Med  | Depends on kbve crate       |
-| 10   | 6     | Add distributed sharding support                       | High | Multi-instance coordination |
-| 11   | 7     | Expand event handlers                                  | Low  | Additional serenity events  |
-| 12   | —     | Integration testing, Docker verification               | Med  | E2E with discordsh-e2e      |
-| 13   | —     | Deprecate notification-bot, update CI                  | Low  | Remove Python project       |
+| Step | Phase | What                                                      | Risk | Status  |
+| ---- | ----- | --------------------------------------------------------- | ---- | ------- |
+| 1    | 1     | Add `poise` dependency, scaffold command module           | Low  | ✅ Done |
+| 2    | 1     | Migrate `!ping` to `/ping` slash command                  | Low  | ✅ Done |
+| 3    | 1     | Add `/status` and `/health` commands (text-only first)    | Low  | ✅ Done |
+| 4    | 2     | Build status embed with `StatusState` and buttons         | Med  | ✅ Done |
+| 5    | 2     | Add interactive button handling (Refresh/Cleanup/Restart) | Med  | ✅ Done |
+| 6    | 3     | Add `sysinfo` dependency, implement HealthMonitor         | Low  | ✅ Done |
+| 7    | —     | Add admin commands (`/restart`, `/cleanup`)               | Med  | ✅ Done |
+| 8    | 4     | Central AppState + HTTP API endpoints                     | Low  | ✅ Done |
+| 9    | 5     | Supabase ShardTracker integration                         | Med  | ✅ Done |
+| 10   | 6     | Configurable sharding support                             | High | ✅ Done |
+| 11   | 7     | Expanded event handlers                                   | Low  | ✅ Done |
+| 12   | —     | Integration testing, Docker verification                  | Med  | ✅ Done |
+| 13   | —     | Deprecate notification-bot, update CI                     | Low  | ✅ Done |
 
 ---
 
-## Deprecation Plan for notification-bot
+## Phase 8: Integration Testing & CI Deprecation ✅
 
-Once the Rust bot reaches feature parity:
+> **Completed** — Steps 12 and 13.
 
-1. Run both bots in parallel with the Python bot in read-only mode (no writes to tracker)
-2. Verify Rust bot handles all slash commands and embeds correctly
-3. Update CI/CD pipelines to remove notification-bot build/deploy
-4. Remove `apps/discordsh/notification-bot/` directory
-5. Update Nx project configuration
+### Step 12: Integration Testing & Docker Verification
+
+**E2E test fix** (`discordsh-e2e/e2e/smoke.spec.ts`):
+
+- Fixed `/health` test to parse JSON response (`json.status === "ok"`) instead of expecting plain text `"OK"`
+- Added `/healthz` plain-text liveness probe test
+- Added `Content-Type: application/json` assertion on `/health`
+
+**Rust integration tests** (`src/transport/https.rs`):
+
+- Expanded `test_router()` to include all 6 HTTP endpoints (was 3 GET-only)
+- Refactored to return `(Router, Arc<AppState>)` so tests can verify state mutations
+- `test_bot_restart_sets_flag` — POST `/bot-restart` sets restart flag, returns success JSON
+- `test_sign_off_returns_ok` — POST `/sign-off` returns shutdown-initiated JSON
+- `test_cleanup_thread_no_env` — POST `/cleanup-thread` returns error when `DISCORD_THREAD_ID` unset
+
+**Test count:** 29 Rust unit/integration tests (was 26).
+
+**Docker:** No changes needed — 9-stage Dockerfile with cargo-chef, jemalloc, scratch runtime is production-ready.
+
+### Step 13: Deprecate notification-bot, Update CI
+
+- Removed `notification-bot` entry from `generate_docker_matrix` in `ci-main.yml`
+- Removed `notification_bot` output from `utils-file-alterations.yml` (declaration, mapping, and trigger)
+- Kept `apps/discordsh/notification-bot/` directory as archive (not deleted)
+- `discordsh` file alteration trigger (`apps/discordsh/**`) already subsumes notification-bot path
+
+---
+
+## Deprecation Plan for notification-bot ✅
+
+> **Completed** — notification-bot removed from CI pipelines.
+
+1. ~~Run both bots in parallel with the Python bot in read-only mode~~ Skipped — Rust bot verified via E2E
+2. ~~Verify Rust bot handles all slash commands and embeds correctly~~ ✅ Done
+3. ~~Update CI/CD pipelines to remove notification-bot build/deploy~~ ✅ Done
+4. `apps/discordsh/notification-bot/` kept as archive for reference
+5. ~~Update Nx project configuration~~ Not needed — Nx targets only run when explicitly invoked
 
 ---
 
@@ -329,3 +352,13 @@ Once the Rust bot reaches feature parity:
 | Response format   | TypedDict + orjson                       | serde + serde_json            |
 | Memory allocator  | Python GC                                | jemalloc (production)         |
 | Token source      | Vault Edge Function or env               | Same (shared vault ID)        |
+| Rust edition      | N/A                                      | 2024                          |
+
+---
+
+## Deferred to Future Work
+
+- **User management** — Discord ID lookup, multi-provider linking (only needed for user-facing commands)
+- **Shard latency display** — Per-shard latency in status embed
+- **`/bot-online` / `/bot-offline`** — Explicit online/offline toggle (bot auto-starts)
+- **Runtime sharding toggle** — Sharding mode set via env vars at startup

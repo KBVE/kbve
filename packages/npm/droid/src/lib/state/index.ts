@@ -19,3 +19,16 @@ export {
 	openModal,
 	closeModal,
 } from './ui';
+
+export { $toasts, addToast, removeToast } from './toasts';
+
+export { showWelcomeToast } from './welcome-toast';
+
+export {
+	syncThemeToDexie,
+	broadcastThemeChange,
+	observeThemeChanges,
+} from './theme-sync';
+
+export { OverlayManager } from './overlay-manager';
+export type { RenderPath } from './overlay-manager';
