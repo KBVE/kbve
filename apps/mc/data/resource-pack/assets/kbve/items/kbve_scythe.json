@@ -1,6 +1,6 @@
 {
 	"model": {
 		"type": "minecraft:model",
-		"model": "kbve:item/kbve_scythe"
+		"model": "kbve:item/weapons/kbve_scythe"
 	}
 }
