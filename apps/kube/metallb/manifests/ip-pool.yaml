@@ -1,14 +1,16 @@
 apiVersion: metallb.io/v1beta1
 kind: IPAddressPool
 metadata:
-  name: public-ip-pool
-  namespace: metallb-system
+    name: public-ip-pool
+    namespace: metallb-system
+    annotations:
+        kbve.com/last-updated: '2026-02-25'
 spec:
-  addresses:
-    - 142.132.206.74/32
+    addresses:
+        - 142.132.206.74/32
 ---
 apiVersion: metallb.io/v1beta1
 kind: L2Advertisement
 metadata:
-  name: public-l2
-  namespace: metallb-system
+    name: public-l2
+    namespace: metallb-system
