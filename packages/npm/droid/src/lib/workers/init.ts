@@ -6,7 +6,7 @@ export interface InitWorkerOptions {
 	i18nPath?: string;
 	dataPath?: string;
 	locale?: string;
-	defaults?: Record<string, any>;
+	defaults?: Record<string, string>;
 }
 
 export async function initializeWorkerDatabase(

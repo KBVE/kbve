@@ -1,8 +1,13 @@
 import type { Remote } from 'comlink';
 
+export interface ModInitContext {
+	emitFromWorker?: (msg: unknown) => void;
+}
+
 export interface BaseModAPI {
 	getMeta(): Promise<ModMeta>;
-	init?(ctx: any): void | Promise<void>;
+	init?(ctx: ModInitContext): void | Promise<void>;
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	[key: string]: any;
 }
 
@@ -31,8 +36,10 @@ export interface ModManager {
 
 export interface SupabaseModAPI extends BaseModAPI {
 	configure(url: string, key: string): Promise<void>;
-	queryTestTable(): Promise<{ data: any; error: any }>;
-	insertTest(payload: Record<string, any>): Promise<{ data: any; error: any }>;
+	queryTestTable(): Promise<{ data: unknown; error: unknown }>;
+	insertTest(
+		payload: Record<string, unknown>,
+	): Promise<{ data: unknown; error: unknown }>;
 }
 
 export type VirtualNode = {
@@ -40,7 +47,7 @@ export type VirtualNode = {
 	id?: string;
 	key?: string;
 	class?: string;
-	attrs?: Record<string, any>;
+	attrs?: Record<string, string | number | boolean>;
 	style?: Partial<CSSStyleDeclaration>;
 	children?: (string | VirtualNode)[];
 };

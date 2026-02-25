@@ -1,6 +1,4 @@
 import { expose } from 'comlink';
-import type { LocalStorageAPI } from './db-worker';
-import { toReference } from './flexbuilder';
 
 interface SharedWorkerGlobalScope extends Worker {
 	onconnect: (event: MessageEvent) => void;
@@ -8,7 +6,7 @@ interface SharedWorkerGlobalScope extends Worker {
 declare const self: SharedWorkerGlobalScope;
 
 let ws: WebSocket | null = null;
-let onMessageCallback: ((data: any) => void) | null = null;
+let onMessageCallback: ((data: string | ArrayBuffer) => void) | null = null;
 let onStatusCallback: ((status: string) => void) | null = null;
 
 // Heartbeat
@@ -77,7 +75,7 @@ function attemptReconnect() {
 	broadcastStatus('reconnecting');
 
 	reconnectTimer = setTimeout(() => {
-		wsInstanceAPI.connect(lastUrl!);
+		if (lastUrl) wsInstanceAPI.connect(lastUrl);
 	}, RECONNECT_DELAY_MS);
 }
 
@@ -169,7 +167,7 @@ const wsInstanceAPI = {
 		broadcastStatus('disconnected');
 	},
 
-	onMessage(callback: (data: any) => void) {
+	onMessage(callback: (data: string | ArrayBuffer) => void) {
 		onMessageCallback = callback;
 	},
 

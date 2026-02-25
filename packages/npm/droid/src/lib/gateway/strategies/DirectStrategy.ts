@@ -1,6 +1,8 @@
 // Fallback strategy for browsers without worker support
 // Runs everything on the main thread
 
+import type { SupabaseClient } from '@supabase/supabase-js';
+
 import type {
 	ISupabaseStrategy,
 	SelectOptions,
@@ -22,7 +24,7 @@ import type {
  * This strategy dynamically imports it to avoid bundling Supabase in the main droid build.
  */
 export class DirectStrategy implements ISupabaseStrategy {
-	private client: any = null;
+	private client: SupabaseClient | null = null;
 	private ws: WebSocket | null = null;
 	private wsReconnectTimer: ReturnType<typeof setTimeout> | null = null;
 	private wsReconnectAttempts = 0;
@@ -32,7 +34,7 @@ export class DirectStrategy implements ISupabaseStrategy {
 		string,
 		{ unsubscribe: () => Promise<void> | void }
 	>();
-	private listeners = new Map<string, Set<(payload: any) => void>>();
+	private listeners = new Map<string, Set<(payload: unknown) => void>>();
 
 	private readonly WS_MAX_RECONNECT_ATTEMPTS = 5;
 	private readonly WS_RECONNECT_DELAY_MS = 3000;
@@ -42,24 +44,29 @@ export class DirectStrategy implements ISupabaseStrategy {
 	async init(
 		url: string,
 		anonKey: string,
-		options?: any,
+		options?: Record<string, unknown>,
 	): Promise<SessionResponse> {
 		console.log('[DirectStrategy] Initializing...');
 
 		// Dynamic import to avoid bundling Supabase when not using DirectStrategy
 		const { createClient } = await import('@supabase/supabase-js');
 
+		const authOptions =
+			options?.auth && typeof options.auth === 'object'
+				? (options.auth as Record<string, unknown>)
+				: {};
+
 		this.client = createClient(url, anonKey, {
 			...options,
 			auth: {
-				...(options?.auth || {}),
+				...authOptions,
 				autoRefreshToken: true,
 				persistSession: true,
 				detectSessionInUrl: false,
 			},
 		});
 
-		this.client.auth.onAuthStateChange((_event: any, session: any) => {
+		this.client.auth.onAuthStateChange((_event, session) => {
 			this.emit('auth', { session });
 		});
 
@@ -75,16 +82,16 @@ export class DirectStrategy implements ISupabaseStrategy {
 		console.log('[DirectStrategy] Initialized');
 
 		return {
-			session,
-			user: session?.user || null,
+			session: session as SessionResponse['session'],
+			user: (session?.user as Record<string, unknown>) || null,
 		};
 	}
 
-	on(event: string, callback: (payload: any) => void): () => void {
+	on(event: string, callback: (payload: unknown) => void): () => void {
 		if (!this.listeners.has(event)) {
 			this.listeners.set(event, new Set());
 		}
-		this.listeners.get(event)!.add(callback);
+		this.listeners.get(event)?.add(callback);
 
 		return () => {
 			const set = this.listeners.get(event);
@@ -95,7 +102,7 @@ export class DirectStrategy implements ISupabaseStrategy {
 		};
 	}
 
-	private emit(event: string, payload: any) {
+	private emit(event: string, payload: unknown) {
 		this.listeners.get(event)?.forEach((cb) => {
 			try {
 				cb(payload);
@@ -113,17 +120,20 @@ export class DirectStrategy implements ISupabaseStrategy {
 		if (!this.client) throw new Error('Client not initialized');
 		const { data, error } = await this.client.auth.getSession();
 		if (error) throw error;
-		return data;
+		return data as unknown as SessionResponse;
 	}
 
-	async signInWithPassword(email: string, password: string): Promise<any> {
+	async signInWithPassword(
+		email: string,
+		password: string,
+	): Promise<SessionResponse> {
 		if (!this.client) throw new Error('Client not initialized');
 		const { data, error } = await this.client.auth.signInWithPassword({
 			email,
 			password,
 		});
 		if (error) throw error;
-		return data;
+		return data as unknown as SessionResponse;
 	}
 
 	async signOut(): Promise<void> {
@@ -133,7 +143,7 @@ export class DirectStrategy implements ISupabaseStrategy {
 	}
 
 	// Database
-	async select(table: string, opts?: SelectOptions): Promise<any> {
+	async select(table: string, opts?: SelectOptions): Promise<unknown[]> {
 		if (!this.client) throw new Error('Client not initialized');
 		let query = this.client.from(table).select(opts?.columns || '*');
 		if (opts?.match) {
@@ -149,8 +159,8 @@ export class DirectStrategy implements ISupabaseStrategy {
 
 	async insert(
 		table: string,
-		data: Record<string, any> | Record<string, any>[],
-	): Promise<any> {
+		data: Record<string, unknown> | Record<string, unknown>[],
+	): Promise<unknown[]> {
 		if (!this.client) throw new Error('Client not initialized');
 		const { data: result, error } = await this.client
 			.from(table)
@@ -162,9 +172,9 @@ export class DirectStrategy implements ISupabaseStrategy {
 
 	async update(
 		table: string,
-		data: Record<string, any>,
-		match: Record<string, any>,
-	): Promise<any> {
+		data: Record<string, unknown>,
+		match: Record<string, unknown>,
+	): Promise<unknown[]> {
 		if (!this.client) throw new Error('Client not initialized');
 		let query = this.client.from(table).update(data);
 		for (const [key, value] of Object.entries(match)) {
@@ -177,8 +187,8 @@ export class DirectStrategy implements ISupabaseStrategy {
 
 	async upsert(
 		table: string,
-		data: Record<string, any> | Record<string, any>[],
-	): Promise<any> {
+		data: Record<string, unknown> | Record<string, unknown>[],
+	): Promise<unknown[]> {
 		if (!this.client) throw new Error('Client not initialized');
 		const { data: result, error } = await this.client
 			.from(table)
@@ -188,7 +198,10 @@ export class DirectStrategy implements ISupabaseStrategy {
 		return result;
 	}
 
-	async delete(table: string, match: Record<string, any>): Promise<any> {
+	async delete(
+		table: string,
+		match: Record<string, unknown>,
+	): Promise<unknown[]> {
 		if (!this.client) throw new Error('Client not initialized');
 		let query = this.client.from(table).delete();
 		for (const [key, value] of Object.entries(match)) {
@@ -199,7 +212,7 @@ export class DirectStrategy implements ISupabaseStrategy {
 		return result;
 	}
 
-	async rpc(fn: string, args?: Record<string, any>): Promise<any> {
+	async rpc(fn: string, args?: Record<string, unknown>): Promise<unknown> {
 		if (!this.client) throw new Error('Client not initialized');
 		const { data, error } = await this.client.rpc(fn, args || {});
 		if (error) throw error;
@@ -209,16 +222,20 @@ export class DirectStrategy implements ISupabaseStrategy {
 	// Realtime
 	subscribePostgres(
 		key: string,
-		params: any,
-		callback: (payload: any) => void,
+		params: Record<string, unknown>,
+		callback: (payload: unknown) => void,
 	): () => void {
 		if (!this.client) throw new Error('Client not initialized');
 
 		const channel = this.client
 			.channel(key)
-			.on('postgres_changes', params, (payload: any) => {
-				this.emit(`realtime:${key}`, payload);
-			});
+			.on(
+				'postgres_changes',
+				params as Record<string, string>,
+				(payload: unknown) => {
+					this.emit(`realtime:${key}`, payload);
+				},
+			);
 
 		channel.subscribe();
 		this.subscriptions.set(key, {
@@ -274,7 +291,10 @@ export class DirectStrategy implements ISupabaseStrategy {
 
 		this.ws.onmessage = (event) => {
 			try {
-				const message = JSON.parse(event.data);
+				const message = JSON.parse(event.data as string) as Record<
+					string,
+					unknown
+				>;
 				if (message.type === 'pong') {
 					this.wsLastPongTime = Date.now();
 					return;
@@ -334,7 +354,7 @@ export class DirectStrategy implements ISupabaseStrategy {
 		}
 	}
 
-	async sendWebSocketMessage(data: any): Promise<void> {
+	async sendWebSocketMessage(data: unknown): Promise<void> {
 		if (!this.ws || this.ws.readyState !== WebSocket.OPEN) {
 			throw new Error('WebSocket not connected');
 		}
@@ -356,12 +376,12 @@ export class DirectStrategy implements ISupabaseStrategy {
 		};
 	}
 
-	onWebSocketMessage(callback: (message: any) => void): () => void {
+	onWebSocketMessage(callback: (message: unknown) => void): () => void {
 		return this.on('ws.message', callback);
 	}
 
-	onWebSocketStatus(callback: (status: any) => void): () => void {
-		return this.on('ws.status', callback);
+	onWebSocketStatus(callback: (status: WebSocketStatus) => void): () => void {
+		return this.on('ws.status', callback as (payload: unknown) => void);
 	}
 
 	// Helpers

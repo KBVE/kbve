@@ -1,10 +1,11 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
+import type { ModInitContext } from '../../../types/modules';
 
 let supabase: SupabaseClient | null = null;
 let initialized = false;
 
 const state = {
-	ctx: null as any,
+	ctx: null as ModInitContext | null,
 	url: '',
 	key: '',
 };
@@ -17,13 +18,15 @@ export const mod = {
 		author: 'kbve',
 	}),
 
-	init(ctx: any) {
+	init(ctx: ModInitContext) {
 		state.ctx = ctx;
 	},
 
 	async loadSupabaseClient() {
 		try {
-			const supabaseModule = await import('https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm');
+			const supabaseModule = await import(
+				'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm'
+			);
 			console.log('[mod-supabase] Supabase module loaded');
 			return supabaseModule.createClient;
 		} catch (err) {
@@ -43,14 +46,23 @@ export const mod = {
 	},
 
 	async queryTestTable() {
-		if (!supabase) throw new Error('Supabase not configured. Call `configure()` first.');
+		if (!supabase)
+			throw new Error(
+				'Supabase not configured. Call `configure()` first.',
+			);
 		const { data, error } = await supabase.from('test').select('*');
 		return { data, error };
 	},
 
-	async insertTest(payload: Record<string, any>) {
-		if (!supabase) throw new Error('Supabase not configured. Call `configure()` first.');
-		const { data, error } = await supabase.from('test').insert(payload).select();
+	async insertTest(payload: Record<string, unknown>) {
+		if (!supabase)
+			throw new Error(
+				'Supabase not configured. Call `configure()` first.',
+			);
+		const { data, error } = await supabase
+			.from('test')
+			.insert(payload)
+			.select();
 		return { data, error };
-	}
+	},
 };
