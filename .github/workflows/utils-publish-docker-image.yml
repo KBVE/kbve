@@ -43,6 +43,7 @@ jobs:
               uses: actions/checkout@v6
               with:
                   ref: ${{ inputs.branch }}
+                  submodules: true
 
             - name: Check version against Docker Hub
               id: version_check

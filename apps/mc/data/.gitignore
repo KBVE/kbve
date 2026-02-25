@@ -1,0 +1,9 @@
+# Ignore runtime server data (world saves, logs, etc.)
+world/
+logs/
+*.log
+
+# Keep the config directory and server icon
+!config/
+!config/**
+!server_icon.png

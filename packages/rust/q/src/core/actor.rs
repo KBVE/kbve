@@ -1,10 +1,11 @@
 use std::sync::Arc;
+use std::sync::atomic::{AtomicBool, Ordering};
 use std::thread::{self, JoinHandle};
 use std::time::Duration;
 
 use crossbeam_channel::{Receiver, Sender};
 
-use crate::core::ecs::{EntityStats, EntityStore, Transform};
+use crate::core::ecs::{EntityId, EntityStats, EntityStore, Transform};
 use crate::core::event::{GameEvent, GameRequest};
 
 pub struct Actor {
@@ -18,6 +19,7 @@ impl Actor {
         entity_store: Arc<EntityStore>,
         request_rx: Receiver<GameRequest>,
         event_tx: Sender<GameEvent>,
+        shutdown_flag: Arc<AtomicBool>,
     ) -> JoinHandle<()> {
         thread::Builder::new()
             .name("game-actor".into())
@@ -27,18 +29,25 @@ impl Actor {
                     request_rx,
                     event_tx,
                 };
-                loop {
-                    actor.tick();
+                while !shutdown_flag.load(Ordering::Relaxed) {
+                    if actor.tick() {
+                        break;
+                    }
                     thread::sleep(Duration::from_millis(16));
                 }
             })
             .expect("Failed to spawn actor thread")
     }
 
-    fn tick(&self) {
+    /// Returns true if the actor should shut down.
+    fn tick(&self) -> bool {
         while let Ok(request) = self.request_rx.try_recv() {
+            if matches!(request, GameRequest::Shutdown) {
+                return true;
+            }
             self.handle_request(request);
         }
+        false
     }
 
     fn handle_request(&self, request: GameRequest) {
@@ -60,21 +69,27 @@ impl Actor {
                 });
             }
             GameRequest::DespawnEntity { id } => {
-                if let Ok(ulid) = id.parse::<ulid::Ulid>() {
-                    self.entity_store.despawn(&ulid);
+                if let Ok(eid) = id.parse::<EntityId>() {
+                    self.entity_store.despawn(&eid);
                     let _ = self.event_tx.send(GameEvent::EntityDespawned { id });
                 }
             }
             GameRequest::UpdatePosition { id, x, y } => {
-                if let Ok(ulid) = id.parse::<ulid::Ulid>() {
-                    let transform = Transform { q: 0, r: 0, x, y };
-                    self.entity_store.update_transform(&ulid, transform);
+                if let Ok(eid) = id.parse::<EntityId>() {
+                    let (q, r) = self
+                        .entity_store
+                        .get_transform(&eid)
+                        .map(|t| (t.q, t.r))
+                        .unwrap_or((0, 0));
+                    let transform = Transform { q, r, x, y };
+                    self.entity_store.update_transform(&eid, transform);
                     let _ = self.event_tx.send(GameEvent::PositionUpdated { id, x, y });
                 }
             }
             GameRequest::Custom(event_type, payload) => {
                 let _ = self.event_tx.send(GameEvent::Custom(event_type, payload));
             }
+            GameRequest::Shutdown => {}
         }
     }
 }

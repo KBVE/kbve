@@ -1,379 +1,360 @@
-# Q Crate Refactor Plan (v2)
+# Q Crate Audit & Improvement Plan (v3)
 
-## Goal
-
-Refactor Q into a clean, game-agnostic Godot-Rust GDExtension library that provides:
-
-- Lightweight custom ECS (no bevy_ecs)
-- Lock-free actor/worker threading (crossbeam channels, WASM-safe)
-- DashMap-backed concurrent data structures (replacing papaya)
-- Platform-gated native features (wry, tokio) only where needed
-
-Reference implementation: `cityvote/rust/` (proven patterns running in production)
+> Audit date: 2026-02-24
+> Crate: q v0.1.1 | edition 2024 | Rust 1.85+ | cdylib (GDExtension)
+> Files: 30 source files across 7 modules (~2,500+ lines)
 
 ---
 
-## Phase 1: Dependency Swap
+## Audit Summary
 
-**Drop:**
+The v2 refactor (dependency swap, folder restructure, core ECS, actor/worker threading, platform consolidation) has been **successfully completed**. The crate is well-organized and follows the planned architecture. This audit identifies the next wave of improvements: bugs, dead code, missing functionality, and hardening.
 
-- `bevy_ecs` (0.15.1) — heavy, pulls massive dep tree, only used for basic Transform/TileType storage
-- `papaya` (0.2.3) — replace with dashmap for consistency with cityvote
-- `rstar` (0.12.2) — spatial indexing not needed in core lib (game-specific)
+---
 
-**Add:**
+## Section 1: Bugs
 
-- `dashmap` (6.1.0) — concurrent hashmap, WASM-safe, cityvote-proven
-- `crossbeam-channel` (0.5) — lock-free MPMC channels, WASM-safe via emscripten pthreads
-- `ulid` (1.2.1) — entity IDs (same as cityvote)
+### 1.1 `UserData::new()` ignores volume parameters
 
-**Keep:**
+**File:** `src/data/user_data.rs:37-39`
+**Severity:** Medium
 
-- `godot` (0.3.5), `rand` (0.10.0), `serde`/`serde_json`, `bitflags`
-- `tokio` (macOS/Windows only), `wry`, `objc2`, `windows`, `http`, `infer`
-- `raw-window-handle`
+```rust
+// Constructor receives volume params but always sets 0.0
+pub fn new(..., global_music_volume: f32, global_effects_volume: f32, global_sfx_volume: f32) -> Self {
+    Self {
+        ...
+        global_music_volume: 0.0,    // BUG: ignores parameter
+        global_effects_volume: 0.0,  // BUG: ignores parameter
+        global_sfx_volume: 0.0,      // BUG: ignores parameter
+    }
+}
+```
 
-**Cargo.toml changes:**
+**Fix:** Use the passed parameters.
+
+### 1.2 `UpdatePosition` loses hex coordinates
+
+**File:** `src/core/actor.rs:68-74`
+**Severity:** Medium
+
+```rust
+GameRequest::UpdatePosition { id, x, y } => {
+    let transform = Transform { q: 0, r: 0, x, y }; // BUG: always resets q/r to 0
+    ...
+}
+```
+
+**Fix:** Fetch existing transform first, preserve q/r, or include q/r in the request.
+
+### 1.3 NPCEntity `update_behavior` uses exact match on bitflags
+
+**File:** `src/entity/npc_entity.rs:57-67`
+**Severity:** Medium
+
+```rust
+// NPCState is bitflags — multiple states can be set simultaneously.
+// This match only works if EXACTLY one flag is set.
+match self.data.get_state() {
+    NPCState::IDLE => self.handle_idle(),
+    ...
+}
+```
+
+**Fix:** Use `contains()` checks with priority ordering instead of direct match.
+
+### 1.4 Player diagonal movement is faster
+
+**File:** `src/entity/player_entity.rs:74-78`
+**Severity:** Low
+
+```rust
+if direction.length() > 0.0 {
+    self.data.set_velocity(direction * self.speed); // Not normalized!
+}
+```
+
+**Fix:** Normalize direction before multiplying by speed: `direction.normalized() * self.speed`.
+
+### 1.5 `abstract_data_map` `from_variant_map` can panic
+
+**File:** `src/data/abstract_data_map.rs:39`
+**Severity:** Low
+
+```rust
+Value::Number(serde_json::Number::from_f64(f as f64).unwrap()) // panics on NaN/Infinity
+```
+
+**Fix:** Use `unwrap_or` with a fallback or filter NaN values.
+
+---
+
+## Section 2: Dead Code & Incomplete Features
+
+### 2.1 `EntityManager` fields never used
+
+**File:** `src/manager/entity_manager.rs:13-14`
+
+- `active_npcs: Vec<Gd<NPCEntity>>` — allocated but never populated
+- `npc_pool: DashMap<String, Gd<NPCEntity>>` — allocated but never populated
+
+**Action:** Either implement NPC management or remove the fields.
+
+### 2.2 `get_res_response` never called
+
+**File:** `src/platform/browser.rs:169-207`
+
+Custom protocol response handler is defined but never registered with the WebView builder.
+
+**Action:** Wire it up via `.with_custom_protocol()` or remove.
+
+### 2.3 `open_url` does nothing on native
+
+**File:** `src/manager/browser_manager.rs:105-117`
+
+Logs a message but never navigates the webview.
+
+**Action:** Call `webview.load_url()` or `webview.evaluate_script()` to actually navigate.
+
+### 2.4 `play_sfx` handler missing
+
+**File:** `src/manager/music_manager.rs`
+
+`request_play_sfx` emits `sfx_play_requested` and the signal is connected to `play_sfx`, but no `#[func] pub fn play_sfx` method exists.
+
+**Action:** Implement `play_sfx` mirroring `play_effect`.
+
+### 2.5 `UxUiElement` / `MenuButtonData` potentially unused
+
+**File:** `src/data/uxui_data.rs`
+
+Not referenced from any manager or entity.
+
+**Action:** Verify usage from GDScript side; if unused, remove.
+
+### 2.6 `ResourceCache::get_arc` unnecessary
+
+**File:** `src/data/cache.rs:26-30`
+
+Wraps `Gd<T>` in `Arc`, but `Gd<T>` is already reference-counted.
+
+**Action:** Remove or document why Arc wrapping is needed.
+
+### 2.7 Save/load methods not exposed to GDScript
+
+**Files:** `src/entity/player_entity.rs:94-107`, `src/entity/npc_entity.rs:119-132`
+
+`save_player_data`, `load_player_data`, `save_npc_data`, `load_npc_data` lack `#[func]`.
+
+**Action:** Add `#[func]` attribute to make them callable from GDScript.
+
+### 2.8 `GameManager::init()` dead code
+
+**File:** `src/manager/game_manager.rs:34-38`
+
+```rust
+let user_data_cache = Some(UserDataCache::new());
+if user_data_cache.is_none() { // Always false — just assigned Some(...)
+    godot_error!("...");
+}
+```
+
+**Action:** Remove the dead check.
+
+### 2.9 Commented-out code in `GameManager`
+
+**File:** `src/manager/game_manager.rs:106-108, 123-126`
+
+References to `Maiky` / `ui_manager` that no longer exist.
+
+**Action:** Remove commented code.
+
+---
+
+## Section 3: Structural Improvements
+
+### 3.1 Two disconnected entity systems
+
+**Problem:** `core/ecs::EntityStore` (ULID-keyed DashMap) and `entity/` (GodotClass nodes) operate independently. Spawning via EventBridge doesn't create Godot scene nodes; PlayerEntity/NPCEntity don't register in EntityStore.
+
+**Recommendation:** Bridge them — when EntityStore spawns an entity, emit a signal that EntityManager listens to for creating the corresponding Godot node. When a Godot entity moves, push updates to EntityStore.
+
+### 3.2 Actor thread has no graceful shutdown
+
+**File:** `src/core/actor.rs:30-31`
+
+The actor runs `loop { ... }` forever with no exit condition.
+
+**Recommendation:** Add a shutdown variant to `GameRequest` or use an `AtomicBool` flag. Clean up on `on_level_deinit`.
+
+### 3.3 Hardcoded actor tick rate
+
+**File:** `src/core/actor.rs:32`
+
+`thread::sleep(Duration::from_millis(16))` is fixed at ~60 ticks/sec.
+
+**Recommendation:** Make configurable via constant or init parameter.
+
+### 3.4 String-based request routing in EventBridge
+
+**File:** `src/core/bridge.rs:66-84`
+
+`send_request` parses comma-separated strings. Fragile and not type-safe.
+
+**Recommendation:** Consider accepting a `Dictionary` from GDScript, or at least use JSON parsing for the payload.
+
+### 3.5 MusicManager tight coupling to GameManager
+
+**File:** `src/manager/music_manager.rs:38-49`
+
+MusicManager casts its parent to GameManager to access cache. If re-parented or used standalone, it panics.
+
+**Recommendation:** Accept cache via dependency injection (constructor param or signal) rather than parent casting.
+
+### 3.6 `blend_music` doesn't actually blend
+
+**File:** `src/manager/music_manager.rs:294-349`
+
+Sets idle player to -80dB, starts it, waits for timer, then swaps. No volume interpolation — it's a hard crossfade, not a blend.
+
+**Recommendation:** Implement proper volume interpolation during the blend duration using process() ticks.
+
+### 3.7 `find_game_manager!` macro fragility
+
+**File:** `src/macros.rs:12-42`
+
+Assumes parent node is always a GameManager. If the scene tree changes, it silently fails.
+
+**Recommendation:** Walk up the tree or use Godot's group system (`get_tree().get_first_node_in_group("game_manager")`).
+
+---
+
+## Section 4: Code Quality
+
+### 4.1 Excessive logging
+
+Many `godot_print!` calls in hot paths and init functions. Production builds should be quieter.
+
+**Recommendation:** Use `#[cfg(debug_assertions)]` guards or a log-level system.
+
+### 4.2 `Cargo.toml` repository URL incorrect
 
 ```toml
-[dependencies]
-rand = "0.10.0"
-godot = { version = "0.3.5", features = ["experimental-wasm", "experimental-threads"] }
-dashmap = "6.1.0"
-crossbeam-channel = "0.5"
-ulid = "1.2.1"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-bitflags = { version = "2.9.0", features = ["serde"] }
+repository = "https://github.com/KBVE/kbve/tree/main/packages/erust"
 ```
+
+Should be `packages/rust/q`.
+
+### 4.3 Missing `Default` impls
+
+- `EntityStore` — should derive/impl `Default`
+- `UserData` — should derive `Default`
+
+### 4.4 Missing `#[must_use]` on pure functions
+
+Functions like `entity_count()`, `get_transform()`, `get_stats()` return values that should not be silently discarded.
+
+### 4.5 `RuntimeManager` uses `Rc<Runtime>` (not `Send`)
+
+**File:** `src/threads/runtime.rs:29`
+
+If RuntimeManager is ever accessed from a non-main thread, this would panic. Consider `Arc<Runtime>`.
+
+### 4.6 Duplicate trait methods in UI extensions
+
+**File:** `src/extensions/ui_extension.rs`
+
+`with_name`, `with_cache`, `with_anchors_preset`, `with_anchor_and_offset`, `with_custom_minimum_size` are duplicated across `ControlExt`, `ButtonExt`, `CanvasLayerExt`.
+
+**Recommendation:** Use a macro to generate common methods or extract a shared trait.
 
 ---
 
-## Phase 2: Folder Restructure
+## Section 5: Missing Features
 
-### Current layout (28 files, ~3,377 lines)
+### 5.1 No unit tests
 
-```
-src/
-├── lib.rs
-├── macros.rs
-├── data/           # cache, player_data, npc_data, user_data, etc.
-├── entity/         # player_entity, npc_entity
-├── extensions/     # ecs_extension, wry_extension, ui_extension, timer_extension
-├── manager/        # game_manager, music_manager, gui_manager, browser_manager, etc.
-├── threads/        # runtime.rs (tokio), asyncnode.rs
-├── macos/          # macos_gui_options, macos_wry_browser_options
-└── windows/        # windows_gui_options, windows_wry_browser_options
-```
+Zero `#[cfg(test)]` modules in the entire crate. The `test` target in project.json exists but has nothing to run.
 
-### New layout
+**Recommendation:** Add tests for at minimum:
 
-```
-src/
-├── lib.rs                      # GDExtension entry, module declarations, singleton registration
-├── macros.rs                   # Shared macros
-│
-├── core/
-│   ├── mod.rs
-│   ├── ecs.rs                  # Lightweight DashMap-backed ECS (entity storage, components, queries)
-│   ├── event.rs                # GameEvent / GameRequest enums (generic, game-agnostic)
-│   ├── bridge.rs               # UnifiedEventBridge — Godot <-> Rust channel bridge node
-│   └── actor.rs                # Actor coordinator — owns state, dispatches to workers
-│
-├── threads/
-│   ├── mod.rs
-│   ├── worker.rs               # crossbeam worker pool (all platforms, WASM-safe)
-│   └── runtime.rs              # tokio runtime (cfg native-only, for wry/networking)
-│
-├── manager/
-│   ├── mod.rs
-│   ├── game_manager.rs         # Central hub node (children: music, cache, gui, etc.)
-│   ├── music_manager.rs        # Audio playback, blending, volume
-│   ├── cache_manager.rs        # Texture/audio cache (extracted from data/cache.rs)
-│   └── gui_manager.rs          # UI framework node
-│
-├── entity/
-│   ├── mod.rs
-│   ├── player.rs               # PlayerEntity GodotClass
-│   └── npc.rs                  # NPCEntity GodotClass
-│
-├── data/
-│   ├── mod.rs
-│   ├── abstract_data_map.rs    # Trait for serializable data
-│   ├── player_data.rs          # Player state
-│   ├── npc_data.rs             # NPC state
-│   └── user_data.rs            # User/profile data
-│
-├── platform/
-│   ├── mod.rs                  # cfg-gated re-exports
-│   ├── browser.rs              # GodotBrowser (wry WebView, shared logic)
-│   ├── macos.rs                # macOS wry options + gui options (merged)
-│   └── windows.rs              # Windows wry options + gui options (merged)
-│
-└── extensions/
-    ├── mod.rs
-    ├── timer.rs                # ClockMaster / frame timing
-    └── ui.rs                   # UI helpers
-```
+- `EntityStore` CRUD operations
+- `AbstractDataMap` serialization roundtrip
+- `GameEvent`/`GameRequest` creation
+- Vector serde helpers
 
-### Files removed
+### 5.2 No entity iteration / query API
 
-- `extensions/ecs_extension.rs` — replaced by `core/ecs.rs`
-- `extensions/wry_extension.rs` — moved to `platform/browser.rs`
-- `extensions/gui_manager_extension.rs` — merged into `manager/gui_manager.rs`
-- `threads/asyncnode.rs` — replaced by `core/bridge.rs` (crossbeam polling)
-- `data/cache.rs` — promoted to `manager/cache_manager.rs`
-- `data/gui_data.rs` — empty, delete
-- `data/uxui_data.rs` — merge into `extensions/ui.rs` if needed
-- `data/shader_data.rs` — merge into `manager/cache_manager.rs` if needed
-- `data/vector_data.rs` — inline into `data/mod.rs` or `core/ecs.rs`
-- `manager/ecs_manager.rs` — replaced by `core/ecs.rs` + `core/bridge.rs`
-- `manager/entity_manager.rs` — replaced by `core/ecs.rs`
-- `manager/browser_manager.rs` — moved to `platform/browser.rs`
-- `macos/macos_gui_options.rs` + `macos/macos_wry_browser_options.rs` — merged into `platform/macos.rs`
-- `windows/windows_gui_options.rs` + `windows/windows_wry_browser_options.rs` — merged into `platform/windows.rs`
+`EntityStore` can get single entities but has no `iter()`, `all_ids()`, or filtered query beyond `entities_in_range`.
+
+**Recommendation:** Add `all_entity_ids() -> Vec<EntityId>` and possibly a query builder.
+
+### 5.3 No bulk operations
+
+No `spawn_many()`, `despawn_many()`, or batch update methods.
+
+**Recommendation:** Add batch methods that reduce lock contention on DashMap.
+
+### 5.4 `UpdatePosition` not routed in `send_request`
+
+**File:** `src/core/bridge.rs:66-84`
+
+Only `spawn_entity` and `despawn_entity` are explicitly handled. `update_position` falls through to `Custom`.
+
+**Recommendation:** Add explicit routing for `update_position`.
+
+### 5.5 Linux platform support
+
+Platform module only handles macOS and Windows. Linux is unaddressed (no transparency, no wry browser).
+
+**Recommendation:** Add `linux.rs` with X11/Wayland support if Linux is a target.
 
 ---
 
-## Phase 3: Core ECS (replacing bevy_ecs)
+## Section 6: Dependency Updates to Investigate
 
-Lightweight, DashMap-backed entity-component storage. No systems/schedules — just data + queries.
-
-### Design (modeled from cityvote's EntityData/EntityStats)
-
-```rust
-// core/ecs.rs
-
-pub type EntityId = Vec<u8>; // ULID bytes
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct Transform {
-    pub q: i32,        // hex column
-    pub r: i32,        // hex row
-    pub x: f32,        // world x
-    pub y: f32,        // world y
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct EntityStats {
-    pub hp: f32,
-    pub max_hp: f32,
-    pub attack: f32,
-    pub defense: f32,
-    pub speed: f32,
-    // extensible via bitflags or additional fields
-}
-
-pub struct EntityStore {
-    transforms: DashMap<EntityId, Transform>,
-    stats: DashMap<EntityId, EntityStats>,
-    states: DashMap<EntityId, u32>,  // bitflags
-    // Additional component maps added as needed
-}
-
-impl EntityStore {
-    pub fn spawn(&self, id: EntityId, transform: Transform, stats: EntityStats) { ... }
-    pub fn despawn(&self, id: &EntityId) { ... }
-    pub fn get_transform(&self, id: &EntityId) -> Option<Transform> { ... }
-    pub fn get_stats(&self, id: &EntityId) -> Option<EntityStats> { ... }
-    pub fn update_transform(&self, id: &EntityId, transform: Transform) { ... }
-    pub fn entities_in_range(&self, center: (i32, i32), radius: i32) -> Vec<EntityId> { ... }
-}
-```
-
-No world, no archetype storage, no system scheduler. Just typed DashMaps. Games add their own component maps by wrapping EntityStore.
+| Dependency          | Current | Action                                                                 |
+| ------------------- | ------- | ---------------------------------------------------------------------- |
+| `godot`             | 0.3.5   | Check for 0.4.x releases (gdext moves fast)                            |
+| `wry`               | 0.53.5  | Check for newer releases                                               |
+| `objc2`             | 0.6.3   | Check for newer releases; migrate from deprecated `msg_send!`/`class!` |
+| `windows`           | 0.62    | Check for newer releases                                               |
+| `tokio`             | 1.49    | Check latest 1.x                                                       |
+| `crossbeam-channel` | 0.5     | Pin to specific minor (e.g., 0.5.14)                                   |
+| `dashmap`           | 6.1.0   | Appears current                                                        |
+| `ulid`              | 1.2.1   | Appears current                                                        |
 
 ---
 
-## Phase 4: Actor + Worker Threading
+## Proposed Execution Priority
 
-Port cityvote's actor-coordinator pattern into a game-agnostic form.
-
-### Actor (core/actor.rs)
-
-```rust
-pub struct Actor {
-    entity_store: Arc<EntityStore>,
-    request_rx: Receiver<GameRequest>,
-    event_tx: Sender<GameEvent>,
-    // Worker channels (game-specific workers register themselves)
-}
-
-impl Actor {
-    pub fn spawn(request_rx: Receiver<GameRequest>, event_tx: Sender<GameEvent>) -> JoinHandle<()> {
-        std::thread::spawn(move || {
-            let mut actor = Actor::new(request_rx, event_tx);
-            loop {
-                actor.tick();
-                std::thread::sleep(Duration::from_millis(16)); // ~60 ticks/sec
-            }
-        })
-    }
-
-    fn tick(&mut self) {
-        // Drain requests, dispatch to workers, collect results, emit events
-    }
-}
-```
-
-### Bridge (core/bridge.rs)
-
-```rust
-// Replaces asyncnode.rs — no tokio needed
-
-static CHANNELS: Lazy<Channels> = Lazy::new(|| {
-    let (req_tx, req_rx) = crossbeam_channel::unbounded();
-    let (evt_tx, evt_rx) = crossbeam_channel::unbounded();
-    Actor::spawn(req_rx, evt_tx);
-    Channels { req_tx, evt_rx }
-});
-
-#[derive(GodotClass)]
-#[class(base = Node)]
-pub struct EventBridge { ... }
-
-#[godot_api]
-impl INode for EventBridge {
-    fn process(&mut self, _delta: f64) {
-        // Non-blocking try_recv() loop, emit Godot signals
-        while let Ok(event) = CHANNELS.evt_rx.try_recv() {
-            self.emit_event(event);
-        }
-    }
-}
-```
-
-### Worker Pool (threads/worker.rs)
-
-```rust
-pub fn spawn_worker<Req, Resp>(
-    name: &str,
-    rx: Receiver<Req>,
-    tx: Sender<Resp>,
-    handler: impl Fn(Req) -> Resp + Send + 'static,
-) -> JoinHandle<()> {
-    std::thread::spawn(move || {
-        while let Ok(request) = rx.recv() {
-            let _ = tx.send(handler(request));
-        }
-    })
-}
-```
-
-Generic worker spawner. Games define their own request/response types and handler functions.
+| Priority | Item                                    | Section  | Effort  |
+| -------- | --------------------------------------- | -------- | ------- |
+| P0       | Fix `UserData::new()` volume bug        | 1.1      | Trivial |
+| P0       | Fix `UpdatePosition` losing hex coords  | 1.2      | Small   |
+| P0       | Fix NPCEntity bitflags match            | 1.3      | Small   |
+| P0       | Implement `play_sfx` handler            | 2.4      | Small   |
+| P1       | Fix diagonal movement normalization     | 1.4      | Trivial |
+| P1       | Add `#[func]` to save/load methods      | 2.7      | Trivial |
+| P1       | Clean dead code (GameManager, comments) | 2.8, 2.9 | Trivial |
+| P1       | Add `update_position` routing in bridge | 5.4      | Small   |
+| P1       | Fix `Cargo.toml` repository URL         | 4.2      | Trivial |
+| P2       | Bridge ECS and Godot entities           | 3.1      | Large   |
+| P2       | Actor graceful shutdown                 | 3.2      | Medium  |
+| P2       | Add unit tests                          | 5.1      | Medium  |
+| P2       | Structured request payloads (JSON/Dict) | 3.4      | Medium  |
+| P3       | Decouple MusicManager from GameManager  | 3.5      | Medium  |
+| P3       | Real blend_music interpolation          | 3.6      | Medium  |
+| P3       | Entity iteration/query API              | 5.2      | Medium  |
+| P3       | Reduce logging verbosity                | 4.1      | Small   |
+| P3       | UI extension macro dedup                | 4.6      | Small   |
+| P4       | Linux platform support                  | 5.5      | Large   |
+| P4       | Dependency version bumps                | 6        | Medium  |
+| P4       | Wire `get_res_response` or remove       | 2.2      | Small   |
+| P4       | Implement `open_url` navigation         | 2.3      | Small   |
 
 ---
 
-## Phase 5: Platform Consolidation
+## v2 Plan Reference (Completed)
 
-### platform/mod.rs
-
-```rust
-#[cfg(target_os = "macos")]
-pub mod macos;
-
-#[cfg(target_os = "windows")]
-pub mod windows;
-
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-pub mod browser;
-```
-
-Merge the 4 separate macos/windows files into 2 (one per platform). The GodotBrowser node in `platform/browser.rs` contains the shared wry logic.
-
-### threads/runtime.rs
-
-Keep tokio runtime behind cfg:
-
-```rust
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-pub struct RuntimeManager { ... }
-```
-
-Only used for wry webview and native networking. Game logic never touches tokio.
-
----
-
-## Phase 6: lib.rs Entry Point
-
-```rust
-mod core;
-mod threads;
-mod manager;
-mod entity;
-mod data;
-mod extensions;
-mod macros;
-
-#[cfg(any(target_os = "macos", target_os = "windows"))]
-mod platform;
-
-struct Q;
-
-#[gdextension]
-unsafe impl ExtensionLibrary for Q {
-    fn on_level_init(level: InitLevel) {
-        if level == InitLevel::Scene {
-            // Register RuntimeManager singleton (native only)
-            // EventBridge auto-spawns actor on first use (lazy)
-        }
-    }
-}
-```
-
----
-
-## Execution Order
-
-| Step | What                                                                                   | Risk | Notes                                  |
-| ---- | -------------------------------------------------------------------------------------- | ---- | -------------------------------------- |
-| 1    | Update Cargo.toml (add dashmap, crossbeam-channel, ulid; drop bevy_ecs, papaya, rstar) | Low  | Dep swap only                          |
-| 2    | Create `core/ecs.rs` with EntityStore                                                  | Low  | New file, no breaking changes          |
-| 3    | Create `core/event.rs` with GameEvent/GameRequest enums                                | Low  | New file                               |
-| 4    | Create `core/actor.rs` with Actor coordinator                                          | Low  | New file                               |
-| 5    | Create `core/bridge.rs` with EventBridge node                                          | Med  | Replaces asyncnode.rs                  |
-| 6    | Create `threads/worker.rs` with generic worker spawner                                 | Low  | New file                               |
-| 7    | Migrate `extensions/ecs_extension.rs` → use core/ecs.rs                                | Med  | Rewrite ecs_manager to use EntityStore |
-| 8    | Migrate platform files (merge macos/windows into platform/)                            | Low  | File moves + merges                    |
-| 9    | Clean up manager/ (extract cache_manager, remove entity_manager)                       | Low  | Reorganization                         |
-| 10   | Update lib.rs module declarations                                                      | Low  | Wire everything together               |
-| 11   | Delete dead files                                                                      | Low  | Cleanup                                |
-| 12   | cargo check                                                                            | —    | Verify compilation                     |
-| 13   | rustfmt                                                                                | —    | Pass lint-staged                       |
-
----
-
-## Dependency Comparison
-
-| Dep               | Current Q       | After Refactor  | CityVote                    |
-| ----------------- | --------------- | --------------- | --------------------------- |
-| godot             | 0.3.5           | 0.3.5           | 0.3.5                       |
-| bevy_ecs          | 0.15.1          | **removed**     | not used                    |
-| papaya            | 0.2.3           | **removed**     | 0.2.3 (keeping in cityvote) |
-| rstar             | 0.12.2          | **removed**     | not used                    |
-| dashmap           | —               | **6.1.0**       | 6.1.0                       |
-| crossbeam-channel | —               | **0.5**         | 0.5                         |
-| ulid              | —               | **1.2.1**       | 1.2.1                       |
-| rand              | 0.10.0          | 0.10.0          | 0.9.2                       |
-| tokio             | 1.49 (native)   | 1.49 (native)   | 1.43 (native)               |
-| wry               | 0.53.5 (native) | 0.53.5 (native) | 0.53.5 (native)             |
-| windows           | 0.62            | 0.62            | 0.59                        |
-
----
-
-## What Q Is NOT
-
-Q is a **library/framework**, not a game. It provides:
-
-- ECS primitives (EntityStore, components, queries)
-- Actor/worker threading infrastructure
-- Godot bridge (EventBridge node, signal emission)
-- Manager nodes (GameManager, MusicManager, CacheManager)
-- Platform abstractions (wry browser, native window)
-
-Games (like cityvote) build on top of Q by:
-
-- Defining their own GameRequest/GameEvent variants
-- Registering custom workers with the Actor
-- Adding game-specific component maps to EntityStore
-- Creating game-specific GodotClass nodes
+The original v2 plan phases (dependency swap, folder restructure, core ECS, actor/worker threading, platform consolidation, lib.rs entry point) have all been executed. The current codebase reflects that completed work. This v3 plan builds on top of the v2 foundation.

@@ -1,34 +1,33 @@
+use std::sync::Arc;
+use std::time::Duration;
+
 use anyhow::Result;
 use kbve::entity::client::vault::VaultClient;
-use serenity::async_trait;
-use serenity::model::channel::Message;
-use serenity::model::gateway::Ready;
-use serenity::prelude::*;
+use poise::serenity_prelude as serenity;
 use tracing::{info, warn};
+
+use super::commands;
+use super::components;
+use crate::state::AppState;
 
 /// Vault secret UUID for the Discord bot token (shared with the Python notification-bot).
 const DISCORD_TOKEN_VAULT_ID: &str = "39781c47-be8f-4a10-ae3a-714da299ca07";
 
-struct Handler;
+// ── Poise type aliases ──────────────────────────────────────────────────
 
-#[async_trait]
-impl EventHandler for Handler {
-    async fn message(&self, ctx: Context, msg: Message) {
-        if msg.author.bot {
-            return;
-        }
-
-        if msg.content == "!ping" {
-            if let Err(e) = msg.channel_id.say(&ctx.http, "Pong!").await {
-                tracing::error!(error = %e, "failed to send message");
-            }
-        }
-    }
-
-    async fn ready(&self, _ctx: Context, ready: Ready) {
-        info!("Discord bot connected as {}", ready.user.name);
-    }
+/// Shared state available to all commands via `ctx.data()`.
+pub struct Data {
+    /// Central application state shared with the HTTP server.
+    pub app: Arc<AppState>,
 }
+
+/// Error type for poise commands.
+pub type Error = Box<dyn std::error::Error + Send + Sync>;
+
+/// Convenience alias used by all command functions.
+pub type Context<'a> = poise::Context<'a, Data, Error>;
+
+// ── Token resolution ────────────────────────────────────────────────────
 
 /// Resolve the Discord bot token from environment or Supabase Vault.
 ///
@@ -61,7 +60,110 @@ async fn resolve_token() -> Option<String> {
     None
 }
 
-pub async fn start() -> Result<()> {
+// ── Event handler ───────────────────────────────────────────────────────
+
+/// Global event handler for poise. Routes component interactions and
+/// handles lifecycle events (ready, guild join/leave).
+async fn event_handler(
+    ctx: &serenity::Context,
+    event: &serenity::FullEvent,
+    _framework: poise::FrameworkContext<'_, Data, Error>,
+    data: &Data,
+) -> Result<(), Error> {
+    match event {
+        // ── Component interactions ──────────────────────────────────
+        serenity::FullEvent::InteractionCreate {
+            interaction: serenity::Interaction::Component(component),
+        } => {
+            if component.data.custom_id.starts_with("status_") {
+                components::handle_status_component(component, ctx, data).await?;
+            } else if component.data.custom_id.starts_with("dng|") {
+                super::game::router::handle_game_component(component, ctx, data).await?;
+            }
+        }
+
+        // ── Bot ready ──────────────────────────────────────────────
+        serenity::FullEvent::Ready { data_about_bot } => {
+            let guild_count = ctx.cache.guild_count();
+            let shard_id = ctx.shard_id.0;
+            info!(
+                user = %data_about_bot.user.name,
+                guilds = guild_count,
+                shard_id,
+                "Bot ready"
+            );
+
+            // Spawn session cleanup task for Embed Dungeon
+            {
+                let sessions = data.app.sessions.clone();
+                tokio::spawn(async move {
+                    let mut interval = tokio::time::interval(Duration::from_secs(60));
+                    loop {
+                        interval.tick().await;
+                        sessions.cleanup_expired(Duration::from_secs(600));
+                    }
+                });
+            }
+
+            // Record shard in tracker (best-effort)
+            if let Some(ref tracker) = data.app.tracker {
+                let instance_id = std::env::var("HOSTNAME")
+                    .unwrap_or_else(|_| format!("local-{}", std::process::id()));
+                let cluster_name =
+                    std::env::var("CLUSTER_NAME").unwrap_or_else(|_| "default".into());
+                let total_shards = std::env::var("SHARD_COUNT")
+                    .ok()
+                    .and_then(|s| s.parse::<u32>().ok())
+                    .unwrap_or(1);
+
+                tracker
+                    .record_shard(
+                        &instance_id,
+                        &cluster_name,
+                        shard_id,
+                        total_shards,
+                        guild_count,
+                        0.0,
+                    )
+                    .await;
+
+                // Spawn periodic heartbeat
+                let tracker_clone = data.app.clone();
+                let cache = ctx.cache.clone();
+                tokio::spawn(async move {
+                    let mut interval = tokio::time::interval(Duration::from_secs(30));
+                    loop {
+                        interval.tick().await;
+                        if let Some(ref t) = tracker_clone.tracker {
+                            let gc = cache.guild_count();
+                            t.update_heartbeat(&instance_id, &cluster_name, gc, 0.0)
+                                .await;
+                        }
+                    }
+                });
+            }
+        }
+
+        // ── Guild events ───────────────────────────────────────────
+        serenity::FullEvent::GuildCreate { guild, is_new } => {
+            if is_new.unwrap_or(false) {
+                info!(guild = %guild.name, id = %guild.id, "Joined new guild");
+            }
+        }
+
+        serenity::FullEvent::GuildDelete { incomplete, .. } => {
+            info!(id = %incomplete.id, "Left guild");
+        }
+
+        _ => {}
+    }
+
+    Ok(())
+}
+
+// ── Bot startup ─────────────────────────────────────────────────────────
+
+pub async fn start(app_state: Arc<AppState>) -> Result<()> {
     let token = match resolve_token().await {
         Some(t) => t,
         None => {
@@ -72,14 +174,91 @@ pub async fn start() -> Result<()> {
         }
     };
 
-    let intents = GatewayIntents::GUILD_MESSAGES | GatewayIntents::MESSAGE_CONTENT;
+    let intents = serenity::GatewayIntents::non_privileged();
 
-    let mut client = Client::builder(&token, intents)
-        .event_handler(Handler)
+    let app_for_setup = Arc::clone(&app_state);
+    let framework = poise::Framework::builder()
+        .options(poise::FrameworkOptions {
+            commands: commands::all(),
+            event_handler: |ctx, event, framework, data| {
+                Box::pin(event_handler(ctx, event, framework, data))
+            },
+            ..Default::default()
+        })
+        .setup(move |ctx, ready, framework| {
+            let app = app_for_setup;
+            Box::pin(async move {
+                info!("Discord bot connected as {}", ready.user.name);
+
+                // Store serenity HTTP client for HTTP-side API calls
+                *app.bot_http.write().await = Some(ctx.http.clone());
+
+                // Guild-scoped registration for fast dev iteration;
+                // global registration for production.
+                match std::env::var("GUILD_ID")
+                    .ok()
+                    .and_then(|id| id.parse::<u64>().ok())
+                    .map(serenity::GuildId::new)
+                {
+                    Some(guild_id) => {
+                        info!("Registering commands in guild {guild_id} (dev mode)");
+                        poise::builtins::register_in_guild(
+                            ctx,
+                            &framework.options().commands,
+                            guild_id,
+                        )
+                        .await?;
+                    }
+                    None => {
+                        info!("Registering commands globally (production mode)");
+                        poise::builtins::register_globally(ctx, &framework.options().commands)
+                            .await?;
+                    }
+                }
+
+                Ok(Data { app })
+            })
+        })
+        .build();
+
+    let mut client = serenity::ClientBuilder::new(&token, intents)
+        .framework(framework)
         .await?;
 
-    info!("Starting Discord bot...");
-    client.start().await?;
+    // Store shard manager so HTTP endpoints can trigger shutdown/restart
+    *app_state.shard_manager.write().await = Some(client.shard_manager.clone());
+
+    // Start with the appropriate sharding mode
+    let shard_id = std::env::var("SHARD_ID")
+        .ok()
+        .and_then(|s| s.parse::<u32>().ok());
+    let shard_count = std::env::var("SHARD_COUNT")
+        .ok()
+        .and_then(|s| s.parse::<u32>().ok());
+    let auto_scale = std::env::var("USE_AUTO_SCALING").is_ok();
+
+    match (shard_id, shard_count) {
+        (Some(id), Some(count)) => {
+            info!("Starting shard {id}/{count} (distributed mode)");
+            client.start_shard(id, count).await?;
+        }
+        _ if auto_scale => {
+            let total = std::env::var("TOTAL_SHARDS")
+                .ok()
+                .and_then(|s| s.parse::<u32>().ok())
+                .unwrap_or(2);
+            info!("Starting with auto-sharding ({total} shards)");
+            client.start_shards(total).await?;
+        }
+        _ => {
+            info!("Starting Discord bot (single shard)...");
+            client.start().await?;
+        }
+    }
+
+    // Clear shared state on exit
+    *app_state.shard_manager.write().await = None;
+    *app_state.bot_http.write().await = None;
 
     Ok(())
 }

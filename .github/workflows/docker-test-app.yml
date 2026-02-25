@@ -17,6 +17,8 @@ jobs:
         steps:
             - name: Checkout the monorepo
               uses: actions/checkout@v6
+              with:
+                  submodules: true
 
             - name: Rust ToolChain
               uses: dtolnay/rust-toolchain@stable

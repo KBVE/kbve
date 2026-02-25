@@ -251,11 +251,11 @@ jobs:
             items: |
                 [
                   { "name": "kilobase", "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
-                  { "name": "notification-bot", "target": "container", "condition": "${{ needs.alter.outputs.notification_bot }}" },
                   { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" },
                   { "name": "memes", "target": "container", "condition": "${{ needs.alter.outputs.memes }}", "image": "kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml" },
                   { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },
-                  { "name": "discordsh", "target": "container", "condition": "${{ needs.alter.outputs.discordsh }}", "image": "kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml" }
+                  { "name": "discordsh", "target": "container", "condition": "${{ needs.alter.outputs.discordsh }}", "image": "kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml" },
+                  { "name": "mc", "target": "container", "condition": "${{ needs.alter.outputs.mc }}", "image": "kbve/mc" }
                 ]
 
     generate_e2e_docker_matrix:
@@ -267,7 +267,8 @@ jobs:
                   { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}" },
                   { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}" },
                   { "name": "irc", "condition": "${{ needs.alter.outputs.irc_gateway }}" },
-                  { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}" }
+                  { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}" },
+                  { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}" }
                 ]
 
     test_docker:

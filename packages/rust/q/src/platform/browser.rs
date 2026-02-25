@@ -1,22 +1,24 @@
 use godot::classes::{Control, IControl, Os, ProjectSettings};
 use godot::prelude::*;
 
+#[cfg(target_os = "linux")]
+use crate::platform::linux::LinuxWryBrowserOptions;
 #[cfg(target_os = "macos")]
 use crate::platform::macos::MacOSWryBrowserOptions;
 #[cfg(target_os = "windows")]
 use crate::platform::windows::WindowsWryBrowserOptions;
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 use wry::{
     Rect, WebViewBuilder,
     dpi::{PhysicalPosition, PhysicalSize},
     http::Request,
 };
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 use std::{borrow::Cow, fs, path::PathBuf};
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 use http::{Response, header::CONTENT_TYPE};
 
 #[derive(GodotClass)]
@@ -24,7 +26,7 @@ use http::{Response, header::CONTENT_TYPE};
 pub struct GodotBrowser {
     base: Base<Control>,
 
-    #[cfg(any(target_os = "macos", target_os = "windows"))]
+    #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
     webview: Option<wry::WebView>,
 
     full_window_size: bool,
@@ -46,7 +48,7 @@ impl IControl for GodotBrowser {
         Self {
             base,
 
-            #[cfg(any(target_os = "macos", target_os = "windows"))]
+            #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
             webview: None,
 
             full_window_size: true,
@@ -64,13 +66,16 @@ impl IControl for GodotBrowser {
     }
 
     fn ready(&mut self) {
-        #[cfg(any(target_os = "macos", target_os = "windows"))]
+        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
         {
             #[cfg(target_os = "macos")]
             let window = MacOSWryBrowserOptions;
 
             #[cfg(target_os = "windows")]
             let window = WindowsWryBrowserOptions;
+
+            #[cfg(target_os = "linux")]
+            let window = LinuxWryBrowserOptions;
 
             let base = self.base().clone();
             let mut builder = WebViewBuilder::new()
@@ -80,6 +85,7 @@ impl IControl for GodotBrowser {
                 .with_clipboard(self.clipboard)
                 .with_incognito(self.incognito)
                 .with_focused(self.focused)
+                .with_custom_protocol("res".into(), |_id, req| get_res_response(req))
                 .with_ipc_handler(move |req: Request<String>| {
                     let body = req.body().as_str();
                     base.clone()
@@ -141,6 +147,18 @@ impl GodotBrowser {
     }
 
     #[func]
+    pub fn open_url(&self, url: GString) {
+        #[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
+        if let Some(webview) = &self.webview {
+            let url_str = url.to_string();
+            let script = format!("window.location.href = '{}';", url_str.replace('\'', "\\'"));
+            if let Err(e) = webview.evaluate_script(&script) {
+                godot_error!("[GodotBrowser] Failed to navigate to {}: {:?}", url_str, e);
+            }
+        }
+    }
+
+    #[func]
     pub fn resize(&self) {
         if let Some(webview) = &self.webview {
             let rect = {
@@ -165,7 +183,7 @@ impl GodotBrowser {
     }
 }
 
-#[cfg(any(target_os = "macos", target_os = "windows"))]
+#[cfg(any(target_os = "macos", target_os = "windows", target_os = "linux"))]
 pub fn get_res_response(request: Request<Vec<u8>>) -> Response<Cow<'static, [u8]>> {
     let os = Os::singleton();
     let root = if os.has_feature("editor") {
@@ -185,9 +203,11 @@ pub fn get_res_response(request: Request<Vec<u8>>) -> Response<Cow<'static, [u8]
     let full_path = root.join(path);
     if full_path.exists() && full_path.is_file() {
         let content = fs::read(full_path).expect("Failed to read file");
-        let mime = infer::get(&content).expect("File type is unknown");
+        let mime_str = infer::get(&content)
+            .map(|m| m.to_string())
+            .unwrap_or_else(|| "application/octet-stream".to_string());
         return http::Response::builder()
-            .header(CONTENT_TYPE, mime.to_string())
+            .header(CONTENT_TYPE, mime_str)
             .status(200)
             .body(content)
             .unwrap()

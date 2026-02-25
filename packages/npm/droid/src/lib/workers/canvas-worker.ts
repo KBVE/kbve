@@ -1,8 +1,28 @@
 import { expose } from 'comlink';
+import { CanvasUIRenderer } from './canvas-ui-renderer';
+import type {
+	ToastPayload,
+	TooltipPayload,
+	ModalPayload,
+} from '../types/ui-event-types';
 
 export interface CanvasWorkerAPI {
-	bindCanvas(panelId: string, canvas: OffscreenCanvas, mode?: CanvasDrawMode): Promise<void>;
+	bindCanvas(
+		panelId: string,
+		canvas: OffscreenCanvas,
+		mode?: CanvasDrawMode,
+	): Promise<void>;
 	unbindCanvas(panelId: string): Promise<void>;
+	bindUICanvas(
+		canvas: OffscreenCanvas,
+		dbGet: (key: string) => Promise<string | null>,
+	): Promise<void>;
+	unbindUICanvas(): void;
+	addCanvasToast(payload: ToastPayload): void;
+	removeCanvasToast(id: string): void;
+	showCanvasTooltip(payload: TooltipPayload | null): void;
+	showCanvasModal(payload: ModalPayload | null): void;
+	refreshUITheme(): Promise<void>;
 }
 
 interface CanvasBinding {
@@ -15,18 +35,38 @@ interface CanvasBinding {
 
 export type CanvasDrawMode = 'static' | 'animated' | 'dynamic';
 
+const uiRenderer = new CanvasUIRenderer();
+
+// Listen for theme changes from main thread
+try {
+	const bc = new BroadcastChannel('kbve_theme');
+	bc.onmessage = () => {
+		void uiRenderer.refreshTheme();
+	};
+} catch {
+	// BroadcastChannel unavailable in this context
+}
+
 const CanvasManager = {
 	bindings: new Map<string, CanvasBinding>(),
 
-	async bindCanvas(panelId: string, canvas: OffscreenCanvas, mode: CanvasDrawMode = 'animated') {
+	async bindCanvas(
+		panelId: string,
+		canvas: OffscreenCanvas,
+		mode: CanvasDrawMode = 'animated',
+	) {
 		const ctx = canvas.getContext('2d');
 
 		if (!ctx) {
-			console.error(`[CanvasWorker] Failed to get 2D context for panel ${panelId}`);
+			console.error(
+				`[CanvasWorker] Failed to get 2D context for panel ${panelId}`,
+			);
 			return;
 		}
 
-		console.log(`[CanvasWorker] Successfully bound canvas for panel ${panelId} with mode ${mode}`);
+		console.log(
+			`[CanvasWorker] Successfully bound canvas for panel ${panelId} with mode ${mode}`,
+		);
 
 		this.bindings.set(panelId, { ctx, canvas, panelId, mode });
 
@@ -48,7 +88,9 @@ const CanvasManager = {
 				this.drawDynamic(binding);
 				break;
 			default:
-				console.warn(`[CanvasWorker] Unknown draw mode for panel ${panelId}`);
+				console.warn(
+					`[CanvasWorker] Unknown draw mode for panel ${panelId}`,
+				);
 		}
 	},
 
@@ -63,7 +105,12 @@ const CanvasManager = {
 		const drawFrame = () => {
 			hue = (hue + 1) % 360;
 			binding.ctx.fillStyle = `hsl(${hue}, 100%, 50%)`;
-			binding.ctx.fillRect(0, 0, binding.canvas.width, binding.canvas.height);
+			binding.ctx.fillRect(
+				0,
+				0,
+				binding.canvas.width,
+				binding.canvas.height,
+			);
 
 			binding.animationFrame = requestAnimationFrame(drawFrame);
 		};
@@ -76,18 +123,23 @@ const CanvasManager = {
 
 		const drawFrame = () => {
 			time += 0.05;
-			binding.ctx.clearRect(0, 0, binding.canvas.width, binding.canvas.height);
+			binding.ctx.clearRect(
+				0,
+				0,
+				binding.canvas.width,
+				binding.canvas.height,
+			);
 			binding.ctx.beginPath();
 			binding.ctx.arc(
 				binding.canvas.width / 2 + Math.sin(time) * 50,
 				binding.canvas.height / 2 + Math.cos(time) * 50,
 				30,
 				0,
-				Math.PI * 2
+				Math.PI * 2,
 			);
 			binding.ctx.fillStyle = 'orange';
 			binding.ctx.fill();
-	
+
 			binding.animationFrame = requestAnimationFrame(drawFrame);
 		};
 
@@ -101,6 +153,39 @@ const CanvasManager = {
 		}
 		this.bindings.delete(panelId);
 		console.log(`[CanvasWorker] Unbound canvas for panel ${panelId}`);
+	},
+
+	// ── UI Overlay Canvas ──
+
+	async bindUICanvas(
+		canvas: OffscreenCanvas,
+		dbGet: (key: string) => Promise<string | null>,
+	) {
+		await uiRenderer.bind(canvas, dbGet);
+	},
+
+	unbindUICanvas() {
+		uiRenderer.unbind();
+	},
+
+	addCanvasToast(payload: ToastPayload) {
+		uiRenderer.addToast(payload);
+	},
+
+	removeCanvasToast(id: string) {
+		uiRenderer.removeToast(id);
+	},
+
+	showCanvasTooltip(payload: TooltipPayload | null) {
+		uiRenderer.showTooltip(payload);
+	},
+
+	showCanvasModal(payload: ModalPayload | null) {
+		uiRenderer.showModal(payload);
+	},
+
+	refreshUITheme() {
+		return uiRenderer.refreshTheme();
 	},
 };
 
