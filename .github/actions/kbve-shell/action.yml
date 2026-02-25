@@ -1,52 +1,53 @@
 name: 'KBVE - Shell Actions'
 description: 'An action to call the kbve script within the monorepo'
 branding:
-  color: 'green'
-  icon: 'box'
+    color: 'green'
+    icon: 'box'
 inputs:
-  github_token:
-    description: 'GitHub token for authentication'
-    required: true
-  flag:
-    description: 'Flag to pass to kbve.sh'
-    required: true
-  create_pull_request:
-    description: 'Whether to create a pull request'
-    required: false
-    default: 'false'
-  pull_request_title:
-    description: 'Title for the pull request'
-    required: false
-    default: ''
-  pull_request_body:
-    description: 'Body for the pull request'
-    required: false
-    default: ''
+    github_token:
+        description: 'GitHub token for authentication'
+        required: true
+    flag:
+        description: 'Flag to pass to kbve.sh'
+        required: true
+    create_pull_request:
+        description: 'Whether to create a pull request'
+        required: false
+        default: 'false'
+    pull_request_title:
+        description: 'Title for the pull request'
+        required: false
+        default: ''
+    pull_request_body:
+        description: 'Body for the pull request'
+        required: false
+        default: ''
 
 runs:
-  using: "composite"
-  steps:
+    using: 'composite'
+    steps:
+        - name: Run kbve.sh with flag
+          shell: bash
+          env:
+              KBVE_FLAG: ${{ inputs.flag }}
+          run: |
+              chmod +x ./kbve.sh
+              ./kbve.sh $KBVE_FLAG
 
-    - name: Run kbve.sh with flag
-      shell: bash
-      run: |
-        chmod +x ./kbve.sh
-        ./kbve.sh ${{ inputs.flag }}
+        - name: Create Pull Request
+          if: inputs.create_pull_request == 'true'
+          env:
+              GITHUB_TOKEN: ${{ inputs.github_token }}
+          shell: bash
+          run: |
 
-    - name: Create Pull Request
-      if: inputs.create_pull_request == 'true'
-      env:
-        GITHUB_TOKEN: ${{ inputs.github_token }}
-      shell: bash
-      run: |
-        
 
-        git config user.name "GitHub Actions"
-        git config user.email "actions@github.com"
+              git config user.name "GitHub Actions"
+              git config user.email "actions@github.com"
 
-        git checkout -b "patch-atomic-gha-${{ inputs.pull_request_title }}"
-        git add .
-        ESCAPED_FLAG=$(echo "${{ inputs.flag }}" | sed "s/'/'\"'\"'/g")
-        git commit -m 'Automated Atomic Patch via ./kbve.sh '"$ESCAPED_FLAG"
-        git push -u origin "patch-atomic-gha-${{ inputs.pull_request_title }}"
-        gh pr create -B dev -H "patch-atomic-gha-${{ inputs.pull_request_title }}" --title "Automated Atomic Patch : ${{ inputs.pull_request_title }} " --body "This PR includes an automated atomic patch for the monorepo. ${{ inputs.pull_request_body }}"
+              git checkout -b "patch-atomic-gha-${{ inputs.pull_request_title }}"
+              git add .
+              ESCAPED_FLAG=$(echo "${{ inputs.flag }}" | sed "s/'/'\"'\"'/g")
+              git commit -m 'Automated Atomic Patch via ./kbve.sh '"$ESCAPED_FLAG"
+              git push -u origin "patch-atomic-gha-${{ inputs.pull_request_title }}"
+              gh pr create -B dev -H "patch-atomic-gha-${{ inputs.pull_request_title }}" --title "Automated Atomic Patch : ${{ inputs.pull_request_title }} " --body "This PR includes an automated atomic patch for the monorepo. ${{ inputs.pull_request_body }}"
