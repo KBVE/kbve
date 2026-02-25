@@ -7,8 +7,11 @@ on:
             - main
     pull_request:
         branches:
+            - dev
             - staging
             - main
+    schedule:
+        - cron: '30 6 * * 1'
 
 concurrency:
     group: ${{ github.workflow }}-${{ github.ref }}
@@ -31,6 +34,7 @@ jobs:
                 language:
                     - javascript-typescript
                     - python
+                    - rust
 
         steps:
             - name: Checkout
@@ -40,6 +44,7 @@ jobs:
               uses: github/codeql-action/init@v4
               with:
                   languages: ${{ matrix.language }}
+                  queries: security-and-quality
 
             - name: Auto-build
               uses: github/codeql-action/autobuild@v4
@@ -48,3 +53,22 @@ jobs:
               uses: github/codeql-action/analyze@v4
               with:
                   category: /language:${{ matrix.language }}
+
+    dependency-review:
+        name: Dependency Review
+        runs-on: ubuntu-latest
+        if: github.event_name == 'pull_request'
+        timeout-minutes: 10
+        permissions:
+            contents: read
+            pull-requests: write
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+
+            - name: Dependency Review
+              uses: actions/dependency-review-action@v4
+              with:
+                  fail-on-severity: high
+                  comment-summary-in-pr: always

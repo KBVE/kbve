@@ -1,6 +1,6 @@
 {
 	"parent": "minecraft:item/generated",
 	"textures": {
-		"layer0": "kbve:item/kbve_coin"
+		"layer0": "kbve:item/rewards/kbve_coin"
 	}
 }
