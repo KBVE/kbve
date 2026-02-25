@@ -224,6 +224,12 @@ atomic_function() {
     echo "Branch: $branch_name (based on dev)"
     git worktree add "$worktree_dir" -b "$branch_name" "origin/dev"
 
+    # Initialize submodules in the worktree
+    if [ -f "$worktree_dir/.gitmodules" ]; then
+        echo "Initializing submodules in worktree..."
+        git -C "$worktree_dir" submodule update --init --recursive
+    fi
+
     # Copy .env if it exists in the main repo
     if [ -f "$main_repo/.env" ]; then
         echo "Copying .env from main repo..."
@@ -321,6 +327,12 @@ create_worktree() {
     echo "Creating worktree at: $worktree_dir"
     echo "Branch: $branch_name (based on $base_branch)"
     git worktree add "$worktree_dir" -b "$branch_name" "origin/$base_branch"
+
+    # Initialize submodules in the worktree
+    if [ -f "$worktree_dir/.gitmodules" ]; then
+        echo "Initializing submodules in worktree..."
+        git -C "$worktree_dir" submodule update --init --recursive
+    fi
 
     # Copy .env if it exists in the main repo (gitignored, won't be in worktree)
     if [ -f "$main_repo/.env" ]; then
