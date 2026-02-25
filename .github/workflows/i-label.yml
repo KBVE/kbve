@@ -4,233 +4,247 @@ on:
     issues:
         types: [labeled]
 
-jobs:
+permissions:
+    issues: write
+    contents: read
 
+jobs:
     #   [AI]
     assign_ai:
-        name: "AI Label Automation"
+        name: 'AI Label Automation'
         if: github.event.label.name == 'codex'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Status"
-                    value: "AI"
-                    idref: ${{ github.event.issue.node_id }}
-   
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Status'
+                  value: 'AI'
+                  idref: ${{ github.event.issue.node_id }}
 
     #   [Theory]
     assign_concepts:
-        name: "Enhancement Label Automation"
+        name: 'Enhancement Label Automation'
         if: github.event.label.name == 'enhancement'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Status"
-                    value: "Theory"
-                    idref: ${{ github.event.issue.node_id }}
-   
-                    
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Status'
+                  value: 'Theory'
+                  idref: ${{ github.event.issue.node_id }}
+
     #   [Update]
     assign_update:
-        name: "Update Label Automation"
+        name: 'Update Label Automation'
         if: github.event.label.name == 'update'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Status"
-                    value: "Todo"
-                    idref: ${{ github.event.issue.node_id }}
-   
-     
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Status'
+                  value: 'Todo'
+                  idref: ${{ github.event.issue.node_id }}
+
     #   [Media]
     assign_media:
-        name: "Media Label Automation"
+        name: 'Media Label Automation'
         if: github.event.label.name == 'media'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Status"
-                    value: "Theory"
-                    idref: ${{ github.event.issue.node_id }}
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Status'
+                  value: 'Theory'
+                  idref: ${{ github.event.issue.node_id }}
 
     #   [Error]
     assign_bug:
-        name: "Bug Label Automation"
+        name: 'Bug Label Automation'
         if: github.event.label.name == 'bug'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Status"
-                    value: "Error"
-                    idref: ${{ github.event.issue.node_id }}
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Status'
+                  value: 'Error'
+                  idref: ${{ github.event.issue.node_id }}
 
     #   [ToDo]
     assign_todo:
-        name: "ToDo Label Automation"
+        name: 'ToDo Label Automation'
         if: github.event.label.name == 'todo'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Status"
-                    value: "Todo"
-                    idref: ${{ github.event.issue.node_id }}
-    
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Status'
+                  value: 'Todo'
+                  idref: ${{ github.event.issue.node_id }}
+
     #   [Backlog]
     assign_backlog:
-        name: "Backlog Label Automation"
+        name: 'Backlog Label Automation'
         if: github.event.label.name == 'backlog'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Status"
-                    value: "Backlog"
-                    idref: ${{ github.event.issue.node_id }}
-    
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Status'
+                  value: 'Backlog'
+                  idref: ${{ github.event.issue.node_id }}
+
     #   [Help]
     assign_support:
-        name: "Help Label Automation"
+        name: 'Help Label Automation'
         if: github.event.label.name == 'help wanted'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Status"
-                    value: "Support"
-                    idref: ${{ github.event.issue.node_id }}
-    #   [Help]
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Status'
+                  value: 'Support'
+                  idref: ${{ github.event.issue.node_id }}
+    #   [Staging]
     assign_staging:
-        name: "Staging Label Automation"
+        name: 'Staging Label Automation'
         if: github.event.label.name == 'staging'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Status"
-                    value: "Staging"
-                    idref: ${{ github.event.issue.node_id }}
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Status'
+                  value: 'Staging'
+                  idref: ${{ github.event.issue.node_id }}
     #   [Maxtrix Errors]
-
 
     #   [Matrix]:0
     assign_matrix_0:
-        name: "Matrix Lvl 0"
+        name: 'Matrix Lvl 0'
         if: github.event.label.name == '0'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Matrix"
-                    value: "0"
-                    idref: ${{ github.event.issue.node_id }}
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Matrix'
+                  value: '0'
+                  idref: ${{ github.event.issue.node_id }}
 
     #   [Matrix]:1
     assign_matrix_1:
-        name: "Matrix Lvl 1"
+        name: 'Matrix Lvl 1'
         if: github.event.label.name == '1'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Matrix"
-                    value: "1"
-                    idref: ${{ github.event.issue.node_id }}
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Matrix'
+                  value: '1'
+                  idref: ${{ github.event.issue.node_id }}
 
     #   [Matrix]:2
     assign_matrix_2:
-        name: "Matrix Lvl 2"
+        name: 'Matrix Lvl 2'
         if: github.event.label.name == '2'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Matrix"
-                    value: "2"
-                    idref: ${{ github.event.issue.node_id }}
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Matrix'
+                  value: '2'
+                  idref: ${{ github.event.issue.node_id }}
 
     #   [Matrix]:3
     assign_matrix_3:
-        name: "Matrix Lvl 3"
+        name: 'Matrix Lvl 3'
         if: github.event.label.name == '3'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Matrix"
-                    value: "3"
-                    idref: ${{ github.event.issue.node_id }}
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Matrix'
+                  value: '3'
+                  idref: ${{ github.event.issue.node_id }}
 
     #   [Matrix]:4
     assign_matrix_4:
-        name: "Matrix Lvl 4"
+        name: 'Matrix Lvl 4'
         if: github.event.label.name == '4'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Matrix"
-                    value: "4"
-                    idref: ${{ github.event.issue.node_id }}                    
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Matrix'
+                  value: '4'
+                  idref: ${{ github.event.issue.node_id }}
 
     #   [Matrix]:5
     assign_matrix_5:
-        name: "Matrix Lvl 5"
+        name: 'Matrix Lvl 5'
         if: github.event.label.name == '5'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Matrix"
-                    value: "5"
-                    idref: ${{ github.event.issue.node_id }}
-
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Matrix'
+                  value: '5'
+                  idref: ${{ github.event.issue.node_id }}
 
     #   [Matrix]:6
     assign_matrix_6:
-        name: "Matrix Lvl 6"
+        name: 'Matrix Lvl 6'
         if: github.event.label.name == '6'
         runs-on: ubuntu-latest
+        timeout-minutes: 5
         steps:
-            -   uses: actions/checkout@v6
-            -   uses: ./.github/actions/gql-project-migration
-                with:
-                    token: ${{ secrets.KBVE_PAT }}
-                    key: "Matrix"
-                    value: "6"
-                    idref: ${{ github.event.issue.node_id }}
+            - uses: actions/checkout@v6
+            - uses: ./.github/actions/gql-project-migration
+              with:
+                  token: ${{ secrets.KBVE_PAT }}
+                  key: 'Matrix'
+                  value: '6'
+                  idref: ${{ github.event.issue.node_id }}
