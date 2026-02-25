@@ -8,14 +8,14 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"docker build -t kbve/mc -f apps/mc/Dockerfile apps/mc"
+					"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker build -t kbve/mc:$VERSION -t kbve/mc:latest -f apps/mc/Dockerfile apps/mc"
 				],
 				"parallel": false
 			},
 			"configurations": {
 				"local": {
 					"commands": [
-						"docker build -t kbve/mc:local -f apps/mc/Dockerfile apps/mc"
+						"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker build -t kbve/mc:$VERSION -t kbve/mc:local -f apps/mc/Dockerfile apps/mc"
 					]
 				}
 			}
@@ -24,7 +24,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"docker run --rm -p 25565:25565 -v $(pwd)/apps/mc/data:/pumpkin kbve/mc:local"
+					"docker run --rm -p 25565:25565 -p 8080:8080 -p 25575:25575 kbve/mc:local"
 				],
 				"parallel": false
 			}
