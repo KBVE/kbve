@@ -41,6 +41,7 @@ resources:
     - clickhouse-operator/application.yaml
     - clickhouse/application.yaml
 
+    - mc/application.yaml
     - cityvote/application.yaml
     - herbmail/application.yaml
     - memes/application.yaml
