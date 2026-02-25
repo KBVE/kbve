@@ -3,8 +3,6 @@ kind: IPAddressPool
 metadata:
     name: public-ip-pool
     namespace: metallb-system
-    annotations:
-        kbve.com/last-updated: '2026-02-25'
 spec:
     addresses:
         - 142.132.206.74/32
