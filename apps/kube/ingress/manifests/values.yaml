@@ -12,7 +12,7 @@ controller:
         type: LoadBalancer
         externalTrafficPolicy: Local
         annotations:
-            metallb.universe.tf/allow-shared-ip: 'shared-public-ip'
+            metallb.io/allow-shared-ip: 'shared-public-ip'
 
     config:
         enable-real-ip: 'true'
