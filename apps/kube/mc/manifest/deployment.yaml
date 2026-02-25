@@ -45,7 +45,7 @@ spec:
                         protocol: TCP
                   volumeMounts:
                       - name: world-data
-                        mountPath: /pumpkin/worlds
+                        mountPath: /pumpkin/world
                       - name: mc-config
                         mountPath: /pumpkin/config/configuration.toml
                         subPath: configuration.toml
