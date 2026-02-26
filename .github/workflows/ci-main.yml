@@ -174,7 +174,6 @@ jobs:
         if: ${{ needs.generate_npm_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
-        continue-on-error: true
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
@@ -256,7 +255,6 @@ jobs:
         if: ${{ needs.generate_crates_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
-        continue-on-error: true
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
@@ -346,7 +344,6 @@ jobs:
         if: ${{ needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
-        continue-on-error: true
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_e2e_docker_matrix.outputs.matrix) }}
@@ -575,7 +572,6 @@ jobs:
         if: ${{ needs.generate_python_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
-        continue-on-error: true
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_python_matrix.outputs.matrix) }}
