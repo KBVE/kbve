@@ -100,7 +100,11 @@ fn format_effects(effects: &[EffectInstance]) -> Option<String> {
                 EffectKind::Weakened => "\u{2727} Weakened", // ✧
                 EffectKind::Stunned => "\u{2620} Stunned",   // ☠
             };
-            format!("{label} ({} turns)", e.turns_left)
+            if e.stacks > 1 {
+                format!("{label} x{} ({} turns)", e.stacks, e.turns_left)
+            } else {
+                format!("{label} ({} turns)", e.turns_left)
+            }
         })
         .collect();
     Some(parts.join(", "))
@@ -166,28 +170,65 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
         embed = embed.field("-- Enemy --", enemy_lines.join("\n"), true);
     }
 
-    // Room modifiers
-    if !session.room.modifiers.is_empty() {
-        let mods: Vec<String> = session
+    // Room modifiers + hazards
+    let mut room_effects: Vec<String> = session
+        .room
+        .modifiers
+        .iter()
+        .map(|m| match m {
+            RoomModifier::Fog { accuracy_penalty } => {
+                format!("Fog -- accuracy -{:.0}%", accuracy_penalty * 100.0)
+            }
+            RoomModifier::Blessing { heal_bonus } => {
+                format!("Blessing -- +{heal_bonus} heal")
+            }
+            RoomModifier::Cursed { dmg_multiplier } => {
+                format!(
+                    "Cursed -- +{:.0}% damage taken",
+                    (dmg_multiplier - 1.0) * 100.0
+                )
+            }
+        })
+        .collect();
+    for hazard in &session.room.hazards {
+        match hazard {
+            Hazard::Spikes { dmg } => {
+                room_effects.push(format!("Spikes -- {dmg} dmg on entry"));
+            }
+            Hazard::Gas { effect, .. } => {
+                room_effects.push(format!("Gas -- applies {effect:?}"));
+            }
+        }
+    }
+    if !room_effects.is_empty() {
+        embed = embed.field("-- Room Effects --", room_effects.join("\n"), false);
+    }
+
+    // Merchant stock
+    if session.phase == GamePhase::Merchant && !session.room.merchant_stock.is_empty() {
+        let stock_lines: Vec<String> = session
             .room
-            .modifiers
+            .merchant_stock
             .iter()
-            .map(|m| match m {
-                RoomModifier::Fog { accuracy_penalty } => {
-                    format!("Fog -- accuracy -{:.0}%", accuracy_penalty * 100.0)
-                }
-                RoomModifier::Blessing { heal_bonus } => {
-                    format!("Blessing -- +{heal_bonus} heal")
-                }
-                RoomModifier::Cursed { dmg_multiplier } => {
-                    format!(
-                        "Cursed -- +{:.0}% damage taken",
-                        (dmg_multiplier - 1.0) * 100.0
-                    )
-                }
+            .filter_map(|offer| {
+                super::content::find_item(&offer.item_id)
+                    .map(|def| format!("{} -- {} gold", def.name, offer.price))
             })
             .collect();
-        embed = embed.field("-- Room Effects --", mods.join("\n"), false);
+        embed = embed.field("-- Merchant --", stock_lines.join("\n"), false);
+    }
+
+    // Story event choices
+    if session.phase == GamePhase::Event {
+        if let Some(ref event) = session.room.story_event {
+            let choice_lines: Vec<String> = event
+                .choices
+                .iter()
+                .enumerate()
+                .map(|(i, c)| format!("{}. **{}** -- {}", i + 1, c.label, c.description))
+                .collect();
+            embed = embed.field("-- Choices --", choice_lines.join("\n"), false);
+        }
     }
 
     // Combat log (last 5 entries)
@@ -207,9 +248,13 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
     }
 
     // Footer
+    let member_badge = match &session.member_status {
+        Some(MemberStatusTag::Member { username }) => format!("Member: {}", username),
+        Some(MemberStatusTag::Guest) | None => "Guest".to_owned(),
+    };
     embed = embed.footer(serenity::CreateEmbedFooter::new(format!(
-        "Turn {}  //  Session {}",
-        session.turn, session.short_id
+        "Turn {}  //  Session {}  //  {}",
+        session.turn, session.short_id, member_badge
     )));
 
     embed
@@ -224,7 +269,11 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
     let in_combat = session.phase == GamePhase::Combat;
     let exploring = matches!(
         session.phase,
-        GamePhase::Exploring | GamePhase::Rest | GamePhase::Looting
+        GamePhase::Exploring
+            | GamePhase::Rest
+            | GamePhase::Looting
+            | GamePhase::Merchant
+            | GamePhase::Event
     );
 
     // Primary button row — no emojis, clean labels, color conveys meaning
@@ -262,11 +311,12 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             .filter(|s| s.qty > 0)
             .filter_map(|s| {
                 super::content::find_item(&s.item_id).map(|def| {
+                    let rarity_label = format!("{:?}", def.rarity);
                     serenity::CreateSelectMenuOption::new(
                         format!("{} (x{})", def.name, s.qty),
                         format!("{}|{}", s.item_id, s.qty),
                     )
-                    .description(def.description)
+                    .description(format!("[{}] {}", rarity_label, def.description))
                 })
             })
             .collect();
@@ -279,6 +329,56 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             .placeholder("Select an item...");
 
             rows.push(serenity::CreateActionRow::SelectMenu(select));
+        }
+    }
+
+    // Merchant buy select menu
+    if session.phase == GamePhase::Merchant && !game_over {
+        let buy_options: Vec<serenity::CreateSelectMenuOption> = session
+            .room
+            .merchant_stock
+            .iter()
+            .filter_map(|offer| {
+                super::content::find_item(&offer.item_id).map(|def| {
+                    serenity::CreateSelectMenuOption::new(
+                        format!("{} -- {} gold", def.name, offer.price),
+                        offer.item_id.clone(),
+                    )
+                    .description(format!("[{:?}] {}", def.rarity, def.description))
+                })
+            })
+            .collect();
+
+        if !buy_options.is_empty() {
+            let select = serenity::CreateSelectMenu::new(
+                format!("dng|{sid}|buy|select"),
+                serenity::CreateSelectMenuKind::String {
+                    options: buy_options,
+                },
+            )
+            .placeholder("Buy an item...");
+
+            rows.push(serenity::CreateActionRow::SelectMenu(select));
+        }
+    }
+
+    // Story choice buttons
+    if session.phase == GamePhase::Event && !game_over {
+        if let Some(ref event) = session.room.story_event {
+            let story_buttons: Vec<serenity::CreateButton> = event
+                .choices
+                .iter()
+                .enumerate()
+                .map(|(i, choice)| {
+                    serenity::CreateButton::new(format!("dng|{sid}|story|{i}"))
+                        .label(&choice.label)
+                        .style(serenity::ButtonStyle::Primary)
+                })
+                .collect();
+
+            if !story_buttons.is_empty() {
+                rows.push(serenity::CreateActionRow::Buttons(story_buttons));
+            }
         }
     }
 
@@ -309,6 +409,7 @@ mod tests {
             room: super::super::content::generate_room(0),
             log: Vec::new(),
             show_items: false,
+            member_status: None,
         }
     }
 

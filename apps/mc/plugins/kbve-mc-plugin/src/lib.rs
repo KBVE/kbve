@@ -326,9 +326,9 @@ impl CommandExecutor for GiveItemExecutor {
                                 custom_color: Some(0xFF55FF), // magenta/purple
                                 custom_effects: vec![
                                     StatusEffectInstance {
-                                        effect_id: 6,  // instant_health
-                                        amplifier: 1,  // level II
-                                        duration: 1,   // instant
+                                        effect_id: 6, // instant_health
+                                        amplifier: 1, // level II
+                                        duration: 1,  // instant
                                         ambient: false,
                                         show_particles: true,
                                         show_icon: true,

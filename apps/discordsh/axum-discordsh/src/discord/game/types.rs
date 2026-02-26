@@ -103,6 +103,17 @@ pub enum UseEffect {
     },
 }
 
+// ── Item rarity ────────────────────────────────────────────────────
+
+#[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord)]
+pub enum ItemRarity {
+    Common,
+    Uncommon,
+    Rare,
+    Epic,
+    Legendary,
+}
+
 #[derive(Debug, Clone)]
 pub struct ItemDef {
     pub id: &'static str,
@@ -110,6 +121,7 @@ pub struct ItemDef {
     pub emoji: &'static str,
     pub description: &'static str,
     pub max_stack: u16,
+    pub rarity: ItemRarity,
     pub use_effect: Option<UseEffect>,
 }
 
@@ -159,6 +171,8 @@ pub struct EnemyState {
     pub armor: i32,
     pub effects: Vec<EffectInstance>,
     pub intent: Intent,
+    pub charged: bool,
+    pub loot_table_id: &'static str,
 }
 
 // ── Room state ──────────────────────────────────────────────────────
@@ -171,12 +185,54 @@ pub enum RoomModifier {
 }
 
 #[derive(Debug, Clone)]
+pub enum Hazard {
+    Spikes {
+        dmg: i32,
+    },
+    Gas {
+        effect: EffectKind,
+        stacks: u8,
+        turns: u8,
+    },
+}
+
+#[derive(Debug, Clone)]
+pub struct MerchantOffer {
+    pub item_id: ItemId,
+    pub price: i32,
+}
+
+#[derive(Debug, Clone)]
+pub struct StoryChoice {
+    pub label: String,
+    pub description: String,
+}
+
+#[derive(Debug, Clone)]
+pub struct StoryEvent {
+    pub prompt: String,
+    pub choices: Vec<StoryChoice>,
+}
+
+#[derive(Debug, Clone)]
+pub struct StoryOutcome {
+    pub log_message: String,
+    pub hp_change: i32,
+    pub gold_change: i32,
+    pub item_gain: Option<&'static str>,
+    pub effect_gain: Option<(EffectKind, u8, u8)>,
+}
+
+#[derive(Debug, Clone)]
 pub struct RoomState {
     pub index: u32,
     pub room_type: RoomType,
     pub name: String,
     pub description: String,
     pub modifiers: Vec<RoomModifier>,
+    pub hazards: Vec<Hazard>,
+    pub merchant_stock: Vec<MerchantOffer>,
+    pub story_event: Option<StoryEvent>,
 }
 
 // ── Game action ─────────────────────────────────────────────────────
@@ -189,6 +245,8 @@ pub enum GameAction {
     Explore,
     Flee,
     ToggleItems,
+    Buy(ItemId),
+    StoryChoice(usize),
 }
 
 // ── Session mode ────────────────────────────────────────────────────
@@ -197,6 +255,15 @@ pub enum GameAction {
 pub enum SessionMode {
     Solo,
     Party,
+}
+
+// ── Member status tag ────────────────────────────────────────────────
+
+/// Lightweight membership tag stored in the session.
+#[derive(Debug, Clone, PartialEq)]
+pub enum MemberStatusTag {
+    Member { username: String },
+    Guest,
 }
 
 // ── Session state ───────────────────────────────────────────────────
@@ -219,6 +286,7 @@ pub struct SessionState {
     pub room: RoomState,
     pub log: Vec<String>,
     pub show_items: bool,
+    pub member_status: Option<MemberStatusTag>,
 }
 
 #[cfg(test)]
