@@ -174,6 +174,7 @@ jobs:
         if: ${{ needs.generate_npm_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
+        continue-on-error: true
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
@@ -181,16 +182,46 @@ jobs:
         with:
             project: ${{ matrix.project }}
 
+    collect_npm_results:
+        needs: ['test_npm', 'generate_npm_matrix']
+        name: Collect NPM Test Results
+        if: ${{ always() && needs.generate_npm_matrix.outputs.matrix != 'null' }}
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{ steps.filter.outputs.matrix }}
+        steps:
+            - name: Download test markers
+              uses: actions/download-artifact@v4
+              with:
+                  pattern: test-passed-npm-*
+                  path: ./test-results
+              continue-on-error: true
+
+            - name: Build filtered publish matrix
+              id: filter
+              env:
+                  FULL_MATRIX: ${{ needs.generate_npm_matrix.outputs.matrix }}
+              run: |
+                  if [ -d "./test-results" ]; then
+                    PASSED=$(ls ./test-results/ | sed 's/test-passed-npm-//')
+                  else
+                    PASSED=""
+                  fi
+                  FILTERED=$(echo "$FULL_MATRIX" | jq -c --arg passed "$PASSED" '{
+                    include: [.include[] | select(.name as $n | $passed | split("\n") | any(. == $n))]
+                  } | if (.include | length) == 0 then null else . end')
+                  echo "matrix=$FILTERED" >> "$GITHUB_OUTPUT"
+
     publish_npm:
         name: Publish NPM
-        needs: ['generate_npm_matrix', 'test_npm']
-        if: ${{ !failure() && !cancelled() && needs.generate_npm_matrix.outputs.matrix != 'null' }}
+        needs: ['collect_npm_results']
+        if: ${{ needs.collect_npm_results.outputs.matrix != 'null' }}
         permissions:
             contents: read
             id-token: write
         strategy:
             fail-fast: false
-            matrix: ${{ fromJson(needs.generate_npm_matrix.outputs.matrix) }}
+            matrix: ${{ fromJson(needs.collect_npm_results.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-npm-publish.yml@main
         with:
             project: ${{ matrix.project }}
@@ -225,6 +256,7 @@ jobs:
         if: ${{ needs.generate_crates_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
+        continue-on-error: true
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
@@ -232,10 +264,40 @@ jobs:
         with:
             package: ${{ matrix.name }}
 
+    collect_crate_results:
+        needs: ['test_crates', 'generate_crates_matrix']
+        name: Collect Crate Test Results
+        if: ${{ always() && needs.generate_crates_matrix.outputs.matrix != 'null' }}
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{ steps.filter.outputs.matrix }}
+        steps:
+            - name: Download test markers
+              uses: actions/download-artifact@v4
+              with:
+                  pattern: test-passed-crate-*
+                  path: ./test-results
+              continue-on-error: true
+
+            - name: Build filtered publish matrix
+              id: filter
+              env:
+                  FULL_MATRIX: ${{ needs.generate_crates_matrix.outputs.matrix }}
+              run: |
+                  if [ -d "./test-results" ]; then
+                    PASSED=$(ls ./test-results/ | sed 's/test-passed-crate-//')
+                  else
+                    PASSED=""
+                  fi
+                  FILTERED=$(echo "$FULL_MATRIX" | jq -c --arg passed "$PASSED" '{
+                    include: [.include[] | select(.name as $n | $passed | split("\n") | any(. == $n))]
+                  } | if (.include | length) == 0 then null else . end')
+                  echo "matrix=$FILTERED" >> "$GITHUB_OUTPUT"
+
     publish_crates:
-        needs: ['generate_crates_matrix', 'test_crates']
+        needs: ['collect_crate_results']
         name: Publish Rust Crates
-        if: ${{ !failure() && !cancelled() && needs.generate_crates_matrix.outputs.matrix != 'null' }}
+        if: ${{ needs.collect_crate_results.outputs.matrix != 'null' }}
         permissions:
             id-token: write
             contents: write
@@ -244,7 +306,7 @@ jobs:
             pull-requests: write
         strategy:
             fail-fast: false
-            matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
+            matrix: ${{ fromJson(needs.collect_crate_results.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
         with:
             package: ${{ matrix.name }}
@@ -258,11 +320,11 @@ jobs:
             items: |
                 [
                   { "name": "kilobase", "target": "container", "condition": "${{ needs.alter.outputs.kilobase }}" },
-                  { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "image": "kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" },
-                  { "name": "memes", "target": "container", "condition": "${{ needs.alter.outputs.memes }}", "image": "kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml" },
-                  { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },
-                  { "name": "discordsh", "target": "container", "condition": "${{ needs.alter.outputs.discordsh }}", "image": "kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml" },
-                  { "name": "mc", "target": "container", "condition": "${{ needs.alter.outputs.mc }}", "image": "kbve/mc" }
+                  { "name": "herbmail", "target": "container", "condition": "${{ needs.alter.outputs.herbmail }}", "e2e_name": "herbmail", "image": "kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml" },
+                  { "name": "memes", "target": "container", "condition": "${{ needs.alter.outputs.memes }}", "e2e_name": "memes", "image": "kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml" },
+                  { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc", "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },
+                  { "name": "discordsh", "target": "container", "condition": "${{ needs.alter.outputs.discordsh }}", "e2e_name": "discordsh", "image": "kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml" },
+                  { "name": "mc", "target": "container", "condition": "${{ needs.alter.outputs.mc }}", "e2e_name": "mc", "image": "kbve/mc" }
                 ]
 
     generate_e2e_docker_matrix:
@@ -284,6 +346,7 @@ jobs:
         if: ${{ needs.generate_e2e_docker_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
+        continue-on-error: true
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_e2e_docker_matrix.outputs.matrix) }}
@@ -291,16 +354,54 @@ jobs:
         with:
             project: ${{ matrix.name }}
 
+    collect_docker_results:
+        needs:
+            [
+                'test_docker',
+                'generate_docker_matrix',
+                'generate_e2e_docker_matrix',
+            ]
+        name: Collect Docker Test Results
+        if: ${{ always() && needs.generate_docker_matrix.outputs.matrix != 'null' }}
+        runs-on: ubuntu-latest
+        outputs:
+            publish_matrix: ${{ steps.filter.outputs.publish_matrix }}
+        steps:
+            - name: Download test markers
+              uses: actions/download-artifact@v4
+              with:
+                  pattern: test-passed-docker-*
+                  path: ./test-results
+              continue-on-error: true
+
+            - name: Build filtered publish matrix
+              id: filter
+              env:
+                  PUBLISH_MATRIX: ${{ needs.generate_docker_matrix.outputs.matrix }}
+              run: |
+                  if [ -d "./test-results" ]; then
+                    PASSED=$(ls ./test-results/ | sed 's/test-passed-docker-//')
+                  else
+                    PASSED=""
+                  fi
+                  FILTERED=$(echo "$PUBLISH_MATRIX" | jq -c --arg passed "$PASSED" '{
+                    include: [.include[] | select(
+                      (.e2e_name | not) or
+                      (.e2e_name as $e | $passed | split("\n") | any(. == $e))
+                    )]
+                  } | if (.include | length) == 0 then null else . end')
+                  echo "publish_matrix=$FILTERED" >> "$GITHUB_OUTPUT"
+
     publish_docker:
-        needs: ['generate_docker_matrix', 'test_docker']
+        needs: ['collect_docker_results']
         name: Publish Docker Images
-        if: ${{ !failure() && !cancelled() && needs.generate_docker_matrix.outputs.matrix != 'null' }}
+        if: ${{ needs.collect_docker_results.outputs.publish_matrix != 'null' }}
         permissions:
             contents: read
             packages: write
         strategy:
             fail-fast: false
-            matrix: ${{ fromJson(needs.generate_docker_matrix.outputs.matrix) }}
+            matrix: ${{ fromJson(needs.collect_docker_results.outputs.publish_matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-publish-docker-image.yml@main
         with:
             project: ${{ matrix.name }}
@@ -318,23 +419,61 @@ jobs:
         with:
             items: |
                 [
-                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}", "image_name": "ghcr.io/kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml", "deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml" },
-                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}", "image_name": "ghcr.io/kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml", "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml" },
-                  { "name": "irc-gateway", "condition": "${{ needs.alter.outputs.irc_gateway }}", "image_name": "ghcr.io/kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml", "deployment_yaml": "apps/kube/irc/manifests/irc-gateway-deployment.yaml" },
-                  { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}", "image_name": "ghcr.io/kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml", "deployment_yaml": "apps/kube/discordsh/manifest/deployment.yaml" },
-                  { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}", "image_name": "ghcr.io/kbve/mc", "cargo_toml": "apps/mc/plugins/kbve-mc-plugin/Cargo.toml", "deployment_yaml": "apps/kube/mc/manifest/deployment.yaml" }
+                  { "name": "herbmail", "condition": "${{ needs.alter.outputs.herbmail }}", "e2e_name": "herbmail", "image_name": "ghcr.io/kbve/herbmail", "cargo_toml": "apps/herbmail/axum-herbmail/Cargo.toml", "deployment_yaml": "apps/kube/herbmail/manifest/herbmail-deployment.yaml" },
+                  { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}", "e2e_name": "memes", "image_name": "ghcr.io/kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml", "deployment_yaml": "apps/kube/memes/manifest/memes-deployment.yaml" },
+                  { "name": "irc-gateway", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc", "image_name": "ghcr.io/kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml", "deployment_yaml": "apps/kube/irc/manifests/irc-gateway-deployment.yaml" },
+                  { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}", "e2e_name": "discordsh", "image_name": "ghcr.io/kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml", "deployment_yaml": "apps/kube/discordsh/manifest/deployment.yaml" },
+                  { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}", "e2e_name": "mc", "image_name": "ghcr.io/kbve/mc", "cargo_toml": "apps/mc/plugins/kbve-mc-plugin/Cargo.toml", "deployment_yaml": "apps/kube/mc/manifest/deployment.yaml" }
                 ]
 
+    collect_kube_results:
+        needs:
+            [
+                'publish_docker',
+                'generate_kube_update_matrix',
+                'collect_docker_results',
+            ]
+        name: Collect Kube Update Results
+        if: ${{ always() && needs.generate_kube_update_matrix.outputs.matrix != 'null' }}
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{ steps.filter.outputs.matrix }}
+        steps:
+            - name: Download test markers
+              uses: actions/download-artifact@v4
+              with:
+                  pattern: test-passed-docker-*
+                  path: ./test-results
+              continue-on-error: true
+
+            - name: Build filtered kube matrix
+              id: filter
+              env:
+                  KUBE_MATRIX: ${{ needs.generate_kube_update_matrix.outputs.matrix }}
+              run: |
+                  if [ -d "./test-results" ]; then
+                    PASSED=$(ls ./test-results/ | sed 's/test-passed-docker-//')
+                  else
+                    PASSED=""
+                  fi
+                  FILTERED=$(echo "$KUBE_MATRIX" | jq -c --arg passed "$PASSED" '{
+                    include: [.include[] | select(
+                      (.e2e_name | not) or
+                      (.e2e_name as $e | $passed | split("\n") | any(. == $e))
+                    )]
+                  } | if (.include | length) == 0 then null else . end')
+                  echo "matrix=$FILTERED" >> "$GITHUB_OUTPUT"
+
     update_kube_manifests:
-        needs: ['generate_kube_update_matrix', 'publish_docker']
+        needs: ['collect_kube_results']
         name: Update Kube Manifests
-        if: ${{ !failure() && !cancelled() && needs.generate_kube_update_matrix.outputs.matrix != 'null' }}
+        if: ${{ needs.collect_kube_results.outputs.matrix != 'null' }}
         permissions:
             contents: write
             pull-requests: write
         strategy:
             fail-fast: false
-            matrix: ${{ fromJson(needs.generate_kube_update_matrix.outputs.matrix) }}
+            matrix: ${{ fromJson(needs.collect_kube_results.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-update-kube-manifest.yml@main
         with:
             app_name: ${{ matrix.name }}
@@ -436,6 +575,7 @@ jobs:
         if: ${{ needs.generate_python_matrix.outputs.matrix != 'null' }}
         permissions:
             contents: read
+        continue-on-error: true
         strategy:
             fail-fast: false
             matrix: ${{ fromJson(needs.generate_python_matrix.outputs.matrix) }}
@@ -443,16 +583,46 @@ jobs:
         with:
             project: ${{ matrix.project }}
 
+    collect_python_results:
+        needs: ['test_python', 'generate_python_matrix']
+        name: Collect Python Test Results
+        if: ${{ always() && needs.generate_python_matrix.outputs.matrix != 'null' }}
+        runs-on: ubuntu-latest
+        outputs:
+            matrix: ${{ steps.filter.outputs.matrix }}
+        steps:
+            - name: Download test markers
+              uses: actions/download-artifact@v4
+              with:
+                  pattern: test-passed-python-*
+                  path: ./test-results
+              continue-on-error: true
+
+            - name: Build filtered publish matrix
+              id: filter
+              env:
+                  FULL_MATRIX: ${{ needs.generate_python_matrix.outputs.matrix }}
+              run: |
+                  if [ -d "./test-results" ]; then
+                    PASSED=$(ls ./test-results/ | sed 's/test-passed-python-//')
+                  else
+                    PASSED=""
+                  fi
+                  FILTERED=$(echo "$FULL_MATRIX" | jq -c --arg passed "$PASSED" '{
+                    include: [.include[] | select(.name as $n | $passed | split("\n") | any(. == $n))]
+                  } | if (.include | length) == 0 then null else . end')
+                  echo "matrix=$FILTERED" >> "$GITHUB_OUTPUT"
+
     publish_python:
         name: Publish Python
-        needs: ['generate_python_matrix', 'test_python']
-        if: ${{ !failure() && !cancelled() && needs.generate_python_matrix.outputs.matrix != 'null' }}
+        needs: ['collect_python_results']
+        if: ${{ needs.collect_python_results.outputs.matrix != 'null' }}
         permissions:
             contents: read
             id-token: write
         strategy:
             fail-fast: false
-            matrix: ${{ fromJson(needs.generate_python_matrix.outputs.matrix) }}
+            matrix: ${{ fromJson(needs.collect_python_results.outputs.matrix) }}
         uses: KBVE/kbve/.github/workflows/utils-python-publish.yml@main
         with:
             project: ${{ matrix.project }}
