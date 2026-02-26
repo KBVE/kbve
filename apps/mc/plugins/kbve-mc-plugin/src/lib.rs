@@ -530,7 +530,8 @@ async fn serve_resource_pack() {
 impl KbveMcPlugin {
     #[pumpkin_api_macros::plugin_method]
     async fn on_load(&mut self, context: Arc<Context>) -> Result<(), String> {
-        eprintln!("[kbve-mc-plugin] on_load START");
+        const VERSION: &str = env!("CARGO_PKG_VERSION");
+        eprintln!("[kbve-mc-plugin] on_load START (v{VERSION})");
 
         // Register event handlers
         context
