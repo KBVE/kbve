@@ -49,7 +49,7 @@ export function resolveWorkerURL(name: string, fallback?: string): string {
 	if (typeof window !== 'undefined') {
 		const globalMap = (
 			window as unknown as Record<string, Record<string, string>>
-		).kbveWorkerURLs;
+		)['kbveWorkerURLs'];
 		if (globalMap?.[name]) return globalMap[name];
 	}
 
@@ -270,7 +270,9 @@ export const uiux = {
 
 	emitFromWorker(msg: WorkerUIMessage) {
 		// Existing: VNode injection
-		if (msg.type === 'injectVNode' && msg.vnode) {
+		if (msg.type === 'injectVNode') {
+			const vnode = msg.vnode as VirtualNode | undefined;
+			if (!vnode) return;
 			dispatchAsync(() => {
 				const target = document.getElementById('bento-grid-inject');
 				if (!target) {
@@ -280,10 +282,10 @@ export const uiux = {
 					return;
 				}
 
-				const el = renderVNode(msg.vnode);
+				const el = renderVNode(vnode);
 				el.classList.add('animate-fade-in');
-				if (msg.vnode.id) {
-					const existing = document.getElementById(msg.vnode.id);
+				if (vnode.id) {
+					const existing = document.getElementById(vnode.id);
 					if (existing) existing.remove();
 				}
 
@@ -305,8 +307,9 @@ export const uiux = {
 			_addToast(parsed.data);
 			return;
 		}
-		if (msg.type === 'toast-remove' && msg.payload?.id) {
-			_removeToast(msg.payload.id);
+		if (msg.type === 'toast-remove') {
+			const payload = msg.payload as { id: string } | undefined;
+			if (payload?.id) _removeToast(payload.id);
 			return;
 		}
 
@@ -324,7 +327,8 @@ export const uiux = {
 			return;
 		}
 		if (msg.type === 'tooltip-close') {
-			closeTooltip(msg.payload?.id);
+			const payload = msg.payload as { id?: string } | undefined;
+			closeTooltip(payload?.id);
 			return;
 		}
 
@@ -342,7 +346,8 @@ export const uiux = {
 			return;
 		}
 		if (msg.type === 'modal-close') {
-			closeModal(msg.payload?.id);
+			const payload = msg.payload as { id?: string } | undefined;
+			closeModal(payload?.id);
 			return;
 		}
 
@@ -428,10 +433,11 @@ export function bridgeWsToDb(
 	ws: Remote<WSInstance>,
 	db: Remote<LocalStorageAPI>,
 ) {
-	const handler = proxy(async (buf: ArrayBuffer) => {
+	const handler = proxy(async (data: string | ArrayBuffer) => {
+		if (typeof data === 'string') return;
 		dispatchAsync(() => {
 			const key = `ws:${Date.now()}`;
-			void db.storeWsMessage(key, buf);
+			void db.storeWsMessage(key, data);
 		});
 	});
 
@@ -510,7 +516,8 @@ export async function main(opts?: {
 				for (const handle of Object.values(mod.registry)) {
 					if (typeof handle.instance.init === 'function') {
 						await handle.instance.init({
-							emitFromWorker: uiux.emitFromWorker,
+							emitFromWorker: (msg: unknown) =>
+								uiux.emitFromWorker(msg as WorkerUIMessage),
 						});
 					}
 					events.emit('droid-mod-ready', {

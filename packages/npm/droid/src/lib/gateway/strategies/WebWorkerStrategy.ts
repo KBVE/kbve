@@ -265,7 +265,7 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 	}
 
 	onWebSocketStatus(callback: (status: WebSocketStatus) => void): () => void {
-		return this.on('ws.status', callback);
+		return this.on('ws.status', callback as (payload: unknown) => void);
 	}
 
 	terminate() {

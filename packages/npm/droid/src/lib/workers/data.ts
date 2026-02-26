@@ -74,9 +74,9 @@ export function unwrapEnvelope<T = unknown>(
 		version: root['version'],
 		kind: root['kind'],
 		format: root['format'],
-		payload: new Uint8Array(root['payload']),
+		payload: new Uint8Array(root['payload'] as ArrayLike<number>),
 		metadata: root['metadata']
-			? new Uint8Array(root['metadata'])
+			? new Uint8Array(root['metadata'] as ArrayLike<number>)
 			: undefined,
 	};
 

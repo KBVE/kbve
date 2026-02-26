@@ -1,7 +1,11 @@
 // Fallback strategy for browsers without worker support
 // Runs everything on the main thread
 
-import type { SupabaseClient } from '@supabase/supabase-js';
+import type {
+	SupabaseClient,
+	RealtimePostgresChangesFilter,
+} from '@supabase/supabase-js';
+import { REALTIME_POSTGRES_CHANGES_LISTEN_EVENT } from '@supabase/supabase-js';
 
 import type {
 	ISupabaseStrategy,
@@ -52,8 +56,8 @@ export class DirectStrategy implements ISupabaseStrategy {
 		const { createClient } = await import('@supabase/supabase-js');
 
 		const authOptions =
-			options?.auth && typeof options.auth === 'object'
-				? (options.auth as Record<string, unknown>)
+			options?.['auth'] && typeof options['auth'] === 'object'
+				? (options['auth'] as Record<string, unknown>)
 				: {};
 
 		this.client = createClient(url, anonKey, {
@@ -83,7 +87,7 @@ export class DirectStrategy implements ISupabaseStrategy {
 
 		return {
 			session: session as SessionResponse['session'],
-			user: (session?.user as Record<string, unknown>) || null,
+			user: (session?.user as unknown as Record<string, unknown>) || null,
 		};
 	}
 
@@ -231,7 +235,7 @@ export class DirectStrategy implements ISupabaseStrategy {
 			.channel(key)
 			.on(
 				'postgres_changes',
-				params as Record<string, string>,
+				params as RealtimePostgresChangesFilter<`${REALTIME_POSTGRES_CHANGES_LISTEN_EVENT}`>,
 				(payload: unknown) => {
 					this.emit(`realtime:${key}`, payload);
 				},
@@ -295,7 +299,7 @@ export class DirectStrategy implements ISupabaseStrategy {
 					string,
 					unknown
 				>;
-				if (message.type === 'pong') {
+				if (message['type'] === 'pong') {
 					this.wsLastPongTime = Date.now();
 					return;
 				}

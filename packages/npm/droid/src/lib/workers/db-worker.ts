@@ -52,7 +52,10 @@ const storageAPI = {
 	// WebSocket
 
 	async storeWsMessage(key: string, buffer: ArrayBuffer) {
-		const decoded = toReference(buffer).toObject();
+		const decoded = toReference(buffer).toObject() as Record<
+			string,
+			unknown
+		>;
 		await db.ws_messages.put({ key, message: decoded });
 	},
 
