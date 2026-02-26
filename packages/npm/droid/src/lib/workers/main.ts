@@ -480,6 +480,12 @@ export async function main(opts?: {
 		!window.kbve?.api || !window.kbve?.i18n || !window.kbve?.uiux;
 
 	if (needsInit) {
+		// Fire welcome toast early — it only depends on $auth (set by
+		// initSupa/bootAuth in the NavBar island) and must not wait for
+		// the full worker-init chain which can hang if a SharedWorker
+		// fails to respond (Comlink calls have no timeout).
+		showWelcomeToast();
+
 		_initPromise = (async () => {
 			try {
 				console.log('[DROID] Initializing workers...');
@@ -581,8 +587,6 @@ export async function main(opts?: {
 						workersFirst: { db: dbFirst, ws: wsFirst },
 					});
 				}
-
-				showWelcomeToast();
 
 				console.log('[KBVE] Global API ready');
 			} catch (err) {

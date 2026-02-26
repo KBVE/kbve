@@ -5,6 +5,7 @@ import {
 	useState,
 	type CSSProperties,
 } from 'react';
+import { createPortal } from 'react-dom';
 import { useToast } from '../hooks/useToast';
 import { $toasts } from '@kbve/droid';
 import type { ToastPayload } from '@kbve/droid';
@@ -243,7 +244,7 @@ export function ToastContainer({
 		...POSITION_STYLES[position],
 	};
 
-	return (
+	return createPortal(
 		<div
 			aria-hidden={!hasToasts}
 			className={className}
@@ -255,6 +256,7 @@ export function ToastContainer({
 					onDismiss={handleDismiss}
 				/>
 			))}
-		</div>
+		</div>,
+		document.body,
 	);
 }
