@@ -183,6 +183,11 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
 // Item registry — DashMap keyed by command name
 // ---------------------------------------------------------------------------
 
+struct PotionEffects {
+    custom_color: i32,
+    effects: &'static [(i32, i32, i32)], // (effect_id, amplifier, duration_ticks)
+}
+
 struct ItemDef {
     base_item_key: &'static str,
     model: &'static str,
@@ -190,6 +195,7 @@ struct ItemDef {
     message_color: NamedColor,
     particle: Option<(Particle, i32)>,
     max_damage: Option<i32>,
+    potion: Option<PotionEffects>,
 }
 
 static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|| {
@@ -203,6 +209,7 @@ static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|
             message_color: NamedColor::Gold,
             particle: None,
             max_damage: None,
+            potion: None,
         },
     );
     map.insert(
@@ -214,6 +221,7 @@ static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|
             message_color: NamedColor::Aqua,
             particle: None,
             max_damage: None,
+            potion: None,
         },
     );
     map.insert(
@@ -225,6 +233,7 @@ static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|
             message_color: NamedColor::Red,
             particle: Some((Particle::Flame, 15)),
             max_damage: None,
+            potion: None,
         },
     );
     map.insert(
@@ -237,8 +246,16 @@ static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|
             particle: Some((Particle::Flame, 10)),
             // Vanilla shield = 336; mid-tier, breaks faster
             max_damage: Some(200),
+            potion: None,
         },
     );
+
+    // -----------------------------------------------------------------------
+    // Combat potions — balanced / underpowered with unique themes
+    // Effect IDs from pumpkin_data::effect::StatusEffect
+    // -----------------------------------------------------------------------
+
+    // Master Evelyn Healing Potion: Instant Health II + Regeneration I (10s)
     map.insert(
         "evelyn_potion",
         ItemDef {
@@ -248,8 +265,229 @@ static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|
             message_color: NamedColor::LightPurple,
             particle: Some((Particle::Effect, 12)),
             max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0xFF55FF, // magenta
+                effects: &[
+                    (5, 1, 1),   // Instant Health II (instant)
+                    (9, 0, 200), // Regeneration I (10s)
+                ],
+            }),
         },
     );
+
+    // Berserker's Brew: Strength I (8s) + Speed I (8s) + Nausea (3s)
+    // Aggressive combat boost with brief disorientation trade-off
+    map.insert(
+        "berserker_brew",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:berserker_brew",
+            display_name: "Berserker's Brew",
+            message_color: NamedColor::Red,
+            particle: Some((Particle::Flame, 10)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0xCC3300, // fiery red-orange
+                effects: &[
+                    (4, 0, 160), // Strength I (8s)
+                    (0, 0, 160), // Speed I (8s)
+                    (8, 0, 60),  // Nausea (3s)
+                ],
+            }),
+        },
+    );
+
+    // Shadow Veil Elixir: Invisibility (15s) + Speed I (10s)
+    // Stealth assassin approach combo
+    map.insert(
+        "shadow_veil_elixir",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:shadow_veil_elixir",
+            display_name: "Shadow Veil Elixir",
+            message_color: NamedColor::DarkPurple,
+            particle: Some((Particle::Smoke, 8)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0x330066, // dark purple
+                effects: &[
+                    (13, 0, 300), // Invisibility (15s)
+                    (0, 0, 200),  // Speed I (10s)
+                ],
+            }),
+        },
+    );
+
+    // Iron Skin Tonic: Resistance I (12s) + Slowness I (12s)
+    // Tank up but move slower — defensive trade-off
+    map.insert(
+        "iron_skin_tonic",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:iron_skin_tonic",
+            display_name: "Iron Skin Tonic",
+            message_color: NamedColor::Gray,
+            particle: Some((Particle::Crit, 6)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0xA0A0B0, // metallic silver
+                effects: &[
+                    (10, 0, 240), // Resistance I (12s)
+                    (1, 0, 240),  // Slowness I (12s)
+                ],
+            }),
+        },
+    );
+
+    // Phoenix Tears: Fire Resistance (30s) + Regeneration I (10s)
+    // Anti-fire defense with healing
+    map.insert(
+        "phoenix_tears",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:phoenix_tears",
+            display_name: "Phoenix Tears",
+            message_color: NamedColor::Gold,
+            particle: Some((Particle::Lava, 8)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0xFF9900, // warm orange-gold
+                effects: &[
+                    (11, 0, 600), // Fire Resistance (30s)
+                    (9, 0, 200),  // Regeneration I (10s)
+                ],
+            }),
+        },
+    );
+
+    // Titan's Draft: Health Boost I (20s) + Strength I (8s)
+    // Extra hearts with a damage boost
+    map.insert(
+        "titan_draft",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:titan_draft",
+            display_name: "Titan's Draft",
+            message_color: NamedColor::DarkRed,
+            particle: Some((Particle::HappyVillager, 10)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0x8B0000, // deep crimson
+                effects: &[
+                    (20, 0, 400), // Health Boost I (20s)
+                    (4, 0, 160),  // Strength I (8s)
+                ],
+            }),
+        },
+    );
+
+    // Windwalker Serum: Speed II (6s) + Jump Boost I (10s)
+    // Short burst mobility — hit and run
+    map.insert(
+        "windwalker_serum",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:windwalker_serum",
+            display_name: "Windwalker Serum",
+            message_color: NamedColor::Aqua,
+            particle: Some((Particle::Cloud, 8)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0x66CCFF, // cyan / light blue
+                effects: &[
+                    (0, 1, 120), // Speed II (6s)
+                    (7, 0, 200), // Jump Boost I (10s)
+                ],
+            }),
+        },
+    );
+
+    // Nightshade Extract: Night Vision (45s) + Absorption I (15s)
+    // Scout / defense hybrid for dark environments
+    map.insert(
+        "nightshade_extract",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:nightshade_extract",
+            display_name: "Nightshade Extract",
+            message_color: NamedColor::DarkBlue,
+            particle: Some((Particle::Witch, 6)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0x1A0033, // deep indigo
+                effects: &[
+                    (15, 0, 900), // Night Vision (45s)
+                    (21, 0, 300), // Absorption I (15s)
+                ],
+            }),
+        },
+    );
+
+    // Stoneguard Elixir: Resistance I (8s) + Absorption II (8s)
+    // Pure defense for tight situations
+    map.insert(
+        "stoneguard_elixir",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:stoneguard_elixir",
+            display_name: "Stoneguard Elixir",
+            message_color: NamedColor::DarkGray,
+            particle: Some((Particle::Crit, 8)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0x8B6914, // earthy brown-amber
+                effects: &[
+                    (10, 0, 160), // Resistance I (8s)
+                    (21, 1, 160), // Absorption II (8s)
+                ],
+            }),
+        },
+    );
+
+    // Bloodlust Potion: Strength II (4s) + Instant Health I + Hunger I (10s)
+    // Strongest damage but very short and drains hunger
+    map.insert(
+        "bloodlust_potion",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:bloodlust_potion",
+            display_name: "Bloodlust Potion",
+            message_color: NamedColor::DarkRed,
+            particle: Some((Particle::DragonBreath, 8)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0xAA0000, // bright crimson
+                effects: &[
+                    (4, 1, 80),   // Strength II (4s)
+                    (5, 0, 1),    // Instant Health I (instant)
+                    (16, 0, 200), // Hunger I (10s)
+                ],
+            }),
+        },
+    );
+
+    // Voidstep Tincture: Slow Falling (15s) + Speed I (10s) + Glowing (10s)
+    // Mobility with a visibility trade-off
+    map.insert(
+        "voidstep_tincture",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:voidstep_tincture",
+            display_name: "Voidstep Tincture",
+            message_color: NamedColor::DarkAqua,
+            particle: Some((Particle::EndRod, 8)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0x005566, // dark teal
+                effects: &[
+                    (27, 0, 300), // Slow Falling (15s)
+                    (0, 0, 200),  // Speed I (10s)
+                    (23, 0, 200), // Glowing (10s)
+                ],
+            }),
+        },
+    );
+
     map
 });
 
@@ -318,32 +556,28 @@ impl CommandExecutor for GiveItemExecutor {
                     ));
                 }
 
-                // Potion items: attach custom effects
-                if def.base_item_key == "potion" {
+                // Potion items: attach custom effects from the registry
+                if let Some(potion) = &def.potion {
                     stack.patch.push((
                         DataComponent::PotionContents,
                         Some(
                             PotionContentsImpl {
                                 potion_id: None,
-                                custom_color: Some(0xFF55FF), // magenta/purple
-                                custom_effects: vec![
-                                    StatusEffectInstance {
-                                        effect_id: 6, // instant_health
-                                        amplifier: 1, // level II
-                                        duration: 1,  // instant
-                                        ambient: false,
-                                        show_particles: true,
-                                        show_icon: true,
-                                    },
-                                    StatusEffectInstance {
-                                        effect_id: 10, // regeneration
-                                        amplifier: 0,  // level I
-                                        duration: 200, // 10 seconds
-                                        ambient: false,
-                                        show_particles: true,
-                                        show_icon: true,
-                                    },
-                                ],
+                                custom_color: Some(potion.custom_color),
+                                custom_effects: potion
+                                    .effects
+                                    .iter()
+                                    .map(|&(effect_id, amplifier, duration)| {
+                                        StatusEffectInstance {
+                                            effect_id,
+                                            amplifier,
+                                            duration,
+                                            ambient: false,
+                                            show_particles: true,
+                                            show_icon: true,
+                                        }
+                                    })
+                                    .collect(),
                                 custom_name: Some(def.display_name.to_string()),
                             }
                             .to_dyn(),
