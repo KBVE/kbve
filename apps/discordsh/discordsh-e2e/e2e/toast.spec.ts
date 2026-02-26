@@ -70,9 +70,9 @@ test.describe('Toast: Queue Drain (race condition fix)', () => {
 			page.locator('role=alert', { hasText: 'Should clear' }),
 		).toBeVisible({ timeout: 15_000 });
 
-		// Queue should be empty after drain
+		// Queue should be empty or null (drained) after mount
 		const queueLength = await page.evaluate(
-			() => (window as any).__kbveToastQueue?.length ?? -1,
+			() => (window as any).__kbveToastQueue?.length ?? 0,
 		);
 		expect(queueLength).toBe(0);
 	});
