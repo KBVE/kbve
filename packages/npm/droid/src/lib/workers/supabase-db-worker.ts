@@ -143,8 +143,8 @@ self.onmessage = async (e: MessageEvent<WorkerMessage>) => {
 				const workerStorage = createWorkerStorage(workerId);
 
 				const authOverrides =
-					options?.auth && typeof options.auth === 'object'
-						? (options.auth as Record<string, unknown>)
+					options?.['auth'] && typeof options['auth'] === 'object'
+						? (options['auth'] as Record<string, unknown>)
 						: {};
 
 				client = createClient(url, anonKey, {

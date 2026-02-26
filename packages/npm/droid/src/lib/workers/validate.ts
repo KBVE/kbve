@@ -55,7 +55,7 @@ export function validateUIMessage(
 	) {
 		if (
 			!payload ||
-			typeof (payload as Record<string, unknown>).id !== 'string'
+			typeof (payload as Record<string, unknown>)['id'] !== 'string'
 		) {
 			throw new Error(`[KBVE Worker] ${type} requires { id: string }`);
 		}

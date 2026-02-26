@@ -2,7 +2,12 @@
 // Supabase SharedWorker: Handles auth, realtime, and WebSocket connections
 // Shared across tabs via MessagePort
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import {
+	createClient,
+	type SupabaseClient,
+	type RealtimePostgresChangesFilter,
+	REALTIME_POSTGRES_CHANGES_LISTEN_EVENT,
+} from '@supabase/supabase-js';
 import Dexie, { type Table } from 'dexie';
 import { getWorkerCommunication } from '../gateway/WorkerCommunication';
 
@@ -488,9 +493,17 @@ function reply(port: MessagePort, msg: Res) {
 					const { key, params } = m.payload;
 					const channel = client
 						.channel(key)
-						.on('postgres_changes', params, (payload) => {
-							safeBroadcast({ type: 'realtime', key, payload });
-						});
+						.on(
+							'postgres_changes',
+							params as RealtimePostgresChangesFilter<`${REALTIME_POSTGRES_CHANGES_LISTEN_EVENT}`>,
+							(payload: unknown) => {
+								safeBroadcast({
+									type: 'realtime',
+									key,
+									payload,
+								});
+							},
+						);
 					await channel.subscribe();
 					subscriptions.set(key, {
 						unsubscribe: async () => {

@@ -212,7 +212,9 @@ export function ToastContainer({
 		window.addEventListener('toast-added', onAdded);
 		window.addEventListener('toast-removed', onRemoved);
 
-		// Drain toasts queued before this island mounted (race condition fix)
+		// Drain toasts queued before this island mounted (race condition fix).
+		// After drain, set to null so addToast() stops buffering and relies
+		// on nanostores + the CustomEvent bridge instead.
 		const pending = window.__kbveToastQueue;
 		if (pending && pending.length > 0) {
 			const current = $toasts.get();
@@ -221,8 +223,8 @@ export function ToastContainer({
 				if (!merged[toast.id]) merged[toast.id] = toast;
 			}
 			$toasts.set(merged);
-			pending.length = 0;
 		}
+		(window as any).__kbveToastQueue = null;
 
 		return () => {
 			window.removeEventListener('toast-added', onAdded);
