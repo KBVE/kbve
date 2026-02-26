@@ -1,8 +1,9 @@
 import { z } from 'zod';
+import type { VirtualNode } from './modules';
 
 // Recursive VirtualNode schema matching the type in modules.ts.
 // Validates worker-produced descriptors at runtime.
-const VirtualNodeSchema: z.ZodType<any> = z.lazy(() =>
+const VirtualNodeSchema: z.ZodType<VirtualNode> = z.lazy(() =>
 	z.object({
 		tag: z.string(),
 		id: z.string().optional(),

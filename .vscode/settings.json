@@ -60,5 +60,6 @@
 		"plpgsql"
 	],
 	"godotTools.editorPath.godot4": "/Applications/Godot.app",
-	"rust-analyzer.initializeStopped": true
+	"rust-analyzer.initializeStopped": true,
+	"git.autoRepositoryDetection": false
 }

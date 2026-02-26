@@ -1,0 +1,141 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: rentearth-ingress
+    namespace: rentearth
+    annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        nginx.ingress.kubernetes.io/websocket-services: rentearth-service
+        nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-http-version: '1.1'
+        nginx.ingress.kubernetes.io/upstream-hash-by: '$http_upgrade'
+        nginx.ingress.kubernetes.io/proxy-pass-headers: 'Cross-Origin-Opener-Policy,Cross-Origin-Embedder-Policy,Cross-Origin-Resource-Policy'
+spec:
+    rules:
+        - host: rentearth.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: rentearth-service
+                            port:
+                                number: 4321
+        - host: www.rentearth.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: rentearth-service
+                            port:
+                                number: 4321
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: supabase-proxy
+    namespace: rentearth
+spec:
+    type: ExternalName
+    externalName: kong-kong-proxy.kilobase.svc.cluster.local
+    ports:
+        - port: 80
+          targetPort: 80
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: supabase-rentearth-ingress
+    namespace: rentearth
+    annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/rewrite-target: /
+        nginx.ingress.kubernetes.io/proxy-body-size: '10m'
+        nginx.ingress.kubernetes.io/proxy-send-timeout: '300'
+        nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-buffer-size: '160k'
+        nginx.ingress.kubernetes.io/proxy-buffers-number: '64'
+        nginx.ingress.kubernetes.io/client-header-buffer-size: '160k'
+        nginx.ingress.kubernetes.io/large-client-header-buffers: '64 160k'
+        nginx.ingress.kubernetes.io/client-body-buffer-size: '160k'
+        nginx.ingress.kubernetes.io/enable-cors: 'true'
+        nginx.ingress.kubernetes.io/cors-allow-origin: 'https://rentearth.com,https://*.rentearth.com,http://localhost:4321,http://localhost:3000'
+        nginx.ingress.kubernetes.io/cors-allow-methods: 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD'
+        nginx.ingress.kubernetes.io/cors-allow-headers: 'DNT,User-Agent,X-Requested-With,If-Modified-Since,Cache-Control,Content-Type,Range,Authorization,apikey,x-client-info,x-supabase-api-version,Accept,Accept-Profile,Accept-Version'
+        nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+        nginx.ingress.kubernetes.io/proxy-http-version: '1.1'
+        nginx.ingress.kubernetes.io/upstream-hash-by: '$http_upgrade'
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
+        nginx.ingress.kubernetes.io/upstream-vhost: 'supabase.kbve.com'
+        nginx.ingress.kubernetes.io/proxy-set-headers: 'rentearth/supabase-proxy-headers'
+spec:
+    rules:
+        - host: supabase.rentearth.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: supabase-proxy
+                            port:
+                                number: 80
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+    name: supabase-proxy-headers
+    namespace: rentearth
+data:
+    Host: 'supabase.kbve.com'
+    X-Forwarded-Host: 'supabase.rentearth.com'
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: irc-proxy
+    namespace: rentearth
+spec:
+    type: ExternalName
+    externalName: ergo-irc-service.irc.svc.cluster.local
+    ports:
+        - port: 8067
+          targetPort: 8067
+          protocol: TCP
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+    name: irc-rentearth-ingress
+    namespace: rentearth
+    annotations:
+        kubernetes.io/ingress.class: nginx
+        nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
+        nginx.ingress.kubernetes.io/proxy-http-version: '1.1'
+        nginx.ingress.kubernetes.io/upstream-hash-by: '$http_upgrade'
+        nginx.ingress.kubernetes.io/websocket-services: irc-proxy
+        nginx.ingress.kubernetes.io/enable-cors: 'true'
+        nginx.ingress.kubernetes.io/cors-allow-origin: 'https://rentearth.com,https://*.rentearth.com,http://localhost:4321,http://localhost:3000'
+        nginx.ingress.kubernetes.io/cors-allow-methods: 'GET, POST, PUT, DELETE, OPTIONS, PATCH, HEAD'
+        nginx.ingress.kubernetes.io/cors-allow-credentials: 'true'
+spec:
+    rules:
+        - host: irc.rentearth.com
+          http:
+              paths:
+                  - path: /
+                    pathType: Prefix
+                    backend:
+                        service:
+                            name: irc-proxy
+                            port:
+                                number: 8067

@@ -19,6 +19,6 @@ export interface KBVEGlobal {
 declare global {
 	interface Window {
 		kbve: KBVEGlobal;
-		__kbveToastQueue?: ToastPayload[];
+		__kbveToastQueue?: ToastPayload[] | null;
 	}
 }

@@ -2,6 +2,8 @@ use std::time::Instant;
 
 use poise::serenity_prelude as serenity;
 
+use kbve::MemberStatus;
+
 use crate::discord::bot::{Context, Error};
 use crate::discord::game::{self, content, render, types::*};
 
@@ -55,8 +57,26 @@ async fn start(
         GamePhase::Exploring
     };
 
+    // Membership lookup (cached, gracefully degrades to Guest)
+    let member_status_raw = ctx.data().app.members.lookup(user.get()).await;
+    let (player_name, member_tag) = match &member_status_raw {
+        MemberStatus::Member(profile) => (
+            profile
+                .discord_username
+                .clone()
+                .unwrap_or_else(|| ctx.author().name.clone()),
+            MemberStatusTag::Member {
+                username: profile
+                    .discord_username
+                    .clone()
+                    .unwrap_or_else(|| ctx.author().name.clone()),
+            },
+        ),
+        MemberStatus::Guest { .. } => (ctx.author().name.clone(), MemberStatusTag::Guest),
+    };
+
     let player = PlayerState {
-        name: ctx.author().name.clone(),
+        name: player_name,
         inventory: content::starting_inventory(),
         ..PlayerState::default()
     };
@@ -79,6 +99,7 @@ async fn start(
         room,
         log: vec!["You descend into The Glass Catacombs...".to_owned()],
         show_items: false,
+        member_status: Some(member_tag),
     };
 
     let embed = render::render_embed(&session_state);
@@ -107,6 +128,22 @@ async fn start(
     final_state.message_id = msg.id;
 
     ctx.data().app.sessions.create(final_state);
+
+    // One-time guest notice
+    if let MemberStatus::Guest { notified } = &member_status_raw {
+        if !notified {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content(
+                        "You're playing as a **Guest**. Link your Discord account at \
+                         <https://kbve.com> to unlock Member perks!",
+                    )
+                    .ephemeral(true),
+            )
+            .await?;
+            ctx.data().app.members.mark_notified(user.get());
+        }
+    }
 
     Ok(())
 }

@@ -9,14 +9,14 @@ interface SharedWorkerGlobalScope extends Worker {
 declare const self: SharedWorkerGlobalScope;
 
 class AppDexie extends Dexie {
-	settings!: Table<{ id: string; value: any }>;
-	meta!: Table<{ key: string; value: any }>;
+	settings!: Table<{ id: string; value: unknown }>;
+	meta!: Table<{ key: string; value: unknown }>;
 	i18n!: Table<{ key: string; value: string }>;
 	htmlservers!: Table<{ key: string; value: string }>;
 	servers!: Table<DiscordServer>;
 	tags!: Table<DiscordTag>;
 	profiles!: Table<Profile>;
-	ws_messages!: Table<{ key: string; message: any }>;
+	ws_messages!: Table<{ key: string; message: Record<string, unknown> }>;
 	auth_tokens!: Table<{ key: string; value: string; expires_at?: number }>;
 
 	constructor() {
@@ -36,10 +36,6 @@ class AppDexie extends Dexie {
 }
 const db = new AppDexie();
 
-function delay(ms: number) {
-	return new Promise((res) => setTimeout(res, ms));
-}
-
 function renderHtmlForServer(server: DiscordServer): string {
 	return `
 		<div class="flex flex-col gap-2 p-2">
@@ -56,7 +52,10 @@ const storageAPI = {
 	// WebSocket
 
 	async storeWsMessage(key: string, buffer: ArrayBuffer) {
-		const decoded = toReference(buffer).toObject();
+		const decoded = toReference(buffer).toObject() as Record<
+			string,
+			unknown
+		>;
 		await db.ws_messages.put({ key, message: decoded });
 	},
 
@@ -64,7 +63,9 @@ const storageAPI = {
 		return (await db.ws_messages.get(key))?.message ?? null;
 	},
 
-	async getAllWsMessages(): Promise<{ key: string; message: any }[]> {
+	async getAllWsMessages(): Promise<
+		{ key: string; message: Record<string, unknown> }[]
+	> {
 		const raw = await db.ws_messages.toArray();
 		return raw.sort((a, b) => {
 			const at = Number(a.key.split(':')[1]);
@@ -155,7 +156,7 @@ const storageAPI = {
 	},
 
 	// Settings
-	async dbSet(id: string, value: any) {
+	async dbSet(id: string, value: unknown) {
 		await db.settings.put({ id, value });
 	},
 	async dbGet(id: string) {

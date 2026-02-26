@@ -2,15 +2,31 @@
 // Supabase SharedWorker: Handles auth, realtime, and WebSocket connections
 // Shared across tabs via MessagePort
 
-import { createClient, type SupabaseClient } from '@supabase/supabase-js';
+import {
+	createClient,
+	type SupabaseClient,
+	type RealtimePostgresChangesFilter,
+	REALTIME_POSTGRES_CHANGES_LISTEN_EVENT,
+} from '@supabase/supabase-js';
 import Dexie, { type Table } from 'dexie';
 import { getWorkerCommunication } from '../gateway/WorkerCommunication';
+
+type RealtimeSubscribeParams = {
+	event: string;
+	schema: string;
+	table?: string;
+	filter?: string;
+};
 
 type Req =
 	| {
 			id: string;
 			type: 'init';
-			payload: { url: string; anonKey: string; options?: any };
+			payload: {
+				url: string;
+				anonKey: string;
+				options?: Record<string, unknown>;
+			};
 	  }
 	| { id: string; type: 'getSession' }
 	| {
@@ -25,7 +41,7 @@ type Req =
 			payload: {
 				table: string;
 				columns?: string;
-				match?: Record<string, any>;
+				match?: Record<string, unknown>;
 				limit?: number;
 			};
 	  }
@@ -34,7 +50,7 @@ type Req =
 			type: 'from.insert';
 			payload: {
 				table: string;
-				data: Record<string, any> | Record<string, any>[];
+				data: Record<string, unknown> | Record<string, unknown>[];
 			};
 	  }
 	| {
@@ -42,8 +58,8 @@ type Req =
 			type: 'from.update';
 			payload: {
 				table: string;
-				data: Record<string, any>;
-				match: Record<string, any>;
+				data: Record<string, unknown>;
+				match: Record<string, unknown>;
 			};
 	  }
 	| {
@@ -51,32 +67,32 @@ type Req =
 			type: 'from.upsert';
 			payload: {
 				table: string;
-				data: Record<string, any> | Record<string, any>[];
+				data: Record<string, unknown> | Record<string, unknown>[];
 			};
 	  }
 	| {
 			id: string;
 			type: 'from.delete';
-			payload: { table: string; match: Record<string, any> };
+			payload: { table: string; match: Record<string, unknown> };
 	  }
 	| {
 			id: string;
 			type: 'rpc';
-			payload: { fn: string; args?: Record<string, any> };
+			payload: { fn: string; args?: Record<string, unknown> };
 	  }
 	| {
 			id: string;
 			type: 'realtime.subscribe';
-			payload: { key: string; params: any };
+			payload: { key: string; params: RealtimeSubscribeParams };
 	  }
 	| { id: string; type: 'realtime.unsubscribe'; payload: { key: string } }
 	| { id: string; type: 'ws.connect'; payload?: { wsUrl?: string } }
 	| { id: string; type: 'ws.disconnect' }
-	| { id: string; type: 'ws.send'; payload: { data: any } }
+	| { id: string; type: 'ws.send'; payload: { data: unknown } }
 	| { id: string; type: 'ws.status' };
 
 type Res =
-	| { id: string; ok: true; data?: any }
+	| { id: string; ok: true; data?: unknown }
 	| { id: string; ok: false; error: string };
 
 const ports = new Set<MessagePort>();
@@ -303,7 +319,7 @@ function disconnectWebSocket() {
 	}
 }
 
-function sendWebSocketMessage(data: any) {
+function sendWebSocketMessage(data: unknown) {
 	if (!ws || ws.readyState !== WebSocket.OPEN)
 		throw new Error('WebSocket not connected');
 	const message = typeof data === 'string' ? data : JSON.stringify(data);
@@ -324,7 +340,11 @@ function getWebSocketStatus() {
 	};
 }
 
-async function ensureClient(url: string, anonKey: string, options: any = {}) {
+async function ensureClient(
+	url: string,
+	anonKey: string,
+	options: Record<string, unknown> = {},
+) {
 	if (client) return client;
 
 	try {
@@ -473,9 +493,17 @@ function reply(port: MessagePort, msg: Res) {
 					const { key, params } = m.payload;
 					const channel = client
 						.channel(key)
-						.on('postgres_changes', params, (payload) => {
-							safeBroadcast({ type: 'realtime', key, payload });
-						});
+						.on(
+							'postgres_changes',
+							params as RealtimePostgresChangesFilter<`${REALTIME_POSTGRES_CHANGES_LISTEN_EVENT}`>,
+							(payload: unknown) => {
+								safeBroadcast({
+									type: 'realtime',
+									key,
+									payload,
+								});
+							},
+						);
 					await channel.subscribe();
 					subscriptions.set(key, {
 						unsubscribe: async () => {
@@ -524,17 +552,17 @@ function reply(port: MessagePort, msg: Res) {
 				default: {
 					const _exhaustive: never = m;
 					reply(port, {
-						id: (_exhaustive as any).id,
+						id: (_exhaustive as unknown as { id: string }).id,
 						ok: false,
 						error: 'Unknown message type',
 					});
 				}
 			}
-		} catch (err: any) {
+		} catch (err: unknown) {
 			reply(port, {
 				id: m.id,
 				ok: false,
-				error: String(err?.message ?? err),
+				error: err instanceof Error ? err.message : String(err),
 			});
 		}
 	};

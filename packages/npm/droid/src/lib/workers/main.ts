@@ -1,13 +1,14 @@
-import { wrap, transfer, proxy } from 'comlink';
+import { wrap, proxy } from 'comlink';
 import type { Remote } from 'comlink';
 import { persistentMap } from '@nanostores/persistent';
 import type { LocalStorageAPI } from './db-worker';
 import type { WSInstance } from './ws-worker';
-import { initializeWorkerDatabase, type InitWorkerOptions } from './init';
+import { initializeWorkerDatabase } from './init';
 import type { CanvasWorkerAPI } from './canvas-worker';
 import { getModManager } from '../mod/mod-manager';
 import { scopeData } from './data';
 import { dispatchAsync, renderVNode } from './tools';
+import type { VirtualNode } from '../types/modules';
 import type { PanelPayload, PanelId } from '../types/panel-types';
 import { DroidEvents } from './events';
 import {
@@ -26,6 +27,17 @@ import { observeThemeChanges } from '../state/theme-sync';
 import { OverlayManager } from '../state/overlay-manager';
 import { showWelcomeToast } from '../state/welcome-toast';
 
+/** Messages emitted from workers to the main thread for UI side-effects. */
+type WorkerUIMessage =
+	| { type: 'injectVNode'; vnode: VirtualNode }
+	| { type: 'toast'; payload: unknown }
+	| { type: 'toast-remove'; payload: { id: string } }
+	| { type: 'tooltip-open'; payload: unknown }
+	| { type: 'tooltip-close'; payload?: { id: string } }
+	| { type: 'modal-open'; payload: unknown }
+	| { type: 'modal-close'; payload?: { id: string } }
+	| { type: string; [key: string]: unknown };
+
 const EXPECTED_DB_VERSION = '1.0.3';
 let initialized = false;
 let _initPromise: Promise<void> | null = null;
@@ -35,7 +47,9 @@ export function resolveWorkerURL(name: string, fallback?: string): string {
 		throw new Error('[resolveWorkerURL] Worker name must be defined');
 
 	if (typeof window !== 'undefined') {
-		const globalMap = (window as any).kbveWorkerURLs;
+		const globalMap = (
+			window as unknown as Record<string, Record<string, string>>
+		)['kbveWorkerURLs'];
 		if (globalMap?.[name]) return globalMap[name];
 	}
 
@@ -162,7 +176,7 @@ const uiuxState = persistentMap<{
 		}
 	>;
 	themeManager: { theme: 'light' | 'dark' | 'auto' };
-	toastManager: Record<string, any>;
+	toastManager: Record<string, unknown>;
 	scrollY: number;
 }>(
 	'uiux-state',
@@ -216,7 +230,7 @@ export const uiux = {
 	},
 
 	/** @deprecated Use addToast() from '@kbve/droid' state exports instead. */
-	addToast(id: string, data: any) {
+	addToast(id: string, data: unknown) {
 		console.warn(
 			'[KBVE] uiux.addToast is deprecated. Use addToast() from @kbve/droid.',
 		);
@@ -240,9 +254,10 @@ export const uiux = {
 		mode: 'static' | 'animated' | 'dynamic' = 'animated',
 	) {
 		const offscreen = canvasEl.transferControlToOffscreen();
-		await (window.kbve?.uiux as Record<string, any>)?.[
+		const worker = (window.kbve?.uiux as Record<string, unknown>)?.[
 			'worker'
-		]?.bindCanvas(panelId, offscreen, mode);
+		] as Remote<CanvasWorkerAPI> | undefined;
+		await worker?.bindCanvas(panelId, offscreen, mode);
 	},
 
 	closeAllPanels() {
@@ -253,9 +268,11 @@ export const uiux = {
 		uiuxState.setKey('panelManager', panels);
 	},
 
-	emitFromWorker(msg: any) {
+	emitFromWorker(msg: WorkerUIMessage) {
 		// Existing: VNode injection
-		if (msg.type === 'injectVNode' && msg.vnode) {
+		if (msg.type === 'injectVNode') {
+			const vnode = msg.vnode as VirtualNode | undefined;
+			if (!vnode) return;
 			dispatchAsync(() => {
 				const target = document.getElementById('bento-grid-inject');
 				if (!target) {
@@ -265,10 +282,10 @@ export const uiux = {
 					return;
 				}
 
-				const el = renderVNode(msg.vnode);
+				const el = renderVNode(vnode);
 				el.classList.add('animate-fade-in');
-				if (msg.vnode.id) {
-					const existing = document.getElementById(msg.vnode.id);
+				if (vnode.id) {
+					const existing = document.getElementById(vnode.id);
 					if (existing) existing.remove();
 				}
 
@@ -290,8 +307,9 @@ export const uiux = {
 			_addToast(parsed.data);
 			return;
 		}
-		if (msg.type === 'toast-remove' && msg.payload?.id) {
-			_removeToast(msg.payload.id);
+		if (msg.type === 'toast-remove') {
+			const payload = msg.payload as { id: string } | undefined;
+			if (payload?.id) _removeToast(payload.id);
 			return;
 		}
 
@@ -309,7 +327,8 @@ export const uiux = {
 			return;
 		}
 		if (msg.type === 'tooltip-close') {
-			closeTooltip(msg.payload?.id);
+			const payload = msg.payload as { id?: string } | undefined;
+			closeTooltip(payload?.id);
 			return;
 		}
 
@@ -327,7 +346,8 @@ export const uiux = {
 			return;
 		}
 		if (msg.type === 'modal-close') {
-			closeModal(msg.payload?.id);
+			const payload = msg.payload as { id?: string } | undefined;
+			closeModal(payload?.id);
 			return;
 		}
 
@@ -413,10 +433,11 @@ export function bridgeWsToDb(
 	ws: Remote<WSInstance>,
 	db: Remote<LocalStorageAPI>,
 ) {
-	const handler = proxy(async (buf: ArrayBuffer) => {
+	const handler = proxy(async (data: string | ArrayBuffer) => {
+		if (typeof data === 'string') return;
 		dispatchAsync(() => {
 			const key = `ws:${Date.now()}`;
-			void db.storeWsMessage(key, buf);
+			void db.storeWsMessage(key, data);
 		});
 	});
 
@@ -495,7 +516,8 @@ export async function main(opts?: {
 				for (const handle of Object.values(mod.registry)) {
 					if (typeof handle.instance.init === 'function') {
 						await handle.instance.init({
-							emitFromWorker: uiux.emitFromWorker,
+							emitFromWorker: (msg: unknown) =>
+								uiux.emitFromWorker(msg as WorkerUIMessage),
 						});
 					}
 					events.emit('droid-mod-ready', {
