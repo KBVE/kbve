@@ -1,8 +1,11 @@
 #![allow(unused_imports, clippy::async_yields_async)]
 
-use std::sync::atomic::Ordering;
+#[macro_use]
+mod macros;
+
+use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, LazyLock};
-use std::time::Duration;
+use std::time::{Duration, Instant};
 
 use dashmap::DashMap;
 use pumpkin::command::args::players::PlayersArgumentConsumer;
@@ -41,6 +44,64 @@ use pumpkin_world::item::ItemStack;
 use std::thread;
 
 // ---------------------------------------------------------------------------
+// Debug tracing infrastructure
+// ---------------------------------------------------------------------------
+// Controlled by KBVE_TRACE env var at startup.
+// Levels: INFO (always on), DEBUG (KBVE_TRACE=1), TRACE (KBVE_TRACE=2)
+//
+// Usage:
+//   info!("message");           — always printed
+//   debug!("message");          — printed when KBVE_TRACE >= 1
+//   trace!("message");          — printed when KBVE_TRACE >= 2
+
+static TRACE_LEVEL: LazyLock<u8> = LazyLock::new(|| {
+    std::env::var("KBVE_TRACE")
+        .ok()
+        .and_then(|v| v.parse().ok())
+        .unwrap_or(0)
+});
+
+macro_rules! info {
+    ($($arg:tt)*) => {
+        eprintln!("[kbve-mc-plugin][INFO] {}", format!($($arg)*))
+    };
+}
+
+macro_rules! debug {
+    ($($arg:tt)*) => {
+        if *TRACE_LEVEL >= 1 {
+            eprintln!("[kbve-mc-plugin][DEBUG] {}", format!($($arg)*))
+        }
+    };
+}
+
+macro_rules! trace {
+    ($($arg:tt)*) => {
+        if *TRACE_LEVEL >= 2 {
+            eprintln!("[kbve-mc-plugin][TRACE] {}", format!($($arg)*))
+        }
+    };
+}
+
+/// Measure wall-clock duration of an async block. Returns (result, Duration).
+macro_rules! timed {
+    ($label:expr, $block:expr) => {{
+        let _t0 = Instant::now();
+        let _result = $block;
+        let _elapsed = _t0.elapsed();
+        debug!("{} took {:.1?}", $label, _elapsed);
+        (_result, _elapsed)
+    }};
+}
+
+// ---------------------------------------------------------------------------
+// Per-player cooldowns (keyed by UUID bits, value = epoch millis of last fire)
+// ---------------------------------------------------------------------------
+
+static ORBITAL_COOLDOWNS: LazyLock<DashMap<u128, Instant>> = LazyLock::new(DashMap::new);
+const ORBITAL_COOLDOWN: Duration = Duration::from_millis(2000);
+
+// ---------------------------------------------------------------------------
 // Welcome handler (fires on player join)
 // ---------------------------------------------------------------------------
 
@@ -57,17 +118,19 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
         Box::pin(async move {
             let name = &player.gameprofile.name;
             let uuid = player.gameprofile.id;
+            let handler_start = Instant::now();
 
-            eprintln!("[kbve-mc-plugin] Sending welcome to {name} ({uuid})");
+            info!("Sending welcome to {name} ({uuid})");
 
             // Capture BEFORE the sleep — spawn_java_player runs concurrently and
             // sets has_played_before = true at world/mod.rs:1881 during the delay.
             let is_first_join = !player.has_played_before.load(Ordering::Relaxed);
-            eprintln!("[kbve-mc-plugin] is_first_join={is_first_join} for {name}");
+            info!("is_first_join={is_first_join} for {name}");
 
             // Brief delay so the client finishes the login sequence before we send messages.
             // Use std::thread::sleep because the cdylib plugin has its own tokio statics
             // and cannot access the host runtime's timer driver.
+            debug!("Sleeping 2s for login sequence to complete...");
             thread::sleep(Duration::from_secs(2));
 
             let welcome = TextComponent::text(format!("Welcome to KBVE, {name}!"))
@@ -78,43 +141,83 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                 .color_named(NamedColor::Gray)
                 .italic();
 
-            player.send_system_message(&welcome).await;
-            player.send_system_message(&uuid_msg).await;
+            timed!("send_welcome_messages", {
+                player.send_system_message(&welcome).await;
+                player.send_system_message(&uuid_msg).await;
+            });
 
-            // Dev: give one of every custom item on join
-            // Skip potion items — Pumpkin's entity metadata sync for PotionContents
-            // crashes the vanilla client (set_entity_data index 18 OOB).
-            let stacks: Vec<ItemStack> = ITEM_REGISTRY
-                .iter()
-                .filter(|entry| entry.value().potion.is_none())
-                .filter_map(|entry| build_item_stack(entry.value()))
-                .collect();
-            let given = stacks.len();
-            for mut stack in stacks {
-                player.inventory().insert_stack_anywhere(&mut stack).await;
-                if !stack.is_empty() {
-                    player.drop_item(stack).await;
+            // Only auto-give on first join to avoid the cdylib TypeId mismatch panic
+            // in DataComponentImpl::equal() when Pumpkin tries to stack-compare
+            // plugin-created items with existing inventory items on reconnect.
+            if is_first_join {
+                debug!("First join — auto-giving custom items to {name}");
+
+                // Skip potion items — Pumpkin's entity metadata sync for PotionContents
+                // crashes the vanilla client (set_entity_data index 18 OOB).
+                let stacks: Vec<ItemStack> = ITEM_REGISTRY
+                    .iter()
+                    .filter(|entry| {
+                        let dominated = entry.value().potion.is_some();
+                        if dominated {
+                            trace!("Skipping potion item '{}' for auto-give", entry.key());
+                        }
+                        !dominated
+                    })
+                    .filter_map(|entry| {
+                        let key = *entry.key();
+                        let result = build_item_stack(entry.value());
+                        trace!(
+                            "build_item_stack('{}') = {}",
+                            key,
+                            if result.is_some() { "ok" } else { "FAILED" }
+                        );
+                        result
+                    })
+                    .collect();
+
+                let given = stacks.len();
+                debug!("Built {given} item stacks for {name}, inserting into inventory...");
+
+                for (i, mut stack) in stacks.into_iter().enumerate() {
+                    trace!("Inserting item {}/{given} into inventory...", i + 1);
+                    let (_, dur) = timed!(&format!("insert_item_{}", i + 1), {
+                        player.inventory().insert_stack_anywhere(&mut stack).await;
+                    });
+                    if !stack.is_empty() {
+                        debug!(
+                            "Item {}/{given} didn't fit in inventory, dropping on ground",
+                            i + 1
+                        );
+                        player.drop_item(stack).await;
+                    }
+                    let _ = dur; // suppress unused warning when debug is off
                 }
+                info!("Auto-gave {given} custom items to {name}");
+            } else {
+                info!("Returning player {name} — skipping auto-give (cdylib TypeId workaround)");
             }
-            eprintln!("[kbve-mc-plugin] Auto-gave {given} custom items to {name}");
 
             // For first-time players, ensure they spawn on solid ground (not ocean).
             // Pumpkin defaults world spawn to (0, y, 0) which is often ocean.
-            // We check the world spawn surface block (not player position, since
-            // gravity may have moved them to the ocean floor during the sleep).
             if is_first_join {
                 let world = player.world();
-                let info = server.level_info.load();
-                let spawn_x = info.spawn_x;
-                let spawn_z = info.spawn_z;
+                let info_data = server.level_info.load();
+                let spawn_x = info_data.spawn_x;
+                let spawn_z = info_data.spawn_z;
 
-                let top_y = world.get_top_block(Vector2::new(spawn_x, spawn_z)).await;
-                let surface_block = world
-                    .get_block(&BlockPos::new(spawn_x, top_y, spawn_z))
-                    .await;
+                debug!("Checking spawn surface at ({spawn_x}, ?, {spawn_z})...");
 
-                eprintln!(
-                    "[kbve-mc-plugin] Spawn surface check at ({}, {}, {}): solid={}",
+                let (top_y, _) = timed!("get_top_block(spawn)", {
+                    world.get_top_block(Vector2::new(spawn_x, spawn_z)).await
+                });
+                let (surface_block, _) = timed!("get_block(spawn_surface)", {
+                    world
+                        .get_block(&BlockPos::new(spawn_x, top_y, spawn_z))
+                        .await
+                });
+
+                info!(
+                    "Spawn surface check at ({}, {}, {}): solid={}",
                     spawn_x,
                     top_y,
                     spawn_z,
@@ -122,9 +225,9 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                 );
 
                 if !surface_block.is_solid() {
-                    eprintln!(
-                        "[kbve-mc-plugin] {name} spawned on non-solid ground, searching for land..."
-                    );
+                    info!("{name} spawned on non-solid ground, searching for land...");
+                    let search_start = Instant::now();
+                    let mut checked = 0u32;
 
                     // Search in expanding rings (chunk-sized steps) for solid ground
                     'search: for radius in 1..=20u32 {
@@ -141,8 +244,14 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                         ];
 
                         for (dx, dz) in offsets {
+                            checked += 1;
                             let check_x = spawn_x + dx;
                             let check_z = spawn_z + dz;
+
+                            trace!(
+                                "Land search ring={radius} checking ({check_x}, ?, {check_z})..."
+                            );
+
                             let check_top =
                                 world.get_top_block(Vector2::new(check_x, check_z)).await;
                             let check_block = world
@@ -156,11 +265,12 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                                     f64::from(check_z) + 0.5,
                                 );
 
-                                eprintln!(
-                                    "[kbve-mc-plugin] Found land at ({}, {}, {}) — teleporting {name}",
+                                info!(
+                                    "Found land at ({}, {}, {}) after {checked} checks in {:.1?} — teleporting {name}",
                                     check_x,
                                     check_top + 1,
                                     check_z,
+                                    search_start.elapsed(),
                                 );
 
                                 player.request_teleport(land_pos, 0.0, 0.0).await;
@@ -173,8 +283,8 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                                 new_info.spawn_z = check_z;
                                 server.level_info.store(Arc::new(new_info));
 
-                                eprintln!(
-                                    "[kbve-mc-plugin] World spawn updated to ({}, {}, {})",
+                                info!(
+                                    "World spawn updated to ({}, {}, {})",
                                     check_x,
                                     check_top + 1,
                                     check_z,
@@ -190,9 +300,19 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                                 break 'search;
                             }
                         }
+
+                        debug!(
+                            "Land search ring {radius}/20 complete ({checked} total checks, {:.1?} elapsed)",
+                            search_start.elapsed()
+                        );
                     }
                 }
             }
+
+            info!(
+                "WelcomeHandler for {name} completed in {:.1?}",
+                handler_start.elapsed()
+            );
         })
     }
 }
@@ -292,377 +412,184 @@ struct ItemDef {
 
 static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|| {
     let map = DashMap::new();
-    map.insert(
-        "coin",
-        ItemDef {
-            base_item_key: "gold_nugget",
-            model: "kbve:kbve_coin",
-            display_name: "KBVE Coin",
-            message_color: NamedColor::Gold,
-            particle: None,
-            max_damage: None,
-            potion: None,
-        },
-    );
-    map.insert(
-        "sword",
-        ItemDef {
-            base_item_key: "diamond_sword",
-            model: "kbve:kbve_sword",
-            display_name: "KBVE Sword",
-            message_color: NamedColor::Aqua,
-            particle: None,
-            max_damage: None,
-            potion: None,
-        },
-    );
-    map.insert(
-        "rust_stone",
-        ItemDef {
-            base_item_key: "stone",
-            model: "kbve:rust_stone",
-            display_name: "Rust Stone",
-            message_color: NamedColor::Red,
-            particle: Some((Particle::Flame, 15)),
-            max_damage: None,
-            potion: None,
-        },
-    );
-    map.insert(
-        "scythe",
-        ItemDef {
-            base_item_key: "iron_hoe",
-            model: "kbve:kbve_scythe",
-            display_name: "KBVE Scythe",
-            message_color: NamedColor::DarkGray,
-            particle: Some((Particle::Smoke, 8)),
-            max_damage: None,
-            potion: None,
-        },
-    );
-    map.insert(
-        "spartan_shield",
-        ItemDef {
-            base_item_key: "shield",
-            model: "kbve:spartan_shield",
-            display_name: "Spartan Shield",
-            message_color: NamedColor::DarkRed,
-            particle: Some((Particle::Flame, 10)),
-            // Vanilla shield = 336; mid-tier, breaks faster
-            max_damage: Some(200),
-            potion: None,
-        },
-    );
 
-    // -----------------------------------------------------------------------
-    // Combat potions — balanced / underpowered with unique themes
-    // Effect IDs from pumpkin_data::effect::StatusEffect
-    // -----------------------------------------------------------------------
-
-    // Master Evelyn Healing Potion: Instant Health II + Regeneration I (10s)
-    map.insert(
-        "evelyn_potion",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:evelyn_potion",
-            display_name: "Master Evelyn Healing Potion",
-            message_color: NamedColor::LightPurple,
-            particle: Some((Particle::Effect, 12)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xFF55FF, // magenta
-                effects: &[
-                    (5, 1, 1),   // Instant Health II (instant)
-                    (9, 0, 200), // Regeneration I (10s)
-                ],
-            }),
+    item_registry!(map;
+        // ── Basic items ─────────────────────────────────────────────────
+        "coin" => {
+            base: "gold_nugget", model: "kbve:kbve_coin",
+            name: "KBVE Coin", color: NamedColor::Gold,
         },
-    );
-
-    // Berserker's Brew: Strength I (8s) + Speed I (8s) + Nausea (3s)
-    // Aggressive combat boost with brief disorientation trade-off
-    map.insert(
-        "berserker_brew",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:berserker_brew",
-            display_name: "Berserker's Brew",
-            message_color: NamedColor::Red,
-            particle: Some((Particle::Flame, 10)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xCC3300, // fiery red-orange
-                effects: &[
-                    (4, 0, 160), // Strength I (8s)
-                    (0, 0, 160), // Speed I (8s)
-                    (8, 0, 60),  // Nausea (3s)
-                ],
-            }),
+        "sword" => {
+            base: "diamond_sword", model: "kbve:kbve_sword",
+            name: "KBVE Sword", color: NamedColor::Aqua,
         },
-    );
-
-    // Shadow Veil Elixir: Invisibility (15s) + Speed I (10s)
-    // Stealth assassin approach combo
-    map.insert(
-        "shadow_veil_elixir",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:shadow_veil_elixir",
-            display_name: "Shadow Veil Elixir",
-            message_color: NamedColor::DarkPurple,
-            particle: Some((Particle::Smoke, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x330066, // dark purple
-                effects: &[
-                    (13, 0, 300), // Invisibility (15s)
-                    (0, 0, 200),  // Speed I (10s)
-                ],
-            }),
+        "rust_stone" => {
+            base: "stone", model: "kbve:rust_stone",
+            name: "Rust Stone", color: NamedColor::Red,
+            particle: (Particle::Flame, 15),
         },
-    );
-
-    // Iron Skin Tonic: Resistance I (12s) + Slowness I (12s)
-    // Tank up but move slower — defensive trade-off
-    map.insert(
-        "iron_skin_tonic",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:iron_skin_tonic",
-            display_name: "Iron Skin Tonic",
-            message_color: NamedColor::Gray,
-            particle: Some((Particle::Crit, 6)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xA0A0B0, // metallic silver
-                effects: &[
-                    (10, 0, 240), // Resistance I (12s)
-                    (1, 0, 240),  // Slowness I (12s)
-                ],
-            }),
+        "scythe" => {
+            base: "iron_hoe", model: "kbve:kbve_scythe",
+            name: "KBVE Scythe", color: NamedColor::DarkGray,
+            particle: (Particle::Smoke, 8),
         },
-    );
-
-    // Phoenix Tears: Fire Resistance (30s) + Regeneration I (10s)
-    // Anti-fire defense with healing
-    map.insert(
-        "phoenix_tears",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:phoenix_tears",
-            display_name: "Phoenix Tears",
-            message_color: NamedColor::Gold,
-            particle: Some((Particle::Lava, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xFF9900, // warm orange-gold
-                effects: &[
-                    (11, 0, 600), // Fire Resistance (30s)
-                    (9, 0, 200),  // Regeneration I (10s)
-                ],
-            }),
+        "spartan_shield" => {
+            base: "shield", model: "kbve:spartan_shield",
+            name: "Spartan Shield", color: NamedColor::DarkRed,
+            particle: (Particle::Flame, 10),
+            max_damage: 200, // vanilla shield = 336; mid-tier
         },
-    );
 
-    // Titan's Draft: Health Boost I (20s) + Strength I (8s)
-    // Extra hearts with a damage boost
-    map.insert(
-        "titan_draft",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:titan_draft",
-            display_name: "Titan's Draft",
-            message_color: NamedColor::DarkRed,
-            particle: Some((Particle::HappyVillager, 10)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x8B0000, // deep crimson
-                effects: &[
-                    (20, 0, 400), // Health Boost I (20s)
-                    (4, 0, 160),  // Strength I (8s)
-                ],
-            }),
+        // ── Combat potions ──────────────────────────────────────────────
+        // Effect IDs from pumpkin_data::effect::StatusEffect
+
+        // Instant Health II + Regeneration I (10s)
+        "evelyn_potion" => {
+            base: "potion", model: "kbve:evelyn_potion",
+            name: "Master Evelyn Healing Potion", color: NamedColor::LightPurple,
+            particle: (Particle::Effect, 12),
+            potion: { color: 0xFF55FF, effects: &[
+                (5, 1, 1),   // Instant Health II
+                (9, 0, 200), // Regeneration I (10s)
+            ]},
         },
-    );
-
-    // Windwalker Serum: Speed II (6s) + Jump Boost I (10s)
-    // Short burst mobility — hit and run
-    map.insert(
-        "windwalker_serum",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:windwalker_serum",
-            display_name: "Windwalker Serum",
-            message_color: NamedColor::Aqua,
-            particle: Some((Particle::Cloud, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x66CCFF, // cyan / light blue
-                effects: &[
-                    (0, 1, 120), // Speed II (6s)
-                    (7, 0, 200), // Jump Boost I (10s)
-                ],
-            }),
+        // Strength I (8s) + Speed I (8s) + Nausea (3s)
+        "berserker_brew" => {
+            base: "potion", model: "kbve:berserker_brew",
+            name: "Berserker's Brew", color: NamedColor::Red,
+            particle: (Particle::Flame, 10),
+            potion: { color: 0xCC3300, effects: &[
+                (4, 0, 160), // Strength I (8s)
+                (0, 0, 160), // Speed I (8s)
+                (8, 0, 60),  // Nausea (3s)
+            ]},
         },
-    );
-
-    // Nightshade Extract: Night Vision (45s) + Absorption I (15s)
-    // Scout / defense hybrid for dark environments
-    map.insert(
-        "nightshade_extract",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:nightshade_extract",
-            display_name: "Nightshade Extract",
-            message_color: NamedColor::DarkBlue,
-            particle: Some((Particle::Witch, 6)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x1A0033, // deep indigo
-                effects: &[
-                    (15, 0, 900), // Night Vision (45s)
-                    (21, 0, 300), // Absorption I (15s)
-                ],
-            }),
+        // Invisibility (15s) + Speed I (10s)
+        "shadow_veil_elixir" => {
+            base: "potion", model: "kbve:shadow_veil_elixir",
+            name: "Shadow Veil Elixir", color: NamedColor::DarkPurple,
+            particle: (Particle::Smoke, 8),
+            potion: { color: 0x330066, effects: &[
+                (13, 0, 300), // Invisibility (15s)
+                (0, 0, 200),  // Speed I (10s)
+            ]},
         },
-    );
-
-    // Stoneguard Elixir: Resistance I (8s) + Absorption II (8s)
-    // Pure defense for tight situations
-    map.insert(
-        "stoneguard_elixir",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:stoneguard_elixir",
-            display_name: "Stoneguard Elixir",
-            message_color: NamedColor::DarkGray,
-            particle: Some((Particle::Crit, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x8B6914, // earthy brown-amber
-                effects: &[
-                    (10, 0, 160), // Resistance I (8s)
-                    (21, 1, 160), // Absorption II (8s)
-                ],
-            }),
+        // Resistance I (12s) + Slowness I (12s)
+        "iron_skin_tonic" => {
+            base: "potion", model: "kbve:iron_skin_tonic",
+            name: "Iron Skin Tonic", color: NamedColor::Gray,
+            particle: (Particle::Crit, 6),
+            potion: { color: 0xA0A0B0, effects: &[
+                (10, 0, 240), // Resistance I (12s)
+                (1, 0, 240),  // Slowness I (12s)
+            ]},
         },
-    );
-
-    // Bloodlust Potion: Strength II (4s) + Instant Health I + Hunger I (10s)
-    // Strongest damage but very short and drains hunger
-    map.insert(
-        "bloodlust_potion",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:bloodlust_potion",
-            display_name: "Bloodlust Potion",
-            message_color: NamedColor::DarkRed,
-            particle: Some((Particle::DragonBreath, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xAA0000, // bright crimson
-                effects: &[
-                    (4, 1, 80),   // Strength II (4s)
-                    (5, 0, 1),    // Instant Health I (instant)
-                    (16, 0, 200), // Hunger I (10s)
-                ],
-            }),
+        // Fire Resistance (30s) + Regeneration I (10s)
+        "phoenix_tears" => {
+            base: "potion", model: "kbve:phoenix_tears",
+            name: "Phoenix Tears", color: NamedColor::Gold,
+            particle: (Particle::Lava, 8),
+            potion: { color: 0xFF9900, effects: &[
+                (11, 0, 600), // Fire Resistance (30s)
+                (9, 0, 200),  // Regeneration I (10s)
+            ]},
         },
-    );
-
-    // Voidstep Tincture: Slow Falling (15s) + Speed I (10s) + Glowing (10s)
-    // Mobility with a visibility trade-off
-    map.insert(
-        "voidstep_tincture",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:voidstep_tincture",
-            display_name: "Voidstep Tincture",
-            message_color: NamedColor::DarkAqua,
-            particle: Some((Particle::EndRod, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x005566, // dark teal
-                effects: &[
-                    (27, 0, 300), // Slow Falling (15s)
-                    (0, 0, 200),  // Speed I (10s)
-                    (23, 0, 200), // Glowing (10s)
-                ],
-            }),
+        // Health Boost I (20s) + Strength I (8s)
+        "titan_draft" => {
+            base: "potion", model: "kbve:titan_draft",
+            name: "Titan's Draft", color: NamedColor::DarkRed,
+            particle: (Particle::HappyVillager, 10),
+            potion: { color: 0x8B0000, effects: &[
+                (20, 0, 400), // Health Boost I (20s)
+                (4, 0, 160),  // Strength I (8s)
+            ]},
         },
-    );
-
-    // -----------------------------------------------------------------------
-    // Orbital Strike weapons
-    // -----------------------------------------------------------------------
-
-    // Orbital Strike Cannon A: sci-fi cannon variant
-    // 10 uses before breaking
-    map.insert(
-        "orbital_cannon_a",
-        ItemDef {
-            base_item_key: "blaze_rod",
-            model: "kbve:orbital_cannon_a",
-            display_name: "Orbital Strike Cannon (Vanguard)",
-            message_color: NamedColor::Aqua,
-            particle: Some((Particle::SonicBoom, 5)),
-            max_damage: Some(10),
-            potion: None,
+        // Speed II (6s) + Jump Boost I (10s)
+        "windwalker_serum" => {
+            base: "potion", model: "kbve:windwalker_serum",
+            name: "Windwalker Serum", color: NamedColor::Aqua,
+            particle: (Particle::Cloud, 8),
+            potion: { color: 0x66CCFF, effects: &[
+                (0, 1, 120), // Speed II (6s)
+                (7, 0, 200), // Jump Boost I (10s)
+            ]},
         },
-    );
-
-    // Orbital Strike Cannon B: fiery rod variant
-    map.insert(
-        "orbital_cannon_b",
-        ItemDef {
-            base_item_key: "blaze_rod",
-            model: "kbve:orbital_cannon_b",
-            display_name: "Orbital Strike Cannon (Inferno)",
-            message_color: NamedColor::Red,
-            particle: Some((Particle::SonicBoom, 5)),
-            max_damage: Some(10),
-            potion: None,
+        // Night Vision (45s) + Absorption I (15s)
+        "nightshade_extract" => {
+            base: "potion", model: "kbve:nightshade_extract",
+            name: "Nightshade Extract", color: NamedColor::DarkBlue,
+            particle: (Particle::Witch, 6),
+            potion: { color: 0x1A0033, effects: &[
+                (15, 0, 900), // Night Vision (45s)
+                (21, 0, 300), // Absorption I (15s)
+            ]},
         },
-    );
-
-    // Orbital Strike Potion A: blue arcane variant
-    // Full thrown-on-impact behavior requires Pumpkin-side ProjectileHitEvent.
-    map.insert(
-        "orbital_strike_potion_a",
-        ItemDef {
-            base_item_key: "splash_potion",
-            model: "kbve:orbital_strike_potion_a",
-            display_name: "Orbital Strike Potion (Arcane)",
-            message_color: NamedColor::Aqua,
-            particle: Some((Particle::ExplosionEmitter, 3)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x00CCFF, // cyan-blue
-                effects: &[
-                    (4, 2, 100),  // Strength III (5s) — brief power surge
-                    (23, 0, 200), // Glowing (10s) — marks nearby targets
-                ],
-            }),
+        // Resistance I (8s) + Absorption II (8s)
+        "stoneguard_elixir" => {
+            base: "potion", model: "kbve:stoneguard_elixir",
+            name: "Stoneguard Elixir", color: NamedColor::DarkGray,
+            particle: (Particle::Crit, 8),
+            potion: { color: 0x8B6914, effects: &[
+                (10, 0, 160), // Resistance I (8s)
+                (21, 1, 160), // Absorption II (8s)
+            ]},
         },
-    );
+        // Strength II (4s) + Instant Health I + Hunger I (10s)
+        "bloodlust_potion" => {
+            base: "potion", model: "kbve:bloodlust_potion",
+            name: "Bloodlust Potion", color: NamedColor::DarkRed,
+            particle: (Particle::DragonBreath, 8),
+            potion: { color: 0xAA0000, effects: &[
+                (4, 1, 80),   // Strength II (4s)
+                (5, 0, 1),    // Instant Health I
+                (16, 0, 200), // Hunger I (10s)
+            ]},
+        },
+        // Slow Falling (15s) + Speed I (10s) + Glowing (10s)
+        "voidstep_tincture" => {
+            base: "potion", model: "kbve:voidstep_tincture",
+            name: "Voidstep Tincture", color: NamedColor::DarkAqua,
+            particle: (Particle::EndRod, 8),
+            potion: { color: 0x005566, effects: &[
+                (27, 0, 300), // Slow Falling (15s)
+                (0, 0, 200),  // Speed I (10s)
+                (23, 0, 200), // Glowing (10s)
+            ]},
+        },
 
-    // Orbital Strike Potion B: fiery red variant
-    map.insert(
-        "orbital_strike_potion_b",
-        ItemDef {
-            base_item_key: "splash_potion",
-            model: "kbve:orbital_strike_potion_b",
-            display_name: "Orbital Strike Potion (Inferno)",
-            message_color: NamedColor::DarkRed,
-            particle: Some((Particle::ExplosionEmitter, 3)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xFF2200, // fiery red-orange
-                effects: &[
-                    (4, 2, 100),  // Strength III (5s) — brief power surge
-                    (23, 0, 200), // Glowing (10s) — marks nearby targets
-                ],
-            }),
+        // ── Orbital Strike weapons ──────────────────────────────────────
+
+        // 10 uses before breaking
+        "orbital_cannon_a" => {
+            base: "blaze_rod", model: "kbve:orbital_cannon_a",
+            name: "Orbital Strike Cannon (Vanguard)", color: NamedColor::Aqua,
+            particle: (Particle::SonicBoom, 5),
+            max_damage: 10,
+        },
+        "orbital_cannon_b" => {
+            base: "blaze_rod", model: "kbve:orbital_cannon_b",
+            name: "Orbital Strike Cannon (Inferno)", color: NamedColor::Red,
+            particle: (Particle::SonicBoom, 5),
+            max_damage: 10,
+        },
+        // Full thrown-on-impact behavior requires Pumpkin-side ProjectileHitEvent
+        "orbital_strike_potion_a" => {
+            base: "splash_potion", model: "kbve:orbital_strike_potion_a",
+            name: "Orbital Strike Potion (Arcane)", color: NamedColor::Aqua,
+            particle: (Particle::ExplosionEmitter, 3),
+            potion: { color: 0x00CCFF, effects: &[
+                (4, 2, 100),  // Strength III (5s)
+                (23, 0, 200), // Glowing (10s)
+            ]},
+        },
+        "orbital_strike_potion_b" => {
+            base: "splash_potion", model: "kbve:orbital_strike_potion_b",
+            name: "Orbital Strike Potion (Inferno)", color: NamedColor::DarkRed,
+            particle: (Particle::ExplosionEmitter, 3),
+            potion: { color: 0xFF2200, effects: &[
+                (4, 2, 100),  // Strength III (5s)
+                (23, 0, 200), // Glowing (10s)
+            ]},
         },
     );
 
@@ -690,8 +617,14 @@ impl CommandExecutor for GiveItemExecutor {
                 .ok_or_else(|| CommandError::CommandFailed(TextComponent::text("Unknown item")))?;
 
             let targets = PlayersArgumentConsumer.find_arg_default_name(args)?;
+            debug!(
+                "/kbve give {} to {} target(s)",
+                self.item_key,
+                targets.len()
+            );
 
             for target in targets {
+                let target_name = &target.gameprofile.name;
                 let mut stack = build_item_stack(&def).ok_or_else(|| {
                     CommandError::CommandFailed(TextComponent::text(format!(
                         "{} not found",
@@ -699,13 +632,21 @@ impl CommandExecutor for GiveItemExecutor {
                     )))
                 })?;
 
+                debug!("Giving '{}' to {target_name}", self.item_key);
                 target.inventory().insert_stack_anywhere(&mut stack).await;
                 if !stack.is_empty() {
+                    debug!("Inventory full for {target_name}, dropping item");
                     target.drop_item(stack).await;
                 }
 
                 if let Some((particle, count)) = &def.particle {
                     let pos = target.living_entity.entity.pos.load();
+                    trace!(
+                        "Spawning {count} particles at ({:.1}, {:.1}, {:.1})",
+                        pos.x,
+                        pos.y + 1.0,
+                        pos.z
+                    );
                     target
                         .world()
                         .spawn_particle(
@@ -769,6 +710,10 @@ impl EventHandler<PlayerInteractEntityEvent> for ShieldBlockHandler {
                 return;
             };
 
+            let attacker_name = &attacker.gameprofile.name;
+            let target_name = &target_player.gameprofile.name;
+            trace!("{attacker_name} attacked {target_name}, checking for shield...");
+
             // Check both hands for the Spartan Shield
             let has_shield = {
                 let off_hand = target_player
@@ -792,8 +737,11 @@ impl EventHandler<PlayerInteractEntityEvent> for ShieldBlockHandler {
             };
 
             if !has_shield {
+                trace!("{target_name} has no shield — no reflection");
                 return;
             }
+
+            debug!("Shield block! {target_name} reflects 3 thorns damage to {attacker_name}");
 
             // Deal 3 thorns damage back to the attacker
             attacker
@@ -842,9 +790,10 @@ impl EventHandler<PlayerDeathEvent> for DeathHandler {
         let damage_type = event.damage_type;
         Box::pin(async move {
             let name = &player.gameprofile.name;
-            eprintln!(
-                "[kbve-mc-plugin] Player {name} died (cause: {})",
-                damage_type.message_id
+            let pos = player.living_entity.entity.pos.load();
+            info!(
+                "Player {name} died (cause: {}) at ({:.1}, {:.1}, {:.1})",
+                damage_type.message_id, pos.x, pos.y, pos.z
             );
 
             player
@@ -876,7 +825,7 @@ impl EventHandler<PlayerRespawnEvent> for RespawnHandler {
         let is_bed = event.is_bed_spawn;
         Box::pin(async move {
             let name = &player.gameprofile.name;
-            eprintln!("[kbve-mc-plugin] Player {name} respawned (bed_spawn={is_bed})");
+            info!("Player {name} respawned (bed_spawn={is_bed})");
 
             player
                 .send_system_message(
@@ -923,12 +872,14 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
                         if m.model == "kbve:orbital_cannon_a"
                             || m.model == "kbve:orbital_cannon_b" =>
                     {
+                        debug!("Detected orbital cannon: {}", m.model);
                         Some(OrbitalWeapon::Cannon)
                     }
                     Some(m)
                         if m.model == "kbve:orbital_strike_potion_a"
                             || m.model == "kbve:orbital_strike_potion_b" =>
                     {
+                        debug!("Detected orbital potion: {}", m.model);
                         Some(OrbitalWeapon::Potion)
                     }
                     _ => None,
@@ -939,10 +890,42 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
                 return;
             };
 
+            let name = &player.gameprofile.name;
+            let uuid_bits = player.gameprofile.id.as_u128();
+            let strike_start = Instant::now();
+
+            // --- Cooldown check ---
+            if let Some(last_fire) = ORBITAL_COOLDOWNS.get(&uuid_bits) {
+                let since = last_fire.elapsed();
+                if since < ORBITAL_COOLDOWN {
+                    let remaining = ORBITAL_COOLDOWN - since;
+                    debug!(
+                        "{name} orbital strike on cooldown ({:.0?} remaining)",
+                        remaining
+                    );
+                    player
+                        .send_system_message(
+                            &TextComponent::text(format!(
+                                "Orbital strike recharging... ({:.1}s)",
+                                remaining.as_secs_f32()
+                            ))
+                            .color_named(NamedColor::Gray)
+                            .italic(),
+                        )
+                        .await;
+                    return;
+                }
+            }
+            ORBITAL_COOLDOWNS.insert(uuid_bits, Instant::now());
+
             let world = player.world();
 
             // Determine target X,Z from click or look direction
             let (target_x, target_z) = if let Some(pos) = clicked_pos {
+                debug!(
+                    "{name} orbital strike targeting clicked block ({}, ?, {})",
+                    pos.0.x, pos.0.z
+                );
                 (pos.0.x as f64 + 0.5, pos.0.z as f64 + 0.5)
             } else {
                 let eye = player.eye_position();
@@ -951,13 +934,21 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
                     OrbitalWeapon::Cannon => 100.0f64,
                     OrbitalWeapon::Potion => 60.0f64,
                 };
-                (eye.x + dir.x as f64 * range, eye.z + dir.z as f64 * range)
+                let tx = eye.x + dir.x as f64 * range;
+                let tz = eye.z + dir.z as f64 * range;
+                debug!(
+                    "{name} orbital strike targeting look direction: eye=({:.1}, {:.1}, {:.1}) dir=({:.2}, {:.2}, {:.2}) range={range} → ({:.1}, ?, {:.1})",
+                    eye.x, eye.y, eye.z, dir.x, dir.y, dir.z, tx, tz
+                );
+                (tx, tz)
             };
 
             // Find ground level at target
-            let surface_y = world
-                .get_top_block(Vector2::new(target_x as i32, target_z as i32))
-                .await;
+            let (surface_y, _) = timed!("get_top_block(strike_target)", {
+                world
+                    .get_top_block(Vector2::new(target_x as i32, target_z as i32))
+                    .await
+            });
             let strike_pos = Vector3::new(target_x, f64::from(surface_y) + 1.0, target_z);
 
             let power = match weapon {
@@ -965,51 +956,72 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
                 OrbitalWeapon::Potion => 4.0,
             };
 
+            info!(
+                "{name} firing orbital strike at ({:.1}, {:.1}, {:.1}) power={power}",
+                strike_pos.x, strike_pos.y, strike_pos.z
+            );
+
             // --- Phase 1: Particle beam from sky to impact ---
             let beam_top = strike_pos.y + 60.0;
-            for i in 0..30 {
-                let y = beam_top - (i as f64 * 2.0);
-                world
-                    .spawn_particle(
-                        Vector3::new(strike_pos.x, y, strike_pos.z),
-                        Vector3::new(0.1, 0.0, 0.1),
-                        0.02,
-                        3,
-                        Particle::EndRod,
-                    )
-                    .await;
-            }
+            let (_, beam_dur) = timed!("orbital_phase1_beam", {
+                for i in 0..30 {
+                    let y = beam_top - (i as f64 * 2.0);
+                    world
+                        .spawn_particle(
+                            Vector3::new(strike_pos.x, y, strike_pos.z),
+                            Vector3::new(0.1, 0.0, 0.1),
+                            0.02,
+                            3,
+                            Particle::EndRod,
+                        )
+                        .await;
+                }
+            });
+            trace!(
+                "Phase 1 (beam): 30 calls × 3 EndRod = 90 particles in {:.1?}",
+                beam_dur
+            );
 
             // Smoke column at impact point
-            world
-                .spawn_particle(
-                    strike_pos,
-                    Vector3::new(2.0, 3.0, 2.0),
-                    0.05,
-                    40,
-                    Particle::LargeSmoke,
-                )
-                .await;
+            let (_, smoke_dur) = timed!("orbital_phase1_smoke", {
+                world
+                    .spawn_particle(
+                        strike_pos,
+                        Vector3::new(2.0, 3.0, 2.0),
+                        0.05,
+                        40,
+                        Particle::LargeSmoke,
+                    )
+                    .await;
+            });
+            trace!("Phase 1 (smoke): 40 LargeSmoke in {:.1?}", smoke_dur);
 
             // --- Phase 2: Explosion ---
-            world.explode(strike_pos, power).await;
+            let (_, explode_dur) = timed!("orbital_phase2_explode", {
+                world.explode(strike_pos, power).await;
+            });
+            debug!("Phase 2 (explosion): power={power} in {:.1?}", explode_dur);
 
             // Post-explosion shockwave particles
-            world
-                .spawn_particle(
-                    strike_pos,
-                    Vector3::new(3.0, 1.0, 3.0),
-                    0.1,
-                    15,
-                    Particle::SonicBoom,
-                )
-                .await;
+            let (_, shockwave_dur) = timed!("orbital_phase3_shockwave", {
+                world
+                    .spawn_particle(
+                        strike_pos,
+                        Vector3::new(3.0, 1.0, 3.0),
+                        0.1,
+                        15,
+                        Particle::SonicBoom,
+                    )
+                    .await;
+            });
+            trace!("Phase 3 (shockwave): 15 SonicBoom in {:.1?}", shockwave_dur);
 
-            // --- Phase 3: Degrade weapon ---
+            // --- Phase 4: Degrade weapon ---
             if matches!(weapon, OrbitalWeapon::Cannon) {
-                player.damage_held_item(1).await;
+                timed!("orbital_phase4_damage_item", {
+                    player.damage_held_item(1).await;
+                });
             }
-            // Splash potion is consumed by vanilla throw mechanics
 
             // --- Feedback ---
             let msg = match weapon {
@@ -1020,9 +1032,17 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
                 .send_system_message(&TextComponent::text(msg).color_named(NamedColor::Red).bold())
                 .await;
 
-            eprintln!(
-                "[kbve-mc-plugin] {} fired orbital strike at ({:.1}, {:.1}, {:.1}) power={power}",
-                player.gameprofile.name, strike_pos.x, strike_pos.y, strike_pos.z
+            let total = strike_start.elapsed();
+            info!(
+                "{name} orbital strike complete at ({:.1}, {:.1}, {:.1}) power={power} total={:.1?} (beam={:.1?} smoke={:.1?} explode={:.1?} shockwave={:.1?})",
+                strike_pos.x,
+                strike_pos.y,
+                strike_pos.z,
+                total,
+                beam_dur,
+                smoke_dur,
+                explode_dur,
+                shockwave_dur
             );
         })
     }
@@ -1041,10 +1061,14 @@ async fn serve_resource_pack() {
     const PACK_PATH: &str = "/pumpkin/resource-pack.zip";
 
     async fn pack_handler() -> impl IntoResponse {
+        debug!("Resource pack requested");
         match tokio::fs::read(PACK_PATH).await {
-            Ok(bytes) => ([(header::CONTENT_TYPE, "application/zip")], bytes).into_response(),
+            Ok(bytes) => {
+                debug!("Serving resource pack ({} bytes)", bytes.len());
+                ([(header::CONTENT_TYPE, "application/zip")], bytes).into_response()
+            }
             Err(e) => {
-                eprintln!("[kbve-mc-plugin] Failed to read resource pack: {e}");
+                info!("Failed to read resource pack: {e}");
                 (
                     axum::http::StatusCode::INTERNAL_SERVER_ERROR,
                     "Resource pack not found",
@@ -1059,14 +1083,14 @@ async fn serve_resource_pack() {
     let listener = match tokio::net::TcpListener::bind("0.0.0.0:8080").await {
         Ok(l) => l,
         Err(e) => {
-            eprintln!("[kbve-mc-plugin] Failed to bind axum on :8080: {e}");
+            info!("Failed to bind axum on :8080: {e}");
             return;
         }
     };
 
-    eprintln!("[kbve-mc-plugin] Resource pack server listening on :8080");
+    info!("Resource pack server listening on :8080");
     if let Err(e) = axum::serve(listener, app).await {
-        eprintln!("[kbve-mc-plugin] Axum server error: {e}");
+        info!("Axum server error: {e}");
     }
 }
 
@@ -1083,7 +1107,12 @@ impl KbveMcPlugin {
     #[pumpkin_api_macros::plugin_method]
     async fn on_load(&mut self, context: Arc<Context>) -> Result<(), String> {
         const VERSION: &str = env!("CARGO_PKG_VERSION");
-        eprintln!("[kbve-mc-plugin] on_load START (v{VERSION})");
+        let load_start = Instant::now();
+        info!("on_load START (v{VERSION})");
+        info!(
+            "Trace level: {} (set KBVE_TRACE=1 for DEBUG, KBVE_TRACE=2 for TRACE)",
+            *TRACE_LEVEL
+        );
 
         // Register event handlers
         context
@@ -1101,7 +1130,7 @@ impl KbveMcPlugin {
         context
             .register_event(Arc::new(OrbitalStrikeHandler), EventPriority::Normal, false)
             .await;
-        eprintln!("[kbve-mc-plugin] Event handlers registered");
+        info!("Event handlers registered");
 
         // Register /kbve command permission (Allow = all players can use it)
         if let Err(e) = context
@@ -1112,24 +1141,40 @@ impl KbveMcPlugin {
             ))
             .await
         {
-            eprintln!("[kbve-mc-plugin] Warning: failed to register permission: {e}");
+            info!("Warning: failed to register permission: {e}");
         }
 
         // Register /kbve command
         context.register_command(kbve_command_tree(), "kbve").await;
-        eprintln!("[kbve-mc-plugin] /kbve command registered");
+        info!("/kbve command registered");
+
+        // Log item registry contents
+        let total = ITEM_REGISTRY.len();
+        let potions = ITEM_REGISTRY
+            .iter()
+            .filter(|e| e.value().potion.is_some())
+            .count();
+        let weapons = ITEM_REGISTRY
+            .iter()
+            .filter(|e| e.value().max_damage.is_some())
+            .count();
+        info!("Item registry: {total} items ({potions} potions, {weapons} weapons)");
+        debug!(
+            "Items: {:?}",
+            ITEM_REGISTRY.iter().map(|e| *e.key()).collect::<Vec<_>>()
+        );
 
         // Spawn resource pack HTTP server (runs in background on GLOBAL_RUNTIME)
         GLOBAL_RUNTIME.spawn(serve_resource_pack());
-        eprintln!("[kbve-mc-plugin] Resource pack server spawned");
+        info!("Resource pack server spawned");
 
-        eprintln!("[kbve-mc-plugin] on_load END");
+        info!("on_load END ({:.1?})", load_start.elapsed());
         Ok(())
     }
 
     #[pumpkin_api_macros::plugin_method]
     async fn on_unload(&mut self, _context: Arc<Context>) -> Result<(), String> {
-        eprintln!("[kbve-mc-plugin] on_unload");
+        info!("on_unload");
         Ok(())
     }
 }
