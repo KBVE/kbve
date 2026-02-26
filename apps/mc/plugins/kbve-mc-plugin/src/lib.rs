@@ -1,5 +1,8 @@
 #![allow(unused_imports, clippy::async_yields_async)]
 
+#[macro_use]
+mod macros;
+
 use std::sync::atomic::Ordering;
 use std::sync::{Arc, LazyLock};
 use std::time::Duration;
@@ -292,377 +295,184 @@ struct ItemDef {
 
 static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|| {
     let map = DashMap::new();
-    map.insert(
-        "coin",
-        ItemDef {
-            base_item_key: "gold_nugget",
-            model: "kbve:kbve_coin",
-            display_name: "KBVE Coin",
-            message_color: NamedColor::Gold,
-            particle: None,
-            max_damage: None,
-            potion: None,
-        },
-    );
-    map.insert(
-        "sword",
-        ItemDef {
-            base_item_key: "diamond_sword",
-            model: "kbve:kbve_sword",
-            display_name: "KBVE Sword",
-            message_color: NamedColor::Aqua,
-            particle: None,
-            max_damage: None,
-            potion: None,
-        },
-    );
-    map.insert(
-        "rust_stone",
-        ItemDef {
-            base_item_key: "stone",
-            model: "kbve:rust_stone",
-            display_name: "Rust Stone",
-            message_color: NamedColor::Red,
-            particle: Some((Particle::Flame, 15)),
-            max_damage: None,
-            potion: None,
-        },
-    );
-    map.insert(
-        "scythe",
-        ItemDef {
-            base_item_key: "iron_hoe",
-            model: "kbve:kbve_scythe",
-            display_name: "KBVE Scythe",
-            message_color: NamedColor::DarkGray,
-            particle: Some((Particle::Smoke, 8)),
-            max_damage: None,
-            potion: None,
-        },
-    );
-    map.insert(
-        "spartan_shield",
-        ItemDef {
-            base_item_key: "shield",
-            model: "kbve:spartan_shield",
-            display_name: "Spartan Shield",
-            message_color: NamedColor::DarkRed,
-            particle: Some((Particle::Flame, 10)),
-            // Vanilla shield = 336; mid-tier, breaks faster
-            max_damage: Some(200),
-            potion: None,
-        },
-    );
 
-    // -----------------------------------------------------------------------
-    // Combat potions — balanced / underpowered with unique themes
-    // Effect IDs from pumpkin_data::effect::StatusEffect
-    // -----------------------------------------------------------------------
-
-    // Master Evelyn Healing Potion: Instant Health II + Regeneration I (10s)
-    map.insert(
-        "evelyn_potion",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:evelyn_potion",
-            display_name: "Master Evelyn Healing Potion",
-            message_color: NamedColor::LightPurple,
-            particle: Some((Particle::Effect, 12)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xFF55FF, // magenta
-                effects: &[
-                    (5, 1, 1),   // Instant Health II (instant)
-                    (9, 0, 200), // Regeneration I (10s)
-                ],
-            }),
+    item_registry!(map;
+        // ── Basic items ─────────────────────────────────────────────────
+        "coin" => {
+            base: "gold_nugget", model: "kbve:kbve_coin",
+            name: "KBVE Coin", color: NamedColor::Gold,
         },
-    );
-
-    // Berserker's Brew: Strength I (8s) + Speed I (8s) + Nausea (3s)
-    // Aggressive combat boost with brief disorientation trade-off
-    map.insert(
-        "berserker_brew",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:berserker_brew",
-            display_name: "Berserker's Brew",
-            message_color: NamedColor::Red,
-            particle: Some((Particle::Flame, 10)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xCC3300, // fiery red-orange
-                effects: &[
-                    (4, 0, 160), // Strength I (8s)
-                    (0, 0, 160), // Speed I (8s)
-                    (8, 0, 60),  // Nausea (3s)
-                ],
-            }),
+        "sword" => {
+            base: "diamond_sword", model: "kbve:kbve_sword",
+            name: "KBVE Sword", color: NamedColor::Aqua,
         },
-    );
-
-    // Shadow Veil Elixir: Invisibility (15s) + Speed I (10s)
-    // Stealth assassin approach combo
-    map.insert(
-        "shadow_veil_elixir",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:shadow_veil_elixir",
-            display_name: "Shadow Veil Elixir",
-            message_color: NamedColor::DarkPurple,
-            particle: Some((Particle::Smoke, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x330066, // dark purple
-                effects: &[
-                    (13, 0, 300), // Invisibility (15s)
-                    (0, 0, 200),  // Speed I (10s)
-                ],
-            }),
+        "rust_stone" => {
+            base: "stone", model: "kbve:rust_stone",
+            name: "Rust Stone", color: NamedColor::Red,
+            particle: (Particle::Flame, 15),
         },
-    );
-
-    // Iron Skin Tonic: Resistance I (12s) + Slowness I (12s)
-    // Tank up but move slower — defensive trade-off
-    map.insert(
-        "iron_skin_tonic",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:iron_skin_tonic",
-            display_name: "Iron Skin Tonic",
-            message_color: NamedColor::Gray,
-            particle: Some((Particle::Crit, 6)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xA0A0B0, // metallic silver
-                effects: &[
-                    (10, 0, 240), // Resistance I (12s)
-                    (1, 0, 240),  // Slowness I (12s)
-                ],
-            }),
+        "scythe" => {
+            base: "iron_hoe", model: "kbve:kbve_scythe",
+            name: "KBVE Scythe", color: NamedColor::DarkGray,
+            particle: (Particle::Smoke, 8),
         },
-    );
-
-    // Phoenix Tears: Fire Resistance (30s) + Regeneration I (10s)
-    // Anti-fire defense with healing
-    map.insert(
-        "phoenix_tears",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:phoenix_tears",
-            display_name: "Phoenix Tears",
-            message_color: NamedColor::Gold,
-            particle: Some((Particle::Lava, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xFF9900, // warm orange-gold
-                effects: &[
-                    (11, 0, 600), // Fire Resistance (30s)
-                    (9, 0, 200),  // Regeneration I (10s)
-                ],
-            }),
+        "spartan_shield" => {
+            base: "shield", model: "kbve:spartan_shield",
+            name: "Spartan Shield", color: NamedColor::DarkRed,
+            particle: (Particle::Flame, 10),
+            max_damage: 200, // vanilla shield = 336; mid-tier
         },
-    );
 
-    // Titan's Draft: Health Boost I (20s) + Strength I (8s)
-    // Extra hearts with a damage boost
-    map.insert(
-        "titan_draft",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:titan_draft",
-            display_name: "Titan's Draft",
-            message_color: NamedColor::DarkRed,
-            particle: Some((Particle::HappyVillager, 10)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x8B0000, // deep crimson
-                effects: &[
-                    (20, 0, 400), // Health Boost I (20s)
-                    (4, 0, 160),  // Strength I (8s)
-                ],
-            }),
+        // ── Combat potions ──────────────────────────────────────────────
+        // Effect IDs from pumpkin_data::effect::StatusEffect
+
+        // Instant Health II + Regeneration I (10s)
+        "evelyn_potion" => {
+            base: "potion", model: "kbve:evelyn_potion",
+            name: "Master Evelyn Healing Potion", color: NamedColor::LightPurple,
+            particle: (Particle::Effect, 12),
+            potion: { color: 0xFF55FF, effects: &[
+                (5, 1, 1),   // Instant Health II
+                (9, 0, 200), // Regeneration I (10s)
+            ]},
         },
-    );
-
-    // Windwalker Serum: Speed II (6s) + Jump Boost I (10s)
-    // Short burst mobility — hit and run
-    map.insert(
-        "windwalker_serum",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:windwalker_serum",
-            display_name: "Windwalker Serum",
-            message_color: NamedColor::Aqua,
-            particle: Some((Particle::Cloud, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x66CCFF, // cyan / light blue
-                effects: &[
-                    (0, 1, 120), // Speed II (6s)
-                    (7, 0, 200), // Jump Boost I (10s)
-                ],
-            }),
+        // Strength I (8s) + Speed I (8s) + Nausea (3s)
+        "berserker_brew" => {
+            base: "potion", model: "kbve:berserker_brew",
+            name: "Berserker's Brew", color: NamedColor::Red,
+            particle: (Particle::Flame, 10),
+            potion: { color: 0xCC3300, effects: &[
+                (4, 0, 160), // Strength I (8s)
+                (0, 0, 160), // Speed I (8s)
+                (8, 0, 60),  // Nausea (3s)
+            ]},
         },
-    );
-
-    // Nightshade Extract: Night Vision (45s) + Absorption I (15s)
-    // Scout / defense hybrid for dark environments
-    map.insert(
-        "nightshade_extract",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:nightshade_extract",
-            display_name: "Nightshade Extract",
-            message_color: NamedColor::DarkBlue,
-            particle: Some((Particle::Witch, 6)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x1A0033, // deep indigo
-                effects: &[
-                    (15, 0, 900), // Night Vision (45s)
-                    (21, 0, 300), // Absorption I (15s)
-                ],
-            }),
+        // Invisibility (15s) + Speed I (10s)
+        "shadow_veil_elixir" => {
+            base: "potion", model: "kbve:shadow_veil_elixir",
+            name: "Shadow Veil Elixir", color: NamedColor::DarkPurple,
+            particle: (Particle::Smoke, 8),
+            potion: { color: 0x330066, effects: &[
+                (13, 0, 300), // Invisibility (15s)
+                (0, 0, 200),  // Speed I (10s)
+            ]},
         },
-    );
-
-    // Stoneguard Elixir: Resistance I (8s) + Absorption II (8s)
-    // Pure defense for tight situations
-    map.insert(
-        "stoneguard_elixir",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:stoneguard_elixir",
-            display_name: "Stoneguard Elixir",
-            message_color: NamedColor::DarkGray,
-            particle: Some((Particle::Crit, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x8B6914, // earthy brown-amber
-                effects: &[
-                    (10, 0, 160), // Resistance I (8s)
-                    (21, 1, 160), // Absorption II (8s)
-                ],
-            }),
+        // Resistance I (12s) + Slowness I (12s)
+        "iron_skin_tonic" => {
+            base: "potion", model: "kbve:iron_skin_tonic",
+            name: "Iron Skin Tonic", color: NamedColor::Gray,
+            particle: (Particle::Crit, 6),
+            potion: { color: 0xA0A0B0, effects: &[
+                (10, 0, 240), // Resistance I (12s)
+                (1, 0, 240),  // Slowness I (12s)
+            ]},
         },
-    );
-
-    // Bloodlust Potion: Strength II (4s) + Instant Health I + Hunger I (10s)
-    // Strongest damage but very short and drains hunger
-    map.insert(
-        "bloodlust_potion",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:bloodlust_potion",
-            display_name: "Bloodlust Potion",
-            message_color: NamedColor::DarkRed,
-            particle: Some((Particle::DragonBreath, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xAA0000, // bright crimson
-                effects: &[
-                    (4, 1, 80),   // Strength II (4s)
-                    (5, 0, 1),    // Instant Health I (instant)
-                    (16, 0, 200), // Hunger I (10s)
-                ],
-            }),
+        // Fire Resistance (30s) + Regeneration I (10s)
+        "phoenix_tears" => {
+            base: "potion", model: "kbve:phoenix_tears",
+            name: "Phoenix Tears", color: NamedColor::Gold,
+            particle: (Particle::Lava, 8),
+            potion: { color: 0xFF9900, effects: &[
+                (11, 0, 600), // Fire Resistance (30s)
+                (9, 0, 200),  // Regeneration I (10s)
+            ]},
         },
-    );
-
-    // Voidstep Tincture: Slow Falling (15s) + Speed I (10s) + Glowing (10s)
-    // Mobility with a visibility trade-off
-    map.insert(
-        "voidstep_tincture",
-        ItemDef {
-            base_item_key: "potion",
-            model: "kbve:voidstep_tincture",
-            display_name: "Voidstep Tincture",
-            message_color: NamedColor::DarkAqua,
-            particle: Some((Particle::EndRod, 8)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x005566, // dark teal
-                effects: &[
-                    (27, 0, 300), // Slow Falling (15s)
-                    (0, 0, 200),  // Speed I (10s)
-                    (23, 0, 200), // Glowing (10s)
-                ],
-            }),
+        // Health Boost I (20s) + Strength I (8s)
+        "titan_draft" => {
+            base: "potion", model: "kbve:titan_draft",
+            name: "Titan's Draft", color: NamedColor::DarkRed,
+            particle: (Particle::HappyVillager, 10),
+            potion: { color: 0x8B0000, effects: &[
+                (20, 0, 400), // Health Boost I (20s)
+                (4, 0, 160),  // Strength I (8s)
+            ]},
         },
-    );
-
-    // -----------------------------------------------------------------------
-    // Orbital Strike weapons
-    // -----------------------------------------------------------------------
-
-    // Orbital Strike Cannon A: sci-fi cannon variant
-    // 10 uses before breaking
-    map.insert(
-        "orbital_cannon_a",
-        ItemDef {
-            base_item_key: "blaze_rod",
-            model: "kbve:orbital_cannon_a",
-            display_name: "Orbital Strike Cannon (Vanguard)",
-            message_color: NamedColor::Aqua,
-            particle: Some((Particle::SonicBoom, 5)),
-            max_damage: Some(10),
-            potion: None,
+        // Speed II (6s) + Jump Boost I (10s)
+        "windwalker_serum" => {
+            base: "potion", model: "kbve:windwalker_serum",
+            name: "Windwalker Serum", color: NamedColor::Aqua,
+            particle: (Particle::Cloud, 8),
+            potion: { color: 0x66CCFF, effects: &[
+                (0, 1, 120), // Speed II (6s)
+                (7, 0, 200), // Jump Boost I (10s)
+            ]},
         },
-    );
-
-    // Orbital Strike Cannon B: fiery rod variant
-    map.insert(
-        "orbital_cannon_b",
-        ItemDef {
-            base_item_key: "blaze_rod",
-            model: "kbve:orbital_cannon_b",
-            display_name: "Orbital Strike Cannon (Inferno)",
-            message_color: NamedColor::Red,
-            particle: Some((Particle::SonicBoom, 5)),
-            max_damage: Some(10),
-            potion: None,
+        // Night Vision (45s) + Absorption I (15s)
+        "nightshade_extract" => {
+            base: "potion", model: "kbve:nightshade_extract",
+            name: "Nightshade Extract", color: NamedColor::DarkBlue,
+            particle: (Particle::Witch, 6),
+            potion: { color: 0x1A0033, effects: &[
+                (15, 0, 900), // Night Vision (45s)
+                (21, 0, 300), // Absorption I (15s)
+            ]},
         },
-    );
-
-    // Orbital Strike Potion A: blue arcane variant
-    // Full thrown-on-impact behavior requires Pumpkin-side ProjectileHitEvent.
-    map.insert(
-        "orbital_strike_potion_a",
-        ItemDef {
-            base_item_key: "splash_potion",
-            model: "kbve:orbital_strike_potion_a",
-            display_name: "Orbital Strike Potion (Arcane)",
-            message_color: NamedColor::Aqua,
-            particle: Some((Particle::ExplosionEmitter, 3)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0x00CCFF, // cyan-blue
-                effects: &[
-                    (4, 2, 100),  // Strength III (5s) — brief power surge
-                    (23, 0, 200), // Glowing (10s) — marks nearby targets
-                ],
-            }),
+        // Resistance I (8s) + Absorption II (8s)
+        "stoneguard_elixir" => {
+            base: "potion", model: "kbve:stoneguard_elixir",
+            name: "Stoneguard Elixir", color: NamedColor::DarkGray,
+            particle: (Particle::Crit, 8),
+            potion: { color: 0x8B6914, effects: &[
+                (10, 0, 160), // Resistance I (8s)
+                (21, 1, 160), // Absorption II (8s)
+            ]},
         },
-    );
+        // Strength II (4s) + Instant Health I + Hunger I (10s)
+        "bloodlust_potion" => {
+            base: "potion", model: "kbve:bloodlust_potion",
+            name: "Bloodlust Potion", color: NamedColor::DarkRed,
+            particle: (Particle::DragonBreath, 8),
+            potion: { color: 0xAA0000, effects: &[
+                (4, 1, 80),   // Strength II (4s)
+                (5, 0, 1),    // Instant Health I
+                (16, 0, 200), // Hunger I (10s)
+            ]},
+        },
+        // Slow Falling (15s) + Speed I (10s) + Glowing (10s)
+        "voidstep_tincture" => {
+            base: "potion", model: "kbve:voidstep_tincture",
+            name: "Voidstep Tincture", color: NamedColor::DarkAqua,
+            particle: (Particle::EndRod, 8),
+            potion: { color: 0x005566, effects: &[
+                (27, 0, 300), // Slow Falling (15s)
+                (0, 0, 200),  // Speed I (10s)
+                (23, 0, 200), // Glowing (10s)
+            ]},
+        },
 
-    // Orbital Strike Potion B: fiery red variant
-    map.insert(
-        "orbital_strike_potion_b",
-        ItemDef {
-            base_item_key: "splash_potion",
-            model: "kbve:orbital_strike_potion_b",
-            display_name: "Orbital Strike Potion (Inferno)",
-            message_color: NamedColor::DarkRed,
-            particle: Some((Particle::ExplosionEmitter, 3)),
-            max_damage: None,
-            potion: Some(PotionEffects {
-                custom_color: 0xFF2200, // fiery red-orange
-                effects: &[
-                    (4, 2, 100),  // Strength III (5s) — brief power surge
-                    (23, 0, 200), // Glowing (10s) — marks nearby targets
-                ],
-            }),
+        // ── Orbital Strike weapons ──────────────────────────────────────
+
+        // 10 uses before breaking
+        "orbital_cannon_a" => {
+            base: "blaze_rod", model: "kbve:orbital_cannon_a",
+            name: "Orbital Strike Cannon (Vanguard)", color: NamedColor::Aqua,
+            particle: (Particle::SonicBoom, 5),
+            max_damage: 10,
+        },
+        "orbital_cannon_b" => {
+            base: "blaze_rod", model: "kbve:orbital_cannon_b",
+            name: "Orbital Strike Cannon (Inferno)", color: NamedColor::Red,
+            particle: (Particle::SonicBoom, 5),
+            max_damage: 10,
+        },
+        // Full thrown-on-impact behavior requires Pumpkin-side ProjectileHitEvent
+        "orbital_strike_potion_a" => {
+            base: "splash_potion", model: "kbve:orbital_strike_potion_a",
+            name: "Orbital Strike Potion (Arcane)", color: NamedColor::Aqua,
+            particle: (Particle::ExplosionEmitter, 3),
+            potion: { color: 0x00CCFF, effects: &[
+                (4, 2, 100),  // Strength III (5s)
+                (23, 0, 200), // Glowing (10s)
+            ]},
+        },
+        "orbital_strike_potion_b" => {
+            base: "splash_potion", model: "kbve:orbital_strike_potion_b",
+            name: "Orbital Strike Potion (Inferno)", color: NamedColor::DarkRed,
+            particle: (Particle::ExplosionEmitter, 3),
+            potion: { color: 0xFF2200, effects: &[
+                (4, 2, 100),  // Strength III (5s)
+                (23, 0, 200), // Glowing (10s)
+            ]},
         },
     );
 
