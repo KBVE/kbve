@@ -1,5 +1,22 @@
+apiVersion: v1
+kind: Service
+metadata:
+    name: discordsh-headless
+    namespace: discordsh
+    labels:
+        app: discordsh
+spec:
+    clusterIP: None
+    selector:
+        app: discordsh
+    ports:
+        - name: http
+          port: 4321
+          targetPort: 4321
+          protocol: TCP
+---
 apiVersion: apps/v1
-kind: Deployment
+kind: StatefulSet
 metadata:
     name: discordsh
     namespace: discordsh
@@ -7,6 +24,7 @@ metadata:
         app: discordsh
         tier: frontend
 spec:
+    serviceName: discordsh-headless
     replicas: 1
     selector:
         matchLabels:
@@ -43,6 +61,8 @@ spec:
                             secretKeyRef:
                                 name: discordsh-supabase-shared
                                 key: service-role-key
+                      - name: SHARD_COUNT
+                        value: '1'
                   resources:
                       requests:
                           memory: '256Mi'

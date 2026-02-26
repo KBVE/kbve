@@ -253,27 +253,33 @@ pub async fn start(app_state: Arc<AppState>) -> Result<()> {
     // Store shard manager so HTTP endpoints can trigger shutdown/restart
     *app_state.shard_manager.write().await = Some(client.shard_manager.clone());
 
-    // Start with the appropriate sharding mode
+    // Start with the appropriate sharding mode.
+    //
+    // Shard ID resolution priority:
+    // 1. Explicit SHARD_ID env var
+    // 2. StatefulSet pod ordinal parsed from HOSTNAME (e.g. "discordsh-2" → 2)
+    // 3. Fall back to single-shard mode
     let shard_id = std::env::var("SHARD_ID")
         .ok()
-        .and_then(|s| s.parse::<u32>().ok());
+        .and_then(|s| s.parse::<u32>().ok())
+        .or_else(|| {
+            // StatefulSet pods have HOSTNAME like "<name>-<ordinal>"
+            std::env::var("HOSTNAME")
+                .ok()
+                .and_then(|h| h.rsplit('-').next().and_then(|s| s.parse::<u32>().ok()))
+        });
     let shard_count = std::env::var("SHARD_COUNT")
         .ok()
         .and_then(|s| s.parse::<u32>().ok());
-    let auto_scale = std::env::var("USE_AUTO_SCALING").is_ok();
 
     match (shard_id, shard_count) {
         (Some(id), Some(count)) => {
-            info!("Starting shard {id}/{count} (distributed mode)");
+            info!(
+                shard_id = id,
+                shard_count = count,
+                "Starting shard (distributed mode)"
+            );
             client.start_shard(id, count).await?;
-        }
-        _ if auto_scale => {
-            let total = std::env::var("TOTAL_SHARDS")
-                .ok()
-                .and_then(|s| s.parse::<u32>().ok())
-                .unwrap_or(2);
-            info!("Starting with auto-sharding ({total} shards)");
-            client.start_shards(total).await?;
         }
         _ => {
             info!("Starting Discord bot (single shard)...");
