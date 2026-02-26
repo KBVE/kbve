@@ -130,7 +130,25 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"mkdir -p apps/mc/logs apps/mc/world && docker run --rm -p 25565:25565 -p 8080:8080 -p 25575:25575 -v $PWD/apps/mc/logs:/pumpkin/logs -v $PWD/apps/mc/world:/pumpkin/world kbve/mc:dev"
+					"docker rm -f kbve-mc-dev 2>/dev/null; mkdir -p apps/mc/logs apps/mc/world && docker run -d --name kbve-mc-dev -p 25565:25565 -p 8080:8080 -p 25575:25575 -e KBVE_TRACE=${KBVE_TRACE:-1} -v $PWD/apps/mc/logs:/pumpkin/logs -v $PWD/apps/mc/world:/pumpkin/world kbve/mc:dev && echo 'Started kbve-mc-dev (detached). Logs: nx stop-dev to stop.'"
+				],
+				"parallel": false
+			}
+		},
+		"stop-dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"docker stop kbve-mc-dev 2>/dev/null && docker rm kbve-mc-dev 2>/dev/null && echo 'Stopped kbve-mc-dev' || echo 'kbve-mc-dev is not running'"
+				],
+				"parallel": false
+			}
+		},
+		"restart-dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"nx stop-dev mc --no-cloud && nx run-dev mc --no-cloud"
 				],
 				"parallel": false
 			}
