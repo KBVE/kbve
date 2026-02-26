@@ -13,8 +13,10 @@ use pumpkin::command::tree::builder::{argument_default_name, literal};
 use pumpkin::command::{CommandExecutor, CommandResult, CommandSender};
 use pumpkin::entity::EntityBase;
 use pumpkin::plugin::api::Context;
+use pumpkin::plugin::player::player_death::PlayerDeathEvent;
 use pumpkin::plugin::player::player_interact_entity_event::PlayerInteractEntityEvent;
 use pumpkin::plugin::player::player_join::PlayerJoinEvent;
+use pumpkin::plugin::player::player_respawn::PlayerRespawnEvent;
 use pumpkin::plugin::{BoxFuture, EventHandler, EventPriority};
 use pumpkin::server::Server;
 use pumpkin_api_macros::plugin_impl;
@@ -477,6 +479,68 @@ impl EventHandler<PlayerInteractEntityEvent> for ShieldBlockHandler {
 }
 
 // ---------------------------------------------------------------------------
+// Death handler (fires when a player dies)
+// ---------------------------------------------------------------------------
+
+struct DeathHandler;
+
+impl EventHandler<PlayerDeathEvent> for DeathHandler {
+    fn handle<'a>(
+        &'a self,
+        _server: &'a Arc<Server>,
+        event: &'a PlayerDeathEvent,
+    ) -> BoxFuture<'a, ()> {
+        let player = Arc::clone(&event.player);
+        let damage_type = event.damage_type;
+        Box::pin(async move {
+            let name = &player.gameprofile.name;
+            eprintln!(
+                "[kbve-mc-plugin] Player {name} died (cause: {})",
+                damage_type.message_id
+            );
+
+            player
+                .send_system_message(
+                    &TextComponent::text(format!(
+                        "You were slain! (cause: {})",
+                        damage_type.message_id
+                    ))
+                    .color_named(NamedColor::Red),
+                )
+                .await;
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Respawn handler (fires when a player respawns after death)
+// ---------------------------------------------------------------------------
+
+struct RespawnHandler;
+
+impl EventHandler<PlayerRespawnEvent> for RespawnHandler {
+    fn handle<'a>(
+        &'a self,
+        _server: &'a Arc<Server>,
+        event: &'a PlayerRespawnEvent,
+    ) -> BoxFuture<'a, ()> {
+        let player = Arc::clone(&event.player);
+        let is_bed = event.is_bed_spawn;
+        Box::pin(async move {
+            let name = &player.gameprofile.name;
+            eprintln!("[kbve-mc-plugin] Player {name} respawned (bed_spawn={is_bed})");
+
+            player
+                .send_system_message(
+                    &TextComponent::text("Welcome back! You have respawned.")
+                        .color_named(NamedColor::Green),
+                )
+                .await;
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Axum resource pack server
 // ---------------------------------------------------------------------------
 
@@ -539,6 +603,12 @@ impl KbveMcPlugin {
             .await;
         context
             .register_event(Arc::new(ShieldBlockHandler), EventPriority::Normal, false)
+            .await;
+        context
+            .register_event(Arc::new(DeathHandler), EventPriority::Normal, false)
+            .await;
+        context
+            .register_event(Arc::new(RespawnHandler), EventPriority::Normal, false)
             .await;
         eprintln!("[kbve-mc-plugin] Event handlers registered");
 

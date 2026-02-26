@@ -1172,13 +1172,15 @@ dependencies = [
 
 [[package]]
 name = "kbve-mc-plugin"
-version = "0.1.0"
+version = "0.1.2"
 dependencies = [
  "axum",
+ "dashmap",
  "pumpkin",
  "pumpkin-api-macros",
  "pumpkin-data",
  "pumpkin-macros",
+ "pumpkin-protocol",
  "pumpkin-util",
  "pumpkin-world",
  "tokio",
