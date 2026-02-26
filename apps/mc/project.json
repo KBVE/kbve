@@ -72,11 +72,65 @@
 				}
 			}
 		},
+		"container-dev": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx mc:containerx-dev",
+						"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:dev kbve/mc:dev-$VERSION && echo \"Tagged kbve/mc:dev-$VERSION\""
+					]
+				},
+				"ci": {
+					"commands": [
+						"./kbve.sh -nx mc:containerx-dev --configuration=ci",
+						"VERSION=$(grep '^version' apps/mc/plugins/kbve-mc-plugin/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/mc:dev kbve/mc:dev-$VERSION && echo \"Tagged kbve/mc:dev-$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx-dev": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/mc",
+				"file": "apps/mc/Dockerfile.dev",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/mc:dev"]
+				},
+				"ci": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/mc:dev"],
+					"cache-from": ["type=gha,scope=mc-dev"],
+					"cache-to": ["type=gha,scope=mc-dev,mode=max"]
+				}
+			}
+		},
 		"run": {
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
 					"docker run --rm -p 25565:25565 -p 8080:8080 -p 25575:25575 kbve/mc:local"
+				],
+				"parallel": false
+			}
+		},
+		"run-dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"mkdir -p apps/mc/logs && docker run --rm -p 25565:25565 -p 8080:8080 -p 25575:25575 -v $PWD/apps/mc/logs:/pumpkin/logs kbve/mc:dev"
 				],
 				"parallel": false
 			}

@@ -1,0 +1,73 @@
+# Dockerfile.dev — fast incremental builds for local development
+# Usage:
+#   docker build -f Dockerfile.dev -t kbve-mc:dev .
+#   docker run -p 25565:25565 -p 8080:8080 -p 25575:25575 \
+#     -v $PWD/logs:/pumpkin/logs kbve-mc:dev
+#
+# Logs are written to the mounted logs/ directory (gitignored).
+# Rebuild after code changes (incremental, seconds not minutes):
+#   docker build -f Dockerfile.dev -t kbve-mc:dev .
+
+FROM rust:1-alpine3.23 AS builder
+ENV RUSTFLAGS="-C target-feature=-crt-static"
+RUN apk add --no-cache musl-dev git
+WORKDIR /pumpkin
+
+# Copy everything at once — no layered crate splitting
+COPY ./pumpkin /pumpkin
+COPY ./plugins /plugins
+
+RUN rustup show active-toolchain || rustup toolchain install
+
+# Build pumpkin (debug mode, cached target dir for incremental builds)
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    --mount=type=cache,target=/pumpkin/target \
+    cargo build && cp target/debug/pumpkin /pumpkin.bin
+
+# Build plugin (debug mode, reuses cached deps)
+ENV CARGO_TARGET_DIR=/pumpkin/target
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    --mount=type=cache,target=/pumpkin/target \
+    cargo build --manifest-path /plugins/kbve-mc-plugin/Cargo.toml \
+    && mkdir -p /built-plugins \
+    && cp /pumpkin/target/debug/libkbve_mc_plugin.so /built-plugins/ 2>/dev/null \
+    || cp /pumpkin/target/debug/libkbve_mc_plugin.dylib /built-plugins/ 2>/dev/null \
+    || true
+
+# --- Resource pack (fast, runs in parallel with rust builds) ---
+FROM alpine:3.23 AS pack-builder
+RUN apk add --no-cache zip coreutils
+COPY ./data/resource-pack /resource-pack
+RUN cd /resource-pack && zip -r /kbve-resource-pack.zip . -x '.*' -x '__MACOSX/*'
+RUN SHA1=$(sha1sum /kbve-resource-pack.zip | awk '{print $1}') && \
+    printf '[resource_pack]\nenabled = true\nurl = "http://localhost:8080/kbve-resource-pack.zip"\nsha1 = "%s"\nforce = true\nprompt_message = "KBVE Resource Pack - Custom items and textures"\n\n[world]\nlighting = "default"\nautosave_ticks = 6000\n\n[world.chunk]\ntype = "anvil"\nwrite_in_place = false\n\n[world.chunk.compression]\nalgorithm = "LZ4"\nlevel = 6\n\n[networking.rcon]\nenabled = true\naddress = "0.0.0.0:25575"\npassword = "kbve-rcon"\nmax_connections = 5\n' "$SHA1" > /features.toml
+
+# --- Final image ---
+FROM alpine:3.23
+
+COPY --from=builder /pumpkin.bin /bin/pumpkin
+COPY --from=builder /built-plugins/ /pumpkin/plugins/
+
+WORKDIR /pumpkin
+
+COPY ./data/config/configuration.toml /pumpkin/config/configuration.toml
+COPY ./data/server_icon.png /pumpkin/server_icon.png
+
+COPY --from=pack-builder /kbve-resource-pack.zip /pumpkin/resource-pack.zip
+COPY --from=pack-builder /features.toml /pumpkin/config/features.toml
+
+COPY ./entrypoint.dev.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
+
+# Create logs dir inside the image (mountable at runtime)
+RUN mkdir -p /pumpkin/logs
+
+RUN apk add --no-cache libgcc && chown -R 2613:2613 .
+
+ENV RUST_BACKTRACE=full
+EXPOSE 25565 8080 25575
+USER 2613:2613
+ENTRYPOINT ["/entrypoint.sh"]
+HEALTHCHECK CMD nc -z 127.0.0.1 25565 || exit 1
