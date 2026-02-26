@@ -45,6 +45,7 @@ resources:
     - cityvote/application.yaml
     - herbmail/application.yaml
     - memes/application.yaml
+    - rentearth/application.yaml
     # GitHub Actions Runner Controller (ARC)
     # Consolidated: controller includes helm chart + sealed secret + RBAC
     # Consolidated: runners includes helm chart + ExternalSecret/SecretStore
