@@ -137,4 +137,4 @@ jobs:
                     --head "$BRANCH_NAME" \
                     --title "Atomic: kube ${APP_NAME} v${NEW_VER}" \
                     --body-file /tmp/pr-body.md \
-                    --label "atomic-branch,auto-pr"
+                    --label "atomic,auto-pr"

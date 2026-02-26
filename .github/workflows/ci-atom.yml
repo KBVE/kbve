@@ -262,7 +262,7 @@ jobs:
                           owner: context.repo.owner,
                           repo: context.repo.repo,
                           issue_number: pr.data.number,
-                          labels: ['atomic-branch', 'auto-pr']
+                          labels: ['atomic', 'auto-pr']
                         });
 
                         console.log(`Created PR #${pr.data.number}: ${pr.data.html_url}`);
