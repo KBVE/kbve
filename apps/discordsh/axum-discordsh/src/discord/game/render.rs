@@ -248,9 +248,13 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
     }
 
     // Footer
+    let member_badge = match &session.member_status {
+        Some(MemberStatusTag::Member { username }) => format!("Member: {}", username),
+        Some(MemberStatusTag::Guest) | None => "Guest".to_owned(),
+    };
     embed = embed.footer(serenity::CreateEmbedFooter::new(format!(
-        "Turn {}  //  Session {}",
-        session.turn, session.short_id
+        "Turn {}  //  Session {}  //  {}",
+        session.turn, session.short_id, member_badge
     )));
 
     embed
@@ -405,6 +409,7 @@ mod tests {
             room: super::super::content::generate_room(0),
             log: Vec::new(),
             show_items: false,
+            member_status: None,
         }
     }
 

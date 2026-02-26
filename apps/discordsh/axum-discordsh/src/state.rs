@@ -5,6 +5,8 @@ use std::time::Instant;
 use poise::serenity_prelude as serenity;
 use tokio::sync::{Notify, RwLock};
 
+use kbve::MemberCache;
+
 use crate::discord::game::SessionStore;
 use crate::health::HealthMonitor;
 use crate::tracker::ShardTracker;
@@ -45,6 +47,10 @@ pub struct AppState {
     // ── Game sessions ────────────────────────────────────────────────
     /// In-memory store for Embed Dungeon game sessions.
     pub sessions: Arc<SessionStore>,
+
+    // ── Membership ─────────────────────────────────────────────────
+    /// LRU-cached membership lookup (Supabase-backed when available).
+    pub members: Arc<MemberCache>,
 }
 
 impl AppState {
@@ -58,6 +64,7 @@ impl AppState {
             shard_manager: RwLock::new(None),
             bot_http: RwLock::new(None),
             sessions: Arc::new(SessionStore::new()),
+            members: Arc::new(MemberCache::from_env()),
         }
     }
 }

@@ -257,6 +257,15 @@ pub enum SessionMode {
     Party,
 }
 
+// ── Member status tag ────────────────────────────────────────────────
+
+/// Lightweight membership tag stored in the session.
+#[derive(Debug, Clone, PartialEq)]
+pub enum MemberStatusTag {
+    Member { username: String },
+    Guest,
+}
+
 // ── Session state ───────────────────────────────────────────────────
 
 #[derive(Debug, Clone)]
@@ -277,6 +286,7 @@ pub struct SessionState {
     pub room: RoomState,
     pub log: Vec<String>,
     pub show_items: bool,
+    pub member_status: Option<MemberStatusTag>,
 }
 
 #[cfg(test)]
