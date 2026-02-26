@@ -35,7 +35,7 @@ spec:
 
                       # PostgREST configuration
                       - name: PGRST_DB_SCHEMAS
-                        value: 'public,storage,graphql_public,tracker,profile'
+                        value: 'public,storage,graphql_public,tracker,profile,rentearth'
                       - name: PGRST_DB_ANON_ROLE
                         value: 'anon'
                       - name: PGRST_DB_USE_LEGACY_GUCS
