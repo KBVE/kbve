@@ -1,23 +1,26 @@
 import { DroidEventSchemas } from '../types/event-types';
-import type { DroidEventMap, EventKey, EventHandler  } from '../types/event-types';
-
-import { z } from 'zod';
-
+import type {
+	DroidEventMap,
+	EventKey,
+	EventHandler,
+} from '../types/event-types';
 
 class DroidEventBus {
-    private listeners = new Map<EventKey, Set<(payload: unknown) => void>>();
+	private listeners = new Map<EventKey, Set<(payload: unknown) => void>>();
 
-    on<K extends EventKey>(event: K, handler: EventHandler<K>) {
+	on<K extends EventKey>(event: K, handler: EventHandler<K>) {
 		let handlers = this.listeners.get(event);
-        if (!handlers) {
-            handlers = new Set();
-            this.listeners.set(event, handlers);
-        }
-        handlers.add(handler as (payload: unknown) => void);
+		if (!handlers) {
+			handlers = new Set();
+			this.listeners.set(event, handlers);
+		}
+		handlers.add(handler as (payload: unknown) => void);
 	}
 
 	off<K extends EventKey>(event: K, handler: EventHandler<K>) {
-		this.listeners.get(event)?.delete(handler as (payload: unknown) => void);
+		this.listeners
+			.get(event)
+			?.delete(handler as (payload: unknown) => void);
 	}
 
 	emit<K extends EventKey>(event: K, payload: DroidEventMap[K]) {
@@ -26,7 +29,10 @@ class DroidEventBus {
 			try {
 				schema.parse(payload);
 			} catch (err) {
-				console.error(`[DroidEventBus] Invalid payload for ${event}:`, err);
+				console.error(
+					`[DroidEventBus] Invalid payload for ${event}:`,
+					err,
+				);
 				return;
 			}
 		}
@@ -37,7 +43,10 @@ class DroidEventBus {
 			try {
 				(handler as EventHandler<K>)(payload);
 			} catch (err) {
-				console.error(`[DroidEventBus] Listener error for ${event}:`, err);
+				console.error(
+					`[DroidEventBus] Listener error for ${event}:`,
+					err,
+				);
 			}
 		}
 	}

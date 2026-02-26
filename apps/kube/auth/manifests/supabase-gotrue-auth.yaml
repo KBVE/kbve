@@ -45,7 +45,7 @@ spec:
                       - name: GOTRUE_SITE_URL
                         value: 'https://kbve.com'
                       - name: GOTRUE_URI_ALLOW_LIST
-                        value: 'https://kbve.com/**,https://*.kbve.com/**,https://api.kbve.com/**,https://discord.sh/**,https://*.discord.sh/**,https://herbmail.com/**,https://*.herbmail.com/**,https://meme.sh/**,https://*.meme.sh/**,http://localhost:4321/**,http://localhost:**,http://localhost:3000/*,http://127.0.0.1:3000/*,http://127.0.0.1:3000/**'
+                        value: 'https://kbve.com/**,https://*.kbve.com/**,https://api.kbve.com/**,https://discord.sh/**,https://*.discord.sh/**,https://rentearth.com/**,https://*.rentearth.com/**,https://herbmail.com/**,https://*.herbmail.com/**,https://meme.sh/**,https://*.meme.sh/**,http://localhost:4321/**,http://localhost:**,http://localhost:3000/*,http://127.0.0.1:3000/*,http://127.0.0.1:3000/**'
                       - name: GOTRUE_DISABLE_SIGNUP
                         value: 'false'
 

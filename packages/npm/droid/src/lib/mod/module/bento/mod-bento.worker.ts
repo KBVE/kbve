@@ -8,7 +8,7 @@ import {
 	BENTO_VARIANT_CLASS_MAP,
 } from '../../../types/bento';
 
-let emitToMain: ((msg: any) => void) | undefined;
+let emitToMain: ((msg: unknown) => void) | undefined;
 
 function createVNodeFromTile(tile: BentoTile): VirtualNode {
 	const variant = tile.variant ?? 'default';

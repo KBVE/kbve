@@ -41,7 +41,7 @@ pub async fn handle_game_component(
         }
     };
 
-    // Handle select menu item usage
+    // Handle select menu and special button actions
     let action = if action_str == "useitem" {
         // For select menus, the selected value is in component.data.kind
         if let serenity::ComponentInteractionDataKind::StringSelect { values } =
@@ -56,6 +56,28 @@ pub async fn handle_game_component(
             }
         } else {
             return send_ephemeral(component, ctx, "Invalid select menu interaction.").await;
+        }
+    } else if action_str == "buy" {
+        // Merchant buy select menu
+        if let serenity::ComponentInteractionDataKind::StringSelect { values } =
+            &component.data.kind
+        {
+            if let Some(item_id) = values.first() {
+                GameAction::Buy(item_id.to_owned())
+            } else {
+                return send_ephemeral(component, ctx, "No item selected.").await;
+            }
+        } else {
+            return send_ephemeral(component, ctx, "Invalid select menu interaction.").await;
+        }
+    } else if action_str == "story" {
+        // Story choice button — index is in parts[3]
+        let idx_str = parts.get(3).unwrap_or(&"0");
+        match idx_str.parse::<usize>() {
+            Ok(idx) => GameAction::StoryChoice(idx),
+            Err(_) => {
+                return send_ephemeral(component, ctx, "Invalid story choice.").await;
+            }
         }
     } else {
         match parse_action(action_str) {

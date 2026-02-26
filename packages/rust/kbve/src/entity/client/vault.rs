@@ -1,5 +1,5 @@
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client;
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 use serde::{Deserialize, Serialize};
 
 /// Error type for vault operations.
@@ -78,8 +78,12 @@ impl VaultClient {
     /// Reads `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
     /// Returns `None` if either variable is missing or empty.
     pub fn from_env() -> Option<Self> {
-        let base_url = std::env::var("SUPABASE_URL").ok().filter(|s| !s.is_empty())?;
-        let key = std::env::var("SUPABASE_SERVICE_ROLE_KEY").ok().filter(|s| !s.is_empty())?;
+        let base_url = std::env::var("SUPABASE_URL")
+            .ok()
+            .filter(|s| !s.is_empty())?;
+        let key = std::env::var("SUPABASE_SERVICE_ROLE_KEY")
+            .ok()
+            .filter(|s| !s.is_empty())?;
         Some(Self::new(&base_url, &key))
     }
 
@@ -117,10 +121,7 @@ impl VaultClient {
         let text = resp.text().await?;
 
         if !status.is_success() {
-            return Err(VaultError::Vault(format!(
-                "HTTP {}: {}",
-                status, text
-            )));
+            return Err(VaultError::Vault(format!("HTTP {}: {}", status, text)));
         }
 
         // Try parsing as error response first
@@ -159,10 +160,7 @@ mod tests {
         let headers = client.headers();
         assert_eq!(headers.get("apikey").unwrap(), "my-key");
         assert_eq!(headers.get(AUTHORIZATION).unwrap(), "Bearer my-key");
-        assert_eq!(
-            headers.get(CONTENT_TYPE).unwrap(),
-            "application/json"
-        );
+        assert_eq!(headers.get(CONTENT_TYPE).unwrap(), "application/json");
     }
 
     #[test]
@@ -187,7 +185,10 @@ mod tests {
             "updated_at": "2025-01-01T00:00:00Z"
         }"#;
         let resp: VaultSecretResponse = serde_json::from_str(json).unwrap();
-        assert_eq!(resp.decrypted_secret, "MTIzNDU2Nzg5MDEyMzQ1Njc4OQ.example.token");
+        assert_eq!(
+            resp.decrypted_secret,
+            "MTIzNDU2Nzg5MDEyMzQ1Njc4OQ.example.token"
+        );
         assert_eq!(resp.name, "service/discord-bot-token");
     }
 

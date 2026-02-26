@@ -1,5 +1,5 @@
-use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
 use reqwest::Client;
+use reqwest::header::{AUTHORIZATION, CONTENT_TYPE, HeaderMap, HeaderValue};
 
 /// Error type for Supabase operations.
 #[derive(Debug, thiserror::Error)]
@@ -119,6 +119,49 @@ impl SupabaseClient {
 
         Ok(resp)
     }
+
+    /// Call a Supabase RPC in a specific PostgreSQL schema.
+    ///
+    /// Sets `Content-Profile` and `Accept-Profile` headers so PostgREST
+    /// routes the call to the given schema (e.g. `"tracker"`).
+    pub async fn rpc_schema(
+        &self,
+        function: &str,
+        params: serde_json::Value,
+        schema: &str,
+    ) -> Result<reqwest::Response, SupabaseError> {
+        let url = format!("{}/rest/v1/rpc/{}", self.base_url, function);
+
+        let mut headers = self.default_headers();
+        if let Ok(val) = HeaderValue::from_str(schema) {
+            headers.insert("Content-Profile", val.clone());
+            headers.insert("Accept-Profile", val);
+        }
+
+        let resp = self
+            .client
+            .post(&url)
+            .headers(headers)
+            .json(&params)
+            .send()
+            .await?;
+
+        Ok(resp)
+    }
+
+    /// Create a Supabase client from environment variables.
+    ///
+    /// Reads `SUPABASE_URL` and `SUPABASE_SERVICE_ROLE_KEY`.
+    /// Returns `None` if either variable is missing or empty.
+    pub fn from_env() -> Option<Self> {
+        let base_url = std::env::var("SUPABASE_URL")
+            .ok()
+            .filter(|s| !s.is_empty())?;
+        let key = std::env::var("SUPABASE_SERVICE_ROLE_KEY")
+            .ok()
+            .filter(|s| !s.is_empty())?;
+        Some(Self::new(&base_url, &key))
+    }
 }
 
 /// Builder for constructing PostgREST queries.
@@ -145,65 +188,56 @@ impl QueryBuilder {
 
     /// Filter: column equals value.
     pub fn eq(mut self, column: &str, value: &str) -> Self {
-        self.filters
-            .push(format!("{}=eq.{}", column, value));
+        self.filters.push(format!("{}=eq.{}", column, value));
         self
     }
 
     /// Filter: column not equals value.
     pub fn neq(mut self, column: &str, value: &str) -> Self {
-        self.filters
-            .push(format!("{}=neq.{}", column, value));
+        self.filters.push(format!("{}=neq.{}", column, value));
         self
     }
 
     /// Filter: column greater than value.
     pub fn gt(mut self, column: &str, value: &str) -> Self {
-        self.filters
-            .push(format!("{}=gt.{}", column, value));
+        self.filters.push(format!("{}=gt.{}", column, value));
         self
     }
 
     /// Filter: column less than value.
     pub fn lt(mut self, column: &str, value: &str) -> Self {
-        self.filters
-            .push(format!("{}=lt.{}", column, value));
+        self.filters.push(format!("{}=lt.{}", column, value));
         self
     }
 
     /// Filter: column greater than or equal to value.
     pub fn gte(mut self, column: &str, value: &str) -> Self {
-        self.filters
-            .push(format!("{}=gte.{}", column, value));
+        self.filters.push(format!("{}=gte.{}", column, value));
         self
     }
 
     /// Filter: column less than or equal to value.
     pub fn lte(mut self, column: &str, value: &str) -> Self {
-        self.filters
-            .push(format!("{}=lte.{}", column, value));
+        self.filters.push(format!("{}=lte.{}", column, value));
         self
     }
 
     /// Filter: column matches pattern (case-sensitive).
     pub fn like(mut self, column: &str, pattern: &str) -> Self {
-        self.filters
-            .push(format!("{}=like.{}", column, pattern));
+        self.filters.push(format!("{}=like.{}", column, pattern));
         self
     }
 
     /// Filter: column matches pattern (case-insensitive).
     pub fn ilike(mut self, column: &str, pattern: &str) -> Self {
-        self.filters
-            .push(format!("{}=ilike.{}", column, pattern));
+        self.filters.push(format!("{}=ilike.{}", column, pattern));
         self
     }
 
     /// Filter: column value is in the provided list.
     pub fn in_list(mut self, column: &str, values: &[&str]) -> Self {
         let list = format!("({})", values.join(","));
-        self.filters
-            .push(format!("{}=in.{}", column, list));
+        self.filters.push(format!("{}=in.{}", column, list));
         self
     }
 
@@ -265,20 +299,12 @@ impl QueryBuilder {
     /// Execute a GET request (select/read).
     pub async fn execute(self) -> Result<reqwest::Response, SupabaseError> {
         let url = self.build_url();
-        let resp = self
-            .client
-            .get(&url)
-            .headers(self.headers)
-            .send()
-            .await?;
+        let resp = self.client.get(&url).headers(self.headers).send().await?;
         Ok(resp)
     }
 
     /// Execute a POST request (insert).
-    pub async fn insert(
-        self,
-        body: serde_json::Value,
-    ) -> Result<reqwest::Response, SupabaseError> {
+    pub async fn insert(self, body: serde_json::Value) -> Result<reqwest::Response, SupabaseError> {
         let url = self.build_url();
         let mut headers = self.headers;
         headers.insert("prefer", HeaderValue::from_static("return=representation"));
@@ -294,10 +320,7 @@ impl QueryBuilder {
     }
 
     /// Execute a PATCH request (update). Filters determine which rows to update.
-    pub async fn update(
-        self,
-        body: serde_json::Value,
-    ) -> Result<reqwest::Response, SupabaseError> {
+    pub async fn update(self, body: serde_json::Value) -> Result<reqwest::Response, SupabaseError> {
         let url = self.build_url();
         let mut headers = self.headers;
         headers.insert("prefer", HeaderValue::from_static("return=representation"));
@@ -364,20 +387,14 @@ mod tests {
     fn test_default_headers_auth_uses_apikey_when_no_jwt() {
         let client = test_client();
         let headers = client.default_headers();
-        assert_eq!(
-            headers.get(AUTHORIZATION).unwrap(),
-            "Bearer test-api-key"
-        );
+        assert_eq!(headers.get(AUTHORIZATION).unwrap(), "Bearer test-api-key");
     }
 
     #[test]
     fn test_default_headers_auth_uses_jwt_when_set() {
         let client = test_client().with_jwt("my-jwt");
         let headers = client.default_headers();
-        assert_eq!(
-            headers.get(AUTHORIZATION).unwrap(),
-            "Bearer my-jwt"
-        );
+        assert_eq!(headers.get(AUTHORIZATION).unwrap(), "Bearer my-jwt");
     }
 
     #[test]
@@ -538,5 +555,13 @@ mod tests {
     fn test_supabase_error_display() {
         let err = SupabaseError::Config("missing url".to_string());
         assert_eq!(err.to_string(), "Missing configuration: missing url");
+    }
+
+    #[test]
+    fn test_from_env_returns_none_without_vars() {
+        // Env vars won't be set in test, so from_env should return None
+        std::env::remove_var("SUPABASE_URL");
+        std::env::remove_var("SUPABASE_SERVICE_ROLE_KEY");
+        assert!(SupabaseClient::from_env().is_none());
     }
 }

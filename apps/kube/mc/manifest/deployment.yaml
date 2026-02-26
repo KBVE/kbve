@@ -26,6 +26,11 @@ spec:
                   image: ghcr.io/kbve/mc:0.1.1
                   imagePullPolicy: Always
                   command: ['/bin/pumpkin']
+                  env:
+                      - name: RUST_LOG
+                        value: 'debug'
+                      - name: RUST_BACKTRACE
+                        value: '1'
                   ports:
                       - name: java
                         containerPort: 25565
@@ -55,10 +60,10 @@ spec:
                   resources:
                       requests:
                           memory: '1Gi'
-                          cpu: '1000m'
+                          cpu: '4000m'
                       limits:
                           memory: '4Gi'
-                          cpu: '4000m'
+                          cpu: '8000m'
                   livenessProbe:
                       tcpSocket:
                           port: java

@@ -1,0 +1,74 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: rentearth-deployment
+    namespace: rentearth
+    labels:
+        app: rentearth
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: rentearth
+    template:
+        metadata:
+            annotations:
+                rollout-restart: '2026-01-12T02:11:58Z'
+            labels:
+                app: rentearth
+                version: '1.0.18'
+        spec:
+            containers:
+                - name: rentearth
+                  image: ghcr.io/kbve/rentearth:1.0.18
+                  imagePullPolicy: Always
+                  ports:
+                      - containerPort: 4321
+                        protocol: TCP
+                  env:
+                      - name: PORT
+                        value: '4321'
+                      - name: SUPABASE_URL
+                        value: 'http://kong.kilobase.svc.cluster.local:8000'
+                      - name: SUPABASE_ANON_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: anon-key
+                      - name: SUPABASE_SERVICE_ROLE_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: supabase-shared
+                                key: service-role-key
+                      # IRC configuration - connects to Ergo IRC server in cluster
+                      - name: IRC_ENABLED
+                        value: 'true'
+                      - name: IRC_SERVER
+                        value: 'ergo-irc-service.irc.svc.cluster.local'
+                      - name: IRC_NICKNAME
+                        value: 'RentEarthBot'
+                      - name: IRC_CHANNEL
+                        value: '#general'
+                  resources:
+                      requests:
+                          memory: '512Mi'
+                          cpu: '2000m'
+                      limits:
+                          memory: '1024Mi'
+                          cpu: '4000m'
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: rentearth-service
+    namespace: rentearth
+    labels:
+        app: rentearth
+spec:
+    type: ClusterIP
+    selector:
+        app: rentearth
+    ports:
+        - port: 4321
+          targetPort: 4321
+          protocol: TCP

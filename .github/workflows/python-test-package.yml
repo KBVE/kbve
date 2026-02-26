@@ -54,3 +54,15 @@ jobs:
 
             - name: Nx e2e ${{ inputs.project }}
               run: pnpm nx e2e ${{ inputs.project }} --no-cloud
+
+            - name: Mark test passed
+              if: success()
+              run: echo "passed" > /tmp/test-result.txt
+
+            - name: Upload test result marker
+              if: success()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: test-passed-python-${{ inputs.project }}
+                  path: /tmp/test-result.txt
+                  retention-days: 1
