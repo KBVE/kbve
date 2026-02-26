@@ -82,8 +82,11 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
             player.send_system_message(&uuid_msg).await;
 
             // Dev: give one of every custom item on join
+            // Skip potion items — Pumpkin's entity metadata sync for PotionContents
+            // crashes the vanilla client (set_entity_data index 18 OOB).
             let stacks: Vec<ItemStack> = ITEM_REGISTRY
                 .iter()
+                .filter(|entry| entry.value().potion.is_none())
                 .filter_map(|entry| build_item_stack(entry.value()))
                 .collect();
             let given = stacks.len();

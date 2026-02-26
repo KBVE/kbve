@@ -1,8 +1,10 @@
 # Dockerfile.dev — fast incremental builds for local development
 # Usage:
 #   docker build -f Dockerfile.dev -t kbve-mc:dev .
-#   docker run -p 25565:25565 -p 8080:8080 -p 25575:25575 kbve-mc:dev
+#   docker run -p 25565:25565 -p 8080:8080 -p 25575:25575 \
+#     -v $PWD/logs:/pumpkin/logs kbve-mc:dev
 #
+# Logs are written to the mounted logs/ directory (gitignored).
 # Rebuild after code changes (incremental, seconds not minutes):
 #   docker build -f Dockerfile.dev -t kbve-mc:dev .
 
@@ -56,8 +58,11 @@ COPY ./data/server_icon.png /pumpkin/server_icon.png
 COPY --from=pack-builder /kbve-resource-pack.zip /pumpkin/resource-pack.zip
 COPY --from=pack-builder /features.toml /pumpkin/config/features.toml
 
-COPY ./entrypoint.sh /entrypoint.sh
+COPY ./entrypoint.dev.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
+
+# Create logs dir inside the image (mountable at runtime)
+RUN mkdir -p /pumpkin/logs
 
 RUN apk add --no-cache libgcc && chown -R 2613:2613 .
 
