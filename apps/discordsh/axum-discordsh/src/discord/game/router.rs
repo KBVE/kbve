@@ -1,5 +1,5 @@
 use poise::serenity_prelude as serenity;
-use tracing::info;
+use tracing::{error, info};
 
 use crate::discord::bot::{Data, Error};
 
@@ -99,33 +99,59 @@ pub async fn handle_game_component(
 
     // Acknowledge immediately so Discord knows we received the interaction.
     // This prevents "Unknown interaction" errors when processing takes time.
-    component
+    if let Err(e) = component
         .create_response(&ctx.http, serenity::CreateInteractionResponse::Acknowledge)
-        .await?;
+        .await
+    {
+        error!(
+            error = %e,
+            session = sid,
+            user = %actor,
+            action = ?action,
+            "Failed to acknowledge game interaction"
+        );
+        return Err(e.into());
+    }
 
     // Apply action (now safe — we already acknowledged the interaction)
-    match logic::apply_action(&mut session, action, actor) {
+    match logic::apply_action(&mut session, action.clone(), actor) {
         Ok(_logs) => {
             // Render updated embed + components
             let embed = render::render_embed(&session);
             let components = render::render_components(&session);
 
-            component
+            if let Err(e) = component
                 .edit_response(
                     &ctx.http,
                     serenity::EditInteractionResponse::new()
                         .embed(embed)
                         .components(components),
                 )
-                .await?;
+                .await
+            {
+                error!(
+                    error = %e,
+                    session = sid,
+                    action = ?action,
+                    "Failed to send game interaction response"
+                );
+            }
         }
         Err(msg) => {
-            component
+            if let Err(e) = component
                 .edit_response(
                     &ctx.http,
                     serenity::EditInteractionResponse::new().content(msg),
                 )
-                .await?;
+                .await
+            {
+                error!(
+                    error = %e,
+                    session = sid,
+                    action = ?action,
+                    "Failed to send game error response"
+                );
+            }
         }
     }
 

@@ -1,5 +1,5 @@
 use poise::serenity_prelude as serenity;
-use tracing::info;
+use tracing::{error, info, warn};
 
 use crate::discord::bot::{Data, Error};
 use crate::discord::embeds::{StatusSnapshot, StatusState, build_status_embed};
@@ -75,14 +75,22 @@ pub async fn handle_status_component(
             let embed = build_status_embed(&snap);
             let components = vec![build_status_action_row()];
 
-            interaction
+            if let Err(e) = interaction
                 .edit_response(
                     &ctx.http,
                     serenity::EditInteractionResponse::new()
                         .embed(embed)
                         .components(components),
                 )
-                .await?;
+                .await
+            {
+                error!(
+                    error = %e,
+                    user = %interaction.user.name,
+                    "Failed to update status embed after refresh"
+                );
+                return Err(e.into());
+            }
 
             Ok(true)
         }
@@ -144,9 +152,13 @@ pub async fn handle_status_component(
 
                 let count = to_delete.len();
                 if count > 1 {
-                    let _ = thread_id.delete_messages(&http, &to_delete).await;
+                    if let Err(e) = thread_id.delete_messages(&http, &to_delete).await {
+                        tracing::warn!(error = %e, count, "Failed to bulk-delete thread messages");
+                    }
                 } else if count == 1 {
-                    let _ = thread_id.delete_message(&http, to_delete[0]).await;
+                    if let Err(e) = thread_id.delete_message(&http, to_delete[0]).await {
+                        tracing::warn!(error = %e, "Failed to delete thread message");
+                    }
                 }
                 info!(deleted = count, "Thread cleanup complete");
             });

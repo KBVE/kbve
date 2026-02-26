@@ -1,68 +1,68 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: discordsh
-  namespace: discordsh
-  labels:
-    app: discordsh
-    tier: frontend
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: discordsh
-  template:
-    metadata:
-      labels:
+    name: discordsh
+    namespace: discordsh
+    labels:
         app: discordsh
         tier: frontend
-    spec:
-      serviceAccountName: discordsh-sa
-      containers:
-      - name: discordsh
-        image: ghcr.io/kbve/discordsh:0.1.11
-        imagePullPolicy: Always
-        ports:
-        - name: http
-          containerPort: 4321
-          protocol: TCP
-        envFrom:
-        - configMapRef:
-            name: discordsh-config
-        - secretRef:
-            name: discordsh-redis-secret
-        env:
-        - name: REDIS_HOST
-          value: "redis-master.redis.svc.cluster.local"
-        - name: REDIS_PORT
-          value: "6379"
-        - name: SUPABASE_URL
-          value: "http://kong.kilobase.svc.cluster.local:8000"
-        - name: SUPABASE_SERVICE_ROLE_KEY
-          valueFrom:
-            secretKeyRef:
-              name: discordsh-supabase-shared
-              key: service-role-key
-        resources:
-          requests:
-            memory: "256Mi"
-            cpu: "100m"
-          limits:
-            memory: "512Mi"
-            cpu: "500m"
-        livenessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 30
-          periodSeconds: 10
-          timeoutSeconds: 5
-          failureThreshold: 3
-        readinessProbe:
-          httpGet:
-            path: /health
-            port: http
-          initialDelaySeconds: 10
-          periodSeconds: 5
-          timeoutSeconds: 3
-          failureThreshold: 3
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: discordsh
+    template:
+        metadata:
+            labels:
+                app: discordsh
+                tier: frontend
+        spec:
+            serviceAccountName: discordsh-sa
+            containers:
+                - name: discordsh
+                  image: ghcr.io/kbve/discordsh:0.1.11
+                  imagePullPolicy: Always
+                  ports:
+                      - name: http
+                        containerPort: 4321
+                        protocol: TCP
+                  envFrom:
+                      - configMapRef:
+                            name: discordsh-config
+                      - secretRef:
+                            name: discordsh-redis-secret
+                  env:
+                      - name: REDIS_HOST
+                        value: 'redis-master.redis.svc.cluster.local'
+                      - name: REDIS_PORT
+                        value: '6379'
+                      - name: SUPABASE_URL
+                        value: 'http://kong.kilobase.svc.cluster.local:8000'
+                      - name: SUPABASE_SERVICE_ROLE_KEY
+                        valueFrom:
+                            secretKeyRef:
+                                name: discordsh-supabase-shared
+                                key: service-role-key
+                  resources:
+                      requests:
+                          memory: '256Mi'
+                          cpu: '100m'
+                      limits:
+                          memory: '512Mi'
+                          cpu: '500m'
+                  livenessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 30
+                      periodSeconds: 10
+                      timeoutSeconds: 5
+                      failureThreshold: 3
+                  readinessProbe:
+                      httpGet:
+                          path: /health
+                          port: http
+                      initialDelaySeconds: 10
+                      periodSeconds: 5
+                      timeoutSeconds: 3
+                      failureThreshold: 3
