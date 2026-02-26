@@ -1,6 +1,6 @@
 {
 	"name": "@kbve/astro",
-	"version": "0.1.0",
+	"version": "0.1.1",
 	"description": "Unified Astro component library with React support and @kbve/droid integration",
 	"keywords": [
 		"astro",
