@@ -23,7 +23,7 @@ spec:
                 fsGroup: 2613
             containers:
                 - name: mc
-                  image: ghcr.io/kbve/mc:0.1.1
+                  image: ghcr.io/kbve/mc:0.1.3
                   imagePullPolicy: Always
                   command: ['/bin/pumpkin']
                   env:
