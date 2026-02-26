@@ -1,0 +1,277 @@
+name: MC - Headless E2E
+
+on:
+    workflow_dispatch:
+        inputs:
+            mc_version:
+                description: 'Minecraft client version (must match Pumpkin protocol version)'
+                required: true
+                default: '1.21.10'
+                type: string
+            remote_server:
+                description: 'Optional remote server address (host:port) for additional E2E test'
+                required: false
+                default: ''
+                type: string
+            branch:
+                description: 'Branch to build the dev image from'
+                required: false
+                default: 'dev'
+                type: string
+
+concurrency:
+    group: mc-headless-e2e-${{ github.ref }}
+    cancel-in-progress: true
+
+permissions: {}
+
+env:
+    HMC_VERSION: '2.7.0'
+    HMC_SPECIFICS_VERSION: '1.7.0'
+
+jobs:
+    headless-e2e:
+        name: 'MC Headless Client E2E'
+        runs-on: ubuntu-latest
+        timeout-minutes: 25
+        permissions:
+            contents: read
+
+        steps:
+            # ── Checkout & Build ─────────────────────────────────────────
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  ref: ${{ inputs.branch }}
+                  submodules: true
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build MC dev image
+              uses: docker/build-push-action@v6
+              with:
+                  context: apps/mc
+                  file: apps/mc/Dockerfile.dev
+                  push: false
+                  load: true
+                  tags: kbve/mc:e2e
+                  cache-from: type=gha,scope=mc-e2e
+                  cache-to: type=gha,scope=mc-e2e,mode=max
+
+            # ── Start Pumpkin Server ─────────────────────────────────────
+            - name: Create offline test config
+              run: |
+                  cp apps/mc/data/config/configuration.toml /tmp/configuration.toml
+                  sed -i 's/online_mode = true/online_mode = false/' /tmp/configuration.toml
+                  sed -i 's/encryption = true/encryption = false/' /tmp/configuration.toml
+                  echo "--- Test configuration ---"
+                  cat /tmp/configuration.toml
+
+            - name: Start Pumpkin server
+              run: |
+                  docker run -d \
+                    --name mc-e2e-pumpkin \
+                    -p 25565:25565 \
+                    -p 8080:8080 \
+                    -p 25575:25575 \
+                    -v /tmp/configuration.toml:/pumpkin/config/configuration.toml:ro \
+                    kbve/mc:e2e
+
+            - name: Wait for server ready
+              run: |
+                  echo "Waiting for Pumpkin server on port 25565..."
+                  for i in $(seq 1 40); do
+                    if nc -z 127.0.0.1 25565 2>/dev/null; then
+                      echo "Server is ready after ${i}s"
+                      break
+                    fi
+                    if [ "$i" -eq 40 ]; then
+                      echo "Server failed to start within 40s"
+                      docker logs mc-e2e-pumpkin
+                      exit 1
+                    fi
+                    sleep 1
+                  done
+                  sleep 3
+                  echo "=== Server startup logs ==="
+                  docker logs mc-e2e-pumpkin 2>&1
+
+            # ── Setup HeadlessMC ─────────────────────────────────────────
+            - name: Setup Java 21
+              uses: actions/setup-java@v4
+              with:
+                  distribution: 'temurin'
+                  java-version: '21'
+
+            - name: Download HeadlessMC
+              run: |
+                  mkdir -p HeadlessMC
+                  curl -sfL \
+                    "https://github.com/headlesshq/headlessmc/releases/download/${HMC_VERSION}/headlessmc-launcher-${HMC_VERSION}.jar" \
+                    -o HeadlessMC/headlessmc-launcher.jar
+                  ls -la HeadlessMC/headlessmc-launcher.jar
+
+            - name: Configure HeadlessMC
+              run: |
+                  cd HeadlessMC
+                  cat > config.properties << EOF
+                  hmc.java.versions=$JAVA_HOME/bin/java
+                  hmc.gamedir=$PWD/run
+                  hmc.offline=true
+                  hmc.rethrow.launch.exceptions=true
+                  hmc.exit.on.failed.command=true
+                  hmc.assets.dummy=true
+                  EOF
+
+                  mkdir -p run
+                  cat > run/options.txt << 'OPTS'
+                  onboardAccessibility:false
+                  pauseOnLostFocus:false
+                  OPTS
+
+            - name: Download Minecraft + Fabric
+              run: |
+                  cd HeadlessMC
+                  MC="${{ inputs.mc_version }}"
+
+                  echo "Downloading Minecraft ${MC}..."
+                  java -jar headlessmc-launcher.jar --command download "$MC"
+
+                  echo "Installing Fabric for ${MC}..."
+                  java -jar headlessmc-launcher.jar --command fabric "$MC"
+
+                  echo "Installed versions:"
+                  java -jar headlessmc-launcher.jar --command list
+
+            - name: Download hmc-specifics
+              run: |
+                  cd HeadlessMC
+                  mkdir -p run/mods
+
+                  echo "Downloading hmc-specifics ${HMC_SPECIFICS_VERSION}..."
+                  curl -sfL \
+                    "https://github.com/headlesshq/hmc-specifics/releases/download/${HMC_SPECIFICS_VERSION}/hmc-specifics-${HMC_SPECIFICS_VERSION}-fabric.jar" \
+                    -o run/mods/hmc-specifics.jar \
+                    || {
+                      echo "Direct download failed, trying GitHub API..."
+                      ASSET_URL=$(curl -s "https://api.github.com/repos/headlesshq/hmc-specifics/releases/tags/${HMC_SPECIFICS_VERSION}" \
+                        | jq -r '.assets[] | select(.name | contains("fabric")) | .browser_download_url' \
+                        | head -1)
+                      if [ -n "$ASSET_URL" ] && [ "$ASSET_URL" != "null" ]; then
+                        curl -sfL "$ASSET_URL" -o run/mods/hmc-specifics.jar
+                      else
+                        echo "Could not find hmc-specifics Fabric jar for version ${HMC_SPECIFICS_VERSION}"
+                        echo "Available releases:"
+                        curl -s "https://api.github.com/repos/headlesshq/hmc-specifics/releases?per_page=5" \
+                          | jq -r '.[].tag_name'
+                        exit 1
+                      fi
+                    }
+
+                  ls -la run/mods/
+
+            # ── Local E2E: Connect to Pumpkin ────────────────────────────
+            - name: Create local test script
+              run: |
+                  cd HeadlessMC
+                  MC="${{ inputs.mc_version }}"
+
+                  cat > run/hmc-local-test.json << 'TEST'
+                  {
+                    "name": "Pumpkin Local E2E",
+                    "steps": [
+                      {
+                        "type": "SEND",
+                        "message": "connect 127.0.0.1 25565",
+                        "timeout": 30
+                      },
+                      {
+                        "type": "SEND",
+                        "message": "disconnect",
+                        "timeout": 15
+                      }
+                    ]
+                  }
+                  TEST
+
+                  echo "hmc.test.filename=run/hmc-local-test.json" >> config.properties
+
+            - name: 'E2E: Connect headless client to local Pumpkin'
+              run: |
+                  cd HeadlessMC
+                  MC="${{ inputs.mc_version }}"
+
+                  echo "Launching headless Minecraft ${MC} (Fabric) → 127.0.0.1:25565"
+                  java -jar headlessmc-launcher.jar \
+                    --command launch ".*fabric.*${MC}.*" -regex \
+                    -lwjgl \
+                    -specifics \
+                    --jvm "-Djava.awt.headless=true"
+
+                  echo "Local E2E: headless client connected and disconnected successfully"
+
+            # ── Remote E2E (optional) ────────────────────────────────────
+            - name: 'E2E: Connect headless client to remote server'
+              if: inputs.remote_server != ''
+              run: |
+                  cd HeadlessMC
+                  MC="${{ inputs.mc_version }}"
+                  REMOTE="${{ inputs.remote_server }}"
+                  HOST="${REMOTE%%:*}"
+                  PORT="${REMOTE##*:}"
+                  # Default to 25565 if no port specified
+                  if [ "$HOST" = "$PORT" ]; then
+                    PORT="25565"
+                  fi
+
+                  echo "Creating remote test for ${HOST}:${PORT}..."
+                  cat > run/hmc-remote-test.json << RTEST
+                  {
+                    "name": "Pumpkin Remote E2E",
+                    "steps": [
+                      {
+                        "type": "SEND",
+                        "message": "connect ${HOST} ${PORT}",
+                        "timeout": 30
+                      },
+                      {
+                        "type": "SEND",
+                        "message": "disconnect",
+                        "timeout": 15
+                      }
+                    ]
+                  }
+                  RTEST
+
+                  # Swap test file
+                  sed -i 's|hmc.test.filename=.*|hmc.test.filename=run/hmc-remote-test.json|' config.properties
+
+                  echo "Launching headless Minecraft ${MC} (Fabric) → ${HOST}:${PORT}"
+                  java -jar headlessmc-launcher.jar \
+                    --command launch ".*fabric.*${MC}.*" -regex \
+                    -lwjgl \
+                    -specifics \
+                    --jvm "-Djava.awt.headless=true"
+
+                  echo "Remote E2E: headless client connected and disconnected successfully"
+
+            # ── Collect Results ───────────────────────────────────────────
+            - name: Dump server logs
+              if: always()
+              run: |
+                  docker logs mc-e2e-pumpkin > /tmp/pumpkin-server.log 2>&1 || true
+                  echo "=== Final server logs (last 50 lines) ==="
+                  tail -50 /tmp/pumpkin-server.log || true
+
+            - name: Upload server logs
+              if: always()
+              uses: actions/upload-artifact@v4
+              with:
+                  name: pumpkin-headless-e2e-logs
+                  path: /tmp/pumpkin-server.log
+                  retention-days: 7
+
+            - name: Cleanup
+              if: always()
+              run: docker rm -f mc-e2e-pumpkin 2>/dev/null || true
