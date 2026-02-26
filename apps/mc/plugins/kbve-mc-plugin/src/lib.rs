@@ -81,6 +81,20 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
             player.send_system_message(&welcome).await;
             player.send_system_message(&uuid_msg).await;
 
+            // Dev: give one of every custom item on join
+            let stacks: Vec<ItemStack> = ITEM_REGISTRY
+                .iter()
+                .filter_map(|entry| build_item_stack(entry.value()))
+                .collect();
+            let given = stacks.len();
+            for mut stack in stacks {
+                player.inventory().insert_stack_anywhere(&mut stack).await;
+                if !stack.is_empty() {
+                    player.drop_item(stack).await;
+                }
+            }
+            eprintln!("[kbve-mc-plugin] Auto-gave {given} custom items to {name}");
+
             // For first-time players, ensure they spawn on solid ground (not ocean).
             // Pumpkin defaults world spawn to (0, y, 0) which is often ocean.
             // We check the world spawn surface block (not player position, since
@@ -178,6 +192,80 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
             }
         })
     }
+}
+
+// ---------------------------------------------------------------------------
+// Item helpers
+// ---------------------------------------------------------------------------
+
+/// Build an `ItemStack` from an `ItemDef`. Returns `None` if the base item
+/// key is not in the vanilla registry.
+fn build_item_stack(def: &ItemDef) -> Option<ItemStack> {
+    let item = Item::from_registry_key(def.base_item_key)?;
+    let mut stack = ItemStack::new(1, item);
+
+    stack.patch.push((
+        DataComponent::ItemModel,
+        Some(
+            ItemModelImpl {
+                model: def.model.to_string(),
+            }
+            .to_dyn(),
+        ),
+    ));
+    stack.patch.push((
+        DataComponent::CustomName,
+        Some(
+            CustomNameImpl {
+                name: def.display_name.to_string(),
+            }
+            .to_dyn(),
+        ),
+    ));
+
+    if let Some(max_dmg) = def.max_damage {
+        stack.patch.push((
+            DataComponent::MaxDamage,
+            Some(
+                MaxDamageImpl {
+                    max_damage: max_dmg,
+                }
+                .to_dyn(),
+            ),
+        ));
+        stack.patch.push((
+            DataComponent::Damage,
+            Some(DamageImpl { damage: 0 }.to_dyn()),
+        ));
+    }
+
+    if let Some(potion) = &def.potion {
+        stack.patch.push((
+            DataComponent::PotionContents,
+            Some(
+                PotionContentsImpl {
+                    potion_id: None,
+                    custom_color: Some(potion.custom_color),
+                    custom_effects: potion
+                        .effects
+                        .iter()
+                        .map(|&(effect_id, amplifier, duration)| StatusEffectInstance {
+                            effect_id,
+                            amplifier,
+                            duration,
+                            ambient: false,
+                            show_particles: true,
+                            show_icon: true,
+                        })
+                        .collect(),
+                    custom_name: Some(def.display_name.to_string()),
+                }
+                .to_dyn(),
+            ),
+        ));
+    }
+
+    Some(stack)
 }
 
 // ---------------------------------------------------------------------------
@@ -599,76 +687,14 @@ impl CommandExecutor for GiveItemExecutor {
                 .ok_or_else(|| CommandError::CommandFailed(TextComponent::text("Unknown item")))?;
 
             let targets = PlayersArgumentConsumer.find_arg_default_name(args)?;
-            let item = Item::from_registry_key(def.base_item_key).ok_or_else(|| {
-                CommandError::CommandFailed(TextComponent::text(format!(
-                    "{} not found",
-                    def.base_item_key
-                )))
-            })?;
 
             for target in targets {
-                let mut stack = ItemStack::new(1, item);
-                stack.patch.push((
-                    DataComponent::ItemModel,
-                    Some(
-                        ItemModelImpl {
-                            model: def.model.to_string(),
-                        }
-                        .to_dyn(),
-                    ),
-                ));
-                stack.patch.push((
-                    DataComponent::CustomName,
-                    Some(
-                        CustomNameImpl {
-                            name: def.display_name.to_string(),
-                        }
-                        .to_dyn(),
-                    ),
-                ));
-
-                if let Some(max_dmg) = def.max_damage {
-                    stack.patch.push((
-                        DataComponent::MaxDamage,
-                        Some(
-                            MaxDamageImpl {
-                                max_damage: max_dmg,
-                            }
-                            .to_dyn(),
-                        ),
-                    ));
-                    stack.patch.push((
-                        DataComponent::Damage,
-                        Some(DamageImpl { damage: 0 }.to_dyn()),
-                    ));
-                }
-
-                // Potion items: attach custom effects from the registry
-                if let Some(potion) = &def.potion {
-                    stack.patch.push((
-                        DataComponent::PotionContents,
-                        Some(
-                            PotionContentsImpl {
-                                potion_id: None,
-                                custom_color: Some(potion.custom_color),
-                                custom_effects: potion
-                                    .effects
-                                    .iter()
-                                    .map(|&(effect_id, amplifier, duration)| StatusEffectInstance {
-                                        effect_id,
-                                        amplifier,
-                                        duration,
-                                        ambient: false,
-                                        show_particles: true,
-                                        show_icon: true,
-                                    })
-                                    .collect(),
-                                custom_name: Some(def.display_name.to_string()),
-                            }
-                            .to_dyn(),
-                        ),
-                    ));
-                }
+                let mut stack = build_item_stack(&def).ok_or_else(|| {
+                    CommandError::CommandFailed(TextComponent::text(format!(
+                        "{} not found",
+                        def.base_item_key
+                    )))
+                })?;
 
                 target.inventory().insert_stack_anywhere(&mut stack).await;
                 if !stack.is_empty() {
