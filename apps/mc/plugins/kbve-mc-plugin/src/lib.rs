@@ -15,6 +15,7 @@ use pumpkin::entity::EntityBase;
 use pumpkin::plugin::api::Context;
 use pumpkin::plugin::player::player_death::PlayerDeathEvent;
 use pumpkin::plugin::player::player_interact_entity_event::PlayerInteractEntityEvent;
+use pumpkin::plugin::player::player_interact_event::PlayerInteractEvent;
 use pumpkin::plugin::player::player_join::PlayerJoinEvent;
 use pumpkin::plugin::player::player_respawn::PlayerRespawnEvent;
 use pumpkin::plugin::{BoxFuture, EventHandler, EventPriority};
@@ -232,6 +233,18 @@ static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|
             display_name: "Rust Stone",
             message_color: NamedColor::Red,
             particle: Some((Particle::Flame, 15)),
+            max_damage: None,
+            potion: None,
+        },
+    );
+    map.insert(
+        "scythe",
+        ItemDef {
+            base_item_key: "iron_hoe",
+            model: "kbve:kbve_scythe",
+            display_name: "KBVE Scythe",
+            message_color: NamedColor::DarkGray,
+            particle: Some((Particle::Smoke, 8)),
             max_damage: None,
             potion: None,
         },
@@ -488,6 +501,80 @@ static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|
         },
     );
 
+    // -----------------------------------------------------------------------
+    // Orbital Strike weapons
+    // -----------------------------------------------------------------------
+
+    // Orbital Strike Cannon A: sci-fi cannon variant
+    // 10 uses before breaking
+    map.insert(
+        "orbital_cannon_a",
+        ItemDef {
+            base_item_key: "blaze_rod",
+            model: "kbve:orbital_cannon_a",
+            display_name: "Orbital Strike Cannon (Vanguard)",
+            message_color: NamedColor::Aqua,
+            particle: Some((Particle::SonicBoom, 5)),
+            max_damage: Some(10),
+            potion: None,
+        },
+    );
+
+    // Orbital Strike Cannon B: fiery rod variant
+    map.insert(
+        "orbital_cannon_b",
+        ItemDef {
+            base_item_key: "blaze_rod",
+            model: "kbve:orbital_cannon_b",
+            display_name: "Orbital Strike Cannon (Inferno)",
+            message_color: NamedColor::Red,
+            particle: Some((Particle::SonicBoom, 5)),
+            max_damage: Some(10),
+            potion: None,
+        },
+    );
+
+    // Orbital Strike Potion A: blue arcane variant
+    // Full thrown-on-impact behavior requires Pumpkin-side ProjectileHitEvent.
+    map.insert(
+        "orbital_strike_potion_a",
+        ItemDef {
+            base_item_key: "splash_potion",
+            model: "kbve:orbital_strike_potion_a",
+            display_name: "Orbital Strike Potion (Arcane)",
+            message_color: NamedColor::Aqua,
+            particle: Some((Particle::ExplosionEmitter, 3)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0x00CCFF, // cyan-blue
+                effects: &[
+                    (4, 2, 100),  // Strength III (5s) — brief power surge
+                    (23, 0, 200), // Glowing (10s) — marks nearby targets
+                ],
+            }),
+        },
+    );
+
+    // Orbital Strike Potion B: fiery red variant
+    map.insert(
+        "orbital_strike_potion_b",
+        ItemDef {
+            base_item_key: "splash_potion",
+            model: "kbve:orbital_strike_potion_b",
+            display_name: "Orbital Strike Potion (Inferno)",
+            message_color: NamedColor::DarkRed,
+            particle: Some((Particle::ExplosionEmitter, 3)),
+            max_damage: None,
+            potion: Some(PotionEffects {
+                custom_color: 0xFF2200, // fiery red-orange
+                effects: &[
+                    (4, 2, 100),  // Strength III (5s) — brief power surge
+                    (23, 0, 200), // Glowing (10s) — marks nearby targets
+                ],
+            }),
+        },
+    );
+
     map
 });
 
@@ -567,15 +654,13 @@ impl CommandExecutor for GiveItemExecutor {
                                 custom_effects: potion
                                     .effects
                                     .iter()
-                                    .map(|&(effect_id, amplifier, duration)| {
-                                        StatusEffectInstance {
-                                            effect_id,
-                                            amplifier,
-                                            duration,
-                                            ambient: false,
-                                            show_particles: true,
-                                            show_icon: true,
-                                        }
+                                    .map(|&(effect_id, amplifier, duration)| StatusEffectInstance {
+                                        effect_id,
+                                        amplifier,
+                                        duration,
+                                        ambient: false,
+                                        show_particles: true,
+                                        show_icon: true,
                                     })
                                     .collect(),
                                 custom_name: Some(def.display_name.to_string()),
@@ -775,6 +860,146 @@ impl EventHandler<PlayerRespawnEvent> for RespawnHandler {
 }
 
 // ---------------------------------------------------------------------------
+// Orbital strike handler — fires on right-click with cannon or potion
+// ---------------------------------------------------------------------------
+
+enum OrbitalWeapon {
+    Cannon,
+    Potion,
+}
+
+struct OrbitalStrikeHandler;
+
+impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
+    fn handle<'a>(
+        &'a self,
+        _server: &'a Arc<Server>,
+        event: &'a PlayerInteractEvent,
+    ) -> BoxFuture<'a, ()> {
+        let player = Arc::clone(&event.player);
+        let action = event.action.clone();
+        let item = Arc::clone(&event.item);
+        let clicked_pos = event.clicked_pos;
+
+        Box::pin(async move {
+            if !action.is_right_click() {
+                return;
+            }
+
+            // Check if held item is an orbital strike weapon
+            let weapon = {
+                let stack = item.lock().await;
+                match stack.get_data_component::<ItemModelImpl>() {
+                    Some(m)
+                        if m.model == "kbve:orbital_cannon_a"
+                            || m.model == "kbve:orbital_cannon_b" =>
+                    {
+                        Some(OrbitalWeapon::Cannon)
+                    }
+                    Some(m)
+                        if m.model == "kbve:orbital_strike_potion_a"
+                            || m.model == "kbve:orbital_strike_potion_b" =>
+                    {
+                        Some(OrbitalWeapon::Potion)
+                    }
+                    _ => None,
+                }
+            };
+
+            let Some(weapon) = weapon else {
+                return;
+            };
+
+            let world = player.world();
+
+            // Determine target X,Z from click or look direction
+            let (target_x, target_z) = if let Some(pos) = clicked_pos {
+                (pos.0.x as f64 + 0.5, pos.0.z as f64 + 0.5)
+            } else {
+                let eye = player.eye_position();
+                let dir = player.living_entity.entity.rotation();
+                let range = match weapon {
+                    OrbitalWeapon::Cannon => 100.0f64,
+                    OrbitalWeapon::Potion => 60.0f64,
+                };
+                (eye.x + dir.x as f64 * range, eye.z + dir.z as f64 * range)
+            };
+
+            // Find ground level at target
+            let surface_y = world
+                .get_top_block(Vector2::new(target_x as i32, target_z as i32))
+                .await;
+            let strike_pos = Vector3::new(target_x, f64::from(surface_y) + 1.0, target_z);
+
+            let power = match weapon {
+                OrbitalWeapon::Cannon => 6.0,
+                OrbitalWeapon::Potion => 4.0,
+            };
+
+            // --- Phase 1: Particle beam from sky to impact ---
+            let beam_top = strike_pos.y + 60.0;
+            for i in 0..30 {
+                let y = beam_top - (i as f64 * 2.0);
+                world
+                    .spawn_particle(
+                        Vector3::new(strike_pos.x, y, strike_pos.z),
+                        Vector3::new(0.1, 0.0, 0.1),
+                        0.02,
+                        3,
+                        Particle::EndRod,
+                    )
+                    .await;
+            }
+
+            // Smoke column at impact point
+            world
+                .spawn_particle(
+                    strike_pos,
+                    Vector3::new(2.0, 3.0, 2.0),
+                    0.05,
+                    40,
+                    Particle::LargeSmoke,
+                )
+                .await;
+
+            // --- Phase 2: Explosion ---
+            world.explode(strike_pos, power).await;
+
+            // Post-explosion shockwave particles
+            world
+                .spawn_particle(
+                    strike_pos,
+                    Vector3::new(3.0, 1.0, 3.0),
+                    0.1,
+                    15,
+                    Particle::SonicBoom,
+                )
+                .await;
+
+            // --- Phase 3: Degrade weapon ---
+            if matches!(weapon, OrbitalWeapon::Cannon) {
+                player.damage_held_item(1).await;
+            }
+            // Splash potion is consumed by vanilla throw mechanics
+
+            // --- Feedback ---
+            let msg = match weapon {
+                OrbitalWeapon::Cannon => "Orbital strike launched!",
+                OrbitalWeapon::Potion => "Orbital strike potion deployed!",
+            };
+            player
+                .send_system_message(&TextComponent::text(msg).color_named(NamedColor::Red).bold())
+                .await;
+
+            eprintln!(
+                "[kbve-mc-plugin] {} fired orbital strike at ({:.1}, {:.1}, {:.1}) power={power}",
+                player.gameprofile.name, strike_pos.x, strike_pos.y, strike_pos.z
+            );
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Axum resource pack server
 // ---------------------------------------------------------------------------
 
@@ -843,6 +1068,9 @@ impl KbveMcPlugin {
             .await;
         context
             .register_event(Arc::new(RespawnHandler), EventPriority::Normal, false)
+            .await;
+        context
+            .register_event(Arc::new(OrbitalStrikeHandler), EventPriority::Normal, false)
             .await;
         eprintln!("[kbve-mc-plugin] Event handlers registered");
 

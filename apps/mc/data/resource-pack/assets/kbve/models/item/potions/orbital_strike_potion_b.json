@@ -1,0 +1,6 @@
+{
+	"parent": "minecraft:item/generated",
+	"textures": {
+		"layer0": "kbve:item/potions/orbital_strike_potion_b"
+	}
+}
