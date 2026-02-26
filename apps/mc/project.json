@@ -130,7 +130,7 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"docker run --rm -p 25565:25565 -p 8080:8080 -p 25575:25575 kbve/mc:dev"
+					"mkdir -p apps/mc/logs && docker run --rm -p 25565:25565 -p 8080:8080 -p 25575:25575 -v $PWD/apps/mc/logs:/pumpkin/logs kbve/mc:dev"
 				],
 				"parallel": false
 			}
