@@ -22,6 +22,7 @@ use pumpkin_data::damage::DamageType;
 use pumpkin_data::data_component::DataComponent;
 use pumpkin_data::data_component_impl::{
     CustomNameImpl, DamageImpl, DataComponentImpl, ItemModelImpl, MaxDamageImpl,
+    PotionContentsImpl, StatusEffectInstance,
 };
 use pumpkin_data::item::Item;
 use pumpkin_data::particle::Particle;
@@ -236,6 +237,17 @@ static ITEM_REGISTRY: LazyLock<DashMap<&'static str, ItemDef>> = LazyLock::new(|
             max_damage: Some(200),
         },
     );
+    map.insert(
+        "evelyn_potion",
+        ItemDef {
+            base_item_key: "potion",
+            model: "kbve:evelyn_potion",
+            display_name: "Master Evelyn Healing Potion",
+            message_color: NamedColor::LightPurple,
+            particle: Some((Particle::Effect, 12)),
+            max_damage: None,
+        },
+    );
     map
 });
 
@@ -301,6 +313,39 @@ impl CommandExecutor for GiveItemExecutor {
                     stack.patch.push((
                         DataComponent::Damage,
                         Some(DamageImpl { damage: 0 }.to_dyn()),
+                    ));
+                }
+
+                // Potion items: attach custom effects
+                if def.base_item_key == "potion" {
+                    stack.patch.push((
+                        DataComponent::PotionContents,
+                        Some(
+                            PotionContentsImpl {
+                                potion_id: None,
+                                custom_color: Some(0xFF55FF), // magenta/purple
+                                custom_effects: vec![
+                                    StatusEffectInstance {
+                                        effect_id: 6,  // instant_health
+                                        amplifier: 1,  // level II
+                                        duration: 1,   // instant
+                                        ambient: false,
+                                        show_particles: true,
+                                        show_icon: true,
+                                    },
+                                    StatusEffectInstance {
+                                        effect_id: 10, // regeneration
+                                        amplifier: 0,  // level I
+                                        duration: 200, // 10 seconds
+                                        ambient: false,
+                                        show_particles: true,
+                                        show_icon: true,
+                                    },
+                                ],
+                                custom_name: Some(def.display_name.to_string()),
+                            }
+                            .to_dyn(),
+                        ),
                     ));
                 }
 
