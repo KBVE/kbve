@@ -53,6 +53,12 @@ subjects:
     - kind: ServiceAccount
       name: irc-gateway-external-secrets
       namespace: irc
+    - kind: ServiceAccount
+      name: rentearth-external-secrets
+      namespace: rentearth
+    - kind: ServiceAccount
+      name: mc-external-secrets
+      namespace: mc
 ---
 # Additional role for reading services/endpoints if needed
 apiVersion: rbac.authorization.k8s.io/v1

@@ -4,7 +4,7 @@ use std::time::Duration;
 use anyhow::Result;
 use kbve::entity::client::vault::VaultClient;
 use poise::serenity_prelude as serenity;
-use tracing::{info, warn};
+use tracing::{error, info, warn};
 
 use super::commands;
 use super::components;
@@ -75,10 +75,24 @@ async fn event_handler(
         serenity::FullEvent::InteractionCreate {
             interaction: serenity::Interaction::Component(component),
         } => {
-            if component.data.custom_id.starts_with("status_") {
-                components::handle_status_component(component, ctx, data).await?;
-            } else if component.data.custom_id.starts_with("dng|") {
-                super::game::router::handle_game_component(component, ctx, data).await?;
+            let custom_id = component.data.custom_id.clone();
+            let result = if custom_id.starts_with("status_") {
+                components::handle_status_component(component, ctx, data)
+                    .await
+                    .map(|_| ())
+            } else if custom_id.starts_with("dng|") {
+                super::game::router::handle_game_component(component, ctx, data).await
+            } else {
+                Ok(())
+            };
+            if let Err(e) = result {
+                error!(
+                    error = %e,
+                    error_debug = ?e,
+                    custom_id,
+                    user = %component.user.name,
+                    "Component interaction failed"
+                );
             }
         }
 
@@ -182,6 +196,17 @@ pub async fn start(app_state: Arc<AppState>) -> Result<()> {
             commands: commands::all(),
             event_handler: |ctx, event, framework, data| {
                 Box::pin(event_handler(ctx, event, framework, data))
+            },
+            on_error: |framework_error| {
+                Box::pin(async move {
+                    error!(
+                        error = %framework_error,
+                        "Poise framework error"
+                    );
+                    if let Err(e) = poise::builtins::on_error(framework_error).await {
+                        error!(error = %e, "Failed to handle poise error");
+                    }
+                })
             },
             ..Default::default()
         })

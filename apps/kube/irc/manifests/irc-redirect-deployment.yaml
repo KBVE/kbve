@@ -26,12 +26,16 @@ spec:
                       - name: html
                         mountPath: /usr/share/nginx/html
                         readOnly: true
+                      - name: nginx-conf
+                        mountPath: /etc/nginx/nginx.conf
+                        subPath: nginx.conf
+                        readOnly: true
                   resources:
                       requests:
                           memory: '16Mi'
                           cpu: '10m'
                       limits:
-                          memory: '32Mi'
+                          memory: '64Mi'
                           cpu: '50m'
                   livenessProbe:
                       httpGet:
@@ -49,6 +53,12 @@ spec:
                 - name: html
                   configMap:
                       name: irc-redirect-html
+                - name: nginx-conf
+                  configMap:
+                      name: irc-redirect-html
+                      items:
+                          - key: nginx.conf
+                            path: nginx.conf
 ---
 apiVersion: v1
 kind: Service
