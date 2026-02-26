@@ -1,6 +1,7 @@
 // Strategy for browsers without SharedWorker (Android, Safari)
 
 import type {
+	BroadcastEvent,
 	ISupabaseStrategy,
 	SelectOptions,
 	SessionResponse,
@@ -29,7 +30,7 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 			reject: (reason?: unknown) => void;
 		}
 	>();
-	private listeners = new Map<string, Set<(p: any) => void>>();
+	private listeners = new Map<string, Set<(p: unknown) => void>>();
 	private comm = getWorkerCommunication();
 	private wsWorkerUrl: string | URL;
 	private dbWorkerUrl: string | URL;
@@ -53,7 +54,7 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 	async init(
 		url: string,
 		anonKey: string,
-		options?: any,
+		options?: Record<string, unknown>,
 	): Promise<SessionResponse> {
 		console.log('[WebWorkerStrategy] Initializing...');
 
@@ -78,7 +79,7 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 		});
 
 		const poolInitPromises = Array.from({ length: this.poolSize }, () =>
-			this.workerPool!.send('init', { url, anonKey, options }),
+			this.workerPool?.send('init', { url, anonKey, options }),
 		);
 
 		await Promise.all([wsWorkerInit, ...poolInitPromises]);
@@ -90,33 +91,48 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 		return wsWorkerInit;
 	}
 
-	private onMessage(msg: any) {
-		if (msg?.type === 'ready' || msg?.type === 'auth') {
-			this.emit(msg.type, msg);
+	private onMessage(msg: unknown) {
+		const message = msg as
+			| (BroadcastEvent & {
+					id?: string;
+					ok?: boolean;
+					data?: unknown;
+					error?: string;
+					key?: string;
+			  })
+			| null
+			| undefined;
+		if (message?.type === 'ready' || message?.type === 'auth') {
+			this.emit(message.type, message);
 			return;
 		}
-		if (msg?.type === 'realtime' && msg.key) {
-			this.emit(`realtime:${msg.key}`, msg.payload);
+		if (message?.type === 'realtime' && message.key) {
+			this.emit(`realtime:${message.key}`, message.payload);
 			return;
 		}
-		if (msg?.type === 'ws.message') {
-			this.emit('ws.message', msg.data);
+		if (message?.type === 'ws.message') {
+			this.emit('ws.message', message.data);
 			return;
 		}
-		if (msg?.type === 'ws.status') {
-			this.emit('ws.status', msg);
+		if (message?.type === 'ws.status') {
+			this.emit('ws.status', message);
 			return;
 		}
 
-		const { id, ok, data, error } = msg ?? {};
+		const id = message?.id;
+		const ok = message?.ok;
+		const data = message?.data;
+		const error = message?.error;
 		if (id && this.pending.has(id)) {
-			const { resolve, reject } = this.pending.get(id)!;
+			const pending = this.pending.get(id);
+			if (!pending) return;
+			const { resolve, reject } = pending;
 			this.pending.delete(id);
 			ok ? resolve(data) : reject(new Error(error));
 		}
 	}
 
-	private send<T>(type: string, payload?: any): Promise<T> {
+	private send<T>(type: string, payload?: unknown): Promise<T> {
 		const id = crypto.randomUUID();
 		return new Promise<T>((resolve, reject) => {
 			if (!this.wsWorker)
@@ -129,11 +145,11 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 		});
 	}
 
-	on(event: string, callback: (payload: any) => void): () => void {
+	on(event: string, callback: (payload: unknown) => void): () => void {
 		if (!this.listeners.has(event)) {
 			this.listeners.set(event, new Set());
 		}
-		this.listeners.get(event)!.add(callback);
+		this.listeners.get(event)?.add(callback);
 
 		return () => {
 			const set = this.listeners.get(event);
@@ -144,7 +160,7 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 		};
 	}
 
-	private emit(event: string, payload: any) {
+	private emit(event: string, payload: unknown) {
 		this.listeners.get(event)?.forEach((cb) => cb(payload));
 	}
 
@@ -153,8 +169,14 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 		return this.send<SessionResponse>('getSession');
 	}
 
-	signInWithPassword(email: string, password: string): Promise<any> {
-		return this.send('signInWithPassword', { email, password });
+	signInWithPassword(
+		email: string,
+		password: string,
+	): Promise<SessionResponse> {
+		return this.send<SessionResponse>('signInWithPassword', {
+			email,
+			password,
+		});
 	}
 
 	signOut(): Promise<void> {
@@ -162,42 +184,42 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 	}
 
 	// Database (via worker pool)
-	select(table: string, opts?: SelectOptions): Promise<any> {
+	select(table: string, opts?: SelectOptions): Promise<unknown[]> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('from.select', { table, ...(opts ?? {}) });
 	}
 
 	insert(
 		table: string,
-		data: Record<string, any> | Record<string, any>[],
-	): Promise<any> {
+		data: Record<string, unknown> | Record<string, unknown>[],
+	): Promise<unknown[]> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('from.insert', { table, data });
 	}
 
 	update(
 		table: string,
-		data: Record<string, any>,
-		match: Record<string, any>,
-	): Promise<any> {
+		data: Record<string, unknown>,
+		match: Record<string, unknown>,
+	): Promise<unknown[]> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('from.update', { table, data, match });
 	}
 
 	upsert(
 		table: string,
-		data: Record<string, any> | Record<string, any>[],
-	): Promise<any> {
+		data: Record<string, unknown> | Record<string, unknown>[],
+	): Promise<unknown[]> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('from.upsert', { table, data });
 	}
 
-	delete(table: string, match: Record<string, any>): Promise<any> {
+	delete(table: string, match: Record<string, unknown>): Promise<unknown[]> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('from.delete', { table, match });
 	}
 
-	rpc(fn: string, args?: Record<string, any>): Promise<any> {
+	rpc(fn: string, args?: Record<string, unknown>): Promise<unknown> {
 		if (!this.workerPool) throw new Error('Worker pool not initialized');
 		return this.workerPool.send('rpc', { fn, args });
 	}
@@ -205,8 +227,8 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 	// Realtime (via WebSocket worker)
 	subscribePostgres(
 		key: string,
-		params: any,
-		callback: (payload: any) => void,
+		params: Record<string, unknown>,
+		callback: (payload: unknown) => void,
 	): () => void {
 		const off = this.on(`realtime:${key}`, callback);
 		this.send('realtime.subscribe', { key, params }).catch((e) => {
@@ -230,7 +252,7 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 		return this.send('ws.disconnect');
 	}
 
-	sendWebSocketMessage(data: any): Promise<void> {
+	sendWebSocketMessage(data: unknown): Promise<void> {
 		return this.send('ws.send', { data });
 	}
 
@@ -238,11 +260,11 @@ export class WebWorkerStrategy implements ISupabaseStrategy {
 		return this.send<WebSocketStatus>('ws.status');
 	}
 
-	onWebSocketMessage(callback: (message: any) => void): () => void {
+	onWebSocketMessage(callback: (message: unknown) => void): () => void {
 		return this.on('ws.message', callback);
 	}
 
-	onWebSocketStatus(callback: (status: any) => void): () => void {
+	onWebSocketStatus(callback: (status: WebSocketStatus) => void): () => void {
 		return this.on('ws.status', callback);
 	}
 

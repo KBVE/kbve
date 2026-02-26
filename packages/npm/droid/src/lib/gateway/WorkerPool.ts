@@ -141,7 +141,7 @@ export class WorkerPool {
 	/**
 	 * Send message to next available worker (round-robin)
 	 */
-	send<T>(type: string, payload?: any): Promise<T> {
+	send<T>(type: string, payload?: unknown): Promise<T> {
 		const workerId = this.getNextWorker();
 		const id = crypto.randomUUID();
 		const message: WorkerMessage = { id, type, payload };

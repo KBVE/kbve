@@ -23,17 +23,17 @@ spec:
                 fsGroup: 2613
             containers:
                 - name: mc
-                  image: ghcr.io/kbve/mc:latest
+                  image: ghcr.io/kbve/mc:0.1.1
                   imagePullPolicy: Always
-                  env:
-                      - name: RESOURCE_PACK_URL
-                        value: 'https://mc.kbve.com/kbve-resource-pack.zip'
+                  command: ['/bin/pumpkin']
                   ports:
                       - name: java
                         containerPort: 25565
+                        hostPort: 25565
                         protocol: TCP
                       - name: bedrock
                         containerPort: 19132
+                        hostPort: 19132
                         protocol: UDP
                       - name: resource-pack
                         containerPort: 8080
@@ -43,18 +43,22 @@ spec:
                         protocol: TCP
                   volumeMounts:
                       - name: world-data
-                        mountPath: /pumpkin/worlds
+                        mountPath: /pumpkin/world
                       - name: mc-config
                         mountPath: /pumpkin/config/configuration.toml
                         subPath: configuration.toml
                         readOnly: true
+                      - name: mc-config
+                        mountPath: /pumpkin/config/features.toml
+                        subPath: features.toml
+                        readOnly: true
                   resources:
                       requests:
-                          memory: '512Mi'
-                          cpu: '250m'
+                          memory: '1Gi'
+                          cpu: '4000m'
                       limits:
-                          memory: '2Gi'
-                          cpu: '1000m'
+                          memory: '4Gi'
+                          cpu: '8000m'
                   livenessProbe:
                       tcpSocket:
                           port: java

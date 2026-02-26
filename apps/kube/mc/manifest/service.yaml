@@ -5,10 +5,8 @@ metadata:
     namespace: mc
     labels:
         app: mc
-    annotations:
-        metallb.universe.tf/allow-shared-ip: 'shared-public-ip'
 spec:
-    type: LoadBalancer
+    type: ClusterIP
     selector:
         app: mc
     ports:
@@ -20,19 +18,6 @@ spec:
           port: 19132
           targetPort: 19132
           protocol: UDP
----
-apiVersion: v1
-kind: Service
-metadata:
-    name: mc-internal-service
-    namespace: mc
-    labels:
-        app: mc
-spec:
-    type: ClusterIP
-    selector:
-        app: mc
-    ports:
         - name: resource-pack
           port: 8080
           targetPort: 8080

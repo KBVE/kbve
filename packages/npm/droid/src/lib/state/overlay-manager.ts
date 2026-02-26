@@ -56,7 +56,7 @@ export class OverlayManager {
 			return;
 		}
 		const offscreen = canvasEl.transferControlToOffscreen();
-		await (this.canvasWorker as any).bindUICanvas(offscreen, dbGet);
+		await this.canvasWorker.bindUICanvas(offscreen, dbGet);
 		this.canvasBound = true;
 	}
 
@@ -64,7 +64,7 @@ export class OverlayManager {
 
 	toast(payload: ToastPayload): void {
 		if (this.effectivePath === 'canvas') {
-			void (this.canvasWorker as any)?.addCanvasToast(payload);
+			void this.canvasWorker?.addCanvasToast(payload);
 		}
 		// Always update DOM state (nanostores) so event listeners and
 		// any DOM-rendered components stay in sync
@@ -73,7 +73,7 @@ export class OverlayManager {
 
 	dismissToast(id: string): void {
 		if (this.effectivePath === 'canvas') {
-			void (this.canvasWorker as any)?.removeCanvasToast(id);
+			void this.canvasWorker?.removeCanvasToast(id);
 		}
 		removeToast(id);
 	}
@@ -82,14 +82,14 @@ export class OverlayManager {
 
 	showTooltip(payload: TooltipPayload): void {
 		if (this.effectivePath === 'canvas') {
-			void (this.canvasWorker as any)?.showCanvasTooltip(payload);
+			void this.canvasWorker?.showCanvasTooltip(payload);
 		}
 		openTooltip(payload.id);
 	}
 
 	hideTooltip(id?: string): void {
 		if (this.effectivePath === 'canvas') {
-			void (this.canvasWorker as any)?.showCanvasTooltip(null);
+			void this.canvasWorker?.showCanvasTooltip(null);
 		}
 		closeTooltip(id);
 	}
@@ -98,14 +98,14 @@ export class OverlayManager {
 
 	showModal(payload: ModalPayload): void {
 		if (this.effectivePath === 'canvas') {
-			void (this.canvasWorker as any)?.showCanvasModal(payload);
+			void this.canvasWorker?.showCanvasModal(payload);
 		}
 		openModal(payload.id);
 	}
 
 	hideModal(id?: string): void {
 		if (this.effectivePath === 'canvas') {
-			void (this.canvasWorker as any)?.showCanvasModal(null);
+			void this.canvasWorker?.showCanvasModal(null);
 		}
 		closeModal(id);
 	}
@@ -118,7 +118,7 @@ export class OverlayManager {
 	/** Unbind canvas and clean up */
 	async destroy(): Promise<void> {
 		if (this.canvasBound && this.canvasWorker) {
-			await (this.canvasWorker as any).unbindUICanvas();
+			await this.canvasWorker.unbindUICanvas();
 			this.canvasBound = false;
 		}
 	}

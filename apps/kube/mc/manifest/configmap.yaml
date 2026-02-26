@@ -32,3 +32,120 @@ data:
         allow_chat_reports = false
         white_list = false
         enforce_whitelist = false
+    features.toml: |
+        [logging]
+        enabled = true
+        threads = true
+        color = true
+        timestamp = true
+        file = "latest.log"
+
+        [resource_pack]
+        enabled = true
+        url = "https://mc.kbve.com/kbve-resource-pack.zip"
+        sha1 = "b9485038041b202b23d56dc04353f62278f7527a"
+        prompt_message = "KBVE Resource Pack - Custom items and textures"
+        force = true
+
+        [world]
+        lighting = "default"
+        autosave_ticks = 6000
+
+        [world.chunk]
+        type = "anvil"
+        write_in_place = false
+
+        [world.chunk.compression]
+        algorithm = "LZ4"
+        level = 6
+
+        [networking.authentication]
+        enabled = true
+        connect_timeout = 5000
+        read_timeout = 5000
+        prevent_proxy_connections = false
+
+        [networking.authentication.player_profile]
+        allow_banned_players = false
+        allowed_actions = ["FORCED_NAME_CHANGE", "USING_BANNED_SKIN"]
+
+        [networking.authentication.textures]
+        enabled = true
+        allowed_url_schemes = ["http", "https"]
+        allowed_url_domains = [".minecraft.net", ".mojang.com"]
+
+        [networking.authentication.textures.types]
+        skin = true
+        cape = true
+        elytra = true
+
+        [networking.query]
+        enabled = true
+        address = "0.0.0.0:25565"
+
+        [networking.rcon]
+        enabled = true
+        address = "0.0.0.0:25575"
+        password = "kbve-rcon"
+        max_connections = 5
+
+        [networking.rcon.logging]
+        logged_successfully = true
+        wrong_password = true
+        commands = true
+        quit = true
+
+        [networking.proxy]
+        enabled = false
+
+        [networking.proxy.velocity]
+        enabled = false
+        secret = ""
+
+        [networking.proxy.bungeecord]
+        enabled = false
+
+        [networking.packet_compression]
+        enabled = true
+        threshold = 256
+        level = 4
+
+        [networking.lan_broadcast]
+        enabled = false
+
+        [commands]
+        use_console = true
+        use_tty = true
+        log_console = true
+        default_op_level = 0
+
+        [chat]
+        format = "<{DISPLAYNAME}> {MESSAGE}"
+
+        [pvp]
+        enabled = true
+        hurt_animation = true
+        protect_creative = true
+        knockback = true
+        swing = true
+
+        [server_links]
+        enabled = true
+        bug_report = "https://github.com/Pumpkin-MC/Pumpkin/issues"
+        support = ""
+        status = ""
+        feedback = ""
+        community = ""
+        website = ""
+        forums = ""
+        news = ""
+        announcements = ""
+
+        [server_links.custom]
+
+        [player_data]
+        save_player_data = true
+        save_player_cron_interval = 300
+
+        [fun]
+        april_fools = true

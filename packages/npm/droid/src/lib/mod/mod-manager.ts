@@ -1,11 +1,16 @@
-import { wrap, proxy  } from 'comlink';
-import type { Remote } from 'comlink';
-import type { ModManager, ModHandle, ModMeta, BaseModAPI } from '../types/modules';
-import type { KBVEGlobal } from '../../types'; 
+import { wrap } from 'comlink';
+import type {
+	ModManager,
+	ModHandle,
+	ModMeta,
+	BaseModAPI,
+} from '../types/modules';
 
 let _modManager: ModManager | null = null;
 
-export async function getModManager(modWorkerResolver?: (url: string) => string): Promise<ModManager> {
+export async function getModManager(
+	modWorkerResolver?: (url: string) => string,
+): Promise<ModManager> {
 	if (_modManager) return _modManager;
 
 	const registry: Record<string, ModHandle> = {};
@@ -15,7 +20,7 @@ export async function getModManager(modWorkerResolver?: (url: string) => string)
 		const worker = new Worker(resolvedURL, { type: 'module' });
 		const instance = wrap<BaseModAPI>(worker);
 
-		const meta: ModMeta = await instance.getMeta?.() ?? {
+		const meta: ModMeta = (await instance.getMeta?.()) ?? {
 			name: 'unknown',
 			version: '0.0.1',
 		};
@@ -51,7 +56,7 @@ export async function getModManager(modWorkerResolver?: (url: string) => string)
 	}
 
 	function list() {
-		return Object.values(registry).map(m => m.meta);
+		return Object.values(registry).map((m) => m.meta);
 	}
 
 	async function reload(id: string): Promise<ModHandle> {

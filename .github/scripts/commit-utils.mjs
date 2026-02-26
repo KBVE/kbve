@@ -166,3 +166,26 @@ export function formatStagingToMainBody(categories, totalCommits, mergedPRCount)
 	body += `*This PR is automatically maintained by CI • Last updated: ${new Date().toISOString()}*`;
 	return body;
 }
+
+/**
+ * Format a clean merge commit body (no markdown, no checklists).
+ * Used as the `commitBody` when enabling auto-merge via the GitHub GraphQL API,
+ * so that `git log` shows a useful plain-text changelog instead of PR UI elements.
+ *
+ * @param {Record<string, string[]>} categories
+ * @param {number} totalCommits
+ * @param {string} target - Target branch display name (e.g. "staging", "main")
+ * @returns {string}
+ */
+export function formatMergeCommitBody(categories, totalCommits, target) {
+	const s = totalCommits === 1 ? '' : 's';
+	let body = `${totalCommits} commit${s} promoted to ${target}\n\n`;
+
+	for (const [key, label] of Object.entries(CATEGORIES)) {
+		if (categories[key]?.length > 0) {
+			body += `${label}:\n${categories[key].join('\n')}\n\n`;
+		}
+	}
+
+	return body.trim();
+}

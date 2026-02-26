@@ -1,0 +1,248 @@
+name: CI - Docker Smoke Test
+
+on:
+    schedule:
+        - cron: '0 4 * * 0' # Sunday 04:00 UTC
+    workflow_dispatch:
+
+concurrency:
+    group: ${{ github.workflow }}
+    cancel-in-progress: true
+
+permissions: {}
+
+jobs:
+    resolve_digests:
+        name: Resolve Base Image Digests
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: read
+        outputs:
+            digests_changed: ${{ steps.resolve.outputs.digests_changed }}
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  submodules: true
+
+            - name: Install crane
+              uses: imjasonh/setup-crane@v0.4
+
+            - name: Resolve digests
+              id: resolve
+              run: |
+                  chmod +x scripts/resolve-docker-digests.sh
+                  EXIT_CODE=0
+                  ./scripts/resolve-docker-digests.sh \
+                    apps/mc/Dockerfile \
+                    apps/herbmail/axum-herbmail/Dockerfile \
+                    apps/memes/axum-memes/Dockerfile \
+                    apps/discordsh/axum-discordsh/Dockerfile \
+                    apps/irc/irc-gateway/Dockerfile \
+                    apps/discordsh/notification-bot/Dockerfile \
+                    apps/kbve/kilobase/Dockerfile \
+                    || EXIT_CODE=$?
+
+                  if [ $EXIT_CODE -eq 0 ]; then
+                    echo "digests_changed=true" >> "$GITHUB_OUTPUT"
+                  elif [ $EXIT_CODE -eq 2 ]; then
+                    echo "digests_changed=false" >> "$GITHUB_OUTPUT"
+                  else
+                    echo "Script failed with exit code $EXIT_CODE"
+                    exit 1
+                  fi
+
+            - name: Upload pinned Dockerfiles
+              if: steps.resolve.outputs.digests_changed == 'true'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: pinned-dockerfiles
+                  path: |
+                      apps/mc/Dockerfile
+                      apps/herbmail/axum-herbmail/Dockerfile
+                      apps/memes/axum-memes/Dockerfile
+                      apps/discordsh/axum-discordsh/Dockerfile
+                      apps/irc/irc-gateway/Dockerfile
+                      apps/discordsh/notification-bot/Dockerfile
+                      apps/kbve/kilobase/Dockerfile
+                  retention-days: 1
+
+            - name: Upload digest report
+              if: steps.resolve.outputs.digests_changed == 'true'
+              uses: actions/upload-artifact@v4
+              with:
+                  name: digest-report
+                  path: /tmp/digest-report.md
+                  retention-days: 1
+
+    smoke_build:
+        name: Smoke Build - ${{ matrix.name }}
+        needs: resolve_digests
+        runs-on: ubuntu-latest
+        timeout-minutes: 90
+        permissions:
+            contents: read
+        strategy:
+            fail-fast: false
+            matrix:
+                include:
+                    - name: mc
+                      dockerfile: apps/mc/Dockerfile
+                      context: apps/mc
+                      cache_scope: smoke-mc
+                      submodules: true
+                    - name: herbmail
+                      dockerfile: apps/herbmail/axum-herbmail/Dockerfile
+                      context: .
+                      cache_scope: smoke-herbmail
+                      submodules: false
+                    - name: memes
+                      dockerfile: apps/memes/axum-memes/Dockerfile
+                      context: .
+                      cache_scope: smoke-memes
+                      submodules: false
+                    - name: discordsh
+                      dockerfile: apps/discordsh/axum-discordsh/Dockerfile
+                      context: .
+                      cache_scope: smoke-discordsh
+                      submodules: false
+                    - name: irc-gateway
+                      dockerfile: apps/irc/irc-gateway/Dockerfile
+                      context: .
+                      cache_scope: smoke-irc-gateway
+                      submodules: false
+                    - name: notification-bot
+                      dockerfile: apps/discordsh/notification-bot/Dockerfile
+                      context: apps/discordsh/notification-bot
+                      cache_scope: smoke-notification-bot
+                      submodules: false
+                    - name: kilobase
+                      dockerfile: apps/kbve/kilobase/Dockerfile
+                      context: apps/kbve/kilobase
+                      cache_scope: smoke-kilobase
+                      submodules: false
+
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v6
+              with:
+                  submodules: ${{ matrix.submodules }}
+
+            - name: Download pinned Dockerfiles
+              if: needs.resolve_digests.outputs.digests_changed == 'true'
+              uses: actions/download-artifact@v4
+              with:
+                  name: pinned-dockerfiles
+                  path: .
+
+            - name: Set up Docker Buildx
+              uses: docker/setup-buildx-action@v3
+
+            - name: Build ${{ matrix.name }}
+              uses: docker/build-push-action@v6
+              with:
+                  context: ${{ matrix.context }}
+                  file: ${{ matrix.dockerfile }}
+                  push: false
+                  load: false
+                  tags: smoke-test/${{ matrix.name }}:latest
+                  cache-from: type=gha,scope=${{ matrix.cache_scope }}
+                  cache-to: type=gha,scope=${{ matrix.cache_scope }},mode=max
+
+    create_pr:
+        name: Create Digest Update PR
+        needs: [resolve_digests, smoke_build]
+        if: needs.smoke_build.result == 'success' && needs.resolve_digests.outputs.digests_changed == 'true'
+        runs-on: ubuntu-latest
+        timeout-minutes: 10
+        permissions:
+            contents: write
+            pull-requests: write
+
+        steps:
+            - name: Checkout dev branch
+              uses: actions/checkout@v6
+              with:
+                  ref: dev
+
+            - name: Download pinned Dockerfiles
+              uses: actions/download-artifact@v4
+              with:
+                  name: pinned-dockerfiles
+                  path: .
+
+            - name: Download digest report
+              uses: actions/download-artifact@v4
+              with:
+                  name: digest-report
+                  path: /tmp
+
+            - name: Commit and push
+              id: commit
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  git config user.name "github-actions[bot]"
+                  git config user.email "github-actions[bot]@users.noreply.github.com"
+
+                  BRANCH_NAME="chore/docker-digest-pin-$(date +%Y%m%d)"
+
+                  git add \
+                    apps/mc/Dockerfile \
+                    apps/herbmail/axum-herbmail/Dockerfile \
+                    apps/memes/axum-memes/Dockerfile \
+                    apps/discordsh/axum-discordsh/Dockerfile \
+                    apps/irc/irc-gateway/Dockerfile \
+                    apps/discordsh/notification-bot/Dockerfile \
+                    apps/kbve/kilobase/Dockerfile
+
+                  if git diff --cached --quiet; then
+                    echo "No changes to commit"
+                    echo "pushed=false" >> "$GITHUB_OUTPUT"
+                    exit 0
+                  fi
+
+                  git checkout -b "$BRANCH_NAME"
+                  git commit -m "chore(docker): pin base image digests $(date +%Y-%m-%d)"
+                  git push -u origin "$BRANCH_NAME"
+
+                  echo "pushed=true" >> "$GITHUB_OUTPUT"
+                  echo "branch_name=$BRANCH_NAME" >> "$GITHUB_OUTPUT"
+
+            - name: Create PR
+              if: steps.commit.outputs.pushed == 'true'
+              env:
+                  GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+              run: |
+                  BRANCH_NAME="${{ steps.commit.outputs.branch_name }}"
+                  REPORT=$(cat /tmp/digest-report.md 2>/dev/null || echo "No report available")
+
+                  EXISTING=$(gh pr list --base dev --head "$BRANCH_NAME" --state open --json number -q '.[0].number' || echo "")
+                  if [ -n "$EXISTING" ]; then
+                    echo "PR #$EXISTING already exists for $BRANCH_NAME"
+                    exit 0
+                  fi
+
+                  cat > /tmp/pr-body.md <<EOF
+                  ## Summary
+                  - Weekly Docker base image digest pinning
+                  - All 7 Docker images built and validated successfully
+
+                  ## Digest Changes
+                  ${REPORT}
+
+                  ## Test Plan
+                  - [x] All Docker smoke builds passed (ci-docker-smoke-test.yml)
+                  - [ ] Review digest changes for unexpected upstream updates
+
+                  ---
+                  *Auto-generated by ci-docker-smoke-test.yml*
+                  EOF
+
+                  gh pr create \
+                    --base dev \
+                    --head "$BRANCH_NAME" \
+                    --title "chore(docker): pin base image digests $(date +%Y-%m-%d)" \
+                    --body-file /tmp/pr-body.md

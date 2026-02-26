@@ -13,7 +13,7 @@ export type UIMessageType =
 	| 'modal-open'
 	| 'modal-close';
 
-const SCHEMAS: Partial<Record<UIMessageType, z.ZodType<any>>> = {
+const SCHEMAS: Partial<Record<UIMessageType, z.ZodType<unknown>>> = {
 	toast: ToastPayloadSchema,
 	'tooltip-open': TooltipPayloadSchema,
 	'modal-open': ModalPayloadSchema,
@@ -21,7 +21,7 @@ const SCHEMAS: Partial<Record<UIMessageType, z.ZodType<any>>> = {
 
 export interface ValidatedWorkerMessage {
 	type: UIMessageType;
-	payload: any;
+	payload: unknown;
 }
 
 /**
@@ -53,7 +53,10 @@ export function validateUIMessage(
 		type === 'tooltip-close' ||
 		type === 'modal-close'
 	) {
-		if (!payload || typeof (payload as any).id !== 'string') {
+		if (
+			!payload ||
+			typeof (payload as Record<string, unknown>).id !== 'string'
+		) {
 			throw new Error(`[KBVE Worker] ${type} requires { id: string }`);
 		}
 	}
