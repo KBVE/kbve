@@ -4,8 +4,7 @@
 // This file mirrors the pure functions in @kbve/devops:
 //   - _$gha_categorizeApiCommits  → categorizeCommits
 //   - _$gha_generatePRTitle       → generateTitle
-//   - _$gha_formatDevBody         → formatDevToStagingBody
-//   - _$gha_formatProductionBody  → formatStagingToMainBody
+//   - _$gha_formatDevBody         → formatDevToMainBody
 //
 // This shim exists because the PR creation jobs don't install npm
 // dependencies. When modifying categorization logic, update BOTH files.
@@ -104,16 +103,16 @@ export function generateTitle(categories, target) {
 }
 
 /**
- * Format a PR body for dev→staging promotions.
+ * Format a PR body for dev→main promotions.
  *
  * @param {Record<string, string[]>} categories
  * @param {number} totalCommits
  * @returns {string}
  */
-export function formatDevToStagingBody(categories, totalCommits) {
+export function formatDevToMainBody(categories, totalCommits) {
 	const s = totalCommits === 1 ? '' : 's';
-	let body = `## Release: Dev → Staging\n\n`;
-	body += `**${totalCommits} atomic commit${s}** ready for staging\n\n`;
+	let body = `## Release: Dev → Main\n\n`;
+	body += `**${totalCommits} atomic commit${s}** ready for main\n\n`;
 
 	for (const [key, label] of Object.entries(CATEGORIES)) {
 		if (categories[key]?.length > 0) {
@@ -122,48 +121,6 @@ export function formatDevToStagingBody(categories, totalCommits) {
 	}
 
 	body += `---\n*This PR is automatically maintained by CI*`;
-	return body;
-}
-
-/**
- * Format a PR body for staging→main production releases.
- *
- * @param {Record<string, string[]>} categories
- * @param {number} totalCommits
- * @param {number} mergedPRCount
- * @returns {string}
- */
-export function formatStagingToMainBody(categories, totalCommits, mergedPRCount) {
-	const s = totalCommits === 1 ? '' : 's';
-	let body = `## Production Release from Staging\n\n`;
-	body += `### Summary\n`;
-	body += `- **Total Commits:** ${totalCommits}\n`;
-	body += `- **Merged PRs:** ${mergedPRCount}\n`;
-	body += `- **Target Branch:** main\n`;
-	body += `- **Merge Strategy:** Merge Commit\n\n`;
-
-	body += `### Pre-merge Checklist\n`;
-	body += `- [ ] All tests passing\n`;
-	body += `- [ ] No merge conflicts\n`;
-	body += `- [ ] Changes reviewed and approved\n`;
-	body += `- [ ] Version bumped (if applicable)\n`;
-	body += `- [ ] Documentation updated\n\n`;
-
-	body += `### Changes by Category\n\n`;
-
-	for (const [key, label] of Object.entries(CATEGORIES)) {
-		if (categories[key]?.length > 0) {
-			body += `#### ${label}\n${categories[key].join('\n')}\n\n`;
-		}
-	}
-
-	body += `### Important Notes\n`;
-	body += `- This PR should be **MERGE COMMITTED** to maintain history\n`;
-	body += `- Ensure all checks pass before merging\n`;
-	body += `- After merge, staging will be automatically synced with main\n\n`;
-
-	body += `---\n`;
-	body += `*This PR is automatically maintained by CI • Last updated: ${new Date().toISOString()}*`;
 	return body;
 }
 

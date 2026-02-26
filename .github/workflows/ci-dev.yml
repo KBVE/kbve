@@ -6,7 +6,7 @@ on:
             - 'dev'
     pull_request:
         branches:
-            - 'staging'
+            - 'main'
         types: [opened, synchronize, reopened]
 
 concurrency:
@@ -16,8 +16,8 @@ concurrency:
 permissions: {}
 
 jobs:
-    dev_to_staging_pr:
-        name: 'Create/Update Dev to Staging PR'
+    dev_to_main_pr:
+        name: 'Create/Update Dev to Main PR'
         runs-on: ubuntu-latest
         if: github.event_name == 'push' && github.ref_name == 'dev' && !contains(github.event.head_commit.message, '[skip-release-pr]')
         timeout-minutes: 10
@@ -32,61 +32,61 @@ jobs:
                   token: ${{ secrets.GITHUB_TOKEN }}
                   submodules: true
 
-            - name: Check if dev has changes for staging
+            - name: Check if dev has changes for main
               id: check_changes
               uses: actions/github-script@v8
               with:
                   github-token: ${{ secrets.GITHUB_TOKEN }}
                   script: |
-                      // Compare dev with staging to see if there are changes to promote
+                      // Compare dev with main to see if there are changes to promote
                       try {
                           const comparison = await github.rest.repos.compareCommits({
                               owner: context.repo.owner,
                               repo: context.repo.repo,
-                              base: 'staging',
+                              base: 'main',
                               head: 'dev'
                           });
-                          
+
                           const commitCount = comparison.data.commits.length;
-                          console.log(`Found ${commitCount} commits between staging and dev`);
-                          
+                          console.log(`Found ${commitCount} commits between main and dev`);
+
                           if (commitCount === 0) {
-                              console.log('Dev is up-to-date with staging - no PR needed');
-                              
-                              // Check the reverse - is staging ahead of dev?
+                              console.log('Dev is up-to-date with main - no PR needed');
+
+                              // Check the reverse - is main ahead of dev?
                               const reverseComparison = await github.rest.repos.compareCommits({
                                   owner: context.repo.owner,
                                   repo: context.repo.repo,
                                   base: 'dev',
-                                  head: 'staging'
+                                  head: 'main'
                               });
-                              
+
                               if (reverseComparison.data.commits.length > 0) {
                                   return {
                                       hasChanges: false,
                                       commitCount: 0,
-                                      message: `Staging is ${reverseComparison.data.commits.length} commits ahead of dev`,
-                                      stagingAhead: true,
-                                      stagingAheadBy: reverseComparison.data.commits.length
+                                      message: `Main is ${reverseComparison.data.commits.length} commits ahead of dev`,
+                                      mainAhead: true,
+                                      mainAheadBy: reverseComparison.data.commits.length
                                   };
                               } else {
                                   return {
                                       hasChanges: false,
                                       commitCount: 0,
-                                      message: 'Dev and staging are synchronized',
-                                      stagingAhead: false
+                                      message: 'Dev and main are synchronized',
+                                      mainAhead: false
                                   };
                               }
                           }
-                          
-                          console.log(`Dev has ${commitCount} commits ready for staging`);
+
+                          console.log(`Dev has ${commitCount} commits ready for main`);
                           return {
                               hasChanges: true,
                               commitCount: commitCount,
                               commits: comparison.data.commits,
-                              stagingAhead: false
+                              mainAhead: false
                           };
-                          
+
                       } catch (error) {
                           console.log(`Error comparing branches: ${error.message}`);
                           return {
@@ -96,17 +96,17 @@ jobs:
                           };
                       }
 
-            - name: Skip PR creation - no changes or staging ahead
+            - name: Skip PR creation - no changes or main ahead
               if: fromJson(steps.check_changes.outputs.result).hasChanges == false
               run: |
-                  echo "Dev to Staging PR Status: NOT NEEDED"
+                  echo "Dev to Main PR Status: NOT NEEDED"
 
-                  if [[ "${{ fromJson(steps.check_changes.outputs.result).stagingAhead }}" == "true" ]]; then
-                      echo "Staging is ${{ fromJson(steps.check_changes.outputs.result).stagingAheadBy }} commits ahead of dev"
-                      echo "This is normal after a release - staging contains the latest tested code"
+                  if [[ "${{ fromJson(steps.check_changes.outputs.result).mainAhead }}" == "true" ]]; then
+                      echo "Main is ${{ fromJson(steps.check_changes.outputs.result).mainAheadBy }} commits ahead of dev"
+                      echo "This is normal after a release - main contains the latest released code"
                       echo "Dev will catch up when new atomic commits are added"
                   else
-                      echo "Dev and staging are synchronized"
+                      echo "Dev and main are synchronized"
                       echo "No new atomic commits to promote yet"
                   fi
 
@@ -116,7 +116,7 @@ jobs:
                   echo "- System is in a clean, synchronized state"
                   echo "- Ready for new development work"
 
-            - name: Check if dev→staging PR exists
+            - name: Check if dev→main PR exists
               if: fromJson(steps.check_changes.outputs.result).hasChanges == true
               id: check_pr
               uses: actions/github-script@v8
@@ -127,7 +127,7 @@ jobs:
                         owner: context.repo.owner,
                         repo: context.repo.repo,
                         head: `${context.repo.owner}:dev`,
-                        base: 'staging',
+                        base: 'main',
                         state: 'open'
                       });
 
@@ -139,11 +139,11 @@ jobs:
                           url: existingPRs.data[0].html_url
                         };
                       } else {
-                        console.log('No existing dev→staging PR found');
+                        console.log('No existing dev→main PR found');
                         return { exists: false };
                       }
 
-            - name: Create or update dev→staging PR
+            - name: Create or update dev→main PR
               if: fromJson(steps.check_changes.outputs.result).hasChanges == true
               id: upsert_pr
               uses: actions/github-script@v8
@@ -155,11 +155,11 @@ jobs:
 
                       const checkResult = ${{ steps.check_pr.outputs.result || 'null' }};
 
-                      // Get commits between staging and dev
+                      // Get commits between main and dev
                       const comparison = await github.rest.repos.compareCommits({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        base: 'staging',
+                        base: 'main',
                         head: 'dev'
                       });
 
@@ -170,8 +170,8 @@ jobs:
                       console.log(`Found ${rawCommits.length} commits`);
 
                       const { categories } = utils.categorizeCommits(rawCommits);
-                      const title = utils.generateTitle(categories, 'Staging');
-                      const body = utils.formatDevToStagingBody(categories, rawCommits.length);
+                      const title = utils.generateTitle(categories, 'Main');
+                      const body = utils.formatDevToMainBody(categories, rawCommits.length);
 
                       let prNumber;
                       if (checkResult && checkResult.exists) {
@@ -183,7 +183,7 @@ jobs:
                           repo: context.repo.repo,
                           title,
                           head: 'dev',
-                          base: 'staging',
+                          base: 'main',
                           body,
                           draft: false
                         });
@@ -193,7 +193,7 @@ jobs:
                           owner: context.repo.owner,
                           repo: context.repo.repo,
                           issue_number: prNumber,
-                          labels: ['auto-pr', 'staging', 'dev→staging']
+                          labels: ['auto-pr', 'dev→main']
                         });
 
                         console.log(`Created PR #${prNumber}`);
@@ -233,7 +233,7 @@ jobs:
                       const comparison = await github.rest.repos.compareCommits({
                         owner: context.repo.owner,
                         repo: context.repo.repo,
-                        base: 'staging',
+                        base: 'main',
                         head: 'dev'
                       });
                       const rawCommits = comparison.data.commits.map(c => ({
@@ -241,7 +241,7 @@ jobs:
                         sha: c.sha
                       }));
                       const { categories } = utils.categorizeCommits(rawCommits);
-                      const mergeBody = utils.formatMergeCommitBody(categories, rawCommits.length, 'staging');
+                      const mergeBody = utils.formatMergeCommitBody(categories, rawCommits.length, 'main');
 
                       try {
                         await github.graphql(`
@@ -263,18 +263,18 @@ jobs:
                         console.log(`Auto-merge enabled for PR #${prNumber} with title: ${pr.data.title}`);
                       } catch (error) {
                         console.log(`Could not enable auto-merge: ${error.message}`);
-                        console.log('Ensure "Allow auto-merge" is enabled in repo settings and branch protection is configured on staging');
+                        console.log('Ensure "Allow auto-merge" is enabled in repo settings and branch protection is configured on main');
                         console.log('PR will need manual merge — use the PR title as the merge commit message');
                       }
 
             - name: Summary
               run: |
                   if [[ "${{ fromJson(steps.check_changes.outputs.result).hasChanges }}" == "true" ]]; then
-                      echo "Dev→Staging PR: CREATED/UPDATED"
-                      echo "Atomic commits ready for staging: ${{ fromJson(steps.check_changes.outputs.result).commitCount }}"
+                      echo "Dev→Main PR: CREATED/UPDATED"
+                      echo "Atomic commits ready for main: ${{ fromJson(steps.check_changes.outputs.result).commitCount }}"
                   else
-                      echo "Dev→Staging PR: NOT NEEDED"
-                      echo "Branches are synchronized or staging is ahead"
+                      echo "Dev→Main PR: NOT NEEDED"
+                      echo "Branches are synchronized or main is ahead"
                   fi
 
     alter:
@@ -323,11 +323,12 @@ jobs:
                   docker stop mc-dev-test
 
     validate_pr:
-        name: 'Validate Dev→Staging PR'
-        if: github.event_name == 'pull_request' && github.base_ref == 'staging' && github.head_ref == 'dev'
+        name: 'Validate Dev→Main PR'
+        if: github.event_name == 'pull_request' && github.base_ref == 'main' && github.head_ref == 'dev'
         permissions:
             contents: read
         uses: ./.github/workflows/utils-ci-lint-test.yml
         with:
-            base-ref: origin/staging
+            base-ref: origin/main
             head-ref: origin/dev
+            check-conflicts: true

@@ -6,7 +6,7 @@ on:
             base-ref:
                 required: true
                 type: string
-                description: 'Base ref for nx affected (e.g., origin/staging)'
+                description: 'Base ref for nx affected (e.g., origin/main)'
             head-ref:
                 required: true
                 type: string

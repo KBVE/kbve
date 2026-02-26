@@ -128,20 +128,6 @@ jobs:
                   key: 'Status'
                   value: 'Support'
                   idref: ${{ github.event.issue.node_id }}
-    #   [Staging]
-    assign_staging:
-        name: 'Staging Label Automation'
-        if: github.event.label.name == 'staging'
-        runs-on: ubuntu-latest
-        timeout-minutes: 5
-        steps:
-            - uses: actions/checkout@v6
-            - uses: ./.github/actions/gql-project-migration
-              with:
-                  token: ${{ secrets.KBVE_PAT }}
-                  key: 'Status'
-                  value: 'Staging'
-                  idref: ${{ github.event.issue.node_id }}
     #   [Maxtrix Errors]
 
     #   [Matrix]:0

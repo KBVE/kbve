@@ -93,83 +93,13 @@ jobs:
                               ['Last main commit', `\`${mainSha.substring(0, 7)}\``],
                               ['Last dev commit', `\`${devSha.substring(0, 7)}\``],
                             ])
-                            .addRaw('\n**This is normal.** Dev contains work-in-progress atomic commits that will be released through the staging process. No action needed.')
+                            .addRaw('\n**This is normal.** Dev contains work-in-progress atomic commits that will be released through the dev→main promotion process. No action needed.')
                             .write();
 
                           console.log('📝 Wrote status to job summary');
                       }
 
-    sync_staging_with_main:
-        name: 'Sync Staging with Main (Safe)'
-        runs-on: ubuntu-latest
-        permissions:
-            contents: write
-            issues: write
-
-        steps:
-            - name: Safe sync staging with main
-              uses: actions/github-script@v8
-              with:
-                  github-token: ${{ secrets.UNITY_PAT }}
-                  script: |
-                      const { owner, repo } = context.repo;
-
-                      // Get main branch info
-                      const main = await github.rest.repos.getBranch({ owner, repo, branch: 'main' });
-                      const mainSha = main.data.commit.sha;
-
-                      try {
-                          const staging = await github.rest.repos.getBranch({ owner, repo, branch: 'staging' });
-                          const stagingSha = staging.data.commit.sha;
-                          
-                          if (stagingSha === mainSha) {
-                              console.log('✅ Staging is already up to date with main');
-                              return;
-                          }
-
-                          // Compare branches
-                          const comparison = await github.rest.repos.compareCommits({
-                              owner,
-                              repo,
-                              base: mainSha,
-                              head: stagingSha
-                          });
-
-                          if (comparison.data.ahead_by === 0) {
-                              // Staging is behind main - safe to fast-forward
-                              console.log(`📈 Staging is ${comparison.data.behind_by} commits behind main`);
-                              
-                              await github.rest.git.updateRef({
-                                  owner,
-                                  repo,
-                                  ref: 'heads/staging',
-                                  sha: mainSha,
-                                  force: false,
-                              });
-                              console.log('✅ Fast-forwarded staging to match main');
-                              
-                          } else {
-                              // Staging has unreleased changes
-                              console.log(`🟡 Staging has ${comparison.data.ahead_by} unreleased commits`);
-                              console.log('Preserving staging changes for testing');
-                          }
-                          
-                      } catch (e) {
-                          if (e.status === 404) {
-                              // Staging doesn't exist, create from main
-                              await github.rest.git.createRef({
-                                  owner,
-                                  repo,
-                                  ref: 'refs/heads/staging',
-                                  sha: mainSha,
-                              });
-                              console.log(`✅ Created staging branch at ${mainSha}`);
-                          } else {
-                              throw e;
-                          }
-                      }
-
-    # Keep your existing cleanup jobs - they're still useful
+    # Cleanup jobs
     cleanup_orphaned_atomic_branches:
         name: 'Cleanup Orphaned Atomic Branches'
         runs-on: ubuntu-latest
