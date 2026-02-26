@@ -1,39 +1,80 @@
-# Dockerfile.dev — fast incremental builds for local development
+# Dockerfile.dev — release builds with dev tooling (logging, RCON, volumes)
 # Usage:
 #   docker build -f Dockerfile.dev -t kbve-mc:dev .
 #   docker run -p 25565:25565 -p 8080:8080 -p 25575:25575 \
-#     -v $PWD/logs:/pumpkin/logs kbve-mc:dev
+#     -v $PWD/logs:/pumpkin/logs \
+#     -v $PWD/world:/pumpkin/world kbve-mc:dev
 #
 # Logs are written to the mounted logs/ directory (gitignored).
-# Rebuild after code changes (incremental, seconds not minutes):
+# World data persists in the mounted world/ directory (gitignored).
+#
+# Granular cargo-chef layers cache deps aggressively — only the crate
+# you actually changed triggers a recompile:
 #   docker build -f Dockerfile.dev -t kbve-mc:dev .
 
-FROM rust:1-alpine3.23 AS builder
+FROM rust:1-alpine3.23 AS chef
 ENV RUSTFLAGS="-C target-feature=-crt-static"
 RUN apk add --no-cache musl-dev git
+RUN cargo install cargo-chef --locked
 WORKDIR /pumpkin
-
-# Copy everything at once — no layered crate splitting
 COPY ./pumpkin /pumpkin
-COPY ./plugins /plugins
-
 RUN rustup show active-toolchain || rustup toolchain install
+RUN rustup component add rustfmt
 
-# Build pumpkin (debug mode, cached target dir for incremental builds)
+# --- Plan: hash dependency tree (only Cargo.toml/lock matter) ---
+FROM chef AS planner
+RUN cargo chef prepare --recipe-path recipe.json
+
+# --- Cook: compile third-party deps (cached until Cargo.toml/lock changes) ---
+FROM chef AS deps
+COPY --from=planner /pumpkin/recipe.json recipe.json
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
-    --mount=type=cache,target=/pumpkin/target \
-    cargo build && cp target/debug/pumpkin /pumpkin.bin
+    cargo chef cook --release --recipe-path recipe.json
 
-# Build plugin (debug mode, reuses cached deps)
+# --- Foundation: leaf + data crates (rarely change, cached aggressively) ---
+#     cargo-chef cook strips workspace.lints, so restore the real manifests.
+#     Full workspace build ensures feature unification is correct.
+FROM deps AS foundation
+COPY ./pumpkin/Cargo.toml /pumpkin/Cargo.toml
+COPY ./pumpkin/Cargo.lock /pumpkin/Cargo.lock
+COPY ./pumpkin/pumpkin-nbt /pumpkin/pumpkin-nbt
+COPY ./pumpkin/pumpkin-api-macros /pumpkin/pumpkin-api-macros
+COPY ./pumpkin/pumpkin-util /pumpkin/pumpkin-util
+COPY ./pumpkin/pumpkin-data /pumpkin/pumpkin-data
+COPY ./pumpkin/pumpkin-macros /pumpkin/pumpkin-macros
+COPY ./pumpkin/pumpkin-config /pumpkin/pumpkin-config
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --release
+
+# --- Core: engine crates (protocol, world, inventory) ---
+FROM foundation AS core
+COPY ./pumpkin/pumpkin-world /pumpkin/pumpkin-world
+COPY ./pumpkin/pumpkin-protocol /pumpkin/pumpkin-protocol
+COPY ./pumpkin/pumpkin-inventory /pumpkin/pumpkin-inventory
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --release
+
+# --- Pumpkin: build server (parallel with plugin) ---
+FROM core AS builder
+COPY ./pumpkin/pumpkin /pumpkin/pumpkin
+RUN --mount=type=cache,target=/usr/local/cargo/git/db \
+    --mount=type=cache,target=/usr/local/cargo/registry/ \
+    cargo build --release && cp target/release/pumpkin /pumpkin.bin
+
+# --- Plugin: build (parallel with pumpkin, reuses all pre-compiled crates) ---
+FROM core AS plugin-builder
+COPY ./pumpkin/pumpkin /pumpkin/pumpkin
+COPY ./plugins /plugins
 ENV CARGO_TARGET_DIR=/pumpkin/target
 RUN --mount=type=cache,target=/usr/local/cargo/git/db \
     --mount=type=cache,target=/usr/local/cargo/registry/ \
-    --mount=type=cache,target=/pumpkin/target \
-    cargo build --manifest-path /plugins/kbve-mc-plugin/Cargo.toml \
+    cargo build --release --manifest-path /plugins/kbve-mc-plugin/Cargo.toml \
     && mkdir -p /built-plugins \
-    && cp /pumpkin/target/debug/libkbve_mc_plugin.so /built-plugins/ 2>/dev/null \
-    || cp /pumpkin/target/debug/libkbve_mc_plugin.dylib /built-plugins/ 2>/dev/null \
+    && cp /pumpkin/target/release/libkbve_mc_plugin.so /built-plugins/ 2>/dev/null \
+    || cp /pumpkin/target/release/libkbve_mc_plugin.dylib /built-plugins/ 2>/dev/null \
     || true
 
 # --- Resource pack (fast, runs in parallel with rust builds) ---
@@ -48,7 +89,7 @@ RUN SHA1=$(sha1sum /kbve-resource-pack.zip | awk '{print $1}') && \
 FROM alpine:3.23
 
 COPY --from=builder /pumpkin.bin /bin/pumpkin
-COPY --from=builder /built-plugins/ /pumpkin/plugins/
+COPY --from=plugin-builder /built-plugins/ /pumpkin/plugins/
 
 WORKDIR /pumpkin
 
@@ -61,8 +102,8 @@ COPY --from=pack-builder /features.toml /pumpkin/config/features.toml
 COPY ./entrypoint.dev.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
 
-# Create logs dir inside the image (mountable at runtime)
-RUN mkdir -p /pumpkin/logs
+# Create mountable directories (logs + world persistence)
+RUN mkdir -p /pumpkin/logs /pumpkin/world
 
 RUN apk add --no-cache libgcc && chown -R 2613:2613 .
 
