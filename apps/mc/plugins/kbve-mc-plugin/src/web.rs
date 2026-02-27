@@ -1,6 +1,7 @@
 use askama::Template;
 use axum::{
     Router,
+    extract::Path,
     http::{StatusCode, header},
     response::{Html, IntoResponse, Response},
 };
@@ -76,6 +77,53 @@ pub async fn players_handler() -> impl IntoResponse {
     };
 
     TemplateResponse(template)
+}
+
+// ---------------------------------------------------------------------------
+// Mojang API proxy (browser CORS workaround)
+// ---------------------------------------------------------------------------
+
+const MOJANG_API: &str = "https://api.mojang.com/users/profiles/minecraft";
+const MOJANG_SESSION: &str = "https://sessionserver.mojang.com/session/minecraft/profile";
+
+/// GET /api/mojang/profile/{username} → proxies api.mojang.com
+pub async fn mojang_profile_proxy(Path(username): Path<String>) -> impl IntoResponse {
+    let result = tokio::task::spawn_blocking(move || {
+        ureq::get(format!("{MOJANG_API}/{username}"))
+            .call()
+            .and_then(|resp| resp.into_body().read_to_string())
+    })
+    .await;
+
+    match result {
+        Ok(Ok(body)) => (
+            StatusCode::OK,
+            [(header::CONTENT_TYPE, "application/json")],
+            body,
+        )
+            .into_response(),
+        _ => (StatusCode::BAD_GATEWAY, "Mojang API unavailable").into_response(),
+    }
+}
+
+/// GET /api/mojang/session/{uuid} → proxies sessionserver.mojang.com
+pub async fn mojang_session_proxy(Path(uuid): Path<String>) -> impl IntoResponse {
+    let result = tokio::task::spawn_blocking(move || {
+        ureq::get(format!("{MOJANG_SESSION}/{uuid}"))
+            .call()
+            .and_then(|resp| resp.into_body().read_to_string())
+    })
+    .await;
+
+    match result {
+        Ok(Ok(body)) => (
+            StatusCode::OK,
+            [(header::CONTENT_TYPE, "application/json")],
+            body,
+        )
+            .into_response(),
+        _ => (StatusCode::BAD_GATEWAY, "Mojang session API unavailable").into_response(),
+    }
 }
 
 // ---------------------------------------------------------------------------

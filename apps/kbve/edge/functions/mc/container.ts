@@ -3,6 +3,7 @@ import {
 	jsonResponse,
 	createServiceClient,
 	requireServiceRole,
+	requireNonEmpty,
 } from './_shared.ts';
 
 // ---------------------------------------------------------------------------
@@ -21,11 +22,26 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { container, server_id } = body;
-		if (!container || !server_id) {
-			return jsonResponse(
-				{ error: 'container and server_id are required' },
-				400,
-			);
+		if (!container || typeof container !== 'object') {
+			return jsonResponse({ error: 'container object is required' }, 400);
+		}
+
+		const serverErr = requireNonEmpty(server_id, 'server_id');
+		if (serverErr) return serverErr;
+
+		const c = container as Record<string, unknown>;
+		const cidErr = requireNonEmpty(c.container_id, 'container_id');
+		if (cidErr) return cidErr;
+
+		// Validate container_type range if provided
+		if (c.type !== undefined) {
+			const t = Number(c.type);
+			if (!Number.isInteger(t) || t < 0 || t > 13) {
+				return jsonResponse(
+					{ error: 'container type must be 0-13' },
+					400,
+				);
+			}
 		}
 
 		const supabase = createServiceClient();
@@ -46,12 +62,11 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { container_id, server_id } = body;
-		if (!container_id || !server_id) {
-			return jsonResponse(
-				{ error: 'container_id and server_id are required' },
-				400,
-			);
-		}
+		const cidErr = requireNonEmpty(container_id, 'container_id');
+		if (cidErr) return cidErr;
+
+		const serverErr = requireNonEmpty(server_id, 'server_id');
+		if (serverErr) return serverErr;
 
 		const supabase = createServiceClient();
 		const { data, error } = await supabase.rpc('service_load_container', {
