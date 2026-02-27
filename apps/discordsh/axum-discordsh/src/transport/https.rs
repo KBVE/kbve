@@ -1,7 +1,6 @@
 use anyhow::Result;
-use std::sync::Arc;
 use std::sync::atomic::Ordering;
-use std::{net::SocketAddr, time::Duration};
+use std::{net::SocketAddr, sync::Arc, time::Duration};
 
 use axum::{
     Json, Router,
@@ -16,13 +15,8 @@ use tokio::net::TcpListener;
 use tower_http::set_header::SetResponseHeaderLayer;
 use tracing::info;
 
+use super::HttpState;
 use crate::state::AppState;
-
-/// Shared state available to all Axum handlers.
-#[derive(Clone)]
-struct HttpState {
-    app: Arc<AppState>,
-}
 
 pub async fn serve(app_state: Arc<AppState>) -> Result<()> {
     let host = std::env::var("HTTP_HOST").unwrap_or_else(|_| "0.0.0.0".into());
@@ -98,6 +92,8 @@ fn router(state: HttpState) -> Router {
         .layer(axum::middleware::from_fn(fix_ts_mime))
         .layer(axum::middleware::from_fn(cache_headers));
 
+    let svg_router = super::svg::router().with_state(state.clone());
+
     let dynamic_router = Router::new()
         .route("/health", get(health))
         .route("/healthz", get(healthz))
@@ -107,7 +103,10 @@ fn router(state: HttpState) -> Router {
         .route("/tracker-status", get(tracker_status))
         .with_state(state);
 
-    static_router.merge(dynamic_router).layer(middleware)
+    static_router
+        .merge(svg_router)
+        .merge(dynamic_router)
+        .layer(middleware)
 }
 
 // ── Handlers ────────────────────────────────────────────────────────────
