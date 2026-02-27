@@ -1,0 +1,816 @@
+syntax = "proto3";
+
+package meme;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Content format of the meme asset
+enum MemeFormat {
+  MEME_FORMAT_UNSPECIFIED = 0;
+  MEME_FORMAT_IMAGE = 1;       // JPEG, PNG, WebP
+  MEME_FORMAT_GIF = 2;         // Animated GIF
+  MEME_FORMAT_VIDEO = 3;       // MP4, WebM
+  MEME_FORMAT_WEBP_ANIM = 4;   // Animated WebP
+}
+
+// Moderation / lifecycle status
+enum MemeStatus {
+  MEME_STATUS_UNSPECIFIED = 0;
+  MEME_STATUS_DRAFT = 1;       // User-created, not yet published
+  MEME_STATUS_PENDING = 2;     // Awaiting moderation review
+  MEME_STATUS_PUBLISHED = 3;   // Live and visible in feed
+  MEME_STATUS_REJECTED = 4;    // Rejected by moderation
+  MEME_STATUS_ARCHIVED = 5;    // Soft-deleted / hidden by author
+  MEME_STATUS_FLAGGED = 6;     // Auto-flagged by content filter
+  MEME_STATUS_BANNED = 7;      // Hard-removed by admin
+}
+
+// Quick-tap reactions while scrolling
+enum ReactionType {
+  REACTION_UNSPECIFIED = 0;
+  REACTION_LIKE = 1;
+  REACTION_DISLIKE = 2;
+  REACTION_FIRE = 3;           // "this is fire"
+  REACTION_SKULL = 4;          // "I'm dead" / hilarious
+  REACTION_CRY = 5;            // Laughing-crying
+  REACTION_CAP = 6;            // "cap" / disbelief
+}
+
+// Card rarity tiers for meme card battles
+enum MemeRarity {
+  MEME_RARITY_UNSPECIFIED = 0;
+  MEME_RARITY_COMMON = 1;
+  MEME_RARITY_UNCOMMON = 2;
+  MEME_RARITY_RARE = 3;
+  MEME_RARITY_EPIC = 4;
+  MEME_RARITY_LEGENDARY = 5;
+  MEME_RARITY_MYTHIC = 6;     // One-of-a-kind / event-only
+}
+
+// Card element type for battle matchups
+enum MemeElement {
+  MEME_ELEMENT_UNSPECIFIED = 0;
+  MEME_ELEMENT_DANK = 1;        // Classic dank memes
+  MEME_ELEMENT_WHOLESOME = 2;   // Wholesome / feel-good
+  MEME_ELEMENT_CURSED = 3;      // Cursed imagery
+  MEME_ELEMENT_DEEP_FRIED = 4;  // Deep-fried / distorted
+  MEME_ELEMENT_SURREAL = 5;     // Abstract / surreal
+  MEME_ELEMENT_META = 6;        // Self-referential / meta
+  MEME_ELEMENT_EDGY = 7;        // Dark humor
+  MEME_ELEMENT_NOSTALGIC = 8;   // Retro / classic memes
+}
+
+// Card ability trigger timing
+enum AbilityTrigger {
+  ABILITY_TRIGGER_UNSPECIFIED = 0;
+  ABILITY_TRIGGER_ON_PLAY = 1;     // When card enters the field
+  ABILITY_TRIGGER_ON_ATTACK = 2;   // When card attacks
+  ABILITY_TRIGGER_ON_DEFEND = 3;   // When card is attacked
+  ABILITY_TRIGGER_ON_DEATH = 4;    // When card is destroyed
+  ABILITY_TRIGGER_PASSIVE = 5;     // Always active while on field
+  ABILITY_TRIGGER_ON_TURN_START = 6;
+  ABILITY_TRIGGER_ON_TURN_END = 7;
+}
+
+// Card ability effect types
+enum AbilityEffect {
+  ABILITY_EFFECT_UNSPECIFIED = 0;
+  ABILITY_EFFECT_DAMAGE = 1;        // Deal direct damage
+  ABILITY_EFFECT_HEAL = 2;          // Restore HP
+  ABILITY_EFFECT_BUFF_ATK = 3;      // Boost attack
+  ABILITY_EFFECT_BUFF_DEF = 4;      // Boost defense
+  ABILITY_EFFECT_DEBUFF_ATK = 5;    // Reduce enemy attack
+  ABILITY_EFFECT_DEBUFF_DEF = 6;    // Reduce enemy defense
+  ABILITY_EFFECT_DRAW = 7;          // Draw extra cards
+  ABILITY_EFFECT_STUN = 8;          // Skip enemy turn
+  ABILITY_EFFECT_SHIELD = 9;        // Absorb next hit
+  ABILITY_EFFECT_ELEMENT_SHIFT = 10; // Change element mid-battle
+}
+
+// Feed sort / algorithm selection
+enum FeedSort {
+  FEED_SORT_UNSPECIFIED = 0;
+  FEED_SORT_HOT = 1;          // Engagement-weighted recency
+  FEED_SORT_NEW = 2;          // Chronological (newest first)
+  FEED_SORT_TOP = 3;          // Highest reactions in time window
+  FEED_SORT_RANDOM = 4;       // Shuffle / discovery mode
+  FEED_SORT_RISING = 5;       // Fast-growing engagement velocity
+}
+
+// Time window for "top" feed sorting
+enum FeedTimeWindow {
+  FEED_TIME_UNSPECIFIED = 0;
+  FEED_TIME_HOUR = 1;
+  FEED_TIME_DAY = 2;
+  FEED_TIME_WEEK = 3;
+  FEED_TIME_MONTH = 4;
+  FEED_TIME_ALL = 5;
+}
+
+// Report reason categories
+enum ReportReason {
+  REPORT_REASON_UNSPECIFIED = 0;
+  REPORT_REASON_SPAM = 1;
+  REPORT_REASON_NSFW = 2;
+  REPORT_REASON_HATE_SPEECH = 3;
+  REPORT_REASON_HARASSMENT = 4;
+  REPORT_REASON_COPYRIGHT = 5;
+  REPORT_REASON_MISINFORMATION = 6;
+  REPORT_REASON_OTHER = 7;
+}
+
+// Battle match state
+enum BattleStatus {
+  BATTLE_STATUS_UNSPECIFIED = 0;
+  BATTLE_STATUS_WAITING = 1;     // Waiting for opponent
+  BATTLE_STATUS_IN_PROGRESS = 2;
+  BATTLE_STATUS_COMPLETED = 3;
+  BATTLE_STATUS_ABANDONED = 4;
+  BATTLE_STATUS_DRAW = 5;
+}
+
+// =============================================================================
+// Caption - Text overlay on a meme
+// =============================================================================
+
+message MemeCaption {
+  string text = 1;
+  float position_x = 2;       // 0.0–1.0 normalized X
+  float position_y = 3;       // 0.0–1.0 normalized Y
+  optional float font_size = 4;
+  optional string font_family = 5;
+  optional string color = 6;  // Hex color, e.g. "#FFFFFF"
+  optional string stroke_color = 7;
+  optional float stroke_width = 8;
+  optional float rotation = 9; // Degrees
+  optional string text_align = 10; // "left", "center", "right"
+  optional float max_width = 11;   // 0.0–1.0 normalized max width for wrapping
+}
+
+// =============================================================================
+// MemeTemplate - Reusable base image with defined caption slots
+// =============================================================================
+
+message TemplateCaptionSlot {
+  string label = 1;            // e.g. "top_text", "bottom_text"
+  float default_x = 2;        // Default normalized X position
+  float default_y = 3;        // Default normalized Y position
+  optional float default_font_size = 4;
+  optional string placeholder = 5; // Hint text, e.g. "Top text here"
+  optional float max_width = 6;
+  optional int32 max_chars = 7;    // Character limit for this slot
+}
+
+message MemeTemplate {
+  string id = 1;               // ULID
+  string name = 2;             // Display name, e.g. "Drake Hotline Bling"
+  optional string description = 3;
+  string image_url = 4;        // Base template image
+  optional string thumbnail_url = 5;
+  int32 width = 6;             // Original pixel width
+  int32 height = 7;            // Original pixel height
+  repeated TemplateCaptionSlot slots = 8;
+  int64 usage_count = 9;       // How many memes created from this template
+  repeated string tags = 10;   // Template categories, e.g. ["reaction", "drake"]
+  string created_at = 11;
+  optional string updated_at = 12;
+}
+
+// =============================================================================
+// Meme - Core entity (the card in the feed)
+// =============================================================================
+
+message Meme {
+  string id = 1;               // ULID
+  string author_id = 2;        // User UUID (from auth)
+  optional string title = 3;
+  optional string template_id = 4; // ULID reference to MemeTemplate (if created from one)
+  MemeFormat format = 5;
+  MemeStatus status = 6;
+
+  // Asset
+  string asset_url = 7;        // Final rendered meme URL (CDN path)
+  optional string thumbnail_url = 8;
+  optional int32 width = 9;    // Pixel width
+  optional int32 height = 10;  // Pixel height
+  optional int64 file_size = 11; // Bytes
+
+  // Captions baked into this meme (for re-rendering / accessibility)
+  repeated MemeCaption captions = 12;
+
+  // Categorization
+  repeated string tags = 13;
+  optional string source_url = 14; // Original source attribution
+  optional string alt_text = 15;   // Accessibility description
+
+  // Engagement counters (denormalized for feed read performance)
+  int64 view_count = 16;
+  int64 reaction_count = 17;
+  int64 share_count = 18;
+  int64 comment_count = 19;
+  int64 save_count = 20;      // Bookmark / collection saves
+
+  // Timestamps (ISO 8601 strings)
+  string created_at = 21;
+  optional string updated_at = 22;
+  optional string published_at = 23;
+
+  // Card game layer (populated when meme is minted as a card)
+  optional MemeCardStats card = 24;
+
+  // Content hash for deduplication (perceptual hash of the image)
+  optional string content_hash = 25;
+}
+
+// =============================================================================
+// MemeCardStats - Battle stats for the card game layer
+// =============================================================================
+
+message CardAbility {
+  string name = 1;                // e.g. "Ratio'd", "Repost Shield"
+  string description = 2;
+  AbilityTrigger trigger = 3;
+  AbilityEffect effect = 4;
+  int32 value = 5;                // Effect magnitude (damage amount, buff amount, etc.)
+  optional int32 cooldown = 6;    // Turns before reuse (0 = every turn)
+  optional int32 duration = 7;    // How many turns buff/debuff lasts
+}
+
+message MemeCardStats {
+  MemeRarity rarity = 1;
+  MemeElement element = 2;
+  int32 attack = 3;            // 0–999
+  int32 defense = 4;           // 0–999
+  int32 hp = 5;                // 1–9999
+  int32 energy_cost = 6;       // Cost to play this card (0–10)
+  repeated CardAbility abilities = 7;
+  optional string flavor_text = 8;  // Lore / joke text on the card
+
+  // Evolution / leveling
+  int32 level = 9;             // 1–100, affects stat scaling
+  int64 xp = 10;              // Experience points earned from battles
+  optional string evolves_from = 11; // ULID of pre-evolution meme card
+  optional string evolves_into = 12; // ULID of next evolution
+}
+
+// Element matchup modifier (for building the type chart)
+message ElementMatchup {
+  MemeElement attacker = 1;
+  MemeElement defender = 2;
+  float damage_multiplier = 3; // 0.5 = resist, 1.0 = neutral, 2.0 = super effective
+}
+
+// =============================================================================
+// MemeReaction - User reaction event
+// =============================================================================
+
+message MemeReaction {
+  string meme_id = 1;         // ULID
+  string user_id = 2;         // User UUID
+  ReactionType reaction = 3;
+  string created_at = 4;
+}
+
+// =============================================================================
+// MemeComment - User comment on a meme
+// =============================================================================
+
+message MemeComment {
+  string id = 1;               // ULID
+  string meme_id = 2;         // ULID
+  string author_id = 3;       // User UUID
+  string body = 4;            // Comment text (max 500 chars)
+  optional string parent_id = 5; // ULID for threaded replies (null = top-level)
+  int64 reaction_count = 6;
+  int32 reply_count = 7;      // Denormalized child count
+  string created_at = 8;
+  optional string updated_at = 9;
+}
+
+// =============================================================================
+// MemeSave / Collections - User bookmarks and organized collections
+// =============================================================================
+
+message MemeSave {
+  string meme_id = 1;         // ULID
+  string user_id = 2;         // User UUID
+  optional string collection_id = 3; // ULID, null = default "Saved" collection
+  string created_at = 4;
+}
+
+message MemeCollection {
+  string id = 1;               // ULID
+  string owner_id = 2;        // User UUID
+  string name = 3;            // e.g. "Favorites", "Best of 2026"
+  optional string description = 4;
+  optional string cover_meme_id = 5; // ULID of meme used as cover image
+  bool is_public = 6;         // Visible to other users
+  int32 meme_count = 7;       // Denormalized count
+  string created_at = 8;
+  optional string updated_at = 9;
+}
+
+// =============================================================================
+// User Meme Profile - Aggregated stats for a meme.sh user
+// =============================================================================
+
+message MemeUserProfile {
+  string user_id = 1;           // User UUID (from auth)
+  optional string display_name = 2;
+  optional string avatar_url = 3;
+  optional string bio = 4;
+
+  // Aggregate stats
+  int64 total_memes = 5;        // Memes submitted
+  int64 total_reactions_received = 6;
+  int64 total_views_received = 7;
+  int32 follower_count = 8;
+  int32 following_count = 9;
+
+  // Card game stats
+  optional MemePlayerStats card_stats = 10;
+
+  string joined_at = 11;
+  optional string updated_at = 12;
+}
+
+// Card game player statistics
+message MemePlayerStats {
+  int32 total_battles = 1;
+  int32 wins = 2;
+  int32 losses = 3;
+  int32 draws = 4;
+  int32 elo_rating = 5;         // Matchmaking rating (default 1000)
+  int32 cards_owned = 6;
+  int32 highest_streak = 7;     // Longest win streak
+  optional string rank_title = 8; // e.g. "Meme Lord", "Shitposter Supreme"
+}
+
+// =============================================================================
+// User Follow relationship
+// =============================================================================
+
+message MemeFollow {
+  string follower_id = 1;     // User UUID who is following
+  string following_id = 2;    // User UUID being followed
+  string created_at = 3;
+}
+
+// =============================================================================
+// Card Deck - A player's battle deck
+// =============================================================================
+
+message MemeDeck {
+  string id = 1;              // ULID
+  string owner_id = 2;        // User UUID
+  string name = 3;            // Deck name, e.g. "Cursed Rush"
+  repeated string card_ids = 4; // ULID references to Meme entities (with card stats)
+  bool is_active = 5;         // Currently selected deck for matchmaking
+  string created_at = 6;
+  optional string updated_at = 7;
+}
+
+// =============================================================================
+// Battle - A card game match between two players
+// =============================================================================
+
+// A single action within a battle turn
+message BattleAction {
+  int32 turn = 1;
+  string player_id = 2;       // User UUID of acting player
+  string card_id = 3;         // ULID of card used
+  optional string target_card_id = 4; // ULID of target card (if applicable)
+  optional string ability_name = 5;   // Ability used (if not basic attack)
+  int32 damage_dealt = 6;
+  int32 healing_done = 7;
+  optional string effect_applied = 8; // Description of any status effect
+}
+
+message BattleResult {
+  string battle_id = 1;       // ULID
+  string player_a_id = 2;     // User UUID
+  string player_b_id = 3;     // User UUID
+  BattleStatus status = 4;
+  optional string winner_id = 5;  // User UUID of winner (null on draw/abandoned)
+  int32 total_turns = 6;
+  repeated BattleAction actions = 7; // Full action log for replays
+  int32 elo_delta_a = 8;      // Rating change for player A
+  int32 elo_delta_b = 9;      // Rating change for player B
+  string created_at = 10;
+  optional string completed_at = 11;
+}
+
+// =============================================================================
+// Moderation
+// =============================================================================
+
+message MemeReport {
+  string id = 1;              // ULID
+  string meme_id = 2;         // ULID
+  string reporter_id = 3;     // User UUID
+  ReportReason reason = 4;
+  optional string detail = 5; // Free-text elaboration
+  bool resolved = 6;
+  optional string resolved_by = 7;  // Admin user UUID
+  optional string resolution_note = 8;
+  string created_at = 9;
+  optional string resolved_at = 10;
+}
+
+// =============================================================================
+// Feed - Infinite scroll cursor pagination
+// =============================================================================
+
+message FeedRequest {
+  int32 limit = 1;             // Items per page (1–50)
+  optional string cursor = 2;  // Opaque pagination cursor (ULID-based)
+  FeedSort sort = 3;
+  optional FeedTimeWindow time_window = 4; // Required when sort = TOP
+  optional string tag = 5;     // Filter by tag
+  optional string author_id = 6;  // Filter by author
+  optional MemeElement element = 7; // Filter by card element
+  optional bool cards_only = 8;    // Only show memes with card stats
+}
+
+message FeedResponse {
+  repeated Meme memes = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+// =============================================================================
+// Requests / Responses
+// =============================================================================
+
+// --- Submit a meme ---
+
+message SubmitMemeRequest {
+  optional string title = 1;
+  optional string template_id = 2;  // If created from a template
+  MemeFormat format = 3;
+  string asset_url = 4;
+  repeated MemeCaption captions = 5;
+  repeated string tags = 6;
+  optional string source_url = 7;
+  optional string alt_text = 8;
+}
+
+message SubmitMemeResponse {
+  kbve.common.Result result = 1;
+  optional Meme meme = 2;
+}
+
+// --- Get single meme by ID ---
+
+message GetMemeRequest {
+  string id = 1;               // ULID
+}
+
+message GetMemeResponse {
+  bool found = 1;
+  optional Meme meme = 2;
+}
+
+// --- Update meme ---
+
+message UpdateMemeRequest {
+  string id = 1;
+  optional string title = 2;
+  repeated string tags = 3;
+  optional string alt_text = 4;
+  optional MemeStatus status = 5;  // Author can archive their own memes
+}
+
+message UpdateMemeResponse {
+  kbve.common.Result result = 1;
+  optional Meme meme = 2;
+}
+
+// --- Delete meme ---
+
+message DeleteMemeRequest {
+  string id = 1;
+}
+
+message DeleteMemeResponse {
+  kbve.common.Result result = 1;
+}
+
+// --- React ---
+
+message ReactRequest {
+  string meme_id = 1;
+  ReactionType reaction = 2;
+}
+
+message ReactResponse {
+  kbve.common.Result result = 1;
+}
+
+// --- Comment ---
+
+message AddCommentRequest {
+  string meme_id = 1;
+  string body = 2;
+  optional string parent_id = 3; // For threaded replies
+}
+
+message AddCommentResponse {
+  kbve.common.Result result = 1;
+  optional MemeComment comment = 2;
+}
+
+message ListCommentsRequest {
+  string meme_id = 1;
+  int32 limit = 2;             // 1–100
+  optional string cursor = 3;
+  optional string parent_id = 4; // Null = top-level, set = replies to this comment
+}
+
+message ListCommentsResponse {
+  repeated MemeComment comments = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+// --- Save / Bookmark ---
+
+message SaveMemeRequest {
+  string meme_id = 1;
+  optional string collection_id = 2; // Null = default collection
+}
+
+message SaveMemeResponse {
+  kbve.common.Result result = 1;
+}
+
+message UnsaveMemeRequest {
+  string meme_id = 1;
+  optional string collection_id = 2;
+}
+
+message UnsaveMemeResponse {
+  kbve.common.Result result = 1;
+}
+
+// --- Collections ---
+
+message CreateCollectionRequest {
+  string name = 1;
+  optional string description = 2;
+  bool is_public = 3;
+}
+
+message CreateCollectionResponse {
+  kbve.common.Result result = 1;
+  optional MemeCollection collection = 2;
+}
+
+message ListCollectionsRequest {
+  string owner_id = 1;        // User UUID
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message ListCollectionsResponse {
+  repeated MemeCollection collections = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+message GetCollectionMemesRequest {
+  string collection_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message GetCollectionMemesResponse {
+  repeated Meme memes = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+// --- Templates ---
+
+message GetTemplateRequest {
+  string id = 1;
+}
+
+message GetTemplateResponse {
+  bool found = 1;
+  optional MemeTemplate template = 2;
+}
+
+message ListTemplatesRequest {
+  int32 limit = 1;
+  optional string cursor = 2;
+  optional string search = 3;  // Fuzzy search on template name
+}
+
+message ListTemplatesResponse {
+  repeated MemeTemplate templates = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+// --- User Profile ---
+
+message GetMemeProfileRequest {
+  string user_id = 1;
+}
+
+message GetMemeProfileResponse {
+  bool found = 1;
+  optional MemeUserProfile profile = 2;
+}
+
+// --- Follow ---
+
+message FollowRequest {
+  string target_user_id = 1;
+}
+
+message FollowResponse {
+  kbve.common.Result result = 1;
+}
+
+message UnfollowRequest {
+  string target_user_id = 1;
+}
+
+message UnfollowResponse {
+  kbve.common.Result result = 1;
+}
+
+message ListFollowersRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message ListFollowersResponse {
+  repeated MemeUserProfile followers = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+message ListFollowingRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message ListFollowingResponse {
+  repeated MemeUserProfile following = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+// --- Report ---
+
+message ReportMemeRequest {
+  string meme_id = 1;
+  ReportReason reason = 2;
+  optional string detail = 3;
+}
+
+message ReportMemeResponse {
+  kbve.common.Result result = 1;
+}
+
+// --- Mint a meme as a battle card ---
+
+message MintCardRequest {
+  string meme_id = 1;         // Existing meme to mint
+}
+
+message MintCardResponse {
+  kbve.common.Result result = 1;
+  optional MemeCardStats card = 2; // Generated stats based on meme engagement
+}
+
+// --- Deck management ---
+
+message CreateDeckRequest {
+  string name = 1;
+  repeated string card_ids = 2;
+}
+
+message CreateDeckResponse {
+  kbve.common.Result result = 1;
+  optional MemeDeck deck = 2;
+}
+
+message UpdateDeckRequest {
+  string deck_id = 1;
+  optional string name = 2;
+  repeated string card_ids = 3;
+  optional bool is_active = 4;
+}
+
+message UpdateDeckResponse {
+  kbve.common.Result result = 1;
+  optional MemeDeck deck = 2;
+}
+
+message ListDecksRequest {
+  string owner_id = 1;
+}
+
+message ListDecksResponse {
+  repeated MemeDeck decks = 1;
+}
+
+// --- Battle ---
+
+message StartBattleRequest {
+  string deck_id = 1;         // Player's active deck
+}
+
+message StartBattleResponse {
+  kbve.common.Result result = 1;
+  optional string battle_id = 2;
+  optional BattleStatus status = 3;
+}
+
+message GetBattleRequest {
+  string battle_id = 1;
+}
+
+message GetBattleResponse {
+  bool found = 1;
+  optional BattleResult battle = 2;
+}
+
+message ListBattleHistoryRequest {
+  string user_id = 1;
+  int32 limit = 2;
+  optional string cursor = 3;
+}
+
+message ListBattleHistoryResponse {
+  repeated BattleResult battles = 1;
+  optional string next_cursor = 2;
+  bool has_more = 3;
+}
+
+// =============================================================================
+// Services
+// =============================================================================
+
+// Core meme feed and content management
+service MemeService {
+  // Feed
+  rpc GetFeed (FeedRequest) returns (FeedResponse);
+  rpc GetMeme (GetMemeRequest) returns (GetMemeResponse);
+
+  // CRUD
+  rpc SubmitMeme (SubmitMemeRequest) returns (SubmitMemeResponse);
+  rpc UpdateMeme (UpdateMemeRequest) returns (UpdateMemeResponse);
+  rpc DeleteMeme (DeleteMemeRequest) returns (DeleteMemeResponse);
+
+  // Engagement
+  rpc React (ReactRequest) returns (ReactResponse);
+  rpc AddComment (AddCommentRequest) returns (AddCommentResponse);
+  rpc ListComments (ListCommentsRequest) returns (ListCommentsResponse);
+
+  // Bookmarks & Collections
+  rpc SaveMeme (SaveMemeRequest) returns (SaveMemeResponse);
+  rpc UnsaveMeme (UnsaveMemeRequest) returns (UnsaveMemeResponse);
+  rpc CreateCollection (CreateCollectionRequest) returns (CreateCollectionResponse);
+  rpc ListCollections (ListCollectionsRequest) returns (ListCollectionsResponse);
+  rpc GetCollectionMemes (GetCollectionMemesRequest) returns (GetCollectionMemesResponse);
+
+  // Moderation
+  rpc ReportMeme (ReportMemeRequest) returns (ReportMemeResponse);
+}
+
+// Template library for meme creation
+service MemeTemplateService {
+  rpc GetTemplate (GetTemplateRequest) returns (GetTemplateResponse);
+  rpc ListTemplates (ListTemplatesRequest) returns (ListTemplatesResponse);
+}
+
+// User social layer
+service MemeSocialService {
+  rpc GetProfile (GetMemeProfileRequest) returns (GetMemeProfileResponse);
+  rpc Follow (FollowRequest) returns (FollowResponse);
+  rpc Unfollow (UnfollowRequest) returns (UnfollowResponse);
+  rpc ListFollowers (ListFollowersRequest) returns (ListFollowersResponse);
+  rpc ListFollowing (ListFollowingRequest) returns (ListFollowingResponse);
+}
+
+// Card game: minting, deck building, battles
+service MemeCardService {
+  rpc MintCard (MintCardRequest) returns (MintCardResponse);
+  rpc CreateDeck (CreateDeckRequest) returns (CreateDeckResponse);
+  rpc UpdateDeck (UpdateDeckRequest) returns (UpdateDeckResponse);
+  rpc ListDecks (ListDecksRequest) returns (ListDecksResponse);
+  rpc StartBattle (StartBattleRequest) returns (StartBattleResponse);
+  rpc GetBattle (GetBattleRequest) returns (GetBattleResponse);
+  rpc ListBattleHistory (ListBattleHistoryRequest) returns (ListBattleHistoryResponse);
+}
