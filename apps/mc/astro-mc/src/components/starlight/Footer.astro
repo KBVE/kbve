@@ -1,0 +1,158 @@
+---
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Footer.astro';
+
+const currentYear = new Date().getFullYear();
+---
+
+<Default {...Astro.props}><slot /></Default>
+
+<div class="site-footer not-content">
+	<div class="footer-main">
+		<div class="footer-brand">
+			<a href="/" class="brand-link" data-astro-prefetch>
+				<span class="brand-title">KBVE MC</span>
+			</a>
+			<p class="brand-desc">
+				The official Minecraft server hub for KBVE.<br />
+				Explore worlds, join events, and build together.
+			</p>
+		</div>
+
+		<nav class="footer-col">
+			<h6 class="footer-title">Server</h6>
+			<a href="/guides/getting-started/">Getting Started</a>
+			<a href="/guides/getting-started/">Server Rules</a>
+		</nav>
+
+		<nav class="footer-col">
+			<h6 class="footer-title">Resources</h6>
+			<a href="/guides/getting-started/">Docs</a>
+			<a href="https://kbve.com">KBVE.com</a>
+			<a href="https://github.com/kbve/kbve">GitHub</a>
+		</nav>
+
+		<nav class="footer-col">
+			<h6 class="footer-title">Legal</h6>
+			<a href="https://kbve.com/legal/tos/">Terms of Use</a>
+			<a href="https://kbve.com/legal/privacy/">Privacy Policy</a>
+			<a href="https://kbve.com/legal/">Cookie Policy</a>
+		</nav>
+	</div>
+
+	<div class="footer-bottom">
+		<span>&copy; {currentYear} <a href="/">KBVE MC</a></span>
+	</div>
+</div>
+
+<style>
+	.site-footer {
+		margin-top: 2.5rem;
+		padding: 2.5rem 1.5rem 0;
+		border-top: 1px solid var(--sl-color-hairline, #27272a);
+		background-color: var(--sl-color-bg, rgba(0, 0, 0, 0.15));
+	}
+
+	.footer-main {
+		display: grid;
+		grid-template-columns: 1.5fr repeat(3, 1fr);
+		gap: 2.5rem;
+		max-width: 72rem;
+		margin: 0 auto;
+		padding-bottom: 2rem;
+	}
+
+	.brand-link {
+		display: inline-flex;
+		text-decoration: none;
+	}
+
+	.brand-title {
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--sl-color-white, #e2e8f0);
+	}
+
+	.brand-desc {
+		margin-top: 0.75rem;
+		font-size: 0.8125rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-2, #a1a1aa);
+	}
+
+	.footer-col {
+		display: flex;
+		flex-direction: column;
+		gap: 0.625rem;
+	}
+
+	.footer-title {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--sl-color-white, #e2e8f0);
+		margin-bottom: 0.25rem;
+	}
+
+	.footer-col a {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-2, #a1a1aa);
+		text-decoration: none;
+		transition: color 150ms ease;
+	}
+
+	.footer-col a:hover {
+		color: var(--sl-color-accent, #10b981);
+	}
+
+	.footer-bottom {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		max-width: 72rem;
+		margin: 0 auto;
+		padding: 1.25rem 0;
+		border-top: 1px solid var(--sl-color-hairline, #27272a);
+	}
+
+	.footer-bottom span {
+		font-size: 0.8125rem;
+		color: var(--sl-color-gray-3, #71717a);
+	}
+
+	.footer-bottom a {
+		color: var(--sl-color-gray-2, #a1a1aa);
+		text-decoration: none;
+		font-weight: 500;
+		transition: color 150ms ease;
+	}
+
+	.footer-bottom a:hover {
+		color: var(--sl-color-accent, #10b981);
+	}
+
+	@media (max-width: 768px) {
+		.footer-main {
+			grid-template-columns: 1fr 1fr;
+			gap: 2rem;
+		}
+
+		.footer-brand {
+			grid-column: 1 / -1;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.footer-main {
+			grid-template-columns: 1fr;
+			gap: 1.5rem;
+		}
+
+		.footer-bottom {
+			flex-direction: column;
+			gap: 1rem;
+			text-align: center;
+		}
+	}
+</style>

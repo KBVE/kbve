@@ -1,0 +1,49 @@
+@layer base, starlight, theme, components, utilities, galaxy, my-overrides;
+
+@import '@astrojs/starlight-tailwind';
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
+
+:root {
+	--sl-color-accent-low: #ecfdf5;
+	--sl-color-accent: #10b981;
+	--sl-color-accent-high: #059669;
+	--sl-color-text-accent: #047857;
+	--sl-color-link: #10b981;
+	--sl-color-link-hover: #34d399;
+	--sl-color-bg-accent: #d1fae5;
+	--sl-color-code-bg: #022c22;
+	--sl-color-border: #6ee7b7;
+}
+:root[data-theme='dark'] {
+	--sl-color-accent-low: #022c22;
+	--sl-color-accent: #10b981;
+	--sl-color-accent-high: #6ee7b7;
+	--sl-color-text-accent: #34d399;
+	--sl-color-link: #34d399;
+	--sl-color-link-hover: #6ee7b7;
+	--sl-color-bg-accent: #064e3b;
+	--sl-color-code-bg: #022c22;
+	--sl-color-border: #065f46;
+}
+
+@layer utilities {
+	.focus-ring {
+		@apply ring-emerald-500 ring-offset-2 focus:outline-none focus-visible:ring-2;
+	}
+}
+@layer components {
+	.sl-link-button {
+		@apply bg-emerald-600 hover:bg-emerald-700 text-white;
+	}
+	.sl-markdown-content a {
+		@apply text-emerald-600 hover:text-emerald-700 dark:text-emerald-400 dark:hover:text-emerald-300;
+	}
+}
+
+@layer my-overrides {
+}
+
+@view-transition {
+	navigation: auto;
+}

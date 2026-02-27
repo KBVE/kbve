@@ -1,0 +1,41 @@
+---
+title: |
+  KBVE Minecraft Server
+description: |
+  The official Minecraft server hub for KBVE.
+  Explore worlds, join events, and build together.
+template: splash
+hero:
+  tagline: Explore, build, and survive on the KBVE Minecraft server.
+  actions:
+    - text: Getting Started
+      link: /guides/getting-started/
+      icon: right-arrow
+    - text: GitHub
+      link: https://github.com/kbve/kbve
+      icon: external
+      variant: minimal
+---
+
+import { Card, CardGrid } from '@astrojs/starlight/components';
+
+## Welcome to KBVE MC
+
+KBVE MC is a community-driven Minecraft server powered by Pumpkin. Whether you're a builder, explorer, or redstone engineer, there's a place for you here.
+
+## Features
+
+<CardGrid stagger>
+	<Card title="Custom Plugins" icon="setting">
+		Our server runs custom-built Rust plugins via the Pumpkin engine, delivering unique gameplay mechanics and performance.
+	</Card>
+	<Card title="Community Events" icon="star">
+		Regular build competitions, survival challenges, and community gatherings keep the server lively.
+	</Card>
+	<Card title="Open Source" icon="open-book">
+		Everything from the server configuration to the plugins is open source. Contribute on GitHub or fork for your own server.
+	</Card>
+	<Card title="Modern Infrastructure" icon="rocket">
+		Built on a modern Rust-based Minecraft engine with Docker deployments, automated testing, and continuous integration.
+	</Card>
+</CardGrid>
