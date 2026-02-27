@@ -24,6 +24,7 @@ use pumpkin::plugin::player::player_respawn::PlayerRespawnEvent;
 use pumpkin::plugin::{BoxFuture, EventHandler, EventPriority};
 use pumpkin::server::Server;
 use pumpkin_api_macros::plugin_impl;
+use pumpkin_data::BlockState;
 use pumpkin_data::damage::DamageType;
 use pumpkin_data::data_component::DataComponent;
 use pumpkin_data::data_component_impl::{
@@ -41,6 +42,7 @@ use pumpkin_util::permission::{Permission, PermissionDefault};
 use pumpkin_util::text::TextComponent;
 use pumpkin_util::text::color::NamedColor;
 use pumpkin_world::item::ItemStack;
+use pumpkin_world::world::BlockFlags;
 use std::thread;
 
 // ---------------------------------------------------------------------------
@@ -146,23 +148,17 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                 player.send_system_message(&uuid_msg).await;
             });
 
-            // Only auto-give on first join to avoid the cdylib TypeId mismatch panic
-            // in DataComponentImpl::equal() when Pumpkin tries to stack-compare
-            // plugin-created items with existing inventory items on reconnect.
-            if is_first_join {
-                debug!("First join — auto-giving custom items to {name}");
+            // Auto-give custom items on every join. The KBVE/Pumpkin fork
+            // now has the NBT-fallback fix in DataComponentImpl::equal()
+            // so cdylib TypeId mismatches no longer panic on reconnect.
+            {
+                debug!("Auto-giving custom items to {name} (first_join={is_first_join})");
 
-                // Skip potion items — Pumpkin's entity metadata sync for PotionContents
-                // crashes the vanilla client (set_entity_data index 18 OOB).
+                // Re-enabled: potions were previously skipped due to a Pumpkin
+                // entity metadata crash (set_entity_data index 18 OOB).
+                // Testing whether the current fork resolves this.
                 let stacks: Vec<ItemStack> = ITEM_REGISTRY
                     .iter()
-                    .filter(|entry| {
-                        let dominated = entry.value().potion.is_some();
-                        if dominated {
-                            trace!("Skipping potion item '{}' for auto-give", entry.key());
-                        }
-                        !dominated
-                    })
                     .filter_map(|entry| {
                         let key = *entry.key();
                         let result = build_item_stack(entry.value());
@@ -193,8 +189,6 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                     let _ = dur; // suppress unused warning when debug is off
                 }
                 info!("Auto-gave {given} custom items to {name}");
-            } else {
-                info!("Returning player {name} — skipping auto-give (cdylib TypeId workaround)");
             }
 
             // For first-time players, ensure they spawn on solid ground (not ocean).
@@ -229,10 +223,13 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                     let search_start = Instant::now();
                     let mut checked = 0u32;
 
-                    // Search in expanding rings (chunk-sized steps) for solid ground
-                    'search: for radius in 1..=20u32 {
-                        let step = (radius * 16) as i32;
-                        let offsets: [(i32, i32); 8] = [
+                    // Expanding spiral: 50 rings × 16 directions × 8-block steps
+                    // covers up to 400 blocks out with much denser sampling than
+                    // the previous 8-direction, 16-block-step approach.
+                    'search: for radius in 1..=50u32 {
+                        let step = (radius * 8) as i32;
+                        // 16 directions: 4 cardinal, 4 diagonal, 8 intermediate
+                        let offsets: [(i32, i32); 16] = [
                             (step, 0),
                             (-step, 0),
                             (0, step),
@@ -241,16 +238,20 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                             (-step, step),
                             (step, -step),
                             (-step, -step),
+                            (step, step / 2),
+                            (-step, step / 2),
+                            (step, -step / 2),
+                            (-step, -step / 2),
+                            (step / 2, step),
+                            (-step / 2, step),
+                            (step / 2, -step),
+                            (-step / 2, -step),
                         ];
 
                         for (dx, dz) in offsets {
                             checked += 1;
                             let check_x = spawn_x + dx;
                             let check_z = spawn_z + dz;
-
-                            trace!(
-                                "Land search ring={radius} checking ({check_x}, ?, {check_z})..."
-                            );
 
                             let check_top =
                                 world.get_top_block(Vector2::new(check_x, check_z)).await;
@@ -301,10 +302,13 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                             }
                         }
 
-                        debug!(
-                            "Land search ring {radius}/20 complete ({checked} total checks, {:.1?} elapsed)",
-                            search_start.elapsed()
-                        );
+                        // Log progress every 10 rings
+                        if radius % 10 == 0 {
+                            debug!(
+                                "Land search ring {radius}/50 complete ({checked} total checks, {:.1?} elapsed)",
+                                search_start.elapsed()
+                            );
+                        }
                     }
                 }
             }
@@ -381,7 +385,7 @@ fn build_item_stack(def: &ItemDef) -> Option<ItemStack> {
                             show_icon: true,
                         })
                         .collect(),
-                    custom_name: Some(def.display_name.to_string()),
+                    custom_name: None,
                 }
                 .to_dyn(),
             ),
@@ -846,6 +850,244 @@ enum OrbitalWeapon {
     Potion,
 }
 
+/// Walk along the player's look direction in 0.5-block steps and return the
+/// position of the first non-air block hit.  Falls back to max-range if the
+/// ray passes only through air (e.g. looking at the sky).
+///
+/// Uses `try_get_block_state_id` so it never force-loads chunks.
+fn raycast_target(
+    world: &pumpkin::world::World,
+    eye: Vector3<f64>,
+    dir: Vector3<f32>,
+    max_range: f64,
+) -> Vector3<f64> {
+    const STEP: f64 = 0.5;
+    let steps = (max_range / STEP) as usize;
+    let dx = dir.x as f64;
+    let dy = dir.y as f64;
+    let dz = dir.z as f64;
+
+    let mut prev_bx = i32::MAX;
+    let mut prev_by = i32::MAX;
+    let mut prev_bz = i32::MAX;
+
+    for i in 1..=steps {
+        let t = i as f64 * STEP;
+        let x = eye.x + dx * t;
+        let y = eye.y + dy * t;
+        let z = eye.z + dz * t;
+
+        let bx = x.floor() as i32;
+        let by = y.floor() as i32;
+        let bz = z.floor() as i32;
+
+        // Skip if we're still in the same block cell
+        if bx == prev_bx && by == prev_by && bz == prev_bz {
+            continue;
+        }
+        prev_bx = bx;
+        prev_by = by;
+        prev_bz = bz;
+
+        let pos = BlockPos::new(bx, by, bz);
+        if let Some(state_id) = world.try_get_block_state_id(&pos) {
+            let state = BlockState::from_id(state_id);
+            if !state.is_air() {
+                return Vector3::new(x, y, z);
+            }
+        }
+    }
+
+    // Nothing hit — use max range
+    Vector3::new(
+        eye.x + dx * max_range,
+        eye.y + dy * max_range,
+        eye.z + dz * max_range,
+    )
+}
+
+// ---------------------------------------------------------------------------
+// Safe explosion — safety constants & per-region cooldown
+// ---------------------------------------------------------------------------
+
+/// Hard cap on blocks destroyed per single explosion.
+const MAX_EXPLOSION_BLOCKS: u32 = 200;
+
+/// Minimum Y level — never destroy blocks at or below this.
+const MIN_EXPLOSION_Y: i32 = -64;
+
+/// Per-region cooldown: prevent the same 16×16 column from being
+/// blasted more than once within this window.
+const REGION_COOLDOWN: Duration = Duration::from_secs(5);
+
+/// Region cooldown map — keyed by (chunk_x, chunk_z).
+static REGION_COOLDOWNS: LazyLock<DashMap<(i32, i32), Instant>> = LazyLock::new(DashMap::new);
+
+/// Blocks that are never destroyed regardless of blast resistance.
+/// Matches by `block.name` for portability across data versions.
+const PROTECTED_BLOCK_NAMES: &[&str] = &[
+    "end_portal",
+    "end_portal_frame",
+    "end_gateway",
+    "command_block",
+    "chain_command_block",
+    "repeating_command_block",
+    "structure_block",
+    "jigsaw",
+    "spawner",
+    "trial_spawner",
+    "reinforced_deepslate",
+];
+
+/// Minimum blast_resistance to be considered indestructible
+/// (bedrock = 3_600_000, barrier = 3_600_001).
+const INDESTRUCTIBLE_RESISTANCE: f32 = 3_600_000.0;
+
+/// Blast-resistance threshold above which blocks survive at the
+/// outer 50 % of the radius (obsidian = 1200, ancient debris = 1200,
+/// enchanting table = 1200, anvil = 1200, ender chest = 600).
+const TOUGH_RESISTANCE: f32 = 600.0;
+
+/// Destroy blocks in a sphere using `set_block_state` with safe flags.
+///
+/// Safety mechanisms:
+///  1. **Max block cap** — stops after [`MAX_EXPLOSION_BLOCKS`].
+///  2. **Blast resistance attenuation** — blocks further from center
+///     must have lower resistance to break; tough blocks only break
+///     in the inner half of the sphere.
+///  3. **Y-level floor** — never destroys below [`MIN_EXPLOSION_Y`].
+///  4. **Protected block list** — portal frames, command blocks, etc.
+///  5. **Player-under-feet protection** — preserves the 2 blocks
+///     directly under every nearby player.
+///  6. **Per-region cooldown** — rejects if the chunk was blasted
+///     within [`REGION_COOLDOWN`].
+///  7. **Chunk-loaded pre-check** — bails immediately if the center
+///     chunk is not loaded.
+///
+/// Unlike `world.explode()` this skips `damage_entities`,
+/// `drop_loot`, `on_placed` chains, and `update_neighbors`.
+async fn destroy_blocks_sphere(
+    world: &Arc<pumpkin::world::World>,
+    center: Vector3<f64>,
+    radius: f64,
+) -> u32 {
+    let cx = center.x.floor() as i32;
+    let cy = center.y.floor() as i32;
+    let cz = center.z.floor() as i32;
+    let center_pos = BlockPos::new(cx, cy, cz);
+
+    // --- Safety 7: Chunk-loaded pre-check ---
+    if world.try_get_block_state_id(&center_pos).is_none() {
+        debug!("destroy_blocks_sphere: center chunk not loaded, aborting");
+        return 0;
+    }
+
+    // --- Safety 6: Per-region cooldown ---
+    let chunk_key = (cx >> 4, cz >> 4);
+    if let Some(last) = REGION_COOLDOWNS.get(&chunk_key) {
+        if last.elapsed() < REGION_COOLDOWN {
+            debug!(
+                "destroy_blocks_sphere: region ({},{}) on cooldown ({:.1?} remaining)",
+                chunk_key.0,
+                chunk_key.1,
+                REGION_COOLDOWN - last.elapsed()
+            );
+            return 0;
+        }
+    }
+    REGION_COOLDOWNS.insert(chunk_key, Instant::now());
+
+    // --- Safety 5: Collect protected foot positions ---
+    // Protect the 2 blocks under every player within radius+10.
+    let nearby = world.get_nearby_players(center, radius + 10.0);
+    let mut protected_feet: Vec<(i32, i32, i32)> = Vec::new();
+    for p in &nearby {
+        let foot = p.living_entity.entity.block_pos.load().0;
+        // Block at feet and one below
+        protected_feet.push((foot.x, foot.y, foot.z));
+        protected_feet.push((foot.x, foot.y - 1, foot.z));
+    }
+
+    let r = radius.ceil() as i32;
+    let r_sq = radius * radius;
+    let flags = BlockFlags::NOTIFY_LISTENERS
+        | BlockFlags::FORCE_STATE
+        | BlockFlags::SKIP_BLOCK_ADDED_CALLBACK;
+
+    let mut count = 0u32;
+    for dx in -r..=r {
+        for dy in -r..=r {
+            for dz in -r..=r {
+                // --- Safety 1: Max block cap ---
+                if count >= MAX_EXPLOSION_BLOCKS {
+                    debug!("destroy_blocks_sphere: hit max cap ({MAX_EXPLOSION_BLOCKS})");
+                    return count;
+                }
+
+                let dist_sq = (dx * dx + dy * dy + dz * dz) as f64;
+                if dist_sq > r_sq {
+                    continue;
+                }
+
+                let bx = cx + dx;
+                let by = cy + dy;
+                let bz = cz + dz;
+
+                // --- Safety 3: Y-level floor ---
+                if by <= MIN_EXPLOSION_Y {
+                    continue;
+                }
+
+                // --- Safety 5: Player-under-feet ---
+                if protected_feet.contains(&(bx, by, bz)) {
+                    continue;
+                }
+
+                let pos = BlockPos::new(bx, by, bz);
+
+                // Non-blocking: skip blocks in unloaded chunks
+                let Some(state_id) = world.try_get_block_state_id(&pos) else {
+                    continue;
+                };
+                if state_id == 0 {
+                    continue; // already air
+                }
+
+                let block = pumpkin_data::Block::from_state_id(state_id);
+
+                // --- Safety 4a: Indestructible blocks ---
+                if block.blast_resistance >= INDESTRUCTIBLE_RESISTANCE {
+                    continue;
+                }
+
+                // --- Safety 4b: Protected block names ---
+                if PROTECTED_BLOCK_NAMES.contains(&block.name) {
+                    continue;
+                }
+
+                // --- Safety 2: Blast resistance attenuation ---
+                // Strength falls off linearly from 1.0 at center to 0.0
+                // at edge. Tough blocks (obsidian etc.) only break in the
+                // inner half.
+                let dist = (dist_sq as f64).sqrt();
+                let strength = 1.0 - dist / radius;
+                if block.blast_resistance >= TOUGH_RESISTANCE && strength < 0.5 {
+                    continue;
+                }
+                // Medium-resistance blocks (stone variants, ores) survive
+                // at the very edge.
+                if block.blast_resistance as f64 > strength * 30.0 {
+                    continue;
+                }
+
+                world.set_block_state(&pos, 0, flags).await;
+                count += 1;
+            }
+        }
+    }
+    count
+}
+
 struct OrbitalStrikeHandler;
 
 impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
@@ -864,10 +1106,30 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
                 return;
             }
 
-            // Check if held item is an orbital strike weapon
+            // CRITICAL: The UseItem event fires for BOTH hands (main + offhand).
+            // Any tokio::sync::Mutex operation (lock, try_lock) on event.item from
+            // a cdylib permanently corrupts the lock, because the MutexGuard drop
+            // runs through the plugin's own statically-linked copy of tokio, which
+            // cannot properly release the host-side semaphore state.
+            //
+            // Fix: Compare Arc pointers to determine if event.item is the main
+            // hand. PlayerInventory::held_item() returns an Arc clone of the same
+            // slot allocation (lock-free: just AtomicU8 read + Vec index + Arc
+            // clone). If the pointers don't match, this event is for the offhand
+            // (shield / slot 40) — skip without touching the mutex at all.
+            let main_hand = player.inventory().held_item();
+            if !Arc::ptr_eq(&item, &main_hand) {
+                return;
+            }
+
+            // Now we know event.item IS the main hand slot. Main-hand try_lock
+            // has never triggered slot timeouts in testing (only offhand/slot 40
+            // does), so try_lock + explicit drop is safe here.
             let weapon = {
-                let stack = item.lock().await;
-                match stack.get_data_component::<ItemModelImpl>() {
+                let Ok(stack) = item.try_lock() else {
+                    return;
+                };
+                let result = match stack.get_data_component::<ItemModelImpl>() {
                     Some(m)
                         if m.model == "kbve:orbital_cannon_a"
                             || m.model == "kbve:orbital_cannon_b" =>
@@ -883,7 +1145,9 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
                         Some(OrbitalWeapon::Potion)
                     }
                     _ => None,
-                }
+                };
+                drop(stack);
+                result
             };
 
             let Some(weapon) = weapon else {
@@ -920,65 +1184,66 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
 
             let world = player.world();
 
-            // Determine target X,Z from click or look direction
-            let (target_x, target_z) = if let Some(pos) = clicked_pos {
+            // Determine target: raycast along look direction to find the
+            // first solid block the player is aiming at.  If a clicked_pos
+            // was provided (right-click on block) we use that directly.
+            let max_range = match weapon {
+                OrbitalWeapon::Cannon => 60.0f64,
+                OrbitalWeapon::Potion => 40.0f64,
+            };
+
+            let strike_pos = if let Some(pos) = clicked_pos {
                 debug!(
                     "{name} orbital strike targeting clicked block ({}, ?, {})",
                     pos.0.x, pos.0.z
                 );
-                (pos.0.x as f64 + 0.5, pos.0.z as f64 + 0.5)
+                let x = pos.0.x as f64 + 0.5;
+                let z = pos.0.z as f64 + 0.5;
+                let (sy, _) = timed!("get_top_block(click)", {
+                    world.get_top_block(Vector2::new(pos.0.x, pos.0.z)).await
+                });
+                Vector3::new(x, f64::from(sy) + 1.0, z)
             } else {
                 let eye = player.eye_position();
                 let dir = player.living_entity.entity.rotation();
-                let range = match weapon {
-                    OrbitalWeapon::Cannon => 100.0f64,
-                    OrbitalWeapon::Potion => 60.0f64,
-                };
-                let tx = eye.x + dir.x as f64 * range;
-                let tz = eye.z + dir.z as f64 * range;
+                let (hit, _) = timed!("raycast_target", {
+                    raycast_target(&world, eye, dir, max_range)
+                });
                 debug!(
-                    "{name} orbital strike targeting look direction: eye=({:.1}, {:.1}, {:.1}) dir=({:.2}, {:.2}, {:.2}) range={range} → ({:.1}, ?, {:.1})",
-                    eye.x, eye.y, eye.z, dir.x, dir.y, dir.z, tx, tz
+                    "{name} orbital strike raycast: eye=({:.1},{:.1},{:.1}) dir=({:.2},{:.2},{:.2}) → hit=({:.1},{:.1},{:.1})",
+                    eye.x, eye.y, eye.z, dir.x, dir.y, dir.z, hit.x, hit.y, hit.z
                 );
-                (tx, tz)
+                hit
             };
 
-            // Find ground level at target
-            let (surface_y, _) = timed!("get_top_block(strike_target)", {
-                world
-                    .get_top_block(Vector2::new(target_x as i32, target_z as i32))
-                    .await
-            });
-            let strike_pos = Vector3::new(target_x, f64::from(surface_y) + 1.0, target_z);
-
-            let power = match weapon {
-                OrbitalWeapon::Cannon => 6.0,
-                OrbitalWeapon::Potion => 4.0,
+            let blast_radius = match weapon {
+                OrbitalWeapon::Cannon => 4.0f64,
+                OrbitalWeapon::Potion => 3.0f64,
             };
 
             info!(
-                "{name} firing orbital strike at ({:.1}, {:.1}, {:.1}) power={power}",
+                "{name} firing orbital strike at ({:.1}, {:.1}, {:.1}) radius={blast_radius}",
                 strike_pos.x, strike_pos.y, strike_pos.z
             );
 
             // --- Phase 1: Particle beam from sky to impact ---
-            let beam_top = strike_pos.y + 60.0;
+            let beam_top = strike_pos.y + 40.0;
             let (_, beam_dur) = timed!("orbital_phase1_beam", {
-                for i in 0..30 {
-                    let y = beam_top - (i as f64 * 2.0);
+                for i in 0..10 {
+                    let y = beam_top - (i as f64 * 4.0);
                     world
                         .spawn_particle(
                             Vector3::new(strike_pos.x, y, strike_pos.z),
                             Vector3::new(0.1, 0.0, 0.1),
                             0.02,
-                            3,
+                            2,
                             Particle::EndRod,
                         )
                         .await;
                 }
             });
             trace!(
-                "Phase 1 (beam): 30 calls × 3 EndRod = 90 particles in {:.1?}",
+                "Phase 1 (beam): 10 calls × 2 EndRod = 20 particles in {:.1?}",
                 beam_dur
             );
 
@@ -989,18 +1254,48 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
                         strike_pos,
                         Vector3::new(2.0, 3.0, 2.0),
                         0.05,
-                        40,
+                        15,
                         Particle::LargeSmoke,
                     )
                     .await;
             });
-            trace!("Phase 1 (smoke): 40 LargeSmoke in {:.1?}", smoke_dur);
+            trace!("Phase 1 (smoke): 15 LargeSmoke in {:.1?}", smoke_dur);
 
-            // --- Phase 2: Explosion ---
-            let (_, explode_dur) = timed!("orbital_phase2_explode", {
-                world.explode(strike_pos, power).await;
+            // --- Phase 2: Block destruction (safe custom implementation) ---
+            // Uses set_block_state with NOTIFY_LISTENERS | FORCE_STATE |
+            // SKIP_BLOCK_ADDED_CALLBACK. This avoids the on_placed/
+            // update_neighbors/drop_loot/damage_entities chains that
+            // world.explode() triggers and which corrupt player state.
+            let (destroyed, explode_dur) = timed!("orbital_phase2_destroy", {
+                destroy_blocks_sphere(&world, strike_pos, blast_radius).await
             });
-            debug!("Phase 2 (explosion): power={power} in {:.1?}", explode_dur);
+            debug!(
+                "Phase 2 (block destruction): {destroyed} blocks in {:.1?}",
+                explode_dur
+            );
+
+            // Explosion particles at impact
+            let (_, fx_dur) = timed!("orbital_phase2_fx", {
+                world
+                    .spawn_particle(
+                        strike_pos,
+                        Vector3::new(2.0, 2.0, 2.0),
+                        0.08,
+                        25,
+                        Particle::Explosion,
+                    )
+                    .await;
+                world
+                    .spawn_particle(
+                        strike_pos,
+                        Vector3::new(3.0, 0.5, 3.0),
+                        0.05,
+                        20,
+                        Particle::Flame,
+                    )
+                    .await;
+            });
+            trace!("Phase 2 (fx): Explosion+Flame in {:.1?}", fx_dur);
 
             // Post-explosion shockwave particles
             let (_, shockwave_dur) = timed!("orbital_phase3_shockwave", {
@@ -1017,11 +1312,17 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
             trace!("Phase 3 (shockwave): 15 SonicBoom in {:.1?}", shockwave_dur);
 
             // --- Phase 4: Degrade weapon ---
-            if matches!(weapon, OrbitalWeapon::Cannon) {
-                timed!("orbital_phase4_damage_item", {
-                    player.damage_held_item(1).await;
-                });
-            }
+            // DISABLED: damage_held_item() permanently locks slot 40
+            // (offhand/shield) via an internal inventory sync that crosses
+            // the cdylib boundary. The stuck lock makes the shield vanish
+            // (get_cloned_stack returns EMPTY) and eventually times out
+            // the player's connection. Need a Pumpkin-side fix or a
+            // lock-free durability approach before re-enabling.
+            // if matches!(weapon, OrbitalWeapon::Cannon) {
+            //     timed!("orbital_phase4_damage_item", {
+            //         player.damage_held_item(1).await;
+            //     });
+            // }
 
             // --- Feedback ---
             let msg = match weapon {
@@ -1034,7 +1335,7 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
 
             let total = strike_start.elapsed();
             info!(
-                "{name} orbital strike complete at ({:.1}, {:.1}, {:.1}) power={power} total={:.1?} (beam={:.1?} smoke={:.1?} explode={:.1?} shockwave={:.1?})",
+                "{name} orbital strike complete at ({:.1}, {:.1}, {:.1}) radius={blast_radius} destroyed={destroyed} total={:.1?} (beam={:.1?} smoke={:.1?} destroy={:.1?} shockwave={:.1?})",
                 strike_pos.x,
                 strike_pos.y,
                 strike_pos.z,
