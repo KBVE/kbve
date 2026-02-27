@@ -1,0 +1,278 @@
+syntax = "proto3";
+
+package kbve.minecraft;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Minecraft container types
+enum McContainerType {
+  MC_CONTAINER_UNKNOWN = 0;
+  MC_CONTAINER_PLAYER_INVENTORY = 1;
+  MC_CONTAINER_CHEST = 2;
+  MC_CONTAINER_DOUBLE_CHEST = 3;
+  MC_CONTAINER_ENDER_CHEST = 4;
+  MC_CONTAINER_SHULKER_BOX = 5;
+  MC_CONTAINER_BARREL = 6;
+  MC_CONTAINER_HOPPER = 7;
+  MC_CONTAINER_DROPPER = 8;
+  MC_CONTAINER_DISPENSER = 9;
+  MC_CONTAINER_FURNACE = 10;
+  MC_CONTAINER_BLAST_FURNACE = 11;
+  MC_CONTAINER_SMOKER = 12;
+  MC_CONTAINER_BREWING_STAND = 13;
+}
+
+// Transfer event categories
+enum McTransferType {
+  MC_TRANSFER_UNKNOWN = 0;
+  MC_TRANSFER_PLAYER_TO_PLAYER = 1;
+  MC_TRANSFER_PLAYER_TO_CONTAINER = 2;
+  MC_TRANSFER_CONTAINER_TO_PLAYER = 3;
+  MC_TRANSFER_CONTAINER_TO_CONTAINER = 4;
+  MC_TRANSFER_PICKUP = 5;      // Item entity picked up from ground
+  MC_TRANSFER_DROP = 6;        // Player drops item into the world
+  MC_TRANSFER_CRAFT = 7;       // Item produced via crafting
+  MC_TRANSFER_SMELT = 8;       // Item produced via furnace/smelter
+  MC_TRANSFER_TRADE = 9;       // Villager or custom NPC trade
+}
+
+// Player game modes
+enum McGameMode {
+  MC_GAMEMODE_SURVIVAL = 0;
+  MC_GAMEMODE_CREATIVE = 1;
+  MC_GAMEMODE_ADVENTURE = 2;
+  MC_GAMEMODE_SPECTATOR = 3;
+}
+
+// =============================================================================
+// Core Item Types
+// =============================================================================
+
+// A single enchantment on an item
+message McEnchantment {
+  string id = 1;      // e.g. "minecraft:sharpness"
+  int32 level = 2;    // Enchantment level (1-255)
+}
+
+// Custom display data (renamed item, lore, color)
+message McItemDisplay {
+  optional string custom_name = 1;     // JSON text component
+  repeated string lore = 2;           // JSON text component lines
+  optional int32 color = 3;           // RGB int for leather armor / potions
+}
+
+// An item stack — the fundamental unit of MC items
+message McItemStack {
+  string item_id = 1;                         // Namespaced ID, e.g. "minecraft:diamond_sword"
+  int32 count = 2;                            // Stack size (1-127)
+  optional int32 damage = 3;                  // Durability damage taken
+  optional int32 max_damage = 4;              // Max durability for the item type
+  repeated McEnchantment enchantments = 5;
+  optional McItemDisplay display = 6;
+  optional int32 repair_cost = 7;             // Anvil repair cost
+  optional int32 custom_model_data = 8;       // Resource pack model override
+  map<string, string> custom_data = 9;        // Arbitrary plugin/mod key-value data
+}
+
+// A single inventory slot
+message McSlot {
+  int32 index = 1;                    // Slot number (0-based)
+  optional McItemStack item = 2;      // Empty if slot is vacant
+}
+
+// =============================================================================
+// Inventory & Containers
+// =============================================================================
+
+// Player inventory layout
+// Slots 0-8: hotbar, 9-35: main inventory, 36-39: armor (boots→helmet), 40: offhand
+message McPlayerInventory {
+  string player_uuid = 1;            // Minecraft player UUID
+  repeated McSlot slots = 2;         // All occupied slots
+  int32 selected_slot = 3;           // Active hotbar slot (0-8)
+  kbve.common.Timestamp captured_at = 4;
+}
+
+// Generic container (chests, barrels, etc.)
+message McContainer {
+  string container_id = 1;           // Server-assigned unique ID
+  McContainerType type = 2;
+  optional string world = 3;         // World name / dimension
+  optional McBlockPos position = 4;  // Block position in world
+  repeated McSlot slots = 5;
+  optional string custom_name = 6;   // Custom container name if renamed
+  kbve.common.Timestamp captured_at = 7;
+}
+
+// Block position (integer coordinates)
+message McBlockPos {
+  int32 x = 1;
+  int32 y = 2;
+  int32 z = 3;
+}
+
+// =============================================================================
+// Item Transfers
+// =============================================================================
+
+// A single item transfer event log entry
+message McItemTransfer {
+  string transfer_id = 1;             // ULID for this transfer event
+  McTransferType type = 2;
+  McItemStack item = 3;               // The item(s) moved
+
+  // Source
+  optional string source_player_uuid = 4;
+  optional string source_container_id = 5;
+  optional int32 source_slot = 6;
+
+  // Destination
+  optional string dest_player_uuid = 7;
+  optional string dest_container_id = 8;
+  optional int32 dest_slot = 9;
+
+  // Context
+  string server_id = 10;              // Which MC server instance
+  optional string world = 11;
+  kbve.common.Timestamp timestamp = 12;
+}
+
+// Batch of transfers (for bulk persistence)
+message McItemTransferBatch {
+  repeated McItemTransfer transfers = 1;
+}
+
+// =============================================================================
+// Player State Snapshot
+// =============================================================================
+
+// Player position and orientation
+message McPlayerPosition {
+  double x = 1;
+  double y = 2;
+  double z = 3;
+  float yaw = 4;
+  float pitch = 5;
+  string world = 6;
+}
+
+// Full player data snapshot for persistence to Supabase
+message McPlayerSnapshot {
+  string player_uuid = 1;            // Minecraft UUID (no dashes)
+  string player_name = 2;            // Current in-game name
+  optional string user_id = 3;       // KBVE Supabase user_id if linked
+
+  // State
+  McPlayerInventory inventory = 4;
+  McPlayerPosition position = 5;
+  McGameMode game_mode = 6;
+  float health = 7;                  // 0.0-20.0
+  int32 food_level = 8;              // 0-20
+  float saturation = 9;              // 0.0-20.0
+  int32 experience_level = 10;
+  int32 experience_points = 11;
+
+  // Ender chest is per-player persistent storage
+  repeated McSlot ender_chest = 12;
+
+  // Server context
+  string server_id = 13;
+  kbve.common.Timestamp captured_at = 14;
+}
+
+// =============================================================================
+// Persistence Requests / Responses  (MC Server ↔ Supabase Edge)
+// =============================================================================
+
+// Save a player snapshot
+message SavePlayerRequest {
+  McPlayerSnapshot snapshot = 1;
+}
+
+message SavePlayerResponse {
+  bool success = 1;
+  optional string error = 2;
+}
+
+// Load a player snapshot
+message LoadPlayerRequest {
+  string player_uuid = 1;
+  string server_id = 2;
+}
+
+message LoadPlayerResponse {
+  bool found = 1;
+  optional McPlayerSnapshot snapshot = 2;
+  optional string error = 3;
+}
+
+// Save container state
+message SaveContainerRequest {
+  McContainer container = 1;
+  string server_id = 2;
+}
+
+message SaveContainerResponse {
+  bool success = 1;
+  optional string error = 2;
+}
+
+// Load container state
+message LoadContainerRequest {
+  string container_id = 1;
+  string server_id = 2;
+}
+
+message LoadContainerResponse {
+  bool found = 1;
+  optional McContainer container = 2;
+  optional string error = 3;
+}
+
+// Record item transfers
+message RecordTransfersRequest {
+  McItemTransferBatch batch = 1;
+}
+
+message RecordTransfersResponse {
+  bool success = 1;
+  int32 recorded_count = 2;
+  optional string error = 3;
+}
+
+// Query transfer history for a player
+message GetTransferHistoryRequest {
+  string player_uuid = 1;
+  optional string server_id = 2;
+  optional kbve.common.Timestamp since = 3;   // Only transfers after this time
+  int32 limit = 4;                             // Max results (default 50)
+  int32 offset = 5;                            // Pagination offset
+}
+
+message GetTransferHistoryResponse {
+  repeated McItemTransfer transfers = 1;
+  int32 total_count = 2;
+  optional string error = 3;
+}
+
+// =============================================================================
+// Service Definition
+// =============================================================================
+
+service MinecraftData {
+  // Player persistence
+  rpc SavePlayer (SavePlayerRequest) returns (SavePlayerResponse);
+  rpc LoadPlayer (LoadPlayerRequest) returns (LoadPlayerResponse);
+
+  // Container persistence
+  rpc SaveContainer (SaveContainerRequest) returns (SaveContainerResponse);
+  rpc LoadContainer (LoadContainerRequest) returns (LoadContainerResponse);
+
+  // Transfer ledger
+  rpc RecordTransfers (RecordTransfersRequest) returns (RecordTransfersResponse);
+  rpc GetTransferHistory (GetTransferHistoryRequest) returns (GetTransferHistoryResponse);
+}
