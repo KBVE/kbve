@@ -148,6 +148,40 @@ pub async fn mojang_session_proxy(Path(uuid): Path<String>) -> impl IntoResponse
 }
 
 // ---------------------------------------------------------------------------
+// Mojang skin texture proxy (textures.minecraft.net lacks CORS headers)
+// ---------------------------------------------------------------------------
+
+const MOJANG_TEXTURES: &str = "https://textures.minecraft.net/texture";
+
+/// GET /api/textures/{hash} → proxies textures.minecraft.net PNG
+pub async fn skin_texture_proxy(Path(hash): Path<String>) -> impl IntoResponse {
+    // Validate hash: only hex characters, 60-64 chars (SHA-256 hash)
+    if hash.len() < 60 || hash.len() > 64 || !hash.chars().all(|c| c.is_ascii_hexdigit()) {
+        return (StatusCode::BAD_REQUEST, "Invalid texture hash").into_response();
+    }
+
+    let result = tokio::task::spawn_blocking(move || {
+        ureq::get(format!("{MOJANG_TEXTURES}/{hash}"))
+            .call()
+            .and_then(|resp| resp.into_body().read_to_vec())
+    })
+    .await;
+
+    match result {
+        Ok(Ok(bytes)) => (
+            StatusCode::OK,
+            [
+                (header::CONTENT_TYPE, "image/png"),
+                (header::CACHE_CONTROL, "public, max-age=86400"),
+            ],
+            bytes,
+        )
+            .into_response(),
+        _ => (StatusCode::BAD_GATEWAY, "Texture server unavailable").into_response(),
+    }
+}
+
+// ---------------------------------------------------------------------------
 // Static file serving
 // ---------------------------------------------------------------------------
 
