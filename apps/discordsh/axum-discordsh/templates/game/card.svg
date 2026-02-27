@@ -1,0 +1,90 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="800" height="400" viewBox="0 0 800 400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#1a1a2e"/>
+      <stop offset="100%" stop-color="#0f0f1a"/>
+    </linearGradient>
+    <linearGradient id="header-bg" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="{{ phase_color }}"/>
+      <stop offset="100%" stop-color="{{ phase_color_dark }}"/>
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="800" height="400" fill="url(#bg)" rx="12"/>
+
+  <!-- Header bar -->
+  <rect x="0" y="0" width="800" height="52" fill="url(#header-bg)" rx="12"/>
+  <rect x="0" y="26" width="800" height="26" fill="url(#header-bg)"/>
+  <text x="400" y="36" text-anchor="middle" font-family="Alagard, sans-serif" font-size="22" fill="#ffffff" font-weight="bold">
+    Room {{ room_number }}: {{ room_name }}
+  </text>
+
+  <!-- ─── Player Panel (left) ─── -->
+  <text x="30" y="85" font-family="Alagard, sans-serif" font-size="18" fill="#e0e0e0">{{ player_name }}</text>
+
+  <!-- Player HP bar -->
+  <rect x="30" y="96" width="340" height="22" rx="4" fill="#2a2a3a"/>
+  <rect x="30" y="96" width="{{ player_hp_width }}" height="22" rx="4" fill="{{ player_hp_color }}"/>
+  <text x="200" y="112" text-anchor="middle" font-family="Alagard, sans-serif" font-size="14" fill="#ffffff">
+    HP {{ player_hp }}/{{ player_max_hp }}
+  </text>
+
+  <!-- Player DEF + Gold -->
+  <!-- Shield icon -->
+  <path d="M42,140 L30,148 L30,155 C30,162 36,168 42,170 C48,168 54,162 54,155 L54,148 Z" fill="#5dade2" opacity="0.8"/>
+  <text x="60" y="160" font-family="Alagard, sans-serif" font-size="14" fill="#5dade2">DEF {{ player_armor }}</text>
+
+  <!-- Gold coin -->
+  <circle cx="145" cy="155" r="10" fill="#f1c40f" opacity="0.8"/>
+  <text x="142" y="159" text-anchor="middle" font-family="Alagard, sans-serif" font-size="10" fill="#8b6914" font-weight="bold">G</text>
+  <text x="162" y="160" font-family="Alagard, sans-serif" font-size="14" fill="#f1c40f">{{ player_gold }}</text>
+
+  <!-- Player effects -->
+  {% for effect in player_effects %}
+  <circle cx="{{ effect.x }}" cy="190" r="7" fill="{{ effect.color }}"/>
+  <text x="{{ effect.label_x }}" y="194" font-family="Alagard, sans-serif" font-size="10" fill="#cccccc">{{ effect.label }} {{ effect.turns }}t</text>
+  {% endfor %}
+
+  {% if has_enemy %}
+  <!-- Divider -->
+  <line x1="400" y1="62" x2="400" y2="325" stroke="#3a3a5a" stroke-width="1" stroke-dasharray="4,4"/>
+
+  <!-- ─── Enemy Panel (right) ─── -->
+  <text x="430" y="85" font-family="Alagard, sans-serif" font-size="18" fill="#ff6b6b">{{ enemy_name }}</text>
+  <text x="770" y="85" text-anchor="end" font-family="Alagard, sans-serif" font-size="14" fill="#999999">Lv.{{ enemy_level }}</text>
+
+  <!-- Enemy HP bar -->
+  <rect x="430" y="96" width="340" height="22" rx="4" fill="#2a2a3a"/>
+  <rect x="430" y="96" width="{{ enemy_hp_width }}" height="22" rx="4" fill="#e74c3c"/>
+  <text x="600" y="112" text-anchor="middle" font-family="Alagard, sans-serif" font-size="14" fill="#ffffff">
+    HP {{ enemy_hp }}/{{ enemy_max_hp }}
+  </text>
+
+  <!-- Enemy DEF -->
+  <path d="M442,140 L430,148 L430,155 C430,162 436,168 442,170 C448,168 454,162 454,155 L454,148 Z" fill="#5dade2" opacity="0.8"/>
+  <text x="460" y="160" font-family="Alagard, sans-serif" font-size="14" fill="#5dade2">DEF {{ enemy_armor }}</text>
+
+  <!-- Enemy intent -->
+  <rect x="430" y="175" width="340" height="28" rx="6" fill="#2a2a3a" opacity="0.6"/>
+  <text x="440" y="194" font-family="Alagard, sans-serif" font-size="13" fill="#ffd700">{{ intent_icon }} {{ intent_text }}</text>
+
+  <!-- Enemy effects -->
+  {% for effect in enemy_effects %}
+  <circle cx="{{ effect.x }}" cy="222" r="7" fill="{{ effect.color }}"/>
+  <text x="{{ effect.label_x }}" y="226" font-family="Alagard, sans-serif" font-size="10" fill="#cccccc">{{ effect.label }} {{ effect.turns }}t</text>
+  {% endfor %}
+  {% endif %}
+
+  <!-- ─── Room badges strip ─── -->
+  {% for badge in room_badges %}
+  <rect x="{{ badge.x }}" y="345" width="{{ badge.width }}" height="26" rx="8" fill="{{ badge.color }}" opacity="0.7"/>
+  <text x="{{ badge.text_x }}" y="363" text-anchor="middle" font-family="Alagard, sans-serif" font-size="11" fill="#ffffff">{{ badge.label }}</text>
+  {% endfor %}
+
+  <!-- Turn indicator -->
+  <text x="780" y="392" text-anchor="end" font-family="Alagard, sans-serif" font-size="10" fill="#555555">Turn {{ turn }}</text>
+
+  <!-- Phase label -->
+  <text x="20" y="392" font-family="Alagard, sans-serif" font-size="10" fill="#555555">{{ phase_label }}</text>
+</svg>
