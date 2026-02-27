@@ -1315,9 +1315,11 @@ dependencies = [
  "pumpkin-protocol",
  "pumpkin-util",
  "pumpkin-world",
+ "serde_json",
  "tokio",
  "tower",
  "tower-http",
+ "ureq",
 ]
 
 [[package]]
