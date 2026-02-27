@@ -1,5 +1,6 @@
 #![allow(dead_code)]
 
+use std::collections::HashMap;
 use std::time::Instant;
 
 use poise::serenity_prelude as serenity;
@@ -27,6 +28,7 @@ pub enum GamePhase {
     Event,
     Rest,
     Merchant,
+    City,
     GameOver(GameOverReason),
 }
 
@@ -49,6 +51,8 @@ pub enum RoomType {
     Merchant,
     Boss,
     Story,
+    Hallway,
+    UndergroundCity,
 }
 
 // ── Enemy intent (telegraph) ────────────────────────────────────────
@@ -143,6 +147,7 @@ pub struct PlayerState {
     pub effects: Vec<EffectInstance>,
     pub inventory: Vec<ItemStack>,
     pub accuracy: f32,
+    pub alive: bool,
 }
 
 impl Default for PlayerState {
@@ -156,6 +161,7 @@ impl Default for PlayerState {
             effects: Vec::new(),
             inventory: Vec::new(),
             accuracy: 1.0,
+            alive: true,
         }
     }
 }
@@ -244,6 +250,7 @@ pub enum GameAction {
     UseItem(ItemId),
     Explore,
     Flee,
+    Rest,
     ToggleItems,
     Buy(ItemId),
     StoryChoice(usize),
@@ -281,12 +288,40 @@ pub struct SessionState {
     pub created_at: Instant,
     pub last_action_at: Instant,
     pub turn: u32,
-    pub player: PlayerState,
+    pub players: HashMap<serenity::UserId, PlayerState>,
     pub enemy: Option<EnemyState>,
     pub room: RoomState,
     pub log: Vec<String>,
     pub show_items: bool,
     pub member_status: Option<MemberStatusTag>,
+}
+
+impl SessionState {
+    /// Get the owner's player state (convenience for rendering).
+    pub fn owner_player(&self) -> &PlayerState {
+        self.players
+            .get(&self.owner)
+            .expect("owner must have a PlayerState")
+    }
+
+    /// Get a player's state by user ID.
+    pub fn player(&self, uid: serenity::UserId) -> &PlayerState {
+        self.players
+            .get(&uid)
+            .expect("player must exist in session")
+    }
+
+    /// Get a mutable reference to a player's state by user ID.
+    pub fn player_mut(&mut self, uid: serenity::UserId) -> &mut PlayerState {
+        self.players
+            .get_mut(&uid)
+            .expect("player must exist in session")
+    }
+
+    /// Check if all players are dead.
+    pub fn all_players_dead(&self) -> bool {
+        self.players.values().all(|p| !p.alive)
+    }
 }
 
 #[cfg(test)]
@@ -316,5 +351,6 @@ mod tests {
         assert_eq!(p.gold, 0);
         assert!(p.inventory.is_empty());
         assert!(p.effects.is_empty());
+        assert!(p.alive);
     }
 }

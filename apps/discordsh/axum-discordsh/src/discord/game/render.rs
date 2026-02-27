@@ -10,14 +10,17 @@ const COLOR_CRITICAL: u32 = 0xE74C3C; // red
 const COLOR_GAME_OVER: u32 = 0x95A5A6; // grey
 const COLOR_VICTORY: u32 = 0xF1C40F; // gold
 const COLOR_REST: u32 = 0x3498DB; // blue
+const COLOR_CITY: u32 = 0x9B59B6; // purple
 
 fn phase_color(session: &SessionState) -> u32 {
+    let owner = session.owner_player();
     match &session.phase {
         GamePhase::GameOver(GameOverReason::Victory) => COLOR_VICTORY,
         GamePhase::GameOver(_) => COLOR_GAME_OVER,
-        _ if session.player.hp <= session.player.max_hp / 4 => COLOR_CRITICAL,
+        _ if owner.hp <= owner.max_hp / 4 => COLOR_CRITICAL,
         GamePhase::Combat => COLOR_COMBAT,
         GamePhase::Rest => COLOR_REST,
+        GamePhase::City => COLOR_CITY,
         _ => COLOR_SAFE,
     }
 }
@@ -152,18 +155,43 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         embed = embed.image("attachment://game_card.png");
     }
 
-    // Player stats field
+    // Player stats field (owner's stats for Solo, or compact roster for Party)
+    let owner = session.owner_player();
     let mut player_lines = vec![
-        hp_bar(session.player.hp, session.player.max_hp, 10),
-        format!(
-            "DEF `{}`  Gold `{}`",
-            session.player.armor, session.player.gold
-        ),
+        hp_bar(owner.hp, owner.max_hp, 10),
+        format!("DEF `{}`  Gold `{}`", owner.armor, owner.gold),
     ];
-    if let Some(fx) = format_effects(&session.player.effects) {
+    if let Some(fx) = format_effects(&owner.effects) {
         player_lines.push(format!("Status: {fx}"));
     }
-    embed = embed.field("-- Player --", player_lines.join("\n"), true);
+    if !owner.alive {
+        player_lines.push("**DEFEATED**".to_owned());
+    }
+    embed = embed.field(
+        format!("-- {} --", owner.name),
+        player_lines.join("\n"),
+        true,
+    );
+
+    // Party roster (compact HP display for non-owner members)
+    if session.mode == SessionMode::Party {
+        let mut roster_lines = Vec::new();
+        for (&uid, player) in &session.players {
+            if uid == session.owner {
+                continue;
+            }
+            let status = if player.alive { "" } else { " [DEAD]" };
+            roster_lines.push(format!(
+                "**{}**{}: {}",
+                player.name,
+                status,
+                hp_bar(player.hp, player.max_hp, 10)
+            ));
+        }
+        if !roster_lines.is_empty() {
+            embed = embed.field("-- Party --", roster_lines.join("\n"), true);
+        }
+    }
 
     // Enemy field (if in combat)
     if let Some(ref enemy) = session.enemy {
@@ -213,8 +241,10 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         embed = embed.field("-- Room Effects --", room_effects.join("\n"), false);
     }
 
-    // Merchant stock (always shown — matches interactive buy select menu)
-    if session.phase == GamePhase::Merchant && !session.room.merchant_stock.is_empty() {
+    // Merchant/City stock
+    if matches!(session.phase, GamePhase::Merchant | GamePhase::City)
+        && !session.room.merchant_stock.is_empty()
+    {
         let stock_lines: Vec<String> = session
             .room
             .merchant_stock
@@ -224,7 +254,22 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
                     .map(|def| format!("{} -- {} gold", def.name, offer.price))
             })
             .collect();
-        embed = embed.field("-- Merchant --", stock_lines.join("\n"), false);
+        let label = if session.phase == GamePhase::City {
+            "-- City Shop --"
+        } else {
+            "-- Merchant --"
+        };
+        embed = embed.field(label, stock_lines.join("\n"), false);
+    }
+
+    // City inn info
+    if session.phase == GamePhase::City {
+        let inn_cost = 10 + (session.room.index as i32 * 2);
+        embed = embed.field(
+            "-- Inn --",
+            format!("Full heal + clear effects for {} gold", inn_cost),
+            false,
+        );
     }
 
     // Story event choices (always shown — matches interactive story buttons)
@@ -281,6 +326,7 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
     let sid = &session.short_id;
     let game_over = matches!(session.phase, GamePhase::GameOver(_));
     let in_combat = session.phase == GamePhase::Combat;
+    let in_city = session.phase == GamePhase::City;
     let exploring = matches!(
         session.phase,
         GamePhase::Exploring
@@ -288,7 +334,10 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
             | GamePhase::Looting
             | GamePhase::Merchant
             | GamePhase::Event
+            | GamePhase::City
     );
+
+    let owner = session.owner_player();
 
     // Primary button row — no emojis, clean labels, color conveys meaning
     let buttons = vec![
@@ -303,7 +352,7 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         serenity::CreateButton::new(format!("dng|{sid}|item|"))
             .label("Items")
             .style(serenity::ButtonStyle::Secondary)
-            .disabled(game_over || session.player.inventory.iter().all(|s| s.qty == 0)),
+            .disabled(game_over || owner.inventory.iter().all(|s| s.qty == 0)),
         serenity::CreateButton::new(format!("dng|{sid}|explore|"))
             .label("Explore")
             .style(serenity::ButtonStyle::Success)
@@ -311,15 +360,23 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         serenity::CreateButton::new(format!("dng|{sid}|flee|"))
             .label("Flee")
             .style(serenity::ButtonStyle::Secondary)
-            .disabled(game_over),
+            .disabled(game_over || !in_combat),
     ];
 
     let mut rows = vec![serenity::CreateActionRow::Buttons(buttons)];
 
+    // City rest button
+    if in_city && !game_over {
+        let rest_button = serenity::CreateButton::new(format!("dng|{sid}|rest|"))
+            .label("Rest at Inn")
+            .style(serenity::ButtonStyle::Success);
+
+        rows.push(serenity::CreateActionRow::Buttons(vec![rest_button]));
+    }
+
     // Item select menu (only shown when toggled)
     if session.show_items && !game_over {
-        let options: Vec<serenity::CreateSelectMenuOption> = session
-            .player
+        let options: Vec<serenity::CreateSelectMenuOption> = owner
             .inventory
             .iter()
             .filter(|s| s.qty > 0)
@@ -346,8 +403,8 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
         }
     }
 
-    // Merchant buy select menu
-    if session.phase == GamePhase::Merchant && !game_over {
+    // Merchant/City buy select menu
+    if matches!(session.phase, GamePhase::Merchant | GamePhase::City) && !game_over {
         let buy_options: Vec<serenity::CreateSelectMenuOption> = session
             .room
             .merchant_stock
@@ -402,14 +459,20 @@ pub fn render_components(session: &SessionState) -> Vec<serenity::CreateActionRo
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::collections::HashMap;
     use std::time::Instant;
+
+    const OWNER: serenity::UserId = serenity::UserId::new(1);
 
     fn test_session() -> SessionState {
         let (id, short_id) = new_short_sid();
+        let mut players = HashMap::new();
+        players.insert(OWNER, PlayerState::default());
+
         SessionState {
             id,
             short_id,
-            owner: serenity::UserId::new(1),
+            owner: OWNER,
             party: Vec::new(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
@@ -418,7 +481,7 @@ mod tests {
             created_at: Instant::now(),
             last_action_at: Instant::now(),
             turn: 0,
-            player: PlayerState::default(),
+            players,
             enemy: None,
             room: super::super::content::generate_room(0),
             log: Vec::new(),
@@ -431,25 +494,22 @@ mod tests {
     fn hp_bar_full() {
         let bar = hp_bar(50, 50, 10);
         assert!(bar.contains("50/50"));
-        // 50 / 10 = 5 filled hearts
         assert!(bar.contains("\u{2665}\u{2665}\u{2665}\u{2665}\u{2665}"));
-        assert!(!bar.contains("\u{2661}")); // no empty hearts
+        assert!(!bar.contains("\u{2661}"));
     }
 
     #[test]
     fn hp_bar_empty() {
         let bar = hp_bar(0, 50, 10);
         assert!(bar.contains("0/50"));
-        // 0 filled, 5 empty
         assert!(bar.contains("\u{2661}\u{2661}\u{2661}\u{2661}\u{2661}"));
-        assert!(!bar.contains("\u{2665}")); // no filled hearts
+        assert!(!bar.contains("\u{2665}"));
     }
 
     #[test]
     fn hp_bar_half() {
         let bar = hp_bar(25, 50, 10);
         assert!(bar.contains("25/50"));
-        // 25 / 10 = 2 filled, 3 empty
         assert!(bar.contains("\u{2665}\u{2665}"));
         assert!(bar.contains("\u{2661}\u{2661}\u{2661}"));
     }
@@ -458,17 +518,17 @@ mod tests {
     fn hp_bar_negative_clamped() {
         let bar = hp_bar(-5, 50, 10);
         assert!(bar.contains("0/50"));
-        assert!(!bar.contains("\u{2665}")); // no filled hearts
+        assert!(!bar.contains("\u{2665}"));
     }
 
     #[test]
     fn intent_descriptions() {
         let atk = intent_description(&Intent::Attack { dmg: 5 });
         assert!(atk.contains("5 dmg"));
-        assert!(atk.contains("\u{2660}")); // ♠
+        assert!(atk.contains("\u{2660}"));
         let charge = intent_description(&Intent::Charge);
         assert!(charge.contains("Charging"));
-        assert!(charge.contains("\u{2605}")); // ★
+        assert!(charge.contains("\u{2605}"));
     }
 
     #[test]
@@ -484,7 +544,7 @@ mod tests {
             turns_left: 3,
         }];
         let result = format_effects(&effects).unwrap();
-        assert!(result.contains("\u{2622} Poison")); // ☢ Poison
+        assert!(result.contains("\u{2622} Poison"));
         assert!(result.contains("3 turns"));
     }
 
@@ -492,7 +552,6 @@ mod tests {
     fn render_embed_exploring() {
         let session = test_session();
         let _embed = render_embed(&session, false);
-        // Embed is built without panic — primary assertion
     }
 
     #[test]
@@ -514,14 +573,14 @@ mod tests {
     fn render_components_exploring() {
         let session = test_session();
         let components = render_components(&session);
-        assert_eq!(components.len(), 1); // just button row, no items
+        assert_eq!(components.len(), 1);
     }
 
     #[test]
     fn render_components_with_items() {
         let mut session = test_session();
         session.show_items = true;
-        session.player.inventory = super::super::content::starting_inventory();
+        session.player_mut(OWNER).inventory = super::super::content::starting_inventory();
         let components = render_components(&session);
         assert_eq!(components.len(), 2); // button row + select menu
     }
@@ -531,7 +590,6 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::GameOver(GameOverReason::Defeated);
         let components = render_components(&session);
-        // Only 1 row (no items shown when game over)
         assert_eq!(components.len(), 1);
     }
 
@@ -551,7 +609,7 @@ mod tests {
     #[test]
     fn phase_color_critical_is_red() {
         let mut session = test_session();
-        session.player.hp = 5;
+        session.player_mut(OWNER).hp = 5;
         assert_eq!(phase_color(&session), COLOR_CRITICAL);
     }
 
@@ -567,5 +625,22 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Rest;
         assert_eq!(phase_color(&session), COLOR_REST);
+    }
+
+    #[test]
+    fn phase_color_city_is_purple() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        assert_eq!(phase_color(&session), COLOR_CITY);
+    }
+
+    #[test]
+    fn render_components_city_has_rest_button() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        session.room.merchant_stock = super::super::content::generate_merchant_stock(3);
+        let components = render_components(&session);
+        // Button row + rest button row + buy select menu
+        assert!(components.len() >= 2);
     }
 }

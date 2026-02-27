@@ -2,6 +2,7 @@
 
 #[macro_use]
 mod macros;
+mod web;
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
 use std::sync::{Arc, LazyLock};
@@ -20,6 +21,7 @@ use pumpkin::plugin::player::player_death::PlayerDeathEvent;
 use pumpkin::plugin::player::player_interact_entity_event::PlayerInteractEntityEvent;
 use pumpkin::plugin::player::player_interact_event::PlayerInteractEvent;
 use pumpkin::plugin::player::player_join::PlayerJoinEvent;
+use pumpkin::plugin::player::player_leave::PlayerLeaveEvent;
 use pumpkin::plugin::player::player_respawn::PlayerRespawnEvent;
 use pumpkin::plugin::{BoxFuture, EventHandler, EventPriority};
 use pumpkin::server::Server;
@@ -124,6 +126,13 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
             let handler_start = Instant::now();
 
             info!("Sending welcome to {name} ({uuid})");
+
+            // Track player for web dashboard
+            web::ONLINE_PLAYERS.insert(name.clone(), ());
+            debug!(
+                "ONLINE_PLAYERS += {name} (total: {})",
+                web::ONLINE_PLAYERS.len()
+            );
 
             // Capture BEFORE the sleep — spawn_java_player runs concurrently and
             // sets has_played_before = true at world/mod.rs:1881 during the delay.
@@ -342,6 +351,30 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
             info!(
                 "WelcomeHandler for {name} completed in {:.1?}",
                 handler_start.elapsed()
+            );
+        })
+    }
+}
+
+// ---------------------------------------------------------------------------
+// Leave handler (fires on player disconnect — removes from ONLINE_PLAYERS)
+// ---------------------------------------------------------------------------
+
+struct LeaveHandler;
+
+impl EventHandler<PlayerLeaveEvent> for LeaveHandler {
+    fn handle<'a>(
+        &'a self,
+        _server: &'a Arc<Server>,
+        event: &'a PlayerLeaveEvent,
+    ) -> BoxFuture<'a, ()> {
+        let player = Arc::clone(&event.player);
+        Box::pin(async move {
+            let name = &player.gameprofile.name;
+            web::ONLINE_PLAYERS.remove(name);
+            info!(
+                "Player left: {name} (online: {})",
+                web::ONLINE_PLAYERS.len()
             );
         })
     }
@@ -1376,10 +1409,10 @@ impl EventHandler<PlayerInteractEvent> for OrbitalStrikeHandler {
 }
 
 // ---------------------------------------------------------------------------
-// Axum resource pack server
+// Axum web server (resource pack + static Astro site)
 // ---------------------------------------------------------------------------
 
-async fn serve_resource_pack() {
+async fn serve_web() {
     use axum::Router;
     use axum::http::header;
     use axum::response::IntoResponse;
@@ -1405,7 +1438,30 @@ async fn serve_resource_pack() {
         }
     }
 
-    let app = Router::new().route("/kbve-resource-pack.zip", get(pack_handler));
+    // Build the static Astro file router
+    let static_dir = web::static_dir();
+    let static_router = if static_dir.exists() {
+        info!("Static site directory: {}", static_dir.display());
+        web::build_static_router(&static_dir)
+    } else {
+        info!(
+            "Static site directory not found: {} (web UI disabled)",
+            static_dir.display()
+        );
+        Router::new()
+    };
+
+    // Explicit routes take priority, Astro static files are the fallback
+    let app = Router::new()
+        .route("/kbve-resource-pack.zip", get(pack_handler))
+        .route("/players", get(web::players_handler))
+        .route("/players/", get(web::players_handler))
+        .route(
+            "/api/mojang/profile/{username}",
+            get(web::mojang_profile_proxy),
+        )
+        .route("/api/mojang/session/{uuid}", get(web::mojang_session_proxy))
+        .merge(static_router);
 
     let listener = match tokio::net::TcpListener::bind("0.0.0.0:8080").await {
         Ok(l) => l,
@@ -1415,7 +1471,7 @@ async fn serve_resource_pack() {
         }
     };
 
-    info!("Resource pack server listening on :8080");
+    info!("Web server listening on :8080");
     if let Err(e) = axum::serve(listener, app).await {
         info!("Axum server error: {e}");
     }
@@ -1457,6 +1513,9 @@ impl KbveMcPlugin {
         context
             .register_event(Arc::new(OrbitalStrikeHandler), EventPriority::Normal, false)
             .await;
+        context
+            .register_event(Arc::new(LeaveHandler), EventPriority::Normal, false)
+            .await;
         info!("Event handlers registered");
 
         // Register /kbve command permission (Allow = all players can use it)
@@ -1491,9 +1550,9 @@ impl KbveMcPlugin {
             ITEM_REGISTRY.iter().map(|e| *e.key()).collect::<Vec<_>>()
         );
 
-        // Spawn resource pack HTTP server (runs in background on GLOBAL_RUNTIME)
-        GLOBAL_RUNTIME.spawn(serve_resource_pack());
-        info!("Resource pack server spawned");
+        // Spawn web server: resource pack + static Astro site (background on GLOBAL_RUNTIME)
+        GLOBAL_RUNTIME.spawn(serve_web());
+        info!("Web server spawned");
 
         info!("on_load END ({:.1?})", load_start.elapsed());
         Ok(())

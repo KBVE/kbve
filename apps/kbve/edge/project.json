@@ -1,8 +1,8 @@
 {
 	"name": "edge",
-	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
 	"projectType": "application",
-	"sourceRoot": "apps/edge",
+	"sourceRoot": "apps/kbve/edge",
 	"targets": {
 		"container": {
 			"executor": "nx:run-commands",
@@ -31,8 +31,8 @@
 			"defaultConfiguration": "local",
 			"options": {
 				"engine": "docker",
-				"context": "apps/edge",
-				"file": "apps/edge/Dockerfile",
+				"context": "apps/kbve/edge",
+				"file": "apps/kbve/edge/Dockerfile",
 				"load": true
 			},
 			"configurations": {
@@ -81,8 +81,8 @@
 			"defaultConfiguration": "local",
 			"options": {
 				"engine": "docker",
-				"context": "apps/edge",
-				"file": "apps/edge/Dockerfile.dev",
+				"context": "apps/kbve/edge",
+				"file": "apps/kbve/edge/Dockerfile.dev",
 				"load": true
 			},
 			"configurations": {
@@ -106,20 +106,20 @@
 			"executor": "nx:run-commands",
 			"options": {
 				"commands": [
-					"docker run --rm -p 9000:9000 -v $PWD/apps/edge/functions:/home/deno/functions kbve/edge:dev start --main-service /home/deno/functions/main -p 9000"
+					"docker run --rm -p 9000:9000 -v $PWD/apps/kbve/edge/functions:/home/deno/functions kbve/edge:dev start --main-service /home/deno/functions/main -p 9000"
 				],
 				"parallel": false
 			}
 		},
-		"submodule-update": {
+		"e2e": {
 			"executor": "nx:run-commands",
+			"cache": false,
+			"dependsOn": ["container"],
 			"options": {
-				"commands": [
-					"git submodule update --remote apps/edge/edge-runtime"
-				],
+				"commands": ["./kbve.sh -nx edge-e2e:e2e"],
 				"parallel": false
 			}
 		}
 	},
-	"tags": ["edge", "infrastructure"]
+	"tags": ["scope:kbve", "edge", "infrastructure"]
 }

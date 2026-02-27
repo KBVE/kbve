@@ -81,12 +81,14 @@ fn hp_ratio_color(current: i32, max: i32) -> String {
 }
 
 fn phase_colors(session: &SessionState) -> (String, String) {
+    let owner = session.owner_player();
     match &session.phase {
         GamePhase::GameOver(GameOverReason::Victory) => ("#f1c40f".into(), "#c29d0b".into()),
         GamePhase::GameOver(_) => ("#95a5a6".into(), "#7f8c8d".into()),
-        _ if session.player.hp <= session.player.max_hp / 4 => ("#e74c3c".into(), "#c0392b".into()),
+        _ if owner.hp <= owner.max_hp / 4 => ("#e74c3c".into(), "#c0392b".into()),
         GamePhase::Combat => ("#e67e22".into(), "#d35400".into()),
         GamePhase::Rest => ("#3498db".into(), "#2980b9".into()),
+        GamePhase::City => ("#9b59b6".into(), "#8e44ad".into()),
         _ => ("#2ecc71".into(), "#27ae60".into()),
     }
 }
@@ -99,6 +101,7 @@ fn phase_label(phase: &GamePhase) -> &'static str {
         GamePhase::Event => "Event",
         GamePhase::Rest => "Rest",
         GamePhase::Merchant => "Merchant",
+        GamePhase::City => "City",
         GamePhase::GameOver(GameOverReason::Victory) => "Victory",
         GamePhase::GameOver(GameOverReason::Defeated) => "Defeated",
         GamePhase::GameOver(GameOverReason::Escaped) => "Escaped",
@@ -205,8 +208,9 @@ fn build_room_badges(session: &SessionState) -> Vec<RoomBadge> {
 impl GameCardTemplate {
     pub fn from_session(session: &SessionState) -> Self {
         let (phase_color, phase_color_dark) = phase_colors(session);
+        let owner = session.owner_player();
 
-        let player_effects = build_effect_badges(&session.player.effects, 30);
+        let player_effects = build_effect_badges(&owner.effects, 30);
 
         let (
             has_enemy,
@@ -255,13 +259,13 @@ impl GameCardTemplate {
             room_name: session.room.name.clone(),
             phase_label: phase_label(&session.phase).to_owned(),
 
-            player_name: session.player.name.clone(),
-            player_hp: session.player.hp.max(0),
-            player_max_hp: session.player.max_hp,
-            player_hp_width: hp_bar_width(session.player.hp, session.player.max_hp),
-            player_hp_color: hp_ratio_color(session.player.hp, session.player.max_hp),
-            player_armor: session.player.armor,
-            player_gold: session.player.gold,
+            player_name: owner.name.clone(),
+            player_hp: owner.hp.max(0),
+            player_max_hp: owner.max_hp,
+            player_hp_width: hp_bar_width(owner.hp, owner.max_hp),
+            player_hp_color: hp_ratio_color(owner.hp, owner.max_hp),
+            player_armor: owner.armor,
+            player_gold: owner.gold,
             player_effects,
 
             has_enemy,
@@ -310,7 +314,10 @@ pub async fn render_game_card(session: &SessionState, fontdb: FontDb) -> Result<
 mod tests {
     use super::*;
     use poise::serenity_prelude as serenity;
+    use std::collections::HashMap;
     use std::time::Instant;
+
+    const OWNER: serenity::UserId = serenity::UserId::new(1);
 
     fn test_fontdb() -> FontDb {
         let mut db = FontDb::new();
@@ -324,7 +331,7 @@ mod tests {
         SessionState {
             id,
             short_id,
-            owner: serenity::UserId::new(1),
+            owner: OWNER,
             party: Vec::new(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
@@ -333,7 +340,7 @@ mod tests {
             created_at: Instant::now(),
             last_action_at: Instant::now(),
             turn: 3,
-            player: PlayerState::default(),
+            players: HashMap::from([(OWNER, PlayerState::default())]),
             enemy: None,
             room: super::super::content::generate_room(0),
             log: Vec::new(),
@@ -379,7 +386,7 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
         session.enemy = Some(super::super::content::spawn_enemy(2));
-        session.player.effects = vec![
+        session.player_mut(OWNER).effects = vec![
             EffectInstance {
                 kind: EffectKind::Poison,
                 stacks: 2,
@@ -411,5 +418,18 @@ mod tests {
         let template = GameCardTemplate::from_session(&session);
         assert!(template.has_enemy);
         assert!(!template.enemy_name.is_empty());
+    }
+
+    #[test]
+    fn phase_label_city() {
+        assert_eq!(phase_label(&GamePhase::City), "City");
+    }
+
+    #[test]
+    fn phase_colors_city() {
+        let mut session = test_session();
+        session.phase = GamePhase::City;
+        let (color, _) = phase_colors(&session);
+        assert_eq!(color, "#9b59b6");
     }
 }
