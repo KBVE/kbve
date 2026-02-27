@@ -5,6 +5,7 @@ import {
 	createServiceClient,
 	requireUserToken,
 	requireServiceRole,
+	validateMcUuid,
 } from './_shared.ts';
 
 // ---------------------------------------------------------------------------
@@ -26,9 +27,8 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { mc_uuid } = body;
-		if (!mc_uuid) {
-			return jsonResponse({ error: 'mc_uuid is required' }, 400);
-		}
+		const uuidErr = validateMcUuid(mc_uuid, 'mc_uuid');
+		if (uuidErr) return uuidErr;
 
 		const supabase = createUserClient(token);
 		const { data, error } = await supabase.rpc('proxy_request_link', {
@@ -47,17 +47,22 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { mc_uuid, code } = body;
-		if (!mc_uuid || code === undefined) {
-			return jsonResponse(
-				{ error: 'mc_uuid and code are required' },
-				400,
-			);
+		const uuidErr = validateMcUuid(mc_uuid, 'mc_uuid');
+		if (uuidErr) return uuidErr;
+
+		const numCode = Number(code);
+		if (
+			code === undefined ||
+			!Number.isFinite(numCode) ||
+			!Number.isInteger(numCode)
+		) {
+			return jsonResponse({ error: 'code must be an integer' }, 400);
 		}
 
 		const supabase = createServiceClient();
 		const { data, error } = await supabase.rpc('service_verify_link', {
 			p_mc_uuid: mc_uuid as string,
-			p_code: code as number,
+			p_code: numCode,
 		});
 
 		if (error) {
@@ -97,9 +102,8 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { mc_uuid } = body;
-		if (!mc_uuid) {
-			return jsonResponse({ error: 'mc_uuid is required' }, 400);
-		}
+		const uuidErr = validateMcUuid(mc_uuid, 'mc_uuid');
+		if (uuidErr) return uuidErr;
 
 		const supabase = createServiceClient();
 		const { data, error } = await supabase.rpc(

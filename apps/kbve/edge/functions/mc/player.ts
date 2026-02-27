@@ -3,6 +3,8 @@ import {
 	jsonResponse,
 	createServiceClient,
 	requireServiceRole,
+	validateMcUuid,
+	requireNonEmpty,
 } from './_shared.ts';
 
 // ---------------------------------------------------------------------------
@@ -21,9 +23,16 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { snapshot } = body;
-		if (!snapshot) {
-			return jsonResponse({ error: 'snapshot is required' }, 400);
+		if (!snapshot || typeof snapshot !== 'object') {
+			return jsonResponse({ error: 'snapshot object is required' }, 400);
 		}
+
+		const snap = snapshot as Record<string, unknown>;
+		const uuidErr = validateMcUuid(snap.player_uuid, 'player_uuid');
+		if (uuidErr) return uuidErr;
+
+		const serverErr = requireNonEmpty(snap.server_id, 'server_id');
+		if (serverErr) return serverErr;
 
 		const supabase = createServiceClient();
 		const { data, error } = await supabase.rpc('service_save_player', {
@@ -42,12 +51,11 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { player_uuid, server_id } = body;
-		if (!player_uuid || !server_id) {
-			return jsonResponse(
-				{ error: 'player_uuid and server_id are required' },
-				400,
-			);
-		}
+		const uuidErr = validateMcUuid(player_uuid, 'player_uuid');
+		if (uuidErr) return uuidErr;
+
+		const serverErr = requireNonEmpty(server_id, 'server_id');
+		if (serverErr) return serverErr;
 
 		const supabase = createServiceClient();
 		const { data, error } = await supabase.rpc('service_load_player', {
