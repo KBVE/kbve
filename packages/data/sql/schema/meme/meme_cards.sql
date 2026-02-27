@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS meme.meme_card_stats (
     energy_cost     INTEGER NOT NULL DEFAULT 1 CHECK (energy_cost BETWEEN 0 AND 10),
 
     -- JSONB array of CardAbility objects
-    abilities       JSONB NOT NULL DEFAULT '[]'::jsonb,
+    abilities       JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(abilities) = 'array'),
     flavor_text     TEXT CHECK (flavor_text IS NULL OR (char_length(flavor_text) <= 300 AND meme.is_safe_text(flavor_text))),
 
     -- Evolution / leveling
@@ -104,6 +104,29 @@ CREATE TRIGGER trigger_meme_decks_updated_at
     BEFORE UPDATE ON meme.meme_decks
     FOR EACH ROW
     EXECUTE FUNCTION meme.update_updated_at_column();
+
+-- Timestamp protection
+DROP TRIGGER IF EXISTS trigger_meme_decks_protect_timestamps ON meme.meme_decks;
+CREATE TRIGGER trigger_meme_decks_protect_timestamps
+    BEFORE INSERT OR UPDATE ON meme.meme_decks
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_timestamps();
+
+-- Immutable column protection
+CREATE OR REPLACE FUNCTION meme.protect_meme_decks_columns()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF current_setting('role') = 'service_role' THEN RETURN NEW; END IF;
+    NEW.owner_id := OLD.owner_id;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+DROP TRIGGER IF EXISTS trigger_meme_decks_protect_columns ON meme.meme_decks;
+CREATE TRIGGER trigger_meme_decks_protect_columns
+    BEFORE UPDATE ON meme.meme_decks
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_meme_decks_columns();
 
 -- RLS
 ALTER TABLE meme.meme_decks ENABLE ROW LEVEL SECURITY;
@@ -245,7 +268,7 @@ CREATE TABLE IF NOT EXISTS meme.battle_results (
     total_turns     INTEGER NOT NULL DEFAULT 0 CHECK (total_turns >= 0),
 
     -- Full action log for replays
-    actions         JSONB NOT NULL DEFAULT '[]'::jsonb,
+    actions         JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(actions) = 'array'),
 
     elo_delta_a     INTEGER NOT NULL DEFAULT 0,
     elo_delta_b     INTEGER NOT NULL DEFAULT 0,
@@ -268,6 +291,13 @@ CREATE INDEX IF NOT EXISTS idx_meme_battle_results_player_b
 CREATE INDEX IF NOT EXISTS idx_meme_battle_results_active
     ON meme.battle_results (status, created_at ASC)
     WHERE status IN (1, 2);
+
+-- Timestamp protection (created_at only — completed_at managed by service_role)
+DROP TRIGGER IF EXISTS trigger_battle_results_protect_timestamps ON meme.battle_results;
+CREATE TRIGGER trigger_battle_results_protect_timestamps
+    BEFORE INSERT OR UPDATE ON meme.battle_results
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_created_at();
 
 -- RLS
 ALTER TABLE meme.battle_results ENABLE ROW LEVEL SECURITY;
