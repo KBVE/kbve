@@ -323,7 +323,7 @@ jobs:
                   { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc", "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },
                   { "name": "discordsh", "target": "container", "condition": "${{ needs.alter.outputs.discordsh }}", "e2e_name": "discordsh", "image": "kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml" },
                   { "name": "mc", "target": "container", "condition": "${{ needs.alter.outputs.mc }}", "e2e_name": "mc", "image": "kbve/mc" },
-                  { "name": "edge", "target": "container", "condition": "${{ needs.alter.outputs.edge }}" }
+                  { "name": "edge", "target": "container", "condition": "${{ needs.alter.outputs.edge }}", "e2e_name": "edge", "image": "kbve/edge" }
                 ]
 
     generate_e2e_docker_matrix:
@@ -336,7 +336,8 @@ jobs:
                   { "name": "memes", "condition": "${{ needs.alter.outputs.memes }}" },
                   { "name": "irc", "condition": "${{ needs.alter.outputs.irc_gateway }}" },
                   { "name": "discordsh", "condition": "${{ needs.alter.outputs.discordsh }}" },
-                  { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}" }
+                  { "name": "mc", "condition": "${{ needs.alter.outputs.mc }}" },
+                  { "name": "edge", "condition": "${{ needs.alter.outputs.edge }}" }
                 ]
 
     test_docker:

@@ -1,0 +1,27 @@
+{
+	"name": "edge-e2e",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/kbve/edge-e2e/e2e",
+	"implicitDependencies": ["edge"],
+	"targets": {
+		"test": {
+			"executor": "nx:noop",
+			"cache": false
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"options": {
+				"commands": [
+					"docker rm -f edge-e2e-test 2>/dev/null || true",
+					"docker run -d --name edge-e2e-test -p 9100:9000 -e JWT_SECRET=super-secret-jwt-token-for-dev -e VERIFY_JWT=true -e SUPABASE_URL=http://localhost:54321 -e SUPABASE_SERVICE_ROLE_KEY=dummy-service-role-key kbve/edge:latest start --main-service /home/deno/functions/main",
+					"npx vitest run; EC=$?; docker rm -f edge-e2e-test 2>/dev/null || true; exit $EC"
+				],
+				"parallel": false,
+				"cwd": "apps/kbve/edge-e2e"
+			}
+		}
+	},
+	"tags": ["scope:kbve"]
+}
