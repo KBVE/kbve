@@ -2,14 +2,18 @@ import { serve } from 'https://deno.land/std@0.168.0/http/server.ts';
 import { corsHeaders } from '../_shared/cors.ts';
 import { extractToken, parseJwt, jsonResponse } from './_shared.ts';
 import { handleAuth, AUTH_ACTIONS } from './auth.ts';
+import { handlePlayer, PLAYER_ACTIONS } from './player.ts';
+import { handleContainer, CONTAINER_ACTIONS } from './container.ts';
+import { handleTransfer, TRANSFER_ACTIONS } from './transfer.ts';
 
 // ---------------------------------------------------------------------------
 // MC Edge Function — Unified Router
 //
 // Command format: "module.action"
-//   auth.request_link, auth.verify, auth.status, auth.lookup, auth.unlink
-//
-// Future modules: player, inventory, transfer
+//   auth:      request_link, verify, status, lookup, unlink
+//   player:    save, load
+//   container: save, load
+//   transfer:  record, history
 // ---------------------------------------------------------------------------
 
 const MODULES: Record<
@@ -20,6 +24,9 @@ const MODULES: Record<
 	}
 > = {
 	auth: { handler: handleAuth, actions: AUTH_ACTIONS },
+	player: { handler: handlePlayer, actions: PLAYER_ACTIONS },
+	container: { handler: handleContainer, actions: CONTAINER_ACTIONS },
+	transfer: { handler: handleTransfer, actions: TRANSFER_ACTIONS },
 };
 
 function buildHelpText(): string {
