@@ -84,18 +84,18 @@ COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Carg
 COPY packages/rust/jedi/Cargo.toml packages/rust/jedi/Cargo.toml
 COPY packages/rust/kbve/Cargo.toml packages/rust/kbve/Cargo.toml
 
+# Proto files (needed for jedi build.rs during chef prepare)
+COPY packages/data/proto packages/data/proto
+
 # Create stubs for cargo chef
 RUN mkdir -p apps/discordsh/axum-discordsh/src && echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs && \
     mkdir -p packages/rust/jedi/src && echo "" > packages/rust/jedi/src/lib.rs && \
     mkdir -p packages/rust/kbve/src && echo "" > packages/rust/kbve/src/lib.rs
 
-# Copy proto files (needed for jedi build.rs)
-COPY packages/data/proto packages/data/proto
-
 RUN cargo chef prepare --recipe-path recipe.json
 
 # ============================================================================
-# [STAGE E] - Cargo Chef Builder (Cache Dependencies)
+# [STAGE E] - Cargo Chef Cook (Cache External Dependencies)
 # ============================================================================
 FROM rust-base AS builder-deps
 
@@ -104,37 +104,68 @@ COPY --from=planner /app/Cargo.toml /app/Cargo.lock ./
 COPY --from=planner /app/apps apps
 COPY --from=planner /app/packages packages
 
-# Copy proto files
-COPY packages/data/proto packages/data/proto
-
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
     cargo chef cook --release --recipe-path recipe.json -p axum-discordsh
 
 # ============================================================================
-# [STAGE F] - Build Application
+# [STAGE E2] - Foundation Layer (Compile kbve + jedi from real source)
+#
+# This layer is cached when only axum-discordsh application code changes,
+# avoiding expensive recompilation of foundation crates (~60% of build time).
 # ============================================================================
-FROM rust-base AS builder
+FROM rust-base AS builder-foundation
 
-# Copy cached dependencies
+# Cached deps from chef cook
 COPY --from=builder-deps /app/target target
 COPY --from=builder-deps /usr/local/cargo /usr/local/cargo
 
-# Copy Astro build output (precompressed)
-COPY --from=astro-precompressor /static /app/apps/discordsh/axum-discordsh/templates/dist
-
-# Use the same minimal workspace
+# Workspace + lockfile
 COPY --from=planner /app/Cargo.toml ./
 COPY Cargo.lock ./
 
-# Copy only the 3 crates (full source)
-COPY packages/rust/jedi packages/rust/jedi
-COPY packages/rust/kbve packages/rust/kbve
-COPY apps/discordsh/axum-discordsh apps/discordsh/axum-discordsh
+# App Cargo.toml (workspace resolution) + stub main
+COPY apps/discordsh/axum-discordsh/Cargo.toml apps/discordsh/axum-discordsh/Cargo.toml
+RUN mkdir -p apps/discordsh/axum-discordsh/src && \
+    echo "fn main() {}" > apps/discordsh/axum-discordsh/src/main.rs
+
+# Proto files (jedi build.rs generates protobuf code)
 COPY packages/data/proto packages/data/proto
 
-# Copy Askama templates
-COPY apps/discordsh/axum-discordsh/templates/askama /app/apps/discordsh/axum-discordsh/templates/askama
+# Foundation crate source (changes less frequently than app code)
+COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/kbve packages/rust/kbve
+
+RUN --mount=type=cache,target=/usr/local/cargo/registry \
+    --mount=type=cache,target=/usr/local/cargo/git \
+    cargo build --release -p kbve -p jedi
+
+# ============================================================================
+# [STAGE F] - Build Application
+#
+# Only axum-discordsh needs recompilation here; kbve + jedi are pre-built
+# in the foundation layer above.
+# ============================================================================
+FROM rust-base AS builder
+
+# Pre-built foundation (kbve + jedi + all external deps)
+COPY --from=builder-foundation /app/target target
+COPY --from=builder-foundation /usr/local/cargo /usr/local/cargo
+
+# Workspace + lockfile
+COPY --from=planner /app/Cargo.toml ./
+COPY Cargo.lock ./
+
+# Astro build output (precompressed) → placed into templates/dist
+COPY --from=astro-precompressor /static /app/apps/discordsh/axum-discordsh/templates/dist
+
+# Foundation crate source (cargo needs source to verify fingerprints)
+COPY packages/data/proto packages/data/proto
+COPY packages/rust/jedi packages/rust/jedi
+COPY packages/rust/kbve packages/rust/kbve
+
+# Application source (most frequently changing — placed last for cache)
+COPY apps/discordsh/axum-discordsh apps/discordsh/axum-discordsh
 
 RUN --mount=type=cache,target=/usr/local/cargo/registry \
     --mount=type=cache,target=/usr/local/cargo/git \
@@ -204,11 +235,15 @@ COPY --from=builder /app/target/release/axum-discordsh /app/axum-discordsh
 COPY --from=builder /app/apps/discordsh/axum-discordsh/templates/dist /app/templates/dist
 COPY --from=builder /app/apps/discordsh/axum-discordsh/templates/askama /app/templates/askama
 
+# Game card font (SVG → PNG rendering via resvg)
+COPY apps/discordsh/axum-discordsh/alagard.ttf /app/alagard.ttf
+
 ENV LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjemalloc.so.2
 ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:10000,muzzy_decay_ms:10000,lg_tcache_max:32,oversize_threshold:4194304"
 ENV HTTP_HOST=0.0.0.0
 ENV HTTP_PORT=4321
 ENV RUST_LOG=info
+ENV FONT_PATH=/app/alagard.ttf
 
 EXPOSE 4321
 

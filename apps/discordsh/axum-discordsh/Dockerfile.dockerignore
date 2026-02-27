@@ -1,0 +1,46 @@
+# ── Build artifacts ──────────────────────────────────────────────────
+target/
+dist/
+node_modules/
+.nx/
+.angular/
+.astro/
+*.egg-info/
+__pycache__/
+.pytest_cache/
+
+# ── Apps not needed for discordsh ────────────────────────────────────
+apps/mc/
+apps/gamejam/
+apps/herbmail/
+apps/irc/
+apps/kbve/
+apps/kube/
+apps/memes/
+apps/postgres/
+apps/pydesk/
+
+# ── Packages not needed for discordsh ────────────────────────────────
+packages/python/
+packages/unity/
+
+# ── VCS / IDE ────────────────────────────────────────────────────────
+.git/
+.github/
+.claude/
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Docs / misc ──────────────────────────────────────────────────────
+CHANGELOG.md
+CONTRIBUTE.md
+AGENTS.md
+README.md
+vault/
+tools/
+scripts/
+migrations.json
+vitest.workspace.ts
+babel.config.json
