@@ -116,19 +116,33 @@ pub async fn handle_game_component(
     // Apply action (now safe — we already acknowledged the interaction)
     match logic::apply_action(&mut session, action.clone(), actor) {
         Ok(_logs) => {
-            // Render updated embed + components
-            let embed = render::render_embed(&session);
+            // Render components while we still hold the lock
             let components = render::render_components(&session);
+            let session_clone = session.clone();
+            drop(session); // Release lock before CPU-bound render
 
-            if let Err(e) = component
-                .edit_response(
-                    &ctx.http,
-                    serenity::EditInteractionResponse::new()
-                        .embed(embed)
-                        .components(components),
-                )
-                .await
-            {
+            // Render game card PNG on a blocking thread
+            let fontdb = data.app.fontdb.clone();
+            let card_png = super::card::render_game_card(&session_clone, fontdb).await;
+            if let Err(ref e) = card_png {
+                tracing::warn!(
+                    error = %e,
+                    session = sid,
+                    "Failed to render game card"
+                );
+            }
+            let has_card = card_png.is_ok();
+            let embed = render::render_embed(&session_clone, has_card);
+
+            let mut edit = serenity::EditInteractionResponse::new()
+                .embed(embed)
+                .components(components);
+
+            if let Ok(png) = card_png {
+                edit = edit.new_attachment(serenity::CreateAttachment::bytes(png, "game_card.png"));
+            }
+
+            if let Err(e) = component.edit_response(&ctx.http, edit).await {
                 error!(
                     error = %e,
                     session = sid,

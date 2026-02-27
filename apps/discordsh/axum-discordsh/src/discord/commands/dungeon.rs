@@ -5,7 +5,7 @@ use poise::serenity_prelude as serenity;
 use kbve::MemberStatus;
 
 use crate::discord::bot::{Context, Error};
-use crate::discord::game::{self, content, render, types::*};
+use crate::discord::game::{self, card, content, render, types::*};
 
 /// Dungeon crawler game — stress-test embeds, buttons, and select menus.
 #[poise::command(slash_command, subcommands("start", "join", "leave", "status", "end"))]
@@ -102,25 +102,36 @@ async fn start(
         member_status: Some(member_tag),
     };
 
-    let embed = render::render_embed(&session_state);
     let components = render::render_components(&session_state);
+
+    // Render game card PNG (CPU-bound, runs on blocking thread)
+    let fontdb = ctx.data().app.fontdb.clone();
+    let card_png = card::render_game_card(&session_state, fontdb).await;
+    if let Err(ref e) = card_png {
+        tracing::warn!(error = %e, "Failed to render game card for /dungeon start");
+    }
+    let has_card = card_png.is_ok();
+    let embed = render::render_embed(&session_state, has_card);
 
     let mode_label = match session_mode {
         SessionMode::Solo => "Solo",
         SessionMode::Party => "Party",
     };
 
-    let reply = ctx
-        .send(
-            poise::CreateReply::default()
-                .content(format!(
-                    "**Embed Dungeon** started! ({} mode, session `{}`)",
-                    mode_label, short_id
-                ))
-                .embed(embed)
-                .components(components),
-        )
-        .await?;
+    let mut create_reply = poise::CreateReply::default()
+        .content(format!(
+            "**Embed Dungeon** started! ({} mode, session `{}`)",
+            mode_label, short_id
+        ))
+        .embed(embed)
+        .components(components);
+
+    if let Ok(png) = card_png {
+        create_reply =
+            create_reply.attachment(serenity::CreateAttachment::bytes(png, "game_card.png"));
+    }
+
+    let reply = ctx.send(create_reply).await?;
 
     // Get the message ID from the reply
     let msg = reply.message().await?;
@@ -298,10 +309,24 @@ async fn status(ctx: Context<'_>) -> Result<(), Error> {
     };
 
     let session = handle.lock().await;
-    let embed = render::render_embed(&session);
+    let session_clone = session.clone();
+    drop(session);
 
-    ctx.send(poise::CreateReply::default().embed(embed).ephemeral(true))
-        .await?;
+    // Render game card PNG
+    let fontdb = ctx.data().app.fontdb.clone();
+    let card_png = card::render_game_card(&session_clone, fontdb).await;
+    if let Err(ref e) = card_png {
+        tracing::warn!(error = %e, "Failed to render game card for /dungeon status");
+    }
+    let has_card = card_png.is_ok();
+    let embed = render::render_embed(&session_clone, has_card);
+
+    let mut reply = poise::CreateReply::default().embed(embed).ephemeral(true);
+    if let Ok(png) = card_png {
+        reply = reply.attachment(serenity::CreateAttachment::bytes(png, "game_card.png"));
+    }
+
+    ctx.send(reply).await?;
 
     Ok(())
 }

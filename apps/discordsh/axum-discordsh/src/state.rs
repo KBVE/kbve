@@ -5,7 +5,7 @@ use std::time::Instant;
 use poise::serenity_prelude as serenity;
 use tokio::sync::{Notify, RwLock};
 
-use kbve::MemberCache;
+use kbve::{FontDb, MemberCache};
 
 use crate::discord::game::SessionStore;
 use crate::health::HealthMonitor;
@@ -51,10 +51,24 @@ pub struct AppState {
     // ── Membership ─────────────────────────────────────────────────
     /// LRU-cached membership lookup (Supabase-backed when available).
     pub members: Arc<MemberCache>,
+
+    // ── Image rendering ──────────────────────────────────────────
+    /// Shared font database for SVG-to-PNG rendering (loaded once at startup).
+    pub fontdb: FontDb,
 }
 
 impl AppState {
     pub fn new(health_monitor: Arc<HealthMonitor>, tracker: Option<ShardTracker>) -> Self {
+        let mut fontdb = FontDb::new();
+        let font_path = std::env::var("FONT_PATH").unwrap_or_else(|_| "alagard.ttf".to_owned());
+        if let Err(e) = fontdb.load_font_file(&font_path) {
+            tracing::warn!(
+                error = %e,
+                path = %font_path,
+                "Failed to load game font; SVG text may render incorrectly"
+            );
+        }
+
         Self {
             health_monitor,
             tracker,
@@ -65,6 +79,7 @@ impl AppState {
             bot_http: RwLock::new(None),
             sessions: Arc::new(SessionStore::new()),
             members: Arc::new(MemberCache::from_env()),
+            fontdb,
         }
     }
 }

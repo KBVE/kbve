@@ -1,3 +1,4 @@
+pub mod card;
 pub mod content;
 pub mod logic;
 pub mod render;

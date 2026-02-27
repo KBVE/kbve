@@ -114,8 +114,12 @@ fn format_effects(effects: &[EffectInstance]) -> Option<String> {
 
 /// Build the main game embed from session state.
 ///
+/// When `with_card` is `true`, player/enemy/room stats are omitted
+/// (they're rendered in the attached PNG) and the embed references the
+/// card image via `attachment://game_card.png`.
+///
 /// Pure function — no async, no side effects.
-pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
+pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::CreateEmbed {
     let title = format!(
         "The Glass Catacombs -- Room {}: {}",
         session.room.index + 1,
@@ -142,6 +146,11 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
         .title(title)
         .description(description)
         .color(phase_color(session));
+
+    // Attach game card image when available
+    if with_card {
+        embed = embed.image("attachment://game_card.png");
+    }
 
     // Player stats field
     let mut player_lines = vec![
@@ -204,7 +213,7 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
         embed = embed.field("-- Room Effects --", room_effects.join("\n"), false);
     }
 
-    // Merchant stock
+    // Merchant stock (always shown — matches interactive buy select menu)
     if session.phase == GamePhase::Merchant && !session.room.merchant_stock.is_empty() {
         let stock_lines: Vec<String> = session
             .room
@@ -218,7 +227,7 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
         embed = embed.field("-- Merchant --", stock_lines.join("\n"), false);
     }
 
-    // Story event choices
+    // Story event choices (always shown — matches interactive story buttons)
     if session.phase == GamePhase::Event {
         if let Some(ref event) = session.room.story_event {
             let choice_lines: Vec<String> = event
@@ -231,8 +240,13 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
         }
     }
 
-    // Combat log (last 5 entries)
+    // Adventure log (last 5 entries)
     if !session.log.is_empty() {
+        let (label, prefix) = if with_card {
+            ("-- Adventure Log --", "> ")
+        } else {
+            ("-- Log --", "| ")
+        };
         let log_display: String = session
             .log
             .iter()
@@ -241,10 +255,10 @@ pub fn render_embed(session: &SessionState) -> serenity::CreateEmbed {
             .collect::<Vec<_>>()
             .into_iter()
             .rev()
-            .map(|s| format!("| {s}"))
+            .map(|s| format!("{prefix}{s}"))
             .collect::<Vec<_>>()
             .join("\n");
-        embed = embed.field("-- Log --", log_display, false);
+        embed = embed.field(label, log_display, false);
     }
 
     // Footer
@@ -477,7 +491,7 @@ mod tests {
     #[test]
     fn render_embed_exploring() {
         let session = test_session();
-        let _embed = render_embed(&session);
+        let _embed = render_embed(&session, false);
         // Embed is built without panic — primary assertion
     }
 
@@ -486,14 +500,14 @@ mod tests {
         let mut session = test_session();
         session.phase = GamePhase::Combat;
         session.enemy = Some(super::super::content::spawn_enemy(0));
-        let _embed = render_embed(&session);
+        let _embed = render_embed(&session, false);
     }
 
     #[test]
     fn render_embed_game_over() {
         let mut session = test_session();
         session.phase = GamePhase::GameOver(GameOverReason::Victory);
-        let _embed = render_embed(&session);
+        let _embed = render_embed(&session, false);
     }
 
     #[test]
