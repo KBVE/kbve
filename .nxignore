@@ -2,7 +2,7 @@
 .claude/
 
 # Git submodules contain their own Cargo.toml/package.json that break NX project graph
-apps/edge/edge-runtime/
+apps/kbve/edge/edge-runtime/
 apps/mc/pumpkin/
 apps/irc/ergo/
 apps/postgres/

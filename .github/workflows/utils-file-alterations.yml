@@ -100,6 +100,9 @@ on:
             mc:
                 description: 'MC Pumpkin server changed'
                 value: ${{ jobs.alter.outputs.mc }}
+            edge:
+                description: 'Edge functions changed'
+                value: ${{ jobs.alter.outputs.edge }}
 
 jobs:
     alter:
@@ -136,6 +139,7 @@ jobs:
             laser: ${{ steps.delta.outputs.laser_any_changed }}
             asteroids: ${{ steps.delta.outputs.asteroids_any_changed }}
             mc: ${{ steps.delta.outputs.mc_any_changed }}
+            edge: ${{ steps.delta.outputs.edge_any_changed }}
 
         steps:
             - name: Checkout the repository
@@ -200,3 +204,7 @@ jobs:
                           - 'apps/gamejam/brackeys/13/**'
                       mc:
                           - 'apps/mc/**'
+                      edge:
+                          - 'apps/kbve/edge/functions/**'
+                          - 'apps/kbve/edge/Dockerfile'
+                          - 'apps/kbve/edge/project.json'
