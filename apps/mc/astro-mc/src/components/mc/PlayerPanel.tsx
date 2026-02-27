@@ -119,16 +119,14 @@ export default function PlayerPanel() {
 	return createPortal(
 		<>
 			<div
-				style={{ ...backdropStyle, opacity: open ? 1 : 0 }}
+				style={{ ...backdropStyle, opacity: 1 }}
 				onClick={handleBackdropClick}
 				aria-hidden
 			/>
 			<div
 				style={{
 					...panelStyle,
-					transform: open
-						? 'translateX(0)'
-						: `translateX(${PANEL_WIDTH}px)`,
+					transform: 'translateX(0)',
 				}}
 				role="dialog"
 				aria-label={`Player profile: ${player?.name ?? ''}`}>
