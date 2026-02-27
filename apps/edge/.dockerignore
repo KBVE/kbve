@@ -1,0 +1,15 @@
+node_modules/
+pnpm-lock.yaml
+.git/
+.gitignore
+.dockerignore
+*.md
+*.log
+.DS_Store
+package.json
+tsconfig.json
+deno.json
+functions/types.d.ts
+.env
+edge-runtime/
+scripts/
