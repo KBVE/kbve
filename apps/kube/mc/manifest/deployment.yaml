@@ -25,12 +25,13 @@ spec:
                 - name: mc
                   image: ghcr.io/kbve/mc:0.1.4
                   imagePullPolicy: Always
-                  command: ['/bin/pumpkin']
                   env:
                       - name: RUST_LOG
                         value: 'debug'
                       - name: RUST_BACKTRACE
                         value: '1'
+                      - name: RESOURCE_PACK_URL
+                        value: 'https://mc.kbve.com/kbve-resource-pack.zip'
                   ports:
                       - name: java
                         containerPort: 25565
@@ -52,10 +53,6 @@ spec:
                       - name: mc-config
                         mountPath: /pumpkin/config/configuration.toml
                         subPath: configuration.toml
-                        readOnly: true
-                      - name: mc-config
-                        mountPath: /pumpkin/config/features.toml
-                        subPath: features.toml
                         readOnly: true
                   resources:
                       requests:

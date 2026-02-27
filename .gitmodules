@@ -8,3 +8,6 @@
 [submodule "apps/mc/pumpkin"]
 	path = apps/mc/pumpkin
 	url = https://github.com/KBVE/Pumpkin
+[submodule "apps/edge/edge-runtime"]
+	path = apps/edge/edge-runtime
+	url = https://github.com/supabase/edge-runtime.git
