@@ -1,0 +1,125 @@
+{
+	"name": "edge",
+	"$schema": "../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/edge",
+	"targets": {
+		"container": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": ["./kbve.sh -nx edge:containerx"]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx edge:containerx --configuration=production"
+					]
+				},
+				"ci": {
+					"commands": [
+						"./kbve.sh -nx edge:containerx --configuration=ci"
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/edge",
+				"file": "apps/edge/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/edge:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": ["ghcr.io/kbve/edge", "kbve/edge"],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/edge:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/edge:buildcache,mode=max"
+					]
+				},
+				"ci": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/edge:latest"],
+					"cache-from": ["type=gha,scope=edge"],
+					"cache-to": ["type=gha,scope=edge,mode=max"]
+				}
+			}
+		},
+		"container-dev": {
+			"executor": "nx:run-commands",
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": ["./kbve.sh -nx edge:containerx-dev"]
+				}
+			}
+		},
+		"containerx-dev": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/edge",
+				"file": "apps/edge/Dockerfile.dev",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/edge:dev"]
+				}
+			}
+		},
+		"run": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"docker run --rm -p 9000:9000 kbve/edge:latest start --main-service /home/deno/functions/main -p 9000"
+				],
+				"parallel": false
+			}
+		},
+		"run-dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"docker run --rm -p 9000:9000 -v $PWD/apps/edge/functions:/home/deno/functions kbve/edge:dev start --main-service /home/deno/functions/main -p 9000"
+				],
+				"parallel": false
+			}
+		},
+		"submodule-update": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"git submodule update --remote apps/edge/edge-runtime"
+				],
+				"parallel": false
+			}
+		}
+	},
+	"tags": ["edge", "infrastructure"]
+}
