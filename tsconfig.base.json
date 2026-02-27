@@ -19,8 +19,7 @@
 			"@kbve/devops": ["packages/npm/devops/src/index.ts"],
 			"@kbve/droid": ["packages/npm/droid/src/index.ts"],
 			"@kbve/khashvault": ["packages/npm/khashvault/src/index.ts"],
-			"@kbve/laser": ["packages/npm/laser/src/index.ts"],
-			"@kbve/meme-types": ["packages/npm/meme-types/src/index.ts"]
+			"@kbve/laser": ["packages/npm/laser/src/index.ts"]
 		}
 	},
 	"exclude": ["node_modules", "tmp"]

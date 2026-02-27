@@ -1,10 +1,10 @@
 /**
- * proto-to-zod.ts — Generates Zod schemas from meme.proto
+ * proto-to-zod.mjs — Generates Zod schemas from meme.proto
  *
- * Usage: ts-node --esm packages/npm/meme-types/codegen/proto-to-zod.ts
+ * Usage: node apps/memes/astro-memes/codegen/proto-to-zod.mjs
  *
  * Reads packages/data/proto/meme/meme.proto and outputs
- * packages/npm/meme-types/src/generated/meme.zod.ts
+ * apps/memes/astro-memes/src/schemas/generated/meme.zod.ts
  */
 
 import { readFileSync, writeFileSync, mkdirSync } from 'node:fs';
@@ -14,36 +14,14 @@ import { resolve, dirname } from 'node:path';
 
 const PROTO_PATH = resolve('packages/data/proto/meme/meme.proto');
 const OUTPUT_PATH = resolve(
-	'packages/npm/meme-types/src/generated/meme.zod.ts',
+	'apps/memes/astro-memes/src/schemas/generated/meme.zod.ts',
 );
-
-// ── Types ───────────────────────────────────────────────────────────────────
-
-interface ProtoEnum {
-	name: string;
-	values: string[];
-}
-
-interface ProtoField {
-	name: string;
-	type: string;
-	repeated: boolean;
-	optional: boolean;
-}
-
-interface ProtoMessage {
-	name: string;
-	fields: ProtoField[];
-}
 
 // ── Parse ───────────────────────────────────────────────────────────────────
 
-function parseProto(source: string): {
-	enums: ProtoEnum[];
-	messages: ProtoMessage[];
-} {
-	const enums: ProtoEnum[] = [];
-	const messages: ProtoMessage[] = [];
+function parseProto(source) {
+	const enums = [];
+	const messages = [];
 
 	const lines = source.split('\n');
 	let i = 0;
@@ -51,7 +29,6 @@ function parseProto(source: string): {
 	while (i < lines.length) {
 		const line = lines[i].trim();
 
-		// Skip empty, comments, syntax, package, import, service/rpc blocks
 		if (
 			!line ||
 			line.startsWith('//') ||
@@ -82,7 +59,7 @@ function parseProto(source: string): {
 		const enumMatch = line.match(/^enum\s+(\w+)\s*\{/);
 		if (enumMatch) {
 			const name = enumMatch[1];
-			const values: string[] = [];
+			const values = [];
 			i++;
 			while (i < lines.length) {
 				const eLine = lines[i].trim();
@@ -90,7 +67,6 @@ function parseProto(source: string): {
 					i++;
 					break;
 				}
-				// Match: ENUM_VALUE = 0; // optional comment
 				const valueMatch = eLine.match(/^(\w+)\s*=\s*\d+\s*;/);
 				if (valueMatch) {
 					values.push(valueMatch[1]);
@@ -105,7 +81,7 @@ function parseProto(source: string): {
 		const msgMatch = line.match(/^message\s+(\w+)\s*\{/);
 		if (msgMatch) {
 			const name = msgMatch[1];
-			const fields: ProtoField[] = [];
+			const fields = [];
 			i++;
 			while (i < lines.length) {
 				const mLine = lines[i].trim();
@@ -114,23 +90,19 @@ function parseProto(source: string): {
 					break;
 				}
 
-				// Skip comments and empty lines inside message
 				if (!mLine || mLine.startsWith('//')) {
 					i++;
 					continue;
 				}
 
-				// Parse field: [optional|repeated] type name = N;
 				const fieldMatch = mLine.match(
 					/^(optional\s+|repeated\s+)?(\S+)\s+(\w+)\s*=\s*\d+\s*;/,
 				);
 				if (fieldMatch) {
 					const modifier = (fieldMatch[1] || '').trim();
-					const type = fieldMatch[2];
-					const fieldName = fieldMatch[3];
 					fields.push({
-						name: fieldName,
-						type,
+						name: fieldMatch[3],
+						type: fieldMatch[2],
 						repeated: modifier === 'repeated',
 						optional: modifier === 'optional',
 					});
@@ -149,55 +121,37 @@ function parseProto(source: string): {
 
 // ── Topological Sort ────────────────────────────────────────────────────────
 
-function topoSort(
-	messages: ProtoMessage[],
-	enumNames: Set<string>,
-): ProtoMessage[] {
-	const msgIndex = new Map<string, number>();
+function topoSort(messages, enumNames) {
+	const msgIndex = new Map();
 	messages.forEach((m, idx) => msgIndex.set(m.name, idx));
 
-	// Build adjacency: message depends on other messages it references
-	const deps = new Map<string, Set<string>>();
+	const deps = new Map();
 	for (const m of messages) {
-		const s = new Set<string>();
+		const s = new Set();
 		for (const f of m.fields) {
-			const t = f.type;
-			if (msgIndex.has(t) && t !== m.name) {
-				s.add(t);
+			if (msgIndex.has(f.type) && f.type !== m.name) {
+				s.add(f.type);
 			}
 		}
 		deps.set(m.name, s);
 	}
 
-	// Kahn's algorithm
-	const inDegree = new Map<string, number>();
-	for (const m of messages) inDegree.set(m.name, 0);
-	for (const [, d] of deps) {
-		for (const dep of d) {
-			inDegree.set(dep, (inDegree.get(dep) || 0) + 1);
-		}
-	}
+	const inDeg = new Map();
+	for (const m of messages) inDeg.set(m.name, deps.get(m.name).size);
 
-	// Note: inDegree counts how many messages DEPEND ON this message,
-	// but for topo sort we need how many deps each message HAS.
-	// Let me redo this correctly.
-	const inDeg = new Map<string, number>();
-	for (const m of messages) inDeg.set(m.name, deps.get(m.name)!.size);
-
-	const queue: string[] = [];
+	const queue = [];
 	for (const [name, deg] of inDeg) {
 		if (deg === 0) queue.push(name);
 	}
 
-	const sorted: string[] = [];
+	const sorted = [];
 	while (queue.length > 0) {
-		const curr = queue.shift()!;
+		const curr = queue.shift();
 		sorted.push(curr);
-		// Find messages that depend on curr and decrement their in-degree
 		for (const [name, d] of deps) {
 			if (d.has(curr)) {
 				d.delete(curr);
-				inDeg.set(name, inDeg.get(name)! - 1);
+				inDeg.set(name, inDeg.get(name) - 1);
 				if (inDeg.get(name) === 0) {
 					queue.push(name);
 				}
@@ -205,16 +159,12 @@ function topoSort(
 		}
 	}
 
-	return sorted.map((name) => messages[msgIndex.get(name)!]);
+	return sorted.map((name) => messages[msgIndex.get(name)]);
 }
 
 // ── Type Mapping ────────────────────────────────────────────────────────────
 
-function mapType(
-	protoType: string,
-	enumNames: Set<string>,
-	msgNames: Set<string>,
-): string {
+function mapType(protoType, enumNames, msgNames) {
 	switch (protoType) {
 		case 'string':
 			return 'z.string()';
@@ -239,15 +189,15 @@ function mapType(
 
 // ── Emit ────────────────────────────────────────────────────────────────────
 
-function emit(enums: ProtoEnum[], messages: ProtoMessage[]): string {
+function emit(enums, messages) {
 	const enumNames = new Set(enums.map((e) => e.name));
 	const msgNames = new Set(messages.map((m) => m.name));
 	const sorted = topoSort(messages, enumNames);
 
-	const lines: string[] = [];
+	const lines = [];
 
 	lines.push('// AUTO-GENERATED from meme.proto — DO NOT EDIT');
-	lines.push(`// Source: packages/data/proto/meme/meme.proto`);
+	lines.push('// Source: packages/data/proto/meme/meme.proto');
 	lines.push('');
 	lines.push("import { z } from 'zod';");
 	lines.push('');
@@ -290,7 +240,7 @@ function emit(enums: ProtoEnum[], messages: ProtoMessage[]): string {
 		lines.push(`export const ${m.name}Schema = z.object({`);
 		for (const f of m.fields) {
 			const base = mapType(f.type, enumNames, msgNames);
-			let zodExpr: string;
+			let zodExpr;
 			if (f.repeated) {
 				zodExpr = `z.array(${base})`;
 			} else if (f.optional) {

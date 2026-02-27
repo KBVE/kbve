@@ -1,67 +1,75 @@
 {
-  "name": "astro-memes",
-  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "projectType": "application",
-  "sourceRoot": "apps/memes/astro-memes/src",
-  "tags": [],
-  "targets": {
-    "dev": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/memes/astro-memes",
-        "commands": [
-          "rm -rf .astro",
-          "nx exec -- astro sync",
-          "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro dev"
-        ],
-        "parallel": false
-      }
-    },
-    "build": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/memes/astro-memes",
-        "commands": [
-          "UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
-        ],
-        "parallel": false
-      }
-    },
-    "preview": {
-      "dependsOn": [
-        {
-          "target": "build",
-          "projects": "self"
-        }
-      ],
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/memes/astro-memes",
-        "commands": [
-          "nx exec -- astro preview"
-        ],
-        "parallel": false
-      }
-    },
-    "check": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/memes/astro-memes",
-        "commands": [
-          "nx exec -- astro check"
-        ],
-        "parallel": false
-      }
-    },
-    "sync": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/memes/astro-memes",
-        "commands": [
-          "nx exec -- astro sync"
-        ],
-        "parallel": false
-      }
-    }
-  }
+	"name": "astro-memes",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/memes/astro-memes/src",
+	"tags": [],
+	"targets": {
+		"proto": {
+			"executor": "nx:run-commands",
+			"inputs": [
+				"{workspaceRoot}/packages/data/proto/meme/meme.proto",
+				"{workspaceRoot}/packages/data/proto/kbve/common.proto",
+				"{projectRoot}/codegen/proto-to-zod.mjs"
+			],
+			"outputs": ["{projectRoot}/src/schemas/generated/meme.zod.ts"],
+			"options": {
+				"command": "node apps/memes/astro-memes/codegen/proto-to-zod.mjs"
+			},
+			"cache": true
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/memes/astro-memes",
+				"commands": [
+					"rm -rf .astro",
+					"nx exec -- astro sync",
+					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro dev"
+				],
+				"parallel": false
+			}
+		},
+		"build": {
+			"dependsOn": ["proto"],
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/memes/astro-memes",
+				"commands": [
+					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=4096\" nx exec -- astro build"
+				],
+				"parallel": false
+			}
+		},
+		"preview": {
+			"dependsOn": [
+				{
+					"target": "build",
+					"projects": "self"
+				}
+			],
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/memes/astro-memes",
+				"commands": ["nx exec -- astro preview"],
+				"parallel": false
+			}
+		},
+		"check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/memes/astro-memes",
+				"commands": ["nx exec -- astro check"],
+				"parallel": false
+			}
+		},
+		"sync": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/memes/astro-memes",
+				"commands": ["nx exec -- astro sync"],
+				"parallel": false
+			}
+		}
+	}
 }
