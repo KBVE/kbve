@@ -110,6 +110,15 @@
 				],
 				"parallel": false
 			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"cache": false,
+			"dependsOn": ["container"],
+			"options": {
+				"commands": ["./kbve.sh -nx edge-e2e:e2e"],
+				"parallel": false
+			}
 		}
 	},
 	"tags": ["scope:kbve", "edge", "infrastructure"]
