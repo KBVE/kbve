@@ -234,7 +234,7 @@ GRANT SELECT ON meme.meme_player_stats TO anon, authenticated;
 -- ===========================================
 
 CREATE TABLE IF NOT EXISTS meme.battle_results (
-    id              TEXT PRIMARY KEY DEFAULT gen_ulid(),
+    battle_id       TEXT PRIMARY KEY DEFAULT gen_ulid(),
     player_a_id     UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
     player_b_id     UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
 

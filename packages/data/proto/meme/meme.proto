@@ -241,6 +241,7 @@ message CardAbility {
 }
 
 message MemeCardStats {
+  string meme_id = 13;         // ULID FK → Meme.id (the minted meme)
   MemeRarity rarity = 1;
   MemeElement element = 2;
   int32 attack = 3;            // 0–999
@@ -340,6 +341,7 @@ message MemeUserProfile {
 
 // Card game player statistics
 message MemePlayerStats {
+  string user_id = 9;           // UUID FK → auth.users.id
   int32 total_battles = 1;
   int32 wins = 2;
   int32 losses = 3;
@@ -364,11 +366,17 @@ message MemeFollow {
 // Card Deck - A player's battle deck
 // =============================================================================
 
+// A card slot within a deck (maps 1:1 to meme.meme_deck_cards join table)
+message DeckCard {
+  string card_id = 1;         // ULID FK → Meme.id (with card stats)
+  optional int32 position = 2; // Ordering position within the deck
+}
+
 message MemeDeck {
   string id = 1;              // ULID
   string owner_id = 2;        // User UUID
   string name = 3;            // Deck name, e.g. "Cursed Rush"
-  repeated string card_ids = 4; // ULID references to Meme entities (with card stats)
+  repeated DeckCard cards = 4; // Cards in this deck (replaces flat card_ids)
   bool is_active = 5;         // Currently selected deck for matchmaking
   string created_at = 6;
   optional string updated_at = 7;
