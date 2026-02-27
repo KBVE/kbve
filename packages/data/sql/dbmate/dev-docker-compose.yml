@@ -1,0 +1,30 @@
+# Local Postgres for testing dbmate migrations.
+# Mimics the Supabase role structure so RLS policies and GRANT statements work.
+#
+# Usage:
+#   cp dev-docker-compose.yml docker-compose.yml
+#   docker compose up -d
+#   dbmate --no-dump-schema up     # apply migrations
+#   dbmate rollback                # undo last migration
+#   docker compose down -v         # tear down (destroys data)
+
+services:
+  postgres:
+    image: postgres:17-alpine
+    ports:
+      - "54322:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: postgres
+    volumes:
+      - ./init:/docker-entrypoint-initdb.d
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+volumes:
+  pgdata:
