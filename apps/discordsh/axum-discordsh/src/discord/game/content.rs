@@ -131,6 +131,46 @@ fn story_rooms() -> &'static [RoomTemplate] {
     ROOMS
 }
 
+fn hallway_rooms() -> &'static [RoomTemplate] {
+    static ROOMS: &[RoomTemplate] = &[
+        RoomTemplate {
+            name: "Narrow Corridor",
+            description: "A tight passage stretches ahead. The sounds of battle fade behind you.",
+        },
+        RoomTemplate {
+            name: "Dimly Lit Passage",
+            description: "Flickering torches cast long shadows. You catch your breath.",
+        },
+        RoomTemplate {
+            name: "Crumbling Tunnel",
+            description: "Loose stones crunch underfoot. The air grows still.",
+        },
+        RoomTemplate {
+            name: "Winding Stairwell",
+            description: "Spiraling steps lead deeper. At least nothing followed you here.",
+        },
+    ];
+    ROOMS
+}
+
+fn city_rooms() -> &'static [RoomTemplate] {
+    static ROOMS: &[RoomTemplate] = &[
+        RoomTemplate {
+            name: "The Sunken Market",
+            description: "Torches line carved stone walls. Merchants hawk wares from hollowed alcoves. An inn's sign creaks overhead.",
+        },
+        RoomTemplate {
+            name: "Dwarven Outpost",
+            description: "Sturdy stone buildings cluster around a central well. The smell of cooking drifts from a tavern doorway.",
+        },
+        RoomTemplate {
+            name: "Mushroom Bazaar",
+            description: "Giant luminescent fungi provide light. Stalls are carved into their massive stalks. A cozy inn glows warmly.",
+        },
+    ];
+    ROOMS
+}
+
 fn pick_template(pool: &[RoomTemplate], rng: &mut impl Rng) -> (String, String) {
     let t = &pool[rng.gen_range(0..pool.len())];
     (t.name.to_owned(), t.description.to_owned())
@@ -431,11 +471,12 @@ fn room_type_for_index(index: u32, rng: &mut impl Rng) -> RoomType {
     }
     let roll: f32 = rng.r#gen();
     match roll {
-        x if x < 0.40 => RoomType::Combat,
-        x if x < 0.55 => RoomType::Treasure,
-        x if x < 0.70 => RoomType::Trap,
-        x if x < 0.80 => RoomType::RestShrine,
-        x if x < 0.90 => RoomType::Merchant,
+        x if x < 0.35 => RoomType::Combat,
+        x if x < 0.50 => RoomType::Treasure,
+        x if x < 0.65 => RoomType::Trap,
+        x if x < 0.75 => RoomType::RestShrine,
+        x if x < 0.85 => RoomType::Merchant,
+        x if x < 0.90 => RoomType::UndergroundCity,
         _ => RoomType::Story,
     }
 }
@@ -506,6 +547,8 @@ pub fn generate_room(index: u32) -> RoomState {
         RoomType::Boss => boss_rooms(),
         RoomType::Merchant => merchant_rooms(),
         RoomType::Story => story_rooms(),
+        RoomType::Hallway => hallway_rooms(),
+        RoomType::UndergroundCity => city_rooms(),
     };
     let (name, description) = pick_template(pool, &mut rng);
     let modifiers = generate_modifiers(index, &room_type, &mut rng);
@@ -518,6 +561,22 @@ pub fn generate_room(index: u32) -> RoomState {
         description,
         modifiers,
         hazards,
+        merchant_stock: Vec::new(),
+        story_event: None,
+    }
+}
+
+/// Generate a hallway room (safe passage after fleeing combat).
+pub fn generate_hallway_room(index: u32) -> RoomState {
+    let mut rng = rand::thread_rng();
+    let (name, description) = pick_template(hallway_rooms(), &mut rng);
+    RoomState {
+        index,
+        room_type: RoomType::Hallway,
+        name,
+        description,
+        modifiers: Vec::new(),
+        hazards: Vec::new(),
         merchant_stock: Vec::new(),
         story_event: None,
     }
@@ -820,7 +879,14 @@ mod tests {
         let room = generate_room(5);
         assert!(!room.name.is_empty());
         assert!(!room.description.is_empty());
-        // hazards and merchant_stock are Vecs (may be empty)
-        // story_event is Option (may be None)
+    }
+
+    #[test]
+    fn hallway_room_is_safe() {
+        let room = generate_hallway_room(3);
+        assert_eq!(room.room_type, RoomType::Hallway);
+        assert!(room.hazards.is_empty());
+        assert!(room.modifiers.is_empty());
+        assert!(!room.name.is_empty());
     }
 }

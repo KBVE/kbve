@@ -179,6 +179,7 @@ fn parse_action(s: &str) -> Option<GameAction> {
         "item" => Some(GameAction::ToggleItems),
         "explore" => Some(GameAction::Explore),
         "flee" => Some(GameAction::Flee),
+        "rest" => Some(GameAction::Rest),
         _ => None,
     }
 }
@@ -212,6 +213,7 @@ mod tests {
         assert_eq!(parse_action("item"), Some(GameAction::ToggleItems));
         assert_eq!(parse_action("explore"), Some(GameAction::Explore));
         assert_eq!(parse_action("flee"), Some(GameAction::Flee));
+        assert_eq!(parse_action("rest"), Some(GameAction::Rest));
     }
 
     #[test]
