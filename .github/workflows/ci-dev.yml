@@ -314,9 +314,18 @@ jobs:
                   cache-from: type=gha,scope=mc-dev
                   cache-to: type=gha,scope=mc-dev,mode=max
 
+            - name: Create offline test config
+              run: |
+                  cp apps/mc/data/config/configuration.toml /tmp/configuration.toml
+                  sed -i 's/online_mode = true/online_mode = false/' /tmp/configuration.toml
+                  sed -i 's/encryption = true/encryption = false/' /tmp/configuration.toml
+
             - name: Smoke test — server starts
               run: |
-                  docker run -d --name mc-dev-test -p 25565:25565 kbve/mc:dev
+                  docker run -d --name mc-dev-test \
+                    -p 25565:25565 \
+                    -v /tmp/configuration.toml:/pumpkin/config/configuration.toml:ro \
+                    kbve/mc:dev
                   sleep 10
                   docker logs mc-dev-test 2>&1
                   docker logs mc-dev-test 2>&1 | grep -q "Started server" || { echo "Server failed to start"; docker logs mc-dev-test 2>&1; exit 1; }
