@@ -257,6 +257,38 @@ message UnlinkResponse {
 }
 
 // =============================================================================
+// Character — DND-style RPG character sheet
+// =============================================================================
+
+// Classic six-ability stat block (all default to 1)
+message McCharacterStats {
+  int32 strength = 1;          // STR — physical power, melee damage
+  int32 dexterity = 2;        // DEX — agility, ranged accuracy, dodge
+  int32 constitution = 3;     // CON — endurance, max HP modifier
+  int32 intelligence = 4;     // INT — magic power, crafting bonus
+  int32 wisdom = 5;           // WIS — perception, luck, gathering yield
+  int32 charisma = 6;         // CHA — trade prices, NPC interaction
+}
+
+// A player's RPG character sheet
+message McCharacter {
+  string player_uuid = 1;               // Minecraft UUID (32 hex, no dashes)
+  optional string user_id = 2;          // Supabase user_id if linked
+
+  // Level & experience
+  int32 level = 3;                      // Character level (1+, default 1)
+  int64 experience = 4;                 // Total accumulated XP (0+)
+
+  // Base ability scores (natural stats, before any modifiers)
+  McCharacterStats base_stats = 5;
+
+  // Server context
+  string server_id = 6;
+  kbve.common.Timestamp created_at = 7;
+  kbve.common.Timestamp updated_at = 8;
+}
+
+// =============================================================================
 // Persistence Requests / Responses  (MC Server ↔ Supabase Edge)
 // =============================================================================
 
@@ -316,6 +348,43 @@ message RecordTransfersResponse {
   optional string error = 3;
 }
 
+// Save a character sheet
+message SaveCharacterRequest {
+  McCharacter character = 1;
+}
+
+message SaveCharacterResponse {
+  bool success = 1;
+  optional string error = 2;
+}
+
+// Load a character sheet
+message LoadCharacterRequest {
+  string player_uuid = 1;
+  string server_id = 2;
+}
+
+message LoadCharacterResponse {
+  bool found = 1;
+  optional McCharacter character = 2;
+  optional string error = 3;
+}
+
+// Add experience and auto-level (atomic operation)
+message AddExperienceRequest {
+  string player_uuid = 1;
+  string server_id = 2;
+  int64 xp_amount = 3;                  // XP to add (must be positive)
+}
+
+message AddExperienceResponse {
+  bool success = 1;
+  int32 new_level = 2;                  // Level after XP was applied
+  int64 total_experience = 3;           // Total XP after addition
+  bool leveled_up = 4;                  // True if level changed
+  optional string error = 5;
+}
+
 // Query transfer history for a player
 message GetTransferHistoryRequest {
   string player_uuid = 1;
@@ -349,6 +418,11 @@ service MinecraftData {
   // Container persistence
   rpc SaveContainer (SaveContainerRequest) returns (SaveContainerResponse);
   rpc LoadContainer (LoadContainerRequest) returns (LoadContainerResponse);
+
+  // Character RPG system
+  rpc SaveCharacter (SaveCharacterRequest) returns (SaveCharacterResponse);
+  rpc LoadCharacter (LoadCharacterRequest) returns (LoadCharacterResponse);
+  rpc AddExperience (AddExperienceRequest) returns (AddExperienceResponse);
 
   // Transfer ledger
   rpc RecordTransfers (RecordTransfersRequest) returns (RecordTransfersResponse);
