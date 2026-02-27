@@ -23,6 +23,12 @@ export default defineConfig({
       },
       sidebar: [
         {
+          label: 'Server',
+          items: [
+            { label: 'Live Players', slug: 'players' },
+          ],
+        },
+        {
           label: 'Guides',
           autogenerate: { directory: 'guides' },
         },

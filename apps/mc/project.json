@@ -36,7 +36,7 @@
 			"defaultConfiguration": "local",
 			"options": {
 				"engine": "docker",
-				"context": "apps/mc",
+				"context": ".",
 				"file": "apps/mc/Dockerfile",
 				"load": true
 			},
@@ -98,7 +98,7 @@
 			"defaultConfiguration": "local",
 			"options": {
 				"engine": "docker",
-				"context": "apps/mc",
+				"context": ".",
 				"file": "apps/mc/Dockerfile.dev",
 				"load": true
 			},
