@@ -18,11 +18,11 @@ CREATE TABLE IF NOT EXISTS meme.meme_reports (
 
     -- ReportReason enum (1-7)
     reason          SMALLINT NOT NULL CHECK (reason BETWEEN 1 AND 7),
-    detail          TEXT,
+    detail          TEXT CHECK (detail IS NULL OR (char_length(detail) <= 2000 AND meme.is_safe_text(detail))),
 
     resolved        BOOLEAN NOT NULL DEFAULT false,
     resolved_by     UUID REFERENCES auth.users(id) ON DELETE SET NULL,
-    resolution_note TEXT,
+    resolution_note TEXT CHECK (resolution_note IS NULL OR (char_length(resolution_note) <= 2000 AND meme.is_safe_text(resolution_note))),
 
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     resolved_at     TIMESTAMPTZ

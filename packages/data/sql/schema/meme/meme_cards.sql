@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS meme.meme_card_stats (
 
     -- JSONB array of CardAbility objects
     abilities       JSONB NOT NULL DEFAULT '[]'::jsonb,
-    flavor_text     TEXT,
+    flavor_text     TEXT CHECK (flavor_text IS NULL OR (char_length(flavor_text) <= 300 AND meme.is_safe_text(flavor_text))),
 
     -- Evolution / leveling
     level           INTEGER NOT NULL DEFAULT 1 CHECK (level BETWEEN 1 AND 100),
@@ -81,7 +81,7 @@ GRANT SELECT ON meme.meme_card_stats TO anon, authenticated;
 CREATE TABLE IF NOT EXISTS meme.meme_decks (
     id          TEXT PRIMARY KEY DEFAULT gen_ulid(),
     owner_id    UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    name        TEXT NOT NULL CHECK (char_length(name) BETWEEN 1 AND 50),
+    name        TEXT NOT NULL CHECK (char_length(name) BETWEEN 1 AND 50 AND meme.is_safe_text(name)),
     is_active   BOOLEAN NOT NULL DEFAULT false,
     created_at  TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at  TIMESTAMPTZ
@@ -201,7 +201,7 @@ CREATE TABLE IF NOT EXISTS meme.meme_player_stats (
     elo_rating      INTEGER NOT NULL DEFAULT 1000,
     cards_owned     INTEGER NOT NULL DEFAULT 0 CHECK (cards_owned >= 0),
     highest_streak  INTEGER NOT NULL DEFAULT 0 CHECK (highest_streak >= 0),
-    rank_title      TEXT
+    rank_title      TEXT CHECK (rank_title IS NULL OR (char_length(rank_title) <= 50 AND meme.is_safe_text(rank_title)))
 );
 
 COMMENT ON TABLE meme.meme_player_stats IS 'Card game player statistics and ELO ratings';

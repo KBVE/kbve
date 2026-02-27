@@ -13,9 +13,9 @@ BEGIN;
 
 CREATE TABLE IF NOT EXISTS meme.meme_user_profiles (
     user_id                     UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
-    display_name                TEXT,
-    avatar_url                  TEXT,
-    bio                         TEXT CHECK (bio IS NULL OR char_length(bio) <= 500),
+    display_name                TEXT CHECK (display_name IS NULL OR (char_length(display_name) BETWEEN 1 AND 50 AND meme.is_safe_text(display_name))),
+    avatar_url                  TEXT CHECK (meme.is_safe_url(avatar_url)),
+    bio                         TEXT CHECK (bio IS NULL OR (char_length(bio) <= 500 AND meme.is_safe_text(bio))),
 
     -- Aggregate stats (denormalized)
     total_memes                 BIGINT NOT NULL DEFAULT 0 CHECK (total_memes >= 0),
@@ -148,8 +148,8 @@ GRANT SELECT, INSERT, DELETE ON meme.meme_follows TO authenticated;
 CREATE TABLE IF NOT EXISTS meme.meme_collections (
     id              TEXT PRIMARY KEY DEFAULT gen_ulid(),
     owner_id        UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    name            TEXT NOT NULL CHECK (char_length(name) BETWEEN 1 AND 100),
-    description     TEXT,
+    name            TEXT NOT NULL CHECK (char_length(name) BETWEEN 1 AND 100 AND meme.is_safe_text(name)),
+    description     TEXT CHECK (description IS NULL OR (char_length(description) <= 1000 AND meme.is_safe_text(description))),
     cover_meme_id   TEXT REFERENCES meme.memes(id) ON DELETE SET NULL,
     is_public       BOOLEAN NOT NULL DEFAULT false,
     meme_count      INTEGER NOT NULL DEFAULT 0 CHECK (meme_count >= 0),

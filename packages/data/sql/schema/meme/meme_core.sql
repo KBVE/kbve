@@ -55,20 +55,79 @@ $$ LANGUAGE plpgsql
 SET search_path = '';
 
 -- ===========================================
+-- SHARED VALIDATION FUNCTIONS
+-- ===========================================
+
+-- Rejects whitespace-only text, C0/C1 control chars, zero-width chars, and bidi overrides.
+-- Allows tab (\x09), newline (\x0A), carriage return (\x0D) for multi-line fields.
+CREATE OR REPLACE FUNCTION meme.is_safe_text(txt TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+    IF txt IS NULL THEN RETURN true; END IF;
+    -- Reject whitespace-only (spaces, tabs, newlines)
+    IF btrim(txt) = '' THEN RETURN false; END IF;
+    -- Reject C0 control chars except tab, newline, carriage return; reject DEL
+    IF txt ~ E'[\\x00-\\x08\\x0B\\x0C\\x0E-\\x1F\\x7F]' THEN RETURN false; END IF;
+    -- Reject zero-width chars (ZWSP, ZWNJ, ZWJ, LRM, RLM) and bidi overrides
+    IF txt ~ E'[\\u200B\\u200C\\u200D\\u200E\\u200F\\u202A\\u202B\\u202C\\u202D\\u202E\\uFEFF\\u2060\\u2066\\u2067\\u2068\\u2069]' THEN RETURN false; END IF;
+    RETURN true;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE
+SET search_path = '';
+
+COMMENT ON FUNCTION meme.is_safe_text IS 'Belt-and-suspenders text validation: blocks whitespace-only, control chars, zero-width/bidi abuse';
+
+-- Validates URLs: must start with http(s)://, no whitespace or control chars, max 2048 chars.
+CREATE OR REPLACE FUNCTION meme.is_safe_url(url TEXT)
+RETURNS BOOLEAN AS $$
+BEGIN
+    IF url IS NULL THEN RETURN true; END IF;
+    IF char_length(url) > 2048 THEN RETURN false; END IF;
+    IF url !~ '^https?://.+' THEN RETURN false; END IF;
+    -- Reject whitespace (incl. space) and control chars (not valid in URIs per RFC 3986)
+    IF url ~ E'[\\x00-\\x20\\x7F]' THEN RETURN false; END IF;
+    RETURN true;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE
+SET search_path = '';
+
+COMMENT ON FUNCTION meme.is_safe_url IS 'URL validation: https required, no whitespace/control chars, max 2048 chars';
+
+-- Validates tags array: max 20 tags, each 1-50 chars, lowercase alphanumeric + hyphens + underscores.
+CREATE OR REPLACE FUNCTION meme.are_valid_tags(tags TEXT[])
+RETURNS BOOLEAN AS $$
+DECLARE
+    t TEXT;
+BEGIN
+    IF tags IS NULL OR array_length(tags, 1) IS NULL THEN RETURN true; END IF;
+    IF array_length(tags, 1) > 20 THEN RETURN false; END IF;
+    FOREACH t IN ARRAY tags LOOP
+        IF t IS NULL OR btrim(t) = '' OR char_length(t) > 50 THEN RETURN false; END IF;
+        -- Tags must be lowercase slug-safe: [a-z0-9] start, then [a-z0-9_-]
+        IF t !~ '^[a-z0-9][a-z0-9_-]*$' THEN RETURN false; END IF;
+    END LOOP;
+    RETURN true;
+END;
+$$ LANGUAGE plpgsql IMMUTABLE
+SET search_path = '';
+
+COMMENT ON FUNCTION meme.are_valid_tags IS 'Tag array validation: max 20 tags, slug-safe lowercase, 1-50 chars each';
+
+-- ===========================================
 -- TABLE: meme_templates
 -- ===========================================
 
 CREATE TABLE IF NOT EXISTS meme.meme_templates (
     id              TEXT PRIMARY KEY DEFAULT gen_ulid(),
-    name            TEXT NOT NULL,
-    description     TEXT,
-    image_url       TEXT NOT NULL,
-    thumbnail_url   TEXT,
+    name            TEXT NOT NULL CHECK (char_length(name) BETWEEN 1 AND 200 AND meme.is_safe_text(name)),
+    description     TEXT CHECK (description IS NULL OR (char_length(description) <= 2000 AND meme.is_safe_text(description))),
+    image_url       TEXT NOT NULL CHECK (meme.is_safe_url(image_url)),
+    thumbnail_url   TEXT CHECK (meme.is_safe_url(thumbnail_url)),
     width           INTEGER NOT NULL CHECK (width > 0),
     height          INTEGER NOT NULL CHECK (height > 0),
     slots           JSONB NOT NULL DEFAULT '[]'::jsonb,
     usage_count     BIGINT NOT NULL DEFAULT 0 CHECK (usage_count >= 0),
-    tags            TEXT[] NOT NULL DEFAULT '{}',
+    tags            TEXT[] NOT NULL DEFAULT '{}' CHECK (meme.are_valid_tags(tags)),
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at      TIMESTAMPTZ
 );
@@ -119,7 +178,7 @@ GRANT SELECT ON meme.meme_templates TO anon, authenticated;
 CREATE TABLE IF NOT EXISTS meme.memes (
     id              TEXT PRIMARY KEY DEFAULT gen_ulid(),
     author_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    title           TEXT,
+    title           TEXT CHECK (title IS NULL OR (char_length(title) <= 200 AND meme.is_safe_text(title))),
     template_id     TEXT REFERENCES meme.meme_templates(id) ON DELETE SET NULL,
 
     -- Proto enum MemeFormat (0-4)
@@ -130,8 +189,8 @@ CREATE TABLE IF NOT EXISTS meme.memes (
                     CHECK (status BETWEEN 0 AND 7),
 
     -- Asset
-    asset_url       TEXT NOT NULL,
-    thumbnail_url   TEXT,
+    asset_url       TEXT NOT NULL CHECK (meme.is_safe_url(asset_url)),
+    thumbnail_url   TEXT CHECK (meme.is_safe_url(thumbnail_url)),
     width           INTEGER CHECK (width > 0),
     height          INTEGER CHECK (height > 0),
     file_size       BIGINT CHECK (file_size > 0),
@@ -140,9 +199,9 @@ CREATE TABLE IF NOT EXISTS meme.memes (
     captions        JSONB NOT NULL DEFAULT '[]'::jsonb,
 
     -- Categorization
-    tags            TEXT[] NOT NULL DEFAULT '{}',
-    source_url      TEXT,
-    alt_text        TEXT,
+    tags            TEXT[] NOT NULL DEFAULT '{}' CHECK (meme.are_valid_tags(tags)),
+    source_url      TEXT CHECK (meme.is_safe_url(source_url)),
+    alt_text        TEXT CHECK (alt_text IS NULL OR (char_length(alt_text) <= 500 AND meme.is_safe_text(alt_text))),
 
     -- Denormalized engagement counters
     view_count      BIGINT NOT NULL DEFAULT 0 CHECK (view_count >= 0),
@@ -156,8 +215,8 @@ CREATE TABLE IF NOT EXISTS meme.memes (
     updated_at      TIMESTAMPTZ,
     published_at    TIMESTAMPTZ,
 
-    -- Deduplication
-    content_hash    TEXT
+    -- Deduplication (perceptual hash, hex-encoded)
+    content_hash    TEXT CHECK (content_hash IS NULL OR (char_length(content_hash) <= 128 AND content_hash ~ '^[a-f0-9]+$'))
 );
 
 COMMENT ON TABLE meme.memes IS 'Core meme entity - the card in the TikTok-style scrolling feed';

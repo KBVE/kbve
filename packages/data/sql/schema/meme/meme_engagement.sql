@@ -96,7 +96,7 @@ CREATE TABLE IF NOT EXISTS meme.meme_comments (
     id              TEXT PRIMARY KEY DEFAULT gen_ulid(),
     meme_id         TEXT NOT NULL REFERENCES meme.memes(id) ON DELETE CASCADE,
     author_id       UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
-    body            TEXT NOT NULL CHECK (char_length(body) BETWEEN 1 AND 500),
+    body            TEXT NOT NULL CHECK (char_length(body) BETWEEN 1 AND 500 AND meme.is_safe_text(body)),
     parent_id       TEXT REFERENCES meme.meme_comments(id) ON DELETE CASCADE,
     reaction_count  BIGINT NOT NULL DEFAULT 0 CHECK (reaction_count >= 0),
     reply_count     INTEGER NOT NULL DEFAULT 0 CHECK (reply_count >= 0),
