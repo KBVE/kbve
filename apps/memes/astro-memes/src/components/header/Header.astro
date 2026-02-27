@@ -9,91 +9,77 @@ import ThemeSelect from 'virtual:starlight/components/ThemeSelect';
 import NavBar from '../navigation/NavBar.astro';
 
 const shouldRenderSearch =
-  config.pagefind ||
-  config.components.Search !== '@astrojs/starlight/components/Search.astro';
+	config.pagefind ||
+	config.components.Search !== '@astrojs/starlight/components/Search.astro';
 ---
 
 <div class="header">
-  <div class="title-wrapper sl-flex">
-    <SiteTitle />
-  </div>
-  <div class="nav-center">
-    <NavBar />
-  </div>
-  <div class="sl-hidden md:sl-flex print:hidden right-group">
-    <div class="sl-flex social-icons">
-      <SocialIcons />
-    </div>
-    {shouldRenderSearch && <Search />}
-    <ThemeSelect />
-    <LanguageSelect />
-  </div>
+	<div class="title-wrapper sl-flex">
+		<SiteTitle />
+		<NavBar />
+	</div>
+	<div class="sl-hidden md:sl-flex print:hidden right-group">
+		<div class="sl-flex social-icons">
+			<SocialIcons />
+		</div>
+		{shouldRenderSearch && <Search />}
+		<ThemeSelect />
+		<LanguageSelect />
+	</div>
 </div>
 
 <style>
-  @layer starlight.core {
-    .header {
-      display: flex;
-      gap: var(--sl-nav-gap);
-      justify-content: space-between;
-      align-items: center;
-      height: 100%;
-    }
+	@layer starlight.core {
+		.header {
+			display: flex;
+			gap: var(--sl-nav-gap);
+			justify-content: space-between;
+			align-items: center;
+			height: 100%;
+		}
 
-    .title-wrapper {
-      overflow: clip;
-      padding: 0.25rem;
-      margin: -0.25rem;
-      min-width: 0;
-    }
+		.title-wrapper {
+			overflow: clip;
+			padding: 0.25rem;
+			margin: -0.25rem;
+			min-width: 0;
+			display: flex;
+			align-items: center;
+			gap: 0.25rem;
+		}
 
-    .nav-center {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
+		.right-group,
+		.social-icons {
+			gap: 1rem;
+			align-items: center;
+		}
+		.social-icons::after {
+			content: '';
+			height: 2rem;
+			border-inline-end: 1px solid var(--sl-color-gray-5);
+		}
 
-    .right-group,
-    .social-icons {
-      gap: 1rem;
-      align-items: center;
-    }
-    .social-icons::after {
-      content: '';
-      height: 2rem;
-      border-inline-end: 1px solid var(--sl-color-gray-5);
-    }
-
-    @media (min-width: 50rem) {
-      :global(:root[data-has-sidebar]) {
-        --__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
-      }
-      :global(:root:not([data-has-toc])) {
-        --__toc-width: 0rem;
-      }
-      .header {
-        display: grid;
-        grid-template-columns: auto 1fr auto;
-        align-content: center;
-      }
-      .title-wrapper {
-        justify-self: start;
-      }
-      .nav-center {
-        justify-self: center;
-      }
-      .right-group {
-        justify-self: end;
-      }
-      .right-group :global(site-search) {
-        min-width: 14rem;
-      }
-    }
-
-    @media (max-width: 49.99rem) {
-      .nav-center {
-        margin-left: auto;
-      }
-    }
-  }
+		@media (min-width: 50rem) {
+			:global(:root[data-has-sidebar]) {
+				--__sidebar-pad: calc(2 * var(--sl-nav-pad-x));
+			}
+			:global(:root:not([data-has-toc])) {
+				--__toc-width: 0rem;
+			}
+			.header {
+				display: grid;
+				grid-template-columns: 1fr auto;
+				align-content: center;
+			}
+			.title-wrapper {
+				justify-self: start;
+			}
+			.right-group {
+				justify-self: end;
+			}
+			.right-group :global(site-search) {
+				min-width: 14rem;
+			}
+		}
+	}
 </style>
