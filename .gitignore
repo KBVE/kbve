@@ -60,6 +60,9 @@ yarn-error.log
 testem.log
 /typings
 
+# Claude Code
+.claude/
+
 # System Files
 .DS_Store
 Thumbs.db
