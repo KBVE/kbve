@@ -23,7 +23,7 @@ spec:
                 fsGroup: 2613
             containers:
                 - name: mc
-                  image: ghcr.io/kbve/mc:0.1.5
+                  image: ghcr.io/kbve/mc:0.1.6
                   imagePullPolicy: Always
                   env:
                       - name: RUST_LOG
