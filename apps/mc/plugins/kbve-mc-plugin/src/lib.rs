@@ -1461,6 +1461,7 @@ async fn serve_web() {
             get(web::mojang_profile_proxy),
         )
         .route("/api/mojang/session/{uuid}", get(web::mojang_session_proxy))
+        .route("/api/players", get(web::players_api_handler))
         .merge(static_router);
 
     let listener = match tokio::net::TcpListener::bind("0.0.0.0:8080").await {

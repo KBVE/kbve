@@ -80,6 +80,27 @@ pub async fn players_handler() -> impl IntoResponse {
 }
 
 // ---------------------------------------------------------------------------
+// JSON API: active players
+// ---------------------------------------------------------------------------
+
+/// GET /api/players → JSON list of online player names
+pub async fn players_api_handler() -> impl IntoResponse {
+    let names: Vec<String> = ONLINE_PLAYERS
+        .iter()
+        .map(|entry| entry.key().clone())
+        .collect();
+    let body = serde_json::json!({
+        "online": names.len(),
+        "players": names,
+    });
+    (
+        StatusCode::OK,
+        [(header::CONTENT_TYPE, "application/json")],
+        body.to_string(),
+    )
+}
+
+// ---------------------------------------------------------------------------
 // Mojang API proxy (browser CORS workaround)
 // ---------------------------------------------------------------------------
 
