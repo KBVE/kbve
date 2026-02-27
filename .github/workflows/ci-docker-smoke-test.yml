@@ -90,7 +90,7 @@ jobs:
                 include:
                     - name: mc
                       dockerfile: apps/mc/Dockerfile
-                      context: apps/mc
+                      context: .
                       cache_scope: smoke-mc
                       submodules: true
                     - name: herbmail

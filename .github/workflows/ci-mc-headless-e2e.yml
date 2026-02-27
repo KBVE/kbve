@@ -51,7 +51,7 @@ jobs:
             - name: Build MC dev image
               uses: docker/build-push-action@v6
               with:
-                  context: apps/mc
+                  context: .
                   file: apps/mc/Dockerfile.dev
                   push: false
                   load: true
