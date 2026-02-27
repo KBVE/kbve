@@ -107,11 +107,12 @@ mod tests {
     fn test_state(short_id: &str, channel: u64, owner: u64) -> SessionState {
         let mut player = PlayerState::default();
         player.inventory = content::starting_inventory();
+        let owner_id = serenity::UserId::new(owner);
 
         SessionState {
             id: uuid::Uuid::new_v4(),
             short_id: short_id.to_owned(),
-            owner: serenity::UserId::new(owner),
+            owner: owner_id,
             party: Vec::new(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
@@ -120,7 +121,7 @@ mod tests {
             created_at: Instant::now(),
             last_action_at: Instant::now(),
             turn: 0,
-            player,
+            players: std::collections::HashMap::from([(owner_id, player)]),
             enemy: None,
             room: content::generate_room(0),
             log: Vec::new(),

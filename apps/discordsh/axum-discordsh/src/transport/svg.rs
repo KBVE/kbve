@@ -195,10 +195,11 @@ mod tests {
 
     fn seed_session(state: &HttpState) -> String {
         let (id, short_id) = new_short_sid();
+        let owner = serenity::UserId::new(1);
         let session = SessionState {
             id,
             short_id: short_id.clone(),
-            owner: serenity::UserId::new(1),
+            owner,
             party: Vec::new(),
             mode: SessionMode::Solo,
             phase: GamePhase::Exploring,
@@ -207,7 +208,7 @@ mod tests {
             created_at: Instant::now(),
             last_action_at: Instant::now(),
             turn: 1,
-            player: PlayerState::default(),
+            players: std::collections::HashMap::from([(owner, PlayerState::default())]),
             enemy: None,
             room: content::generate_room(0),
             log: vec!["Test session".to_owned()],

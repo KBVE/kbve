@@ -1,3 +1,4 @@
+use std::collections::HashMap;
 use std::time::Instant;
 
 use poise::serenity_prelude as serenity;
@@ -94,7 +95,7 @@ async fn start(
         created_at: Instant::now(),
         last_action_at: Instant::now(),
         turn: 0,
-        player,
+        players: HashMap::from([(user, player)]),
         enemy,
         room,
         log: vec!["You descend into The Glass Catacombs...".to_owned()],
@@ -226,6 +227,15 @@ async fn join(ctx: Context<'_>) -> Result<(), Error> {
     }
 
     session.party.push(user);
+
+    // Create an independent PlayerState for the new party member
+    let joiner_player = PlayerState {
+        name: ctx.author().name.clone(),
+        inventory: content::starting_inventory(),
+        ..PlayerState::default()
+    };
+    session.players.insert(user, joiner_player);
+
     session
         .log
         .push(format!("{} joined the party!", ctx.author().name));
@@ -273,6 +283,7 @@ async fn leave(ctx: Context<'_>) -> Result<(), Error> {
             .await?;
     } else {
         session.party.retain(|&id| id != user);
+        session.players.remove(&user);
         session
             .log
             .push(format!("{} left the party.", ctx.author().name));
