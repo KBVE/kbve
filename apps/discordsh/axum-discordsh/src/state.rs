@@ -60,14 +60,21 @@ pub struct AppState {
 impl AppState {
     pub fn new(health_monitor: Arc<HealthMonitor>, tracker: Option<ShardTracker>) -> Self {
         let mut fontdb = FontDb::new();
+
+        // Load system fonts first as baseline fallback (sans-serif, etc.)
+        fontdb.load_system_fonts();
+
+        // Load custom game font on top
         let font_path = std::env::var("FONT_PATH").unwrap_or_else(|_| "alagard.ttf".to_owned());
         if let Err(e) = fontdb.load_font_file(&font_path) {
             tracing::warn!(
                 error = %e,
                 path = %font_path,
-                "Failed to load game font; SVG text may render incorrectly"
+                "Failed to load game font; falling back to system fonts"
             );
         }
+
+        tracing::info!(fonts = fontdb.len(), "Font database initialized");
 
         Self {
             health_monitor,
