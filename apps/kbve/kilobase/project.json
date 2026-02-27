@@ -1,243 +1,202 @@
 {
-  "name": "kilobase",
-  "$schema": "../../../node_modules/nx/schemas/project-schema.json",
-  "projectType": "application",
-  "sourceRoot": "apps/kbve/kilobase/src",
-  "tags": [],
-  "namedInputs": {
-    "args": []
-  },
-  "targets": {
-    "bump": {
-      "executor": "nx:run-commands",
-      "options": {
-        "commands": [
-          "bash tools/scripts/public/kilobase/version_bump.sh {args.version}"
-        ],
-        "parallel": false
-      },
-      "outputs": [],
-      "dependsOn": []
-    },
-    "local": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/kbve/kilobase",
-        "commands": [
-          "cargo pgrx package --features pg17 --out-dir='../../../dist/target/kilobase'"
-        ],
-        "parallel": false
-      }
-    },
-    "build": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/kbve/kilobase",
-        "commands": [
-          "cargo pgrx package --pg-config $PG_CONFIG_PATH --features pg17--out-dir='../../../dist/target/kilobase'"
-        ],
-        "parallel": false
-      }
-    },
-    "pgrx": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/kbve/kilobase",
-        "commands": [
-          "cargo pgrx run"
-        ],
-        "parallel": false
-      }
-    },
-    "copy-requirements": {
-      "executor": "nx:run-commands",
-      "dependsOn": [
-        "build"
-      ],
-      "options": {
-        "command": "cp apps/kbve/kilobase/requirements.txt dist/target/kilobase/requirements.txt"
-      }
-    },
-    "test": {
-      "executor": "@monodon/rust:test",
-      "outputs": [
-        "{options.target-dir}"
-      ],
-      "options": {
-        "target-dir": "dist/target/kilobase"
-      },
-      "configurations": {
-        "production": {
-          "release": true
-        }
-      }
-    },
-    "lint": {
-      "executor": "@monodon/rust:lint",
-      "outputs": [
-        "{options.target-dir}"
-      ],
-      "options": {
-        "target-dir": "dist/target/kilobase"
-      }
-    },
-    "run": {
-      "executor": "@monodon/rust:run",
-      "outputs": [
-        "{options.target-dir}"
-      ],
-      "options": {
-        "target-dir": "dist/target/kilobase"
-      },
-      "configurations": {
-        "production": {
-          "release": true
-        }
-      }
-    },
-    "seal": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "tools/scripts/public/kube/etc",
-        "commands": [
-          "./generate-sealed-secret.sh -n \"{args.namespace}\" -k \"{args.keyName}\" -s \"{args.secrets}\""
-        ],
-        "parallel": false
-      },
-      "inputs": [
-        "args"
-      ]
-    },
-    "container-test": {
-      "executor": "@nx-tools/nx-container:build",
-      "options": {
-        "engine": "docker",
-        "context": "apps/kbve/kilobase",
-        "file": "apps/kbve/kilobase/Dockerfile.test",
-        "metadata": {
-          "images": [
-            "kilobase-test"
-          ],
-          "load": true,
-          "tags": [
-            "latest"
-          ]
-        }
-      }
-    },
-    "e2e": {
-      "executor": "nx:run-commands",
-      "dependsOn": [
-        "container-test"
-      ],
-      "inputs": [
-        "{projectRoot}/src/**/*.rs",
-        "{projectRoot}/Cargo.toml",
-        "{projectRoot}/Dockerfile.test",
-        "{projectRoot}/kilobase_dev.sh"
-      ],
-      "outputs": [
-        "{projectRoot}/test-results/test-results.json"
-      ],
-      "options": {
-        "cwd": "apps/kbve/kilobase",
-        "commands": [
-          "bash kilobase_dev.sh e2e"
-        ],
-        "parallel": false
-      }
-    },
-    "dev-test": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/kbve/kilobase",
-        "commands": [
-          "bash kilobase_dev.sh test"
-        ],
-        "parallel": false
-      }
-    },
-    "dev-unit": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/kbve/kilobase",
-        "commands": [
-          "bash kilobase_dev.sh unit"
-        ],
-        "parallel": false
-      }
-    },
-    "dev-results": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/kbve/kilobase",
-        "commands": [
-          "bash kilobase_dev.sh results"
-        ],
-        "parallel": false
-      }
-    },
-    "dev-clean": {
-      "executor": "nx:run-commands",
-      "options": {
-        "cwd": "apps/kbve/kilobase",
-        "commands": [
-          "bash kilobase_dev.sh clean"
-        ],
-        "parallel": false
-      }
-    },
-    "debug": {
-      "executor": "nx:run-commands",
-      "options": {
-          "commands": [
-            "./kbve.sh -nx kilobase:container",
-            "cd ./apps/kbve/kilobase && docker-compose --env-file .env up --build"
-          ],
-          "parallel": false
-        }
-    },
-    "container": {
-      "executor": "@nx-tools/nx-container:build",
-      "defaultConfiguration": "local",
-      "options": {
-        "engine": "docker",
-        "context": "apps/kbve/kilobase",
-        "file": "apps/kbve/kilobase/Dockerfile",
-        "metadata": {
-          "images": [
-            "kbve/kilobase"
-          ],
-          "load": true,
-          "tags": [
-            "17.4.15",
-            "17.4"
-          ]
-        },
-        "configurations": {
-          "local": {
-            "tags": [
-              "17.4.15",
-              "17.4"
-            ],
-            "push": false
-          },
-          "production": {
-            "tags": [
-              "17.4.15",
-              "17.4"
-            ],
-            "push": true,
-            "customBuildOptions": "--push",
-            "cache-from": [
-              "type=registry,ref=kbve/kilobase:buildcache"
-            ],
-            "cache-to": [
-              "type=registry,ref=kbve/kilobase:buildcache,mode=max"
-            ]
-          }
-        }
-      }
-    }
-  }
+	"name": "kilobase",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/kbve/kilobase/src",
+	"tags": ["scope:kbve"],
+	"namedInputs": {
+		"args": []
+	},
+	"targets": {
+		"bump": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"bash tools/scripts/public/kilobase/version_bump.sh {args.version}"
+				],
+				"parallel": false
+			},
+			"outputs": [],
+			"dependsOn": []
+		},
+		"local": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kilobase",
+				"commands": [
+					"cargo pgrx package --features pg17 --out-dir='../../../dist/target/kilobase'"
+				],
+				"parallel": false
+			}
+		},
+		"build": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kilobase",
+				"commands": [
+					"cargo pgrx package --pg-config $PG_CONFIG_PATH --features pg17--out-dir='../../../dist/target/kilobase'"
+				],
+				"parallel": false
+			}
+		},
+		"pgrx": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kilobase",
+				"commands": ["cargo pgrx run"],
+				"parallel": false
+			}
+		},
+		"copy-requirements": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["build"],
+			"options": {
+				"command": "cp apps/kbve/kilobase/requirements.txt dist/target/kilobase/requirements.txt"
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kilobase"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kilobase"
+			}
+		},
+		"run": {
+			"executor": "@monodon/rust:run",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/kilobase"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"seal": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "tools/scripts/public/kube/etc",
+				"commands": [
+					"./generate-sealed-secret.sh -n \"{args.namespace}\" -k \"{args.keyName}\" -s \"{args.secrets}\""
+				],
+				"parallel": false
+			},
+			"inputs": ["args"]
+		},
+		"container-test": {
+			"executor": "@nx-tools/nx-container:build",
+			"options": {
+				"engine": "docker",
+				"context": "apps/kbve/kilobase",
+				"file": "apps/kbve/kilobase/Dockerfile.test",
+				"metadata": {
+					"images": ["kilobase-test"],
+					"load": true,
+					"tags": ["latest"]
+				}
+			}
+		},
+		"e2e": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container-test"],
+			"inputs": [
+				"{projectRoot}/src/**/*.rs",
+				"{projectRoot}/Cargo.toml",
+				"{projectRoot}/Dockerfile.test",
+				"{projectRoot}/kilobase_dev.sh"
+			],
+			"outputs": ["{projectRoot}/test-results/test-results.json"],
+			"options": {
+				"cwd": "apps/kbve/kilobase",
+				"commands": ["bash kilobase_dev.sh e2e"],
+				"parallel": false
+			}
+		},
+		"dev-test": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kilobase",
+				"commands": ["bash kilobase_dev.sh test"],
+				"parallel": false
+			}
+		},
+		"dev-unit": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kilobase",
+				"commands": ["bash kilobase_dev.sh unit"],
+				"parallel": false
+			}
+		},
+		"dev-results": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kilobase",
+				"commands": ["bash kilobase_dev.sh results"],
+				"parallel": false
+			}
+		},
+		"dev-clean": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/kilobase",
+				"commands": ["bash kilobase_dev.sh clean"],
+				"parallel": false
+			}
+		},
+		"debug": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"./kbve.sh -nx kilobase:container",
+					"cd ./apps/kbve/kilobase && docker-compose --env-file .env up --build"
+				],
+				"parallel": false
+			}
+		},
+		"container": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": "apps/kbve/kilobase",
+				"file": "apps/kbve/kilobase/Dockerfile",
+				"metadata": {
+					"images": ["kbve/kilobase"],
+					"load": true,
+					"tags": ["17.4.15", "17.4"]
+				},
+				"configurations": {
+					"local": {
+						"tags": ["17.4.15", "17.4"],
+						"push": false
+					},
+					"production": {
+						"tags": ["17.4.15", "17.4"],
+						"push": true,
+						"customBuildOptions": "--push",
+						"cache-from": [
+							"type=registry,ref=kbve/kilobase:buildcache"
+						],
+						"cache-to": [
+							"type=registry,ref=kbve/kilobase:buildcache,mode=max"
+						]
+					}
+				}
+			}
+		}
+	}
 }

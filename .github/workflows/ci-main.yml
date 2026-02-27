@@ -322,7 +322,8 @@ jobs:
                   { "name": "memes", "target": "container", "condition": "${{ needs.alter.outputs.memes }}", "e2e_name": "memes", "image": "kbve/memes", "cargo_toml": "apps/memes/axum-memes/Cargo.toml" },
                   { "name": "irc-gateway", "target": "container", "condition": "${{ needs.alter.outputs.irc_gateway }}", "e2e_name": "irc", "image": "kbve/irc-gateway", "cargo_toml": "apps/irc/irc-gateway/Cargo.toml" },
                   { "name": "discordsh", "target": "container", "condition": "${{ needs.alter.outputs.discordsh }}", "e2e_name": "discordsh", "image": "kbve/discordsh", "cargo_toml": "apps/discordsh/axum-discordsh/Cargo.toml" },
-                  { "name": "mc", "target": "container", "condition": "${{ needs.alter.outputs.mc }}", "e2e_name": "mc", "image": "kbve/mc" }
+                  { "name": "mc", "target": "container", "condition": "${{ needs.alter.outputs.mc }}", "e2e_name": "mc", "image": "kbve/mc" },
+                  { "name": "edge", "target": "container", "condition": "${{ needs.alter.outputs.edge }}" }
                 ]
 
     generate_e2e_docker_matrix:
