@@ -48,6 +48,15 @@ enum McGameMode {
   MC_GAMEMODE_SPECTATOR = 3;
 }
 
+// Auth link status bitflags (combinable)
+// 0x0 = unverified/pending, 0x1 = verified, 0x2 = suspended, 0x4 = banned
+enum McAuthStatus {
+  MC_AUTH_UNVERIFIED = 0;
+  MC_AUTH_VERIFIED   = 0x01;
+  MC_AUTH_SUSPENDED  = 0x02;
+  MC_AUTH_BANNED     = 0x04;
+}
+
 // =============================================================================
 // Core Item Types
 // =============================================================================
@@ -185,6 +194,69 @@ message McPlayerSnapshot {
 }
 
 // =============================================================================
+// Auth — Supabase ↔ Minecraft Player Linking
+// =============================================================================
+
+// A linked Minecraft ↔ Supabase account
+message McAuthLink {
+  string user_id = 1;             // Supabase auth.users UUID
+  string mc_uuid = 2;             // Minecraft UUID (32 hex chars, no dashes)
+  int32 status = 3;               // McAuthStatus bitflags
+  bool is_verified = 4;           // Convenience: (status & 0x1) == 1
+  bool is_pending = 5;            // Has active, non-expired, non-locked verification
+  kbve.common.Timestamp created_at = 6;
+  kbve.common.Timestamp updated_at = 7;
+}
+
+// Request to link a Supabase user to a Minecraft UUID (generates verification code)
+message RequestLinkRequest {
+  string user_id = 1;             // Supabase user UUID
+  string mc_uuid = 2;             // Minecraft UUID (dashes accepted, normalized server-side)
+}
+
+message RequestLinkResponse {
+  bool success = 1;
+  int32 verification_code = 2;    // 6-digit code to enter in-game (plaintext, never stored)
+  optional string error = 3;
+}
+
+// Verify a pending link (called by MC server when player enters /verify <code>)
+message VerifyLinkRequest {
+  string mc_uuid = 1;             // Minecraft UUID of the player running /verify
+  int32 code = 2;                 // 6-digit code entered by player
+}
+
+message VerifyLinkResponse {
+  bool success = 1;
+  optional string user_id = 2;    // Supabase user UUID on success
+  optional string error = 3;      // "expired", "locked", "invalid", "not_found"
+}
+
+// Get auth link status for a player (by MC UUID or Supabase user_id)
+message GetAuthLinkRequest {
+  oneof lookup {
+    string mc_uuid = 1;
+    string user_id = 2;
+  }
+}
+
+message GetAuthLinkResponse {
+  bool found = 1;
+  optional McAuthLink link = 2;
+  optional string error = 3;
+}
+
+// Unlink a Minecraft account from a Supabase user
+message UnlinkRequest {
+  string user_id = 1;             // Supabase user UUID
+}
+
+message UnlinkResponse {
+  bool success = 1;
+  optional string error = 2;
+}
+
+// =============================================================================
 // Persistence Requests / Responses  (MC Server ↔ Supabase Edge)
 // =============================================================================
 
@@ -264,6 +336,12 @@ message GetTransferHistoryResponse {
 // =============================================================================
 
 service MinecraftData {
+  // Auth linking
+  rpc RequestLink (RequestLinkRequest) returns (RequestLinkResponse);
+  rpc VerifyLink (VerifyLinkRequest) returns (VerifyLinkResponse);
+  rpc GetAuthLink (GetAuthLinkRequest) returns (GetAuthLinkResponse);
+  rpc Unlink (UnlinkRequest) returns (UnlinkResponse);
+
   // Player persistence
   rpc SavePlayer (SavePlayerRequest) returns (SavePlayerResponse);
   rpc LoadPlayer (LoadPlayerRequest) returns (LoadPlayerResponse);
