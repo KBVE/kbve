@@ -41,6 +41,7 @@ use pumpkin_util::math::vector3::Vector3;
 use pumpkin_util::permission::{Permission, PermissionDefault};
 use pumpkin_util::text::TextComponent;
 use pumpkin_util::text::color::NamedColor;
+use pumpkin_world::inventory::Inventory;
 use pumpkin_world::item::ItemStack;
 use pumpkin_world::world::BlockFlags;
 use std::thread;
@@ -148,20 +149,40 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                 player.send_system_message(&uuid_msg).await;
             });
 
-            // Auto-give custom items on every join. The KBVE/Pumpkin fork
-            // now has the NBT-fallback fix in DataComponentImpl::equal()
-            // so cdylib TypeId mismatches no longer panic on reconnect.
+            // Auto-give custom items — only items not already in inventory.
+            // Dedup by ItemModel to prevent duplication on rejoin.
+            // Items that don't fit are silently skipped (never dropped
+            // on ground) to prevent entity spam and dupes.
             {
                 debug!("Auto-giving custom items to {name} (first_join={is_first_join})");
 
-                // Re-enabled: potions were previously skipped due to a Pumpkin
-                // entity metadata crash (set_entity_data index 18 OOB).
-                // Testing whether the current fork resolves this.
+                // Scan inventory for existing custom item models
+                let mut existing_models = std::collections::HashSet::new();
+                let inv = player.inventory();
+                for slot in 0..Inventory::size(inv.as_ref()) {
+                    let stack_lock: Arc<tokio::sync::Mutex<ItemStack>> = inv.get_stack(slot).await;
+                    let stack = stack_lock.lock().await;
+                    if !stack.is_empty() {
+                        if let Some(model) = stack.get_data_component_owned::<ItemModelImpl>() {
+                            existing_models.insert(model.model);
+                        }
+                    }
+                }
+                debug!(
+                    "Player {name} has {} custom item model(s) in inventory",
+                    existing_models.len()
+                );
+
                 let stacks: Vec<ItemStack> = ITEM_REGISTRY
                     .iter()
                     .filter_map(|entry| {
                         let key = *entry.key();
-                        let result = build_item_stack(entry.value());
+                        let def = entry.value();
+                        if existing_models.contains(def.model) {
+                            debug!("Skipping '{key}' — already in inventory");
+                            return None;
+                        }
+                        let result = build_item_stack(def);
                         trace!(
                             "build_item_stack('{}') = {}",
                             key,
@@ -172,7 +193,11 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                     .collect();
 
                 let given = stacks.len();
-                debug!("Built {given} item stacks for {name}, inserting into inventory...");
+                if given == 0 {
+                    debug!("No new items to give to {name} — all already in inventory");
+                } else {
+                    debug!("Built {given} new item stacks for {name}, inserting...");
+                }
 
                 for (i, mut stack) in stacks.into_iter().enumerate() {
                     trace!("Inserting item {}/{given} into inventory...", i + 1);
@@ -181,14 +206,15 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                     });
                     if !stack.is_empty() {
                         debug!(
-                            "Item {}/{given} didn't fit in inventory, dropping on ground",
+                            "Item {}/{given} didn't fit — inventory full, skipping",
                             i + 1
                         );
-                        player.drop_item(stack).await;
                     }
-                    let _ = dur; // suppress unused warning when debug is off
+                    let _ = dur;
                 }
-                info!("Auto-gave {given} custom items to {name}");
+                if given > 0 {
+                    info!("Auto-gave {given} new custom items to {name}");
+                }
             }
 
             // For first-time players, ensure they spawn on solid ground (not ocean).
