@@ -53,6 +53,16 @@ impl FontDb {
         }
     }
 
+    /// Return the number of loaded font faces.
+    pub fn len(&self) -> usize {
+        self.inner.len()
+    }
+
+    /// Return `true` if no fonts are loaded.
+    pub fn is_empty(&self) -> bool {
+        self.inner.len() == 0
+    }
+
     /// Access the inner font database arc for embedding into Options.
     pub fn database_arc(&self) -> Arc<usvg::fontdb::Database> {
         self.inner.clone()
