@@ -163,6 +163,12 @@ BEGIN
 END;
 $$;
 
+REVOKE ALL ON FUNCTION mc.trg_auth_updated_at()
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION mc.trg_auth_updated_at()
+    TO service_role;
+ALTER FUNCTION mc.trg_auth_updated_at() OWNER TO service_role;
+
 DROP TRIGGER IF EXISTS trg_mc_auth_updated_at ON mc.auth;
 
 CREATE TRIGGER trg_mc_auth_updated_at
@@ -204,6 +210,7 @@ REVOKE ALL ON FUNCTION mc.normalize_mc_uuid(TEXT)
     FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION mc.normalize_mc_uuid(TEXT)
     TO service_role;
+ALTER FUNCTION mc.normalize_mc_uuid(TEXT) OWNER TO service_role;
 
 -- ===========================================
 -- SERVICE FUNCTION: Request MC link (creates pending verification)
@@ -610,7 +617,7 @@ BEGIN
         RAISE EXCEPTION 'service_role must have execute on mc.service_unlink';
     END IF;
 
-    -- Verify anon CANNOT execute service functions
+    -- Verify anon CANNOT execute any service or helper functions
     IF has_function_privilege('anon', 'mc.service_request_link(uuid, text)', 'EXECUTE') THEN
         RAISE EXCEPTION 'anon must NOT have execute on mc.service_request_link';
     END IF;
@@ -623,6 +630,14 @@ BEGIN
         RAISE EXCEPTION 'anon must NOT have execute on mc.service_unlink';
     END IF;
 
+    IF has_function_privilege('anon', 'mc.service_get_user_by_mc_uuid(text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'anon must NOT have execute on mc.service_get_user_by_mc_uuid';
+    END IF;
+
+    IF has_function_privilege('anon', 'mc.normalize_mc_uuid(text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'anon must NOT have execute on mc.normalize_mc_uuid';
+    END IF;
+
     -- Verify authenticated CANNOT execute service functions directly
     IF has_function_privilege('authenticated', 'mc.service_request_link(uuid, text)', 'EXECUTE') THEN
         RAISE EXCEPTION 'authenticated must NOT have execute on mc.service_request_link';
@@ -630,6 +645,10 @@ BEGIN
 
     IF has_function_privilege('authenticated', 'mc.service_verify_link(text, integer)', 'EXECUTE') THEN
         RAISE EXCEPTION 'authenticated must NOT have execute on mc.service_verify_link';
+    END IF;
+
+    IF has_function_privilege('authenticated', 'mc.service_get_user_by_mc_uuid(text)', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have execute on mc.service_get_user_by_mc_uuid';
     END IF;
 
     -- Verify proxy functions are callable by authenticated
@@ -645,7 +664,7 @@ BEGIN
         RAISE EXCEPTION 'authenticated must have execute on mc.proxy_unlink';
     END IF;
 
-    -- Verify service function ownership
+    -- Verify ALL function ownership is service_role
     IF EXISTS (
         SELECT 1 FROM pg_proc
         WHERE oid = 'mc.service_request_link(uuid, text)'::regprocedure
@@ -660,6 +679,54 @@ BEGIN
           AND pg_get_userbyid(proowner) <> 'service_role'
     ) THEN
         RAISE EXCEPTION 'mc.service_verify_link must be owned by service_role';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'mc.service_unlink(uuid)'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'mc.service_unlink must be owned by service_role';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'mc.service_get_user_by_mc_uuid(text)'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'mc.service_get_user_by_mc_uuid must be owned by service_role';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'mc.proxy_request_link(text)'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'mc.proxy_request_link must be owned by service_role';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'mc.proxy_get_link_status()'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'mc.proxy_get_link_status must be owned by service_role';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'mc.proxy_unlink()'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'mc.proxy_unlink must be owned by service_role';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'mc.normalize_mc_uuid(text)'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'mc.normalize_mc_uuid must be owned by service_role';
     END IF;
 
     RAISE NOTICE 'mc.auth schema setup and verification completed successfully.';
