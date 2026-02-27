@@ -1,15 +1,31 @@
 import { $auth } from './auth';
 import { addToast } from './toasts';
 
-let shown = false;
+const SHOWN_KEY = 'kbve:welcome-shown';
+
+function hasShown(): boolean {
+	try {
+		return sessionStorage.getItem(SHOWN_KEY) === '1';
+	} catch {
+		return false;
+	}
+}
+
+function markShown(): void {
+	try {
+		sessionStorage.setItem(SHOWN_KEY, '1');
+	} catch {
+		/* private browsing / storage full */
+	}
+}
 
 export function showWelcomeToast(): void {
-	if (shown) return;
+	if (hasShown()) return;
 
 	const tryShow = (): boolean => {
 		const auth = $auth.get();
 		if (auth.tone === 'auth' && auth.name) {
-			shown = true;
+			markShown();
 			addToast({
 				id: `welcome-${Date.now()}`,
 				message: `Welcome back, ${auth.name}`,
@@ -19,7 +35,7 @@ export function showWelcomeToast(): void {
 			return true;
 		}
 		if (auth.tone === 'anon') {
-			shown = true;
+			markShown();
 			addToast({
 				id: `welcome-${Date.now()}`,
 				message: 'Welcome!',
@@ -29,7 +45,7 @@ export function showWelcomeToast(): void {
 			return true;
 		}
 		if (auth.tone === 'error') {
-			shown = true;
+			markShown();
 			return true;
 		}
 		return false;
@@ -40,8 +56,8 @@ export function showWelcomeToast(): void {
 	// Auth still loading — subscribe and wait (10s timeout)
 	const timeoutId = setTimeout(() => {
 		unsub();
-		if (!shown) {
-			shown = true;
+		if (!hasShown()) {
+			markShown();
 			addToast({
 				id: `welcome-${Date.now()}`,
 				message: 'Welcome!',
