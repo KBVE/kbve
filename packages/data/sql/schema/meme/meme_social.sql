@@ -42,6 +42,47 @@ CREATE TRIGGER trigger_meme_user_profiles_updated_at
     FOR EACH ROW
     EXECUTE FUNCTION meme.update_updated_at_column();
 
+-- Timestamp protection (uses joined_at instead of created_at)
+CREATE OR REPLACE FUNCTION meme.protect_meme_user_profiles_timestamps()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.joined_at := NOW();
+        NEW.updated_at := NULL;
+    ELSIF TG_OP = 'UPDATE' THEN
+        NEW.joined_at := OLD.joined_at;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+DROP TRIGGER IF EXISTS trigger_meme_user_profiles_protect_timestamps ON meme.meme_user_profiles;
+CREATE TRIGGER trigger_meme_user_profiles_protect_timestamps
+    BEFORE INSERT OR UPDATE ON meme.meme_user_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_meme_user_profiles_timestamps();
+
+-- Counter + immutable column protection
+CREATE OR REPLACE FUNCTION meme.protect_meme_user_profiles_columns()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF current_setting('role') = 'service_role' THEN RETURN NEW; END IF;
+    NEW.user_id                  := OLD.user_id;
+    NEW.total_memes              := OLD.total_memes;
+    NEW.total_reactions_received := OLD.total_reactions_received;
+    NEW.total_views_received     := OLD.total_views_received;
+    NEW.follower_count           := OLD.follower_count;
+    NEW.following_count          := OLD.following_count;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+DROP TRIGGER IF EXISTS trigger_meme_user_profiles_protect_columns ON meme.meme_user_profiles;
+CREATE TRIGGER trigger_meme_user_profiles_protect_columns
+    BEFORE UPDATE ON meme.meme_user_profiles
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_meme_user_profiles_columns();
+
 -- RLS
 ALTER TABLE meme.meme_user_profiles ENABLE ROW LEVEL SECURITY;
 
@@ -112,6 +153,13 @@ CREATE TRIGGER trigger_meme_follows_counter
     FOR EACH ROW
     EXECUTE FUNCTION meme.trg_meme_follows_counter();
 
+-- Timestamp protection (created_at only — no updated_at column)
+DROP TRIGGER IF EXISTS trigger_meme_follows_protect_timestamps ON meme.meme_follows;
+CREATE TRIGGER trigger_meme_follows_protect_timestamps
+    BEFORE INSERT ON meme.meme_follows
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_created_at();
+
 -- RLS
 ALTER TABLE meme.meme_follows ENABLE ROW LEVEL SECURITY;
 
@@ -173,6 +221,30 @@ CREATE TRIGGER trigger_meme_collections_updated_at
     BEFORE UPDATE ON meme.meme_collections
     FOR EACH ROW
     EXECUTE FUNCTION meme.update_updated_at_column();
+
+-- Timestamp protection
+DROP TRIGGER IF EXISTS trigger_meme_collections_protect_timestamps ON meme.meme_collections;
+CREATE TRIGGER trigger_meme_collections_protect_timestamps
+    BEFORE INSERT OR UPDATE ON meme.meme_collections
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_timestamps();
+
+-- Counter + immutable column protection
+CREATE OR REPLACE FUNCTION meme.protect_meme_collections_columns()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF current_setting('role') = 'service_role' THEN RETURN NEW; END IF;
+    NEW.owner_id   := OLD.owner_id;
+    NEW.meme_count := OLD.meme_count;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+DROP TRIGGER IF EXISTS trigger_meme_collections_protect_columns ON meme.meme_collections;
+CREATE TRIGGER trigger_meme_collections_protect_columns
+    BEFORE UPDATE ON meme.meme_collections
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_meme_collections_columns();
 
 -- RLS
 ALTER TABLE meme.meme_collections ENABLE ROW LEVEL SECURITY;
@@ -264,6 +336,13 @@ CREATE TRIGGER trigger_meme_saves_counter
     AFTER INSERT OR DELETE ON meme.meme_saves
     FOR EACH ROW
     EXECUTE FUNCTION meme.trg_meme_saves_counter();
+
+-- Timestamp protection (created_at only — no updated_at column)
+DROP TRIGGER IF EXISTS trigger_meme_saves_protect_timestamps ON meme.meme_saves;
+CREATE TRIGGER trigger_meme_saves_protect_timestamps
+    BEFORE INSERT ON meme.meme_saves
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_created_at();
 
 -- RLS
 ALTER TABLE meme.meme_saves ENABLE ROW LEVEL SECURITY;

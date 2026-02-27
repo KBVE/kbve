@@ -52,6 +52,7 @@ BEGIN
     RETURN NEW;
 END;
 $$ LANGUAGE plpgsql
+SECURITY DEFINER
 SET search_path = '';
 
 -- ===========================================
@@ -77,13 +78,13 @@ SET search_path = '';
 
 COMMENT ON FUNCTION meme.is_safe_text IS 'Belt-and-suspenders text validation: blocks whitespace-only, control chars, zero-width/bidi abuse';
 
--- Validates URLs: must start with http(s)://, no whitespace or control chars, max 2048 chars.
+-- Validates URLs: must start with https://, no whitespace or control chars, max 2048 chars.
 CREATE OR REPLACE FUNCTION meme.is_safe_url(url TEXT)
 RETURNS BOOLEAN AS $$
 BEGIN
     IF url IS NULL THEN RETURN true; END IF;
     IF char_length(url) > 2048 THEN RETURN false; END IF;
-    IF url !~ '^https?://.+' THEN RETURN false; END IF;
+    IF url !~ '^https://.+' THEN RETURN false; END IF;
     -- Reject whitespace (incl. space) and control chars (not valid in URIs per RFC 3986)
     IF url ~ E'[\\x00-\\x20\\x7F]' THEN RETURN false; END IF;
     RETURN true;
@@ -114,6 +115,93 @@ SET search_path = '';
 COMMENT ON FUNCTION meme.are_valid_tags IS 'Tag array validation: max 20 tags, slug-safe lowercase, 1-50 chars each';
 
 -- ===========================================
+-- SHARED PROTECTION: timestamp immutability
+-- ===========================================
+
+-- Reusable BEFORE INSERT/UPDATE trigger: forces created_at = NOW() on INSERT,
+-- prevents created_at modification on UPDATE, clears updated_at on INSERT.
+CREATE OR REPLACE FUNCTION meme.protect_timestamps()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.created_at := NOW();
+        NEW.updated_at := NULL;
+    ELSIF TG_OP = 'UPDATE' THEN
+        NEW.created_at := OLD.created_at;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = '';
+
+COMMENT ON FUNCTION meme.protect_timestamps IS 'Prevents client-supplied created_at; forces server-side NOW(). For tables with both created_at and updated_at.';
+
+-- Lighter variant for tables that only have created_at (no updated_at column).
+CREATE OR REPLACE FUNCTION meme.protect_created_at()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF TG_OP = 'INSERT' THEN
+        NEW.created_at := NOW();
+    ELSIF TG_OP = 'UPDATE' THEN
+        NEW.created_at := OLD.created_at;
+    END IF;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = '';
+
+COMMENT ON FUNCTION meme.protect_created_at IS 'Prevents client-supplied created_at; forces server-side NOW(). For tables without updated_at.';
+
+-- ===========================================
+-- SHARED PROTECTION: meme status state machine
+-- ===========================================
+
+-- Enforces valid status transitions on meme.memes.
+-- Users (authenticated) can only: draft→pending, draft→archived, published→archived, rejected→draft.
+-- All other transitions (publish, reject, flag, ban) require service_role.
+CREATE OR REPLACE FUNCTION meme.enforce_meme_status_transition()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF OLD.status = NEW.status THEN RETURN NEW; END IF;
+
+    -- service_role can do any valid transition
+    IF current_setting('role') = 'service_role' THEN
+        -- Still enforce the set of structurally valid transitions
+        IF (OLD.status, NEW.status) IN (
+            (1, 2), (1, 5),           -- draft → pending | archived
+            (2, 3), (2, 4),           -- pending → published | rejected
+            (3, 5), (3, 6), (3, 7),   -- published → archived | flagged | banned
+            (4, 1),                    -- rejected → draft
+            (6, 3), (6, 7)            -- flagged → published | banned
+        ) THEN
+            RETURN NEW;
+        END IF;
+        RAISE EXCEPTION 'Invalid status transition from % to %', OLD.status, NEW.status
+            USING ERRCODE = '22023';
+    END IF;
+
+    -- Authenticated users: limited transitions only
+    IF (OLD.status, NEW.status) IN (
+        (1, 2),   -- draft → pending (submit for review)
+        (1, 5),   -- draft → archived (self-archive)
+        (3, 5),   -- published → archived (self-archive)
+        (4, 1)    -- rejected → draft (revise)
+    ) THEN
+        RETURN NEW;
+    END IF;
+
+    RAISE EXCEPTION 'Status transition from % to % not allowed', OLD.status, NEW.status
+        USING ERRCODE = '42501';
+END;
+$$ LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = '';
+
+COMMENT ON FUNCTION meme.enforce_meme_status_transition IS 'State machine: users can submit/archive/revise; only service_role can publish/reject/flag/ban';
+
+-- ===========================================
 -- TABLE: meme_templates
 -- ===========================================
 
@@ -125,7 +213,7 @@ CREATE TABLE IF NOT EXISTS meme.meme_templates (
     thumbnail_url   TEXT CHECK (meme.is_safe_url(thumbnail_url)),
     width           INTEGER NOT NULL CHECK (width > 0),
     height          INTEGER NOT NULL CHECK (height > 0),
-    slots           JSONB NOT NULL DEFAULT '[]'::jsonb,
+    slots           JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(slots) = 'array'),
     usage_count     BIGINT NOT NULL DEFAULT 0 CHECK (usage_count >= 0),
     tags            TEXT[] NOT NULL DEFAULT '{}' CHECK (meme.are_valid_tags(tags)),
     created_at      TIMESTAMPTZ NOT NULL DEFAULT NOW(),
@@ -152,6 +240,29 @@ CREATE TRIGGER trigger_meme_templates_updated_at
     BEFORE UPDATE ON meme.meme_templates
     FOR EACH ROW
     EXECUTE FUNCTION meme.update_updated_at_column();
+
+-- Timestamp protection
+DROP TRIGGER IF EXISTS trigger_meme_templates_protect_timestamps ON meme.meme_templates;
+CREATE TRIGGER trigger_meme_templates_protect_timestamps
+    BEFORE INSERT OR UPDATE ON meme.meme_templates
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_timestamps();
+
+-- Counter protection: usage_count is managed by triggers, not clients
+CREATE OR REPLACE FUNCTION meme.protect_meme_templates_columns()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF current_setting('role') = 'service_role' THEN RETURN NEW; END IF;
+    NEW.usage_count := OLD.usage_count;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+DROP TRIGGER IF EXISTS trigger_meme_templates_protect_columns ON meme.meme_templates;
+CREATE TRIGGER trigger_meme_templates_protect_columns
+    BEFORE UPDATE ON meme.meme_templates
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_meme_templates_columns();
 
 -- RLS
 ALTER TABLE meme.meme_templates ENABLE ROW LEVEL SECURITY;
@@ -196,7 +307,7 @@ CREATE TABLE IF NOT EXISTS meme.memes (
     file_size       BIGINT CHECK (file_size > 0),
 
     -- Captions baked into this meme (for re-rendering / accessibility)
-    captions        JSONB NOT NULL DEFAULT '[]'::jsonb,
+    captions        JSONB NOT NULL DEFAULT '[]'::jsonb CHECK (jsonb_typeof(captions) = 'array'),
 
     -- Categorization
     tags            TEXT[] NOT NULL DEFAULT '{}' CHECK (meme.are_valid_tags(tags)),
@@ -255,12 +366,49 @@ CREATE INDEX IF NOT EXISTS idx_meme_memes_template
     ON meme.memes (template_id)
     WHERE template_id IS NOT NULL;
 
--- Trigger
+-- Triggers
 DROP TRIGGER IF EXISTS trigger_memes_updated_at ON meme.memes;
 CREATE TRIGGER trigger_memes_updated_at
     BEFORE UPDATE ON meme.memes
     FOR EACH ROW
     EXECUTE FUNCTION meme.update_updated_at_column();
+
+-- Timestamp protection
+DROP TRIGGER IF EXISTS trigger_memes_protect_timestamps ON meme.memes;
+CREATE TRIGGER trigger_memes_protect_timestamps
+    BEFORE INSERT OR UPDATE ON meme.memes
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_timestamps();
+
+-- Counter + immutable column protection
+CREATE OR REPLACE FUNCTION meme.protect_memes_columns()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF current_setting('role') = 'service_role' THEN RETURN NEW; END IF;
+    NEW.author_id      := OLD.author_id;
+    NEW.view_count     := OLD.view_count;
+    NEW.reaction_count := OLD.reaction_count;
+    NEW.share_count    := OLD.share_count;
+    NEW.comment_count  := OLD.comment_count;
+    NEW.save_count     := OLD.save_count;
+    NEW.published_at   := OLD.published_at;
+    NEW.content_hash   := OLD.content_hash;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+DROP TRIGGER IF EXISTS trigger_memes_protect_columns ON meme.memes;
+CREATE TRIGGER trigger_memes_protect_columns
+    BEFORE UPDATE ON meme.memes
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_memes_columns();
+
+-- Status state machine
+DROP TRIGGER IF EXISTS trigger_memes_status_transition ON meme.memes;
+CREATE TRIGGER trigger_memes_status_transition
+    BEFORE UPDATE ON meme.memes
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.enforce_meme_status_transition();
 
 -- RLS
 ALTER TABLE meme.memes ENABLE ROW LEVEL SECURITY;

@@ -53,6 +53,13 @@ CREATE TRIGGER trigger_meme_reactions_counter
     FOR EACH ROW
     EXECUTE FUNCTION meme.trg_meme_reactions_counter();
 
+-- Timestamp protection (created_at only — no updated_at column)
+DROP TRIGGER IF EXISTS trigger_meme_reactions_protect_timestamps ON meme.meme_reactions;
+CREATE TRIGGER trigger_meme_reactions_protect_timestamps
+    BEFORE INSERT OR UPDATE ON meme.meme_reactions
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_created_at();
+
 -- RLS
 ALTER TABLE meme.meme_reactions ENABLE ROW LEVEL SECURITY;
 
@@ -158,6 +165,33 @@ CREATE TRIGGER trigger_meme_comments_updated_at
     BEFORE UPDATE ON meme.meme_comments
     FOR EACH ROW
     EXECUTE FUNCTION meme.update_updated_at_column();
+
+-- Timestamp protection
+DROP TRIGGER IF EXISTS trigger_meme_comments_protect_timestamps ON meme.meme_comments;
+CREATE TRIGGER trigger_meme_comments_protect_timestamps
+    BEFORE INSERT OR UPDATE ON meme.meme_comments
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_timestamps();
+
+-- Counter + immutable column protection
+CREATE OR REPLACE FUNCTION meme.protect_meme_comments_columns()
+RETURNS TRIGGER AS $$
+BEGIN
+    IF current_setting('role') = 'service_role' THEN RETURN NEW; END IF;
+    NEW.meme_id        := OLD.meme_id;
+    NEW.author_id      := OLD.author_id;
+    NEW.parent_id      := OLD.parent_id;
+    NEW.reaction_count := OLD.reaction_count;
+    NEW.reply_count    := OLD.reply_count;
+    RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = '';
+
+DROP TRIGGER IF EXISTS trigger_meme_comments_protect_columns ON meme.meme_comments;
+CREATE TRIGGER trigger_meme_comments_protect_columns
+    BEFORE UPDATE ON meme.meme_comments
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_meme_comments_columns();
 
 -- RLS
 ALTER TABLE meme.meme_comments ENABLE ROW LEVEL SECURITY;

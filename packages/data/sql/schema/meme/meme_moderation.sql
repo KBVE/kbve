@@ -52,6 +52,13 @@ CREATE INDEX IF NOT EXISTS idx_meme_meme_reports_meme
 CREATE INDEX IF NOT EXISTS idx_meme_meme_reports_reporter
     ON meme.meme_reports (reporter_id);
 
+-- Timestamp protection (created_at only — resolved_at managed by service_role)
+DROP TRIGGER IF EXISTS trigger_meme_reports_protect_timestamps ON meme.meme_reports;
+CREATE TRIGGER trigger_meme_reports_protect_timestamps
+    BEFORE INSERT ON meme.meme_reports
+    FOR EACH ROW
+    EXECUTE FUNCTION meme.protect_created_at();
+
 -- RLS
 ALTER TABLE meme.meme_reports ENABLE ROW LEVEL SECURITY;
 
