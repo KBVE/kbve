@@ -1456,6 +1456,11 @@ async fn serve_web() {
         .route("/kbve-resource-pack.zip", get(pack_handler))
         .route("/players", get(web::players_handler))
         .route("/players/", get(web::players_handler))
+        .route(
+            "/api/mojang/profile/{username}",
+            get(web::mojang_profile_proxy),
+        )
+        .route("/api/mojang/session/{uuid}", get(web::mojang_session_proxy))
         .merge(static_router);
 
     let listener = match tokio::net::TcpListener::bind("0.0.0.0:8080").await {

@@ -11,7 +11,7 @@ const maxPlayers = `{{ max_players }}`;
 const playerListBlock = `{% if player_count > 0 %}
 <ul class="player-list" role="list">
     {% for player in players %}
-    <li class="player-card">
+    <li class="player-card" data-playername="{{ player }}">
         <span class="player-name">{{ player }}</span>
     </li>
     {% endfor %}
@@ -25,6 +25,8 @@ const serverStatusBlock = `{% if server_online %}
 {% else %}
 <span class="status-dot offline"></span> Offline
 {% endif %}`;
+
+import PlayerCardIsland from '../mc/PlayerCardIsland.astro';
 ---
 
 <div class="mc-players-panel">
@@ -41,6 +43,8 @@ const serverStatusBlock = `{% if server_online %}
 	</div>
 
 	<Fragment set:html={playerListBlock} />
+
+	<PlayerCardIsland />
 </div>
 
 <style>
