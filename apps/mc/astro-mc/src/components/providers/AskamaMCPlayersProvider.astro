@@ -1,0 +1,136 @@
+---
+// AskamaMCPlayersProvider.astro
+// Outputs Askama template placeholders that get filled by the Axum backend
+// at request time with live player data from the Pumpkin server.
+//
+// Astro builds this as literal text → Askama compiles it → Axum renders it.
+
+const playerCount = `{{ player_count }}`;
+const maxPlayers = `{{ max_players }}`;
+
+const playerListBlock = `{% if player_count > 0 %}
+<ul class="player-list" role="list">
+    {% for player in players %}
+    <li class="player-card">
+        <span class="player-name">{{ player }}</span>
+    </li>
+    {% endfor %}
+</ul>
+{% else %}
+<p class="no-players">No players are currently online.</p>
+{% endif %}`;
+
+const serverStatusBlock = `{% if server_online %}
+<span class="status-dot online"></span> Online
+{% else %}
+<span class="status-dot offline"></span> Offline
+{% endif %}`;
+---
+
+<div class="mc-players-panel">
+	<div class="server-header">
+		<div class="server-status">
+			<Fragment set:html={serverStatusBlock} />
+		</div>
+		<div class="player-counter">
+			<span class="count"><Fragment set:html={playerCount} /></span>
+			<span class="separator">/</span>
+			<span class="max"><Fragment set:html={maxPlayers} /></span>
+			<span class="label">players</span>
+		</div>
+	</div>
+
+	<Fragment set:html={playerListBlock} />
+</div>
+
+<style>
+	.mc-players-panel {
+		padding: 1.5rem;
+		border-radius: 0.75rem;
+		border: 1px solid var(--sl-color-hairline, #27272a);
+		background: var(--sl-color-bg-nav, rgba(0, 0, 0, 0.1));
+	}
+
+	.server-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		margin-bottom: 1.25rem;
+		padding-bottom: 1rem;
+		border-bottom: 1px solid var(--sl-color-hairline, #27272a);
+	}
+
+	.server-status {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-weight: 600;
+		font-size: 0.875rem;
+	}
+
+	.status-dot {
+		display: inline-block;
+		width: 0.5rem;
+		height: 0.5rem;
+		border-radius: 50%;
+	}
+
+	.status-dot.online {
+		background: #10b981;
+		box-shadow: 0 0 6px #10b981;
+	}
+
+	.status-dot.offline {
+		background: #ef4444;
+		box-shadow: 0 0 6px #ef4444;
+	}
+
+	.player-counter {
+		display: flex;
+		align-items: baseline;
+		gap: 0.25rem;
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-2, #a1a1aa);
+	}
+
+	.player-counter .count {
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--sl-color-accent, #10b981);
+	}
+
+	.player-counter .label {
+		margin-left: 0.25rem;
+	}
+
+	.player-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(10rem, 1fr));
+		gap: 0.5rem;
+	}
+
+	.player-card {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.5rem 0.75rem;
+		border-radius: 0.375rem;
+		background: var(--sl-color-bg, rgba(0, 0, 0, 0.15));
+		border: 1px solid var(--sl-color-hairline, #27272a);
+	}
+
+	.player-name {
+		font-size: 0.8125rem;
+		font-weight: 500;
+	}
+
+	.no-players {
+		text-align: center;
+		color: var(--sl-color-gray-3, #71717a);
+		font-size: 0.875rem;
+		padding: 1rem 0;
+	}
+</style>

@@ -1,0 +1,27 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Live Players - KBVE MC</title>
+</head>
+<body>
+    <!-- Placeholder: replaced by Astro build output in Docker -->
+    <h1>Server Status</h1>
+    <p>{{ player_count }} / {{ max_players }} players</p>
+    {% if server_online %}
+    <span>Online</span>
+    {% else %}
+    <span>Offline</span>
+    {% endif %}
+    {% if player_count > 0 %}
+    <ul>
+        {% for player in players %}
+        <li>{{ player }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No players are currently online.</p>
+    {% endif %}
+</body>
+</html>
