@@ -128,6 +128,21 @@ export async function resolvePlayer(
 	return { name: profile.name, uuid, skinUrl };
 }
 
+function extractTextureHash(url: string): string | null {
+	// https://textures.minecraft.net/texture/{hash}
+	const match = url.match(/\/texture\/([0-9a-f]{60,64})$/i);
+	return match ? match[1] : null;
+}
+
+function blobToDataUrl(blob: Blob): Promise<string | null> {
+	return new Promise((resolve) => {
+		const reader = new FileReader();
+		reader.onloadend = () => resolve(reader.result as string);
+		reader.onerror = () => resolve(null);
+		reader.readAsDataURL(blob);
+	});
+}
+
 export async function loadSkinDataUrl(
 	uuid: string,
 	skinUrl: string,
@@ -136,22 +151,35 @@ export async function loadSkinDataUrl(
 	const cached = await getCachedSkin(uuid);
 	if (cached) return cached;
 
+	// Try proxy first (textures.minecraft.net blocks CORS)
+	const hash = extractTextureHash(skinUrl);
+	if (hash) {
+		try {
+			const res = await fetch(`/api/textures/${hash}`);
+			if (res.ok) {
+				const blob = await res.blob();
+				const dataUrl = await blobToDataUrl(blob);
+				if (dataUrl) {
+					await setCachedSkin(uuid, dataUrl);
+					return dataUrl;
+				}
+			}
+		} catch {
+			// proxy unavailable, try direct below
+		}
+	}
+
+	// Fallback: try direct fetch (works if CORS is allowed)
 	try {
-		// textures.minecraft.net supports CORS
 		const res = await fetch(skinUrl);
 		if (!res.ok) return null;
 
 		const blob = await res.blob();
-		return new Promise((resolve) => {
-			const reader = new FileReader();
-			reader.onloadend = () => {
-				const dataUrl = reader.result as string;
-				setCachedSkin(uuid, dataUrl);
-				resolve(dataUrl);
-			};
-			reader.onerror = () => resolve(null);
-			reader.readAsDataURL(blob);
-		});
+		const dataUrl = await blobToDataUrl(blob);
+		if (dataUrl) {
+			await setCachedSkin(uuid, dataUrl);
+		}
+		return dataUrl;
 	} catch {
 		return null;
 	}
