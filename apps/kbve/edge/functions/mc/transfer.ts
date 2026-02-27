@@ -3,6 +3,7 @@ import {
 	jsonResponse,
 	createServiceClient,
 	requireServiceRole,
+	validateMcUuid,
 } from './_shared.ts';
 
 // ---------------------------------------------------------------------------
@@ -21,8 +22,19 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { batch } = body;
-		if (!batch) {
-			return jsonResponse({ error: 'batch is required' }, 400);
+		if (!batch || !Array.isArray(batch)) {
+			return jsonResponse({ error: 'batch must be a JSON array' }, 400);
+		}
+
+		if (batch.length === 0) {
+			return jsonResponse({ success: true, recorded_count: 0 });
+		}
+
+		if (batch.length > 1000) {
+			return jsonResponse(
+				{ error: 'Batch size exceeds limit of 1000 transfers' },
+				400,
+			);
 		}
 
 		const supabase = createServiceClient();
@@ -42,9 +54,15 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { player_uuid } = body;
-		if (!player_uuid) {
-			return jsonResponse({ error: 'player_uuid is required' }, 400);
-		}
+		const uuidErr = validateMcUuid(player_uuid, 'player_uuid');
+		if (uuidErr) return uuidErr;
+
+		// Clamp pagination parameters at edge (mirrors SQL clamping)
+		const rawLimit = Number(body.limit) || 50;
+		const limit = Math.min(Math.max(rawLimit, 1), 500);
+
+		const rawOffset = Number(body.offset) || 0;
+		const offset = Math.max(rawOffset, 0);
 
 		const supabase = createServiceClient();
 		const { data, error } = await supabase.rpc(
@@ -53,8 +71,8 @@ const handlers: Record<string, Handler> = {
 				p_player_uuid: player_uuid as string,
 				p_server_id: (body.server_id as string) || null,
 				p_since: (body.since as string) || null,
-				p_limit: (body.limit as number) || 50,
-				p_offset: (body.offset as number) || 0,
+				p_limit: limit,
+				p_offset: offset,
 			},
 		);
 

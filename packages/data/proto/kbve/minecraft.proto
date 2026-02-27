@@ -57,6 +57,15 @@ enum McAuthStatus {
   MC_AUTH_BANNED     = 0x04;
 }
 
+// Skill tree categories
+enum McSkillCategory {
+  MC_SKILL_CATEGORY_UNKNOWN  = 0;
+  MC_SKILL_CATEGORY_COMBAT   = 1;   // Swords, archery, defense, unarmed
+  MC_SKILL_CATEGORY_GATHERING = 2;  // Mining, woodcutting, fishing, farming
+  MC_SKILL_CATEGORY_CRAFTING  = 3;  // Smithing, alchemy, enchanting, cooking
+  MC_SKILL_CATEGORY_MAGIC     = 4;  // Fire, ice, healing, summoning
+}
+
 // =============================================================================
 // Core Item Types
 // =============================================================================
@@ -289,6 +298,27 @@ message McCharacter {
 }
 
 // =============================================================================
+// Skill Tree — Per-skill progression system
+// =============================================================================
+
+// A single skill entry in a player's skill tree
+message McSkill {
+  string skill_id = 1;                  // Unique skill identifier (e.g. "mining", "swords")
+  McSkillCategory category = 2;        // Skill category for grouping
+  int32 level = 3;                      // Skill level (1+, default 1)
+  int64 experience = 4;                 // Total XP in this skill (0+)
+  kbve.common.Timestamp updated_at = 5;
+}
+
+// A player's full skill tree (all skills on a server)
+message McSkillTree {
+  string player_uuid = 1;              // Minecraft UUID (32 hex, no dashes)
+  string server_id = 2;
+  repeated McSkill skills = 3;         // All skills with progress
+  kbve.common.Timestamp updated_at = 4;
+}
+
+// =============================================================================
 // Persistence Requests / Responses  (MC Server ↔ Supabase Edge)
 // =============================================================================
 
@@ -385,6 +415,46 @@ message AddExperienceResponse {
   optional string error = 5;
 }
 
+// Save a player's full skill tree (bulk upsert)
+message SaveSkillTreeRequest {
+  McSkillTree skill_tree = 1;
+}
+
+message SaveSkillTreeResponse {
+  bool success = 1;
+  int32 skills_saved = 2;              // Count of skills upserted
+  optional string error = 3;
+}
+
+// Load a player's full skill tree
+message LoadSkillTreeRequest {
+  string player_uuid = 1;
+  string server_id = 2;
+}
+
+message LoadSkillTreeResponse {
+  bool found = 1;
+  optional McSkillTree skill_tree = 2;
+  optional string error = 3;
+}
+
+// Add XP to a specific skill (atomic level-up)
+message AddSkillXpRequest {
+  string player_uuid = 1;
+  string server_id = 2;
+  string skill_id = 3;
+  McSkillCategory category = 4;        // Category (used on first creation)
+  int64 xp_amount = 5;                 // XP to add (must be positive)
+}
+
+message AddSkillXpResponse {
+  bool success = 1;
+  int32 new_level = 2;                 // Skill level after XP applied
+  int64 total_experience = 3;          // Total skill XP after addition
+  bool leveled_up = 4;                 // True if skill level changed
+  optional string error = 5;
+}
+
 // Query transfer history for a player
 message GetTransferHistoryRequest {
   string player_uuid = 1;
@@ -423,6 +493,11 @@ service MinecraftData {
   rpc SaveCharacter (SaveCharacterRequest) returns (SaveCharacterResponse);
   rpc LoadCharacter (LoadCharacterRequest) returns (LoadCharacterResponse);
   rpc AddExperience (AddExperienceRequest) returns (AddExperienceResponse);
+
+  // Skill tree
+  rpc SaveSkillTree (SaveSkillTreeRequest) returns (SaveSkillTreeResponse);
+  rpc LoadSkillTree (LoadSkillTreeRequest) returns (LoadSkillTreeResponse);
+  rpc AddSkillXp (AddSkillXpRequest) returns (AddSkillXpResponse);
 
   // Transfer ledger
   rpc RecordTransfers (RecordTransfersRequest) returns (RecordTransfersResponse);

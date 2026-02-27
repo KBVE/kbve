@@ -3,6 +3,8 @@ import {
 	jsonResponse,
 	createServiceClient,
 	requireServiceRole,
+	validateMcUuid,
+	requireNonEmpty,
 } from './_shared.ts';
 
 // ---------------------------------------------------------------------------
@@ -49,12 +51,11 @@ const handlers: Record<string, Handler> = {
 		}
 
 		const char = character as Record<string, unknown>;
-		if (!char.player_uuid) {
-			return jsonResponse({ error: 'player_uuid is required' }, 400);
-		}
-		if (!char.server_id) {
-			return jsonResponse({ error: 'server_id is required' }, 400);
-		}
+		const uuidErr = validateMcUuid(char.player_uuid, 'player_uuid');
+		if (uuidErr) return uuidErr;
+
+		const serverErr = requireNonEmpty(char.server_id, 'server_id');
+		if (serverErr) return serverErr;
 
 		// Edge-level stat validation
 		if (char.base_stats && typeof char.base_stats === 'object') {
@@ -94,12 +95,11 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { player_uuid, server_id } = body;
-		if (!player_uuid || !server_id) {
-			return jsonResponse(
-				{ error: 'player_uuid and server_id are required' },
-				400,
-			);
-		}
+		const uuidErr = validateMcUuid(player_uuid, 'player_uuid');
+		if (uuidErr) return uuidErr;
+
+		const serverErr = requireNonEmpty(server_id, 'server_id');
+		if (serverErr) return serverErr;
 
 		const supabase = createServiceClient();
 		const { data, error } = await supabase.rpc('service_load_character', {
@@ -124,12 +124,11 @@ const handlers: Record<string, Handler> = {
 		if (denied) return denied;
 
 		const { player_uuid, server_id, xp_amount } = body;
-		if (!player_uuid || !server_id) {
-			return jsonResponse(
-				{ error: 'player_uuid and server_id are required' },
-				400,
-			);
-		}
+		const uuidErr = validateMcUuid(player_uuid, 'player_uuid');
+		if (uuidErr) return uuidErr;
+
+		const serverErr = requireNonEmpty(server_id, 'server_id');
+		if (serverErr) return serverErr;
 
 		// Edge-level XP validation
 		const xp = Number(xp_amount);
