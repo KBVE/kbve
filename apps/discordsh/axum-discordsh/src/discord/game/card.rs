@@ -21,6 +21,28 @@ pub struct RoomBadge {
     pub color: &'static str,
 }
 
+/// Pre-computed display values for a single player panel in the SVG card.
+pub struct PlayerPanel {
+    pub name: String,
+    pub hp: i32,
+    pub max_hp: i32,
+    pub hp_width: u32,
+    pub hp_color: String,
+    pub armor: i32,
+    pub gold: i32,
+    pub effects: Vec<EffectBadge>,
+    pub alive: bool,
+    /// Whether to render a compact panel (party mode) vs full panel (solo).
+    pub compact: bool,
+    // Pre-computed Y coordinates
+    pub y_name: u32,
+    pub y_bar: u32,
+    pub y_bar_text: u32,
+    pub y_stats: u32,
+    pub y_effects: u32,
+    pub y_effects_text: u32,
+}
+
 // ── Askama SVG template ─────────────────────────────────────────────
 
 #[derive(Template)]
@@ -33,15 +55,8 @@ pub struct GameCardTemplate {
     pub room_name: String,
     pub phase_label: String,
 
-    // Player
-    pub player_name: String,
-    pub player_hp: i32,
-    pub player_max_hp: i32,
-    pub player_hp_width: u32,
-    pub player_hp_color: String,
-    pub player_armor: i32,
-    pub player_gold: i32,
-    pub player_effects: Vec<EffectBadge>,
+    // Players (1–4 panels)
+    pub players: Vec<PlayerPanel>,
 
     // Enemy (conditional)
     pub has_enemy: bool,
@@ -210,12 +225,73 @@ fn build_room_badges(session: &SessionState) -> Vec<RoomBadge> {
 
 // ── Template construction ───────────────────────────────────────────
 
+/// Y offsets for player panels based on party size.
+/// Returns (y_name_offsets, compact). Compact uses tighter spacing for 2+ players.
+fn player_y_offsets(count: usize) -> (Vec<u32>, bool) {
+    match count {
+        1 => (vec![85], false),
+        2 => (vec![62, 192], true),
+        3 => (vec![62, 152, 242], true),
+        _ => (vec![62, 130, 198, 266], true),
+    }
+}
+
 impl GameCardTemplate {
     pub fn from_session(session: &SessionState) -> Self {
         let (phase_color, phase_color_dark) = phase_colors(session);
-        let owner = session.owner_player();
 
-        let player_effects = build_effect_badges(&owner.effects, 30);
+        // Build player panels from roster (owner first, then party members)
+        let roster = session.roster();
+        let (offsets, compact) = player_y_offsets(roster.len());
+
+        let players: Vec<PlayerPanel> = roster
+            .iter()
+            .enumerate()
+            .map(|(i, (_, player))| {
+                let y = offsets[i];
+                if compact {
+                    // Compact: name → HP bar (16px) → DEF/Gold text → effects
+                    PlayerPanel {
+                        name: player.name.clone(),
+                        hp: player.hp.max(0),
+                        max_hp: player.max_hp,
+                        hp_width: hp_bar_width(player.hp, player.max_hp),
+                        hp_color: hp_ratio_color(player.hp, player.max_hp),
+                        armor: player.armor,
+                        gold: player.gold,
+                        effects: build_effect_badges(&player.effects, 30),
+                        alive: player.alive,
+                        compact: true,
+                        y_name: y,
+                        y_bar: y + 8,
+                        y_bar_text: y + 20,
+                        y_stats: y + 36,
+                        y_effects: y + 50,
+                        y_effects_text: y + 53,
+                    }
+                } else {
+                    // Full: name → HP bar (22px) → DEF/Gold text → effects
+                    PlayerPanel {
+                        name: player.name.clone(),
+                        hp: player.hp.max(0),
+                        max_hp: player.max_hp,
+                        hp_width: hp_bar_width(player.hp, player.max_hp),
+                        hp_color: hp_ratio_color(player.hp, player.max_hp),
+                        armor: player.armor,
+                        gold: player.gold,
+                        effects: build_effect_badges(&player.effects, 30),
+                        alive: player.alive,
+                        compact: false,
+                        y_name: y,
+                        y_bar: y + 11,
+                        y_bar_text: y + 27,
+                        y_stats: y + 75,
+                        y_effects: y + 105,
+                        y_effects_text: y + 109,
+                    }
+                }
+            })
+            .collect();
 
         let (
             has_enemy,
@@ -264,14 +340,7 @@ impl GameCardTemplate {
             room_name: session.room.name.clone(),
             phase_label: phase_label(&session.phase).to_owned(),
 
-            player_name: owner.name.clone(),
-            player_hp: owner.hp.max(0),
-            player_max_hp: owner.max_hp,
-            player_hp_width: hp_bar_width(owner.hp, owner.max_hp),
-            player_hp_color: hp_ratio_color(owner.hp, owner.max_hp),
-            player_armor: owner.armor,
-            player_gold: owner.gold,
-            player_effects,
+            players,
 
             has_enemy,
             enemy_name,
@@ -439,5 +508,47 @@ mod tests {
         session.phase = GamePhase::City;
         let (color, _) = phase_colors(&session);
         assert_eq!(color, "#9b59b6");
+    }
+
+    #[test]
+    fn render_party_card() {
+        let db = test_fontdb();
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        let member = serenity::UserId::new(2);
+        session.party.push(member);
+        session.players.insert(
+            member,
+            PlayerState {
+                name: "Bob".to_owned(),
+                ..PlayerState::default()
+            },
+        );
+        let template = GameCardTemplate::from_session(&session);
+        assert_eq!(template.players.len(), 2);
+        assert!(template.players[0].compact);
+        assert!(template.is_party_mode);
+        let png = render_game_card_blocking(&session, &db);
+        assert!(png.is_ok(), "Party render failed: {:?}", png.err());
+    }
+
+    #[test]
+    fn render_party_combat_card() {
+        let db = test_fontdb();
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        session.phase = GamePhase::Combat;
+        session.enemy = Some(super::super::content::spawn_enemy(0));
+        let member = serenity::UserId::new(2);
+        session.party.push(member);
+        session.players.insert(
+            member,
+            PlayerState {
+                name: "Alice".to_owned(),
+                ..PlayerState::default()
+            },
+        );
+        let png = render_game_card_blocking(&session, &db);
+        assert!(png.is_ok(), "Party combat render failed: {:?}", png.err());
     }
 }
