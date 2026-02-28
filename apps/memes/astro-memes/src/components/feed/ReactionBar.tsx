@@ -1,6 +1,6 @@
 import { useCallback } from 'react';
 import { useStore } from '@nanostores/react';
-import { $auth, openModal, addToast } from '@kbve/astro';
+import { $auth, openModal } from '@kbve/astro';
 import { Bookmark, BookmarkCheck } from 'lucide-react';
 import { REACTIONS } from '../../lib/memeService';
 

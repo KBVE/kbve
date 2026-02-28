@@ -139,7 +139,7 @@ export default function ReactMemeContent() {
 			const tag = (e.target as HTMLElement)?.tagName;
 			if (tag === 'INPUT' || tag === 'TEXTAREA') return;
 
-			let next = activeIndex.current;
+			let next: number;
 
 			if (e.key === 'ArrowDown' || e.key === 'j') {
 				e.preventDefault();
