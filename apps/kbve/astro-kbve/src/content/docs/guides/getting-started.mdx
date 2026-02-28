@@ -1,0 +1,215 @@
+---
+title: Getting Started
+description: |
+    Official documentation for setting up the KBVE monorepo and exploring the full suite of open source tools.
+    The repository spans Rust, TypeScript, Python, and C# with projects managed through Nx and pnpm workspaces.
+    This guide covers environment setup using Homebrew, project structure, and the workflow for submitting contributions.
+    Whether you are building web applications, automation pipelines, or game prototypes, you will find the relevant starting points here.
+sidebar:
+    label: Getting Started
+    order: 1
+---
+
+import {
+Card,
+CardGrid,
+LinkCard,
+Steps,
+Aside,
+Tabs,
+TabItem,
+} from "@astrojs/starlight/components";
+
+import { Adsense } from '@/components/astropad';
+
+
+Welcome to the KBVE documentation.
+This guide walks you through every tool, service, and framework that powers the KBVE ecosystem.
+You will find setup instructions for the monorepo, descriptions of each project, and tutorials written for developers at every experience level.
+The stack spans Rust, TypeScript, Python, C#, and several web frameworks, so there is a lot of ground to cover.
+Start here, explore at your own pace, and refer back whenever you need a refresher.
+
+## Tools Overview
+
+<CardGrid>
+  <Card title="KBVE Jukebox" icon="seti:config">
+  Stream and discover music through a keyword driven playlist engine built directly into the site.
+    <LinkCard title="Listen Now " href="/music/" />
+  </Card>
+  <Card title="Webmaster Utility" icon="seti:pipeline">
+  Audit page performance, inspect SEO metadata, and run diagnostics against any public URL.
+    <LinkCard title="Learn More " href="/webmaster/" />
+  </Card>
+  <Card title="Automation Suite" icon="seti:crystal">
+  Explore workflow automation through software pipelines and hardware integration guides.
+    <LinkCard title="Learn More " href="/theory/automation" />
+  </Card>
+</CardGrid>
+
+## Prerequisites
+
+Every dependency in the KBVE monorepo can be installed through [Homebrew](https://brew.sh).
+Homebrew runs on macOS, Linux, and WSL, so these instructions work across all three platforms.
+If you do not have Homebrew yet, install it first by running the command on the [official site](https://brew.sh).
+
+For deeper reference on individual tools, see the application docs linked below.
+
+<CardGrid>
+  <LinkCard title="Git" href="/application/git/" />
+  <LinkCard title="Python" href="/application/python/" />
+  <LinkCard title="JavaScript" href="/application/javascript/" />
+  <LinkCard title="Rust" href="/application/rust/" />
+  <LinkCard title="Docker" href="/application/docker/" />
+  <LinkCard title="Linux" href="/application/linux/" />
+</CardGrid>
+
+## Setup Instructions
+
+Follow these steps to clone and run the KBVE monorepo.
+Each command block can be copied directly into your terminal.
+
+<Steps>
+
+1. Install [Git](/application/git/) through Homebrew:
+
+    ```bash
+    brew install git
+    ```
+
+2. Install [Python](/application/python/) 3.14 and confirm the version:
+
+    ```bash
+    brew install python@3.14
+    python3.14 --version
+    ```
+
+3. Install [Node.js](/application/javascript/) and pnpm in one step:
+
+    ```bash
+    brew install node pnpm
+    ```
+
+4. Install the .NET SDK for any C# projects in the repo:
+
+    ```bash
+    brew install dotnet
+    ```
+
+5. Install [Rust](/application/rust/) through rustup so you can manage toolchains and targets:
+
+    ```bash
+    brew install rustup
+    rustup-init
+    ```
+
+    Follow the on screen prompts, then reload your shell or run `source $HOME/.cargo/env`.
+
+6. Add the Rust compilation targets used by KBVE projects:
+
+    ```bash
+    rustup target add wasm32-unknown-unknown
+    rustup target add wasm32-wasip1
+    rustup target add aarch64-unknown-linux-gnu
+    rustup target add x86_64-unknown-linux-gnu
+    ```
+
+    The `wasm32-unknown-unknown` target is required for any WebAssembly builds.
+    The `wasm32-wasip1` target is used for WASI based server side modules.
+    The Linux targets allow cross compilation from macOS when building release binaries.
+
+7. Optionally install [Docker](/application/docker/) if you plan to work with containerized services:
+
+    <Tabs>
+    <TabItem label="Docker Desktop">
+
+    ```bash
+    brew install --cask docker
+    ```
+
+    </TabItem>
+    <TabItem label="OrbStack">
+
+    [OrbStack](/application/docker/#orb) is a lightweight alternative to Docker Desktop built for macOS.
+    It uses fewer resources and starts containers faster while remaining fully compatible with the Docker CLI.
+
+    ```bash
+    brew install --cask orbstack
+    ```
+
+    </TabItem>
+    </Tabs>
+
+8. Clone the KBVE repository:
+
+    ```bash
+    git clone https://github.com/KBVE/kbve.git
+    ```
+
+9. Change into the cloned repository directory:
+
+    ```bash
+    cd kbve
+    ```
+
+10. Install the project dependencies using pnpm:
+
+    ```bash
+    pnpm install
+    ```
+
+11. Start the development server with the code watcher:
+
+    ```bash
+    ./kbve.sh -nx kbve.com:dev
+    ```
+
+12. Create a new branch when you are ready to open a pull request:
+
+    ```bash
+    ./kbve.sh -atomic you can type anything here and spaces do not matter
+    ```
+
+    This generates a branch name from the text you provide after the flag.
+
+13. Open Visual Studio Code from the repository root if it is not already running:
+
+    ```bash
+    code .
+    ```
+
+14. Visual Studio Code will suggest the workspace recommended plugins on first launch.
+    Install them and reload the editor when prompted.
+
+</Steps>
+
+## Cleaning and Maintenance
+
+<Aside type="tip">
+  Before running any cleanup commands, commit or stash any work in progress so nothing is lost.
+</Aside>
+
+Keeping your local environment clean prevents build errors and dependency conflicts over time.
+Run `pnpm clean` periodically to remove stale artifacts, and pull the latest changes from main before starting new work.
+
+## Additional Resources
+
+<LinkCard
+  title="First Project Checklist"
+  description="A task by task walkthrough for your first contribution to the KBVE monorepo."
+  href="/guides/first-project-checklist/"
+/>
+
+<LinkCard
+  title="Application Navigator"
+  description="Browse the full catalog of application and tool documentation maintained by the team."
+  href="/application/"
+/>
+
+<LinkCard
+  title="Introduction to KBVE Services"
+  description="High level overview of the services, infrastructure, and philosophy behind the project."
+  href="/guides/intro/"
+/>
+
+
+<Adsense />
