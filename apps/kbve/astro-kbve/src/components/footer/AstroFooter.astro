@@ -1,0 +1,10 @@
+---
+/**
+ * Custom Footer override for Starlight.
+ * TODO: Port full implementation from ~/kbve.com/website/astro/src/components/footer/AstroFooter.astro
+ */
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/Footer.astro';
+---
+
+<Default {...Astro.props}><slot /></Default>

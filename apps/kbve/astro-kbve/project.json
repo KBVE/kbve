@@ -1,0 +1,99 @@
+{
+	"name": "astro-kbve",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/kbve/astro-kbve/src",
+	"tags": [],
+	"targets": {
+		"proto": {
+			"executor": "nx:run-commands",
+			"inputs": ["{workspaceRoot}/packages/data/proto/kbve/*.proto"],
+			"outputs": ["{projectRoot}/src/generated/proto"],
+			"options": {
+				"command": "buf generate packages/data/proto --template apps/kbve/astro-kbve/buf.gen.yaml --path kbve/",
+				"cwd": "{workspaceRoot}"
+			},
+			"cache": true
+		},
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"commands": [
+					"rm -rf .astro",
+					"nx exec -- astro sync",
+					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro dev"
+				],
+				"parallel": false
+			}
+		},
+		"build": {
+			"dependsOn": ["proto"],
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"commands": [
+					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
+				],
+				"parallel": false
+			}
+		},
+		"build:osrs": {
+			"dependsOn": ["proto"],
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"commands": [
+					"node scripts/generate-osrs-items.mjs",
+					"nx exec -- astro sync",
+					"UV_THREADPOOL_SIZE=4 NODE_OPTIONS=\"--max-old-space-size=8192\" nx exec -- astro build"
+				],
+				"parallel": false
+			}
+		},
+		"preview": {
+			"dependsOn": [
+				{
+					"target": "build",
+					"projects": "self"
+				}
+			],
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"commands": ["nx exec -- astro preview"],
+				"parallel": false
+			}
+		},
+		"check": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"commands": ["nx exec -- astro check"],
+				"parallel": false
+			}
+		},
+		"sync": {
+			"executor": "nx:run-commands",
+			"options": {
+				"cwd": "apps/kbve/astro-kbve",
+				"commands": ["nx exec -- astro sync"],
+				"parallel": false
+			}
+		},
+		"proto:lint": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "buf lint packages/data/proto",
+				"cwd": "{workspaceRoot}"
+			}
+		},
+		"proto:clean": {
+			"executor": "nx:run-commands",
+			"options": {
+				"command": "rm -rf apps/kbve/astro-kbve/src/generated/proto && mkdir -p apps/kbve/astro-kbve/src/generated/proto",
+				"cwd": "{workspaceRoot}"
+			}
+		}
+	}
+}

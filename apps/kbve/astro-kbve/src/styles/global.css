@@ -1,0 +1,41 @@
+@layer base, starlight, theme, components, utilities, galaxy, my-overrides;
+
+@import '@astrojs/starlight-tailwind';
+@import 'tailwindcss/theme' layer(theme);
+@import 'tailwindcss/utilities' layer(utilities);
+
+:root {
+	--sl-color-accent-low: #1a3a4a;
+	--sl-color-accent: #06b6d4;
+	--sl-color-accent-high: #a5f3fc;
+}
+
+:root[data-theme='dark'] {
+	--sl-color-accent-low: #083344;
+	--sl-color-accent: #06b6d4;
+	--sl-color-accent-high: #a5f3fc;
+}
+
+@layer utilities {
+	.focus-ring {
+		@apply focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2;
+	}
+}
+
+@layer my-overrides {
+	a.sl-link-button {
+		text-decoration: none;
+	}
+
+	.sl-markdown-content a {
+		color: var(--sl-color-accent);
+	}
+
+	.sl-markdown-content a:hover {
+		color: var(--sl-color-accent-high);
+	}
+}
+
+@view-transition {
+	navigation: auto;
+}
