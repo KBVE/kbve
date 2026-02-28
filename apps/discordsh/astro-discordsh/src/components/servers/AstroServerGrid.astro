@@ -1,0 +1,38 @@
+---
+import { ReactServerGrid } from './ReactServerGrid';
+---
+
+<div class="server-grid-shell">
+	<div class="server-grid-loader">
+		<div class="honeycomb">
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+			<div></div>
+		</div>
+	</div>
+	<ReactServerGrid client:visible />
+</div>
+
+<style>
+	.server-grid-shell {
+		position: relative;
+		min-height: 20rem;
+	}
+	.server-grid-loader {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 4rem 0;
+	}
+	/* Hide loader once React hydrates */
+	.server-grid-shell :global([data-reactroot]),
+	.server-grid-shell
+		:global(div:not(.server-grid-loader))
+		~ .server-grid-loader {
+		display: none;
+	}
+</style>

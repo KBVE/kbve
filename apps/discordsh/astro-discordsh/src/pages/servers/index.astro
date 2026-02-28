@@ -1,0 +1,38 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import AstroServerGrid from '../../components/servers/AstroServerGrid.astro';
+---
+
+<Layout
+	title="Browse Discord Servers | Discord.sh"
+	description="Discover and vote for the best Discord servers. Browse by category, find active communities, and join servers that match your interests.">
+	<main class="servers-page">
+		<header class="servers-header">
+			<h1>Browse Discord Servers</h1>
+			<p>Discover active communities and vote for your favorites.</p>
+		</header>
+		<AstroServerGrid />
+	</main>
+</Layout>
+
+<style>
+	.servers-page {
+		max-width: 72rem;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+	.servers-header {
+		margin-bottom: 2rem;
+	}
+	.servers-header h1 {
+		font-size: 1.75rem;
+		font-weight: 700;
+		color: var(--sl-color-text, #e5e7eb);
+		margin: 0 0 0.5rem;
+	}
+	.servers-header p {
+		font-size: 1rem;
+		color: var(--sl-color-gray-3, #9ca3af);
+		margin: 0;
+	}
+</style>
