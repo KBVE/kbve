@@ -1,7 +1,10 @@
 -- ============================================================
 -- DISCORDSH VOTES — User votes for directory server listings
 --
--- 12-hour cooldown per user per server, enforced in SQL.
+-- Rate limiting:
+--   - 12-hour cooldown per user per server
+--   - 50 votes per user per 24-hour rolling window (anti vote-bomb)
+--
 -- Vote count on servers table is denormalized via triggers.
 --
 -- Function convention (matches mc schema pattern):
@@ -11,7 +14,7 @@
 -- Security:
 --   - Advisory lock prevents concurrent vote race conditions
 --   - service_cast_vote validates server exists and is active
---   - proxy_cast_vote derives identity from JWT (no UUID spoofing)
+--   - proxy_cast_vote validates server_id format + derives identity from JWT
 --   - All trigger functions: REVOKE from PUBLIC, owned by service_role
 --   - Votes table: anon/authenticated can SELECT, voting via proxy only
 --
@@ -32,11 +35,15 @@ CREATE TABLE IF NOT EXISTS discordsh.votes (
 );
 
 COMMENT ON TABLE discordsh.votes IS
-    'User votes for servers. 12h cooldown per user per server enforced by service_cast_vote.';
+    'User votes for servers. 12h cooldown per server + 50/day global cap enforced by service_cast_vote.';
 
 -- One vote per user per server (replace model: old vote deleted, new inserted)
 CREATE UNIQUE INDEX IF NOT EXISTS idx_discordsh_votes_user_server
     ON discordsh.votes (server_id, user_id);
+
+-- User daily vote count lookup (for rate limit check)
+CREATE INDEX IF NOT EXISTS idx_discordsh_votes_user_daily
+    ON discordsh.votes (user_id, created_at DESC);
 
 -- ===========================================
 -- TRIGGER: timestamp protection (created_at only)
@@ -110,6 +117,10 @@ CREATE TRIGGER trg_discordsh_votes_counter
 -- Takes explicit user_id — called by proxy_cast_vote or
 -- directly by service_role for admin/bot operations.
 -- Uses advisory lock to prevent concurrent vote races.
+--
+-- Rate limits:
+--   1. Per-server cooldown: 12 hours per user per server
+--   2. Daily cap: 50 votes per user per 24-hour rolling window
 -- ===========================================
 
 CREATE OR REPLACE FUNCTION discordsh.service_cast_vote(
@@ -123,6 +134,7 @@ SET search_path = ''
 AS $$
 DECLARE
     v_last_vote TIMESTAMPTZ;
+    v_daily_count INTEGER;
     v_id TEXT;
 BEGIN
     -- Advisory lock: serialize votes per (server, user) pair
@@ -140,7 +152,7 @@ BEGIN
         RETURN;
     END IF;
 
-    -- Check cooldown (12 hours)
+    -- Rate limit 1: per-server cooldown (12 hours)
     SELECT v.created_at INTO v_last_vote
     FROM discordsh.votes v
     WHERE v.server_id = p_server_id AND v.user_id = p_user_id
@@ -148,11 +160,25 @@ BEGIN
     LIMIT 1;
 
     IF v_last_vote IS NOT NULL AND v_last_vote > NOW() - INTERVAL '12 hours' THEN
-        RETURN QUERY SELECT false, NULL::TEXT, 'Vote cooldown active. Try again later.'::TEXT;
+        RETURN QUERY SELECT false, NULL::TEXT,
+            ('Vote cooldown active. Try again after ' ||
+             to_char(v_last_vote + INTERVAL '12 hours', 'HH24:MI UTC'))::TEXT;
         RETURN;
     END IF;
 
-    -- Delete existing vote (replace model)
+    -- Rate limit 2: daily cap (50 votes per user per 24h rolling window)
+    SELECT count(*) INTO v_daily_count
+    FROM discordsh.votes v
+    WHERE v.user_id = p_user_id
+      AND v.created_at > NOW() - INTERVAL '24 hours';
+
+    IF v_daily_count >= 50 THEN
+        RETURN QUERY SELECT false, NULL::TEXT,
+            'Daily vote limit reached (50 per 24 hours). Try again later.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Delete existing vote for this server (replace model)
     DELETE FROM discordsh.votes v
     WHERE v.server_id = p_server_id AND v.user_id = p_user_id;
 
@@ -166,7 +192,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION discordsh.service_cast_vote IS
-    'Internal: cast a vote with 12h cooldown. Uses advisory lock for race safety. Called by proxy_cast_vote.';
+    'Internal: cast a vote with 12h per-server cooldown + 50/day global cap. Advisory-locked. Called by proxy_cast_vote.';
 
 REVOKE ALL ON FUNCTION discordsh.service_cast_vote(TEXT, UUID) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION discordsh.service_cast_vote(TEXT, UUID) TO service_role;
@@ -175,7 +201,7 @@ ALTER FUNCTION discordsh.service_cast_vote(TEXT, UUID) OWNER TO service_role;
 -- ===========================================
 -- PROXY FUNCTION: Cast vote (public, authenticated only)
 --
--- Derives user identity from JWT via auth.uid().
+-- Validates server_id format, derives user identity from JWT.
 -- Prevents UUID spoofing — clients cannot vote as other users.
 -- ===========================================
 
@@ -196,13 +222,19 @@ BEGIN
         RETURN;
     END IF;
 
+    -- Input validation: server_id must be a Discord snowflake
+    IF p_server_id IS NULL OR p_server_id !~ '^\d{17,20}$' THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid server ID format.'::TEXT;
+        RETURN;
+    END IF;
+
     RETURN QUERY
     SELECT * FROM discordsh.service_cast_vote(p_server_id, v_uid);
 END;
 $$;
 
 COMMENT ON FUNCTION discordsh.proxy_cast_vote IS
-    'Public: cast a vote for a server. Derives user from JWT. 12h cooldown enforced.';
+    'Public: cast a vote for a server. Validates input, derives user from JWT. Rate-limited.';
 
 REVOKE ALL ON FUNCTION discordsh.proxy_cast_vote(TEXT) FROM PUBLIC, anon;
 GRANT EXECUTE ON FUNCTION discordsh.proxy_cast_vote(TEXT) TO authenticated, service_role;
@@ -274,6 +306,15 @@ BEGIN
     -- Verify authenticated CAN execute proxy function
     IF NOT has_function_privilege('authenticated', 'discordsh.proxy_cast_vote(text)', 'EXECUTE') THEN
         RAISE EXCEPTION 'authenticated must have execute on discordsh.proxy_cast_vote';
+    END IF;
+
+    -- Verify authenticated CANNOT insert/delete votes directly
+    IF has_table_privilege('authenticated', 'discordsh.votes', 'INSERT') THEN
+        RAISE EXCEPTION 'authenticated must NOT have INSERT on discordsh.votes — use proxy_cast_vote';
+    END IF;
+
+    IF has_table_privilege('authenticated', 'discordsh.votes', 'DELETE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have DELETE on discordsh.votes';
     END IF;
 
     -- Verify ownership

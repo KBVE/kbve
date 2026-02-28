@@ -6,10 +6,12 @@
 --
 -- Security:
 --   - anon/authenticated can SELECT active servers (status=1)
---   - authenticated can INSERT (own servers) and UPDATE (own display fields)
---   - status, counters, bumped_at, is_online frozen from client updates
+--   - authenticated can UPDATE own display fields (via RLS)
+--   - INSERT gated through proxy_submit_server (rate-limited, no direct INSERT)
+--   - status, counters, bumped_at, is_online, owner_id frozen from client writes
 --   - service_role has full access via RLS bypass + trigger bypass
 --   - All SECURITY DEFINER functions: search_path='', REVOKE from PUBLIC
+--   - Rate limit: max 5 pending submissions per user
 --
 -- Prerequisite: gen_ulid() must exist
 -- ============================================================
@@ -49,6 +51,18 @@ ALTER DEFAULT PRIVILEGES FOR ROLE postgres IN SCHEMA discordsh GRANT ALL ON ROUT
 
 -- Directory is publicly readable
 GRANT USAGE ON SCHEMA discordsh TO anon, authenticated;
+
+-- Global revoke on schema objects from non-service roles (mc pattern)
+REVOKE ALL ON ALL TABLES IN SCHEMA discordsh FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON ALL SEQUENCES IN SCHEMA discordsh FROM PUBLIC, anon, authenticated;
+REVOKE ALL ON ALL FUNCTIONS IN SCHEMA discordsh FROM PUBLIC, anon, authenticated;
+
+ALTER DEFAULT PRIVILEGES IN SCHEMA discordsh
+    REVOKE ALL ON TABLES FROM PUBLIC, anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA discordsh
+    REVOKE ALL ON SEQUENCES FROM PUBLIC, anon, authenticated;
+ALTER DEFAULT PRIVILEGES IN SCHEMA discordsh
+    REVOKE ALL ON FUNCTIONS FROM PUBLIC, anon, authenticated;
 
 -- ===========================================
 -- VALIDATION FUNCTIONS
@@ -123,7 +137,7 @@ REVOKE ALL ON FUNCTION discordsh.are_valid_tags(TEXT[]) FROM PUBLIC, anon, authe
 GRANT EXECUTE ON FUNCTION discordsh.are_valid_tags(TEXT[]) TO service_role;
 
 -- Validates categories array: max 3 categories, values 1-12 (ServerCategory proto enum).
--- Empty arrays are allowed (uncategorized during initial submission).
+-- Empty arrays are allowed (uncategorized). Rejects duplicates.
 CREATE OR REPLACE FUNCTION discordsh.are_valid_categories(cats SMALLINT[])
 RETURNS BOOLEAN
 LANGUAGE plpgsql IMMUTABLE
@@ -137,6 +151,12 @@ BEGIN
         RETURN true;
     END IF;
     IF array_length(cats, 1) > 3 THEN RETURN false; END IF;
+
+    -- Reject duplicates: distinct count must equal array length
+    IF (SELECT count(DISTINCT v) FROM unnest(cats) AS v) <> array_length(cats, 1) THEN
+        RETURN false;
+    END IF;
+
     FOREACH c IN ARRAY cats LOOP
         IF c < 1 OR c > 12 THEN RETURN false; END IF;
     END LOOP;
@@ -145,7 +165,7 @@ END;
 $$;
 
 COMMENT ON FUNCTION discordsh.are_valid_categories IS
-    'Category array validation: max 3 categories, values 1-12 mapping to ServerCategory proto enum. Empty allowed.';
+    'Category array validation: max 3 unique categories, values 1-12 (ServerCategory proto enum). Empty allowed.';
 
 REVOKE ALL ON FUNCTION discordsh.are_valid_categories(SMALLINT[]) FROM PUBLIC, anon, authenticated;
 GRANT EXECUTE ON FUNCTION discordsh.are_valid_categories(SMALLINT[]) TO service_role;
@@ -196,7 +216,7 @@ ALTER FUNCTION discordsh.protect_timestamps() OWNER TO service_role;
 
 -- Protects server-managed columns from client-side mutation.
 -- Only service_role (detected via auth.role()) can modify:
---   vote_count, member_count, is_online, bumped_at, status
+--   owner_id, vote_count, member_count, is_online, bumped_at, status
 CREATE OR REPLACE FUNCTION discordsh.protect_servers_columns()
 RETURNS TRIGGER
 LANGUAGE plpgsql
@@ -205,6 +225,9 @@ SET search_path = ''
 AS $$
 BEGIN
     IF auth.role() = 'service_role' THEN RETURN NEW; END IF;
+
+    -- Freeze identity (no self-transfer of ownership)
+    NEW.owner_id     := OLD.owner_id;
 
     -- Freeze counters and bot-managed fields
     NEW.vote_count   := OLD.vote_count;
@@ -352,7 +375,6 @@ ALTER TABLE discordsh.servers ENABLE ROW LEVEL SECURITY;
 DROP POLICY IF EXISTS "service_role_full_access" ON discordsh.servers;
 DROP POLICY IF EXISTS "anon_select_active" ON discordsh.servers;
 DROP POLICY IF EXISTS "authenticated_select_active_and_own" ON discordsh.servers;
-DROP POLICY IF EXISTS "authenticated_insert_own" ON discordsh.servers;
 DROP POLICY IF EXISTS "authenticated_update_own" ON discordsh.servers;
 
 CREATE POLICY "service_role_full_access" ON discordsh.servers
@@ -366,19 +388,156 @@ CREATE POLICY "authenticated_select_active_and_own" ON discordsh.servers
     FOR SELECT TO authenticated
     USING (status = 1 OR owner_id = auth.uid());
 
--- New submissions default to status=2 (pending)
-CREATE POLICY "authenticated_insert_own" ON discordsh.servers
-    FOR INSERT TO authenticated
-    WITH CHECK (owner_id = auth.uid() AND status = 2);
-
--- Owners can update display fields only (status/counters frozen by trigger)
+-- Owners can update display fields only (status/counters/owner_id frozen by trigger)
 CREATE POLICY "authenticated_update_own" ON discordsh.servers
     FOR UPDATE TO authenticated
     USING (owner_id = auth.uid())
     WITH CHECK (owner_id = auth.uid());
 
+-- No INSERT policy for authenticated — submission gated through proxy_submit_server
 GRANT SELECT ON discordsh.servers TO anon;
-GRANT SELECT, INSERT, UPDATE ON discordsh.servers TO authenticated;
+GRANT SELECT, UPDATE ON discordsh.servers TO authenticated;
+
+-- ===========================================
+-- SERVICE FUNCTION: Submit server (internal, service_role only)
+--
+-- Validates data, enforces rate limit (max 5 pending per user),
+-- and inserts the server row.
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION discordsh.service_submit_server(
+    p_owner_id    UUID,
+    p_server_id   TEXT,
+    p_name        TEXT,
+    p_summary     TEXT,
+    p_invite_code TEXT,
+    p_description TEXT DEFAULT NULL,
+    p_icon_url    TEXT DEFAULT NULL,
+    p_banner_url  TEXT DEFAULT NULL,
+    p_categories  SMALLINT[] DEFAULT '{}',
+    p_tags        TEXT[] DEFAULT '{}'
+)
+RETURNS TABLE(success BOOLEAN, server_id TEXT, message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_pending_count INTEGER;
+BEGIN
+    -- Validate server_id format (Discord snowflake)
+    IF p_server_id IS NULL OR p_server_id !~ '^\d{17,20}$' THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid server ID format.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Validate invite_code format
+    IF p_invite_code IS NULL OR p_invite_code !~ '^[a-zA-Z0-9_-]{2,32}$' THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Invalid invite code format.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Serialize on owner to prevent race condition on rate limit check
+    PERFORM pg_advisory_xact_lock(hashtext('submit:' || p_owner_id::text));
+
+    -- Rate limit: max 5 pending (status=2) servers per user
+    SELECT count(*) INTO v_pending_count
+    FROM discordsh.servers s
+    WHERE s.owner_id = p_owner_id AND s.status = 2;
+
+    IF v_pending_count >= 5 THEN
+        RETURN QUERY SELECT false, NULL::TEXT,
+            'Rate limit: max 5 pending server submissions. Wait for review or remove a pending server.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Check for duplicate server_id
+    IF EXISTS (SELECT 1 FROM discordsh.servers s WHERE s.server_id = p_server_id) THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Server already listed.'::TEXT;
+        RETURN;
+    END IF;
+
+    -- Insert (status defaults to 2 = pending)
+    INSERT INTO discordsh.servers (
+        server_id, owner_id, name, summary, invite_code,
+        description, icon_url, banner_url, categories, tags
+    )
+    VALUES (
+        p_server_id, p_owner_id, p_name, p_summary, p_invite_code,
+        p_description, p_icon_url, p_banner_url, p_categories, p_tags
+    );
+
+    RETURN QUERY SELECT true, p_server_id, 'Server submitted for review.'::TEXT;
+
+EXCEPTION
+    WHEN check_violation THEN
+        RETURN QUERY SELECT false, NULL::TEXT,
+            ('Validation failed: ' || SQLERRM)::TEXT;
+    WHEN unique_violation THEN
+        RETURN QUERY SELECT false, NULL::TEXT,
+            'Server ID or invite code already in use.'::TEXT;
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.service_submit_server IS
+    'Internal: submit a server with rate limit (max 5 pending per user). Called by proxy_submit_server.';
+
+REVOKE ALL ON FUNCTION discordsh.service_submit_server(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    FROM PUBLIC, anon, authenticated;
+GRANT EXECUTE ON FUNCTION discordsh.service_submit_server(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    TO service_role;
+ALTER FUNCTION discordsh.service_submit_server(UUID, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    OWNER TO service_role;
+
+-- ===========================================
+-- PROXY FUNCTION: Submit server (public, authenticated only)
+--
+-- Derives user identity from JWT via auth.uid().
+-- Prevents ownership spoofing — always sets owner to caller.
+-- ===========================================
+
+CREATE OR REPLACE FUNCTION discordsh.proxy_submit_server(
+    p_server_id   TEXT,
+    p_name        TEXT,
+    p_summary     TEXT,
+    p_invite_code TEXT,
+    p_description TEXT DEFAULT NULL,
+    p_icon_url    TEXT DEFAULT NULL,
+    p_banner_url  TEXT DEFAULT NULL,
+    p_categories  SMALLINT[] DEFAULT '{}',
+    p_tags        TEXT[] DEFAULT '{}'
+)
+RETURNS TABLE(success BOOLEAN, server_id TEXT, message TEXT)
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = ''
+AS $$
+DECLARE
+    v_uid UUID;
+BEGIN
+    v_uid := auth.uid();
+    IF v_uid IS NULL THEN
+        RETURN QUERY SELECT false, NULL::TEXT, 'Not authenticated.'::TEXT;
+        RETURN;
+    END IF;
+
+    RETURN QUERY
+    SELECT * FROM discordsh.service_submit_server(
+        v_uid, p_server_id, p_name, p_summary, p_invite_code,
+        p_description, p_icon_url, p_banner_url, p_categories, p_tags
+    );
+END;
+$$;
+
+COMMENT ON FUNCTION discordsh.proxy_submit_server IS
+    'Public: submit a server for review. Derives owner from JWT. Rate-limited to 5 pending.';
+
+REVOKE ALL ON FUNCTION discordsh.proxy_submit_server(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION discordsh.proxy_submit_server(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    TO authenticated, service_role;
+ALTER FUNCTION discordsh.proxy_submit_server(TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, TEXT, SMALLINT[], TEXT[])
+    OWNER TO service_role;
 
 -- ===========================================
 -- VERIFICATION
@@ -416,13 +575,36 @@ BEGIN
     PERFORM 'discordsh.protect_timestamps()'::regprocedure;
     PERFORM 'discordsh.protect_servers_columns()'::regprocedure;
 
-    -- Verify anon CANNOT execute validation functions
+    -- Verify service/proxy functions exist
+    PERFORM 'discordsh.service_submit_server(uuid, text, text, text, text, text, text, text, smallint[], text[])'::regprocedure;
+    PERFORM 'discordsh.proxy_submit_server(text, text, text, text, text, text, text, smallint[], text[])'::regprocedure;
+
+    -- Verify anon CANNOT execute anything
     IF has_function_privilege('anon', 'discordsh.is_safe_text(text)', 'EXECUTE') THEN
         RAISE EXCEPTION 'anon must NOT have execute on discordsh.is_safe_text';
     END IF;
 
     IF has_function_privilege('anon', 'discordsh.are_valid_categories(smallint[])', 'EXECUTE') THEN
         RAISE EXCEPTION 'anon must NOT have execute on discordsh.are_valid_categories';
+    END IF;
+
+    IF has_function_privilege('anon', 'discordsh.proxy_submit_server(text, text, text, text, text, text, text, smallint[], text[])', 'EXECUTE') THEN
+        RAISE EXCEPTION 'anon must NOT have execute on discordsh.proxy_submit_server';
+    END IF;
+
+    -- Verify authenticated CANNOT execute service functions directly
+    IF has_function_privilege('authenticated', 'discordsh.service_submit_server(uuid, text, text, text, text, text, text, text, smallint[], text[])', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must NOT have execute on discordsh.service_submit_server';
+    END IF;
+
+    -- Verify authenticated CAN execute proxy functions
+    IF NOT has_function_privilege('authenticated', 'discordsh.proxy_submit_server(text, text, text, text, text, text, text, smallint[], text[])', 'EXECUTE') THEN
+        RAISE EXCEPTION 'authenticated must have execute on discordsh.proxy_submit_server';
+    END IF;
+
+    -- Verify authenticated CANNOT insert directly (no INSERT grant)
+    IF has_table_privilege('authenticated', 'discordsh.servers', 'INSERT') THEN
+        RAISE EXCEPTION 'authenticated must NOT have INSERT on discordsh.servers — use proxy_submit_server';
     END IF;
 
     -- Verify ownership
@@ -450,7 +632,23 @@ BEGIN
         RAISE EXCEPTION 'discordsh.trg_servers_updated_at must be owned by service_role';
     END IF;
 
-    RAISE NOTICE 'discordsh_servers.sql: schema and servers table verified successfully.';
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'discordsh.service_submit_server(uuid, text, text, text, text, text, text, text, smallint[], text[])'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'discordsh.service_submit_server must be owned by service_role';
+    END IF;
+
+    IF EXISTS (
+        SELECT 1 FROM pg_proc
+        WHERE oid = 'discordsh.proxy_submit_server(text, text, text, text, text, text, text, smallint[], text[])'::regprocedure
+          AND pg_get_userbyid(proowner) <> 'service_role'
+    ) THEN
+        RAISE EXCEPTION 'discordsh.proxy_submit_server must be owned by service_role';
+    END IF;
+
+    RAISE NOTICE 'discordsh_servers.sql: schema, servers table, and submit functions verified successfully.';
 END;
 $$ LANGUAGE plpgsql;
 
