@@ -10,6 +10,9 @@ importers:
             '@astropub/worker':
                 specifier: ^0.2.0
                 version: 0.2.0
+            '@bufbuild/protobuf':
+                specifier: ^2.11.0
+                version: 2.11.0
             '@discord/embedded-app-sdk':
                 specifier: ^1.7.0
                 version: 1.9.0
@@ -2172,10 +2175,10 @@ packages:
         engines: { node: '>=12' }
         hasBin: true
 
-    '@bufbuild/protobuf@2.2.3':
+    '@bufbuild/protobuf@2.11.0':
         resolution:
             {
-                integrity: sha512-tFQoXHJdkEOSwj5tRIZSPNUuXK3RaR7T1nUrPgbYX1pUbvqqaaZAsfo+NXBPsz5rZMSKVFrgK1WL8Q/MSLvprg==,
+                integrity: sha512-sBXGT13cpmPR5BMgHE6UEEfEaShh5Ror6rfN3yEK5si7QVrtZg8LEPQb0VVhiLRUslD2yLnXtnRzG035J/mZXQ==,
             }
 
     '@capsizecss/unpack@4.0.0':
@@ -28430,7 +28433,7 @@ snapshots:
             '@bufbuild/buf-win32-arm64': 1.66.0
             '@bufbuild/buf-win32-x64': 1.66.0
 
-    '@bufbuild/protobuf@2.2.3': {}
+    '@bufbuild/protobuf@2.11.0': {}
 
     '@capsizecss/unpack@4.0.0':
         dependencies:
@@ -43783,7 +43786,7 @@ snapshots:
 
     sass-embedded@1.85.1:
         dependencies:
-            '@bufbuild/protobuf': 2.2.3
+            '@bufbuild/protobuf': 2.11.0
             buffer-builder: 0.2.0
             colorjs.io: 0.5.2
             immutable: 5.0.3

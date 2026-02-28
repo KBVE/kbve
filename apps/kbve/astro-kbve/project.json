@@ -10,7 +10,7 @@
 			"inputs": ["{workspaceRoot}/packages/data/proto/kbve/*.proto"],
 			"outputs": ["{projectRoot}/src/generated/proto"],
 			"options": {
-				"command": "buf generate packages/data/proto --template apps/kbve/astro-kbve/buf.gen.yaml --path kbve/",
+				"command": "buf generate packages/data/proto --template apps/kbve/astro-kbve/buf.gen.yaml",
 				"cwd": "{workspaceRoot}"
 			},
 			"cache": true

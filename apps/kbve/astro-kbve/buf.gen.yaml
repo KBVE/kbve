@@ -1,7 +1,7 @@
 version: v2
 plugins:
     - remote: buf.build/community/stephenh-ts-proto
-      out: src/generated/proto
+      out: apps/kbve/astro-kbve/src/generated/proto
       opt:
           - useZod=true
           - esModuleInterop=true
