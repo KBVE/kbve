@@ -902,19 +902,19 @@ Runtime env: `HTTP_HOST=0.0.0.0`, `HTTP_PORT=4321`, `RUST_LOG=info`, jemalloc wi
 
 #### Phase 1 — Scaffold (POC: `cargo run -p axum-kbve` returns 200 on /health)
 
-- [ ] Create Cargo.toml, add `'apps/kbve/axum-kbve'` to root workspace members
-- [ ] Write `main.rs` with tokio, tracing, dotenvy, graceful shutdown, SO_REUSEPORT `tuned_listener()`
-- [ ] Write `transports/https.rs` with router + middleware stack (TraceLayer, CompressionLayer, CorsLayer, RequestBodyLimitLayer, security headers)
-- [ ] Add `/health` endpoint returning 200 + version
-- [ ] Write `project.json` with build/serve/docker-build targets
-- [ ] Verify `cargo build -p axum-kbve` compiles clean
+- [x] Create Cargo.toml, add `'apps/kbve/axum-kbve'` to root workspace members
+- [x] Write `main.rs` with tokio, tracing, dotenvy, graceful shutdown, SO_REUSEPORT `tuned_listener()`
+- [x] Write `transports/https.rs` with router + middleware stack (TraceLayer, CompressionLayer, CorsLayer, RequestBodyLimitLayer, security headers)
+- [x] Add `/health` endpoint returning 200 + version (JSON `{"status":"ok","version":"0.1.0"}`)
+- [x] Write `project.json` with build/serve/docker-build targets
+- [x] Verify `cargo build -p axum-kbve` compiles clean (9 tests pass)
 
 #### Phase 2 — Static Serving (POC: Axum serves Astro dist with precompression)
 
-- [ ] Port `astro/mod.rs` StaticConfig from axum-memes pattern (ref: `~/kbve.com/website/axum/src/astro/mod.rs`)
-- [ ] Serve `dist/apps/astro-kbve/` as static files via `tower-http::services::ServeDir`
-- [ ] Add precompressed `.gz` support
-- [ ] Add cache-control headers for static assets (long-lived for hashed, short for HTML)
+- [x] Port `astro/mod.rs` StaticConfig from axum-memes pattern (ref: `~/kbve.com/website/axum/src/astro/mod.rs`)
+- [x] Serve `dist/apps/astro-kbve/` as static files via `tower-http::services::ServeDir`
+- [x] Add precompressed `.gz` + `.br` support
+- [x] Add cache-control headers for static assets (long-lived for hashed, short for HTML)
 
 #### Phase 3 — Askama SSR (POC: `/@username` renders profile page)
 

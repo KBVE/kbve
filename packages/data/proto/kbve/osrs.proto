@@ -1,0 +1,359 @@
+syntax = "proto3";
+
+package kbve.osrs;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Equipment slots in OSRS
+enum OSRSSlot {
+  OSRS_SLOT_UNSPECIFIED = 0;
+  OSRS_SLOT_HEAD        = 1;
+  OSRS_SLOT_CAPE        = 2;
+  OSRS_SLOT_NECK        = 3;
+  OSRS_SLOT_AMMO        = 4;
+  OSRS_SLOT_WEAPON      = 5;
+  OSRS_SLOT_BODY        = 6;
+  OSRS_SLOT_SHIELD      = 7;
+  OSRS_SLOT_LEGS        = 8;
+  OSRS_SLOT_HANDS       = 9;
+  OSRS_SLOT_FEET        = 10;
+  OSRS_SLOT_RING        = 11;
+  OSRS_SLOT_TWO_HANDED  = 12;
+}
+
+// Weapon categories for combat style determination
+enum OSRSWeaponType {
+  OSRS_WEAPON_TYPE_UNSPECIFIED     = 0;
+  OSRS_WEAPON_TYPE_UNARMED         = 1;
+  OSRS_WEAPON_TYPE_AXE             = 2;
+  OSRS_WEAPON_TYPE_BLUNT           = 3;
+  OSRS_WEAPON_TYPE_BOW             = 4;
+  OSRS_WEAPON_TYPE_BULWARK         = 5;
+  OSRS_WEAPON_TYPE_CHINCHOMPA      = 6;
+  OSRS_WEAPON_TYPE_CLAW            = 7;
+  OSRS_WEAPON_TYPE_CROSSBOW        = 8;
+  OSRS_WEAPON_TYPE_GUN             = 9;
+  OSRS_WEAPON_TYPE_PICKAXE         = 10;
+  OSRS_WEAPON_TYPE_POLEARM         = 11;
+  OSRS_WEAPON_TYPE_POLESTAFF       = 12;
+  OSRS_WEAPON_TYPE_POWERED_STAFF   = 13;
+  OSRS_WEAPON_TYPE_SALAMANDER      = 14;
+  OSRS_WEAPON_TYPE_SCYTHE          = 15;
+  OSRS_WEAPON_TYPE_SLASH_SWORD     = 16;
+  OSRS_WEAPON_TYPE_SPEAR           = 17;
+  OSRS_WEAPON_TYPE_SPIKED          = 18;
+  OSRS_WEAPON_TYPE_STAB_SWORD      = 19;
+  OSRS_WEAPON_TYPE_STAFF           = 20;
+  OSRS_WEAPON_TYPE_THROWN           = 21;
+  OSRS_WEAPON_TYPE_TWO_HANDED_SWORD = 22;
+  OSRS_WEAPON_TYPE_WHIP            = 23;
+}
+
+// All 23 OSRS skills
+enum OSRSSkill {
+  OSRS_SKILL_UNSPECIFIED = 0;
+  OSRS_SKILL_ATTACK      = 1;
+  OSRS_SKILL_STRENGTH    = 2;
+  OSRS_SKILL_DEFENCE     = 3;
+  OSRS_SKILL_RANGED      = 4;
+  OSRS_SKILL_PRAYER      = 5;
+  OSRS_SKILL_MAGIC       = 6;
+  OSRS_SKILL_RUNECRAFT   = 7;
+  OSRS_SKILL_HITPOINTS   = 8;
+  OSRS_SKILL_CRAFTING    = 9;
+  OSRS_SKILL_MINING      = 10;
+  OSRS_SKILL_SMITHING    = 11;
+  OSRS_SKILL_FISHING     = 12;
+  OSRS_SKILL_COOKING     = 13;
+  OSRS_SKILL_FIREMAKING  = 14;
+  OSRS_SKILL_WOODCUTTING = 15;
+  OSRS_SKILL_AGILITY     = 16;
+  OSRS_SKILL_HERBLORE    = 17;
+  OSRS_SKILL_THIEVING    = 18;
+  OSRS_SKILL_FLETCHING   = 19;
+  OSRS_SKILL_SLAYER      = 20;
+  OSRS_SKILL_FARMING     = 21;
+  OSRS_SKILL_CONSTRUCTION = 22;
+  OSRS_SKILL_HUNTER      = 23;
+}
+
+// Skills used for item creation recipes
+enum OSRSRecipeSkill {
+  OSRS_RECIPE_SKILL_UNSPECIFIED  = 0;
+  OSRS_RECIPE_SKILL_HERBLORE     = 1;
+  OSRS_RECIPE_SKILL_CRAFTING     = 2;
+  OSRS_RECIPE_SKILL_SMITHING     = 3;
+  OSRS_RECIPE_SKILL_FLETCHING    = 4;
+  OSRS_RECIPE_SKILL_COOKING      = 5;
+  OSRS_RECIPE_SKILL_CONSTRUCTION = 6;
+  OSRS_RECIPE_SKILL_RUNECRAFT    = 7;
+  OSRS_RECIPE_SKILL_MAGIC        = 8;
+  OSRS_RECIPE_SKILL_FIREMAKING   = 9;
+}
+
+// Facilities required for crafting
+enum OSRSFacility {
+  OSRS_FACILITY_UNSPECIFIED   = 0;
+  OSRS_FACILITY_FURNACE       = 1;
+  OSRS_FACILITY_ANVIL         = 2;
+  OSRS_FACILITY_RANGE         = 3;
+  OSRS_FACILITY_SPINNING_WHEEL = 4;
+  OSRS_FACILITY_POTTERY_WHEEL = 5;
+  OSRS_FACILITY_LOOM          = 6;
+  OSRS_FACILITY_WORKBENCH     = 7;
+  OSRS_FACILITY_WATER_SOURCE  = 8;
+  OSRS_FACILITY_ALTAR         = 9;
+  OSRS_FACILITY_FIRE          = 10;
+}
+
+// Drop rarity tiers
+enum OSRSRarity {
+  OSRS_RARITY_UNSPECIFIED = 0;
+  OSRS_RARITY_ALWAYS      = 1;
+  OSRS_RARITY_COMMON      = 2;
+  OSRS_RARITY_UNCOMMON    = 3;
+  OSRS_RARITY_RARE        = 4;
+  OSRS_RARITY_VERY_RARE   = 5;
+  OSRS_RARITY_VARIES      = 6;
+}
+
+// Related item relationship types
+enum OSRSRelationship {
+  OSRS_RELATIONSHIP_UNSPECIFIED = 0;
+  OSRS_RELATIONSHIP_VARIANT     = 1;
+  OSRS_RELATIONSHIP_UPGRADE     = 2;
+  OSRS_RELATIONSHIP_DOWNGRADE   = 3;
+  OSRS_RELATIONSHIP_COMPONENT   = 4;
+  OSRS_RELATIONSHIP_PRODUCT     = 5;
+  OSRS_RELATIONSHIP_SET_PIECE   = 6;
+  OSRS_RELATIONSHIP_ALTERNATIVE = 7;
+}
+
+// =============================================================================
+// Equipment & Bonuses
+// =============================================================================
+
+// 14 combat bonus fields (5 attack, 5 defence, 4 other)
+message OSRSBonuses {
+  // Attack bonuses
+  int32 attack_stab   = 1;
+  int32 attack_slash  = 2;
+  int32 attack_crush  = 3;
+  int32 attack_magic  = 4;
+  int32 attack_ranged = 5;
+
+  // Defence bonuses
+  int32 defence_stab   = 6;
+  int32 defence_slash  = 7;
+  int32 defence_crush  = 8;
+  int32 defence_magic  = 9;
+  int32 defence_ranged = 10;
+
+  // Other bonuses
+  int32 melee_strength  = 11;
+  int32 ranged_strength = 12;
+  int32 magic_damage    = 13;  // Percentage (e.g., 5 = 5%)
+  int32 prayer          = 14;
+}
+
+// Skill requirements for equipment (all 23 skills + quest)
+message OSRSRequirements {
+  optional int32 attack       = 1;
+  optional int32 strength     = 2;
+  optional int32 defence      = 3;
+  optional int32 ranged       = 4;
+  optional int32 prayer       = 5;
+  optional int32 magic        = 6;
+  optional int32 runecraft    = 7;
+  optional int32 hitpoints    = 8;
+  optional int32 crafting     = 9;
+  optional int32 mining       = 10;
+  optional int32 smithing     = 11;
+  optional int32 fishing      = 12;
+  optional int32 cooking      = 13;
+  optional int32 firemaking   = 14;
+  optional int32 woodcutting  = 15;
+  optional int32 agility      = 16;
+  optional int32 herblore     = 17;
+  optional int32 thieving     = 18;
+  optional int32 fletching    = 19;
+  optional int32 slayer       = 20;
+  optional int32 farming      = 21;
+  optional int32 construction = 22;
+  optional int32 hunter       = 23;
+  optional string quest       = 24;
+}
+
+// Equipment stats for wearable items
+message OSRSEquipment {
+  OSRSSlot slot                  = 1;
+  OSRSWeaponType weapon_type     = 2;
+  optional float weight          = 3;   // kg
+  optional int32 attack_speed    = 4;   // Game ticks (1-10)
+  optional int32 attack_range    = 5;   // Tiles (1-10)
+  optional bool tradeable        = 6;
+  optional bool degradable       = 7;
+  optional OSRSBonuses bonuses   = 8;
+  optional OSRSRequirements requirements = 9;
+}
+
+// =============================================================================
+// Drop Sources
+// =============================================================================
+
+// Individual drop source entry
+message OSRSDropSource {
+  string source                   = 1;   // Monster/NPC name
+  optional int32 combat_level     = 2;
+  optional string quantity        = 3;   // e.g., "1", "1-3", "1 (noted)"
+  OSRSRarity rarity               = 4;
+  optional string drop_rate       = 5;   // e.g., "1/128", "1/512"
+  optional bool members_only      = 6;
+  optional bool wilderness        = 7;
+}
+
+// =============================================================================
+// Recipes
+// =============================================================================
+
+// Material/ingredient for a recipe
+message OSRSRecipeMaterial {
+  optional int32 item_id  = 1;
+  string item_name        = 2;
+  int32 quantity           = 3;   // Default 1
+  bool consumed            = 4;   // Is the material consumed?
+}
+
+// Recipe for creating an item
+message OSRSRecipe {
+  optional string skill           = 1;   // Lowercase skill name
+  optional int32 level            = 2;   // 0-99
+  optional float xp               = 3;
+  optional string facility        = 4;   // e.g., "Furnace", "Anvil", "Range"
+  optional int32 ticks            = 5;   // Game ticks per action
+  repeated OSRSRecipeMaterial materials = 6;
+}
+
+// =============================================================================
+// Consumables
+// =============================================================================
+
+// Potion/buff effect per dose
+message OSRSEffect {
+  optional string stat            = 1;   // Skill/stat name (lowercase)
+  optional string boost_type      = 2;   // "flat", "percentage", "formula"
+  optional int32 boost_value      = 3;
+  optional string boost_formula   = 4;   // e.g., "floor(level * 0.15) + 2"
+  optional int32 duration         = 5;   // Ticks
+}
+
+// Consumable item data (potions and food)
+message OSRSConsumable {
+  optional int32 heals            = 1;   // HP healed (food)
+  optional int32 doses            = 2;   // Potion doses (0-4)
+  optional int32 cooking_level    = 3;   // Required cooking level
+  repeated OSRSEffect effects     = 4;   // Potion effects per dose
+}
+
+// =============================================================================
+// Price Data
+// =============================================================================
+
+// GE price snapshot
+message OSRSPrice {
+  optional int64 high_price       = 1;
+  optional int64 high_time        = 2;   // Unix epoch seconds
+  optional int64 low_price        = 3;
+  optional int64 low_time         = 4;   // Unix epoch seconds
+}
+
+// =============================================================================
+// Core Item
+// =============================================================================
+
+// Complete OSRS item with all optional nested data
+message OSRSItem {
+  int64 id                            = 1;   // OSRS item ID
+  string name                         = 2;
+  string slug                         = 3;   // URL-safe slug
+  string examine                      = 4;
+  bool members                        = 5;
+  string icon                         = 6;   // Icon filename/URL
+  int32 value                         = 7;   // Base value in coins
+  optional int32 lowalch              = 8;
+  optional int32 highalch             = 9;
+  optional int32 ge_limit             = 10;  // GE buy limit per 4 hours
+
+  // Nested optional data
+  optional OSRSEquipment equipment    = 11;
+  repeated OSRSDropSource drop_sources = 12;
+  repeated OSRSRecipe recipes         = 13;
+  optional OSRSConsumable consumable  = 14;
+  optional OSRSPrice price            = 15;
+}
+
+// =============================================================================
+// Persistence Requests / Responses
+// =============================================================================
+
+// Upsert a full item with all nested data
+message UpsertItemRequest {
+  OSRSItem item = 1;
+}
+
+message UpsertItemResponse {
+  bool success = 1;
+  optional string error = 2;
+}
+
+// Bulk save GE prices
+message SavePricesRequest {
+  repeated OSRSPrice prices = 1;
+  repeated int64 item_ids = 2;   // Parallel array — prices[i] is for item_ids[i]
+}
+
+message SavePricesResponse {
+  bool success = 1;
+  int32 saved_count = 2;
+  optional string error = 3;
+}
+
+// Get a full item by ID
+message GetItemRequest {
+  int64 item_id = 1;
+}
+
+message GetItemResponse {
+  bool found = 1;
+  optional OSRSItem item = 2;
+  optional string error = 3;
+}
+
+// Search items by name (trigram similarity)
+message SearchItemsRequest {
+  string query = 1;
+  int32 limit = 2;   // Max results (default 20)
+}
+
+message SearchItemsResponse {
+  repeated OSRSItem items = 1;
+  optional string error = 2;
+}
+
+// =============================================================================
+// Service Definition
+// =============================================================================
+
+service OSRSData {
+  // Item CRUD
+  rpc UpsertItem (UpsertItemRequest) returns (UpsertItemResponse);
+  rpc GetItem (GetItemRequest) returns (GetItemResponse);
+  rpc SearchItems (SearchItemsRequest) returns (SearchItemsResponse);
+
+  // Price updates
+  rpc SavePrices (SavePricesRequest) returns (SavePricesResponse);
+}
