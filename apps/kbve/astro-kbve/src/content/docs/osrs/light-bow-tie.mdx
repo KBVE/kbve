@@ -1,0 +1,37 @@
+---
+title: Light bow tie | OSRS Price Data
+description: "Light bow tie: Bow ties are cool.. High alch: 3,000 GP, GE limit: 4."
+osrs:
+  id: 19985
+  name: Light bow tie
+  slug: light-bow-tie
+  examine: Bow ties are cool.
+  members: true
+  icon: Light bow tie.png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

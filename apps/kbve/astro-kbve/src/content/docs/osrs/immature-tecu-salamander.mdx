@@ -1,0 +1,37 @@
+---
+title: Immature tecu salamander | OSRS Price Data
+description: "Immature tecu salamander: A little too small to stuff full of tar.. High alch: 120 GP."
+osrs:
+  id: 28831
+  name: Immature tecu salamander
+  slug: immature-tecu-salamander
+  examine: A little too small to stuff full of tar.
+  members: true
+  icon: Immature tecu salamander.png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

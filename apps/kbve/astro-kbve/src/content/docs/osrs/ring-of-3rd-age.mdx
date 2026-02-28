@@ -1,0 +1,37 @@
+---
+title: Ring of 3rd age | OSRS Price Data
+description: "Ring of 3rd age: Makes you look like something really old, for those moments when you want that.. High alch: 7,200 GP, GE limit: 4."
+osrs:
+  id: 23185
+  name: Ring of 3rd age
+  slug: ring-of-3rd-age
+  examine: Makes you look like something really old, for those moments when you want that.
+  members: false
+  icon: Ring of 3rd age.png
+  value: 12000
+  lowalch: 4800
+  highalch: 7200
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

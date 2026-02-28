@@ -1,0 +1,95 @@
+---
+title: Adamant platebody | OSRS Price Data
+description: "Adamant platebody: Provides excellent protection.. High alch: 9,984 GP, GE limit: 125."
+osrs:
+  id: 1123
+  name: Adamant platebody
+  slug: adamant-platebody
+  examine: Provides excellent protection.
+  members: false
+  icon: Adamant platebody.png
+  value: 16640
+  lowalch: 6656
+  highalch: 9984
+  limit: 125
+  item_id: 1123
+  item_type: armor
+  slot: body
+  type: platebody
+  tradeable: true
+  weight: 11.339
+  requirements:
+    defence: 30
+  stats:
+    stab_defence: 65
+    slash_defence: 63
+    crush_defence: 55
+    magic: -30
+    ranged: -15
+  related_items:
+    - slug: rune-platebody
+    - slug: adamantite-bar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Melee Armour |
+| Tradeable | Yes |
+| Weight | 11.339 kg |
+| Requirements | 30 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +65 |
+| Slash Defence | +63 |
+| Crush Defence | +55 |
+| Magic | -30 |
+| Ranged | -15 |
+
+## Obtaining
+
+**Smithing:** Smith from 5 adamantite bars (88 Smithing, 312.5 XP).
+
+**Shop:** Champions' Guild, Blast Furnace.
+
+**Drops:** King Black Dragon, black dragons.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~9,615 gp
+
+Mid-tier body armour. Good alch value.
+
+## Related Items
+
+- [Rune platebody](/osrs/rune-platebody/) - Upgrade
+- [Adamantite bar](/osrs/adamantite-bar/) - Smithing material
+
+<Adsense />

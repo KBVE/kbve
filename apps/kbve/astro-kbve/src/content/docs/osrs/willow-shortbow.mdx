@@ -1,0 +1,116 @@
+---
+title: Willow shortbow | OSRS Price Data
+description: "Willow shortbow is a F2P two-handed weapon. High alch: 120 GP, GE limit: 18,000."
+osrs:
+  id: 849
+  name: Willow shortbow
+  slug: willow-shortbow
+  examine: A shortbow made out of willow, still effective.
+  members: false
+  icon: Willow shortbow.png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 18000
+  equipment:
+    slot: 2h
+    type: shortbow
+    attack_style: ranged
+    attack_speed: 4
+  requirements:
+    ranged: 20
+  stats:
+    attack:
+      ranged: 20
+    other:
+      ranged_strength: 0
+    range: 7
+  fletching:
+    level: 35
+    xp: 33.3
+    method: Willow shortbow (u) + bowstring
+  shops:
+    - shop_name: Lowe's Archery Emporium
+      location: Varrock
+      price: 200
+  related_items:
+    - item_id: 853
+      item_name: Maple shortbow
+      slug: maple-shortbow
+      relationship: upgrade
+      description: Higher tier shortbow
+    - item_id: 847
+      item_name: Willow longbow
+      slug: willow-longbow
+      relationship: alternative
+      description: More attack range
+    - item_id: 60
+      item_name: Willow shortbow (u)
+      slug: willow-shortbow-u
+      relationship: component
+      description: Unstrung version
+    - item_id: 1777
+      item_name: Bow string
+      slug: bow-string
+      relationship: component
+      description: Stringing material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-Handed |
+| Type | Shortbow |
+| Tradeable | Yes |
+| Weight | 1.36 kg |
+| Requirements | 20 Ranged |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +20 |
+| Ranged Strength | +0 |
+| Attack Range | 7 |
+
+## Obtaining
+
+**Fletching:** 35 Fletching with willow shortbow (u) + bowstring (33.3 XP).
+
+**Shop:** Lowe's Archery Emporium, Varrock.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~94 gp
+
+Mid-level ranged weapon. F2P accessible.
+
+## Related Items
+
+- [Maple shortbow](/osrs/maple-shortbow/) - Upgrade
+- [Willow longbow](/osrs/willow-longbow/) - More range
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Dragon 2h sword | OSRS Price Data
+description: "Dragon 2h sword: A two-handed Dragon Sword.. High alch: 132,000 GP, GE limit: 8."
+osrs:
+  id: 7158
+  name: Dragon 2h sword
+  slug: dragon-2h-sword
+  examine: A two-handed Dragon Sword.
+  members: true
+  icon: Dragon 2h sword.png
+  value: 220000
+  lowalch: 88000
+  highalch: 132000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

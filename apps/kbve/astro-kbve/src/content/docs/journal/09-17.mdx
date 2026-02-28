@@ -1,0 +1,118 @@
+---
+title: 'September: 17th'
+category: Daily
+date: 2025-09-17 12:00:00
+client: Self
+unsplash: 1692095296815-943c0e214cd0
+img: https://images.unsplash.com/photo-1692095296815-943c0e214cd0?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 17th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Unity DOTS
+
+-   11:59PM
+
+    End of the night notes, I am getting closer with the DOTS integration into the RareIcon.
+    There are some issues with the render pipeline, which was currently at the standard version but I was able to upgrade it to URP.
+    In order to do the upgrade, I had to remove the top down engine and upgrade the version from v4.2 to v4.4, thus making it easier.
+
+## 2024
+
+**Deadlock**
+
+Talking a quick break from the general meetings and rift raft of the day, need to enjoy the cool feeling of silver surfer kelvin.
+Overall the game is growing on me and I hope that they expand the PvE aspect of the game further.
+The ice gernade and melee combo on him is super fun, I think if I can get around 20 to 100 rounds playing it through, I should be solid enough to win some matches against players.
+I been using the bot matches to get a better understanding of the map and the movement, looking for shortcuts and getting better at my dash jumps.
+
+**dotNet8**
+
+The saber build looks like it failed on the main branch and I am thinking it might be because we are using dotnet7?
+It might be time to officially switch the package and the saber build over to dotnet8 and that also means converting the whole saber project to unity6.
+The circle ci build for the unity6 has been released and with the canceled runtime fee, its a perfect combo for me to move forward on that department.
+Furthermore, we had to update the artifact github actions from version 2 to version 4 because its been a while since we had them execute.
+This means that we have not worked officially on the open source version of saber in a while, but that is because we had a ton of backlog to shift through and fix up.
+With the recent release of the unity6 circle ci action, we can get back to making sure that the unity part of this monorepo is functional for that version, dropping the older versions of unity.
+Since the public source of saber is already outdated, I believe there should a decent amount of the files that can be deleted or replaced, hmm.
+
+My idea now might be to just delete a large portion of the folder, then create a new unity6 build from scratch and then reimport all the files and code that would be required.
+
+Side note: if you have a version of dotnet7 and need to upgrade it to dotnet8 on WSL, I had to run this
+
+```shell
+
+sudo apt remove 'dotnet*'
+sudo apt install dotnet-sdk-8.0
+
+```
+
+
+**Longhorn**
+
+Updated longhorn from 1.5.5 to 1.6.x to finally 1.7.1!
+There was a situation where the longhorn did fail to upgrade but I am thinking that might be because we do not have enough room in all the nodes, which means I will have to warp back around and update the specs on them.
+The storage was updated on the master2 to about 50gb, I will have to do that again on all the other 4 nodes and then do a quick apt-get install & restart.
+In the future, we should look into the Element setup for the k3s, I been hearing great things about it.
+
+**GitOps**
+
+Okay, now the next plan for the kube deployment would be to configure the gitops and making sure that they run without any issues.
+The location for the deployments should be under `migration/kube/`, let me add a quick gitkeep to make sure the folder stays in sync.
+In this situation, the plan will be to create the `Chart.yaml` inside of the `migration/kube/kilobase` and start with the base information for the kubernetes deployment.
+This is the example `Chart.yaml` that we will be using:
+
+```yaml
+
+apiVersion: v2
+name: kilobase
+description: The open source stack built ontop of Supabase.
+type: application
+version: 0.0.1
+icon: https://avatars.githubusercontent.com/u/5571997?s=280&v=4
+
+```
+
+Granted we are doing all of this before we deploy and release the application onto the dockerhub, but this is a good way to practice the parallel ops, aka ParaOps.
+
+Next up, there should be a `.helmignore` that will make sure that some of the files are skipped when setting up the helm chart for this directory.
+I also moved the all the charts further into a subfolder, so they are now located here: `migrations/kube/charts/` and the first chart that we will be releasing is: `migrations/kube/charts/kilobase`.
+Added a quick readme and now I am going to start to upload each of the template pieces.
+
+Now that I am thinking it through, it would make more sense to keep the application name as supabase because its all built around it and make sure that the custom iamge is just the kilobase.
+This would resolve some of the issues that I might face down the line with updating and besides the `kilobase.so` extension, everything else is from supabase.
+
+Each subfolder within the templates would represent a different service for the full stack!
+The first one is the analytics, which should be easy for this type of situation.
+
+Next is the big one, its the `deployment.yaml` for the db aka database, in this situation we will have to come back around and adjust it so that it uses the cnpg operator directly for the deployment.
+The other option would be to just to set it to be an external database and then have it connect to that but I believe in our first instance, we want to atleast make sure all the other services can run without any major issues.
+
+Okay now to add the function charts to the stack.
+
+
+
+<Adsense />
+
+## 2023
+- 10:32am - Lunch with the family, I know it will make me feel old because I am watching all my younger niece and nephews grow up to almost become adults, which is wild to me.
+- 2:11pm - Spent the Sunday morning hanging out with the family! Now I am back on the computer and going to start the micro function migration.
+- 4:45pm - The first function will be the register, which has been somewhat of an issue for a while because I have to make it create the user, profile and the various other components within the structure.
+- 8:21pm - Everything is working to a certain extent, so I am glad that it is moving along! I am getting a better understanding with how Appwrite and Docker are working, its really making things a ton easier as I am getting to understand it.
+- 2:00am - Halo and One Piece?! I am all into this mixture! Best combination, because its really a throw back, I remember playing halo 2 and watching one piece at the same time a decade ago.
+
+## Quote
+
+> A good decision is based on knowledge and not on numbers.
+> — <cite>Plato</cite>
+
+---
+
+## Tasks
+
+- [ ]

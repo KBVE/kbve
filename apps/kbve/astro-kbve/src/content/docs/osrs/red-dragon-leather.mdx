@@ -1,0 +1,123 @@
+---
+title: Red dragon leather | OSRS Price Data
+description: "Red dragon leather: It's a piece of prepared red dragonhide.. High alch: 54 GP, GE limit: 11,000."
+osrs:
+  id: 2507
+  name: Red dragon leather
+  slug: red-dragon-leather
+  examine: It's a piece of prepared red dragonhide.
+  members: true
+  icon: Red dragon leather.png
+  value: 90
+  lowalch: 36
+  highalch: 54
+  limit: 11000
+  material:
+    type: leather
+    tier: high
+  tanning:
+    cost: 20
+    source_id: 1749
+    source_name: Red dragonhide
+  crafting_products:
+    - product: Red d'hide vambraces
+      product_id: 2489
+      level: 73
+      xp: 78
+      leather: 1
+    - product: Red d'hide chaps
+      product_id: 2495
+      level: 75
+      xp: 156
+      leather: 2
+    - product: Red d'hide shield
+      product_id: 24370
+      level: 76
+      xp: 156
+      leather: 2
+    - product: Red d'hide body
+      product_id: 2501
+      level: 77
+      xp: 234
+      leather: 3
+  related_items:
+    - item_id: 1749
+      item_name: Red dragonhide
+      slug: red-dragonhide
+      relationship: component
+      description: Raw material
+    - item_id: 2501
+      item_name: Red d'hide body
+      slug: red-dhide-body
+      relationship: product
+      description: Main product
+    - item_id: 2509
+      item_name: Black dragon leather
+      slug: black-dragon-leather
+      relationship: alternative
+      description: Higher tier
+    - item_id: 2505
+      item_name: Blue dragon leather
+      slug: blue-dragon-leather
+      relationship: alternative
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Cost |
+|--------|------|
+| Tanner | 20 GP + Red dragonhide |
+| Tan Leather spell | 78 Magic, runes |
+
+## Crafting
+
+| Product | Level | Leather | XP |
+|---------|-------|---------|-----|
+| Red d'hide vambraces | 73 | 1 | 78 |
+| Red d'hide chaps | 75 | 2 | 156 |
+| Red d'hide shield | 76 | 2 | 156 |
+| Red d'hide body | 77 | 3 | 234 |
+
+## Market Flip Strategy
+
+**Mid-Tier Crafting Material:**
+- Second-best dragonhide
+- Good Crafting XP
+- Tan Leather profit
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Crafting training
+- D'hide armor production
+- Tan Leather spell
+- Ironman progression
+
+**Tips:**
+- Tan Leather spell efficient
+- 20 GP tanner fee
+- Red dragons drop hide
+- Step below black
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Jumbo squid | OSRS Price Data
+description: "Jumbo squid: Doesn't look too appetising, but looks can be deceiving.. High alch: 96 GP."
+osrs:
+  id: 31564
+  name: Jumbo squid
+  slug: jumbo-squid
+  examine: Doesn't look too appetising, but looks can be deceiving.
+  members: true
+  icon: Jumbo squid.png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

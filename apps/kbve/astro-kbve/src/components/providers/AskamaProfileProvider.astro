@@ -1,0 +1,2887 @@
+---
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+// AskamaProfileProvider - Mirrors the Askama profile.html template
+// This component renders the user profile page that Axum serves for /@username routes
+// Askama variables: {{ username }}, {{ username_first_char }}, {{ unsplash_banner_id }}, {{ bio }}, {{ status }}, {{ primary_avatar_url }}, {{ discord_username }}, {{ discord_avatar }}, {{ discord_is_guild_member }}, {{ discord_id }}, {{ discord_guild_nickname }}, {{ discord_joined_at }}, {{ discord_is_boosting }}, {{ discord_role_count }}, {{ discord_role_names }}, {{ github_username }}, {{ github_avatar }}, {{ twitch_username }}, {{ twitch_avatar }}, {{ twitch_is_live }}, {{ rentearth_characters }}, {{ rentearth_total_playtime_hours }}, {{ rentearth_last_activity }}
+
+interface Props {
+	class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+// Askama template placeholders - NEW hero fields
+const askamaUsername = `{{ username }}`;
+const askamaUsernameFirstChar = `{{ username_first_char }}`;
+const askamaBannerId = `{{ unsplash_banner_id }}`;
+
+// Hero avatar block - uses primary_avatar_url or fallback to first char
+const heroAvatarBlock = `{% if let Some(avatar) = primary_avatar_url %}
+<img src="{{ avatar }}" alt="{{ username }}'s avatar" loading="eager" class="profile-hero__avatar-img">
+{% else %}
+<span class="profile-hero__avatar-letter">{{ username_first_char }}</span>
+{% endif %}`;
+
+// Status block
+const statusBlock = `{% if let Some(status_text) = status %}
+<p class="profile-hero__status" role="status" aria-live="polite">
+    <span class="profile-hero__status-dot" aria-hidden="true"></span>
+    {{ status_text }}
+</p>
+{% endif %}`;
+
+// Bio block
+const bioBlock = `{% if let Some(bio_text) = bio %}
+<p class="profile-hero__bio">{{ bio_text }}</p>
+{% endif %}`;
+
+// Badges block
+const badgesBlock = `<ul class="profile-hero__badges" aria-label="User badges" role="list">
+    <li class="profile-hero__badge">KBVE Member</li>
+    {% if let Some(is_member) = discord_is_guild_member %}
+        {% if is_member %}
+        <li class="profile-hero__badge discord">Discord Member</li>
+        {% endif %}
+    {% endif %}
+</ul>`;
+
+// Connected Accounts Card - Premium glassmorphism design
+const connectedAccountsCard = `<div class="premium-card group" style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 20px; padding: 5px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease;">
+    <!-- Gradient Top Section with Skewed Border -->
+    <div style="height: 48px; border-radius: 15px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.9) 0%, rgba(59, 130, 246, 0.9) 50%, rgba(139, 92, 246, 0.9) 100%); position: relative; display: flex; flex-direction: column; overflow: hidden;">
+        <!-- Animated gradient overlay -->
+        <div style="position: absolute; inset: 0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%); animation: shimmer 3s ease-in-out infinite;"></div>
+        <!-- Skewed notch element on the LEFT side with CONNECTED text inside -->
+        <div style="position: absolute; bottom: 0; left: 0; height: 24px; width: 120px; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); transform: skewX(-25deg); transform-origin: bottom left; border-top-right-radius: 12px; display: flex; align-items: center; justify-content: center; padding-left: 8px;">
+            <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.85); transform: skewX(25deg);">CONNECTED</span>
+        </div>
+        <div style="position: absolute; bottom: 0; left: 95px; width: 20px; height: 20px; background: radial-gradient(circle at top left, transparent 70%, rgba(15, 23, 42, 0.95) 70%);"></div>
+    </div>
+
+    <!-- Content Section -->
+    <div style="padding: 6px 16px 16px;">
+        <h2 style="text-align: center; color: white; font-weight: 700; font-size: 12px; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 8px; opacity: 0.9;">Accounts</h2>
+
+        <!-- Account List -->
+        <div style="display: flex; flex-direction: column; gap: 10px;">
+            {% if let Some(discord) = discord_username %}
+            <div style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(88, 101, 242, 0.15) 0%, rgba(88, 101, 242, 0.05) 100%); border: 1px solid rgba(88, 101, 242, 0.2); transition: all 0.3s ease; cursor: pointer;" onmouseover="this.style.background='linear-gradient(135deg, rgba(88, 101, 242, 0.25) 0%, rgba(88, 101, 242, 0.1) 100%)'; this.style.transform='translateX(4px)';" onmouseout="this.style.background='linear-gradient(135deg, rgba(88, 101, 242, 0.15) 0%, rgba(88, 101, 242, 0.05) 100%)'; this.style.transform='translateX(0)';">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #5865f2 0%, #7289da 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(88, 101, 242, 0.4);">
+                    {% if let Some(avatar) = discord_avatar %}
+                    <img src="{{ avatar }}" alt="" style="width: 100%; height: 100%; border-radius: 10px; object-fit: cover;">
+                    {% else %}
+                    <svg style="width: 20px; height: 20px; color: white;" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.36-.698.772-1.362 1.225-1.993a.076.076 0 0 0-.041-.106c-.656-.248-1.28-.55-1.872-.892a.077.077 0 0 1-.008-.128c.126-.094.252-.192.373-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127c-.598.344-1.22.645-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+                    {% endif %}
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <p style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                        Discord
+                        {% if let Some(is_member) = discord_is_guild_member %}{% if is_member %}<span style="padding: 2px 6px; font-size: 8px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 4px; box-shadow: 0 2px 4px rgba(16, 185, 129, 0.3);">KBVE</span>{% endif %}{% endif %}
+                    </p>
+                    <p style="font-size: 14px; font-weight: 600; color: white;">{{ discord }}</p>
+                </div>
+                <svg style="width: 18px; height: 18px; color: #5865f2; opacity: 0.7;" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.36-.698.772-1.362 1.225-1.993a.076.076 0 0 0-.041-.106c-.656-.248-1.28-.55-1.872-.892a.077.077 0 0 1-.008-.128c.126-.094.252-.192.373-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127c-.598.344-1.22.645-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+            </div>
+            {% endif %}
+
+            {% if let Some(github) = github_username %}
+            <a href="https://github.com/{{ github }}" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%); border: 1px solid rgba(255, 255, 255, 0.1); transition: all 0.3s ease; text-decoration: none;" onmouseover="this.style.background='linear-gradient(135deg, rgba(255, 255, 255, 0.15) 0%, rgba(255, 255, 255, 0.05) 100%)'; this.style.transform='translateX(4px)';" onmouseout="this.style.background='linear-gradient(135deg, rgba(255, 255, 255, 0.08) 0%, rgba(255, 255, 255, 0.02) 100%)'; this.style.transform='translateX(0)';">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #374151 0%, #1f2937 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);">
+                    {% if let Some(avatar) = github_avatar %}
+                    <img src="{{ avatar }}" alt="" style="width: 100%; height: 100%; border-radius: 10px; object-fit: cover;">
+                    {% else %}
+                    <svg style="width: 20px; height: 20px; color: white;" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+                    {% endif %}
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <p style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 2px;">GitHub</p>
+                    <p style="font-size: 14px; font-weight: 600; color: white;">{{ github }}</p>
+                </div>
+                <svg style="width: 16px; height: 16px; color: rgba(255,255,255,0.4);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+            </a>
+            {% endif %}
+
+            {% if let Some(twitch) = twitch_username %}
+            <a href="https://twitch.tv/{{ twitch }}" target="_blank" rel="noopener" style="display: flex; align-items: center; gap: 12px; padding: 12px; border-radius: 12px; background: linear-gradient(135deg, rgba(145, 70, 255, 0.15) 0%, rgba(145, 70, 255, 0.05) 100%); border: 1px solid rgba(145, 70, 255, 0.2); transition: all 0.3s ease; text-decoration: none;" onmouseover="this.style.background='linear-gradient(135deg, rgba(145, 70, 255, 0.25) 0%, rgba(145, 70, 255, 0.1) 100%)'; this.style.transform='translateX(4px)';" onmouseout="this.style.background='linear-gradient(135deg, rgba(145, 70, 255, 0.15) 0%, rgba(145, 70, 255, 0.05) 100%)'; this.style.transform='translateX(0)';">
+                <div style="width: 40px; height: 40px; border-radius: 10px; background: linear-gradient(135deg, #9146ff 0%, #772ce8 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(145, 70, 255, 0.4);">
+                    {% if let Some(avatar) = twitch_avatar %}
+                    <img src="{{ avatar }}" alt="" style="width: 100%; height: 100%; border-radius: 10px; object-fit: cover;">
+                    {% else %}
+                    <svg style="width: 20px; height: 20px; color: white;" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+                    {% endif %}
+                </div>
+                <div style="flex: 1; min-width: 0;">
+                    <p style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.5); text-transform: uppercase; letter-spacing: 1px; display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                        Twitch
+                        {% if let Some(is_live) = twitch_is_live %}{% if is_live %}<span style="padding: 2px 6px; font-size: 8px; font-weight: 700; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; border-radius: 4px; animation: pulse 2s infinite;">LIVE</span>{% endif %}{% endif %}
+                    </p>
+                    <p style="font-size: 14px; font-weight: 600; color: white;">{{ twitch }}</p>
+                </div>
+                <svg style="width: 18px; height: 18px; color: #9146ff; opacity: 0.7;" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+            </a>
+            {% endif %}
+        </div>
+    </div>
+</div>`;
+
+// Discord provider card - Simple row style for fallback
+const discordProviderCard = `{% if let Some(discord) = discord_username %}
+<div class="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 hover:border-zinc-600 transition-all group" role="listitem">
+    <div class="w-10 h-10 rounded-lg bg-[#5865f2]/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        {% if let Some(avatar) = discord_avatar %}
+        <img src="{{ avatar }}" alt="" loading="lazy" class="w-full h-full object-cover">
+        {% else %}
+        <svg class="w-5 h-5 text-[#5865f2]" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        {% endif %}
+    </div>
+    <div class="flex-1 min-w-0">
+        <p class="text-xs font-medium text-zinc-400 uppercase tracking-wide flex items-center gap-2">
+            Discord
+            {% if let Some(is_member) = discord_is_guild_member %}
+                {% if is_member %}
+                <span class="px-1.5 py-0.5 text-[10px] font-bold bg-emerald-500/20 text-emerald-400 rounded">KBVE</span>
+                {% endif %}
+            {% endif %}
+        </p>
+        <p class="text-sm font-semibold text-white truncate">{{ discord }}</p>
+    </div>
+    <svg class="w-5 h-5 text-[#5865f2] opacity-60 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+</div>
+{% endif %}`;
+
+// GitHub provider card - Tailwind unified design
+const githubProviderCard = `{% if let Some(github) = github_username %}
+<div class="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 hover:border-zinc-600 transition-all group" role="listitem">
+    <div class="w-10 h-10 rounded-lg bg-zinc-700/50 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        {% if let Some(avatar) = github_avatar %}
+        <img src="{{ avatar }}" alt="" loading="lazy" class="w-full h-full object-cover">
+        {% else %}
+        <svg class="w-5 h-5 text-zinc-300" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+        {% endif %}
+    </div>
+    <div class="flex-1 min-w-0">
+        <p class="text-xs font-medium text-zinc-400 uppercase tracking-wide">GitHub</p>
+        <p class="text-sm font-semibold text-white truncate">{{ github }}</p>
+    </div>
+    <svg class="w-5 h-5 text-zinc-400 opacity-60 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+</div>
+{% endif %}`;
+
+// Twitch provider card - Tailwind unified design
+const twitchProviderCard = `{% if let Some(twitch) = twitch_username %}
+<div class="flex items-center gap-3 p-3 rounded-xl bg-zinc-800/50 border border-zinc-700/50 hover:bg-zinc-800 hover:border-zinc-600 transition-all group" role="listitem">
+    <div class="w-10 h-10 rounded-lg bg-[#9146ff]/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+        {% if let Some(avatar) = twitch_avatar %}
+        <img src="{{ avatar }}" alt="" loading="lazy" class="w-full h-full object-cover">
+        {% else %}
+        <svg class="w-5 h-5 text-[#9146ff]" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+        {% endif %}
+    </div>
+    <div class="flex-1 min-w-0">
+        <p class="text-xs font-medium text-zinc-400 uppercase tracking-wide flex items-center gap-2">
+            Twitch
+            {% if let Some(is_live) = twitch_is_live %}
+                {% if is_live %}
+                <span class="px-1.5 py-0.5 text-[10px] font-bold bg-red-500 text-white rounded animate-pulse">LIVE</span>
+                {% endif %}
+            {% endif %}
+        </p>
+        <p class="text-sm font-semibold text-white truncate">{{ twitch }}</p>
+    </div>
+    <svg class="w-5 h-5 text-[#9146ff] opacity-60 group-hover:opacity-100 transition-opacity" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+</div>
+{% endif %}`;
+
+// No providers message
+const noProvidersBlock = `{% if discord_username.is_none() && github_username.is_none() && twitch_username.is_none() %}
+<p class="no-providers">No connected accounts</p>
+{% endif %}`;
+
+// ============================================
+// DETAILED PROFILE SECTIONS
+// ============================================
+
+// GitHub detailed profile section - Premium glassmorphism design
+const githubProfileSection = `{% if let Some(github) = github_username %}
+<article style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 20px; padding: 5px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -2px 4px rgba(0, 0, 0, 0.2);" data-github-username="{{ github }}">
+    <!-- GitHub Banner -->
+    <div style="height: 56px; border-radius: 15px; background: linear-gradient(135deg, rgba(55, 65, 81, 0.95) 0%, rgba(75, 85, 99, 0.95) 50%, rgba(107, 114, 128, 0.95) 100%); position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.15);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.08) 50%, transparent 70%); animation: shimmer 3s ease-in-out infinite;"></div>
+        <!-- Skewed notch with avatar and GITHUB text inside -->
+        <div style="position: absolute; bottom: 0; left: 0; height: 40px; width: 160px; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); transform: skewX(-25deg); transform-origin: bottom left; border-top-right-radius: 12px;"></div>
+        <div style="position: absolute; bottom: 0; left: 135px; width: 20px; height: 20px; background: radial-gradient(circle at top left, transparent 70%, rgba(15, 23, 42, 0.95) 70%);"></div>
+        <!-- Avatar and text container (unskewed) -->
+        <div style="position: absolute; bottom: 4px; left: 8px; display: flex; align-items: center; gap: 8px; z-index: 10;">
+            {% if let Some(avatar) = github_avatar %}
+            <img src="{{ avatar }}" alt="{{ github }}'s GitHub avatar" style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid rgba(55, 65, 81, 0.8); object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" loading="lazy">
+            {% else %}
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #374151 0%, #1f2937 100%); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(55, 65, 81, 0.8); box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                <svg style="width: 16px; height: 16px; color: white;" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+            </div>
+            {% endif %}
+            <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.85);">GITHUB</span>
+        </div>
+        <!-- GitHub icon in top right -->
+        <div style="position: absolute; top: 12px; right: 16px;">
+            <svg style="width: 20px; height: 20px; color: rgba(255,255,255,0.7);" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div style="padding: 12px 20px 20px;">
+        <h3 style="font-size: 18px; font-weight: 700; color: white; margin-bottom: 4px;">{{ github }}</h3>
+        <p style="font-size: 12px; color: rgba(255,255,255,0.5); margin-bottom: 16px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;" id="github-bio">Loading...</p>
+
+        <!-- Stats Row -->
+        <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; margin-bottom: 16px;">
+            <div style="flex: 1; text-align: center;">
+                <span style="display: block; font-size: 20px; font-weight: 800; color: white; background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="github-repos">--</span>
+                <span style="font-size: 9px; color: rgba(156, 163, 175, 0.6); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Repos</span>
+            </div>
+            <div style="flex: 1; text-align: center; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1);">
+                <span style="display: block; font-size: 20px; font-weight: 800; color: white; background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="github-followers">--</span>
+                <span style="font-size: 9px; color: rgba(156, 163, 175, 0.6); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Followers</span>
+            </div>
+            <div style="flex: 1; text-align: center;">
+                <span style="display: block; font-size: 20px; font-weight: 800; color: white; background: linear-gradient(135deg, #6b7280 0%, #9ca3af 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;" id="github-following">--</span>
+                <span style="font-size: 9px; color: rgba(156, 163, 175, 0.6); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Following</span>
+            </div>
+        </div>
+
+        <a href="https://github.com/{{ github }}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 12px 20px; background: linear-gradient(135deg, #374151 0%, #1f2937 100%); color: white; font-size: 13px; font-weight: 600; border-radius: 12px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 20px rgba(0,0,0,0.4)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 12px rgba(0,0,0,0.3)';">
+            View on GitHub
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+    </div>
+</article>
+{% endif %}`;
+
+// Discord detailed profile section - Premium glassmorphism design
+const discordProfileSection = `{% if let Some(discord) = discord_username %}
+<article style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 20px; padding: 5px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -2px 4px rgba(0, 0, 0, 0.2);">
+    <!-- Discord Banner -->
+    <div style="height: 56px; border-radius: 15px; background: linear-gradient(135deg, rgba(79, 70, 229, 0.95) 0%, rgba(124, 58, 237, 0.95) 50%, rgba(168, 85, 247, 0.95) 100%); position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.15);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%); animation: shimmer 3s ease-in-out infinite;"></div>
+        <!-- Skewed notch with avatar and DISCORD text inside -->
+        <div style="position: absolute; bottom: 0; left: 0; height: 40px; width: 160px; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); transform: skewX(-25deg); transform-origin: bottom left; border-top-right-radius: 12px;"></div>
+        <div style="position: absolute; bottom: 0; left: 135px; width: 20px; height: 20px; background: radial-gradient(circle at top left, transparent 70%, rgba(15, 23, 42, 0.95) 70%);"></div>
+        <!-- Avatar and text container (unskewed) -->
+        <div style="position: absolute; bottom: 4px; left: 8px; display: flex; align-items: center; gap: 8px; z-index: 10;">
+            {% if let Some(avatar) = discord_avatar %}
+            <img src="{{ avatar }}" alt="{{ discord }}'s Discord avatar" style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid rgba(88, 101, 242, 0.8); object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" loading="lazy">
+            {% else %}
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #5865f2 0%, #7289da 100%); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(88, 101, 242, 0.8); box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                <svg style="width: 16px; height: 16px; color: white;" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.36-.698.772-1.362 1.225-1.993a.076.076 0 0 0-.041-.106c-.656-.248-1.28-.55-1.872-.892a.077.077 0 0 1-.008-.128c.126-.094.252-.192.373-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127c-.598.344-1.22.645-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+            </div>
+            {% endif %}
+            <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.85);">DISCORD</span>
+        </div>
+        <!-- Discord icon & booster badge in top right -->
+        <div style="position: absolute; top: 12px; right: 16px; display: flex; align-items: center; gap: 8px;">
+            {% if let Some(is_boosting) = discord_is_boosting %}
+                {% if is_boosting %}
+                <span style="display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; background: rgba(15, 23, 42, 0.8); border-radius: 6px; font-size: 11px; color: #f472b6; font-weight: 600;" title="Server Booster">
+                    <svg style="width: 12px; height: 12px;" viewBox="0 0 24 24" fill="currentColor"><path d="M4 8h4V4H4zm6 12h4v-4h-4zm-6 0h4v-4H4zm0-6h4v-4H4zm6 0h4v-4h-4zm6-10v4h4V4zm-6 4h4V4h-4zm6 6h4v-4h-4zm0 6h4v-4h-4z"/></svg>
+                    Booster
+                </span>
+                {% endif %}
+            {% endif %}
+            <svg style="width: 20px; height: 20px; color: rgba(255,255,255,0.8);" viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028c.36-.698.772-1.362 1.225-1.993a.076.076 0 0 0-.041-.106c-.656-.248-1.28-.55-1.872-.892a.077.077 0 0 1-.008-.128c.126-.094.252-.192.373-.292a.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127c-.598.344-1.22.645-1.873.892a.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div style="padding: 12px 20px 20px;">
+        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 4px;">
+            <h3 style="font-size: 20px; font-weight: 700; color: white;">{% if let Some(nickname) = discord_guild_nickname %}{{ nickname }}{% else %}{{ discord }}{% endif %}</h3>
+            {% if let Some(is_member) = discord_is_guild_member %}
+                {% if is_member %}
+                <span style="padding: 2px 8px; font-size: 9px; font-weight: 700; background: linear-gradient(135deg, #10b981 0%, #059669 100%); color: white; border-radius: 4px; text-transform: uppercase; box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3);">KBVE</span>
+                {% endif %}
+            {% endif %}
+        </div>
+        <p style="font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 20px;">@{{ discord }}</p>
+
+        {% if let Some(is_member) = discord_is_guild_member %}
+            {% if is_member %}
+            <!-- Stats Row -->
+            <div style="display: flex; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; margin-bottom: 20px;">
+                <div style="flex: 1; text-align: center;">
+                    <span style="display: block; font-size: 22px; font-weight: 800; background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{{ discord_role_count }}</span>
+                    <span style="font-size: 9px; color: rgba(129, 140, 248, 0.6); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Roles</span>
+                </div>
+                {% if let Some(joined) = discord_joined_at %}
+                <div style="flex: 1; text-align: center; border-left: 1px solid rgba(255,255,255,0.1);">
+                    <span style="display: block; font-size: 13px; font-weight: 700; color: white;" class="discord-joined-date" data-date="{{ joined }}">{{ joined }}</span>
+                    <span style="font-size: 9px; color: rgba(129, 140, 248, 0.6); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Joined</span>
+                </div>
+                {% endif %}
+            </div>
+
+            {% if !discord_role_names.is_empty() %}
+            <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; margin-bottom: 20px;">
+                <h4 style="font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 2px; color: rgba(255,255,255,0.4); margin-bottom: 12px;">Server Roles</h4>
+                <div style="display: flex; flex-wrap: wrap; gap: 8px;">
+                    {% for role in discord_role_names %}
+                    <span style="display: inline-flex; align-items: center; gap: 6px; padding: 5px 10px; border-radius: 8px; background: linear-gradient(135deg, rgba(129, 140, 248, 0.1) 0%, rgba(192, 132, 252, 0.05) 100%); border: 1px solid rgba(129, 140, 248, 0.2); font-size: 11px; color: rgba(255,255,255,0.8); font-weight: 500;">
+                        <span style="width: 6px; height: 6px; border-radius: 50%; background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%);"></span>
+                        {{ role }}
+                    </span>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+            {% else %}
+            <div style="border-top: 1px solid rgba(255,255,255,0.1); padding-top: 16px; margin-bottom: 20px; text-align: center;">
+                <p style="color: rgba(255,255,255,0.5); font-size: 13px; margin-bottom: 16px;">Not a member of KBVE Discord</p>
+            </div>
+            {% endif %}
+        {% endif %}
+
+        <a href="/discord" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; background: linear-gradient(135deg, #5865f2 0%, #4f46e5 100%); color: white; font-size: 13px; font-weight: 600; border-radius: 12px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 16px rgba(88, 101, 242, 0.4);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(88, 101, 242, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(88, 101, 242, 0.4)';">
+            {% if let Some(is_member) = discord_is_guild_member %}{% if is_member %}View Server{% else %}Join Server{% endif %}{% else %}Join Discord{% endif %}
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+    </div>
+</article>
+{% endif %}`;
+
+// Twitch detailed profile section - Premium glassmorphism design
+const twitchProfileSection = `{% if let Some(twitch) = twitch_username %}
+<article style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 20px; padding: 5px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -2px 4px rgba(0, 0, 0, 0.2);">
+    <!-- Twitch Banner -->
+    <div style="height: 56px; border-radius: 15px; background: linear-gradient(135deg, rgba(145, 70, 255, 0.95) 0%, rgba(168, 85, 247, 0.95) 50%, rgba(217, 70, 239, 0.95) 100%); position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.15);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%); animation: shimmer 3s ease-in-out infinite;"></div>
+        <!-- Skewed notch with avatar and TWITCH text inside -->
+        <div style="position: absolute; bottom: 0; left: 0; height: 40px; width: 160px; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); transform: skewX(-25deg); transform-origin: bottom left; border-top-right-radius: 12px;"></div>
+        <div style="position: absolute; bottom: 0; left: 135px; width: 20px; height: 20px; background: radial-gradient(circle at top left, transparent 70%, rgba(15, 23, 42, 0.95) 70%);"></div>
+        <!-- Avatar and text container (unskewed) -->
+        <div style="position: absolute; bottom: 4px; left: 8px; display: flex; align-items: center; gap: 8px; z-index: 10;">
+            {% if let Some(avatar) = twitch_avatar %}
+            <img src="{{ avatar }}" alt="{{ twitch }}'s Twitch avatar" style="width: 32px; height: 32px; border-radius: 8px; border: 2px solid rgba(145, 70, 255, 0.8); object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.3);" loading="lazy">
+            {% else %}
+            <div style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #9146ff 0%, #772ce8 100%); display: flex; align-items: center; justify-content: center; border: 2px solid rgba(145, 70, 255, 0.8); box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+                <svg style="width: 16px; height: 16px; color: white;" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+            </div>
+            {% endif %}
+            <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.85);">TWITCH</span>
+        </div>
+        <!-- Live badge & Twitch icon in top right -->
+        <div style="position: absolute; top: 12px; right: 16px; display: flex; align-items: center; gap: 8px;">
+            {% if let Some(is_live) = twitch_is_live %}
+                {% if is_live %}
+                <span style="display: inline-flex; align-items: center; gap: 6px; padding: 4px 10px; background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%); color: white; font-size: 10px; font-weight: 700; text-transform: uppercase; border-radius: 6px; animation: pulse 2s infinite; box-shadow: 0 4px 12px rgba(239, 68, 68, 0.5);">
+                    <span style="width: 5px; height: 5px; border-radius: 50%; background: white;"></span>
+                    LIVE
+                </span>
+                {% endif %}
+            {% endif %}
+            <svg style="width: 20px; height: 20px; color: rgba(255,255,255,0.8);" viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>
+        </div>
+    </div>
+
+    <!-- Content Section -->
+    <div style="padding: 12px 20px 20px;">
+        <h3 style="font-size: 20px; font-weight: 700; color: white; margin-bottom: 4px;">{{ twitch }}</h3>
+        <p style="font-size: 13px; color: rgba(255,255,255,0.5); margin-bottom: 20px;">
+            {% if let Some(is_live) = twitch_is_live %}
+                {% if is_live %}<span style="color: #f87171; font-weight: 600;">Currently streaming</span>{% else %}Offline{% endif %}
+            {% else %}
+                Status unknown
+            {% endif %}
+        </p>
+
+        <a href="https://twitch.tv/{{ twitch }}" target="_blank" rel="noopener noreferrer" style="display: flex; align-items: center; justify-content: center; gap: 8px; padding: 14px 20px; background: linear-gradient(135deg, #9146ff 0%, #772ce8 100%); color: white; font-size: 13px; font-weight: 600; border-radius: 12px; text-decoration: none; transition: all 0.3s ease; box-shadow: 0 4px 16px rgba(145, 70, 255, 0.4);" onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 8px 24px rgba(145, 70, 255, 0.5)';" onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='0 4px 16px rgba(145, 70, 255, 0.4)';">
+            {% if let Some(is_live) = twitch_is_live %}
+                {% if is_live %}Watch Stream{% else %}View Channel{% endif %}
+            {% else %}
+                View Channel
+            {% endif %}
+            <svg style="width: 16px; height: 16px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+        </a>
+    </div>
+</article>
+{% endif %}`;
+
+// RentEarth characters section - Premium glassmorphism design
+const rentEarthCharactersSection = `{% if !rentearth_characters.is_empty() %}
+<article style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 20px; padding: 5px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -2px 4px rgba(0, 0, 0, 0.2);" aria-labelledby="rentearth-heading">
+    <!-- Gradient Top Section -->
+    <div style="height: 48px; border-radius: 15px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.9) 0%, rgba(251, 191, 36, 0.9) 50%, rgba(252, 211, 77, 0.9) 100%); position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.15);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.15) 50%, transparent 70%); animation: shimmer 3s ease-in-out infinite;"></div>
+        <!-- Skewed notch on LEFT side with RENTEARTH text inside -->
+        <div style="position: absolute; bottom: 0; left: 0; height: 24px; width: 120px; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); transform: skewX(-25deg); transform-origin: bottom left; border-top-right-radius: 12px; display: flex; align-items: center; justify-content: center; padding-left: 8px;">
+            <span style="font-size: 10px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.85); transform: skewX(25deg);">RENTEARTH</span>
+        </div>
+        <div style="position: absolute; bottom: 0; left: 95px; width: 20px; height: 20px; background: radial-gradient(circle at top left, transparent 70%, rgba(15, 23, 42, 0.95) 70%);"></div>
+    </div>
+
+    <!-- Content Section -->
+    <div style="padding: 20px 16px 16px;">
+        <h2 id="rentearth-heading" style="text-align: center; color: white; font-weight: 700; font-size: 13px; letter-spacing: 3px; text-transform: uppercase; margin-bottom: 16px; opacity: 0.9;">Characters</h2>
+
+        {% if let Some(hours) = rentearth_total_playtime_hours %}
+        <div style="display: flex; align-items: center; justify-content: space-between; padding: 12px; border-radius: 10px; background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.02) 100%); border: 1px solid rgba(245, 158, 11, 0.2); margin-bottom: 16px;">
+            <span style="font-size: 13px; color: rgba(255,255,255,0.85); font-weight: 600;">{{ hours }}h total playtime</span>
+            {% if let Some(activity) = rentearth_last_activity %}
+            <span style="font-size: 11px; color: rgba(255,255,255,0.5);">Last active: {{ activity }}</span>
+            {% endif %}
+        </div>
+        {% endif %}
+
+        <div style="display: flex; flex-direction: column; gap: 12px;" role="list">
+            {% for character in rentearth_characters %}
+            <div style="padding: 16px; border-radius: 14px; background: linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%); border: 1px solid rgba(255, 255, 255, 0.08); transition: all 0.3s ease;" role="listitem" aria-label="{{ character.display_name }} - Level {{ character.level }} {{ character.archetype_name }}" onmouseover="this.style.background='linear-gradient(135deg, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.04) 100%)'; this.style.borderColor='rgba(245, 158, 11, 0.3)';" onmouseout="this.style.background='linear-gradient(135deg, rgba(255, 255, 255, 0.06) 0%, rgba(255, 255, 255, 0.02) 100%)'; this.style.borderColor='rgba(255, 255, 255, 0.08)';">
+                <div style="display: flex; align-items: center; gap: 12px; margin-bottom: 12px;">
+                    <div style="width: 44px; height: 44px; border-radius: 12px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);">
+                        <span style="font-size: 18px; font-weight: 700; color: white;">{{ character.first_name.chars().next().unwrap_or('?') }}</span>
+                    </div>
+                    <div style="flex: 1; min-width: 0;">
+                        <h3 style="font-size: 15px; font-weight: 700; color: white; margin-bottom: 2px;">{{ character.display_name }}</h3>
+                        <p style="font-size: 12px; color: rgba(255,255,255,0.5);">Level {{ character.level }} {{ character.archetype_name }}</p>
+                    </div>
+                    <span style="padding: 4px 10px; font-size: 10px; font-weight: 600; background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%); color: #fbbf24; border-radius: 6px; border: 1px solid rgba(245, 158, 11, 0.3);">Slot {{ character.slot }}</span>
+                </div>
+
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <div style="display: flex; align-items: center; gap: 8px;">
+                        <span style="font-size: 10px; font-weight: 600; color: rgba(255,255,255,0.4); width: 24px;">HP</span>
+                        <div style="flex: 1; height: 8px; background: rgba(255,255,255,0.1); border-radius: 4px; overflow: hidden;">
+                            <div style="height: 100%; background: linear-gradient(90deg, #ef4444 0%, #f87171 100%); border-radius: 4px; transition: width 0.3s ease; width: {{ character.health_percent }}%;"></div>
+                        </div>
+                        <span style="font-size: 11px; color: rgba(255,255,255,0.6); min-width: 60px; text-align: right; font-weight: 500;">{{ character.health_current }}/{{ character.health_max }}</span>
+                    </div>
+
+                    <div style="display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: rgba(255,255,255,0.6);">
+                        <span style="display: flex; align-items: center; gap: 6px;">
+                            <svg style="width: 14px; height: 14px; color: #fbbf24;" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>
+                            {{ character.gold }} gold
+                        </span>
+                        <span style="display: flex; align-items: center; gap: 6px;">
+                            <svg style="width: 14px; height: 14px; color: rgba(255,255,255,0.4);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                            {{ character.total_playtime_hours }}h played
+                        </span>
+                        <span style="display: flex; align-items: center; gap: 6px;">
+                            <svg style="width: 14px; height: 14px; color: rgba(255,255,255,0.4);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                            {{ character.current_zone }}
+                        </span>
+                    </div>
+                </div>
+
+                {% if let Some(last_login) = character.last_login_at %}
+                <p style="margin-top: 12px; padding-top: 12px; border-top: 1px solid rgba(255,255,255,0.08); font-size: 11px; color: rgba(255,255,255,0.4);">Last login: {{ last_login }}</p>
+                {% endif %}
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</article>
+{% endif %}`;
+
+// Quick Stats sidebar card - Premium glassmorphism design
+const quickStatsCard = `<div style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 20px; padding: 5px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);">
+    <!-- Gradient Top Section -->
+    <div style="height: 48px; border-radius: 15px; background: linear-gradient(135deg, rgba(139, 92, 246, 0.9) 0%, rgba(168, 85, 247, 0.9) 50%, rgba(236, 72, 153, 0.9) 100%); position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.15);">
+        <!-- Shimmer effect -->
+        <div style="position: absolute; inset: 0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%); animation: shimmer 3s ease-in-out infinite;"></div>
+        <!-- Skewed notch on LEFT side with QUICK STATS text inside -->
+        <div style="position: absolute; bottom: 0; left: 0; height: 24px; width: 120px; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); transform: skewX(-25deg); transform-origin: bottom left; border-top-right-radius: 10px; display: flex; align-items: center; justify-content: center; padding-left: 8px;">
+            <span style="font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.85); transform: skewX(25deg);">QUICK STATS</span>
+        </div>
+        <div style="position: absolute; bottom: 0; left: 95px; width: 16px; height: 16px; background: radial-gradient(circle at top left, transparent 70%, rgba(15, 23, 42, 0.95) 70%);"></div>
+    </div>
+    <!-- Stats Content -->
+    <div style="padding: 20px 12px 16px;">
+        <div style="display: flex; justify-content: space-between;">
+            <div style="flex: 1; text-align: center; padding: 8px 4px;">
+                <span style="display: block; font-size: 24px; font-weight: 800; color: white; line-height: 1; background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{{ discord_role_count }}</span>
+                <span style="font-size: 9px; color: rgba(167, 139, 250, 0.7); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Roles</span>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 8px 4px; border-left: 1px solid rgba(255,255,255,0.1); border-right: 1px solid rgba(255,255,255,0.1);">
+                <span style="display: block; font-size: 24px; font-weight: 800; color: white; line-height: 1; background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{% if rentearth_characters.len() > 0 %}{{ rentearth_characters.len() }}{% else %}0{% endif %}</span>
+                <span style="font-size: 9px; color: rgba(167, 139, 250, 0.7); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Characters</span>
+            </div>
+            <div style="flex: 1; text-align: center; padding: 8px 4px;">
+                <span style="display: block; font-size: 24px; font-weight: 800; color: white; line-height: 1; background: linear-gradient(135deg, #a78bfa 0%, #f472b6 100%); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">{% if let Some(hours) = rentearth_total_playtime_hours %}{{ hours }}h{% else %}--{% endif %}</span>
+                <span style="font-size: 9px; color: rgba(167, 139, 250, 0.7); text-transform: uppercase; letter-spacing: 1px; font-weight: 600;">Playtime</span>
+            </div>
+        </div>
+    </div>
+</div>`;
+
+// Old Quick Stats block (deprecated)
+const quickStatsBlock = `<div class="grid grid-cols-2 gap-3" role="list">
+    <div class="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-center" role="listitem">
+        <span class="block text-2xl font-bold text-white">{{ discord_role_count }}</span>
+        <span class="text-xs text-zinc-500 uppercase tracking-wide">Roles</span>
+    </div>
+    <div class="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-center" role="listitem">
+        <span class="block text-2xl font-bold text-white">{% if rentearth_characters.len() > 0 %}{{ rentearth_characters.len() }}{% else %}0{% endif %}</span>
+        <span class="text-xs text-zinc-500 uppercase tracking-wide">Characters</span>
+    </div>
+    <div class="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-center" role="listitem">
+        <span class="block text-2xl font-bold text-white">{% if let Some(hours) = rentearth_total_playtime_hours %}{{ hours }}h{% else %}--{% endif %}</span>
+        <span class="text-xs text-zinc-500 uppercase tracking-wide">Playtime</span>
+    </div>
+    <div class="p-4 rounded-xl bg-zinc-800/50 border border-zinc-700/50 text-center" role="listitem">
+        <span class="block text-2xl font-bold text-white">--</span>
+        <span class="text-xs text-zinc-500 uppercase tracking-wide">Contributions</span>
+    </div>
+</div>`;
+
+// Discord roles sidebar - Premium glassmorphism design
+const discordRolesBlock = `{% if let Some(is_member) = discord_is_guild_member %}
+{% if is_member && !discord_role_names.is_empty() %}
+<div style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 20px; padding: 5px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -2px 4px rgba(0, 0, 0, 0.2); transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);" aria-labelledby="roles-heading">
+    <!-- Gradient Top Section -->
+    <div style="height: 48px; border-radius: 15px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.9) 0%, rgba(244, 63, 94, 0.9) 50%, rgba(249, 115, 22, 0.9) 100%); position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.15);">
+        <div style="position: absolute; inset: 0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%); animation: shimmer 3s ease-in-out infinite;"></div>
+        <!-- Skewed notch on LEFT side with DISCORD ROLES text inside -->
+        <div style="position: absolute; bottom: 0; left: 0; height: 24px; width: 130px; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); transform: skewX(-25deg); transform-origin: bottom left; border-top-right-radius: 10px; display: flex; align-items: center; justify-content: center; padding-left: 8px;">
+            <span style="font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.85); transform: skewX(25deg);">DISCORD ROLES</span>
+        </div>
+        <div style="position: absolute; bottom: 0; left: 105px; width: 16px; height: 16px; background: radial-gradient(circle at top left, transparent 70%, rgba(15, 23, 42, 0.95) 70%);"></div>
+    </div>
+    <!-- Content -->
+    <div style="padding: 16px 12px 12px;">
+        <div style="display: flex; flex-wrap: wrap; gap: 8px;" aria-label="Discord roles">
+            {% for role in discord_role_names %}
+            <span style="display: inline-flex; align-items: center; gap: 6px; padding: 6px 12px; border-radius: 8px; background: linear-gradient(135deg, rgba(236, 72, 153, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%); border: 1px solid rgba(236, 72, 153, 0.2); font-size: 12px; color: rgba(255,255,255,0.85); font-weight: 500; transition: all 0.2s ease;" onmouseover="this.style.background='linear-gradient(135deg, rgba(236, 72, 153, 0.2) 0%, rgba(249, 115, 22, 0.12) 100%)'; this.style.transform='scale(1.05)';" onmouseout="this.style.background='linear-gradient(135deg, rgba(236, 72, 153, 0.12) 0%, rgba(249, 115, 22, 0.08) 100%)'; this.style.transform='scale(1)';">
+                <span style="width: 8px; height: 8px; border-radius: 50%; background: linear-gradient(135deg, #ec4899 0%, #f97316 100%); box-shadow: 0 0 8px rgba(236, 72, 153, 0.5);"></span>
+                {{ role }}
+            </span>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endif %}`;
+---
+
+<div class="not-content">
+	<div class:list={['profile-page', className]}>
+		<!-- Skip link for a11y -->
+		<a href="#main-content" class="skip-link">Skip to main content</a>
+
+		<!-- STICKY PARALLAX HERO with Unsplash image and Profile Capsule -->
+		<div
+			class="parallax-hero"
+			role="img"
+			aria-label="Profile banner image"
+			id="parallax-hero">
+			<!-- LQIP Placeholder -->
+			<div
+				class="parallax-hero__placeholder"
+				id="banner-placeholder"
+				style={`background-image: url('https://images.unsplash.com/photo-${askamaBannerId}?q=10&w=20&auto=format&fit=crop');`}
+				aria-hidden="true">
+			</div>
+			<!-- Full resolution parallax background -->
+			<div
+				class="parallax-hero__bg"
+				id="banner-image"
+				style={`background-image: url('https://images.unsplash.com/photo-${askamaBannerId}?q=80&w=1920&auto=format&fit=crop&fm=webp'); opacity: 0;`}
+				aria-hidden="true">
+			</div>
+			<!-- Gradient overlay -->
+			<div class="parallax-hero__overlay" aria-hidden="true"></div>
+
+			<!-- Profile capsule - floats at bottom of sticky hero -->
+			<div class="profile-capsule">
+				<header
+					class="profile-hero"
+					role="banner"
+					aria-label={`${askamaUsername}'s profile`}>
+					<div class="profile-hero__content">
+						<!-- Avatar -->
+						<figure
+							class="profile-hero__avatar"
+							role="img"
+							aria-label={`Profile avatar for ${askamaUsername}`}>
+							<Fragment set:html={heroAvatarBlock} />
+						</figure>
+
+						<!-- User Info -->
+						<section
+							class="profile-hero__info"
+							aria-labelledby="profile-username">
+							<h1
+								id="profile-username"
+								class="profile-hero__username">
+								@<Fragment set:html={askamaUsername} />
+							</h1>
+							<Fragment set:html={statusBlock} />
+							<Fragment set:html={bioBlock} />
+							<Fragment set:html={badgesBlock} />
+						</section>
+					</div>
+				</header>
+			</div>
+		</div>
+
+		<!-- MAIN CONTENT - sits on top of sticky parallax hero -->
+		<main id="main-content" class="profile-content" role="main">
+			<div class="profile-grid">
+				<!-- Primary column: Connected Accounts + Detail Cards -->
+				<div class="main-column flex flex-col gap-4">
+					<!-- Premium Connected Accounts Card -->
+					<Fragment set:html={connectedAccountsCard} />
+
+					<!-- Detailed Platform Cards -->
+					<Fragment set:html={githubProfileSection} />
+					<Fragment set:html={discordProfileSection} />
+					<Fragment set:html={twitchProfileSection} />
+					<Fragment set:html={rentEarthCharactersSection} />
+
+					<!-- Back Link -->
+					<a
+						href="/"
+						class="flex items-center gap-2 text-sm text-zinc-400 hover:text-white transition-colors py-3"
+						aria-label="Go back to KBVE homepage">
+						<svg
+							class="w-4 h-4"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke="currentColor"
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round">
+							<path d="M19 12H5M12 19l-7-7 7-7"></path>
+						</svg>
+						Back to KBVE
+					</a>
+				</div>
+
+				<!-- Sidebar column -->
+				<aside
+					class="sidebar-column flex flex-col gap-4"
+					aria-label="Profile sidebar">
+					<!-- Premium Quick Stats Card -->
+					<Fragment set:html={quickStatsCard} />
+
+					<!-- Premium Quick Links Card -->
+					<div
+						style="background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); border-radius: 20px; padding: 5px; box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05), inset 0 1px 0 rgba(255, 255, 255, 0.05), inset 0 -2px 4px rgba(0, 0, 0, 0.2);">
+						<!-- Gradient Top Section -->
+						<div
+							style="height: 48px; border-radius: 15px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.9) 0%, rgba(20, 184, 166, 0.9) 50%, rgba(6, 182, 212, 0.9) 100%); position: relative; overflow: hidden; box-shadow: inset 0 2px 4px rgba(255, 255, 255, 0.1), inset 0 -2px 4px rgba(0, 0, 0, 0.15);">
+							<div
+								style="position: absolute; inset: 0; background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%); animation: shimmer 3s ease-in-out infinite;">
+							</div>
+							<!-- Skewed notch on LEFT side with QUICK LINKS text inside -->
+							<div
+								style="position: absolute; bottom: 0; left: 0; height: 24px; width: 120px; background: linear-gradient(145deg, rgba(30, 41, 59, 0.9) 0%, rgba(15, 23, 42, 0.95) 100%); transform: skewX(-25deg); transform-origin: bottom left; border-top-right-radius: 10px; display: flex; align-items: center; justify-content: center; padding-left: 8px;">
+								<span
+									style="font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: rgba(255,255,255,0.85); transform: skewX(25deg);">
+									QUICK LINKS
+								</span>
+							</div>
+							<div
+								style="position: absolute; bottom: 0; left: 95px; width: 16px; height: 16px; background: radial-gradient(circle at top left, transparent 70%, rgba(15, 23, 42, 0.95) 70%);">
+							</div>
+						</div>
+						<!-- Content -->
+						<nav
+							style="padding: 16px 12px 12px; display: flex; flex-direction: column; gap: 6px;"
+							aria-label="Quick navigation links">
+							<a
+								href="/application"
+								style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.02) 100%); border: 1px solid rgba(16, 185, 129, 0.15); color: rgba(255,255,255,0.85); text-decoration: none; transition: all 0.3s ease;"
+								onmouseover="this.style.background='linear-gradient(135deg, rgba(16, 185, 129, 0.2) 0%, rgba(16, 185, 129, 0.05) 100%)'; this.style.transform='translateX(4px)';"
+								onmouseout="this.style.background='linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(16, 185, 129, 0.02) 100%)'; this.style.transform='translateX(0)';">
+								<div
+									style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);">
+									<svg
+										style="width: 16px; height: 16px; color: white;"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2">
+										<path
+											d="M13 2 3 14h9l-1 8 10-12h-9l1-8z">
+										</path>
+									</svg>
+								</div>
+								<span
+									style="font-size: 13px; font-weight: 600;">
+									Applications
+								</span>
+							</a>
+							<a
+								href="/discord"
+								style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(20, 184, 166, 0.02) 100%); border: 1px solid rgba(20, 184, 166, 0.15); color: rgba(255,255,255,0.85); text-decoration: none; transition: all 0.3s ease;"
+								onmouseover="this.style.background='linear-gradient(135deg, rgba(20, 184, 166, 0.2) 0%, rgba(20, 184, 166, 0.05) 100%)'; this.style.transform='translateX(4px)';"
+								onmouseout="this.style.background='linear-gradient(135deg, rgba(20, 184, 166, 0.1) 0%, rgba(20, 184, 166, 0.02) 100%)'; this.style.transform='translateX(0)';">
+								<div
+									style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #14b8a6 0%, #0d9488 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(20, 184, 166, 0.3);">
+									<svg
+										style="width: 16px; height: 16px; color: white;"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2">
+										<path
+											d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2">
+										</path><circle cx="9" cy="7" r="4">
+										</circle><path
+											d="M22 21v-2a4 4 0 0 0-3-3.87M16 3.13a4 4 0 0 1 0 7.75">
+										</path>
+									</svg>
+								</div>
+								<span
+									style="font-size: 13px; font-weight: 600;">
+									Discord Community
+								</span>
+							</a>
+							<a
+								href="/projects"
+								style="display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 10px; background: linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.02) 100%); border: 1px solid rgba(6, 182, 212, 0.15); color: rgba(255,255,255,0.85); text-decoration: none; transition: all 0.3s ease;"
+								onmouseover="this.style.background='linear-gradient(135deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.05) 100%)'; this.style.transform='translateX(4px)';"
+								onmouseout="this.style.background='linear-gradient(135deg, rgba(6, 182, 212, 0.1) 0%, rgba(6, 182, 212, 0.02) 100%)'; this.style.transform='translateX(0)';">
+								<div
+									style="width: 32px; height: 32px; border-radius: 8px; background: linear-gradient(135deg, #06b6d4 0%, #0891b2 100%); display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 12px rgba(6, 182, 212, 0.3);">
+									<svg
+										style="width: 16px; height: 16px; color: white;"
+										viewBox="0 0 24 24"
+										fill="none"
+										stroke="currentColor"
+										stroke-width="2">
+										<polygon
+											points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2">
+										</polygon>
+									</svg>
+								</div>
+								<span
+									style="font-size: 13px; font-weight: 600;">
+									Projects
+								</span>
+							</a>
+						</nav>
+					</div>
+
+					<!-- Discord Roles (if member) -->
+					<Fragment set:html={discordRolesBlock} />
+				</aside>
+			</div>
+		</main>
+
+		<!-- Adsense -->
+		<div class="adsense-container">
+			<Adsense />
+		</div>
+	</div>
+</div>
+
+<style>
+	/* Profile-specific CSS variables (fallbacks for Starlight vars) */
+	.not-content {
+		/* Core colors - inherit from Starlight when available */
+		--profile-bg: var(--sl-color-bg, #09090b);
+		--profile-bg-nav: var(--sl-color-bg-nav, #18181b);
+		--profile-bg-card: #1c1c21;
+		--profile-bg-card-hover: #222228;
+		--profile-text: var(--sl-color-text, #fafafa);
+		--profile-text-muted: #a1a1aa;
+		--profile-text-accent: var(--sl-color-text-accent, #a78bfa);
+		--profile-accent: var(--sl-color-accent, #8b5cf6);
+		--profile-accent-light: #a78bfa;
+		--profile-accent-dark: #7c3aed;
+
+		/* Gray scale */
+		--profile-gray-1: #f4f4f5;
+		--profile-gray-2: #e4e4e7;
+		--profile-gray-3: #a1a1aa;
+		--profile-gray-4: #71717a;
+		--profile-gray-5: #3f3f46;
+		--profile-gray-6: #27272a;
+
+		/* Platform colors - more vibrant */
+		--profile-discord: #5865f2;
+		--profile-discord-dark: #4752c4;
+		--profile-github: #2ea043;
+		--profile-github-dark: #238636;
+		--profile-twitch: #9146ff;
+		--profile-twitch-dark: #772ce8;
+		--profile-success: #22c55e;
+		--profile-danger: #ef4444;
+
+		/* Gradients */
+		--profile-gradient-accent: linear-gradient(
+			135deg,
+			#a78bfa 0%,
+			#8b5cf6 50%,
+			#7c3aed 100%
+		);
+		--profile-gradient-card: linear-gradient(
+			180deg,
+			#1c1c21 0%,
+			#18181b 100%
+		);
+		--profile-gradient-shine: linear-gradient(
+			135deg,
+			rgba(255, 255, 255, 0.1) 0%,
+			rgba(255, 255, 255, 0) 50%
+		);
+
+		/* Shadows */
+		--profile-shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.4);
+		--profile-shadow-md: 0 4px 12px rgba(0, 0, 0, 0.4);
+		--profile-shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.5);
+		--profile-shadow-xl: 0 20px 40px rgba(0, 0, 0, 0.6);
+		--profile-shadow-glow: 0 0 20px rgba(139, 92, 246, 0.15);
+		--profile-shadow-glow-accent: 0 0 30px rgba(139, 92, 246, 0.25);
+
+		/* Border radius */
+		--profile-radius-sm: 6px;
+		--profile-radius-md: 10px;
+		--profile-radius-lg: 14px;
+		--profile-radius-xl: 18px;
+
+		/* Borders */
+		--profile-border: rgba(255, 255, 255, 0.08);
+		--profile-border-hover: rgba(255, 255, 255, 0.15);
+		--profile-border-accent: rgba(139, 92, 246, 0.4);
+
+		/* Display and font */
+		display: block;
+		font-family:
+			'Inter',
+			system-ui,
+			-apple-system,
+			BlinkMacSystemFont,
+			'Segoe UI',
+			Roboto,
+			sans-serif;
+		-webkit-font-smoothing: antialiased;
+		-moz-osx-font-smoothing: grayscale;
+		color: var(--profile-text);
+		line-height: 1.6;
+	}
+
+	.not-content *,
+	.not-content *::before,
+	.not-content *::after {
+		box-sizing: border-box;
+		margin: 0;
+		padding: 0;
+	}
+
+	.not-content img {
+		max-width: 100%;
+		height: auto;
+	}
+
+	.not-content a {
+		color: inherit;
+		text-decoration: none;
+	}
+
+	.not-content ul,
+	.not-content ol {
+		list-style: none;
+	}
+
+	.not-content h1,
+	.not-content h2,
+	.not-content h3,
+	.not-content h4 {
+		line-height: 1.2;
+		font-weight: 600;
+	}
+
+	/* Skip link for a11y */
+	.skip-link {
+		position: absolute;
+		top: -100%;
+		left: 0;
+		background: var(--profile-accent);
+		color: white;
+		padding: 0.5rem 1rem;
+		z-index: 1000;
+		font-weight: 600;
+		text-decoration: none;
+		border-radius: 0 0 0.5rem 0;
+	}
+
+	.skip-link:focus {
+		top: 0;
+	}
+
+	.profile-page {
+		background: transparent;
+		min-height: 100vh;
+		position: relative;
+		color: var(--profile-text);
+		line-height: 1.6;
+		/* Break out of any parent container constraints */
+		width: 100vw;
+		margin-left: calc(-50vw + 50%);
+	}
+
+	/* ============================================
+       STICKY PARALLAX HERO SECTION
+       ============================================ */
+	.parallax-hero {
+		position: sticky;
+		top: 0;
+		height: 100vh;
+		width: 100vw;
+		z-index: 0;
+		overflow: hidden;
+	}
+
+	.parallax-hero__placeholder {
+		position: absolute;
+		inset: -10%;
+		width: 120%;
+		height: 120%;
+		background-size: cover;
+		background-position: center;
+		filter: blur(20px);
+		transition: opacity 500ms ease-out;
+	}
+
+	.parallax-hero__bg {
+		position: absolute;
+		inset: -10%;
+		width: 120%;
+		height: 120%;
+		background-size: cover;
+		background-position: center;
+		will-change: transform;
+		transition: opacity 500ms ease-out;
+	}
+
+	.parallax-hero__overlay {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			to bottom,
+			rgba(10, 10, 10, 0.3) 0%,
+			rgba(10, 10, 10, 0.4) 30%,
+			rgba(10, 10, 10, 0.4) 70%,
+			rgba(10, 10, 10, 0.8) 100%
+		);
+	}
+
+	/* Profile capsule - centered vertically in sticky hero */
+	.profile-capsule {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 100%;
+		max-width: 1200px;
+		padding: 0 1rem;
+		z-index: 10;
+	}
+
+	@media (min-width: 768px) {
+		.profile-capsule {
+			padding: 0 1.5rem;
+		}
+	}
+
+	/* Reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.parallax-hero__placeholder,
+		.parallax-hero__bg {
+			transition: none;
+			inset: 0;
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	/* ============================================
+       PROFILE HERO SECTION - Glassmorphism Capsule Card
+       ============================================ */
+	.profile-hero {
+		background: linear-gradient(
+			135deg,
+			rgba(30, 41, 59, 0.8) 0%,
+			rgba(15, 23, 42, 0.9) 100%
+		);
+		backdrop-filter: blur(20px);
+		-webkit-backdrop-filter: blur(20px);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		border-radius: 24px;
+		padding: 1.5rem;
+		box-shadow:
+			0 25px 50px -12px rgba(0, 0, 0, 0.5),
+			0 0 0 1px rgba(255, 255, 255, 0.05),
+			inset 0 1px 0 rgba(255, 255, 255, 0.1);
+	}
+
+	@media (min-width: 768px) {
+		.profile-hero {
+			padding: 2rem;
+		}
+	}
+
+	.profile-hero__content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1.25rem;
+		text-align: center;
+	}
+
+	@media (min-width: 640px) {
+		.profile-hero__content {
+			flex-direction: row;
+			align-items: flex-end;
+			gap: 1.75rem;
+			text-align: left;
+		}
+	}
+
+	.profile-hero__avatar {
+		flex-shrink: 0;
+		width: 130px;
+		height: 130px;
+		overflow: visible;
+		background: var(--profile-gradient-accent);
+		padding: 4px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin: 0;
+		position: relative;
+		/* Hexagon clip-path - transitions to circle on hover */
+		clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
+		transition:
+			clip-path 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+			transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+			filter 0.3s ease;
+		filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.5))
+			drop-shadow(0 0 30px rgba(167, 139, 250, 0.25));
+		cursor: pointer;
+	}
+
+	.profile-hero__avatar:hover {
+		/* Circle clip-path on hover */
+		clip-path: polygon(
+			50% 0%,
+			93.3% 25%,
+			93.3% 75%,
+			50% 100%,
+			6.7% 75%,
+			6.7% 25%
+		);
+		transform: scale(1.05) rotate(30deg);
+		filter: drop-shadow(0 16px 48px rgba(0, 0, 0, 0.6))
+			drop-shadow(0 0 50px rgba(167, 139, 250, 0.4));
+	}
+
+	/* Second hover state - fully circular */
+	.profile-hero__avatar:hover:active,
+	.profile-hero__avatar:focus {
+		clip-path: circle(50% at 50% 50%);
+		transform: scale(1.08);
+	}
+
+	@keyframes avatar-hex-pulse {
+		0%,
+		100% {
+			filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.5))
+				drop-shadow(0 0 30px rgba(167, 139, 250, 0.2));
+		}
+		50% {
+			filter: drop-shadow(0 12px 40px rgba(0, 0, 0, 0.5))
+				drop-shadow(0 0 50px rgba(167, 139, 250, 0.4));
+		}
+	}
+
+	.profile-hero__avatar {
+		animation: avatar-hex-pulse 4s ease-in-out infinite;
+	}
+
+	.profile-hero__avatar:hover {
+		animation: none;
+	}
+
+	/* Shimmer animation for premium cards */
+	@keyframes shimmer {
+		0% {
+			transform: translateX(-100%);
+		}
+		100% {
+			transform: translateX(100%);
+		}
+	}
+
+	/* Pulse animation for live indicators */
+	@keyframes pulse {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.7;
+		}
+	}
+
+	@media (min-width: 640px) {
+		.profile-hero__avatar {
+			width: 150px;
+			height: 150px;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.profile-hero__avatar {
+			width: 170px;
+			height: 170px;
+		}
+	}
+
+	/* Inner container for avatar content - also hexagon */
+	.profile-hero__avatar::before {
+		content: '';
+		position: absolute;
+		inset: 4px;
+		background: var(--profile-bg-nav);
+		z-index: 0;
+		clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
+		transition: clip-path 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	.profile-hero__avatar:hover::before {
+		clip-path: polygon(
+			50% 0%,
+			93.3% 25%,
+			93.3% 75%,
+			50% 100%,
+			6.7% 75%,
+			6.7% 25%
+		);
+	}
+
+	:global(.profile-hero__avatar-img) {
+		width: calc(100% - 8px);
+		height: calc(100% - 8px);
+		object-fit: cover;
+		position: relative;
+		z-index: 1;
+		clip-path: polygon(25% 5%, 75% 5%, 100% 50%, 75% 95%, 25% 95%, 0% 50%);
+		transition: clip-path 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+	}
+
+	.profile-hero__avatar:hover :global(.profile-hero__avatar-img) {
+		clip-path: polygon(
+			50% 0%,
+			93.3% 25%,
+			93.3% 75%,
+			50% 100%,
+			6.7% 75%,
+			6.7% 25%
+		);
+	}
+
+	:global(.profile-hero__avatar-letter) {
+		font-size: 3.5rem;
+		font-weight: 800;
+		color: white;
+		text-transform: uppercase;
+		position: relative;
+		z-index: 1;
+		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+	}
+
+	@media (min-width: 768px) {
+		:global(.profile-hero__avatar-letter) {
+			font-size: 4rem;
+		}
+	}
+
+	.profile-hero__info {
+		flex: 1;
+		min-width: 0;
+		padding-bottom: 0.75rem;
+	}
+
+	@media (min-width: 640px) {
+		.profile-hero__info {
+			padding-bottom: 1rem;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.profile-hero__info {
+			padding-bottom: 1.5rem;
+		}
+	}
+
+	.profile-hero__username {
+		font-size: 2rem;
+		font-weight: 800;
+		margin: 0 0 0.375rem;
+		line-height: 1.15;
+		letter-spacing: -0.02em;
+		/* Transparent text with background showing through */
+		background: linear-gradient(
+			to right,
+			rgba(255, 255, 255, 0.1) 0%,
+			rgba(255, 255, 255, 0.05) 100%
+		);
+		-webkit-background-clip: text;
+		background-clip: text;
+		color: transparent;
+		/* Text stroke for visibility */
+		-webkit-text-stroke: 1px rgba(255, 255, 255, 0.3);
+		text-shadow:
+			0 0 30px rgba(167, 139, 250, 0.5),
+			0 0 60px rgba(167, 139, 250, 0.3);
+	}
+
+	@media (min-width: 640px) {
+		.profile-hero__username {
+			font-size: 2.5rem;
+			-webkit-text-stroke: 1.5px rgba(255, 255, 255, 0.35);
+		}
+	}
+
+	@media (min-width: 768px) {
+		.profile-hero__username {
+			font-size: 3rem;
+			-webkit-text-stroke: 2px rgba(255, 255, 255, 0.4);
+		}
+	}
+
+	:global(.profile-hero__status) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.9375rem;
+		color: var(--profile-accent);
+		margin: 0 0 0.625rem;
+		font-weight: 500;
+	}
+
+	:global(.profile-hero__status-dot) {
+		width: 10px;
+		height: 10px;
+		background: var(--profile-success);
+		border-radius: 50%;
+		animation: status-pulse 2s ease-in-out infinite;
+		box-shadow: 0 0 12px rgba(16, 185, 129, 0.6);
+	}
+
+	@keyframes status-pulse {
+		0%,
+		100% {
+			opacity: 1;
+			transform: scale(1);
+		}
+		50% {
+			opacity: 0.7;
+			transform: scale(0.9);
+		}
+	}
+
+	:global(.profile-hero__bio) {
+		font-size: 1rem;
+		color: var(--profile-gray-1);
+		margin: 0 0 1rem;
+		max-width: 600px;
+		line-height: 1.6;
+		text-shadow: 0 2px 8px rgba(0, 0, 0, 0.4);
+	}
+
+	:global(.profile-hero__badges) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.625rem;
+		margin: 0;
+		padding: 0;
+		list-style: none;
+		justify-content: center;
+	}
+
+	@media (min-width: 640px) {
+		:global(.profile-hero__badges) {
+			justify-content: flex-start;
+		}
+	}
+
+	:global(.profile-hero__badge) {
+		display: inline-flex;
+		align-items: center;
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		padding: 0.375rem 0.875rem;
+		border-radius: 9999px;
+		background: rgba(167, 139, 250, 0.12);
+		color: var(--profile-accent);
+		border: 1px solid rgba(167, 139, 250, 0.25);
+		backdrop-filter: blur(8px);
+		box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
+		transition: all 0.25s ease;
+	}
+
+	:global(.profile-hero__badge:hover) {
+		background: rgba(167, 139, 250, 0.2);
+		border-color: rgba(167, 139, 250, 0.4);
+		transform: translateY(-1px);
+	}
+
+	:global(.profile-hero__badge.discord) {
+		background: rgba(88, 101, 242, 0.12);
+		color: var(--profile-discord);
+		border-color: rgba(88, 101, 242, 0.25);
+	}
+
+	:global(.profile-hero__badge.discord:hover) {
+		background: rgba(88, 101, 242, 0.2);
+		border-color: rgba(88, 101, 242, 0.4);
+	}
+
+	/* ============================================
+       MAIN CONTENT AREA - Sits on top of sticky parallax hero
+       ============================================ */
+	.profile-content {
+		position: relative;
+		z-index: 1;
+		/* Semi-transparent background so parallax bleeds through */
+		background: linear-gradient(
+			to bottom,
+			rgba(10, 10, 10, 0.85) 0%,
+			rgba(10, 10, 10, 0.92) 10%,
+			rgba(10, 10, 10, 0.95) 30%,
+			var(--profile-bg) 100%
+		);
+		backdrop-filter: blur(8px);
+		-webkit-backdrop-filter: blur(8px);
+		min-height: 100vh;
+		width: 100%;
+	}
+
+	.profile-content > .profile-grid {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 2.5rem 1.25rem 3rem;
+	}
+
+	@media (min-width: 640px) {
+		.profile-content > .profile-grid {
+			padding: 3rem 1.5rem 4rem;
+		}
+	}
+
+	@media (min-width: 768px) {
+		.profile-content > .profile-grid {
+			padding: 3.5rem 2rem 4rem;
+		}
+	}
+
+	.profile-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 1.5rem;
+	}
+
+	@media (min-width: 768px) {
+		.profile-grid {
+			grid-template-columns: minmax(340px, 600px) 1fr;
+			align-items: start;
+			gap: 2rem;
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.profile-grid {
+			grid-template-columns: 620px 1fr;
+			gap: 2.5rem;
+		}
+	}
+
+	/* ============================================
+       PROFILE CARDS - Base Structure
+       ============================================ */
+	.profile-card {
+		border-radius: 16px;
+		padding: 1.5rem;
+		transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+		position: relative;
+		overflow: hidden;
+	}
+
+	.profile-card:hover {
+		transform: translateY(-4px);
+	}
+
+	.section-title {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--profile-text-muted);
+		margin-bottom: 1rem;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.section-title::before {
+		content: '';
+		width: 3px;
+		height: 0.875rem;
+		background: var(--profile-accent);
+		border-radius: 1px;
+	}
+
+	.providers {
+		display: flex;
+		flex-direction: column;
+		gap: 0.875rem;
+	}
+
+	:global(.provider-card) {
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid var(--profile-border);
+		border-radius: var(--profile-radius-md);
+		padding: 0.875rem 1rem;
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+		transition: all 0.2s ease;
+		position: relative;
+		overflow: hidden;
+	}
+
+	:global(.provider-card::before) {
+		content: '';
+		position: absolute;
+		left: 0;
+		top: 0;
+		bottom: 0;
+		width: 3px;
+		border-radius: 0 2px 2px 0;
+	}
+
+	:global(.provider-card:hover),
+	:global(.provider-card:focus-within) {
+		background-color: rgba(255, 255, 255, 0.04);
+		border-color: var(--profile-border-hover);
+	}
+
+	:global(.provider-card.discord::before) {
+		background: var(--profile-discord);
+	}
+	:global(.provider-card.github::before) {
+		background: var(--profile-github);
+	}
+	:global(.provider-card.twitch::before) {
+		background: var(--profile-twitch);
+	}
+
+	:global(.provider-card.discord:hover) {
+		border-color: rgba(88, 101, 242, 0.3);
+	}
+	:global(.provider-card.github:hover) {
+		border-color: rgba(46, 160, 67, 0.3);
+	}
+	:global(.provider-card.twitch:hover) {
+		border-color: rgba(145, 70, 255, 0.3);
+	}
+
+	:global(.provider-avatar) {
+		width: 40px;
+		height: 40px;
+		border-radius: var(--profile-radius-sm);
+		background: var(--profile-gray-6);
+		overflow: hidden;
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	:global(.provider-avatar img) {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	:global(.provider-avatar svg) {
+		width: 24px;
+		height: 24px;
+		opacity: 0.5;
+	}
+
+	:global(.provider-info) {
+		flex: 1;
+		min-width: 0;
+	}
+
+	:global(.provider-name) {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--profile-gray-3);
+		margin-bottom: 0.25rem;
+		margin-top: 0;
+		display: flex;
+		align-items: center;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	:global(.provider-username) {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--profile-text);
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		margin: 0;
+	}
+
+	:global(.provider-icon) {
+		width: 22px;
+		height: 22px;
+		opacity: 0.35;
+		flex-shrink: 0;
+		transition: opacity 0.2s ease;
+	}
+
+	:global(.provider-card:hover .provider-icon) {
+		opacity: 0.6;
+	}
+
+	:global(.guild-badge) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.25rem;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		padding: 0.1875rem 0.5rem;
+		border-radius: 9999px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	:global(.guild-badge.member) {
+		background: rgba(88, 101, 242, 0.2);
+		color: #7289da;
+		border: 1px solid rgba(88, 101, 242, 0.35);
+	}
+
+	:global(.guild-badge.not-member) {
+		background: rgba(245, 158, 11, 0.12);
+		color: #fbbf24;
+		border: 1px solid rgba(245, 158, 11, 0.3);
+	}
+
+	:global(.live-badge) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: 0.6875rem;
+		font-weight: 700;
+		padding: 0.25rem 0.625rem;
+		border-radius: 9999px;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		background: rgba(239, 68, 68, 0.2);
+		color: #f87171;
+		border: 1px solid rgba(239, 68, 68, 0.4);
+		animation: pulse-live 2s ease-in-out infinite;
+	}
+
+	:global(.live-badge::before) {
+		content: '';
+		width: 7px;
+		height: 7px;
+		border-radius: 50%;
+		background: #ef4444;
+		animation: blink-live 1s ease-in-out infinite;
+		box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+	}
+
+	@keyframes pulse-live {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.85;
+		}
+	}
+
+	@keyframes blink-live {
+		0%,
+		100% {
+			opacity: 1;
+		}
+		50% {
+			opacity: 0.3;
+		}
+	}
+
+	:global(.no-providers) {
+		text-align: center;
+		color: var(--profile-gray-3);
+		padding: 2rem 1.5rem;
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px dashed rgba(255, 255, 255, 0.1);
+		border-radius: var(--profile-radius-md);
+		font-size: 0.9375rem;
+	}
+
+	.back-link {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.625rem;
+		margin-top: 1.5rem;
+		padding: 0.875rem 1.25rem;
+		color: var(--profile-gray-2);
+		text-decoration: none;
+		font-size: 0.9375rem;
+		font-weight: 500;
+		border-radius: var(--profile-radius-md);
+		transition: all 0.3s ease;
+		width: 100%;
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+	.back-link:hover,
+	.back-link:focus {
+		color: var(--profile-text);
+		background: rgba(255, 255, 255, 0.05);
+		border-color: rgba(255, 255, 255, 0.1);
+		transform: translateY(-2px);
+	}
+
+	.back-link svg {
+		width: 18px;
+		height: 18px;
+		transition: transform 0.3s ease;
+	}
+
+	.back-link:hover svg {
+		transform: translateX(-4px);
+	}
+
+	/* ============================================
+       SIDEBAR CARDS - Premium Design
+       ============================================ */
+	.sidebar-column {
+		display: none;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	@media (min-width: 768px) {
+		.sidebar-column {
+			display: flex;
+		}
+	}
+
+	.sidebar-card {
+		background: var(--profile-bg-card);
+		border: 1px solid var(--profile-border);
+		border-radius: var(--profile-radius-lg);
+		padding: 1.25rem;
+		box-shadow: var(--profile-shadow-md);
+		position: relative;
+		overflow: hidden;
+		transition: all 0.2s ease;
+	}
+
+	.sidebar-card::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 1px;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			var(--profile-border-hover),
+			transparent
+		);
+		opacity: 0.5;
+	}
+
+	.sidebar-card:hover {
+		border-color: var(--profile-border-hover);
+	}
+
+	.sidebar-title {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.08em;
+		color: var(--profile-text-muted);
+		margin: 0 0 1rem;
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.sidebar-title::after {
+		content: '';
+		flex: 1;
+		height: 1px;
+		background: var(--profile-border);
+	}
+
+	/* Stats grid */
+	:global(.stats-grid) {
+		display: grid;
+		grid-template-columns: repeat(2, 1fr);
+		gap: 0.625rem;
+	}
+
+	:global(.stat-item) {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 0.875rem 0.625rem;
+		background: rgba(255, 255, 255, 0.02);
+		border-radius: var(--profile-radius-sm);
+		border: 1px solid var(--profile-border);
+		transition: all 0.2s ease;
+	}
+
+	:global(.stat-item:hover) {
+		background: rgba(255, 255, 255, 0.04);
+		border-color: var(--profile-border-hover);
+	}
+
+	:global(.stat-value) {
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--profile-accent-light);
+	}
+
+	:global(.stat-label) {
+		font-size: 0.625rem;
+		color: var(--profile-text-muted);
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		margin-top: 0.25rem;
+	}
+
+	/* Quick links */
+	.quick-links {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.quick-link {
+		display: flex;
+		align-items: center;
+		gap: 0.625rem;
+		padding: 0.75rem 0.875rem;
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid var(--profile-border);
+		border-radius: var(--profile-radius-sm);
+		color: var(--profile-text);
+		text-decoration: none;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		transition: all 0.2s ease;
+	}
+
+	.quick-link:hover,
+	.quick-link:focus {
+		background: rgba(139, 92, 246, 0.08);
+		border-color: var(--profile-border-accent);
+		color: var(--profile-accent-light);
+	}
+
+	.quick-link svg {
+		width: 16px;
+		height: 16px;
+		color: var(--profile-text-muted);
+		transition: all 0.2s ease;
+		flex-shrink: 0;
+	}
+
+	.quick-link:hover svg,
+	.quick-link:focus svg {
+		color: var(--profile-accent-light);
+	}
+
+	/* Roles list */
+	:global(.roles-list) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.375rem;
+	}
+
+	:global(.role-badge) {
+		display: inline-flex;
+		align-items: center;
+		font-size: 0.6875rem;
+		font-weight: 500;
+		padding: 0.3125rem 0.625rem;
+		border-radius: 9999px;
+		background: rgba(88, 101, 242, 0.1);
+		color: #818cf8;
+		border: 1px solid rgba(88, 101, 242, 0.2);
+		transition: all 0.2s ease;
+	}
+
+	:global(.role-badge:hover) {
+		background: rgba(88, 101, 242, 0.15);
+		border-color: rgba(88, 101, 242, 0.3);
+	}
+
+	/* Main column layout */
+	.main-column {
+		display: flex;
+		flex-direction: column;
+		gap: 1.5rem;
+	}
+
+	/* Back link standalone */
+	.back-link.standalone {
+		margin-top: 0;
+	}
+
+	/* ============================================
+       CARD HEADERS - Platform Specific
+       ============================================ */
+	:global(.card-header) {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 1.25rem;
+		padding-bottom: 0;
+		border-bottom: none;
+		position: relative;
+	}
+
+	:global(.card-header::after) {
+		display: none;
+	}
+
+	:global(.card-header svg) {
+		width: 24px;
+		height: 24px;
+		flex-shrink: 0;
+	}
+
+	:global(.card-header h2) {
+		font-size: 1.125rem;
+		font-weight: 700;
+		margin: 0;
+		flex: 1;
+		letter-spacing: -0.02em;
+	}
+
+	:global(.card-header.github) {
+		color: #3fb950;
+	}
+	:global(.card-header.github h2) {
+		color: #f0f6fc;
+	}
+	:global(.card-header.discord) {
+		color: #5865f2;
+	}
+	:global(.card-header.discord h2) {
+		color: #ffffff;
+	}
+	:global(.card-header.twitch) {
+		color: #9146ff;
+	}
+	:global(.card-header.twitch h2) {
+		color: #efeff1;
+	}
+	:global(.card-header.rentearth) {
+		color: var(--profile-accent);
+	}
+	:global(.card-header.rentearth h2) {
+		color: var(--profile-text);
+	}
+
+	/* ============================================
+       GITHUB PROFILE CARD - Premium Design
+       ============================================ */
+	:global(.github-profile-card) {
+		border: none;
+		background: linear-gradient(135deg, #0d1117 0%, #161b22 100%);
+		border-radius: 16px;
+		overflow: hidden;
+	}
+
+	:global(.github-profile-card::before) {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background: linear-gradient(90deg, #238636, #2ea043, #3fb950);
+	}
+
+	:global(.github-profile-card:hover) {
+		box-shadow:
+			0 20px 40px rgba(0, 0, 0, 0.4),
+			0 0 0 1px rgba(48, 54, 61, 0.8);
+	}
+
+	:global(.github-profile-content) {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	:global(.github-user-info) {
+		display: flex;
+		align-items: flex-start;
+		gap: 1rem;
+		padding: 1rem;
+		background: rgba(255, 255, 255, 0.03);
+		border-radius: 12px;
+		border: 1px solid rgba(255, 255, 255, 0.06);
+	}
+
+	:global(.github-avatar) {
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		flex-shrink: 0;
+		object-fit: cover;
+		border: 3px solid #238636;
+		box-shadow: 0 0 0 3px rgba(35, 134, 54, 0.2);
+	}
+
+	:global(.github-avatar--placeholder) {
+		background: linear-gradient(135deg, #238636 0%, #2ea043 100%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	:global(.github-avatar--placeholder svg) {
+		width: 32px;
+		height: 32px;
+		color: white;
+	}
+
+	:global(.github-user-details) {
+		flex: 1;
+		min-width: 0;
+	}
+
+	:global(.github-username) {
+		font-size: 1.375rem;
+		font-weight: 700;
+		color: #f0f6fc;
+		margin: 0 0 0.25rem;
+		letter-spacing: -0.02em;
+	}
+
+	:global(.github-bio) {
+		font-size: 0.875rem;
+		color: #8b949e;
+		margin: 0;
+		line-height: 1.5;
+	}
+
+	:global(.github-stats-row) {
+		display: grid;
+		grid-template-columns: repeat(3, 1fr);
+		gap: 1px;
+		background: rgba(255, 255, 255, 0.06);
+		border-radius: 12px;
+		overflow: hidden;
+	}
+
+	:global(.github-stat) {
+		background: rgba(13, 17, 23, 0.8);
+		text-align: center;
+		padding: 1rem 0.5rem;
+	}
+
+	:global(.github-stat:first-child) {
+		border-radius: 12px 0 0 12px;
+	}
+
+	:global(.github-stat:last-child) {
+		border-radius: 0 12px 12px 0;
+	}
+
+	:global(.github-stat-value) {
+		display: block;
+		font-size: 1.5rem;
+		font-weight: 800;
+		color: #3fb950;
+		letter-spacing: -0.02em;
+	}
+
+	:global(.github-stat-label) {
+		display: block;
+		font-size: 0.6875rem;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: #8b949e;
+		margin-top: 0.25rem;
+		font-weight: 500;
+	}
+
+	:global(.github-profile-link) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.625rem;
+		padding: 0.875rem 1.5rem;
+		background: #238636;
+		border: none;
+		border-radius: 8px;
+		color: white;
+		text-decoration: none;
+		font-size: 0.9375rem;
+		font-weight: 600;
+		transition: all 0.2s ease;
+		box-shadow: 0 4px 12px rgba(35, 134, 54, 0.4);
+	}
+
+	:global(.github-profile-link:hover),
+	:global(.github-profile-link:focus) {
+		background: #2ea043;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 20px rgba(35, 134, 54, 0.5);
+	}
+
+	:global(.github-profile-link svg) {
+		width: 18px;
+		height: 18px;
+	}
+
+	/* ============================================
+       DISCORD PROFILE CARD - Premium Design
+       ============================================ */
+	:global(.discord-profile-card) {
+		border: none;
+		background: linear-gradient(135deg, #36393f 0%, #2f3136 100%);
+		border-radius: 16px;
+		overflow: hidden;
+	}
+
+	:global(.discord-profile-card::before) {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background: linear-gradient(90deg, #5865f2, #7289da, #99aab5);
+	}
+
+	:global(.discord-profile-card:hover) {
+		box-shadow:
+			0 20px 40px rgba(0, 0, 0, 0.4),
+			0 0 0 1px rgba(88, 101, 242, 0.3);
+	}
+
+	:global(.discord-profile-content) {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	:global(.discord-user-info) {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 1rem;
+		background: rgba(0, 0, 0, 0.2);
+		border-radius: 12px;
+		border: 1px solid rgba(255, 255, 255, 0.06);
+	}
+
+	:global(.discord-avatar) {
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		flex-shrink: 0;
+		object-fit: cover;
+		border: 3px solid #5865f2;
+		box-shadow: 0 0 0 3px rgba(88, 101, 242, 0.2);
+	}
+
+	:global(.discord-avatar--placeholder) {
+		background: linear-gradient(135deg, #5865f2 0%, #7289da 100%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	:global(.discord-avatar--placeholder svg) {
+		width: 32px;
+		height: 32px;
+		color: white;
+	}
+
+	:global(.discord-user-details) {
+		flex: 1;
+		min-width: 0;
+	}
+
+	:global(.discord-username) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 1.375rem;
+		font-weight: 700;
+		color: #ffffff;
+		margin: 0 0 0.25rem;
+		letter-spacing: -0.02em;
+	}
+
+	:global(.discord-handle) {
+		font-size: 0.875rem;
+		color: #b9bbbe;
+		margin: 0;
+	}
+
+	:global(.boost-badge) {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		width: 22px;
+		height: 22px;
+		background: linear-gradient(135deg, #ff73fa 0%, #b473ff 100%);
+		border-radius: 6px;
+		box-shadow: 0 2px 8px rgba(255, 115, 250, 0.4);
+	}
+
+	:global(.boost-badge svg) {
+		width: 14px;
+		height: 14px;
+		color: white;
+	}
+
+	:global(.discord-guild-info) {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+		background: rgba(0, 0, 0, 0.2);
+		border-radius: 12px;
+		overflow: hidden;
+	}
+
+	:global(.discord-info-row) {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 1rem 1.25rem;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+		transition: background 0.2s ease;
+	}
+
+	:global(.discord-info-row:last-child) {
+		border-bottom: none;
+	}
+
+	:global(.discord-info-row:hover) {
+		background: rgba(255, 255, 255, 0.03);
+	}
+
+	:global(.discord-info-label) {
+		font-size: 0.875rem;
+		color: #b9bbbe;
+		font-weight: 500;
+	}
+
+	:global(.discord-info-value) {
+		font-size: 0.9375rem;
+		color: #ffffff;
+		font-weight: 600;
+	}
+
+	:global(.discord-info-value.verified) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		color: #57f287;
+		background: rgba(87, 242, 135, 0.15);
+		padding: 0.5rem 1rem;
+		border-radius: 20px;
+		font-size: 0.8125rem;
+		font-weight: 600;
+	}
+
+	:global(.discord-info-value.verified svg) {
+		width: 16px;
+		height: 16px;
+	}
+
+	:global(.discord-roles-section) {
+		margin-top: 0.5rem;
+		padding: 1rem;
+		background: rgba(0, 0, 0, 0.2);
+		border-radius: 12px;
+	}
+
+	:global(.discord-roles-title) {
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: #b9bbbe;
+		margin: 0 0 1rem;
+	}
+
+	:global(.discord-roles-list) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+	}
+
+	:global(.discord-role-tag) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: 0.8125rem;
+		font-weight: 500;
+		padding: 0.375rem 0.75rem;
+		border-radius: 4px;
+		background: #4f545c;
+		color: #ffffff;
+		transition: all 0.15s ease;
+	}
+
+	:global(.discord-role-tag::before) {
+		content: '';
+		width: 10px;
+		height: 10px;
+		border-radius: 50%;
+		flex-shrink: 0;
+	}
+
+	:global(.discord-role-tag:hover) {
+		filter: brightness(1.2);
+		transform: translateY(-1px);
+	}
+
+	/* Role colors - Discord style colored dots */
+	:global(.discord-role-tag:nth-child(1)::before) {
+		background: #ed4245;
+	}
+	:global(.discord-role-tag:nth-child(2)::before) {
+		background: #57f287;
+	}
+	:global(.discord-role-tag:nth-child(3)::before) {
+		background: #9b59b6;
+	}
+	:global(.discord-role-tag:nth-child(4)::before) {
+		background: #fee75c;
+	}
+	:global(.discord-role-tag:nth-child(5)::before) {
+		background: #3498db;
+	}
+	:global(.discord-role-tag:nth-child(6)::before) {
+		background: #e91e63;
+	}
+	:global(.discord-role-tag:nth-child(7)::before) {
+		background: #1abc9c;
+	}
+	:global(.discord-role-tag:nth-child(8)::before) {
+		background: #e67e22;
+	}
+	:global(.discord-role-tag:nth-child(n + 9)::before) {
+		background: #99aab5;
+	}
+
+	:global(.discord-not-member) {
+		text-align: center;
+		padding: 1.5rem;
+		background: rgba(88, 101, 242, 0.06);
+		border-radius: var(--profile-radius-sm);
+		border: 1px solid rgba(88, 101, 242, 0.12);
+	}
+
+	:global(.discord-not-member p) {
+		font-size: 0.9375rem;
+		color: var(--profile-gray-2);
+		margin: 0 0 1rem;
+	}
+
+	:global(.discord-join-link) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1.25rem;
+		background: var(--profile-discord);
+		color: white;
+		text-decoration: none;
+		font-size: 0.875rem;
+		font-weight: 600;
+		border-radius: var(--profile-radius-sm);
+		transition: all 0.2s ease;
+	}
+
+	:global(.discord-join-link:hover),
+	:global(.discord-join-link:focus) {
+		background: var(--profile-discord-dark);
+		transform: translateY(-1px);
+	}
+
+	/* ============================================
+       TWITCH PROFILE CARD - Premium Design
+       ============================================ */
+	:global(.twitch-profile-card) {
+		border: none;
+		background: linear-gradient(135deg, #18181b 0%, #0e0e10 100%);
+		border-radius: 16px;
+		overflow: hidden;
+	}
+
+	:global(.twitch-profile-card::before) {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background: linear-gradient(90deg, #9146ff, #bf94ff, #e9a3ff);
+	}
+
+	:global(.twitch-profile-card:hover) {
+		box-shadow:
+			0 20px 40px rgba(0, 0, 0, 0.4),
+			0 0 0 1px rgba(145, 70, 255, 0.3);
+	}
+
+	:global(.twitch-profile-content) {
+		display: flex;
+		flex-direction: column;
+		gap: 1.25rem;
+	}
+
+	:global(.twitch-user-info) {
+		display: flex;
+		align-items: center;
+		gap: 1rem;
+		padding: 1rem;
+		background: rgba(255, 255, 255, 0.03);
+		border-radius: 12px;
+		border: 1px solid rgba(255, 255, 255, 0.06);
+	}
+
+	:global(.twitch-avatar) {
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		flex-shrink: 0;
+		object-fit: cover;
+		border: 3px solid #9146ff;
+		box-shadow: 0 0 0 3px rgba(145, 70, 255, 0.2);
+	}
+
+	:global(.twitch-avatar--placeholder) {
+		background: linear-gradient(135deg, #9146ff 0%, #bf94ff 100%);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	:global(.twitch-avatar--placeholder svg) {
+		width: 32px;
+		height: 32px;
+		color: white;
+	}
+
+	:global(.twitch-user-details) {
+		flex: 1;
+		min-width: 0;
+	}
+
+	:global(.twitch-username) {
+		font-size: 1.375rem;
+		font-weight: 700;
+		color: #efeff1;
+		margin: 0 0 0.25rem;
+		letter-spacing: -0.02em;
+	}
+
+	:global(.twitch-status) {
+		font-size: 0.875rem;
+		color: #adadb8;
+		margin: 0;
+	}
+
+	:global(.twitch-live-indicator) {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		padding: 0.375rem 0.875rem;
+		background: #eb0400;
+		color: white;
+		border-radius: 4px;
+		box-shadow: 0 2px 8px rgba(235, 4, 0, 0.4);
+	}
+
+	:global(.twitch-live-indicator .live-dot) {
+		width: 8px;
+		height: 8px;
+		border-radius: 50%;
+		background: white;
+		animation: blink-live 1s ease-in-out infinite;
+	}
+
+	:global(.twitch-profile-link) {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.625rem;
+		padding: 0.875rem 1.5rem;
+		background: #9146ff;
+		border: none;
+		border-radius: 8px;
+		color: white;
+		text-decoration: none;
+		font-size: 0.9375rem;
+		font-weight: 600;
+		transition: all 0.2s ease;
+		box-shadow: 0 4px 12px rgba(145, 70, 255, 0.4);
+	}
+
+	:global(.twitch-profile-link:hover),
+	:global(.twitch-profile-link:focus) {
+		background: #772ce8;
+		transform: translateY(-2px);
+		box-shadow: 0 6px 20px rgba(145, 70, 255, 0.5);
+	}
+
+	:global(.twitch-profile-link svg) {
+		width: 18px;
+		height: 18px;
+	}
+
+	/* ============================================
+       RENTEARTH CHARACTERS CARD - Premium Design
+       ============================================ */
+	:global(.rentearth-card) {
+		border: none;
+		background: linear-gradient(135deg, #1a1625 0%, #13111c 100%);
+		border-radius: 16px;
+		overflow: hidden;
+	}
+
+	:global(.rentearth-card::before) {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		right: 0;
+		height: 4px;
+		background: linear-gradient(90deg, #8b5cf6, #a78bfa, #c4b5fd);
+	}
+
+	:global(.rentearth-card:hover) {
+		box-shadow:
+			0 20px 40px rgba(0, 0, 0, 0.4),
+			0 0 0 1px rgba(139, 92, 246, 0.3);
+	}
+
+	:global(.rentearth-content) {
+		display: flex;
+		flex-direction: column;
+		gap: 1rem;
+	}
+
+	:global(.rentearth-summary) {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 0.875rem 1rem;
+		background: rgba(139, 92, 246, 0.06);
+		border-radius: var(--profile-radius-sm);
+		border: 1px solid rgba(139, 92, 246, 0.12);
+	}
+
+	:global(.rentearth-total-playtime) {
+		font-size: 0.9375rem;
+		font-weight: 700;
+		color: var(--profile-accent-light);
+	}
+
+	:global(.rentearth-last-activity) {
+		font-size: 0.75rem;
+		color: var(--profile-text-muted);
+	}
+
+	:global(.character-grid) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	:global(.character-card) {
+		background: rgba(255, 255, 255, 0.02);
+		border: 1px solid var(--profile-border);
+		border-radius: var(--profile-radius-sm);
+		padding: 1rem;
+		transition: all 0.2s ease;
+	}
+
+	:global(.character-card:hover),
+	:global(.character-card:focus-within) {
+		border-color: var(--profile-border-hover);
+		background: rgba(255, 255, 255, 0.03);
+	}
+
+	:global(.character-header) {
+		display: flex;
+		align-items: center;
+		gap: 0.875rem;
+		margin-bottom: 0.875rem;
+	}
+
+	:global(.character-avatar) {
+		width: 44px;
+		height: 44px;
+		border-radius: var(--profile-radius-sm);
+		background: rgba(139, 92, 246, 0.15);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		border: 1px solid rgba(139, 92, 246, 0.25);
+	}
+
+	:global(.character-letter) {
+		font-size: 1.125rem;
+		font-weight: 700;
+		color: var(--profile-accent-light);
+		text-transform: uppercase;
+	}
+
+	:global(.character-info) {
+		flex: 1;
+		min-width: 0;
+	}
+
+	:global(.character-name) {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--profile-text);
+		margin: 0 0 0.125rem;
+	}
+
+	:global(.character-class) {
+		font-size: 0.75rem;
+		color: var(--profile-text-muted);
+		margin: 0;
+	}
+
+	:global(.character-slot) {
+		font-size: 0.625rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		padding: 0.25rem 0.5rem;
+		background: rgba(139, 92, 246, 0.08);
+		color: var(--profile-accent-light);
+		border-radius: 4px;
+		border: 1px solid rgba(139, 92, 246, 0.15);
+	}
+
+	:global(.character-stats) {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	:global(.stat-bar) {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	:global(.stat-bar-label) {
+		font-size: 0.625rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		color: var(--profile-text-muted);
+		width: 24px;
+	}
+
+	:global(.stat-bar-track) {
+		flex: 1;
+		height: 6px;
+		background: rgba(255, 255, 255, 0.05);
+		border-radius: 3px;
+		overflow: hidden;
+	}
+
+	:global(.stat-bar-fill) {
+		height: 100%;
+		border-radius: 3px;
+		transition: width 0.3s ease;
+	}
+
+	:global(.stat-bar.health .stat-bar-fill) {
+		background: linear-gradient(
+			90deg,
+			#ef4444 0%,
+			#f59e0b 50%,
+			#22c55e 100%
+		);
+	}
+
+	:global(.stat-bar-value) {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		color: var(--profile-text-muted);
+		min-width: 60px;
+		text-align: right;
+	}
+
+	:global(.character-details) {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.75rem;
+		padding-top: 0.5rem;
+	}
+
+	:global(.character-detail) {
+		display: flex;
+		align-items: center;
+		gap: 0.375rem;
+		font-size: 0.75rem;
+		color: var(--profile-text-muted);
+	}
+
+	:global(.character-detail svg) {
+		width: 14px;
+		height: 14px;
+		opacity: 0.5;
+		color: var(--profile-accent-light);
+	}
+
+	:global(.character-last-login) {
+		font-size: 0.6875rem;
+		color: var(--profile-gray-4);
+		margin: 0.625rem 0 0;
+		text-align: right;
+		padding-top: 0.625rem;
+		border-top: 1px solid var(--profile-border);
+	}
+
+	/* Adsense container */
+	.adsense-container {
+		max-width: 1200px;
+		margin: 0 auto;
+		padding: 0 1.25rem 3rem;
+	}
+
+	@media (min-width: 768px) {
+		.adsense-container {
+			padding: 0 2rem 4rem;
+		}
+	}
+
+	/* Focus styles for a11y */
+	:focus-visible {
+		outline: 2px solid var(--profile-accent);
+		outline-offset: 3px;
+	}
+
+	/* Smooth scrolling */
+	html {
+		scroll-behavior: smooth;
+	}
+
+	/* Reduced motion for a11y */
+	@media (prefers-reduced-motion: reduce) {
+		*,
+		*::before,
+		*::after {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+		}
+		.profile-banner__image {
+			transform: none !important;
+		}
+		html {
+			scroll-behavior: auto;
+		}
+	}
+
+	/* Page entrance animation */
+	@keyframes fade-in-up {
+		from {
+			opacity: 0;
+			transform: translateY(20px);
+		}
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.profile-card,
+	.sidebar-card {
+		animation: fade-in-up 0.6s cubic-bezier(0.4, 0, 0.2, 1) forwards;
+		animation-delay: calc(var(--animation-order, 0) * 0.1s);
+	}
+
+	.main-column .profile-card:nth-child(1) {
+		--animation-order: 1;
+	}
+	.main-column .profile-card:nth-child(2) {
+		--animation-order: 2;
+	}
+	.main-column .profile-card:nth-child(3) {
+		--animation-order: 3;
+	}
+	.main-column .profile-card:nth-child(4) {
+		--animation-order: 4;
+	}
+	.main-column .profile-card:nth-child(5) {
+		--animation-order: 5;
+	}
+
+	.sidebar-column .sidebar-card:nth-child(1) {
+		--animation-order: 2;
+	}
+	.sidebar-column .sidebar-card:nth-child(2) {
+		--animation-order: 3;
+	}
+	.sidebar-column .sidebar-card:nth-child(3) {
+		--animation-order: 4;
+	}
+</style>
+
+<script is:inline data-astro-rerun>
+	// Lazy load banner image with smooth fade-in
+	(function () {
+		const placeholder = document.getElementById('banner-placeholder');
+		const image = document.getElementById('banner-image');
+		if (!image) return;
+
+		const img = new Image();
+		img.onload = function () {
+			image.style.opacity = '1';
+			if (placeholder) {
+				setTimeout(() => {
+					placeholder.style.opacity = '0';
+				}, 100);
+			}
+		};
+		// Extract URL from background-image style
+		const bgUrl = image.style.backgroundImage;
+		const urlMatch = bgUrl.match(/url\(['"]?([^'"]+)['"]?\)/);
+		if (urlMatch && urlMatch[1]) {
+			img.src = urlMatch[1];
+		}
+	})();
+
+	// Smooth parallax scroll effect with lerp interpolation
+	(function () {
+		const hero = document.getElementById('parallax-hero');
+		const bgImage = document.getElementById('banner-image');
+		if (!hero || !bgImage) return;
+
+		// Check for reduced motion preference
+		const prefersReducedMotion = window.matchMedia(
+			'(prefers-reduced-motion: reduce)',
+		).matches;
+		if (prefersReducedMotion) {
+			bgImage.style.transform = 'none';
+			return;
+		}
+
+		// Smooth interpolation values
+		let currentY = 0;
+		let targetY = 0;
+		const ease = 0.08; // Lower = smoother but slower (0.05-0.15 range)
+		const parallaxSpeed = 0.3;
+
+		// Linear interpolation for buttery smooth motion
+		function lerp(start, end, factor) {
+			return start + (end - start) * factor;
+		}
+
+		// Animation loop for smooth updates
+		function animate() {
+			// Calculate target based on scroll position
+			targetY = window.pageYOffset * parallaxSpeed;
+
+			// Smoothly interpolate current toward target
+			currentY = lerp(currentY, targetY, ease);
+
+			// Only update DOM if there's meaningful change (reduces micro-jitter)
+			if (Math.abs(currentY - targetY) > 0.01) {
+				bgImage.style.transform = `translate3d(0, ${currentY}px, 0)`;
+			}
+
+			requestAnimationFrame(animate);
+		}
+
+		// Start animation loop
+		requestAnimationFrame(animate);
+
+		// Ensure GPU acceleration
+		bgImage.style.willChange = 'transform';
+	})();
+
+	// Format Discord join date to human-readable format
+	(function () {
+		const dateEl = document.querySelector('.discord-joined-date');
+		if (!dateEl) return;
+
+		const rawDate = dateEl.getAttribute('data-date');
+		if (!rawDate) return;
+
+		try {
+			const date = new Date(rawDate);
+			const options = { year: 'numeric', month: 'long', day: 'numeric' };
+			dateEl.textContent = date.toLocaleDateString('en-US', options);
+		} catch (e) {
+			console.warn('Failed to parse date:', e);
+		}
+	})();
+
+	// Load GitHub profile data from API
+	(function () {
+		const githubCard = document.querySelector('.github-profile-card');
+		if (!githubCard) return;
+
+		const username = githubCard.getAttribute('data-github-username');
+		if (!username) return;
+
+		const bioEl = document.getElementById('github-bio');
+		const reposEl = document.getElementById('github-repos');
+		const followersEl = document.getElementById('github-followers');
+		const followingEl = document.getElementById('github-following');
+
+		fetch(`https://api.github.com/users/${encodeURIComponent(username)}`)
+			.then((response) => {
+				if (!response.ok) throw new Error('GitHub API error');
+				return response.json();
+			})
+			.then((data) => {
+				if (bioEl) bioEl.textContent = data.bio || 'No bio available';
+				if (reposEl) reposEl.textContent = data.public_repos ?? '--';
+				if (followersEl)
+					followersEl.textContent = data.followers ?? '--';
+				if (followingEl)
+					followingEl.textContent = data.following ?? '--';
+			})
+			.catch((error) => {
+				console.warn('Failed to load GitHub profile:', error);
+				if (bioEl) bioEl.textContent = 'Unable to load profile';
+			});
+	})();
+</script>

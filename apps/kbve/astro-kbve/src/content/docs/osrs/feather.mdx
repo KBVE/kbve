@@ -1,0 +1,120 @@
+---
+title: Feather | OSRS Price Data
+description: "Feather: Used for fly fishing.. High alch: 1 GP, GE limit: 30,000."
+osrs:
+  id: 314
+  name: Feather
+  slug: feather
+  examine: Used for fly fishing.
+  members: false
+  icon: Feather.png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 30000
+  material:
+    type: crafting
+    tier: basic
+  fletching:
+    uses:
+      - Arrow shafts → Headless arrows
+      - Dart tips → Darts
+  fishing:
+    uses:
+      - Fly fishing (trout, salmon)
+      - Barbarian fishing
+  recipes:
+    - skill: fletching
+      level: 1
+      xp: 15
+      materials:
+        - item_name: Arrow shaft
+          item_id: 52
+          quantity: 15
+        - item_name: Feather
+          item_id: 314
+          quantity: 15
+      product: Headless arrow
+      product_id: 53
+      product_quantity: 15
+  related_items:
+    - item_id: 52
+      item_name: Arrow shaft
+      slug: arrow-shaft
+      relationship: component
+      description: Combined with feathers
+    - item_id: 53
+      item_name: Headless arrow
+      slug: headless-arrow
+      relationship: product
+      description: Product
+    - item_id: 309
+      item_name: Fly fishing rod
+      slug: fly-fishing-rod
+      relationship: alternative
+      description: Uses feathers
+    - item_id: 335
+      item_name: Raw trout
+      slug: raw-trout
+      relationship: alternative
+      description: Caught with feathers
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Usage
+
+Feathers are used in multiple skills:
+
+**Fletching:**
+- Arrow shaft + Feather = Headless arrow
+- 10 feathers per 10 arrow shafts
+
+**Fishing:**
+- Fly fishing for Raw trout and Raw salmon
+- Barbarian fishing
+
+**Herblore:**
+- Some potion recipes require feathers
+
+## Market Flip Strategy
+
+**Headless Arrow Production:**
+1. Buy Arrow shaft + Feathers
+2. Fletch into Headless arrow
+3. Sell to arrow makers
+
+**Supply Sources:**
+- Chicken killing (common bot activity)
+- Shop purchases (limited stock)
+- Fishing drops
+
+**Demand Drivers:**
+- Fletching training
+- Fly fishing
+- Arrow production chains
+
+**Tips:**
+- Buy limit: 13,000 per 4 hours
+- Very stable price, high volume
+- Cheap but essential item
+
+<Adsense />

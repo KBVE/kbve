@@ -1,0 +1,37 @@
+---
+title: Mokhaiotl waystone | OSRS Price Data
+description: "Mokhaiotl waystone: A magical shard linked to Mokhaiotl.. High alch: 6,000 GP, GE limit: 100."
+osrs:
+  id: 31099
+  name: Mokhaiotl waystone
+  slug: mokhaiotl-waystone
+  examine: A magical shard linked to Mokhaiotl.
+  members: true
+  icon: Mokhaiotl waystone 5.png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

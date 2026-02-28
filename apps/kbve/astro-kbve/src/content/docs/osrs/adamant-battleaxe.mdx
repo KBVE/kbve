@@ -1,0 +1,108 @@
+---
+title: Adamant battleaxe | OSRS Price Data
+description: "Adamant battleaxe is a F2P weapon slot item requiring 30 Attack. High alch: 2,496 GP, GE limit: 125."
+osrs:
+  id: 1371
+  name: Adamant battleaxe
+  slug: adamant-battleaxe
+  examine: A vicious looking axe.
+  members: false
+  icon: Adamant battleaxe.png
+  value: 4160
+  lowalch: 1664
+  highalch: 2496
+  limit: 125
+  equipment:
+    slot: weapon
+    type: battleaxe
+    tradeable: true
+    weight: 3.175
+    requirements:
+      attack: 30
+    stats:
+      attack_stab: -2
+      attack_slash: 31
+      attack_crush: 26
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 41
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1373
+      item_name: Rune battleaxe
+      slug: rune-battleaxe
+      relationship: upgrade
+      description: Higher tier battleaxe
+    - item_id: 1287
+      item_name: Adamant sword
+      slug: adamant-sword
+      relationship: alternative
+      description: Better accuracy alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Battleaxe |
+| Tradeable | Yes |
+| Weight | 3.175 kg |
+| Requirements | 30 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | -2 |
+| Slash Attack | +31 |
+| Crush Attack | +26 |
+| Strength | +41 |
+
+## Obtaining
+
+**Smithing:** 80 Smithing with 3 adamantite bars (187.5 XP).
+
+**Shop:** Bob's Brilliant Axes, Lumbridge.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~2,290 gp
+
+High-tier battleaxe. F2P accessible.
+
+## Related Items
+
+- [Rune battleaxe](/osrs/rune-battleaxe/) - Upgrade
+- [Adamant sword](/osrs/adamant-sword/) - Better accuracy
+
+<Adsense />

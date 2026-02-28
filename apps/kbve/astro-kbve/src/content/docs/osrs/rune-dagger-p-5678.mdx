@@ -1,0 +1,37 @@
+---
+title: Rune dagger(p+) | OSRS Price Data
+description: "Rune dagger(p+): The blade is covered with a nasty poison.. High alch: 4,800 GP, GE limit: 70."
+osrs:
+  id: 5678
+  name: Rune dagger(p+)
+  slug: rune-dagger-p
+  examine: The blade is covered with a nasty poison.
+  members: true
+  icon: Rune dagger(p+).png
+  value: 8000
+  lowalch: 3200
+  highalch: 4800
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,146 @@
+---
+title: Chaos rune | OSRS Price Data
+description: "Chaos rune: Used for low level missile spells.. High alch: 54 GP, GE limit: 18,000."
+osrs:
+  id: 562
+  name: Chaos rune
+  slug: chaos-rune
+  examine: Used for low level missile spells.
+  members: false
+  icon: Chaos rune.png
+  value: 90
+  lowalch: 36
+  highalch: 54
+  limit: 18000
+  rune:
+    type: combat
+  runecraft:
+    level: 35
+    xp: 8.5
+    multiple_at: 74
+    altar: Chaos Altar
+    altar_location: Wilderness (level 9)
+    essence_type: pure
+  shops:
+    - shop_name: Rune shops
+      stock: Limited
+      price: 140
+  drop_table:
+    sources:
+      - source: Chaos druids
+        combat_level: 13
+        quantity: "3"
+        rarity: common
+        members_only: true
+      - source: Barrows
+        combat_level: 0
+        quantity: Variable
+        rarity: uncommon
+        members_only: true
+  recipes:
+    - skill: runecraft
+      level: 35
+      xp: 8.5
+      materials:
+        - item_name: Pure essence
+          item_id: 7936
+          quantity: 1
+      product: Chaos rune
+      product_id: 562
+      product_quantity: 1
+      facility: Chaos altar
+      members_only: true
+  related_items:
+    - item_id: 560
+      item_name: Death rune
+      slug: death-rune
+      relationship: upgrade
+      description: Upgrade from chaos
+    - item_id: 565
+      item_name: Blood rune
+      slug: blood-rune
+      relationship: upgrade
+      description: High-tier combat
+    - item_id: 558
+      item_name: Mind rune
+      slug: mind-rune
+      relationship: downgrade
+      description: Budget option
+    - item_id: 554
+      item_name: Fire rune
+      slug: fire-rune
+      relationship: component
+      description: Fire Bolt combo
+    - item_id: 1409
+      item_name: Iban's staff
+      slug: ibans-staff
+      relationship: alternative
+      description: Uses chaos runes
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Runecrafting
+
+| Requirement | Value |
+|-------------|-------|
+| Runecraft Level | 35 |
+| XP per rune | 8.5 |
+| Runes per essence | 1 (2 at 74) |
+| Abyss recommended | Yes |
+
+**Multipliers:**
+- Level 74: 2x runes
+
+## Key Spells
+
+| Spell | Chaos Runes | Other Runes |
+|-------|-------------|-------------|
+| Wind Bolt | 1 | 2 Air |
+| Water Bolt | 1 | 2 Air, 2 Water |
+| Earth Bolt | 1 | 2 Air, 3 Earth |
+| Fire Bolt | 1 | 3 Air, 4 Fire |
+| Crumble Undead | 2 | 2 Air, 2 Earth |
+| Iban Blast | 1 | 5 Fire (Iban staff) |
+| Saradomin Strike | 2 | 4 Fire, 2 Blood |
+
+## Market Flip Strategy
+
+**Combat Essential:**
+- Bolt spells primary use
+- Ironman training popular
+- Wilderness chaos altar
+
+**Buy Limit:** 18,000 per 4 hours
+
+**Demand Drivers:**
+- Fire Bolt training
+- God spells (Mage Arena)
+- Early-game Magic
+- Ironman accounts
+
+**Tips:**
+- Chaos druids drop frequently
+- Wilderness altar doubles
+- Bolt spells for Slayer
+- Lower demand at high levels
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Pile of salt | OSRS Price Data
+description: "Pile of salt: A little heap of salt.. High alch: 12 GP, GE limit: 15."
+osrs:
+  id: 4689
+  name: Pile of salt
+  slug: pile-of-salt
+  examine: A little heap of salt.
+  members: true
+  icon: Pile of salt.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

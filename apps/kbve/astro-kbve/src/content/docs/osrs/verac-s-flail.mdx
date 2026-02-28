@@ -1,0 +1,142 @@
+---
+title: Verac's flail | OSRS Price Data
+description: "Verac's flail is a members two-handed weapon requiring 70 Attack. High alch: 96,000 GP, GE limit: 15."
+osrs:
+  id: 4755
+  name: Verac's flail
+  slug: verac-s-flail
+  examine: Verac the Defiled's flail.
+  members: true
+  icon: Verac's flail.png
+  value: 160000
+  lowalch: 64000
+  highalch: 96000
+  limit: 15
+  equipment:
+    slot: 2h
+    type: barrows_weapon
+    attack_style: melee
+    attack_speed: 5
+    requirements:
+      attack: 70
+    stats:
+      attack_stab: 68
+      attack_slash: -2
+      attack_crush: 82
+      strength: 72
+      prayer: 6
+    degradeable: true
+    degrade_hours: 15
+  set_bonus:
+    set_name: Verac's
+    effect: 25% chance to ignore defence and protection prayers
+  drop_table:
+    sources:
+      - source: Barrows chest
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: 7 × 1/2,448
+        members_only: true
+  related_items:
+    - item_id: 4759
+      item_name: Verac's plateskirt
+      slug: veracs-plateskirt
+      relationship: component
+      description: Set piece
+    - item_id: 4757
+      item_name: Verac's brassard
+      slug: veracs-brassard
+      relationship: component
+      description: Set piece
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Melee - Crush |
+| Tradeable | Yes |
+| Weight | 2.267 kg |
+| Attack Speed | 5 tick (3.0s) |
+
+## Obtaining
+
+Drop from Barrows reward chest.
+
+| Source | Drop Rate |
+|--------|-----------|
+| Barrows chest | 7 × 1/2,448 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +68 |
+| Crush | +82 |
+| Slash | -2 |
+| Strength | +72 |
+
+| Defence | Value |
+|---------|-------|
+| All | +0 |
+
+| Other | Value |
+|-------|-------|
+| Prayer | +6 |
+
+**Requirements:** 70 Attack
+
+## Set Effect
+
+**Full Verac's:**
+- 25% chance to ignore defence and protection prayers
+- Hits through Protect from Melee
+
+## Degradation
+
+Degrades over 15 hours of combat.
+
+## Usage
+
+Essential for:
+- Callisto
+- Vet'ion
+- Corp (pre-spec)
+- PvP (hits through prayer)
+
+**Only way to hit through protection prayers.**
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~105K gp
+
+**Tips:**
+- Essential for wilderness bosses
+- Prayer bonus is nice
+- Set effect is unique
+
+<Adsense />

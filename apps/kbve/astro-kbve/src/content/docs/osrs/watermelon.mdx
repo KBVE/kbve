@@ -1,0 +1,103 @@
+---
+title: Watermelon | OSRS Price Data
+description: "Watermelon: A juicy watermelon.. High alch: 28 GP, GE limit: 11,000."
+osrs:
+  id: 5982
+  name: Watermelon
+  slug: watermelon
+  examine: A juicy watermelon.
+  members: true
+  icon: Watermelon.png
+  value: 48
+  lowalch: 19
+  highalch: 28
+  limit: 11000
+  item:
+    type: crop
+    tradeable: true
+    weight: 0.113
+  farming:
+    level: 47
+    patch_type: allotment
+  uses:
+    - name: Composting
+      description: Used to make supercompost
+    - name: Cooking
+      description: Ingredient for summer pies
+  related_items:
+    - item_id: 5321
+      item_name: Watermelon seed
+      slug: watermelon-seed
+      relationship: alternative
+      description: Farming source
+    - item_id: 6034
+      item_name: Supercompost
+      slug: supercompost
+      relationship: product
+      description: Primary use
+    - item_id: 7218
+      item_name: Summer pie
+      slug: summer-pie
+      relationship: alternative
+      description: Cooking use
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Farming Product |
+| Tradeable | Yes |
+| Weight | 0.113 kg |
+| Requirements | 47 Farming |
+
+## Obtaining
+
+**Primary:** Harvest from allotment patches (47 Farming)
+
+**Other sources:**
+- Farming shops
+- Gryphon monster drops
+
+## Usage
+
+**Composting:** Used to make supercompost
+
+**Cooking:** Ingredient for summer pies
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~20 gp
+
+Very cheap, high volume. Essential for supercompost production.
+
+## Related Items
+
+- [Watermelon seed](/osrs/watermelon-seed/) - Farming source
+- [Supercompost](/osrs/supercompost/) - Primary use
+- [Summer pie](/osrs/summer-pie/) - Cooking use
+
+<Adsense />

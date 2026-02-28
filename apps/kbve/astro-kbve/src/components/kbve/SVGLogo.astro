@@ -1,0 +1,474 @@
+---
+
+---
+
+<style>
+	/* 3D Logo Card - KBVE Expanding Logo */
+	/* Using Starlight theme variables for light/dark mode support */
+
+	.svg-logo-section {
+		background-color: var(--sl-color-bg);
+		color: var(--sl-color-text);
+	}
+
+	.card-wrapper {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		padding: 1rem;
+	}
+
+	.card {
+		--svg-corner-size: 1.5rem;
+		width: 420px;
+		height: 280px;
+		background: var(--sl-color-accent-low);
+		position: relative;
+		display: grid;
+		place-content: center;
+		border-radius: 16px;
+		overflow: hidden;
+		transition:
+			transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			border-color 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			border-radius 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+			box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			clip-path 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+		border: 1px solid var(--sl-color-border);
+		box-shadow:
+			0 4px 6px -1px rgba(0, 0, 0, 0.1),
+			0 2px 4px -1px rgba(0, 0, 0, 0.06);
+		clip-path: polygon(
+			0% 0%,
+			100% 0%,
+			100% 0%,
+			100% 100%,
+			100% 100%,
+			0% 100%,
+			0% 100%,
+			0% 0%
+		);
+	}
+
+	.border {
+		position: absolute;
+		inset: 0px;
+		border: 2px solid var(--sl-color-accent);
+		opacity: 0;
+		transform: rotate(10deg);
+		transition:
+			inset 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			opacity 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			transform 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			border-radius 0.6s cubic-bezier(0.4, 0, 0.2, 1),
+			clip-path 0.6s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+		border-radius: 16px;
+		clip-path: polygon(
+			0% 0%,
+			100% 0%,
+			100% 0%,
+			100% 100%,
+			100% 100%,
+			0% 100%,
+			0% 100%,
+			0% 0%
+		);
+	}
+
+	.bottom-text {
+		position: absolute;
+		left: 50%;
+		bottom: 16px;
+		transform: translateX(-50%);
+		font-size: 7px;
+		text-transform: uppercase;
+		padding: 0px 8px;
+		color: var(--sl-color-text-accent);
+		background: var(--sl-color-accent-low);
+		opacity: 0;
+		letter-spacing: 5px;
+		transition: all 0.5s ease-in-out;
+		white-space: nowrap;
+	}
+
+	.content {
+		transition: all 0.5s ease-in-out;
+	}
+
+	/* Logo grid container */
+	.logo-grid {
+		display: grid;
+		grid-template-columns: repeat(4, auto);
+		gap: 8px;
+		align-items: baseline;
+		justify-content: center;
+		color: var(--sl-color-accent);
+		font-family:
+			system-ui,
+			-apple-system,
+			sans-serif;
+	}
+
+	/* Each letter column */
+	.letter-col {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-start;
+	}
+
+	/* Main letters K B V E */
+	.main-letter {
+		font-size: 42px;
+		font-weight: 700;
+		line-height: 1;
+		display: flex;
+		align-items: baseline;
+	}
+
+	/* Horizontal expansion text (for V and E) */
+	.h-expand {
+		font-size: 28px;
+		font-weight: 400;
+		opacity: 0;
+		max-width: 0;
+		overflow: hidden;
+		transition: all 0.6s ease-in-out;
+		white-space: nowrap;
+	}
+
+	/* Vertical expansion text (for K and B) */
+	.v-expand {
+		font-size: 28px;
+		font-weight: 400;
+		line-height: 1.1;
+		opacity: 0;
+		max-height: 0;
+		overflow: hidden;
+		transition: all 0.6s ease-in-out;
+		margin-left: 2px;
+	}
+
+	.v-expand span {
+		display: block;
+	}
+
+	/* Hover states - triggered by section hover */
+	.svg-logo-section:hover .card {
+		transform: scale(1.08);
+		border-radius: 0;
+		border-color: var(--sl-color-accent);
+		box-shadow:
+			0 20px 25px -5px rgba(0, 0, 0, 0.1),
+			0 10px 10px -5px rgba(0, 0, 0, 0.04);
+		clip-path: polygon(
+			var(--svg-corner-size) 0%,
+			calc(100% - var(--svg-corner-size)) 0%,
+			100% var(--svg-corner-size),
+			100% calc(100% - var(--svg-corner-size)),
+			calc(100% - var(--svg-corner-size)) 100%,
+			var(--svg-corner-size) 100%,
+			0% calc(100% - var(--svg-corner-size)),
+			0% var(--svg-corner-size)
+		);
+	}
+
+	.svg-logo-section:hover .border {
+		--svg-border-corner: calc(var(--svg-corner-size) - 8px);
+		inset: 18px;
+		opacity: 1;
+		transform: rotate(0);
+		border-radius: 0;
+		clip-path: polygon(
+			var(--svg-border-corner) 0%,
+			calc(100% - var(--svg-border-corner)) 0%,
+			100% var(--svg-border-corner),
+			100% calc(100% - var(--svg-border-corner)),
+			calc(100% - var(--svg-border-corner)) 100%,
+			var(--svg-border-corner) 100%,
+			0% calc(100% - var(--svg-border-corner)),
+			0% var(--svg-border-corner)
+		);
+	}
+
+	.svg-logo-section:hover .bottom-text {
+		letter-spacing: 2px;
+		opacity: 1;
+		transform: translateX(-50%);
+	}
+
+	.svg-logo-section:hover .h-expand {
+		opacity: 1;
+		max-width: 120px;
+	}
+
+	.svg-logo-section:hover .v-expand {
+		opacity: 1;
+		max-height: 100px;
+	}
+
+	/* Text content styling */
+	.text-content h1 {
+		color: var(--sl-color-text);
+	}
+
+	.text-content .accent {
+		color: var(--sl-color-accent);
+	}
+
+	.text-content p {
+		color: var(--sl-color-text);
+		opacity: 0.85;
+	}
+
+	.btn-primary {
+		background-color: var(--sl-color-accent);
+		color: var(--sl-color-accent-low);
+		transition: all 0.3s ease;
+		text-decoration: none;
+	}
+
+	.btn-primary:hover {
+		background-color: var(--sl-color-accent-high);
+		text-decoration: none;
+	}
+
+	/* Animated border button */
+	.btn-animated {
+		position: relative;
+		overflow: hidden;
+		background: var(--sl-color-accent-low);
+		border: 1px solid var(--sl-color-border);
+		color: var(--sl-color-text);
+		text-decoration: none;
+	}
+
+	.btn-animated .border-top,
+	.btn-animated .border-bottom,
+	.btn-animated .border-left,
+	.btn-animated .border-right {
+		position: absolute;
+		background-color: var(--sl-color-accent);
+		transition: all 0.2s ease;
+	}
+
+	.btn-animated .border-top {
+		top: 0;
+		left: 0;
+		width: 0;
+		height: 2px;
+	}
+
+	.btn-animated .border-bottom {
+		bottom: 0;
+		right: 0;
+		width: 0;
+		height: 2px;
+	}
+
+	.btn-animated .border-left {
+		bottom: 0;
+		left: 0;
+		width: 2px;
+		height: 0;
+	}
+
+	.btn-animated .border-right {
+		top: 0;
+		right: 0;
+		width: 2px;
+		height: 0;
+	}
+
+	.btn-animated .bg-fill {
+		position: absolute;
+		inset: 0;
+		background-color: var(--sl-color-accent);
+		opacity: 0;
+		transition: opacity 0.3s ease 0.2s;
+	}
+
+	.btn-animated .btn-text {
+		position: relative;
+		z-index: 1;
+		transition: color 0.3s ease 0.2s;
+	}
+
+	.btn-animated:hover .border-top,
+	.btn-animated:hover .border-bottom {
+		width: 100%;
+	}
+
+	.btn-animated:hover .border-left,
+	.btn-animated:hover .border-right {
+		height: 100%;
+	}
+
+	.btn-animated:hover .bg-fill {
+		opacity: 1;
+	}
+
+	.btn-animated:hover .btn-text {
+		color: var(--sl-color-accent-low);
+	}
+
+	.btn-animated:hover {
+		text-decoration: none;
+	}
+
+	.btn-secondary {
+		border: 1px solid var(--sl-color-border);
+		color: var(--sl-color-text);
+		transition: all 0.3s ease;
+		text-decoration: none;
+	}
+
+	.btn-secondary:hover {
+		border-color: var(--sl-color-accent);
+		color: var(--sl-color-accent);
+		text-decoration: none;
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 640px) {
+		.card {
+			--svg-corner-size: 1.25rem;
+			width: 340px;
+			height: 240px;
+		}
+
+		.main-letter {
+			font-size: 36px;
+		}
+
+		.h-expand {
+			font-size: 22px;
+			font-weight: 400;
+		}
+
+		.v-expand {
+			font-size: 22px;
+			font-weight: 400;
+		}
+
+		.svg-logo-section:hover .h-expand {
+			max-width: 90px;
+		}
+
+		.svg-logo-section:hover .v-expand {
+			max-height: 80px;
+		}
+	}
+
+	@media (max-width: 400px) {
+		.card {
+			--svg-corner-size: 1rem;
+			width: 300px;
+			height: 210px;
+		}
+
+		.main-letter {
+			font-size: 30px;
+		}
+
+		.h-expand {
+			font-size: 18px;
+			font-weight: 400;
+		}
+
+		.v-expand {
+			font-size: 18px;
+			font-weight: 400;
+		}
+
+		.svg-logo-section:hover .h-expand {
+			max-width: 70px;
+		}
+
+		.svg-logo-section:hover .v-expand {
+			max-height: 70px;
+		}
+	}
+</style>
+
+<section class="svg-logo-section">
+	<div
+		class="container flex flex-col justify-center p-6 mx-auto sm:py-12 lg:py-16 lg:flex-row lg:justify-between items-center gap-8">
+		<div class="card-wrapper w-full lg:w-auto">
+			<div class="card">
+				<div class="border"></div>
+				<div class="content">
+					<div class="logo-grid">
+						<!-- K column - expands vertically to "ilo" -->
+						<div class="letter-col">
+							<span class="main-letter">K</span>
+							<div class="v-expand">
+								<span>i</span>
+								<span>l</span>
+								<span>o</span>
+							</div>
+						</div>
+
+						<!-- B column - expands vertically to "yte" -->
+						<div class="letter-col">
+							<span class="main-letter">B</span>
+							<div class="v-expand">
+								<span>y</span>
+								<span>t</span>
+								<span>e</span>
+							</div>
+						</div>
+
+						<!-- V column - expands horizontally to "irtual" -->
+						<div class="letter-col">
+							<span class="main-letter">
+								V<span class="h-expand">irtual</span>
+							</span>
+						</div>
+
+						<!-- E column - expands horizontally to "nterprise" -->
+						<div class="letter-col">
+							<span class="main-letter">
+								E<span class="h-expand">nterprise</span>
+							</span>
+						</div>
+					</div>
+				</div>
+				<span class="bottom-text">open source platform</span>
+			</div>
+		</div>
+		<div
+			class="text-content flex flex-col justify-center p-6 text-center rounded-sm lg:max-w-md xl:max-w-lg lg:text-left">
+			<h1 class="text-4xl font-bold leading-tight sm:text-5xl">
+				Build with
+				<span class="accent">KBVE</span>
+			</h1>
+			<p class="mt-6 mb-8 text-lg sm:mb-12">
+				Open-source tools, games, and applications
+				<br class="hidden md:inline lg:hidden" />
+				crafted for developers and creators
+			</p>
+			<div
+				class="flex flex-col space-y-4 sm:items-center sm:justify-center sm:flex-row sm:space-y-0 sm:space-x-4 lg:justify-start">
+				<a
+					rel="noopener noreferrer"
+					href="/application/"
+					data-astro-prefetch
+					class="btn-primary px-8 py-3 text-lg font-semibold rounded">
+					Explore Apps
+				</a>
+				<a
+					rel="noopener noreferrer"
+					href="/project/"
+					data-astro-prefetch
+					class="btn-animated px-8 py-3 text-lg font-semibold rounded">
+					<span class="border-top"></span>
+					<span class="border-right"></span>
+					<span class="border-bottom"></span>
+					<span class="border-left"></span>
+					<span class="bg-fill"></span>
+					<span class="btn-text">View Projects</span>
+				</a>
+			</div>
+		</div>
+	</div>
+</section>

@@ -1,0 +1,136 @@
+---
+title: Yew logs | OSRS Price Data
+description: "Yew logs: Logs cut from a yew tree.. High alch: 96 GP, GE limit: 12,000."
+osrs:
+  id: 1515
+  name: Yew logs
+  slug: yew-logs
+  examine: Logs cut from a yew tree.
+  members: false
+  icon: Yew logs.png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: 12000
+  material:
+    type: log
+    tier: mid-high
+  woodcutting:
+    level: 60
+    xp: 175
+    locations:
+      - Woodcutting Guild
+      - Edgeville
+      - Seers' Village
+      - Varrock Palace
+  recipes:
+    - skill: fletching
+      level: 65
+      xp: 67.5
+      materials:
+        - item_name: Yew logs
+          item_id: 1515
+          quantity: 1
+      product: Yew shortbow (u)
+      product_id: 68
+      product_quantity: 1
+    - skill: fletching
+      level: 70
+      xp: 75
+      materials:
+        - item_name: Yew logs
+          item_id: 1515
+          quantity: 1
+      product: Yew longbow (u)
+      product_id: 66
+      product_quantity: 1
+    - skill: fletching
+      level: 72
+      xp: 50
+      materials:
+        - item_name: Yew logs
+          item_id: 1515
+          quantity: 1
+      product: Yew stock
+      product_id: 9446
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 66
+      item_name: Yew longbow (u)
+      slug: yew-longbow-u
+      relationship: product
+      description: Unstrung output
+    - item_id: 855
+      item_name: Yew longbow
+      slug: yew-longbow
+      relationship: product
+      description: Strung bow (add bowstring)
+    - item_id: 68
+      item_name: Yew shortbow (u)
+      slug: yew-shortbow-u
+      relationship: product
+      description: Alternative output
+    - item_id: 1777
+      item_name: Bow string
+      slug: bow-string
+      relationship: component
+      description: Required to string
+    - item_id: 1517
+      item_name: Maple logs
+      slug: maple-logs
+      relationship: alternative
+      description: Lower tier logs
+    - item_id: 1513
+      item_name: Magic logs
+      slug: magic-logs
+      relationship: alternative
+      description: Higher tier logs
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Fletching
+
+Use a [Knife](/osrs/knife/) on **Yew logs** to create unstrung bows.
+
+| Output | Fletching Level | XP |
+|--------|-----------------|-----|
+| [Yew shortbow (u)](/osrs/yew-shortbow-u/) | 65 | 67.5 |
+| [Yew longbow (u)](/osrs/yew-longbow-u/) | 70 | 75 |
+| [Yew stock](/osrs/yew-stock/) | 72 | 50 |
+
+## Market Flip Strategy
+
+**Yew Longbow (u) Processing:**
+1. Buy [Yew logs](/osrs/yew-logs/) on GE
+2. Fletch into [Yew longbow (u)](/osrs/yew-longbow-u/)
+3. Either sell unstrung OR add [Bow string](/osrs/bow-string/) for [Yew longbow](/osrs/yew-longbow/)
+
+**Profit Calculation:**
+- `Yew longbow (u) price - Yew log price = Fletching profit`
+- `Yew longbow price - (Yew log + Bow string) = Strung profit`
+
+**Tips:**
+- Yew longbows alch for 768 GP - compare to crafting cost
+- High volume item, consistent demand from alchers
+
+<Adsense />

@@ -1,0 +1,71 @@
+---
+title: Legal
+description: |
+    Explore the legal documentation for KBVE, including our Privacy Policy, Cookie Policy, End-User License Agreement (EULA), and Terms of Service.
+    Ensure you understand your rights and responsibilities as a user of our website and applications
+sidebar:
+    label: Legal
+    order: 1
+unsplash: 1477959858617-67f85cf4f1df
+img: https://images.unsplash.com/photo-1477959858617-67f85cf4f1df?fit=crop&w=1400&h=700&q=75
+tags:
+    - legal
+---
+
+import {
+	Card,
+	CardGrid,
+	LinkCard,
+	Steps,
+	Aside,
+	Tabs,
+	TabItem,
+} from '@astrojs/starlight/components';
+
+# Legal Documentation Overview
+
+<CardGrid>
+  <LinkCard href="/legal/privacy" title="Privacy Policy" icon="shield">
+    Explore how we extract data, use cookies, and protect your personal information.
+  </LinkCard>
+  <LinkCard href="/legal/disclaimer" title="Disclaimer" icon="document">
+    Under the legal disclaimer that refers to all our services, software and applications.
+  </LinkCard>
+  <LinkCard href="/legal/eula" title="End-User License Agreement (EULA)" icon="document">
+    Review the terms governing the use of our software applications.
+  </LinkCard>
+  <LinkCard href="/legal/tos" title="Terms of Service" icon="gavel">
+    Familiarize yourself with the rules and guidelines for using our services.
+  </LinkCard>
+</CardGrid>
+
+
+<Aside type="note" title="Important">
+  Please read each document carefully to fully understand your rights and obligations.
+</Aside>
+
+
+## Steps to Access Legal Documents
+
+<Steps>
+  1. **Navigate to the desired document**: Click on the relevant card above to go to the specific legal document's page.
+  2. **Read the document thoroughly**: Ensure you comprehend all the terms and conditions outlined.
+  3. **Contact us for clarifications**: If you have any questions, reach out to our support team for assistance.
+</Steps>
+
+## Frequently Asked Questions
+
+<Tabs>
+  <TabItem label="What is the purpose of the Privacy Policy?">
+    The Privacy Policy explains how we handle your personal data, including collection, usage, and protection measures.
+  </TabItem>
+  <TabItem label="How can I manage cookies on your site?">
+    Our Cookie Policy, under Policy, provides details on cookie management, including how to control or delete them as per your preferences.
+  </TabItem>
+  <TabItem label="What does the EULA cover?">
+    The End-User License Agreement outlines the terms under which you may use our software applications.
+  </TabItem>
+  <TabItem label="Where can I find the Terms of Service?">
+    The Terms of Service are accessible through the 'Terms of Service' card above, detailing the guidelines for using our services.
+  </TabItem>
+</Tabs>

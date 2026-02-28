@@ -1,0 +1,127 @@
+---
+title: Blue dragonhide | OSRS Price Data
+description: "Blue dragonhide: The scaly rough hide from a Blue Dragon.. High alch: 84 GP, GE limit: 13,000."
+osrs:
+  id: 1751
+  name: Blue dragonhide
+  slug: blue-dragonhide
+  examine: The scaly rough hide from a Blue Dragon.
+  members: true
+  icon: Blue dragonhide.png
+  value: 140
+  lowalch: 56
+  highalch: 84
+  limit: 13000
+  material:
+    type: hide
+    tier: mid
+  tanning:
+    cost: 20
+    product_id: 2505
+    product_name: Blue dragon leather
+  drop_table:
+    sources:
+      - source: Blue dragon
+        source_id: 265
+        combat_level: 111
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Brutal blue dragon
+        source_id: 7274
+        combat_level: 271
+        quantity: "2"
+        rarity: always
+        members_only: true
+      - source: Vorkath
+        source_id: 8061
+        combat_level: 732
+        quantity: 25 (noted)
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 2505
+      item_name: Blue dragon leather
+      slug: blue-dragon-leather
+      relationship: product
+      description: Tanned version
+    - item_id: 2499
+      item_name: Blue d'hide body
+      slug: blue-dhide-body
+      relationship: product
+      description: Main product
+    - item_id: 1749
+      item_name: Red dragonhide
+      slug: red-dragonhide
+      relationship: alternative
+      description: Higher tier
+    - item_id: 1753
+      item_name: Green dragonhide
+      slug: green-dragonhide
+      relationship: alternative
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Tanning
+
+Take to any tanner to convert to [Blue dragon leather](/osrs/blue-dragon-leather/).
+
+| Tanner | Cost |
+|--------|------|
+| Regular | 20 GP |
+| Canifis | 45 GP |
+
+## Crafting Products
+
+| Item | Leather | Crafting Level | XP |
+|------|---------|----------------|-----|
+| [Blue d'hide vambraces](/osrs/blue-d-hide-vambraces/) | 1 | 66 | 70 |
+| [Blue d'hide chaps](/osrs/blue-d-hide-chaps/) | 2 | 68 | 140 |
+| [Blue d'hide body](/osrs/blue-d-hide-body/) | 3 | 71 | 210 |
+| [Blue d'hide shield](/osrs/blue-d-hide-shield/) | 2 | 69 | 140 |
+
+## Market Flip Strategy
+
+**Tanning Profit:**
+- Buy hides → Tan → Sell leather
+- Calculate: `Blue dragon leather - Blue dragonhide - 20 = Profit`
+- High volume F2P equivalent
+
+**Crafting Profit:**
+- [Blue d'hide body](/osrs/blue-d-hide-body/) most common
+- Check: `Body price - (Leather × 3) = Profit`
+- Popular mid-level training
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Drop Sources:**
+- Blue dragons (Taverley Dungeon, Heroes' Guild)
+- Brutal blue dragons
+- Vorkath (noted drops)
+
+**Tips:**
+- Mid-tier dragonhide
+- Highest F2P ranged body
+- Good crafting XP/GP
+
+<Adsense />

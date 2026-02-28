@@ -1,0 +1,37 @@
+---
+title: Skeletal top | OSRS Price Data
+description: "Skeletal top: The bones in this armour seem to vibrate with a magical quality.... High alch: 27,000 GP, GE limit: 70."
+osrs:
+  id: 6139
+  name: Skeletal top
+  slug: skeletal-top
+  examine: The bones in this armour seem to vibrate with a magical quality...
+  members: true
+  icon: Skeletal top.png
+  value: 45000
+  lowalch: 18000
+  highalch: 27000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

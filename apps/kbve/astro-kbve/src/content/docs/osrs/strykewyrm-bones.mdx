@@ -1,0 +1,37 @@
+---
+title: Strykewyrm bones | OSRS Price Data
+description: "Strykewyrm bones: The bones of a deadly strykewyrm.. High alch: 96 GP."
+osrs:
+  id: 31726
+  name: Strykewyrm bones
+  slug: strykewyrm-bones
+  examine: The bones of a deadly strykewyrm.
+  members: true
+  icon: Strykewyrm bones.png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

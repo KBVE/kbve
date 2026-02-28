@@ -1,0 +1,107 @@
+---
+title: Saltpetre | OSRS Price Data
+description: "Saltpetre: A power that can be added to compost to make fertiliser.. High alch: 3 GP, GE limit: 13,000."
+osrs:
+  id: 13421
+  name: Saltpetre
+  slug: saltpetre
+  examine: A power that can be added to compost to make fertiliser.
+  members: true
+  icon: Saltpetre.png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 13000
+  item:
+    type: mining_resource
+    tradeable: true
+    weight: 0.003
+  obtaining:
+    methods:
+      - source: Saltpetre deposits
+        location: Hosidius
+        method: Dig with spade
+        yield: 1,600/hour at 80+ Mining
+      - source: Chambers of Xeric
+        method: Reward
+      - source: Wintertodt
+        method: Reward
+  creation:
+    uses:
+      - item_name: Supercompost
+        recipe: 3 saltpetre + 1 compost
+      - item_name: Dynamite
+        note: Crafting component
+      - item_name: Fertiliser
+        note: Component
+  related_items:
+    - item_id: 6034
+      item_name: Supercompost
+      slug: supercompost
+      relationship: product
+      description: Created product
+    - item_id: 0
+      item_name: Dynamite
+      slug: dynamite
+      relationship: product
+      description: Crafting use
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Mining Resource |
+| Tradeable | Yes |
+| Weight | 0.003 kg |
+| Requirements | None |
+
+## Obtaining
+
+**Mining:** Dig saltpetre deposits in Hosidius with spade.
+
+**Yield:** 1,600/hour at 80+ Mining.
+
+**Other:** Chambers of Xeric, Wintertodt rewards.
+
+## Usage
+
+Used to create supercompost (3 saltpetre + 1 compost).
+
+Component for dynamite and fertiliser.
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Price:** ~9 gp
+
+Low value but high volume. Hosidius farming.
+
+## Related Items
+
+- [Supercompost](/osrs/supercompost/) - Created product
+- [Dynamite](/osrs/dynamite/) - Crafting use
+
+<Adsense />

@@ -1,0 +1,117 @@
+---
+title: Dark crab | OSRS Price Data
+description: "Dark crab is a members food item healing 22 HP. High alch: 192 GP, GE limit: 10,000."
+osrs:
+  id: 11936
+  name: Dark crab
+  slug: dark-crab
+  examine: This looks tricky to eat.
+  members: true
+  icon: Dark crab.png
+  value: 320
+  lowalch: 128
+  highalch: 192
+  limit: 10000
+  food:
+    heals: 22
+    cooking_level: 90
+    cooking_xp: 215
+    burn_level: 99
+  cooking:
+    level: 90
+    xp: 215
+    stop_burn_level: 99
+    stop_burn_level_gauntlets: 90
+    raw_item_id: 11934
+    raw_item_name: Raw dark crab
+    ticks: 4
+  fishing:
+    level: 85
+    xp: 130
+    method: Lobster pot
+    location: Wilderness Resource Area
+    bait: Dark fishing bait
+  recipes:
+    - skill: cooking
+      level: 90
+      xp: 215
+      materials:
+        - item_name: Raw dark crab
+          item_id: 11934
+          quantity: 1
+      facility: Fire or range
+      ticks: 4
+      members_only: true
+  related_items:
+    - item_id: 11934
+      item_name: Raw dark crab
+      slug: raw-dark-crab
+      relationship: component
+      description: Uncooked version
+    - item_id: 391
+      item_name: Manta ray
+      slug: manta-ray
+      relationship: alternative
+      description: Safe alternative (same heal)
+    - item_id: 13441
+      item_name: Anglerfish
+      slug: anglerfish
+      relationship: alternative
+      description: Better (overheal)
+    - item_id: 11940
+      item_name: Dark fishing bait
+      slug: dark-fishing-bait
+      relationship: component
+      description: Required bait for fishing
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Healing
+
+Heals **22 HP** - tied for second highest instant heal.
+
+| Food | Heal | Notes |
+|------|------|-------|
+| Dark crab | 22 | Wilderness only fishing |
+| Manta ray | 22 | No overheal |
+| Anglerfish | 22 | Has overheal |
+
+## Market Flip Strategy
+
+**Cooking Profit:**
+- Buy Raw dark crab → Cook → Sell
+- 90 Cooking required (high barrier)
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Risk vs Reward:**
+- Caught in Wilderness only
+- PKer risk while fishing
+- Premium price for safe cooked version
+
+**Tips:**
+- Elite Wilderness Diary required for best rates
+- Alternative to manta rays
+- Wilderness fishing = risky supply
+- Price volatile with PvP activity
+
+<Adsense />

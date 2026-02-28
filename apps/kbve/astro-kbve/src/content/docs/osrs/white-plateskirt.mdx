@@ -1,0 +1,37 @@
+---
+title: White plateskirt | OSRS Price Data
+description: "White plateskirt: Big, White and heavy looking.. High alch: 1,152 GP, GE limit: 125."
+osrs:
+  id: 6627
+  name: White plateskirt
+  slug: white-plateskirt
+  examine: Big, White and heavy looking.
+  members: true
+  icon: White plateskirt.png
+  value: 1920
+  lowalch: 768
+  highalch: 1152
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

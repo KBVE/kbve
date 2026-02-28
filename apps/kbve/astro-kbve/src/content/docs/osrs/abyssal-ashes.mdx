@@ -1,0 +1,108 @@
+---
+title: Abyssal ashes | OSRS Price Data
+description: "Abyssal ashes: A heap of ashes.. High alch: 1 GP, GE limit: 7,500."
+osrs:
+  id: 25775
+  name: Abyssal ashes
+  slug: abyssal-ashes
+  examine: A heap of ashes.
+  members: true
+  icon: Abyssal ashes.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 7500
+  material:
+    type: ashes
+    tier: high
+  prayer:
+    xp_scatter: 85
+    xp_demonic_offering: 255
+  drop_table:
+    sources:
+      - source: Abyssal demon
+        source_id: 415
+        combat_level: 124
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Abyssal Sire
+        source_id: 5886
+        combat_level: 350
+        quantity: "1"
+        rarity: always
+        members_only: true
+  related_items:
+    - item_id: 25772
+      item_name: Malicious ashes
+      slug: malicious-ashes
+      relationship: downgrade
+      description: Lower XP (65 base)
+    - item_id: 25778
+      item_name: Infernal ashes
+      slug: infernal-ashes
+      relationship: upgrade
+      description: Highest XP (110 base)
+    - item_id: 25769
+      item_name: Vile ashes
+      slug: vile-ashes
+      relationship: downgrade
+      description: Lower XP (25 base)
+    - item_id: 4151
+      item_name: Abyssal whip
+      slug: abyssal-whip
+      relationship: alternative
+      description: Rare drop from abyssal demons
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Prayer Training
+
+Abyssal ashes are a high-tier demonic ash:
+
+| Method | XP per ash |
+|--------|------------|
+| Scatter | 85 |
+| Demonic Offering spell | 255 |
+
+## Obtaining
+
+Dropped by abyssal creatures:
+- Abyssal demons (85 Slayer required)
+- Abyssal Sire (boss)
+- Greater Abyssal demon
+
+## Market Flip Strategy
+
+**High Slayer Requirement:**
+- 85 Slayer gates supply
+- Popular task for whip drops
+- Consistent Prayer XP source
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Tips:**
+- Second-best ashes for XP
+- Whip hunters produce supply
+- Good value for Prayer training
+
+<Adsense />

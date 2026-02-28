@@ -1,0 +1,37 @@
+---
+title: Onyx amulet (u) | OSRS Price Data
+description: "Onyx amulet (u): It needs a string so I can wear it.. High alch: 120,600 GP, GE limit: 10,000."
+osrs:
+  id: 6579
+  name: Onyx amulet (u)
+  slug: onyx-amulet-u
+  examine: It needs a string so I can wear it.
+  members: true
+  icon: Onyx amulet (u).png
+  value: 201000
+  lowalch: 80400
+  highalch: 120600
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

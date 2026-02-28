@@ -1,0 +1,126 @@
+---
+title: Raw trout | OSRS Price Data
+description: "Raw trout: I should try cooking this.. High alch: 6 GP, GE limit: 15,000."
+osrs:
+  id: 335
+  name: Raw trout
+  slug: raw-trout
+  examine: I should try cooking this.
+  members: false
+  icon: Raw trout.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 15000
+  material:
+    type: raw_fish
+    tier: low
+  fishing:
+    level: 20
+    xp: 50
+    method: Fly fishing
+    locations:
+      - Barbarian Village
+      - Shilo Village
+    tool: Fly fishing rod
+    bait: Feather
+  cooking:
+    level: 15
+    xp: 70
+    stop_burn: 50
+    stop_burn_gauntlets: 40
+    product_id: 333
+    product_name: Trout
+  recipes:
+    - skill: cooking
+      level: 15
+      xp: 70
+      materials:
+        - item_name: Raw trout
+          item_id: 335
+          quantity: 1
+      product: Trout
+      product_id: 333
+      product_quantity: 1
+      facility: Range/Fire
+  related_items:
+    - item_id: 333
+      item_name: Trout
+      slug: trout
+      relationship: product
+      description: Cooked version
+    - item_id: 331
+      item_name: Raw salmon
+      slug: raw-salmon
+      relationship: alternative
+      description: Caught together
+    - item_id: 309
+      item_name: Fly fishing rod
+      slug: fly-fishing-rod
+      relationship: component
+      description: Fishing tool
+    - item_id: 314
+      item_name: Feather
+      slug: feather
+      relationship: component
+      description: Bait
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Fly fishing | 20 Fishing | 50 |
+| Barbarian fishing | 20 Fishing | 50 |
+| Location | Rivers (Barbarian Village, Shilo) | - |
+
+## Cooking
+
+| Requirement | Value |
+|-------------|-------|
+| Cooking Level | 15 |
+| XP per fish | 70 |
+| Stop burning | 50 (40 with gauntlets) |
+
+## Market Flip Strategy
+
+**Entry-Level Fish:**
+- First fly fishing catch
+- High volume training
+- F2P accessible
+
+**Buy Limit:** 15,000 per 4 hours
+
+**Demand Drivers:**
+- Cooking training
+- F2P fishing
+- Ironman early game
+- Wintertodt food
+
+**Tips:**
+- Caught with fly fishing rod
+- Feathers as bait
+- Caught alongside salmon
+- Often power-fished
+
+<Adsense />

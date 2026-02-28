@@ -1,0 +1,37 @@
+---
+title: Raging echoes npc contact scroll | OSRS Price Data
+description: "Raging echoes npc contact scroll: A scroll which unlocks the Raging Echoes NPC contact.. High alch: 15,000 GP."
+osrs:
+  id: 30457
+  name: Raging echoes npc contact scroll
+  slug: raging-echoes-npc-contact-scroll
+  examine: A scroll which unlocks the Raging Echoes NPC contact.
+  members: true
+  icon: Raging echoes npc contact scroll.png
+  value: 25000
+  lowalch: 10000
+  highalch: 15000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

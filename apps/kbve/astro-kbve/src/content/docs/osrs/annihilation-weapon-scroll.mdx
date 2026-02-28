@@ -1,0 +1,37 @@
+---
+title: Annihilation weapon scroll | OSRS Price Data
+description: Annihilation weapon scroll is a members-only OSRS item.
+osrs:
+  id: 33012
+  name: Annihilation weapon scroll
+  slug: annihilation-weapon-scroll
+  examine: "Take this to Nigel to give the Toxic Staff of the Dead, Bow of Faerdhinen (c) or Crystal armour a cosmetic theme from Deadman: Annihilation."
+  members: true
+  icon: Annihilation weapon scroll.png
+  value: 0
+  lowalch: null
+  highalch: null
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+
+
+<Adsense />

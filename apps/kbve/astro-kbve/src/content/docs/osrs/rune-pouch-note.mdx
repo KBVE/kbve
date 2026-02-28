@@ -1,0 +1,98 @@
+---
+title: Rune pouch note | OSRS Price Data
+description: "Rune pouch note: A note that may be exchanged at a bank for a Rune Pouch.. High alch: 126 GP, GE limit: 40."
+osrs:
+  id: 24587
+  name: Rune pouch note
+  slug: rune-pouch-note
+  examine: A note that may be exchanged at a bank for a Rune Pouch.
+  members: true
+  icon: Rune pouch note.png
+  value: 210
+  lowalch: 84
+  highalch: 126
+  limit: 40
+  item:
+    type: redeemable note
+    tradeable: true
+    weight: 0
+  obtaining:
+    - source: Last Man Standing shop
+      cost: 75 LMS points
+  effect:
+    description: Exchange at bank for a Rune pouch
+    locations:
+      - Banker
+      - Grand Exchange clerk
+      - Bank booth
+    restrictions: Cannot redeem if you already own a rune pouch
+  related_items:
+    - item_id: 12791
+      item_name: Rune pouch
+      slug: rune-pouch
+      relationship: product
+      description: Redeemed item
+    - item_id: 24224
+      item_name: Divine rune pouch
+      slug: divine-rune-pouch
+      relationship: alternative
+      description: Upgraded version with 4 slots
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Redeemable Note |
+| Tradeable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+Purchase from Last Man Standing shop for 75 LMS points.
+
+## Effect
+
+**Exchange at bank** for a Rune pouch.
+
+Use on banker, Grand Exchange clerk, or bank booth.
+
+Cannot redeem if you already own a rune pouch.
+
+## Purpose
+
+Tradeable workaround since rune pouches themselves are untradeable.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~6.9M gp
+
+## Related Items
+
+- [Rune pouch](/osrs/rune-pouch/) - Redeemed item
+- [Last Man Standing](/osrs/last-man-standing/) - Source
+- [Divine rune pouch](/osrs/divine-rune-pouch/) - Upgraded version
+
+<Adsense />

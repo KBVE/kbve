@@ -1,0 +1,156 @@
+---
+title: Elidinis' ward | OSRS Price Data
+description: "Elidinis' ward is a members shield slot item requiring 80 Defence. High alch: 3,000,000 GP, GE limit: 8."
+osrs:
+  id: 25985
+  name: Elidinis' ward
+  slug: elidinis-ward
+  examine: A ward once used by Elidinis herself.
+  members: true
+  icon: Elidinis' ward.png
+  value: 5000000
+  lowalch: 2000000
+  highalch: 3000000
+  limit: 8
+  equipment:
+    slot: shield
+    type: magic
+    requirements:
+      magic: 80
+      defence: 80
+      prayer: 80
+    stats:
+      attack_magic: 5
+      magic_damage: 3
+      defence_stab: 5
+      defence_slash: 3
+      defence_crush: 9
+      defence_ranged: 6
+      prayer: 1
+  upgrade:
+    result_name: Elidinis' ward (f)
+    component_id: 12825
+    component_name: Arcane sigil
+    material_id: 566
+    material_name: Soul rune
+    material_quantity: 10000
+    requirements:
+      prayer: 90
+      smithing: 90
+  drop_table:
+    sources:
+      - source: Tombs of Amascut
+        source_id: 11751
+        combat_level: 0
+        quantity: "1"
+        rarity: Rare
+        drop_rate: 3/24 of unique
+        members_only: true
+  related_items:
+    - item_id: 12825
+      item_name: Arcane spirit shield
+      slug: arcane-spirit-shield
+      relationship: alternative
+      description: Alternative
+    - item_id: 12827
+      item_name: Arcane sigil
+      slug: arcane-sigil
+      relationship: component
+      description: For fortifying
+    - item_id: 25818
+      item_name: Book of the dead
+      slug: book-of-the-dead
+      relationship: alternative
+      description: Budget option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Type | Magic Shield |
+| Tradeable | Yes |
+| Weight | 0.708 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Tombs of Amascut | 3/24 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Magic | +5 |
+| Magic Damage | +3% |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +5 |
+| Slash | +3 |
+| Crush | +9 |
+| Ranged | +6 |
+
+| Other | Value |
+|-------|-------|
+| Prayer | +1 |
+
+**Requirements:** 80 Magic, 80 Defence, 80 Prayer
+
+## Fortified Variant
+
+Combine with:
+- [Arcane sigil](/osrs/arcane-sigil/)
+- 10,000 soul runes
+
+**Requires:** 90 Prayer, 90 Smithing
+
+## Usage
+
+BiS for:
+- All mage combat (fortified)
+- ToA
+- General magic
+
+**Best magic shield in the game (fortified).**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~3.6M gp
+
+**Tips:**
+- From Tombs of Amascut
+- Fortify with arcane sigil
+- High requirements
+
+## Related Items
+
+- [Arcane spirit shield](/osrs/arcane-spirit-shield/) - Alternative
+- [Arcane sigil](/osrs/arcane-sigil/) - For fortifying
+- [Book of the dead](/osrs/book-of-the-dead/) - Budget option
+
+<Adsense />

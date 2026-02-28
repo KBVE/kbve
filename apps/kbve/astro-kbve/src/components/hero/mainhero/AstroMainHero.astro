@@ -1,0 +1,324 @@
+---
+/**
+ * AstroMainHero
+ * Main Astro component for hero sections
+ * Wraps the React MainHero component with skeleton loader
+ */
+
+//  TODO: Optimize the hydration so that we include the skeleton loader using the abstract z-index.
+//  TODO: 11-12-2025 - Layout Shift from the Main Astro card needs to be fixed, maybe we could utilize a rotating z index swap.
+//  TODO: 11-12-2025 - Add support for images from unsplash, we could lazy load the images and also off-load them to the shared worker.
+//  TODO: 11-12-2025 - The current issue is the hydration from the react side is too slow, maybe there. might be a better way to handle this.
+
+import { ReactMainHero } from './ReactMainHero';
+import type { MainHeroProps } from './typeMainHero';
+
+export interface Props extends MainHeroProps {
+	/**
+	 * Enable client-side hydration (default: true)
+	 */
+	enableHydration?: boolean;
+
+	/**
+	 * Hydration strategy (default: 'load')
+	 */
+	hydrationStrategy?: 'load' | 'idle' | 'visible';
+}
+
+const {
+	title,
+	subtitle,
+	description,
+	ctaText,
+	ctaUrl,
+	secondaryCtaText,
+	secondaryCtaUrl,
+	backgroundImage,
+	backgroundVideo,
+	backgroundGradient,
+	backgroundColor,
+	textColor,
+	height = '100vh',
+	className = '',
+	enableParallax = false,
+	showScrollIndicator = true,
+	overlayOpacity = 0.5,
+	alignment = 'center',
+	verticalAlignment = 'center',
+	ariaLabel,
+	enableHydration = false,
+	hydrationStrategy = 'load',
+} = Astro.props;
+
+// Build props object
+const heroProps: MainHeroProps = {
+	title,
+	subtitle,
+	description,
+	ctaText,
+	ctaUrl,
+	secondaryCtaText,
+	secondaryCtaUrl,
+	backgroundImage,
+	backgroundVideo,
+	backgroundGradient,
+	backgroundColor,
+	textColor,
+	height,
+	className,
+	enableParallax,
+	showScrollIndicator,
+	overlayOpacity,
+	alignment,
+	verticalAlignment,
+	ariaLabel,
+};
+
+// Alignment classes for skeleton
+const alignmentClasses = {
+	left: 'items-start text-left',
+	center: 'items-center text-center',
+	right: 'items-end text-right',
+};
+
+const verticalAlignmentClasses = {
+	top: 'justify-start',
+	center: 'justify-center',
+	bottom: 'justify-end',
+};
+---
+
+<div class="astro-main-hero-wrapper relative" style={`height: ${height};`}>
+	<!-- Skeleton Shell (Higher z-index, fades out when React hydrates) -->
+	<div
+		data-x-kbve="main-hero-skeleton"
+		class={`absolute inset-0 z-20 flex flex-col overflow-hidden transition-opacity duration-300 ${alignmentClasses[alignment]} ${verticalAlignmentClasses[verticalAlignment]}`}
+		role="banner"
+		aria-label={ariaLabel || title}
+		aria-busy="true">
+		<!-- Background Skeleton -->
+		{
+			backgroundImage && (
+				<div
+					class="absolute inset-0 -z-10 bg-cover bg-center bg-no-repeat animate-pulse"
+					style={`background-image: url(${backgroundImage}); filter: blur(10px);`}
+					aria-hidden="true"
+				/>
+			)
+		}
+
+		{
+			!backgroundImage && backgroundGradient && (
+				<div
+					class="absolute inset-0 -z-10 opacity-50"
+					style={`background: ${backgroundGradient};`}
+					aria-hidden="true"
+				/>
+			)
+		}
+
+		{
+			!backgroundImage && !backgroundGradient && backgroundColor && (
+				<div
+					class="absolute inset-0 -z-10 opacity-50"
+					style={`background-color: ${backgroundColor};`}
+					aria-hidden="true"
+				/>
+			)
+		}
+
+		<!-- Overlay -->
+		{
+			(backgroundImage || backgroundVideo) && (
+				<div
+					class="absolute inset-0 z-0"
+					style={`background-color: rgba(0, 0, 0, ${overlayOpacity});`}
+					aria-hidden="true"
+				/>
+			)
+		}
+
+		<!-- Content Skeleton -->
+		<div
+			class={`relative z-10 px-8 py-16 md:px-16 max-w-screen-xl w-full`}
+			style={`color: ${textColor || 'white'};`}>
+			<!-- Subtitle Skeleton -->
+			{
+				subtitle && (
+					<div class="mb-4">
+						<div class="h-6 w-48 bg-gray-300/30 dark:bg-gray-700/30 rounded animate-pulse" />
+					</div>
+				)
+			}
+
+			<!-- Title Skeleton -->
+			<div class="mb-6 space-y-3">
+				<div
+					class="h-12 md:h-16 w-full max-w-2xl bg-gray-300/40 dark:bg-gray-700/40 rounded animate-pulse">
+				</div>
+				<div
+					class="h-12 md:h-16 w-3/4 max-w-xl bg-gray-300/40 dark:bg-gray-700/40 rounded animate-pulse">
+				</div>
+			</div>
+
+			<!-- Description Skeleton -->
+			{
+				description && (
+					<div class="mb-8 space-y-2 max-w-3xl">
+						<div class="h-6 w-full bg-gray-300/30 dark:bg-gray-700/30 rounded animate-pulse" />
+						<div class="h-6 w-5/6 bg-gray-300/30 dark:bg-gray-700/30 rounded animate-pulse" />
+					</div>
+				)
+			}
+
+			<!-- CTA Buttons Skeleton -->
+			{
+				(ctaText || secondaryCtaText) && (
+					<div class="flex gap-4 flex-wrap">
+						{ctaText && (
+							<div class="h-14 w-40 bg-lime-500/30 rounded-lg animate-pulse" />
+						)}
+						{secondaryCtaText && (
+							<div class="h-14 w-40 bg-gray-300/20 dark:bg-gray-700/20 border-2 border-gray-300/30 rounded-lg animate-pulse" />
+						)}
+					</div>
+				)
+			}
+		</div>
+
+		<!-- Scroll Indicator Skeleton -->
+		{
+			showScrollIndicator && (
+				<div class="absolute bottom-8 left-1/2 -translate-x-1/2 z-10 animate-pulse">
+					<div class="w-6 h-6 opacity-50">
+						<svg
+							class="w-6 h-6"
+							viewBox="0 0 24 24"
+							fill="none"
+							stroke={textColor || 'white'}
+							stroke-width="2"
+							stroke-linecap="round"
+							stroke-linejoin="round">
+							<polyline points="6 9 12 15 18 9" />
+						</svg>
+					</div>
+				</div>
+			)
+		}
+	</div>
+
+	<!-- React Content Shell (Lower z-index, React fills this in) -->
+	<div class="absolute inset-0 z-10">
+		{
+			enableHydration && hydrationStrategy === 'load' && (
+				<ReactMainHero client:load {...heroProps} />
+			)
+		}
+		{
+			enableHydration && hydrationStrategy === 'idle' && (
+				<ReactMainHero client:idle {...heroProps} />
+			)
+		}
+		{
+			enableHydration && hydrationStrategy === 'visible' && (
+				<ReactMainHero client:visible {...heroProps} />
+			)
+		}
+		{
+			!enableHydration && (
+				<ReactMainHero client:only="react" {...heroProps} />
+			)
+		}
+	</div>
+</div>
+
+<style>
+	.astro-main-hero-wrapper {
+		width: 100%;
+		position: relative;
+		isolation: isolate;
+	}
+
+	/* Smooth scrolling for anchor links */
+	:global(html) {
+		scroll-behavior: smooth;
+	}
+
+	/* Accessibility - Reduce motion for users who prefer it */
+	@media (prefers-reduced-motion: reduce) {
+		:global(html) {
+			scroll-behavior: auto;
+		}
+
+		.astro-main-hero-wrapper :global(*) {
+			animation-duration: 0.01ms !important;
+			animation-iteration-count: 1 !important;
+			transition-duration: 0.01ms !important;
+		}
+
+		[data-x-kbve='main-hero-skeleton'] {
+			animation: none !important;
+		}
+
+		[data-x-kbve='main-hero-skeleton'] :global(.animate-pulse) {
+			animation: none !important;
+		}
+	}
+
+	/* Print styles */
+	@media print {
+		.astro-main-hero-wrapper :global(.scroll-indicator),
+		.astro-main-hero-wrapper
+			:global(button[aria-label='Scroll to content']) {
+			display: none;
+		}
+
+		.astro-main-hero-wrapper {
+			height: auto !important;
+			page-break-after: always;
+		}
+
+		[data-x-kbve='main-hero-skeleton'] {
+			display: none !important;
+		}
+	}
+
+	/* High contrast mode support */
+	@media (prefers-contrast: high) {
+		.astro-main-hero-wrapper :global(.hero-cta a),
+		.astro-main-hero-wrapper :global(a[href]) {
+			border: 3px solid currentColor !important;
+		}
+	}
+</style>
+
+<script>
+	/**
+	 * Client-side script
+	 * Handles preloading and optimizations
+	 */
+
+	// Preload background images for better performance
+	const heroWrapper = document.querySelector('.astro-main-hero-wrapper');
+	if (heroWrapper) {
+		const skeleton = heroWrapper.querySelector(
+			'[data-x-kbve="main-hero-skeleton"]',
+		) as HTMLElement;
+		if (skeleton) {
+			const bgImage = skeleton.style.backgroundImage;
+			if (bgImage) {
+				const imageUrl = bgImage.match(/url\(['"]?(.+?)['"]?\)/)?.[1];
+				if (imageUrl) {
+					const img = new Image();
+					img.src = imageUrl;
+				}
+			}
+		}
+	}
+
+	// Log hero load time (development only)
+	if (import.meta.env.DEV) {
+		console.log('[MainHero] Component initialized');
+		performance.mark('main-hero-loaded');
+	}
+</script>

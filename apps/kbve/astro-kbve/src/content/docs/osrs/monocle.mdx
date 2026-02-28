@@ -1,0 +1,37 @@
+---
+title: Monocle | OSRS Price Data
+description: "Monocle: Hmm, shallow and pedantic.. High alch: 720 GP, GE limit: 4."
+osrs:
+  id: 12353
+  name: Monocle
+  slug: monocle
+  examine: Hmm, shallow and pedantic.
+  members: true
+  icon: Monocle.png
+  value: 1200
+  lowalch: 480
+  highalch: 720
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

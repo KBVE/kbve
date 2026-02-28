@@ -1,0 +1,135 @@
+---
+title: Redwood logs | OSRS Price Data
+description: "Redwood logs: Logs cut from a redwood tree.. High alch: 270 GP, GE limit: 12,000."
+osrs:
+  id: 19669
+  name: Redwood logs
+  slug: redwood-logs
+  examine: Logs cut from a redwood tree.
+  members: true
+  icon: Redwood logs.png
+  value: 450
+  lowalch: 180
+  highalch: 270
+  limit: 12000
+  material:
+    type: logs
+    tier: redwood
+  gathering:
+    skill: woodcutting
+    level: 90
+    xp: 380
+    tool: Any axe
+    location: Woodcutting Guild
+    members_only: true
+  recipes:
+    - skill: fletching
+      level: 90
+      xp: 21
+      materials:
+        - item_name: Redwood logs
+          item_id: 19669
+          quantity: 1
+      product: Arrow shaft
+      product_id: 52
+      product_quantity: 105
+      facility: Knife
+      members_only: true
+    - skill: fletching
+      level: 92
+      xp: 216
+      materials:
+        - item_name: Redwood logs
+          item_id: 19669
+          quantity: 2
+      product: Redwood shield
+      product_id: 22188
+      product_quantity: 1
+      facility: Knife
+      members_only: true
+    - skill: firemaking
+      level: 90
+      xp: 350
+      materials:
+        - item_name: Redwood logs
+          item_id: 19669
+          quantity: 1
+      product: Fire
+      product_id: 0
+      product_quantity: 1
+      facility: Tinderbox
+      members_only: true
+  related_items:
+    - item_id: 1513
+      item_name: Magic logs
+      slug: magic-logs
+      relationship: alternative
+      description: Lower tier logs
+    - item_id: 52
+      item_name: Arrow shaft
+      slug: arrow-shaft
+      relationship: product
+      description: Primary product
+    - item_id: 22188
+      item_name: Redwood shield
+      slug: redwood-shield
+      relationship: product
+      description: Shield crafting
+    - item_id: 13241
+      item_name: Infernal axe
+      slug: infernal-axe
+      relationship: component
+      description: Best axe
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Woodcutting | 90 | 380 |
+| Location | Woodcutting Guild | - |
+
+## Fletching
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Arrow shaft (105) | 90 | 21 |
+| Redwood shield | 92 | 216 |
+
+## Firemaking
+
+| Level | XP |
+|-------|-----|
+| 90 | 350 |
+
+## Market Strategy
+
+**Buy Limit:** 12,000 per 4 hours
+
+**Tips:**
+- Woodcutting Guild only
+- Dragon/Infernal axe best
+- AFK XP method
+- 105 shafts per log
+
+<Adsense />

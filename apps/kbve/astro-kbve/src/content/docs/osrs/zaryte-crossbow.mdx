@@ -1,0 +1,122 @@
+---
+title: Zaryte crossbow | OSRS Price Data
+description: "Zaryte crossbow is a members weapon slot item requiring 80 Ranged. High alch: 594,000 GP, GE limit: 8."
+osrs:
+  id: 26374
+  name: Zaryte crossbow
+  slug: zaryte-crossbow
+  examine: A weapon born out of conflict.
+  members: true
+  icon: Zaryte crossbow.png
+  value: 990000
+  lowalch: 396000
+  highalch: 594000
+  limit: 8
+  equipment:
+    slot: weapon
+    type: crossbow
+    attack_style: ranged
+    attack_speed: 5
+    requirements:
+      ranged: 80
+    stats:
+      attack_ranged: 110
+  effect:
+    bolt_effect_bonus: 10
+  special_attack:
+    name: Evoke
+    energy: 75
+    effect: Double accuracy, guaranteed bolt effect on hit
+  drop_sources:
+    - name: Nex
+      combat_level: 1001
+      drop_rate: 1/258
+      members_only: true
+  related_items:
+    - item_id: 25865
+      item_name: Bow of faerdhinen (c)
+      slug: bow-of-faerdhinen-c
+      relationship: alternative
+      description: Higher base DPS
+    - item_id: 20997
+      item_name: Twisted bow
+      slug: twisted-bow
+      relationship: alternative
+      description: High magic targets
+    - item_id: 11785
+      item_name: Armadyl crossbow
+      slug: armadyl-crossbow
+      relationship: downgrade
+      description: Lower tier crossbow
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Dropped by Nex in the God Wars Dungeon at a rate of 1/258.
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Attack style | Ranged |
+| Ranged attack | +110 |
+| Attack speed | 5 tick (3.0s) rapid |
+| Requirements | 80 Ranged |
+
+## Passive Effect
+
+**Bolt Enhancement:**
+- +10% strength to enchanted bolt effects
+- Works with all enchanted bolts
+- Stacks with other bonuses
+
+## Special Attack
+
+**Evoke** (75% energy):
+- Double accuracy
+- Guaranteed bolt proc on hit
+- Great for ruby bolt specs
+
+## Usage
+
+**PvM:**
+- Best crossbow in game
+- Ruby bolt specs at high HP bosses
+- Diamond bolts for high defence
+
+**Best For:**
+- Nex
+- Corporeal Beast
+- High HP bosses
+- Any crossbow content
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Nex kills affect supply
+- BiS for crossbow content
+- Pairs with ruby/diamond bolts
+
+<Adsense />

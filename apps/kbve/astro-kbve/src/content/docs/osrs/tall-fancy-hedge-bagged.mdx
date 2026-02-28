@@ -1,0 +1,37 @@
+---
+title: Tall fancy hedge (bagged) | OSRS Price Data
+description: "Tall fancy hedge (bagged): You can plant this in your garden.. High alch: 30,000 GP, GE limit: 10,000."
+osrs:
+  id: 8447
+  name: Tall fancy hedge (bagged)
+  slug: tall-fancy-hedge-bagged
+  examine: You can plant this in your garden.
+  members: true
+  icon: Tall fancy hedge (bagged).png
+  value: 50000
+  lowalch: 20000
+  highalch: 30000
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

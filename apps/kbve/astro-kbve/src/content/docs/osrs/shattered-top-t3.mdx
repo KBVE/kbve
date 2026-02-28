@@ -1,0 +1,37 @@
+---
+title: Shattered top (t3) | OSRS Price Data
+description: "Shattered top (t3): The shirt of a Shattered Relic Hunter.. High alch: 9,000 GP."
+osrs:
+  id: 26454
+  name: Shattered top (t3)
+  slug: shattered-top-t3
+  examine: The shirt of a Shattered Relic Hunter.
+  members: true
+  icon: Shattered top (t3).png
+  value: 15000
+  lowalch: 6000
+  highalch: 9000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

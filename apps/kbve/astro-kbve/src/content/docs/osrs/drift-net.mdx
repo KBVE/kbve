@@ -1,0 +1,37 @@
+---
+title: Drift net | OSRS Price Data
+description: "Drift net: A very large net, too big to be used by hand.. High alch: 12 GP, GE limit: 600."
+osrs:
+  id: 21652
+  name: Drift net
+  slug: drift-net
+  examine: A very large net, too big to be used by hand.
+  members: true
+  icon: Drift net.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 600
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,134 @@
+---
+title: Bracelet of slaughter | OSRS Price Data
+description: "Bracelet of slaughter is a members hands slot item. High alch: 1,500 GP, GE limit: 15,000."
+osrs:
+  id: 21183
+  name: Bracelet of slaughter
+  slug: bracelet-of-slaughter
+  examine: Occasionally prevents slayer kill count being decremented.
+  members: true
+  icon: Bracelet of slaughter.png
+  value: 2500
+  lowalch: 1000
+  highalch: 1500
+  limit: 15000
+  equipment:
+    slot: hands
+    type: slayer_bracelet
+    tradeable: true
+    weight: 0.007
+    charges: 30
+  creation:
+    method: Enchant Topaz bracelet with Lvl-3 Enchant
+    requirements:
+      magic: 49
+    runes:
+      - rune: Cosmic
+        quantity: 1
+      - rune: Fire
+        quantity: 5
+  special_effect:
+    name: Slayer Extension
+    description: 25% chance to not count kill toward task
+    charges: 30
+    notes:
+      - Still grants XP
+      - "Elite CA: 10% recharge chance"
+  market:
+    buy_limit: 15000
+    price_estimate: 6400
+  related_items:
+    - item_id: 21177
+      item_name: Expeditious bracelet
+      slug: expeditious-bracelet
+      relationship: alternative
+      description: Task shortening
+    - item_id: 11864
+      item_name: Slayer helmet
+      slug: slayer-helmet
+      relationship: alternative
+      description: Slayer gear
+    - item_id: 11085
+      item_name: Topaz bracelet
+      slug: topaz-bracelet
+      relationship: component
+      description: Base item
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Hands |
+| Type | Slayer Bracelet |
+| Tradeable | Yes |
+| Weight | 0.007 kg |
+
+## Creation
+
+Enchant [Topaz bracelet](/osrs/topaz-bracelet/) with Lvl-3 Enchant.
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 49 |
+| Cosmic rune | 1 |
+| Fire rune | 5 |
+
+## Stats
+
+All bonuses +0
+
+## Passive Effect
+
+**Slayer Extension:**
+- 25% chance to not count kill
+- Still grants XP
+- 30 charges
+
+## Usage
+
+Essential for:
+- Extending good tasks
+- Superior spawn chances
+- Slayer point efficiency
+
+**Extends profitable slayer tasks.**
+
+## Market Strategy
+
+**Buy Limit:** 15,000 per 4 hours
+
+**Price:** ~6.4K gp
+
+**Tips:**
+- Elite CA: 10% recharge chance
+- Only for tasks you like
+- Cheap and effective
+
+## Related Items
+
+- [Expeditious bracelet](/osrs/expeditious-bracelet/) - Task shortening
+- [Slayer helmet](/osrs/slayer-helmet/) - Slayer gear
+- [Topaz bracelet](/osrs/topaz-bracelet/) - Base item
+
+<Adsense />

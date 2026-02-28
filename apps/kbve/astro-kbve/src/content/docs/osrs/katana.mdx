@@ -1,0 +1,37 @@
+---
+title: Katana | OSRS Price Data
+description: "Katana: Created by Hattori Hanzo in the Eastern Lands.. High alch: 14,400 GP, GE limit: 8."
+osrs:
+  id: 12357
+  name: Katana
+  slug: katana
+  examine: Created by Hattori Hanzo in the Eastern Lands.
+  members: true
+  icon: Katana.png
+  value: 24000
+  lowalch: 9600
+  highalch: 14400
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

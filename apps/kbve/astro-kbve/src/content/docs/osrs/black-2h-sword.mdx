@@ -1,0 +1,108 @@
+---
+title: Black 2h sword | OSRS Price Data
+description: "Black 2h sword is a F2P two-handed weapon requiring 10 Attack. High alch: 1,152 GP, GE limit: 125."
+osrs:
+  id: 1313
+  name: Black 2h sword
+  slug: black-2h-sword
+  examine: A two handed sword.
+  members: false
+  icon: Black 2h sword.png
+  value: 1920
+  lowalch: 768
+  highalch: 1152
+  limit: 125
+  equipment:
+    slot: 2h
+    type: two-handed sword
+    tradeable: true
+    weight: 3.628
+    requirements:
+      attack: 10
+    stats:
+      attack_stab: -4
+      attack_slash: 27
+      attack_crush: 21
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 26
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1315
+      item_name: Mithril 2h sword
+      slug: mithril-2h-sword
+      relationship: upgrade
+      description: Higher tier 2h sword
+    - item_id: 1297
+      item_name: Black longsword
+      slug: black-longsword
+      relationship: alternative
+      description: One-handed alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-Handed |
+| Type | Two-Handed Sword |
+| Tradeable | Yes |
+| Weight | 3.628 kg |
+| Requirements | 10 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | -4 |
+| Slash Attack | +27 |
+| Crush Attack | +21 |
+| Strength | +26 |
+
+## Obtaining
+
+**Shop:** Gaius's Two-Handed Shop, Taverley.
+
+**Drops:** Black knights, ice warriors.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~972 gp
+
+Cannot be smithed. F2P accessible.
+
+## Related Items
+
+- [Mithril 2h sword](/osrs/mithril-2h-sword/) - Upgrade
+- [Black longsword](/osrs/black-longsword/) - One-handed alternative
+
+<Adsense />

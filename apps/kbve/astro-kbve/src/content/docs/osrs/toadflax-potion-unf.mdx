@@ -1,0 +1,118 @@
+---
+title: Toadflax potion (unf) | OSRS Price Data
+description: "Toadflax potion (unf) is a 4-dose members potion. High alch: 28 GP, GE limit: 10,000."
+osrs:
+  id: 3002
+  name: Toadflax potion (unf)
+  slug: toadflax-potion-unf
+  examine: I need another ingredient to finish this Toadflax potion.
+  members: true
+  icon: Toadflax potion (unf).png
+  value: 48
+  lowalch: 19
+  highalch: 28
+  limit: 10000
+  potion:
+    doses: 0
+    type: unfinished
+    base_herb: toadflax
+    base_herb_id: 2998
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    weight: 0.056
+  recipes:
+    - skill: herblore
+      level: 34
+      xp: 0
+      materials:
+        - item_name: Toadflax
+          item_id: 2998
+          quantity: 1
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+      product: Toadflax potion (unf)
+      product_id: 3002
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 2998
+      item_name: Toadflax
+      slug: toadflax
+      relationship: component
+      description: Herb ingredient
+    - item_id: 6693
+      item_name: Crushed nest
+      slug: crushed-nest
+      relationship: component
+      description: Secondary for Saradomin brew
+    - item_id: 6685
+      item_name: Saradomin brew(4)
+      slug: saradomin-brew-4
+      relationship: product
+      description: Final product
+    - item_id: 2152
+      item_name: Toad's legs
+      slug: toads-legs
+      relationship: component
+      description: Secondary for Agility potion
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Unfinished Potion |
+| Tradeable | Yes |
+| Weight | 0.056 kg |
+| Requirements | 34 Herblore |
+
+## Obtaining
+
+**Creation:** Add toadflax to vial of water (34 Herblore).
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Usage
+
+Add secondary ingredient to create:
+- **Agility potion** (+ toad's legs)
+- **Saradomin brew** (+ crushed nest)
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~3,208 gp
+
+High volume herblore supply. Key for Saradomin brew production.
+
+## Related Items
+
+- [Toadflax](/osrs/toadflax/) - Herb ingredient
+- [Crushed nest](/osrs/crushed-nest/) - Secondary
+- [Saradomin brew](/osrs/saradomin-brew/) - Final product
+
+<Adsense />

@@ -1,0 +1,136 @@
+---
+title: Seaweed | OSRS Price Data
+description: "Seaweed: Slightly damp seaweed.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 401
+  name: Seaweed
+  slug: seaweed
+  examine: Slightly damp seaweed.
+  members: true
+  icon: Seaweed.png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+  material:
+    type: crafting
+    tier: basic
+  gathering:
+    locations:
+      - Karamja coastline
+      - Kourend coastline
+      - Fremennik Province
+  shops:
+    - shop_name: Trader Stan's Trading Posts
+      price: 5
+      currency: Coins
+  drop_table:
+    sources:
+      - source: Rock crab
+        source_id: 1265
+        combat_level: 13
+        quantity: "1"
+        rarity: common
+      - source: Baby impling
+        source_id: 6055
+        quantity: "1"
+        rarity: common
+        members_only: true
+  processing:
+    method: Cook on range
+    product_id: 1781
+    product_name: Soda ash
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 1
+      materials:
+        - item_name: Seaweed
+          item_id: 401
+          quantity: 1
+      product: Soda ash
+      product_id: 1781
+      product_quantity: 1
+      facility: Range
+  related_items:
+    - item_id: 21504
+      item_name: Giant seaweed
+      slug: giant-seaweed
+      relationship: upgrade
+      description: Superior variant (6x)
+    - item_id: 1781
+      item_name: Soda ash
+      slug: soda-ash
+      relationship: product
+      description: Cooked form
+    - item_id: 1775
+      item_name: Molten glass
+      slug: molten-glass
+      relationship: product
+      description: End product
+    - item_id: 1783
+      item_name: Bucket of sand
+      slug: bucket-of-sand
+      relationship: component
+      description: Glass making partner
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 0.2 kg |
+
+## Obtaining
+
+**Common sources:**
+- Coastal spawns (Karamja, Kourend, Fremennik)
+- Monster drops (rock crabs, aquatic creatures)
+- Big net fishing (uncommon)
+- Trader Stan's Trading Posts (5 gp)
+- Baby implings
+
+## Usage
+
+Cook on range to create **soda ash** for glass making.
+
+Also used directly in Superglass Make spell.
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Price:** ~8 gp
+
+Very cheap and high volume. Alternative to giant seaweed for glass.
+
+## Related Items
+
+- [Giant seaweed](/osrs/giant-seaweed/) - Superior variant
+- [Soda ash](/osrs/soda-ash/) - Cooked form
+- [Molten glass](/osrs/molten-glass/) - End product
+
+<Adsense />

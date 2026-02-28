@@ -1,0 +1,149 @@
+---
+title: Dragon axe | OSRS Price Data
+description: "Dragon axe is a members weapon slot item requiring 60 Attack. High alch: 33,000 GP, GE limit: 40."
+osrs:
+  id: 6739
+  name: Dragon axe
+  slug: dragon-axe
+  examine: A very powerful axe.
+  members: true
+  icon: Dragon axe.png
+  value: 55000
+  lowalch: 22000
+  highalch: 33000
+  limit: 40
+  equipment:
+    slot: weapon
+    type: axe
+    attack_style: melee
+    requirements:
+      attack: 60
+      woodcutting: 61
+    stats:
+      attack_stab: -2
+      attack_slash: 38
+      attack_crush: 32
+      strength: 42
+  special_attack:
+    name: Lumber Up
+    energy: 100
+    effect: +3 Woodcutting levels for 60 seconds
+  drop_table:
+    sources:
+      - source: Dagannoth Rex
+        source_id: 2267
+        combat_level: 303
+        quantity: "1"
+        rarity: 1/128
+        members_only: true
+      - source: Dagannoth Supreme
+        source_id: 2266
+        combat_level: 303
+        quantity: "1"
+        rarity: 1/128
+        members_only: true
+      - source: Dagannoth Prime
+        source_id: 2265
+        combat_level: 303
+        quantity: "1"
+        rarity: 1/128
+        members_only: true
+      - source: Wintertodt
+        quantity: "1"
+        rarity: 1/10,000
+        members_only: true
+        note: Rare drop from Reward Cart
+  related_items:
+    - item_id: 23673
+      item_name: Crystal axe
+      slug: crystal-axe
+      relationship: upgrade
+      description: Speed upgrade
+    - item_id: 13241
+      item_name: Infernal axe
+      slug: infernal-axe
+      relationship: upgrade
+      description: Auto-burn upgrade
+    - item_id: 13245
+      item_name: Smouldering stone
+      slug: smouldering-stone
+      relationship: component
+      description: Infernal component
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Axe |
+| Tradeable | Yes |
+| Weight | 1.36 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Dagannoth Rex/Supreme/Prime | 1/128 each |
+| Wintertodt Reward Cart | 1/10,000 |
+| Master clues | Rare |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | -2 |
+| Slash | +38 |
+| Crush | +32 |
+| Strength | +42 |
+
+**Requirements:** 60 Attack, 61 Woodcutting
+
+## Special Attack
+
+**Lumber Up** (100% energy):
+- +3 Woodcutting levels
+- Lasts 60 seconds
+- Preserve extends by 50%
+
+## Usage
+
+Essential for:
+- All high-level woodcutting
+- Upgrade to crystal/infernal
+- Best base axe
+
+**Best axe (base) in the game.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~50K gp
+
+**Tips:**
+- DKs are easy source
+- Very affordable
+- Upgrade to crystal or infernal
+
+<Adsense />

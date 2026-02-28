@@ -1,0 +1,37 @@
+---
+title: Black wizard robe (g) | OSRS Price Data
+description: "Black wizard robe (g): I can do magic better in this.. High alch: 9 GP, GE limit: 4."
+osrs:
+  id: 12449
+  name: Black wizard robe (g)
+  slug: black-wizard-robe-g
+  examine: I can do magic better in this.
+  members: false
+  icon: Black wizard robe (g).png
+  value: 15
+  lowalch: 6
+  highalch: 9
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,104 @@
+---
+title: 'October: 19th'
+category: Daily
+date: 2025-10-19 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 19th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### GameJam Prep - Playful AI
+
+-   09:51AM
+
+    I am getting ready to take a quick break from the godot and head directly into another gamejam.
+    These next couple entries will be a bit delayed because I am really focused on getting a game done.
+
+-   05:50PM
+
+    The game will be a cat-based afk simulator, how we will go about building this?
+    Well I am not too sure but I am thinking we will just use godot and just run with it.
+
+## 2024
+
+**iOS**
+
+We are about to wrap up the iOS session this wekend, or at least that is what I have been telling myself over and over.
+With the astro extension not yet being up to date, it is starting to make more and more sense to swap some of the exisiting sites that are under astro to tamamgui.
+
+**Lottie**
+
+To get started with the lottie deployment, we need to add three libraries into the monorepo.
+Here is the pnpm command to do that with:
+
+```shell
+pnpm install lottie-react-native @dotlottie/react-player @lottiefiles/react-lottie-player
+```
+
+After adding it, we have to install and prebuild the expo application.
+
+```shell
+pnpm nx install expo-lcagents
+pnpm nx prebuild expo-lcagents
+```
+
+Here is the demo of how we would utilize it.
+
+```tsx
+
+import React from 'react';
+import { YStack } from 'tamagui';
+import { LottieAnimation } from './LottieAnimation';
+
+export const MainScreen = () => {
+  return (
+    <YStack f={1} jc="center" ai="center">
+      {/* For local JSON files, pass `require()` directly */}
+      <LottieAnimation lottieJSON={require('../assets/json/demo.json')} />
+    </YStack>
+  );
+};
+
+```
+
+
+**Unity**
+
+Upgrading our current unity game to version 6 is always going to be fun!
+Well we are already on unity 6000 aka six but we have not yet updated to the LTS version.
+I am planning on doing that tonight, most likely inbetween my react native dev sessions.
+
+**Postgres**
+
+During the signup, I have noticed a terrible bug and that was in our `username` settings as it seems to treat upper and lower case as different unique variables.
+This is fine for things like unique link generation or anything of that nature, but for usernames, this is terrible.
+The solution will be to update the constrants around the username column, fix the trigger and update function and then run a quick refresh of the materialized views.
+
+**Issues**
+
+I have about 30 more issue tickets that I need to open up!
+They will be outlining the next couple steps for this month and leading into the next month.
+However, I do not want to overload myself with a bunch of out of scope or useless backlog, at least for now.
+It would make more sense to focus on keeping the issue tickets at a healthy sub-50 and making sure that it never gets past the dangerous 100 mark.
+
+**LofiFocus**
+
+Before moving really heavy into the dev cylce of the `LofiFocus`, I would want to map out some basic issues that would help me keep track.
+There are two tickets right now that are open for the lofi / jukebox but I will merge those into a new ticket.
+Under the new plan for the application, [issue 3076](https://github.com/KBVE/kbve/issues/3076) should be focused on the general expo / tamagui dev.
+
+For the ingress issue, I am going to just rotate the DNS from an A record over to a CNAME, then point it tgo our github organization.
+The plan will be to just host the application directly through the github pages.
+Hmm, we would need two more issue tickets for some of the libraries that we have to add, but instead of creating a new ticket for those, I will just add them into the [786](https://kbve.com/i#786).
+
+**Mail**
+
+The mail server will be deployed in the mail namespace through the fleet helm.
+I will create an issue ticket if we run into any major problems, but I do not think we will run into any issues.

@@ -1,0 +1,106 @@
+---
+title: Blue wizard robe | OSRS Price Data
+description: "Blue wizard robe is a F2P body slot item. High alch: 9 GP, GE limit: 125."
+osrs:
+  id: 577
+  name: Blue wizard robe
+  slug: blue-wizard-robe
+  examine: I can do magic better in this.
+  members: false
+  icon: Blue wizard robe.png
+  value: 15
+  lowalch: 6
+  highalch: 9
+  limit: 125
+  equipment:
+    slot: body
+    type: magic robes
+    tradeable: true
+    weight: 0.907
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 3
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 3
+      defence_ranged: 0
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 579
+      item_name: Blue wizard hat
+      slug: blue-wizard-hat
+      relationship: alternative
+      description: Set piece
+    - item_id: 1011
+      item_name: Blue wizard robe skirt
+      slug: blue-wizard-robe-skirt
+      relationship: alternative
+      description: Set piece
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Magic Robes |
+| Tradeable | Yes |
+| Weight | 0.907 kg |
+| Requirements | None |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Magic Attack | +3 |
+| Magic Defence | +3 |
+
+## Obtaining
+
+**Crafting:** Use blue dye on black robe (1 Crafting, 2.5 XP).
+
+**Drops:** Wizards.
+
+**Treasure Trails:** Easy and Medium clues.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~1,563 gp
+
+F2P magic body armour. One of 3 F2P bodies with magic attack.
+
+## Related Items
+
+- [Blue wizard hat](/osrs/blue-wizard-hat/) - Set piece
+- [Blue wizard robe skirt](/osrs/blue-wizard-robe-skirt/) - Set piece
+
+<Adsense />

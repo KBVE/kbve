@@ -1,0 +1,37 @@
+---
+title: Catalytic talisman | OSRS Price Data
+description: "Catalytic talisman: A mysterious power emanates from the talisman.... High alch: 1,200 GP, GE limit: 40."
+osrs:
+  id: 26798
+  name: Catalytic talisman
+  slug: catalytic-talisman
+  examine: A mysterious power emanates from the talisman...
+  members: true
+  icon: Catalytic talisman.png
+  value: 2000
+  lowalch: 800
+  highalch: 1200
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,127 @@
+---
+title: Merfolk trident | OSRS Price Data
+description: "Merfolk trident is a members two-handed weapon. High alch: 240 GP, GE limit: 125."
+osrs:
+  id: 21649
+  name: Merfolk trident
+  slug: merfolk-trident
+  examine: An iron tipped trident.
+  members: true
+  icon: Merfolk trident.png
+  value: 400
+  lowalch: 160
+  highalch: 240
+  limit: 125
+  equipment:
+    slot: 2h
+    type: spear
+    tradeable: true
+    weight: 0.907
+    stats:
+      attack_stab: 8
+      attack_slash: 8
+      attack_crush: 8
+      strength: 4
+      stab_def: 1
+      slash_def: 1
+  special_effects:
+    - name: Drift Net Fishing
+      description: Increases chance to scare fish into nets
+    - name: Underwater Breathing
+      description: Charge with up to 10 pufferfish to regain breath
+    - name: Swimming
+      description: One of few weapons allowing swimming while wielding
+  shop:
+    npc: Mairin's Market
+    location: Underwater Fossil Island
+    price: 400
+    currency: Mermaid tears
+  market:
+    buy_limit: 8
+    price_estimate: 2050000
+  related_items:
+    - item_id: 21516
+      item_name: Fossil Island
+      slug: fossil-island
+      relationship: alternative
+      description: Location
+    - item_id: 21656
+      item_name: Mermaid tear
+      slug: mermaid-tear
+      relationship: component
+      description: Currency
+    - item_id: 22016
+      item_name: Drift net
+      slug: drift-net
+      relationship: alternative
+      description: Use with
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-handed |
+| Type | Spear |
+| Tradeable | Yes |
+| Weight | 0.907 kg |
+
+## Obtaining
+
+Purchase from Mairin's Market (underwater Fossil Island) for 400 mermaid tears.
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Stab | +8 |
+| Slash | +8 |
+| Crush | +8 |
+| Strength | +4 |
+
+| Defence | Bonus |
+|---------|-------|
+| Stab | +1 |
+| Slash | +1 |
+
+## Passive Effects
+
+**Drift Net Fishing:** Increases chance to scare fish into nets.
+
+**Underwater Breathing:** Charge with up to 10 pufferfish to regain breath.
+
+**Swimming:** One of few weapons allowing swimming while wielding.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~2.05M gp
+
+## Related Items
+
+- [Fossil Island](/osrs/fossil-island/) - Location
+- [Mermaid tear](/osrs/mermaid-tear/) - Currency
+- [Drift net](/osrs/drift-net/) - Use with
+
+<Adsense />

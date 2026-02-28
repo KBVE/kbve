@@ -1,0 +1,37 @@
+---
+title: Bucket of milk | OSRS Price Data
+description: "Bucket of milk: It's a bucket of milk.. High alch: 3 GP, GE limit: 13,000."
+osrs:
+  id: 1927
+  name: Bucket of milk
+  slug: bucket-of-milk
+  examine: It's a bucket of milk.
+  members: false
+  icon: Bucket of milk.png
+  value: 6
+  lowalch: 2
+  highalch: 3
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

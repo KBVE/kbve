@@ -1,0 +1,37 @@
+---
+title: Pearl dragon bolts (e) | OSRS Price Data
+description: "Pearl dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with pearl.. High alch: 408 GP, GE limit: 11,000."
+osrs:
+  id: 21936
+  name: Pearl dragon bolts (e)
+  slug: pearl-dragon-bolts-e
+  examine: Enchanted Dragon crossbow bolts, tipped with pearl.
+  members: true
+  icon: Pearl dragon bolts (e) 5.png
+  value: 680
+  lowalch: 272
+  highalch: 408
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

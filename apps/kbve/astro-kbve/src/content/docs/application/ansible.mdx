@@ -1,0 +1,562 @@
+---
+title: Ansible
+description: |
+    DevOps software that handles the infrastructure of the backend through automation.
+    Ansible's main function(s) operate through a "playbook" system that exectues a collection of commands for the system admin, which becomes a pillar within the IaaC environment.
+sidebar:
+    label: Ansible
+    order: 115
+unsplash: 1549605659-32d82da3a059
+img: https://images.unsplash.com/photo-1549605659-32d82da3a059?fit=crop&w=1400&h=700&q=75
+tags:
+    - iac
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+	Tabs,
+	TabItem,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@/components/astropad';
+
+<Aside type="note">
+> Automation software that enables `IaC` - also known as, infrastructure as code, thus allowing user to provision, configure, deploy and secure a whole array of software, applications and machines.
+
+</Aside>
+
+## Information
+
+With **Ansible**, you can automate complex IT operations with clarity and control.
+It simplifies system management, application deployment, and workflow orchestration through powerful, modular building blocks.
+Powered by open source, Python, and SSH, Ansible connects seamlessly to your devices—no agents required.
+It sends lightweight programs called **modules** to perform tasks precisely where they are needed, then removes them once finished.
+From provisioning servers to configuring networks and deploying applications, Ansible turns manual, error-prone processes into consistent, repeatable automation.
+
+<Adsense />
+
+<Tabs syncKey="info">
+  <TabItem label="Tip">
+<Aside type="tip">
+Think of Ansible like these metaphors:
+
+- Ansible is like a remote control that lets you manage your devices with the push of a button.
+- Ansible is like a chef that prepares a delicious meal using different ingredients and recipes.
+- Ansible is like a conductor that orchestrates a symphony of servers and applications.
+
+</Aside>
+
+</TabItem>
+<TabItem label="Newbie">
+
+### Ansible for a Newbie!
+
+Ansible is a tool that helps people do things with computers.
+Sometimes people have many computers and they want to do the same thing on all of them.
+For example, they might want to make them play a game, or show a picture, or talk to each other.
+Doing the same thing on many computers can be hard and boring.
+Ansible makes it easy and fun and has a list of things that people want to do with computers.
+It can read the list and do the things one by one and then also check if the things are done correctly.
+Ansible can talk to different kinds of computers and tell them what to do.
+Think of Ansible like a friend that helps people with computers.
+
+</TabItem>
+
+</Tabs>
+
+## Install
+
+To install **Ansible**, you will need two types of machines:  
+a **control node** (where Ansible runs) and one or more **managed nodes** (where Ansible performs tasks).
+
+<Steps>
+
+1. **Set up your Control and Managed Nodes**  
+   The **control node** is where you run Ansible commands and playbooks.  
+   It can be any UNIX-like system with **Python 3.9+** installed.  
+   The **managed node** is any system that supports **Python 2.7+** and communicates via **SSH** (or PowerShell on Windows).
+
+2. **Install Ansible**  
+   Depending on your operating system, there are multiple installation paths:
+
+    - **Ubuntu / Debian:** Use `apt install ansible` from the official repositories.
+    - **Windows:** Enable **Windows Subsystem for Linux (WSL)** and install Ansible using `pip install ansible` or `pip3 install ansible`.
+    - **Source:** Clone the [Ansible GitHub repository](https://github.com/ansible/ansible) and build from source to get the latest development version.
+
+3. **Configure Ansible**  
+   Set up your **inventory file** to list managed nodes and their connection details.  
+   You can further customize settings in the `ansible.cfg` file or override them using environment variables or command-line options.
+
+4. **Verify the Installation**  
+   Run a quick test to ensure Ansible is configured properly:
+
+    ```bash
+    ansible all -m ping
+    ```
+
+    If everything is set up correctly, you will receive a pong response from your managed nodes.
+
+</Steps>
+
+<Aside type="tip" title='Need extra installation help?'>
+
+[Ask our support team?](https://kbve.com/support/), visit our [Discord](https://kbve.com/discord/) or if you need help with [Python, read our docs](/application/python/)
+
+</Aside>
+
+---
+
+## Playbook
+
+An Ansible playbook is your automation blueprint written in YAML/JSON.
+The purpose of the playbook is to tell Ansible what to do, where to do it, and how to do it.
+With a playbook, you can transform your IT tasks into simple and repeatable steps that run on any number of hosts.
+Whether you need to install software, configure settings, run commands, or anything else, an Ansible playbook will make it happen in a snap.
+
+### Playbook Examples
+
+Let me dazzle you with an example of a playbook that I borrowed from the Ansible documentation.
+
+```yaml
+- name: Update web servers
+  hosts: webservers
+  remote_user: root
+  tasks:
+      - name: Ensure apache is at the latest version
+        ansible.builtin.yum:
+            name: httpd
+            state: latest
+      - name: Write the apache config file
+        ansible.builtin.template:
+            src: /srv/httpd.j2
+            dest: /etc/httpd.conf
+
+- name: Update db servers
+  hosts: databases
+  remote_user: root
+  tasks:
+      - name: Ensure postgresql is at the latest version
+        ansible.builtin.yum:
+            name: postgresql
+            state: latest
+      - name: Ensure that postgresql is started
+        ansible.builtin.service:
+            name: postgresql
+            state: started
+```
+
+This playbook has two plays.
+The first one updates the web servers by installing the latest version of apache and writing a config file.
+The second one updates the database servers by installing the latest version of postgresql and starting the service.
+Each play has a name, a list of hosts to target, a remote user to execute the tasks, and a list of tasks to perform.
+Each task has a name and a module to call with some parameters.
+
+#### Minecraft Server Update Playbook Example
+
+```yaml
+- name: Update Minecraft server
+  hosts: minecraft
+  vars:
+      minecraft_version: latest
+      minecraft_url: https://s3.amazonaws.com/Minecraft.Download/versions
+      minecraft_home: /srv/minecraft
+  tasks:
+      - name: Get latest Minecraft version
+        uri:
+            url: '{{ minecraft_url }}/latest.json'
+            return_content: yes
+        register: latest_version
+        when: minecraft_version == "latest"
+
+      - name: Set Minecraft version
+        set_fact:
+            minecraft_version: '{{ latest_version.json.id }}'
+        when: minecraft_version == "latest"
+
+      - name: Check if Minecraft server jar exists
+        stat:
+            path: '{{ minecraft_home }}/minecraft_server.{{ minecraft_version }}.jar'
+        register: jar_file
+
+      - name: Download Minecraft server jar
+        get_url:
+            url: '{{ minecraft_url }}/{{ minecraft_version }}/minecraft_server.{{ minecraft_version }}.jar'
+            dest: '{{ minecraft_home }}'
+        when: not jar_file.stat.exists
+
+      - name: Restart Minecraft service
+        systemd:
+            name: minecraft
+            state: restarted
+        when: not jar_file.stat.exists
+```
+
+This playbook is composed of four parts:
+
+- The name of the playbook, which is `Update Minecraft server`.
+- The hosts that the playbook will run on, which are the ones in the `minecraft` group in the inventory file.
+- The variables that the playbook will use, such as `minecraft_version`, `minecraft_url`, and `minecraft_home`.
+- The tasks that the playbook will execute, such as getting the latest Minecraft version, downloading the server jar file, and restarting the Minecraft service.
+
+Each task has a name, a module to use, and some parameters for the module.
+Some tasks also have a condition (`when`) that determines when they will run.
+For example, the task `Download Minecraft server jar` will only run if the jar file does not exist in the `minecraft_home` directory.
+The playbook uses the `register` keyword to store the output of some tasks in variables, such as `latest_version` and `jar_file`.
+These variables can be used in later tasks or conditions and this playbook could be expanded to include file checks with hashing.
+
+---
+
+## Modules
+
+<Aside>
+
+> **tldr;** Ansible has a large collection of modules that can be used for various tasks and purposes.
+
+</Aside>
+
+Cloud modules can be used to interact with different cloud providers, such as AWS, Azure, Google Cloud, etc.
+
+The cloud modules within Ansible are a set of modules that can be used to interact with different cloud providers and services.
+They allow you to provision, configure and manage cloud resources, such as virtual machines, networks, storage, databases, etc.
+
+---
+
+### CI/CD Modules
+
+<Aside>
+  
+  > **tldr;** These modules integrate Ansible automation into continuous integration and delivery workflows, such as GitHub Actions or GitLab CI.
+
+</Aside>
+
+The CI/CD modules enable you to run Ansible playbooks directly within automated pipelines.
+They are useful for testing, provisioning, or deploying infrastructure and applications as part of your workflow.
+
+| Module / Action                   | Description                                                       |
+| :-------------------------------- | :---------------------------------------------------------------- |
+| `ansible/ansible-lint-action`     | Runs `ansible-lint` to validate playbooks and roles.              |
+| `ansible/ansible-playbook-action` | Executes an Ansible playbook inside your GitHub Actions workflow. |
+| `ansible/galaxy-action`           | Manages Ansible Galaxy roles and collections in your pipeline.    |
+
+<Aside type="tip">
+	You can combine these with AWS or Azure modules in later stages of your
+	workflow to deploy cloud infrastructure automatically after tests pass.
+</Aside>
+
+#### FileTree
+
+Here is a full featured layout with Talos OS, core addons, git ops, data plane.
+
+<FileTree label="ansible-k8s-talos (full)">
+- .github/
+  - actions/
+    - setup-ansible/               # optional composite action (cache, galaxy install)
+  - workflows/
+    - check.yml                    # lint (ansible-lint), yamllint, jsonschema, markdown
+    - test.yml                     # molecule with k3d/kind; idempotence checks
+    - deploy.yml                   # on tag or manual dispatch → staged rollout
+- .env.example                     # sample env for CI (secrets injected via repo/env)
+- .gitignore
+- ansible.cfg
+- requirements.yml                 # collections: kubernetes.core, community.general, community.kubernetes
+- requirements-roles.yml
+- inventories/
+  - production/
+    - hosts.yml
+    - group_vars/
+      - all.yml
+      - gitops.yml                 # argo root app repo/branch/path
+      - storage.yml                # default sc, longhorn, nfs, cnpg
+      - observability.yml          # loki, prom, grafana toggles
+      - networking.yml             # cni options, lb, svc CIDRs (reference-only if Talos-managed)
+  - staging/
+    - hosts.yml
+    - group_vars/
+      - all.yml
+- group_vars/
+  - all.yml                        # cluster_name, domain, issuer, registry creds (non-secret)
+- host_vars/
+  - cp-01.yml
+  - worker-01.yml
+- collections/                     # (optional, if vendored)
+- roles/
+  - talos_bootstrap/
+    - tasks/
+      - main.yml                   # talosctl gen secrets/apply, kubeconfig export
+  - kubernetes_cluster/
+    - tasks/
+      - main.yml                   # kube-api reachability, ns, rbac, psp replacement, quotas
+  - helm_release/
+    - tasks/
+      - main.yml
+  - cert_manager/
+    - tasks/
+      - main.yml                   # ClusterIssuer (LE DNS/HTTP), CRDs, health checks
+  - ingress_nginx/
+    - tasks/
+      - main.yml                   # controller, TCP services, proxy settings
+  - argocd/
+    - tasks/
+      - main.yml                   # install, admin secret mgmt (sealed-secrets optional)
+  - sealed_secrets/
+    - tasks/
+      - main.yml
+  - longhorn/
+    - tasks/
+      - main.yml
+  - cnpg/
+    - tasks/
+      - main.yml                   # CloudNativePG operator
+  - clickhouse_operator/
+    - tasks/
+      - main.yml
+  - apps_catalog/
+    - tasks/
+      - main.yml                   # app-of-apps: ergo-irc, restreamer, etc.
+- playbooks/
+  - 00-bootstrap.yml               # includes: talos_bootstrap (optional if you do Talos externally)
+  - 10-cluster.yml                 # includes: kubernetes_cluster
+  - 20-core.yml                    # includes: cert_manager, ingress_nginx, sealed_secrets
+  - 30-gitops.yml                  # includes: argocd (+ root apps)
+  - 40-storage.yml                 # includes: longhorn, cnpg, clickhouse_operator
+  - 99-apps.yml                    # includes: apps_catalog (ergo, restreamer, etc.)
+- vars/
+  - issuers.yml
+  - registries.yml
+  - domains.yml
+  - storage.yml
+- files/
+  - kubeconfig.sample              # for local dev (never commit real kubeconfigs)
+  - manifests/
+    - argocd/
+      - root-app.yaml              # optional if you don't bootstrap via Helm
+- templates/
+  - argocd-values.yaml.j2
+  - cert-manager-values.yaml.j2
+  - ingress-nginx-values.yaml.j2
+- molecule/
+  - k3d-default/
+    - converge.yml
+    - verify.yml
+    - molecule.yml
+- docs/
+  - ADR-0001-ci-approach.md
+  - ADR-0002-gitops-structure.md
+- README.md
+</FileTree>
+
+- Talos handles OS + kubelet; Ansible focuses on cluster add-ons (Helm + Kubernetes modules) and GitOps bootstrap.
+- CI stages are there for a quick check, test and deploy.
+
+---
+
+### AWS Modules
+
+<Aside>
+	These modules can be used to work with Amazon Web Services (AWS), such as
+	EC2, S3, CloudFormation, etc. For example, you can use the
+	`amazon.aws.ec2_instance` module to create and manage EC2 instances on AWS.
+</Aside>
+
+Ansible provides a wide range of **AWS modules** that let you automate tasks across Amazon Web Services, from launching EC2 instances to managing S3 buckets, security groups, and CloudFormation stacks.
+These modules use the AWS SDK for Python (boto3) under the hood, allowing secure, API-based interaction with your cloud resources.
+You can use them to playbooks to **create, configure, and delete** infrastructure components, making it easy to manage everything as code aka `IaaC`.
+
+| Module                          | Description                                            |
+| :------------------------------ | :----------------------------------------------------- |
+| `amazon.aws.ec2_instance`       | Create and manage EC2 instances.                       |
+| `amazon.aws.s3_bucket`          | Create, delete, and configure S3 buckets.              |
+| `amazon.aws.cloudformation`     | Deploy infrastructure stacks using AWS CloudFormation. |
+| `amazon.aws.iam_user`           | Manage IAM users and access permissions.               |
+| `amazon.aws.ec2_security_group` | Define and modify EC2 security groups.                 |
+
+<Aside type="caution">
+
+> Before using these modules, ensure you have installed the `amazon.aws` collection and configured your AWS **credentials** properly using aws configure or environment variables.
+
+</Aside>
+
+---
+
+### Azure Modules
+
+With these modules, you have full control over your Microsoft Azure resources, whether they are VMs, Storage, Network or anything else.
+For example, you can use the `azure_rm_virtualmachine` module to create and manage Azure virtual machines.
+
+---
+
+### GCP Modules
+
+You can work with any Google Cloud Platform service with these modules, such as Compute Engine, Storage, Network and more.
+The `gcp_compute_instance` module is an example of how you can achieve your goals with GCP servers using Ansible.
+
+> [Official Documentation on GCP Compute Instance module](https://docs.ansible.com/ansible/latest/collections/google/cloud/gcp_compute_instance_module.html)
+
+#### Create GCP Instance
+
+Creating a compute instance with a specific name, zone, machine type, image and network:
+
+```yaml
+- name: create gcp instance
+  google.cloud.gcp_compute_instance:
+      name: test_object
+      zone: us-central1-a
+      machine_type: n1-standard-1
+      disks:
+          - auto_delete: true
+            boot: true
+            source: '{{ disk }}'
+      network_interfaces:
+          - network: '{{ network }}'
+            access_configs:
+                - name: External NAT
+                  nat_ip: '{{ address }}'
+                  type: ONE_TO_ONE_NAT
+      state: present
+```
+
+This example creates a compute instance with a specific name, zone, machine type, image and network.
+It uses the `state: present` parameter to indicate that the instance should exist.
+It also specifies the `disks` and `network_interfaces` parameters to configure the disk and network settings of the instance.
+The `disk` and `network` variables are assumed to be defined elsewhere in the playbook or inventory.
+
+#### Delete GCP Instance
+
+Deleting a compute instance with a specific name and zone:
+
+```yaml
+- name: dlete gcp instance
+  google.cloud.gcp_compute_instance:
+      name: test_object
+      zone: us-central1-a
+      state: absent
+```
+
+For this task, it deletes a compute instance with a specific `name` and `zone`.
+It uses the `state: absent` parameter to indicate that the instance should not exist.
+It does not need to specify any other parameters, as the `name` and `zone` are enough to identify the instance to delete.
+
+#### Update GCP Instance
+
+Updating a compute instance with a new machine type and labels
+
+```yaml
+- name: update gcp instance
+  google.cloud.gcp_compute_instance:
+      name: test_object
+      zone: us-central1-a
+      machine_type: n1-standard-2
+      labels:
+          env: prod
+          webserver: nginx
+      state: present
+```
+
+The update example performs the task of updating a compute instance with a new machine type and labels.
+It uses the `state: present` parameter to indicate that the instance should exist.
+It also specifies the `machine_type` and `labels` parameters to change the machine type and labels of the instance.
+The machine type determines the CPU and memory resources of the instance, and the labels are key-value pairs that can be used to organize and filter instances.
+Any other parameters that are not specified will remain unchanged.
+
+---
+
+### OpenStack Modules
+
+OpenStack modules can be used to work with OpenStack, an open source cloud platform that provides infrastructure as a service (IaaS).
+The `os_server` module is an example of how you can have full control over your OpenStack servers.
+
+---
+
+### Network Modules
+
+You can configure and manage any network device with these modules, such as routers, switches, firewalls and beyond.
+
+---
+
+### System Modules
+
+With these modules, you have full control over your system resources, whether they are users, groups, files, directories, services, packages or anything else.
+
+---
+
+### Database Modules
+
+Employing these modules, you have full control over your database servers and objects, from MySQL and PostgreSQL to MongoDB and more.
+
+---
+
+### Windows Modules
+
+Windows modules can be used to manage Windows systems and applications, such as Active Directory, IIS, PowerShell, etc.
+For example, you can use the `win_service` module to manage Windows service
+
+---
+
+## AWX
+
+> tldr; AWX is a web-base RESTFul API and task engine that operates on top of Ansible, thus enabling you to automate certain aspects of the IT/DevOps.
+
+AWX is an open source project that gives you a sleek and modern web-based user interface, a powerful and flexible REST API, and a robust and scalable task engine to work with Ansible.
+It is the upstream project of Red Hat Ansible Automation Platform, which is a premium solution that offers additional features and support for enterprise customers.
+With AWX, you can easily manage your Ansible playbooks, inventories, credentials, and vaults in a collaborative and secure way among your team members.
+Moreover, AWX empowers you to plan and run your Ansible playbooks on your managed nodes with speed, efficiency and dependability; you can set up custom schedules, workflows, notifications, and callbacks to automate your Ansible operations and monitor their outcomes.
+In conclusion, AWX gives you full control and visibility over your Ansible playbooks and their execution.
+
+### AWX Repo
+
+> The official [Repository](https://github.com/ansible/awx) for AWX - Ansible.
+
+The AWX repository is a GitHub repository that contains a treasure trove of source code and other resources.
+
+### AWX Terraform
+
+> More information on [Terraform](/application/terraform/)
+
+Terraform AWX Provider from Denouche.
+
+By using AWX and Terraform together, you can leverage the power and flexibility of Ansible to manage your AWS resources with ease and efficiency.
+The Two tools that can be used together to automate IT infrastructure.
+
+- Official [Registry](https://registry.terraform.io/providers/denouche/awx/latest/docs) Link:
+
+Example Usage - With Username/Password:
+
+```ini
+provider "awx" {
+    hostname = "http://localhost:8078"
+    username = "kbvetest"
+    password = "changemepassword"
+}
+```
+
+Example Usage - With Token:
+
+```ini
+provider "awx" {
+  hostname = "http://localhost:8078"
+  token    = "awxtoken"
+}
+```
+
+> Remember that if you set both (username/password) and (token), then the (token) will have precedence.
+
+## Cheatsheet
+
+> tldr; Commands that will make it easier operate ansible scripts / playbooks. This cheatsheet is still a work-in-progress.
+
+An Ansible cheatsheet is a quick and handy reference guide that provides examples and tips on how to use Ansible command line tools and playbooks, thus enabling you to unleash the power of Ansible!
+With an Ansible cheatsheet at your fingertips, you can breeze through a variety of tasks that would otherwise be tedious and time-consuming.
+Whether you need to test the connectivity to your nodes, switch to a different user, use a custom SSH key, use password-based authentication, run ad-hoc commands, create and run playbooks, use modules and roles, or anything else, an Ansible cheatsheet will make your life easier and more fun.
+
+## Videos
+
+Video -> https://www.youtube.com/watch?v=EcnqJbxBcM0
+
+## Notes
+
+Notes for Ansible

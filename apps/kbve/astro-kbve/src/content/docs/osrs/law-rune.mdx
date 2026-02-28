@@ -1,0 +1,117 @@
+---
+title: Law rune | OSRS Price Data
+description: "Law rune: Used for teleport spells.. High alch: 144 GP, GE limit: 18,000."
+osrs:
+  id: 563
+  name: Law rune
+  slug: law-rune
+  examine: Used for teleport spells.
+  members: false
+  icon: Law rune.png
+  value: 240
+  lowalch: 96
+  highalch: 144
+  limit: 18000
+  rune:
+    type: utility
+  runecraft:
+    level: 54
+    xp: 9.5
+    multiple_at: 95
+    altar: Law Altar
+    altar_location: Entrana
+    essence_type: pure
+  recipes:
+    - skill: runecraft
+      level: 54
+      xp: 9.5
+      materials:
+        - item_name: Pure essence
+          item_id: 7936
+          quantity: 1
+      product: Law rune
+      product_id: 563
+      product_quantity: 1
+      facility: Law altar
+      members_only: true
+  related_items:
+    - item_id: 7936
+      item_name: Pure essence
+      slug: pure-essence
+      relationship: component
+      description: Crafting material
+    - item_id: 556
+      item_name: Air rune
+      slug: air-rune
+      relationship: component
+      description: Combo for teleports
+    - item_id: 561
+      item_name: Nature rune
+      slug: nature-rune
+      relationship: alternative
+      description: Similar value rune
+    - item_id: 560
+      item_name: Death rune
+      slug: death-rune
+      relationship: alternative
+      description: Combat rune
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Runecrafting
+
+Craft at the Law Altar (Entrana) with Pure essence.
+
+| Requirement | Value |
+|-------------|-------|
+| Runecrafting Level | 54 |
+| XP per essence | 9.5 |
+| Double runes | 95 RC |
+
+## Usage
+
+Law runes power teleportation magic:
+- Varrock, Lumbridge, Falador, Camelot teleports
+- Teleport to House
+- Ardougne, Watchtower teleports
+- Teleother spells
+
+## Market Flip Strategy
+
+**Runecrafting Profit:**
+- At 54+ RC: Craft law runes for profit
+- At 95+ RC: Double runes = 2x profit
+- Calculate: `(Law rune × runes) - Pure essence = Profit`
+
+**Buy Limit:** 18,000 per 4 hours
+
+**Demand Drivers:**
+- Teleportation is essential for efficiency
+- Used in nearly every activity
+- Consistent, stable demand
+
+**Tips:**
+- Entrana access required (no weapons/armor)
+- Abyss method faster but dangerous
+- Popular for both crafting and trading
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Dragon chainbody | OSRS Price Data
+description: "Dragon chainbody: A series of connected metal rings.. High alch: 150,000 GP, GE limit: 70."
+osrs:
+  id: 3140
+  name: Dragon chainbody
+  slug: dragon-chainbody
+  examine: A series of connected metal rings.
+  members: true
+  icon: Dragon chainbody.png
+  value: 250000
+  lowalch: 100000
+  highalch: 150000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

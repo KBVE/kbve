@@ -1,0 +1,127 @@
+---
+title: 3rd age kiteshield | OSRS Price Data
+description: "3rd age kiteshield is a members shield slot item requiring 65 Defence. High alch: 108,000 GP, GE limit: 8."
+osrs:
+  id: 10352
+  name: 3rd age kiteshield
+  slug: 3rd-age-kiteshield
+  examine: Fabulously ancient armour beaten from magical silver.
+  members: true
+  icon: 3rd age kiteshield.png
+  value: 180000
+  lowalch: 72000
+  highalch: 108000
+  limit: 8
+  equipment:
+    slot: shield
+    type: melee armour
+    attack_style: melee
+    requirements:
+      defence: 65
+    stats:
+      defence_stab: 61
+      defence_slash: 66
+      defence_crush: 63
+      defence_magic: -1
+      defence_ranged: 61
+      melee_strength: 0
+      prayer_bonus: 0
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        requirements:
+          clue_type: Master
+        rarity: Very Rare
+        description: Extremely rare reward from master clue scrolls
+  related_items:
+    - item_id: 10350
+      item_name: 3rd age full helmet
+      slug: 3rd-age-full-helmet
+      relationship: set-piece
+      description: Head slot of 3rd age melee set
+    - item_id: 10348
+      item_name: 3rd age platebody
+      slug: 3rd-age-platebody
+      relationship: set-piece
+      description: Body slot of 3rd age melee set
+    - item_id: 10346
+      item_name: 3rd age platelegs
+      slug: 3rd-age-platelegs
+      relationship: set-piece
+      description: Leg slot of 3rd age melee set
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Type | Melee Armour |
+| Tradeable | Yes |
+| Members Only | Yes |
+| Weight | 5.443 kg |
+
+## Obtaining
+
+| Method | Details |
+|--------|---------|
+| Source | Master Clue Scrolls |
+| Rarity | Extremely Rare (1/313,168) |
+
+## Combat Stats
+
+| Defence | Value |
+|---------|-------|
+| Stab | +61 |
+| Slash | +66 |
+| Crush | +63 |
+| Magic | -1 |
+| Ranged | +61 |
+
+**Requirements:** 65 Defence
+
+## About
+
+The 3rd age kiteshield is part of the 3rd age melee set, one of the rarest and most prestigious armour sets in Old School RuneScape. It requires 65 Defence to wear and provides stats comparable to a rune kiteshield but with superior aesthetics.
+
+3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
+
+## Market Strategy
+
+**Investment Notes:**
+- Extremely valuable due to rarity
+- Price fluctuates based on collector demand
+- Consider set value vs individual pieces
+
+**Trading Tips:**
+- Verify authenticity when trading high-value items
+- Use Grand Exchange for secure trades
+- Monitor price trends before purchasing
+
+## Related Items
+
+- [3rd age full helmet](/osrs/3rd-age-full-helmet/) - Head slot of 3rd age melee set
+- [3rd age platebody](/osrs/3rd-age-platebody/) - Body slot of 3rd age melee set
+- [3rd age platelegs](/osrs/3rd-age-platelegs/) - Leg slot of 3rd age melee set
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Redwood pyre logs | OSRS Price Data
+description: "Redwood pyre logs: Redwood logs prepared with sacred oil for a funeral pyre.. High alch: 537 GP, GE limit: 11,000."
+osrs:
+  id: 19672
+  name: Redwood pyre logs
+  slug: redwood-pyre-logs
+  examine: Redwood logs prepared with sacred oil for a funeral pyre.
+  members: true
+  icon: Redwood pyre logs.png
+  value: 895
+  lowalch: 358
+  highalch: 537
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

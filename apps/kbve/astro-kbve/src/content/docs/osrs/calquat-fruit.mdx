@@ -1,0 +1,37 @@
+---
+title: Calquat fruit | OSRS Price Data
+description: "Calquat fruit: This is the largest fruit I've ever seen.. High alch: 32 GP, GE limit: 11,000."
+osrs:
+  id: 5980
+  name: Calquat fruit
+  slug: calquat-fruit
+  examine: This is the largest fruit I've ever seen.
+  members: true
+  icon: Calquat fruit.png
+  value: 54
+  lowalch: 21
+  highalch: 32
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

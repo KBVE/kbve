@@ -1,0 +1,37 @@
+---
+title: Serum 207 (4) | OSRS Price Data
+description: "Serum 207 (4): 4 doses serum 207 as described in Herbi Flax's diary.. High alch: 8 GP, GE limit: 2,000."
+osrs:
+  id: 3408
+  name: Serum 207 (4)
+  slug: serum-207-4
+  examine: 4 doses serum 207 as described in Herbi Flax's diary.
+  members: true
+  icon: Serum 207 (4).png
+  value: 14
+  lowalch: 5
+  highalch: 8
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,110 @@
+---
+title: Yew longbow (u) | OSRS Price Data
+description: "Yew longbow (u): An unstrung yew longbow; I need a bowstring for this.. High alch: 384 GP, GE limit: 10,000."
+osrs:
+  id: 66
+  name: Yew longbow (u)
+  slug: yew-longbow-u
+  examine: An unstrung yew longbow; I need a bowstring for this.
+  members: true
+  icon: Yew longbow (u).png
+  value: 640
+  lowalch: 256
+  highalch: 384
+  limit: 10000
+  material:
+    type: fletching
+    tier: unstrung_bow
+  fletching:
+    level: 70
+    xp: 75
+    method: Bowstring on unstrung bow
+  alch:
+    high: 768
+    low: 512
+  recipes:
+    - skill: fletching
+      level: 70
+      xp: 75
+      materials:
+        - item_name: Yew longbow (u)
+          item_id: 66
+          quantity: 1
+        - item_name: Bow string
+          item_id: 1777
+          quantity: 1
+      product: Yew longbow
+      product_id: 855
+      product_quantity: 1
+  related_items:
+    - item_id: 1515
+      item_name: Yew logs
+      slug: yew-logs
+      relationship: component
+      description: Source material
+    - item_id: 855
+      item_name: Yew longbow
+      slug: yew-longbow
+      relationship: product
+      description: Finished product
+    - item_id: 1777
+      item_name: Bow string
+      slug: bow-string
+      relationship: component
+      description: Required to string
+    - item_id: 561
+      item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: For High Alchemy
+    - item_id: 70
+      item_name: Magic longbow (u)
+      slug: magic-longbow-u
+      relationship: upgrade
+      description: Higher tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Stringing
+
+Use a Bow string on Yew longbow (u) to create a Yew longbow.
+
+| Action | Fletching Level | XP |
+|--------|-----------------|-----|
+| String bow | 70 | 75 |
+
+## Market Flip Strategy
+
+**Buy Unstrung, Sell Strung:**
+1. Buy Yew longbow (u) on GE
+2. Buy Bow string on GE
+3. String into Yew longbow
+4. Sell or High Alch
+
+**Profit Calculation:**
+- `Yew longbow price - (Yew longbow (u) + Bow string) = Stringing profit`
+- High Alch value: 768 GP
+
+**Alch Flipping:**
+- If `Yew longbow (u) + Bow string + Nature rune < 768 GP` = profit from alching
+
+<Adsense />

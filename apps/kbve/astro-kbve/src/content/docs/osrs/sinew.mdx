@@ -1,0 +1,37 @@
+---
+title: Sinew | OSRS Price Data
+description: "Sinew: I can use this to make a crossbow string.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 9436
+  name: Sinew
+  slug: sinew
+  examine: I can use this to make a crossbow string.
+  members: true
+  icon: Sinew.png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

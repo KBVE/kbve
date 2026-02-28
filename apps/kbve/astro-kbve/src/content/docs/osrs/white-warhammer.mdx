@@ -1,0 +1,37 @@
+---
+title: White warhammer | OSRS Price Data
+description: "White warhammer: I don't think it's intended for joinery.. High alch: 588 GP, GE limit: 125."
+osrs:
+  id: 6613
+  name: White warhammer
+  slug: white-warhammer
+  examine: I don't think it's intended for joinery.
+  members: true
+  icon: White warhammer.png
+  value: 980
+  lowalch: 392
+  highalch: 588
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

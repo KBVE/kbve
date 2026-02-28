@@ -1,0 +1,139 @@
+---
+title: Green dragon leather | OSRS Price Data
+description: "Green dragon leather: It's a piece of prepared green dragonhide.. High alch: 30 GP, GE limit: 13,000."
+osrs:
+  id: 1745
+  name: Green dragon leather
+  slug: green-dragon-leather
+  examine: It's a piece of prepared green dragonhide.
+  members: true
+  icon: Green dragon leather.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 13000
+  material:
+    type: leather
+    tier: low
+  crafting:
+    source_id: 1753
+    source_name: Green dragonhide
+    tanning_cost: 20
+  recipes:
+    - skill: crafting
+      level: 57
+      xp: 62
+      materials:
+        - item_name: Green dragon leather
+          item_id: 1745
+          quantity: 1
+      product: Green d'hide vambraces
+      product_id: 1065
+      product_quantity: 1
+    - skill: crafting
+      level: 60
+      xp: 124
+      materials:
+        - item_name: Green dragon leather
+          item_id: 1745
+          quantity: 2
+      product: Green d'hide chaps
+      product_id: 1099
+      product_quantity: 1
+    - skill: crafting
+      level: 63
+      xp: 186
+      materials:
+        - item_name: Green dragon leather
+          item_id: 1745
+          quantity: 3
+      product: Green d'hide body
+      product_id: 1135
+      product_quantity: 1
+  related_items:
+    - item_id: 1753
+      item_name: Green dragonhide
+      slug: green-dragonhide
+      relationship: component
+      description: Raw material
+    - item_id: 1135
+      item_name: Green d'hide body
+      slug: green-dhide-body
+      relationship: product
+      description: Main product
+    - item_id: 2505
+      item_name: Blue dragon leather
+      slug: blue-dragon-leather
+      relationship: alternative
+      description: Higher tier
+    - item_id: 536
+      item_name: Dragon bones
+      slug: dragon-bones
+      relationship: alternative
+      description: Co-drop
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Tanning
+
+Take to any tanner to convert to [Green dragon leather](/osrs/green-dragon-leather/).
+
+| Tanner | Cost |
+|--------|------|
+| Regular | 20 GP |
+| Canifis | 45 GP |
+
+## Crafting Products
+
+| Item | Leather | Crafting Level | XP |
+|------|---------|----------------|-----|
+| [Green d'hide vambraces](/osrs/green-d-hide-vambraces/) | 1 | 57 | 62 |
+| [Green d'hide chaps](/osrs/green-d-hide-chaps/) | 2 | 60 | 124 |
+| [Green d'hide body](/osrs/green-d-hide-body/) | 3 | 63 | 186 |
+| [Green d'hide shield](/osrs/green-d-hide-shield/) | 2 | 62 | 124 |
+
+## Market Flip Strategy
+
+**Tanning Profit:**
+- Buy hides → Tan → Sell leather
+- Calculate: `Green dragon leather - Green dragonhide - 20 = Profit`
+- Highest volume dragonhide
+
+**Crafting Profit:**
+- [Green d'hide body](/osrs/green-d-hide-body/) most traded
+- Check: `Body price - (Leather × 3) = Profit`
+- Entry-level dragonhide crafting
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Drop Sources:**
+- Green dragons (Wilderness, Corsair Cove)
+- Brutal green dragons
+- Popular bot farming target
+
+**Tips:**
+- Lowest tier dragonhide
+- Entry-level ranged armor
+- Very high trade volume
+- Price volatile from bots
+
+<Adsense />

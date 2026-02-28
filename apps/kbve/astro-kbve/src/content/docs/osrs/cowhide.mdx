@@ -1,0 +1,109 @@
+---
+title: Cowhide | OSRS Price Data
+description: "Cowhide: I should take this to the tannery.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 1739
+  name: Cowhide
+  slug: cowhide
+  examine: I should take this to the tannery.
+  members: false
+  icon: Cowhide.png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+  material:
+    type: hide
+    tier: basic
+  tanning:
+    cost: 1
+    product_id: 1741
+    product_name: Leather
+    hard_leather_cost: 3
+    hard_leather_id: 1743
+    hard_leather_name: Hard leather
+  drop_table:
+    sources:
+      - source: Cow
+        source_id: 2791
+        combat_level: 2
+        quantity: "1"
+        rarity: always
+  related_items:
+    - item_id: 1741
+      item_name: Leather
+      slug: leather
+      relationship: product
+      description: Tanned product
+    - item_id: 1743
+      item_name: Hard leather
+      slug: hard-leather
+      relationship: product
+      description: Alternative product
+    - item_id: 1733
+      item_name: Needle
+      slug: needle
+      relationship: component
+      description: For crafting leather
+    - item_id: 1734
+      item_name: Thread
+      slug: thread
+      relationship: component
+      description: For crafting leather
+    - item_id: 1129
+      item_name: Leather body
+      slug: leather-body
+      relationship: product
+      description: Crafted from leather
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Tanning
+
+Take to a tanner to convert into leather:
+
+| Product | Cost | Location |
+|---------|------|----------|
+| [Leather](/osrs/leather/) | 1 GP | Any tanner |
+| [Hard leather](/osrs/hard-leather/) | 3 GP | Any tanner |
+
+## Market Flip Strategy
+
+**Tanning Profit:**
+- Buy [Cowhide](/osrs/cowhide/) → Tan → Sell [Leather](/osrs/leather/) or [Hard leather](/osrs/hard-leather/)
+- Calculate: `Leather price - Cowhide price - 1 GP = Profit`
+- Very high volume, consistent margins
+
+**Best Tanning Locations:**
+- Al Kharid (closest to bank)
+- Canifis (requires Priest in Peril)
+- Crafting Guild (requires 40 Crafting)
+
+**Tips:**
+- Hard leather has better margin but lower volume
+- Popular botted activity
+- Cowhide supply from Lumbridge cow farm
+
+**Similar Names:**
+- Cow Hide
+
+<Adsense />

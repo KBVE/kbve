@@ -1,0 +1,112 @@
+---
+title: Eclectic impling jar | OSRS Price Data
+description: "Eclectic impling jar: Eclectic impling in a jar.. High alch: 30 GP, GE limit: 18,000."
+osrs:
+  id: 11248
+  name: Eclectic impling jar
+  slug: eclectic-impling-jar
+  examine: Eclectic impling in a jar.
+  members: true
+  icon: Eclectic impling jar.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 18000
+  item:
+    type: impling jar
+    tradeable: true
+    hunter_level: 50
+    barehand_level: 70
+  loot:
+    average_value: 1291
+    notable_drops:
+      - item_name: Clue scroll (medium)
+        rarity: 1/25
+  related_items:
+    - item_id: 11260
+      item_name: Impling jar
+      slug: impling-jar
+      relationship: component
+      description: Required to catch implings
+    - item_id: 2801
+      item_name: Clue scroll (medium)
+      slug: clue-scroll-medium
+      relationship: alternative
+      description: Main target drop from eclectic implings
+    - item_id: 2577
+      item_name: Ranger boots
+      slug: ranger-boots
+      relationship: alternative
+      description: Valuable reward from medium clue scrolls
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Caught with a butterfly net and impling jar:
+
+| Location | Requirements |
+|----------|--------------|
+| Puro-Puro | Access to minigame |
+| Gielinor (wilderness spawn) | Random spawn |
+
+**Hunter Level:** 50 (barehand: 70)
+
+## Loot Table
+
+**Notable Drops:**
+
+| Item | Rarity | Quantity |
+|------|--------|----------|
+| [Medium clue scroll](/osrs/clue-scroll-medium/) | 1/25 | 1 |
+| [Snape grass](/osrs/snape-grass/) | 1/10 | 3 |
+| [Oak plank](/osrs/oak-plank/) | 1/10 | 4 |
+| [Watermelon seed](/osrs/watermelon-seed/) | 1/10 | 3 |
+| [Gold ore](/osrs/gold-ore/) | 1/10 | 5 |
+| [Battlestaff](/osrs/battlestaff/) | 1/100 | 1 |
+| [Rune dagger](/osrs/rune-dagger/) | 1/100 | 1 |
+
+**Average Loot Value:** ~1,291 gp
+
+## Usage
+
+**Medium Clue Farming:**
+- Best method for obtaining medium clue scrolls
+- 1/25 drop rate makes it efficient
+- Used for ranger boots hunting
+
+## Market Strategy
+
+**Buy Limit:** 18,000 per 4 hours
+
+**Tips:**
+- Popular for clue scroll farming
+- Often profitable to open in bulk
+- Price fluctuates with ranger boots demand
+
+## Related Items
+
+- [Impling jar](/osrs/impling-jar/) - Required to catch
+- [Clue scroll (medium)](/osrs/clue-scroll-medium/) - Main target
+- [Ranger boots](/osrs/ranger-boots/) - Medium clue reward
+
+<Adsense />

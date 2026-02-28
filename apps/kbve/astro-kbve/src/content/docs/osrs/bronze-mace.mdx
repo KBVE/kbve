@@ -1,0 +1,109 @@
+---
+title: Bronze mace | OSRS Price Data
+description: "Bronze mace is a F2P weapon slot item requiring 1 Attack. High alch: 10 GP, GE limit: 125."
+osrs:
+  id: 1422
+  name: Bronze mace
+  slug: bronze-mace
+  examine: A spiky mace.
+  members: false
+  icon: Bronze mace.png
+  value: 18
+  lowalch: 7
+  highalch: 10
+  limit: 125
+  equipment:
+    slot: weapon
+    type: mace
+    tradeable: true
+    weight: 1.814
+    requirements:
+      attack: 1
+    stats:
+      attack_stab: 1
+      attack_slash: -2
+      attack_crush: 6
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 5
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  related_items:
+    - item_id: 1420
+      item_name: Iron mace
+      slug: iron-mace
+      relationship: upgrade
+      description: Higher tier mace
+    - item_id: 1337
+      item_name: Bronze warhammer
+      slug: bronze-warhammer
+      relationship: alternative
+      description: Higher strength alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Mace |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 1 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +1 |
+| Slash Attack | -2 |
+| Crush Attack | +6 |
+| Strength | +5 |
+| Prayer | +1 |
+
+## Obtaining
+
+**Smithing:** 2 Smithing with 1 bronze bar (12.5 XP).
+
+**Shop:** Flynn's Mace Market, Falador.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~49 gp
+
+Starter mace. Has prayer bonus. F2P accessible.
+
+## Related Items
+
+- [Iron mace](/osrs/iron-mace/) - Upgrade
+- [Bronze warhammer](/osrs/bronze-warhammer/) - Higher strength
+
+<Adsense />

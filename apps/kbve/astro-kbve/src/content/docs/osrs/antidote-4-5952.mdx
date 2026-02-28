@@ -1,0 +1,106 @@
+---
+title: Antidote++(4) | OSRS Price Data
+description: "Antidote++(4) is a 4-dose members potion. High alch: 216 GP, GE limit: 4,000."
+osrs:
+  id: 5952
+  name: Antidote++(4)
+  slug: antidote-4
+  examine: 4 doses of super strong antipoison potion.
+  members: true
+  icon: Antidote++(4).png
+  value: 360
+  lowalch: 144
+  highalch: 216
+  limit: 4000
+  potion:
+    doses: 4
+    type: antidote
+    cures_poison: true
+    poison_immunity_minutes: 12
+    venom_immunity_seconds: 36
+  recipes:
+    - skill: herblore
+      level: 79
+      xp: 155
+      materials:
+        - item_name: Irit potion (unf)
+          item_id: 97
+          quantity: 1
+        - item_name: Magic roots
+          item_id: 6051
+          quantity: 1
+      product: Antidote++ (4)
+      product_id: 5952
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 12913
+      item_name: Anti-venom
+      slug: anti-venom
+      relationship: upgrade
+      description: Upgrade potion
+    - item_id: 12934
+      item_name: Zulrah's scales
+      slug: zulrahs-scales
+      relationship: component
+      description: For anti-venom
+    - item_id: 259
+      item_name: Irit leaf
+      slug: irit-leaf
+      relationship: component
+      description: Base herb
+    - item_id: 6051
+      item_name: Magic roots
+      slug: magic-roots
+      relationship: component
+      description: Secondary ingredient
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 79 |
+| XP | 155 |
+| Ingredients | Irit potion (unf) + Magic roots |
+
+## Effects
+
+| Effect | Duration |
+|--------|----------|
+| Cures poison | Instant |
+| Poison immunity | 12 minutes |
+| Venom immunity | 18-36 seconds |
+
+## Market Strategy
+
+**Buy Limit:** 4,000 per 4 hours
+
+**Tips:**
+- 2 doses cures venom
+- 87 Herblore for anti-venom
+- Magic roots from farming
+- Cheaper than anti-venom
+
+<Adsense />

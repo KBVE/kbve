@@ -1,0 +1,111 @@
+---
+title: Crushed nest | OSRS Price Data
+description: "Crushed nest: A crushed bird's nest.. High alch: 120 GP, GE limit: 11,000."
+osrs:
+  id: 6693
+  name: Crushed nest
+  slug: crushed-nest
+  examine: A crushed bird's nest.
+  members: true
+  icon: Crushed nest.png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 11000
+  material:
+    type: secondary
+    tier: high
+  recipes:
+    - skill: herblore
+      level: 81
+      xp: 180
+      materials:
+        - item_name: Toadflax potion (unf)
+          item_id: 3002
+          quantity: 1
+        - item_name: Crushed nest
+          item_id: 6693
+          quantity: 1
+      product: Saradomin brew(3)
+      product_id: 6687
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 6687
+      item_name: Saradomin brew(3)
+      slug: saradomin-brew-3
+      relationship: product
+      description: Main product
+    - item_id: 2998
+      item_name: Toadflax
+      slug: toadflax
+      relationship: component
+      description: Partner herb
+    - item_id: 5070
+      item_name: Bird nest
+      slug: bird-nest
+      relationship: component
+      description: Source item
+    - item_id: 233
+      item_name: Pestle and mortar
+      slug: pestle-and-mortar
+      relationship: component
+      description: Tool
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Requirements |
+|--------|--------------|
+| Pestle and mortar | Empty bird nest |
+| No skill required | - |
+
+## Herblore
+
+| Potion | Level | Other Ingredient |
+|--------|-------|------------------|
+| Saradomin brew | 81 | Toadflax |
+
+## Market Flip Strategy
+
+**Sara Brew Component:**
+- Essential for Saradomin brews
+- High demand consumable
+- Woodcutting byproduct
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Saradomin brew production
+- PvM consumable demand
+- Raids preparation
+- Bossing supplies
+
+**Tips:**
+- Crush empty nests
+- Woodcutting provides nests
+- Birdhouse runs supply
+- High volume trading
+
+<Adsense />

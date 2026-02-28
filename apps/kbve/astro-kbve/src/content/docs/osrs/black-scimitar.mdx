@@ -1,0 +1,92 @@
+---
+title: Black scimitar | OSRS Price Data
+description: "Black scimitar: A vicious, curved sword.. High alch: 460 GP, GE limit: 125."
+osrs:
+  id: 1327
+  name: Black scimitar
+  slug: black-scimitar
+  examine: A vicious, curved sword.
+  members: false
+  icon: Black scimitar.png
+  value: 768
+  lowalch: 307
+  highalch: 460
+  limit: 125
+  item_id: 1327
+  item_type: equipment
+  slot: weapon
+  type: scimitar
+  attack_style: slash
+  attack_speed: 4
+  tradeable: true
+  weight: 1.814
+  requirements:
+    attack: 10
+  stats:
+    slash_attack: 19
+    stab_attack: 4
+    strength: 14
+  related_items:
+    - slug: mithril-scimitar
+    - slug: steel-scimitar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Melee Weapon |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 10 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Slash Attack | +19 |
+| Stab Attack | +4 |
+| Strength | +14 |
+| Attack Speed | 4 ticks |
+
+## Obtaining
+
+**Spawn:** Ardougne Castle (61 Thieving required).
+
+**Shop:** Briget's Weapons in Shayzien (768 gp).
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~2,526 gp
+
+Rare spawn item. Thieving money maker.
+
+## Related Items
+
+- [Mithril scimitar](/osrs/mithril-scimitar/) - Upgrade
+- [Steel scimitar](/osrs/steel-scimitar/) - Lower tier
+
+<Adsense />

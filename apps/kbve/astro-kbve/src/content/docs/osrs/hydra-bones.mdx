@@ -1,0 +1,99 @@
+---
+title: Hydra bones | OSRS Price Data
+description: "Hydra bones: The bones of a hydra.. High alch: 96 GP, GE limit: 7,500."
+osrs:
+  id: 22786
+  name: Hydra bones
+  slug: hydra-bones
+  examine: The bones of a hydra.
+  members: true
+  icon: Hydra bones.png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: 7500
+  item:
+    type: bones
+    tradeable: true
+    weight: 1.8
+    prayer_xp:
+      buried: 110
+      gilded_altar: 385
+      ectofuntus: 440
+      sinister_offering: 330
+  related_items:
+    - item_id: 536
+      item_name: Dragon bones
+      slug: dragon-bones
+      relationship: alternative
+      description: Similar tier bones
+    - item_id: 6729
+      item_name: Dagannoth bones
+      slug: dagannoth-bones
+      relationship: alternative
+      description: Higher XP option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Bones |
+| Tradeable | Yes |
+| Weight | 1.8 kg |
+| Prayer XP | 110 (buried) |
+
+## Obtaining
+
+**Dropped by:**
+- Regular Hydra (1 bone)
+- Alchemical Hydra (2 bones)
+- Colossal Hydra (1 bone)
+
+Located in the Kourend region.
+
+## Usage
+
+**Prayer training:** Bury for 110 XP.
+
+**Enhanced methods:**
+- Gilded/Chaos altar: 385 XP
+- Ectofuntus: 440 XP
+- Sinister Offering: 330 XP
+
+## Market Strategy
+
+**Buy Limit:** 7,500 per 4 hours
+
+**Price:** ~6,826 gp
+
+Cost-effective Prayer bones. Good XP/gp ratio from Alchemical Hydra.
+
+## Related Items
+
+- [Alchemical Hydra](/osrs/alchemical-hydra/) - Primary source
+- [Dragon bones](/osrs/dragon-bones/) - Similar tier
+- [Dagannoth bones](/osrs/dagannoth-bones/) - Higher XP option
+
+<Adsense />

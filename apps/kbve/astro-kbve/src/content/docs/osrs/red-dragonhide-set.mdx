@@ -1,0 +1,37 @@
+---
+title: Red dragonhide set | OSRS Price Data
+description: "Red dragonhide set: A set containing a red dragonhide body, chaps and vambraces.. High alch: 3,000 GP, GE limit: 70."
+osrs:
+  id: 12869
+  name: Red dragonhide set
+  slug: red-dragonhide-set
+  examine: A set containing a red dragonhide body, chaps and vambraces.
+  members: true
+  icon: Red dragonhide set.png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

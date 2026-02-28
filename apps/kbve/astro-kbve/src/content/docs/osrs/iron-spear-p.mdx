@@ -1,0 +1,37 @@
+---
+title: Iron spear(p) | OSRS Price Data
+description: "Iron spear(p): A poisoned iron tipped spear.. High alch: 54 GP, GE limit: 125."
+osrs:
+  id: 1253
+  name: Iron spear(p)
+  slug: iron-spear-p
+  examine: A poisoned iron tipped spear.
+  members: true
+  icon: Iron spear(p).png
+  value: 91
+  lowalch: 36
+  highalch: 54
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

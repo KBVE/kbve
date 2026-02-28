@@ -1,0 +1,105 @@
+---
+// AskamaProfileNotFoundProvider - Profile not found template
+// Askama variables: {{ username }}
+
+interface Props {
+	class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+
+// Askama template placeholder
+const askamaUsername = `{{ username }}`;
+---
+
+<div
+	class:list={['w-full max-w-md mx-auto text-center', className]}
+	role="main">
+	<article
+		class="bg-gradient-to-b from-[var(--sl-color-bg-nav)] to-[var(--sl-color-bg)] border border-[var(--sl-color-gray-5)] rounded-2xl p-8 sm:p-12 shadow-xl"
+		aria-labelledby="not-found-title">
+		<!-- Icon -->
+		<div
+			class="w-16 h-16 sm:w-20 sm:h-20 mx-auto mb-6 bg-[var(--sl-color-gray-6)] rounded-full flex items-center justify-center border-2 border-[var(--sl-color-gray-5)]"
+			aria-hidden="true">
+			<svg
+				class="w-8 h-8 sm:w-10 sm:h-10 text-gray-400"
+				viewBox="0 0 24 24"
+				fill="none"
+				stroke="currentColor"
+				stroke-width="2"
+				stroke-linecap="round"
+				stroke-linejoin="round"
+				aria-hidden="true"
+				focusable="false">
+				<circle cx="12" cy="12" r="10"></circle>
+				<path d="M16 16s-1.5-2-4-2-4 2-4 2"></path>
+				<line x1="9" y1="9" x2="9.01" y2="9"></line>
+				<line x1="15" y1="9" x2="15.01" y2="9"></line>
+			</svg>
+		</div>
+
+		<!-- Title -->
+		<h1
+			id="not-found-title"
+			class="text-xl sm:text-2xl font-bold text-[var(--sl-color-text)] mb-2 tracking-tight">
+			Profile Not Found
+		</h1>
+
+		<!-- Username -->
+		<p
+			class="text-lg sm:text-xl text-red-500 font-semibold mb-4"
+			aria-label="Username">
+			@<Fragment set:html={askamaUsername} />
+		</p>
+
+		<!-- Message -->
+		<p class="text-sm sm:text-base text-gray-400 mb-8" role="status">
+			This user does not exist or has not created a profile yet.
+		</p>
+
+		<!-- Links -->
+		<nav class="flex flex-col gap-3" aria-label="Alternative actions">
+			<a
+				href="/auth/login/"
+				data-astro-prefetch
+				class="flex items-center justify-center gap-2 py-3 px-6 bg-[var(--sl-color-accent)] border border-[var(--sl-color-accent)] rounded-xl text-black text-sm font-medium transition-all hover:opacity-90 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--sl-color-accent)] focus:ring-offset-2 focus:ring-offset-[var(--sl-color-bg)]"
+				aria-label="Sign in or create an account">
+				<svg
+					class="w-4 h-4"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true"
+					focusable="false">
+					<path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+					<polyline points="10 17 15 12 10 7"></polyline>
+					<line x1="15" y1="12" x2="3" y2="12"></line>
+				</svg>
+				Sign In / Register
+			</a>
+			<a
+				href="/"
+				data-astro-prefetch
+				class="flex items-center justify-center gap-2 py-3 px-6 bg-[var(--sl-color-bg)] border border-[var(--sl-color-gray-5)] rounded-xl text-[var(--sl-color-text)] text-sm font-medium transition-all hover:bg-[var(--sl-color-gray-6)] hover:border-gray-500 hover:-translate-y-0.5 focus:outline-none focus:ring-2 focus:ring-[var(--sl-color-gray-3)] focus:ring-offset-2 focus:ring-offset-[var(--sl-color-bg)]"
+				aria-label="Return to KBVE homepage">
+				<svg
+					class="w-4 h-4"
+					viewBox="0 0 24 24"
+					fill="none"
+					stroke="currentColor"
+					stroke-width="2"
+					stroke-linecap="round"
+					stroke-linejoin="round"
+					aria-hidden="true"
+					focusable="false">
+					<path d="M19 12H5M12 19l-7-7 7-7"></path>
+				</svg>
+				Back to KBVE
+			</a>
+		</nav>
+	</article>
+</div>

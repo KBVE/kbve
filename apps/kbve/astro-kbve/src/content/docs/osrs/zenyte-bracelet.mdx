@@ -1,0 +1,105 @@
+---
+title: Zenyte bracelet | OSRS Price Data
+description: "Zenyte bracelet is a members hands slot item. High alch: 120,600 GP, GE limit: 8."
+osrs:
+  id: 19532
+  name: Zenyte bracelet
+  slug: zenyte-bracelet
+  examine: A fiery glow emanates from this bracelet.
+  members: true
+  icon: Zenyte bracelet.png
+  value: 201000
+  lowalch: 80400
+  highalch: 120600
+  limit: 8
+  equipment:
+    slot: hands
+    type: bracelet
+  recipes:
+    - skill: crafting
+      level: 95
+      xp: 180
+      materials:
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+        - item_name: Zenyte
+          item_id: 19493
+          quantity: 1
+      product: Zenyte bracelet
+      product_id: 19532
+      product_quantity: 1
+      facility: Furnace
+      members_only: true
+  related_items:
+    - item_id: 19493
+      item_name: Zenyte
+      slug: zenyte
+      relationship: component
+      description: Gem material
+    - item_id: 19544
+      item_name: Tormented bracelet
+      slug: tormented-bracelet
+      relationship: upgrade
+      description: Enchanted version
+    - item_id: 19538
+      item_name: Zenyte necklace
+      slug: zenyte-necklace
+      relationship: alternative
+      description: Necklace version
+    - item_id: 19541
+      item_name: Zenyte amulet
+      slug: zenyte-amulet
+      relationship: alternative
+      description: Amulet version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Craft with gold bar and zenyte at a furnace (95 Crafting, 180 XP).
+
+| Material | Quantity |
+|----------|----------|
+| Gold bar | 1 |
+| Zenyte | 1 |
+
+## Stats
+
+No combat bonuses (unenchanted).
+
+## Usage
+
+**Intermediate Item:**
+- Enchant into Tormented bracelet
+- Requires Lvl-7 Enchant (93 Magic)
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Tips:**
+- Zenyte from demonic gorillas
+- Enchant for BiS magic gloves
+- High crafting requirement
+
+<Adsense />

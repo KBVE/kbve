@@ -1,0 +1,37 @@
+---
+title: Giant egg sac(full) | OSRS Price Data
+description: "Giant egg sac(full): A giant sac of red spider eggs, hopefully none of them hatch.. High alch: 6 GP, GE limit: 100."
+osrs:
+  id: 23517
+  name: Giant egg sac(full)
+  slug: giant-egg-sac-full
+  examine: A giant sac of red spider eggs, hopefully none of them hatch.
+  members: true
+  icon: Giant egg sac(full).png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

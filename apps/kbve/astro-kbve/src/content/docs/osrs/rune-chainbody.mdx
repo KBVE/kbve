@@ -1,0 +1,95 @@
+---
+title: Rune chainbody | OSRS Price Data
+description: "Rune chainbody: A series of connected metal rings.. High alch: 30,000 GP, GE limit: 70."
+osrs:
+  id: 1113
+  name: Rune chainbody
+  slug: rune-chainbody
+  examine: A series of connected metal rings.
+  members: false
+  icon: Rune chainbody.png
+  value: 50000
+  lowalch: 20000
+  highalch: 30000
+  limit: 70
+  item_id: 1113
+  item_type: armor
+  slot: body
+  type: chainbody
+  tradeable: true
+  weight: 6.803
+  requirements:
+    defence: 40
+  stats:
+    stab_defence: 63
+    slash_defence: 72
+    crush_defence: 61
+    magic: -15
+    ranged: -15
+  related_items:
+    - slug: rune-platebody
+    - slug: runite-bar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Melee Armour |
+| Tradeable | Yes |
+| Weight | 6.803 kg |
+| Requirements | 40 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +63 |
+| Slash Defence | +72 |
+| Crush Defence | +61 |
+| Magic | -15 |
+| Ranged | -15 |
+
+## Obtaining
+
+**Smithing:** Smith from 3 runite bars (96 Smithing, 225 XP).
+
+**Shop:** Champions' Guild (50,000 gp), Nardah.
+
+**Drops:** Kalphite Queen, abyssal demons, black demons.
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~29,802 gp
+
+No quest requirement (unlike platebody). Good for pures.
+
+## Related Items
+
+- [Rune platebody](/osrs/rune-platebody/) - Better defence
+- [Runite bar](/osrs/runite-bar/) - Smithing material
+
+<Adsense />

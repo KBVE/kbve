@@ -1,0 +1,115 @@
+---
+title: Adamant knife | OSRS Price Data
+description: "Adamant knife is a members weapon slot item. High alch: 39 GP, GE limit: 11,000."
+osrs:
+  id: 867
+  name: Adamant knife
+  slug: adamant-knife
+  examine: A finely balanced throwing knife.
+  members: true
+  icon: Adamant knife.png
+  value: 66
+  lowalch: 26
+  highalch: 39
+  limit: 11000
+  equipment:
+    slot: weapon
+    type: thrown
+    attack_style: ranged
+    attack_speed: 3
+  requirements:
+    ranged: 30
+  stats:
+    attack:
+      ranged: 15
+    other:
+      ranged_strength: 14
+  smithing:
+    level: 77
+    xp: 62.5
+    method: Adamantite bar at anvil
+    bars: 1
+    quantity: 5
+  related_items:
+    - item_id: 2361
+      item_name: Adamantite bar
+      slug: adamantite-bar
+      relationship: component
+      description: Smithing material
+    - item_id: 868
+      item_name: Rune knife
+      slug: rune-knife
+      relationship: upgrade
+      description: Higher tier knife
+    - item_id: 866
+      item_name: Mithril knife
+      slug: mithril-knife
+      relationship: downgrade
+      description: Lower tier knife
+    - item_id: 810
+      item_name: Adamant dart
+      slug: adamant-dart
+      relationship: alternative
+      description: Alternative thrown weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Thrown |
+| Tradeable | Yes |
+| Weight | 0.006 kg |
+| Requirements | 30 Ranged |
+
+## Obtaining
+
+**Smithing:** 77 Smithing with adamantite bar at anvil (62.5 XP, makes 5).
+
+**Drops:** Various monsters.
+
+**Shop:** Ranging Guild.
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +15 |
+| Ranged Strength | +14 |
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~40 gp
+
+High-tier throwing knife. Popular for training and PKing.
+
+## Related Items
+
+- [Adamantite bar](/osrs/adamantite-bar/) - Smithing material
+- [Rune knife](/osrs/rune-knife/) - Upgrade option
+- [Adamant dart](/osrs/adamant-dart/) - Alternative thrown
+
+<Adsense />

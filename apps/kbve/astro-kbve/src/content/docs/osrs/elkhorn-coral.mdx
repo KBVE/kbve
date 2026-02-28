@@ -1,0 +1,37 @@
+---
+title: Elkhorn coral | OSRS Price Data
+description: "Elkhorn coral: No elks were harmed in the making of this coral.. High alch: 31 GP."
+osrs:
+  id: 31481
+  name: Elkhorn coral
+  slug: elkhorn-coral
+  examine: No elks were harmed in the making of this coral.
+  members: true
+  icon: Elkhorn coral.png
+  value: 52
+  lowalch: 20
+  highalch: 31
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

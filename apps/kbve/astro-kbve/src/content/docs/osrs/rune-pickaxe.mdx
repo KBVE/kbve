@@ -1,0 +1,94 @@
+---
+title: Rune pickaxe | OSRS Price Data
+description: "Rune pickaxe: Used for mining.. High alch: 19,200 GP, GE limit: 40."
+osrs:
+  id: 1275
+  name: Rune pickaxe
+  slug: rune-pickaxe
+  examine: Used for mining.
+  members: false
+  icon: Rune pickaxe.png
+  value: 32000
+  lowalch: 12800
+  highalch: 19200
+  limit: 40
+  item_id: 1275
+  item_type: equipment
+  slot: weapon
+  type: pickaxe
+  tradeable: true
+  weight: 2.267
+  requirements:
+    attack: 40
+    mining: 41
+  stats:
+    stab_attack: 38
+    crush_attack: 32
+    strength: 41
+  related_items:
+    - slug: dragon-pickaxe
+    - slug: runite-bar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Pickaxe |
+| Tradeable | Yes |
+| Weight | 2.267 kg |
+| Requirements | 41 Mining, 40 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +38 |
+| Crush Attack | +32 |
+| Strength | +41 |
+
+## Obtaining
+
+**Smithing:** Smith from 1 runite bar (85 Smithing, 75 XP).
+
+**Shop:** Nurmof's Pickaxe Shop (32,000 gp).
+
+**Quest:** Between a Rock... reward.
+
+**Drops:** Various bosses and slayer creatures.
+
+## Market Strategy
+
+**Buy Limit:** 40 per 4 hours
+
+**Price:** ~18,822 gp
+
+Best F2P pickaxe. Third best overall.
+
+## Related Items
+
+- [Dragon pickaxe](/osrs/dragon-pickaxe/) - Upgrade
+- [Runite bar](/osrs/runite-bar/) - Smithing material
+
+<Adsense />

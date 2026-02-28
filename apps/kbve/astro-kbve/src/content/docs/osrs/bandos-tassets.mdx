@@ -1,0 +1,114 @@
+---
+title: Bandos tassets | OSRS Price Data
+description: "Bandos tassets is a members legs slot item with +2 melee strength requiring 65 Defence. High alch: 173,946 GP, GE limit: 8."
+osrs:
+  id: 11834
+  name: Bandos tassets
+  slug: bandos-tassets
+  examine: A sturdy pair of tassets.
+  members: true
+  icon: Bandos tassets.png
+  value: 289910
+  lowalch: 115964
+  highalch: 173946
+  limit: 8
+  equipment:
+    slot: legs
+    weight: 9.071
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -21
+      ranged: -7
+    defence_bonus:
+      stab: 71
+      slash: 63
+      crush: 66
+      magic: -21
+      ranged: -7
+    other_bonus:
+      melee_strength: 2
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 65
+  drop_table:
+    primary_source: General Graardor
+    best_drop_rate: 1/381
+    sources:
+      - source: General Graardor
+        source_id: 2215
+        combat_level: 624
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/381
+        members_only: true
+  related_items:
+    - item_id: 11832
+      item_name: Bandos chestplate
+      slug: bandos-chestplate
+      relationship: set-piece
+      description: Matching body armor
+    - item_id: 26384
+      item_name: Torva platelegs
+      slug: torva-platelegs
+      relationship: upgrade
+      description: Ultimate upgrade
+    - item_id: 21298
+      item_name: Obsidian platelegs
+      slug: obsidian-platelegs
+      relationship: alternative
+      description: Budget alternative
+    - item_id: 11128
+      item_name: Bandos boots
+      slug: bandos-boots
+      relationship: set-piece
+      description: Matching boots
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Drop from General Graardor in the God Wars Dungeon (1/381 drop rate).
+
+**Best-in-slot melee legs** (until Torva).
+
+## Usage
+
+BiS melee legs for:
+- All melee combat
+- Bossing
+- Slayer
+- Tank setups
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- GWD is popular grind
+- Required for Torva platelegs
+- Still BiS defence
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Dragonfruit sapling | OSRS Price Data
+description: "Dragonfruit sapling: This sapling is ready to be replanted in a fruit tree patch.. High alch: 1 GP, GE limit: 200."
+osrs:
+  id: 22866
+  name: Dragonfruit sapling
+  slug: dragonfruit-sapling
+  examine: This sapling is ready to be replanted in a fruit tree patch.
+  members: true
+  icon: Dragonfruit sapling.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 200
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Sawmill voucher | OSRS Price Data
+description: "Sawmill voucher: Used to provide additional planks at the sawmill.. High alch: 60 GP, GE limit: 10,000."
+osrs:
+  id: 28628
+  name: Sawmill voucher
+  slug: sawmill-voucher
+  examine: Used to provide additional planks at the sawmill.
+  members: true
+  icon: Sawmill voucher.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,140 @@
+---
+title: Twisted bow | OSRS Price Data
+description: "Twisted bow is a members two-handed weapon requiring 85 Ranged. High alch: 2,400,000 GP, GE limit: 8."
+osrs:
+  id: 20997
+  name: Twisted bow
+  slug: twisted-bow
+  examine: A mystical bow carved from the twisted remains of the Great Olm.
+  members: true
+  icon: Twisted bow.png
+  value: 4000000
+  lowalch: 1600000
+  highalch: 2400000
+  limit: 8
+  equipment:
+    slot: 2h
+    type: bow
+    attack_style: ranged
+    attack_speed: 5
+    tradeable: true
+    weight: 1.814
+    requirements:
+      ranged: 85
+    stats:
+      ranged_attack: 70
+      ranged_strength: 20
+  special_effect:
+    name: Magic Scaling
+    description: Accuracy and damage scale with target's Magic level
+    scaling:
+      accuracy_cap: 140
+      damage_cap: 250
+      magic_cap: 250
+      magic_cap_cox: 350
+  drop_table:
+    sources:
+      - source: Chambers of Xeric
+        rate: Rare
+  truemarket:
+    buy_limit: 8
+    price_estimate: 1500000000
+  related_items:
+    - item_id: 25865
+      item_name: Bow of faerdhinen
+      slug: bow-of-faerdhinen
+      relationship: alternative
+      description: General alternative
+    - item_id: 11212
+      item_name: Dragon arrow
+      slug: dragon-arrow
+      relationship: component
+      description: Best ammo
+    - item_id: 7554
+      item_name: Chambers of Xeric
+      slug: chambers-of-xeric
+      relationship: component
+      description: Drop source
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Bow |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Attack Speed | 5 tick (3.0s) rapid |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Chambers of Xeric | Rare |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged | +70 |
+| Ranged Strength | +20 |
+
+**Requirements:** 85 Ranged
+
+## Passive Effect
+
+**Magic Scaling:**
+- Accuracy/damage scale with target's Magic level
+- Accuracy cap: 140%
+- Damage cap: 250%
+- Magic cap: 250 (350 in CoX)
+
+## Usage
+
+BiS for:
+- High-magic bosses
+- Commander Zilyana
+- Inferno (Zuk)
+- General PvM
+
+**Most expensive weapon in the game.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~1.5B gp
+
+**Tips:**
+- From Chambers of Xeric
+- Best vs high-magic enemies
+- Poor vs low-magic targets
+
+## Related Items
+
+- [Bow of faerdhinen](/osrs/bow-of-faerdhinen/) - General alternative
+- [Dragon arrow](/osrs/dragon-arrow/) - Best ammo
+- [Chambers of Xeric](/osrs/chambers-of-xeric/) - Drop source
+
+<Adsense />

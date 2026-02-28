@@ -1,0 +1,37 @@
+---
+title: Red crab meat | OSRS Price Data
+description: "Red crab meat: This looks tricky to eat.. High alch: 60 GP."
+osrs:
+  id: 31689
+  name: Red crab meat
+  slug: red-crab-meat
+  examine: This looks tricky to eat.
+  members: true
+  icon: Red crab meat.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

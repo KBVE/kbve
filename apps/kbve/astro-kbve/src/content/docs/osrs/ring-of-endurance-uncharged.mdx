@@ -1,0 +1,136 @@
+---
+title: Ring of endurance (uncharged) | OSRS Price Data
+description: "Ring of endurance (uncharged) is a members ring slot item. High alch: 38,400 GP, GE limit: 5."
+osrs:
+  id: 24844
+  name: Ring of endurance (uncharged)
+  slug: ring-of-endurance-uncharged
+  examine: I wonder if this ring helps with...
+  members: true
+  icon: Ring of endurance (uncharged).png
+  value: 64000
+  lowalch: 25600
+  highalch: 38400
+  limit: 5
+  equipment:
+    slot: ring
+    type: utility_ring
+    requirements:
+      agility: 70
+  effect:
+    passive_threshold: 500
+    passive_effect: Reduces run energy drain by 15%
+    active_effect: Doubles stamina potion effect duration
+    charges_per_dose: 2
+  charging:
+    material_id: 12625
+    material_name: Stamina potion (4)
+    charges_per_potion: 40
+    max_charges: 1000
+  drop_table:
+    sources:
+      - source: Grand Hallowed Coffin
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: 1/200
+        members_only: true
+  related_items:
+    - item_id: 12625
+      item_name: Stamina potion
+      slug: stamina-potion
+      relationship: alternative
+      description: Charging material
+    - item_id: 24795
+      item_name: Strange old lockpick
+      slug: strange-old-lockpick
+      relationship: alternative
+      description: Sepulchre drop
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ring |
+| Type | Utility |
+| Tradeable | Yes |
+| Weight | 0.006 kg |
+
+## Obtaining
+
+Rare drop from Grand Hallowed Coffin (Hallowed Sepulchre floor 5).
+
+| Source | Drop Rate |
+|--------|-----------|
+| Grand Hallowed Coffin | 1/200 |
+
+**Requires:** 92 Agility (for floor 5)
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| All | +0 |
+
+**Requirements:** 70 Agility
+
+## Effects
+
+**Passive (500+ charges):**
+- Reduces run energy drain by 15%
+- No charges consumed
+
+**Active:**
+- Doubles stamina potion effect duration
+- Consumes 2 charges per dose
+
+## Charging
+
+| Resource | Charges |
+|----------|---------|
+| Stamina potion (4) | 40 |
+| Max capacity | 1,000 |
+
+## Usage
+
+Essential for:
+- Hallowed Sepulchre
+- Agility training
+- Extended running
+- Any run-heavy content
+
+**Best-in-slot for agility and running.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~12M gp
+
+**Tips:**
+- Floor 5 Sepulchre only
+- Keep charged for passive
+- Great QoL item
+
+<Adsense />

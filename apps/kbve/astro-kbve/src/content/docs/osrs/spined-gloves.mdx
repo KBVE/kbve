@@ -1,0 +1,37 @@
+---
+title: Spined gloves | OSRS Price Data
+description: "Spined gloves: Fremennik gloves stitched together from spined dagannoth hide.. High alch: 390 GP, GE limit: 125."
+osrs:
+  id: 6149
+  name: Spined gloves
+  slug: spined-gloves
+  examine: Fremennik gloves stitched together from spined dagannoth hide.
+  members: true
+  icon: Spined gloves.png
+  value: 650
+  lowalch: 260
+  highalch: 390
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

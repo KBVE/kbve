@@ -1,0 +1,147 @@
+---
+title: Runite ore | OSRS Price Data
+description: "Runite ore: This needs refining.. High alch: 1,920 GP, GE limit: 4,500."
+osrs:
+  id: 451
+  name: Runite ore
+  slug: runite-ore
+  examine: This needs refining.
+  members: false
+  icon: Runite ore.png
+  value: 3200
+  lowalch: 1280
+  highalch: 1920
+  limit: 4500
+  material:
+    type: ore
+    tier: runite
+  mining:
+    level: 85
+    xp: 125
+    rocks: Runite rock
+    locations:
+      - Heroes' Guild
+      - Mining Guild (expanded)
+      - Wilderness
+      - Mor Ul Rek
+  smithing:
+    level: 85
+    xp: 50
+    method: Smelting
+    coal_required: 8
+    coal_required_bf: 4
+  recipes:
+    - skill: smithing
+      level: 85
+      xp: 50
+      materials:
+        - item_name: Runite ore
+          item_id: 451
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 8
+      product: Runite bar
+      product_id: 2363
+      product_quantity: 1
+      facility: Furnace
+      members_only: true
+    - skill: smithing
+      level: 85
+      xp: 50
+      materials:
+        - item_name: Runite ore
+          item_id: 451
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 4
+      product: Runite bar
+      product_id: 2363
+      product_quantity: 1
+      facility: Blast Furnace
+      members_only: true
+  related_items:
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: product
+      description: Smelted product
+    - item_id: 453
+      item_name: Coal
+      slug: coal
+      relationship: component
+      description: Smelting requirement
+    - item_id: 449
+      item_name: Adamantite ore
+      slug: adamantite-ore
+      relationship: downgrade
+      description: Lower tier ore
+    - item_id: 21347
+      item_name: Amethyst
+      slug: amethyst
+      relationship: alternative
+      description: Alternative high-level mining
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Mining
+
+| Requirement | Value |
+|-------------|-------|
+| Mining Level | 85 |
+| XP per ore | 125 |
+
+## Smelting
+
+| Method | Coal Required | Smithing Level | XP |
+|--------|---------------|----------------|-----|
+| Regular furnace | 8 | 85 | 50 |
+| Blast Furnace | 4 | 85 | 50 |
+| Superheat | 8 | 85 | 53 |
+
+## Market Flip Strategy
+
+**Blast Furnace Smelting:**
+- Half coal requirement = major savings
+- Calculate: `Runite bar - Runite ore - (Coal × 4) = Profit`
+- Best money-making smithing method
+
+**Mining Profit:**
+- 85 Mining required (high barrier)
+- Low spawn rate, competitive spots
+- Wilderness locations risky but faster
+
+**Buy Limit:** 4,500 per 4 hours
+
+**Mining Locations:**
+- Heroes' Guild (members)
+- Mining Guild (expanded area)
+- Wilderness (high risk)
+- Mor Ul Rek (TzHaar city)
+
+**Tips:**
+- Low buy limit = price stability
+- Blast Furnace doubles profitability
+- High Smithing unlocks full chain
+
+<Adsense />

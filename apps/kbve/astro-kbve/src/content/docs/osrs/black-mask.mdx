@@ -1,0 +1,147 @@
+---
+title: Black mask | OSRS Price Data
+description: "Black mask is a members head slot item requiring 10 Defence. High alch: 1,800 GP, GE limit: 70."
+osrs:
+  id: 8921
+  name: Black mask
+  slug: black-mask
+  examine: An inert-seeming cave horror mask.
+  members: true
+  icon: Black mask.png
+  value: 3000
+  lowalch: 1200
+  highalch: 1800
+  limit: 70
+  equipment:
+    slot: head
+    type: mask
+    requirements:
+      strength: 20
+      defence: 10
+    stats:
+      attack_stab: 3
+      attack_slash: 3
+      attack_crush: 3
+      attack_magic: 3
+      attack_ranged: 3
+  effect:
+    on_task_bonus:
+      accuracy: 16.67
+      damage: 16.67
+      combat_styles:
+        - melee
+    imbue:
+      location: Soul Wars or Nightmare Zone
+      extends_to:
+        - ranged
+        - magic
+      new_requirements:
+        defence: 40
+  drop_table:
+    sources:
+      - source: Cave horror
+        source_id: 3210
+        combat_level: 80
+        quantity: "1"
+        rarity: 1/512
+        members_only: true
+  related_items:
+    - item_id: 11864
+      item_name: Slayer helmet
+      slug: slayer-helmet
+      relationship: upgrade
+      description: Upgraded form
+    - item_id: 4081
+      item_name: Salve amulet
+      slug: salve-amulet
+      relationship: alternative
+      description: Undead bonus (doesn't stack)
+    - item_id: 11865
+      item_name: Slayer helmet (i)
+      slug: slayer-helmet-i
+      relationship: upgrade
+      description: Imbued version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Mask |
+| Tradeable | Yes |
+| Weight | 0.907 kg |
+
+## Obtaining
+
+Drop from Cave horrors (requires Cabin Fever quest).
+
+| Monster | Drop Rate |
+|---------|-----------|
+| Cave horror | 1/512 |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Stab attack | +3 |
+| Slash attack | +3 |
+| Crush attack | +3 |
+| Magic attack | +3 |
+| Ranged attack | +3 |
+| Requirements | 20 Strength, 10 Defence (imbued: 40 Def) |
+
+**Required for Slayer helmet.**
+
+## Effects
+
+**When on task:**
+- +16.67% accuracy and damage vs assigned monster
+
+**Must be imbued for full effect.**
+
+## Imbue
+
+Imbue at Soul Wars or Nightmare Zone:
+- Extends bonus to Magic and Ranged
+- Requires 40 Defence when imbued
+
+## Usage
+
+Essential for:
+- All Slayer tasks
+- Slayer helm upgrade
+- Salve amulet doesn't stack
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~520K gp
+
+**Tips:**
+- Cave horrors require Cabin Fever
+- Imbue immediately
+- Combine into Slayer helm
+
+<Adsense />

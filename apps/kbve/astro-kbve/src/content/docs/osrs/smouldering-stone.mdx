@@ -1,0 +1,141 @@
+---
+title: Smouldering stone | OSRS Price Data
+description: "Smouldering stone: A smouldering stone from the depths of Hell.. High alch: 27,000 GP, GE limit: 5."
+osrs:
+  id: 13233
+  name: Smouldering stone
+  slug: smouldering-stone
+  examine: A smouldering stone from the depths of Hell.
+  members: true
+  icon: Smouldering stone.png
+  value: 45000
+  lowalch: 18000
+  highalch: 27000
+  limit: 5
+  item:
+    type: upgrade_material
+    tradeable: true
+  effect:
+    creates_infernal_tools: true
+    auto_process_chance: 33
+    secondary_xp_percent: 50
+    charges_per_tool: 5000
+  drop_table:
+    sources:
+      - source: Cerberus
+        source_id: 5862
+        combat_level: 318
+        quantity: "1"
+        rarity: 1/520
+        members_only: true
+      - source: Hellhound (Wildy Slayer)
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: 1/16,384
+        members_only: true
+      - source: Hellhound (regular)
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: 1/32,768
+        members_only: true
+  recipes_creates:
+    - product_id: 13241
+      product_name: Infernal axe
+      requirements: 85 FM, 61 WC
+    - product_id: 13243
+      product_name: Infernal pickaxe
+      requirements: 85 Smith, 61 Mining
+    - product_id: 21031
+      product_name: Infernal harpoon
+      requirements: 85 Cook, 75 Fishing
+  related_items:
+    - item_id: 13241
+      item_name: Infernal axe
+      slug: infernal-axe
+      relationship: product
+      description: Created tool
+    - item_id: 13243
+      item_name: Infernal pickaxe
+      slug: infernal-pickaxe
+      relationship: product
+      description: Created tool
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Upgrade Material |
+| Tradeable | Yes |
+| Weight | 0.05 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Cerberus | 1/520 |
+| Hellhound (Wildy Slayer) | 1/16,384 |
+| Hellhound (regular) | 1/32,768 |
+
+## Uses
+
+Creates infernal tools:
+
+| Base Tool | Result | Requirements |
+|-----------|--------|--------------|
+| Dragon axe | Infernal axe | 85 FM, 61 WC |
+| Dragon pickaxe | Infernal pickaxe | 85 Smith, 61 Mining |
+| Dragon harpoon | Infernal harpoon | 85 Cook, 75 Fishing |
+
+All infernal tools have 5,000 charges.
+
+## Effect on Tools
+
+**Auto-Process:**
+- 33% chance to instantly process resource
+- Grants ~50% of secondary skill XP
+- Destroys the resource
+
+## Usage
+
+Essential for:
+- Creating infernal tools
+- Recharging infernal tools
+- Ironman progression
+
+**Key drop from Cerberus.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~4.2M gp
+
+**Tips:**
+- Cerberus is best source
+- 91 Slayer required
+- Used for all infernal tools
+
+<Adsense />

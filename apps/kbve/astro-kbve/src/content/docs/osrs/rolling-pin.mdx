@@ -1,0 +1,37 @@
+---
+title: Rolling pin | OSRS Price Data
+description: "Rolling pin: That's how I roll!. High alch: 8,640 GP, GE limit: 50."
+osrs:
+  id: 7445
+  name: Rolling pin
+  slug: rolling-pin
+  examine: That's how I roll!
+  members: true
+  icon: Rolling pin.png
+  value: 14400
+  lowalch: 5760
+  highalch: 8640
+  limit: 50
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

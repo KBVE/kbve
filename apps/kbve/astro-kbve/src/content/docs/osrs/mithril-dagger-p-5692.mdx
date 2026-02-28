@@ -1,0 +1,37 @@
+---
+title: Mithril dagger(p++) | OSRS Price Data
+description: "Mithril dagger(p++): A poisoned Mithril dagger.. High alch: 195 GP, GE limit: 125."
+osrs:
+  id: 5692
+  name: Mithril dagger(p++)
+  slug: mithril-dagger-p
+  examine: A poisoned Mithril dagger.
+  members: true
+  icon: Mithril dagger(p++).png
+  value: 325
+  lowalch: 130
+  highalch: 195
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

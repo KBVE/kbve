@@ -1,0 +1,37 @@
+---
+title: Runite limbs | OSRS Price Data
+description: "Runite limbs: A pair of runite crossbow limbs.. High alch: 9,600 GP, GE limit: 10,000."
+osrs:
+  id: 9431
+  name: Runite limbs
+  slug: runite-limbs
+  examine: A pair of runite crossbow limbs.
+  members: true
+  icon: Runite limbs.png
+  value: 16000
+  lowalch: 6400
+  highalch: 9600
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

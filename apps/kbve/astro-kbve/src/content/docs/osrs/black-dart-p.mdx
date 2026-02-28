@@ -1,0 +1,37 @@
+---
+title: Black dart(p) | OSRS Price Data
+description: "Black dart(p): A deadly poisoned dart with a black tip.. High alch: 10 GP, GE limit: 7,000."
+osrs:
+  id: 3094
+  name: Black dart(p)
+  slug: black-dart-p
+  examine: A deadly poisoned dart with a black tip.
+  members: true
+  icon: Black dart(p).png
+  value: 18
+  lowalch: 7
+  highalch: 10
+  limit: 7000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Robe bottom of darkness | OSRS Price Data
+description: "Robe bottom of darkness: A dark power is woven into this robe bottom.. High alch: 48,000 GP, GE limit: 70."
+osrs:
+  id: 20137
+  name: Robe bottom of darkness
+  slug: robe-bottom-of-darkness
+  examine: A dark power is woven into this robe bottom.
+  members: true
+  icon: Robe bottom of darkness.png
+  value: 80000
+  lowalch: 32000
+  highalch: 48000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

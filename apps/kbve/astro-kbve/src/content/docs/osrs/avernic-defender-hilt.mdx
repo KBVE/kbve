@@ -1,0 +1,106 @@
+---
+title: Avernic defender hilt | OSRS Price Data
+description: "Avernic defender hilt: Perhaps this could be used to create a defensive weapon.. High alch: 1,500,000 GP, GE limit: 8."
+osrs:
+  id: 22477
+  name: Avernic defender hilt
+  slug: avernic-defender-hilt
+  examine: Perhaps this could be used to create a defensive weapon.
+  members: true
+  icon: Avernic defender hilt.png
+  value: 2500000
+  lowalch: 1000000
+  highalch: 1500000
+  limit: 8
+  item:
+    type: upgrade material
+    tradeable: true
+    weight: 0.453
+  recipes:
+    - skill: null
+      level: 0
+      materials:
+        - item_id: 12954
+          item_name: Dragon defender
+          quantity: 1
+        - item_id: 22477
+          item_name: Avernic defender hilt
+          quantity: 1
+      product: Avernic defender
+      product_id: 22322
+  related_items:
+    - item_id: 12954
+      item_name: Dragon defender
+      slug: dragon-defender
+      relationship: component
+      description: Base item for upgrade
+    - item_id: 22322
+      item_name: Avernic defender
+      slug: avernic-defender
+      relationship: product
+      description: Best-in-slot melee defender
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Upgrade Material |
+| Tradeable | Yes |
+| Weight | 0.453 kg |
+
+## Obtaining
+
+| Source | Chance |
+|--------|--------|
+| Theatre of Blood (Normal) | 8/19 |
+| Theatre of Blood (Hard) | 7/18 |
+
+From Monumental chest reward.
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Avernic defender | Dragon defender + hilt |
+
+**Warning:** Reversible but hilt is NOT returned.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~42M gp
+
+**Tips:**
+- From Theatre of Blood
+- Permanent upgrade cost
+- BiS melee defender
+
+## Related Items
+
+- [Theatre of Blood](/osrs/theatre-of-blood/) - Source raid
+- [Dragon defender](/osrs/dragon-defender/) - Base item
+- [Avernic defender](/osrs/avernic-defender/) - Created item
+
+<Adsense />

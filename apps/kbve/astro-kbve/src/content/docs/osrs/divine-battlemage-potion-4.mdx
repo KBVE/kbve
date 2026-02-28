@@ -1,0 +1,37 @@
+---
+title: Divine battlemage potion(4) | OSRS Price Data
+description: "Divine battlemage potion(4): 4 doses of divine battlemage potion.. High alch: 432 GP, GE limit: 2,000."
+osrs:
+  id: 24623
+  name: Divine battlemage potion(4)
+  slug: divine-battlemage-potion-4
+  examine: 4 doses of divine battlemage potion.
+  members: true
+  icon: Divine battlemage potion(4).png
+  value: 720
+  lowalch: 288
+  highalch: 432
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

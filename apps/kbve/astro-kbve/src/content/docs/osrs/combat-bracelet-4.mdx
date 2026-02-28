@@ -1,0 +1,135 @@
+---
+title: Combat bracelet(4) | OSRS Price Data
+description: "Combat bracelet(4) is a members hands slot item. High alch: 12,624 GP, GE limit: 10,000."
+osrs:
+  id: 11118
+  name: Combat bracelet(4)
+  slug: combat-bracelet-4
+  examine: A handy way to get around.
+  members: true
+  icon: Combat bracelet(4).png
+  value: 21040
+  lowalch: 8416
+  highalch: 12624
+  limit: 10000
+  equipment:
+    slot: hands
+    weight: 0.007
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charges:
+    current: 4
+    max: 6
+    recharge: Legends' Guild or Fountain of Rune
+  special_effect:
+    name: Combat Bracelet Teleport
+    description: Teleports to Warriors' Guild, Champions' Guild, Monastery, Ranging Guild
+    triggers: on_use
+  recipes:
+    - skill: magic
+      level: 63
+      xp: 67
+      spell: Lvl-4 Enchant
+      materials:
+        - item_name: Dragonstone bracelet
+          item_id: 11126
+          quantity: 1
+        - item_name: Cosmic rune
+          item_id: 564
+          quantity: 1
+        - item_name: Earth rune
+          item_id: 557
+          quantity: 10
+      members_only: true
+  related_items:
+    - item_id: 11126
+      item_name: Combat bracelet (uncharged)
+      slug: combat-bracelet
+      relationship: variant
+      description: Uncharged version
+    - item_id: 11972
+      item_name: Combat bracelet(6)
+      slug: combat-bracelet-6
+      relationship: variant
+      description: Fully charged version
+    - item_id: 7462
+      item_name: Barrows gloves
+      slug: barrows-gloves
+      relationship: upgrade
+      description: Best-in-slot gloves
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Stats
+
+No combat bonuses - utility item for teleportation.
+
+## Teleport Locations
+
+- Warriors' Guild
+- Champions' Guild
+- Monastery (Edgeville)
+- Ranging Guild
+
+## Charges
+
+| State | Charges |
+|-------|---------|
+| Current | 4 |
+| Maximum | 6 (Fountain of Rune) |
+
+## Market Flip Strategy
+
+**Utility Teleport Bracelet:**
+- Useful teleport locations
+- Warriors' Guild access popular
+- Combat training teleports
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Demand Drivers:**
+- Warriors' Guild access
+- Combat training
+- Ranging Guild teleport
+- Quest requirements
+
+**Tips:**
+- Recharge at Legends' Guild or Fountain of Rune
+- Useful for defenders farming
+- Ranging Guild teleport saves time
+
+<Adsense />

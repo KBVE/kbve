@@ -1,0 +1,136 @@
+---
+title: Granite boots | OSRS Price Data
+description: "Granite boots is a members feet slot item requiring 50 Defence. High alch: 7,500 GP, GE limit: 70."
+osrs:
+  id: 21643
+  name: Granite boots
+  slug: granite-boots
+  examine: These will protect my feet, but are a bit heavy.
+  members: true
+  icon: Granite boots.png
+  value: 12500
+  lowalch: 5000
+  highalch: 7500
+  limit: 70
+  equipment:
+    slot: feet
+    type: melee_boots
+    requirements:
+      defence: 50
+      strength: 50
+    stats:
+      attack_magic: -6
+      attack_ranged: -3
+      strength: 2
+      defence_stab: 15
+      defence_slash: 16
+      defence_crush: 17
+      defence_ranged: 5
+  drop_table:
+    primary_source: Spiritual ranger
+    best_drop_rate: 1/128
+    sources:
+      - source: Spiritual ranger
+        source_id: 2242
+        combat_level: 115
+        quantity: "1"
+        rarity: 1/128
+        members_only: true
+      - source: Spiritual ranger (Zaros)
+        source_id: 6219
+        combat_level: 118
+        quantity: "1"
+        rarity: 1/128
+        members_only: true
+  related_items:
+    - item_id: 11840
+      item_name: Dragon boots
+      slug: dragon-boots
+      relationship: alternative
+      description: Better strength bonus for melee
+    - item_id: 4131
+      item_name: Rune boots
+      slug: rune-boots
+      relationship: downgrade
+      description: Lower tier alternative with no requirements
+    - item_id: 21733
+      item_name: Guardian boots
+      slug: guardian-boots
+      relationship: upgrade
+      description: Best defensive boots
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Feet |
+| Type | Melee Armor |
+| Tradeable | Yes |
+| Weight | 2.5 kg |
+
+## Obtaining
+
+Drop from Spiritual rangers in the God Wars Dungeon.
+
+| Monster | Drop Rate |
+|---------|-----------|
+| Spiritual ranger | 1/128 |
+| Spiritual ranger (Zaros) | 1/128 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Magic | -6 |
+| Ranged | -3 |
+| Strength | +2 |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +15 |
+| Slash | +16 |
+| Crush | +17 |
+| Ranged | +5 |
+
+**Requirements:** 50 Defence, 50 Strength
+
+## Usage
+
+Heavy defensive boots used for:
+- Tank setups
+- High-defence builds
+- Alternative to Dragon boots
+
+**Heavier but more defensive than Dragon boots.**
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Tips:**
+- Less popular than Dragon boots
+- Used by tank builds
+- Good for activities requiring high defence
+
+<Adsense />

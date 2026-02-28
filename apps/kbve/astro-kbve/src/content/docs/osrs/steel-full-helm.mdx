@@ -1,0 +1,91 @@
+---
+title: Steel full helm | OSRS Price Data
+description: "Steel full helm: A full face helmet.. High alch: 330 GP, GE limit: 125."
+osrs:
+  id: 1157
+  name: Steel full helm
+  slug: steel-full-helm
+  examine: A full face helmet.
+  members: false
+  icon: Steel full helm.png
+  value: 550
+  lowalch: 220
+  highalch: 330
+  limit: 125
+  item_id: 1157
+  item_type: armor
+  slot: head
+  type: full_helm
+  tradeable: true
+  weight: 2.721
+  requirements:
+    defence: 5
+  stats:
+    stab_defence: 9
+    slash_defence: 10
+    crush_defence: 7
+    ranged_defence: 9
+  related_items:
+    - slug: black-full-helm
+    - slug: steel-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Full Helm |
+| Tradeable | Yes |
+| Weight | 2.721 kg |
+| Requirements | 5 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +9 |
+| Slash Defence | +10 |
+| Crush Defence | +7 |
+| Ranged Defence | +9 |
+
+## Obtaining
+
+**Smithing:** 37 Smithing with 2 steel bars (75 XP).
+
+**Shop:** Helmet Shop, Barbarian Village (550 gp).
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~144 gp
+
+Mid-level F2P helm. Common smithing product.
+
+## Related Items
+
+- [Black full helm](/osrs/black-full-helm/) - Upgrade
+- [Steel platebody](/osrs/steel-platebody/) - Set piece
+
+<Adsense />

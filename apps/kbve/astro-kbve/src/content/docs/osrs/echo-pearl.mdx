@@ -1,0 +1,98 @@
+---
+title: Echo pearl | OSRS Price Data
+description: "Echo pearl: A glowing pearl, as you stare into it you can hear sounds of the ocean.. High alch: 4,800 GP."
+osrs:
+  id: 31946
+  name: Echo pearl
+  slug: echo-pearl
+  examine: A glowing pearl, as you stare into it you can hear sounds of the ocean.
+  members: true
+  icon: Echo pearl.png
+  value: 8000
+  lowalch: 3200
+  highalch: 4800
+  limit: null
+  item_type: material
+  tradeable: true
+  weight: 1
+  high_alch: 4800
+  low_alch: 3200
+  drop_table:
+    primary_source: Orca
+    best_drop_rate: 1/65.5
+    sources:
+      - source: Orca
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 1/65.5
+        members_only: true
+      - source: Dolphin
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/927
+        members_only: true
+  obtaining:
+    source: Orca, Dolphin
+    location: Sea creatures while Sailing
+    requirements: Sailing skill access
+  related_items:
+    - item_id: 32229
+      item_name: Fathom pearl
+      slug: fathom-pearl
+      relationship: product
+      description: Used to craft the Fathom pearl facility
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Obtaining
+
+The Echo pearl is dropped by sea creatures encountered while Sailing.
+
+**Drop Sources:**
+| Source | Drop Rate |
+|--------|-----------|
+| Orca | 1/65.5 |
+| Dolphin | 1/927 |
+
+## Usage
+
+"A glowing pearl, as you stare into it you can hear sounds of the ocean."
+
+The Echo pearl is a crafting material primarily used in Sailing and Construction to create the Fathom pearl facility.
+
+**Crafting Uses:**
+- Required component for Fathom pearl (requires 91 Sailing, 83 Construction)
+- Combined with Rosewood planks, Dragon nails, and Dragon metal sheets
+
+## Market Strategy
+
+**Grand Exchange Price:** Approximately 131,589 gp
+
+**Buy Limit:** Check GE for current limits
+
+**Tips:**
+- Orcas provide much better drop rate than dolphins
+- Required for Fathom pearl - high-level trawling upgrade
+- Price fluctuates based on Sailing skill demand
+- Consider farming orcas for more efficient acquisition
+
+<Adsense />

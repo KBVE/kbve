@@ -1,0 +1,145 @@
+---
+title: Torag's helm | OSRS Price Data
+description: "Torag's helm is a members head slot item requiring 70 Defence. High alch: 61,800 GP, GE limit: 15."
+osrs:
+  id: 4745
+  name: Torag's helm
+  slug: torag-s-helm
+  examine: Torag the Corrupted's helm.
+  members: true
+  icon: Torag's helm.png
+  value: 103000
+  lowalch: 41200
+  highalch: 61800
+  limit: 15
+  equipment:
+    slot: head
+    type: barrows
+    set: Torag
+    tradeable: true
+    degradeable: true
+    weight: 2.7
+    requirements:
+      defence: 70
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: -6
+      attack_ranged: 0
+      defence_stab: 55
+      defence_slash: 58
+      defence_crush: 54
+      defence_magic: -1
+      defence_ranged: 62
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  set_effect:
+    name: Corruption
+    pieces_required: 4
+    description: 25% chance to lower opponent's run energy by 20%
+    amulet_of_damned: Defence is increased by 1% for every 1 HP missing
+  related_items:
+    - item_id: 4749
+      item_name: Torag's platebody
+      slug: torags-platebody
+      relationship: set-piece
+      description: Body slot set piece
+    - item_id: 4751
+      item_name: Torag's platelegs
+      slug: torags-platelegs
+      relationship: set-piece
+      description: Legs slot set piece
+    - item_id: 4747
+      item_name: Torag's hammers
+      slug: torags-hammers
+      relationship: set-piece
+      description: Weapon set piece
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Obtained from the Barrows minigame (1/102.17 for any specific Barrows item).
+
+**Location:** Barrows mounds, east of Mort'ton in Morytania
+
+## Equipment Info
+
+| Stat | Value |
+|------|-------|
+| Slot | Head |
+| Weight | 2.7 kg |
+| Requirements | 70 Defence |
+
+## Stats
+
+| Bonus | Value |
+|-------|-------|
+| Stab defence | +55 |
+| Slash defence | +58 |
+| Crush defence | +54 |
+| Magic defence | -1 |
+| Ranged defence | +62 |
+| Magic attack | -6 |
+
+## Set Effect
+
+**Corruption:**
+When wearing full Torag's (helm, platebody, platelegs, hammers):
+- 25% chance to lower opponent's run energy by 20%
+- Generally considered weakest Barrows effect
+
+**With Amulet of the Damned:**
+- Defence is increased by 1% for every 1 HP missing
+
+## Usage
+
+**Best For:**
+- Budget tank helm
+- Identical stats to Guthan's helm
+- Cheaper alternative for defence
+
+**Note:** Set effect rarely used; pieces often worn standalone for stats.
+
+## Degradation
+
+- 15 hours of combat use
+- Repair at Bob in Lumbridge or POH armor stand
+
+## Market Strategy
+
+**Buy Limit:** 10 per 4 hours
+
+**Tips:**
+- Cheapest Barrows helm
+- Used for stats, not set effect
+
+## Related Items
+
+- [Torag's platebody](/osrs/torags-platebody/) - Body slot
+- [Torag's platelegs](/osrs/torags-platelegs/) - Legs slot
+- [Torag's hammers](/osrs/torags-hammers/) - Weapon
+
+<Adsense />

@@ -1,0 +1,124 @@
+---
+title: 'Salmon'
+description: 'A fresh salmon, delicious and nutritious! It can be used for cooking!'
+id: 'salmon'
+key: 1
+ref: '01JW0R6C62QK3WVJHR05XZ5K1T'
+name: 'Salmon'
+type: 'Food'
+category: 392
+img: '/assets/items/food/salmon.png'
+pixelDensity: 32
+sortingLayer: Ground
+sortingOrder: 10
+consumable: true
+stackable: true
+rarity: 'Common'
+weight: 0.4
+effects: 'Restores 15 health over 5 seconds.'
+price: 6
+durability: 1
+equipped: false
+levelRequirement: 0
+cooldown: 5
+action: 'consume'
+credits: |
+    Salmon fish asset was by Roku6 - https://roku6.itch.io/pixelfishes
+bonuses:
+    health: 15
+scripts:
+    - guid: 'dd238a91353c4a1991cf275041730ab0'
+      vars:
+          health: 15
+          duration: 5
+          tickRate: 1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+
+import { Adsense } from '@/components/astropad';
+
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+
+## Item
+
+Salmon is a basic food item. It’s commonly caught in rivers and lakes. While not the most potent food, it is widely available.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+<Adsense />
+
+## Usage
+
+- Restores **15 health over 5 seconds**
+- Can be stacked in your inventory
+- Useful in early survival situations
+
+---
+
+## Crafting / Cooking
+
+You can cook raw salmon using a **campfire** or **cooking station** to increase its healing potential.
+
+---
+
+## Lore
+
+> "A staple for weary travelers, salmon is both humble and hearty."
+
+---
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/burn_the_servers.webp"
+  defaultId="01HTXYZABC0001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZABC0001',
+      title: 'Stranger',
+      description: 'You meet someone in the dark woods.',
+      image: 'https://images.unsplash.com/photo-1748201135959-8635c11aebdb?q=80&w=500&auto=format&fit=crop',
+      message: 'It’s dangerous here. Do you need help?',
+      choices: [
+        { label: 'Yes, please.', nextId: '01HTXYZABC0002' },
+        { label: 'I’m fine.', nextId: '01HTXYZABC0003' }
+      ]
+    },
+    {
+      id: '01HTXYZABC0002',
+      title: 'Guided',
+      description: 'They offer you a lantern.',
+      image: '/images/scene2.jpg',
+      message: 'Stay close. There are things out here...',
+      choices: [
+        { label: 'Follow.', nextId: '01HTXYZABC0004' }
+      ]
+    },
+    {
+      id: '01HTXYZABC0003',
+      title: 'Alone',
+      description: 'You disappear into the woods.',
+      image: '/images/scene3.jpg',
+      message: 'Silence swallows you.',
+    },
+    {
+      id: '01HTXYZABC0004',
+      title: 'Together',
+      description: 'The path reveals itself.',
+      image: '/images/scene4.jpg',
+      message: 'Let’s keep moving.'
+    }
+  ]}
+/>

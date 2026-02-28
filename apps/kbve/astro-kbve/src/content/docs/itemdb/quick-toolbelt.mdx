@@ -1,0 +1,127 @@
+---
+title: 'Quick Toolbelt'
+description: | 
+    A compact set of precision tools designed for on-the-fly fixes. Ideal for rapid-response engineers and grease-streaked survivalists.
+id: 'quick-toolbelt'
+key: 11
+ref: '01JW9MMAPMYMX7F6C1XYMNT9BN'
+name: 'Quick Toolbelt'
+type: 'Tool'
+category: 398
+img: '/assets/items/tools/quick_toolbelt.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 40
+consumable: false
+stackable: false
+rarity: 'Common'
+weight: 1.6
+effects: 'Improves repair efficiency by 1%. Compatible with bots, drones, and ships.'
+price: 450
+durability: 300
+equipped: true
+levelRequirement: 2
+cooldown: 15
+action: 'repair'
+credits: |
+    Designed by KBVE MicroForge Systems for maintenance in zero-G and radiation-heavy zones. Commonly issued in early planetary expeditions.
+bonuses:
+    repairBoost: 0.01
+    multiTargetCompat: true
+    toolGrade: 'Class-B'
+scripts:
+    - guid: 'ee541e1cf4214c4cbbb4e1fa99d7fbbb'
+      vars:
+            repairModifier: 0.01
+            usableOn: technocraft
+            toolQuality: 'Class-B'
+            cooldown: 15
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Quick Toolbelt** is a no-frills, all-function utility rig.
+Worn by veteran engineers, AI tuners, and shipboard mechanics, it contains calibrated torque drivers, micro-welders, and an adaptive nano wrench.
+
+It may not look like much, but seconds saved are systems saved.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Grants **+1% repair efficiency** across all mechanical targets
+- Compatible with **robots**, **drones**, and **spaceships**
+- Tool Grade: **{frontmatter.bonuses.toolGrade}**
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Application
+
+Can be used mid-combat or during system failures. Especially useful in:
+- **Hangar bays**
+- **Robot Wards**
+- **Field operations in breached hull zones**
+
+---
+
+## Lore
+
+> “I once saw a guy patch an entire propulsion system mid-reentry with this and a can of sprayfoam. Didn’t *survive*, but the ship did.”
+
+Some belts come with engraved names from past owners—most scratched off, some still glowing faintly with heat.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/quickfix_zone.webp"
+  defaultId="01HTXYZTBL001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZTBL001',
+      title: 'Sparks and Pressure',
+      description: 'The hull hisses, venting atmosphere.',
+      image: 'https://images.unsplash.com/photo-1623698251747-4a018f621b0f?q=80&w=500&auto=format&fit=crop',
+      message: 'Tools whir. Warnings scream. The belt vibrates, ready.',
+      choices: [
+        { label: 'Begin repairs.', nextId: '01HTXYZTBL002' },
+        { label: 'Wait for backup.', nextId: '01HTXYZTBL003' }
+      ]
+    },
+    {
+      id: '01HTXYZTBL002',
+      title: 'Stabilized',
+      description: 'You fix the coupling just in time.',
+      image: '/images/scene_repair1.jpg',
+      message: 'System pressure normalizing. Your heartbeat too.'
+    },
+    {
+      id: '01HTXYZTBL003',
+      title: 'Too Late',
+      description: 'The warning light turns red.',
+      image: '/images/scene_repairfail.jpg',
+      message: 'Backup never came. But your tools gleam proudly in the dark.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/27/2025 - Quick Toolbelt implemented for engineering and maintenance roles.

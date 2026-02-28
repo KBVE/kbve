@@ -1,0 +1,37 @@
+---
+title: Sagacious spectacles | OSRS Price Data
+description: "Sagacious spectacles: Do they make me look... old?. High alch: 840 GP, GE limit: 4."
+osrs:
+  id: 12337
+  name: Sagacious spectacles
+  slug: sagacious-spectacles
+  examine: Do they make me look... old?
+  members: true
+  icon: Sagacious spectacles.png
+  value: 1400
+  lowalch: 560
+  highalch: 840
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

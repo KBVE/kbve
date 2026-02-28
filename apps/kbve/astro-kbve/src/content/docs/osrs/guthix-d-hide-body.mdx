@@ -1,0 +1,37 @@
+---
+title: Guthix d'hide body | OSRS Price Data
+description: "Guthix d'hide body: Guthix blessed dragonhide body armour.. High alch: 7,800 GP, GE limit: 8."
+osrs:
+  id: 10378
+  name: Guthix d'hide body
+  slug: guthix-d-hide-body
+  examine: Guthix blessed dragonhide body armour.
+  members: true
+  icon: Guthix d'hide body.png
+  value: 13000
+  lowalch: 5200
+  highalch: 7800
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

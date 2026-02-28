@@ -1,0 +1,37 @@
+---
+title: Cooked chompy | OSRS Price Data
+description: "Cooked chompy: It might look delicious to an ogre.. High alch: 78 GP, GE limit: 6,000."
+osrs:
+  id: 2878
+  name: Cooked chompy
+  slug: cooked-chompy
+  examine: It might look delicious to an ogre.
+  members: true
+  icon: Cooked chompy.png
+  value: 130
+  lowalch: 52
+  highalch: 78
+  limit: 6000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

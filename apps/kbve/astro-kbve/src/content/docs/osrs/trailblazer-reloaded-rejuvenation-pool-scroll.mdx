@@ -1,0 +1,37 @@
+---
+title: Trailblazer reloaded rejuvenation pool scroll | OSRS Price Data
+description: "Trailblazer reloaded rejuvenation pool scroll is a members-only OSRS item. High alch: 15,000 GP."
+osrs:
+  id: 28708
+  name: Trailblazer reloaded rejuvenation pool scroll
+  slug: trailblazer-reloaded-rejuvenation-pool-scroll
+  examine: "Used on an Ornate rejuvination pool inside your Player owned house to give it a theme from Leagues IV: Trailblazer Reloaded."
+  members: true
+  icon: Trailblazer reloaded rejuvenation pool scroll.png
+  value: 25000
+  lowalch: 10000
+  highalch: 15000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

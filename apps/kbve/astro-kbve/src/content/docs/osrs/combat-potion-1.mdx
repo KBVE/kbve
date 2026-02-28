@@ -1,0 +1,37 @@
+---
+title: Combat potion(1) | OSRS Price Data
+description: "Combat potion(1): 1 dose of combat potion.. High alch: 31 GP, GE limit: 2,000."
+osrs:
+  id: 9745
+  name: Combat potion(1)
+  slug: combat-potion-1
+  examine: 1 dose of combat potion.
+  members: true
+  icon: Combat potion(1).png
+  value: 52
+  lowalch: 20
+  highalch: 31
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

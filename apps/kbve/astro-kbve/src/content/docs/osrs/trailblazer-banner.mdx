@@ -1,0 +1,37 @@
+---
+title: Trailblazer banner | OSRS Price Data
+description: "Trailblazer banner: A banner showcasing the colours of Leagues II - Trailblazer.. High alch: 600 GP, GE limit: 5."
+osrs:
+  id: 25056
+  name: Trailblazer banner
+  slug: trailblazer-banner
+  examine: A banner showcasing the colours of Leagues II - Trailblazer.
+  members: true
+  icon: Trailblazer banner.png
+  value: 1000
+  lowalch: 400
+  highalch: 600
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

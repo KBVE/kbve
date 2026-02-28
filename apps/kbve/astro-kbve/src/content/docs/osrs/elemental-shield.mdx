@@ -1,0 +1,37 @@
+---
+title: Elemental shield | OSRS Price Data
+description: "Elemental shield: A magic shield.. High alch: 12 GP, GE limit: 70."
+osrs:
+  id: 2890
+  name: Elemental shield
+  slug: elemental-shield
+  examine: A magic shield.
+  members: true
+  icon: Elemental shield.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

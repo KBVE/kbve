@@ -1,0 +1,37 @@
+---
+title: Fire tiara | OSRS Price Data
+description: "Fire tiara: A tiara infused with the properties of fire.. High alch: 60 GP, GE limit: 40."
+osrs:
+  id: 5537
+  name: Fire tiara
+  slug: fire-tiara
+  examine: A tiara infused with the properties of fire.
+  members: false
+  icon: Fire tiara.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

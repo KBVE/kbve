@@ -1,0 +1,137 @@
+---
+title: Magic longbow | OSRS Price Data
+description: "Magic longbow is a members weapon slot item requiring 50 Ranged. High alch: 1,536 GP, GE limit: 18,000."
+osrs:
+  id: 859
+  name: Magic longbow
+  slug: magic-longbow
+  examine: A nice sturdy magical bow.
+  members: true
+  icon: Magic longbow.png
+  value: 2560
+  lowalch: 1024
+  highalch: 1536
+  limit: 18000
+  equipment:
+    slot: weapon
+    weight: 1.814
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 69
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      ranged: 50
+    attack_speed: 6
+  recipes:
+    - skill: fletching
+      level: 85
+      xp: 91.5
+      materials:
+        - item_name: Magic longbow (u)
+          item_id: 64
+          quantity: 1
+        - item_name: Bow string
+          item_id: 1777
+          quantity: 1
+      product: Magic longbow
+      product_id: 859
+      product_quantity: 1
+      members_only: true
+  alchemy:
+    high: 1536
+    low: 1024
+  related_items:
+    - item_id: 64
+      item_name: Magic longbow (u)
+      slug: magic-longbow-u
+      relationship: component
+      description: Unstrung version
+    - item_id: 1513
+      item_name: Magic logs
+      slug: magic-logs
+      relationship: component
+      description: Raw material
+    - item_id: 1777
+      item_name: Bow string
+      slug: bow-string
+      relationship: component
+      description: Required for stringing
+    - item_id: 561
+      item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: For High Alchemy
+    - item_id: 855
+      item_name: Yew longbow
+      slug: yew-longbow
+      relationship: alternative
+      description: Lower tier alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+String a [Magic longbow (u)](/osrs/magic-longbow-u/) with a [Bow string](/osrs/bow-string/).
+
+| Requirement | Value |
+|-------------|-------|
+| Fletching Level | 85 |
+| XP gained | 91.5 |
+
+## High Alchemy
+
+| Alch Type | Value |
+|-----------|-------|
+| **High Alch** | **1,536 GP** |
+| Low Alch | 1,024 GP |
+
+## Market Flip Strategy
+
+**Alch Flipping (Best Margins):**
+- High Alch value: **1,536 GP**
+- Calculate: `1,536 - Magic longbow price - Nature rune price = Profit`
+- Higher profit per alch than yew longbows
+
+**Full Processing Chain:**
+1. [Magic logs](/osrs/magic-logs/) → [Magic longbow (u)](/osrs/magic-longbow-u/) → [Magic longbow](/osrs/magic-longbow/) → High Alch
+2. Total cost: Magic log + Bow string + Nature rune
+3. Revenue: 1,536 GP
+
+**Tips:**
+- Buy limit: 18,000 per 4 hours
+- Less competition than yew longbows
+- Good for high-level fletchers
+
+<Adsense />

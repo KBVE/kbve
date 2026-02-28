@@ -1,0 +1,37 @@
+---
+title: Rosewood repair kit | OSRS Price Data
+description: "Rosewood repair kit: An excellent boat repair kit made from rosewood.. High alch: 3,000 GP, GE limit: 13,000."
+osrs:
+  id: 31982
+  name: Rosewood repair kit
+  slug: rosewood-repair-kit
+  examine: An excellent boat repair kit made from rosewood.
+  members: true
+  icon: Rosewood repair kit.png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,102 @@
+---
+title: Tarromin seed | OSRS Price Data
+description: "Tarromin seed: A tarromin seed - plant in a herb patch.. High alch: 1 GP, GE limit: 600."
+osrs:
+  id: 5293
+  name: Tarromin seed
+  slug: tarromin-seed
+  examine: A tarromin seed - plant in a herb patch.
+  members: true
+  icon: Tarromin seed 5.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 600
+  seed:
+    type: herb
+    tier: low
+  farming:
+    level: 19
+    xp_plant: 16
+    xp_harvest: 18
+    growth_time: 80
+    patches: 9
+    product_id: 203
+    product_name: Grimy tarromin
+  related_items:
+    - item_id: 203
+      item_name: Grimy tarromin
+      slug: grimy-tarromin
+      relationship: product
+      description: Harvested product
+    - item_id: 253
+      item_name: Tarromin
+      slug: tarromin
+      relationship: product
+      description: Cleaned herb
+    - item_id: 115
+      item_name: Strength potion(4)
+      slug: strength-potion-4
+      relationship: product
+      description: Made from tarromin
+    - item_id: 5292
+      item_name: Marrentill seed
+      slug: marrentill-seed
+      relationship: alternative
+      description: Lower tier herb seed
+    - item_id: 5294
+      item_name: Harralander seed
+      slug: harralander-seed
+      relationship: upgrade
+      description: Next tier herb seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Farming
+
+Plant in a herb patch to grow Grimy tarromin.
+
+| Requirement | Value |
+|-------------|-------|
+| Farming Level | 19 |
+| Growth time | 80 minutes |
+| XP (plant) | 16 |
+| XP (harvest) | 18 per herb |
+
+## Market Strategy
+
+**Herb Farming:**
+- Low-tier herb seed
+- Used for strength potions and serum 207
+- Low profit margin
+
+**Yield Boosters:**
+- Ultracompost (essential)
+- Magic secateurs (10% more yield)
+- Farming cape (5% more yield)
+
+**Tips:**
+- 9 herb patches available
+- ~10 minute runs, 80 minute regrowth
+- Serum 207 used for Shades of Mort'ton minigame
+
+<Adsense />

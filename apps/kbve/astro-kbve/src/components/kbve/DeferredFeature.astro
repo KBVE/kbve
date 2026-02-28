@@ -1,0 +1,13 @@
+---
+/**
+ * Deferred wrapper for Feature
+ * Loads the component only when approaching the viewport
+ * Prevents render-blocking CSS on initial page load
+ */
+import DeferredSection from '@/components/utility/DeferredSection.astro';
+import Feature from './Feature.astro';
+---
+
+<DeferredSection id="features" minHeight="500px" minHeightMobile="400px">
+	<Feature />
+</DeferredSection>

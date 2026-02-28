@@ -1,0 +1,142 @@
+---
+title: 'Propagandist Laptop'
+description: |
+    An outdated laptop brimming with influence campaigns and forgotten scripts. The fan runs louder when lies are typed.
+    Why does it keep saying that it runs arch? Oh god, its update is several exa-holy-bytes, are those just node modules?!
+
+id: 'propagandist-laptop'
+key: 7
+ref: '01JW8GK1Z1DYXTB7KB8RRKP87B'
+name: 'Propagandist Laptop'
+type: 'Tool'
+category: 395
+img: '/assets/items/tools/propagandist_laptop.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 20
+consumable: false
+stackable: false
+rarity: 'Epic'
+weight: 2.7
+effects: 'Enables narrative injection and cyber surveillance.'
+price: 3750
+durability: 450
+equipped: true
+levelRequirement: 6
+cooldown: 90
+action: 'deploy'
+credits: |
+    Originally distributed during the "Algorithmic Spring" by black-budget operatives. Digital archeology by KBVE SIGINT. Assets by KBVE Pixel Workshop.
+bonuses:
+    influence: 12
+    hackPower: 8
+    stealthScripts: true
+scripts:
+    - guid: 'dd912f1e871c4a3e8a8fbcacafee205c'
+      vars:
+            influenceBoost: 12
+            hackPower: 8
+            stealthEnabled: true
+            duration: 600
+            tickRate: 15
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Propagandist Laptop** is an orange [unix](/application/linux/), sticker-ridden relic from another info-war.
+Damn keyboard emits heat, not just from overuse but from the stories it rewrites.
+Whether it's election meddling or uncovering state secrets, this machine was built to bend narratives.
+
+Its terminal runs deep into the darknet, the archive, and the firewalls of weast korea.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+## Usage
+
+- Boosts **influence** and **hack power** by {frontmatter.bonuses.influence} and {frontmatter.bonuses.hackPower} respectively
+- Activates **{frontmatter.bonuses.stealthScripts ? 'stealth scripts' : 'basic logging only'}** for covert ops
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Recovery
+
+It is often recovered in abandoned war rooms, fake news bunkers, or sealed diplomatic pouches. No two contain the same data—each has a history.
+
+---
+
+## Lore
+
+> “I opened a ZIP file labeled ‘truth.exe’. Two regimes collapsed and my cat won a local election.”
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/keyboard_warfare.webp"
+  defaultId="01HTXYZCYB0001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZCYB0001',
+      title: 'Boot Sequence',
+      description: 'A whirr, a beep, and then... silence.',
+      image: 'https://images.unsplash.com/photo-1581091870633-f0ae1c8ecb7f?q=80&w=500&auto=format&fit=crop',
+      message: 'The screen flickers. Someone is already logged in.',
+      choices: [
+        { label: 'Explore the terminal.', nextId: '01HTXYZCYB0002' },
+        { label: 'Wipe the disk.', nextId: '01HTXYZCYB0003' }
+      ]
+    },
+    {
+      id: '01HTXYZCYB0002',
+      title: 'Access Granted',
+      description: 'You’re in.',
+      image: '/images/scene_hack2.jpg',
+      message: 'Encrypted logs reveal a ghostwriter behind ten revolutions.',
+      choices: [
+        { label: 'Copy the files.', nextId: '01HTXYZCYB0004' },
+        { label: 'Run a script.', nextId: '01HTXYZCYB0005' }
+      ]
+    },
+    {
+      id: '01HTXYZCYB0003',
+      title: 'Clean Slate',
+      description: 'Nothing remains. Nothing tracks.',
+      image: '/images/scene_hack3.jpg',
+      message: 'The fan whines one last time, then dies.'
+    },
+    {
+      id: '01HTXYZCYB0004',
+      title: 'Echoes Distributed',
+      description: 'Truth or lie—you’ve spread it.',
+      image: '/images/scene_hack4.jpg',
+      message: 'The files go live. An entire continent holds its breath.'
+    },
+    {
+      id: '01HTXYZCYB0005',
+      title: 'Operation: Firehose',
+      description: 'The terminal blinks rapidly.',
+      image: '/images/scene_hack5.jpg',
+      message: 'Autonomous bots wake from slumber. Misinformation becomes a storm.'
+    }
+  ]}
+/>
+<Adsense />
+
+---
+
+## DevLog
+
+- 05/27/2025 – Initial commit of the Propagandist Laptop data node

@@ -1,0 +1,37 @@
+---
+title: Willow longbow (u) | OSRS Price Data
+description: "Willow longbow (u): An unstrung willow longbow; I need a bowstring for this.. High alch: 96 GP, GE limit: 10,000."
+osrs:
+  id: 58
+  name: Willow longbow (u)
+  slug: willow-longbow-u
+  examine: An unstrung willow longbow; I need a bowstring for this.
+  members: true
+  icon: Willow longbow (u).png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

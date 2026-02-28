@@ -1,0 +1,98 @@
+---
+title: 'Decemeber: 05th'
+category: Daily
+date: 2024-12-05 12:00:00
+client: Self
+unsplash: 1511512578047-dfb367046420
+img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Decemeber 5th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2024
+
+-   02:19PM
+
+    **UnityJS**
+
+    The focus for today will be to finish up the rest of the unity-js pre-alpha code changes and then prepare to release it.
+    We could make this a hybrid setup and just push the compiled version directly into the template code, hmm.
+    I saw that there is a whole build process injection method too, we can look into that as well.
+
+    We were last working on the `message.ts`, so lets go ahead and switch back over to the `DiscordSDKManager` finishing up the message handler integration and the setup functions.
+    Okay the first step that I see is making sure our instances are initialized, specifically the helper and the event manager, then we can integrate the message handler?
+    The goal is still the same, we want all our singletons to be called through our instance of `DiscordSDKManager`!
+    I did notice that in our notes, we would want to integrate supabase as well from the client side for the javascript functions, this way we can have the wasm build call supabase and have the javascript call it as well.
+    There would be an issue where each user now has two instances of a supabase connection, so we could work on making sure that they are both in-sync?
+    Hmm, this is just food for thought and we should table this part of the integration until after we get all the discord issues resolved.
+    
+
+    Adding the helper will be easy, because we already did it in the `message.ts`, so it will be something like this:
+    ```ts
+
+    import {Help} from './helper';
+    private helper: typeof Help | null = null;
+    this.helper = Help;
+
+    public getHelper(): typeof Help | null {
+    return this.helper;
+    }
+
+    ```
+
+    After getting the helper added, we can rotate back around and reference the help in the message handler instance.
+    Okay we got the base of the sdk setup and then we need to quickly bundle all of this up?
+    I saw that vite 6 was out but right now, we will keep using vite 5 until the next nx update.
+    To bundle all of this, we will quickly create a new vite configuration file and then a quick command for the nx system.
+    Our end result will be:
+
+    ```shell
+    ./kbve.sh -nx unity-js:alpha
+    ```
+
+    This will take the unity-js code and run it through vite, thus giving us a single esm bundle.
+    From this point,we need to figure out the best way to import this and at what level do we need to call it from?
+    The obvious choice would be to integrate it all into the rust static build, since that is where we call the nested iframe from.
+
+-   05:10PM
+
+    **Alpha**
+
+    We want the nx commands to move the build esm javascript files from the vite over to the rust static build folder.
+    To accomplish this, we will have to make sure that we can easily access , uhh, actually we will just update the vite command to push the vite folders out into a subfolder under the unity-js called `vite` and then just move those files.
+    The moving of the files will be done through the nx command, making it a bit easier to manage?
+    One of the other options was to just build the whole javascript bundle each time before running the rust files but I feel like that would be too much of an overkill?
+    The goal here would be to try and minimize the amount of double builds, hmm, for now we should just focus on getting a functional MVP.
+    There can be future adjustments made on how we handle it.
+
+
+-   05:50PM
+
+    **DiscordAPI**
+
+    We will need to quickly configure the api route for the discord oauth, hmm.
+    The way that we can approach this is by skipping any advance wafs or ebpf stuff, keeping it simple for now would be the best option.
+    Let me start the route, ship the build and then come back around to making some minor changes that reflect the changes.
+    For the time being, I am going to decouple the game server build from the unity games and just keep it isolated because it should be decoupled moving forward.
+    Since the game server will also have the ability to handle UDP connections, we can look at the networking for the windows build next week too.
+
+    Updating the cargo toml to use the reqwest library but without the openssl, which will be used to connect and verify the discord token.
+    Ugh, told myself that I would keep it simple but it would make sense to wrap the whole discord client call concept into a quick mini-pool, we will have it hold about 10 clients that should give us enough room to handle burst connections.
+    Since the call is only for grabbing the access token, we can control that thread quickly by dropping and adding it back into the pool.
+    We have enough vcpus to manage a small pool of about 10 clients, so that should be good enough for this part of the code.
+    Instead of placing it all inside of the `main.rs`, I will make it a small file called `discord.rs` and then when I get time, I will move it into the jedi crate and we can just call it from there.
+    So the first step would be to build out that mini-pool within the application, find the point of failures and once it is functional, we move it over into the jedi crate and call it from there.
+    This would give us the flexibility to use it again in the future and speed up compiling time in the future.
+    Okay, lets start with building the client out next.
+
+    Oh, for building out the docker image, I think it would make sense to do it on the macbook too because it will be faster on the orbstack.
+    Let me push this up and then split the vscode up to a macbook instance.
+
+    The builds will be faster on the mac, so after preparing the orb builder, we can keep track of the shas that get generated and update the helm through the wsl pushes.
+    Before making crazy changes, we want to make sure that docker build works without issues on the mac.
+    We are using an arm chipset, so I forgot 
+
+<Adsense />

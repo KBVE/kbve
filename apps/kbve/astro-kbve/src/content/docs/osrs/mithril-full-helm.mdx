@@ -1,0 +1,91 @@
+---
+title: Mithril full helm | OSRS Price Data
+description: "Mithril full helm: A full face helmet.. High alch: 858 GP, GE limit: 125."
+osrs:
+  id: 1159
+  name: Mithril full helm
+  slug: mithril-full-helm
+  examine: A full face helmet.
+  members: false
+  icon: Mithril full helm.png
+  value: 1430
+  lowalch: 572
+  highalch: 858
+  limit: 125
+  item_id: 1159
+  item_type: armor
+  slot: head
+  type: full_helm
+  tradeable: true
+  weight: 2.267
+  requirements:
+    defence: 20
+  stats:
+    stab_defence: 13
+    slash_defence: 14
+    crush_defence: 11
+    ranged_defence: 13
+  related_items:
+    - slug: adamant-full-helm
+    - slug: mithril-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Full Helm |
+| Tradeable | Yes |
+| Weight | 2.267 kg |
+| Requirements | 20 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +13 |
+| Slash Defence | +14 |
+| Crush Defence | +11 |
+| Ranged Defence | +13 |
+
+## Obtaining
+
+**Smithing:** 57 Smithing with 2 mithril bars (100 XP).
+
+**Shop:** Helmet Shop, Barbarian Village.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~787 gp
+
+Mid-tier F2P helm. Common smithing product.
+
+## Related Items
+
+- [Adamant full helm](/osrs/adamant-full-helm/) - Upgrade
+- [Mithril platebody](/osrs/mithril-platebody/) - Set piece
+
+<Adsense />

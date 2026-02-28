@@ -1,0 +1,37 @@
+---
+title: Spider cave teleport | OSRS Price Data
+description: "Spider cave teleport: Teleports you to Morytania Spider Cave.. High alch: 6 GP."
+osrs:
+  id: 29782
+  name: Spider cave teleport
+  slug: spider-cave-teleport
+  examine: Teleports you to Morytania Spider Cave.
+  members: true
+  icon: Spider cave teleport.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Dragonstone gauntlets | OSRS Price Data
+description: "Dragonstone gauntlets: A stylish pair of rune gauntlets inlaid with dragonstones.. High alch: 7,500 GP."
+osrs:
+  id: 24046
+  name: Dragonstone gauntlets
+  slug: dragonstone-gauntlets
+  examine: A stylish pair of rune gauntlets inlaid with dragonstones.
+  members: true
+  icon: Dragonstone gauntlets.png
+  value: 12500
+  lowalch: 5000
+  highalch: 7500
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

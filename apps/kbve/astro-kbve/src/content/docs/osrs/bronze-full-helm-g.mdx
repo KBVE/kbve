@@ -1,0 +1,37 @@
+---
+title: Bronze full helm (g) | OSRS Price Data
+description: "Bronze full helm (g): Bronze full helm with gold trim.. High alch: 28 GP, GE limit: 4."
+osrs:
+  id: 12211
+  name: Bronze full helm (g)
+  slug: bronze-full-helm-g
+  examine: Bronze full helm with gold trim.
+  members: false
+  icon: Bronze full helm (g).png
+  value: 48
+  lowalch: 19
+  highalch: 28
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

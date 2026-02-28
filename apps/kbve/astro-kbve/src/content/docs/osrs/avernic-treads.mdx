@@ -1,0 +1,37 @@
+---
+title: Avernic treads | OSRS Price Data
+description: "Avernic treads: A finely crafted pair of boots.. High alch: 115,200 GP, GE limit: 8."
+osrs:
+  id: 31088
+  name: Avernic treads
+  slug: avernic-treads
+  examine: A finely crafted pair of boots.
+  members: true
+  icon: Avernic treads.png
+  value: 192000
+  lowalch: 76800
+  highalch: 115200
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

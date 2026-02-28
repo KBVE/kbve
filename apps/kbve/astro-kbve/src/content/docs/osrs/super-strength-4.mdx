@@ -1,0 +1,122 @@
+---
+title: Super strength(4) | OSRS Price Data
+description: "Super strength(4) is a 3-dose members potion. High alch: 165 GP, GE limit: 2,000."
+osrs:
+  id: 2440
+  name: Super strength(4)
+  slug: super-strength-4
+  examine: 4 doses of super Strength potion.
+  members: true
+  icon: Super strength(4).png
+  value: 275
+  lowalch: 110
+  highalch: 165
+  limit: 2000
+  potion:
+    doses: 3
+    type: boost
+    skill: strength
+    boost_min: 5
+    boost_max: 19
+    boost_formula: 15% + 5
+    duration: 60
+  herblore:
+    level: 55
+    xp: 125
+  recipes:
+    - skill: herblore
+      level: 55
+      xp: 125
+      materials:
+        - item_name: Kwuarm potion (unf)
+          item_id: 105
+          quantity: 1
+        - item_name: Limpwurt root
+          item_id: 225
+          quantity: 1
+      product: Super strength(3)
+      product_id: 2440
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 263
+      item_name: Kwuarm
+      slug: kwuarm
+      relationship: component
+      description: Primary herb
+    - item_id: 225
+      item_name: Limpwurt root
+      slug: limpwurt-root
+      relationship: component
+      description: Secondary
+    - item_id: 12695
+      item_name: Super combat potion(4)
+      slug: super-combat-potion-4
+      relationship: product
+      description: Combined potion
+    - item_id: 115
+      item_name: Strength potion(3)
+      slug: strength-potion-3
+      relationship: alternative
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 55 |
+| XP | 125 |
+| Ingredients | Kwuarm + Limpwurt root |
+
+## Effects
+
+| Effect | Value |
+|--------|-------|
+| Strength boost | +5 to +19 (15% + 5) |
+| Duration | 60s per level lost |
+| Preserve prayer | 90s per level lost |
+
+## Market Flip Strategy
+
+**Combat Potion Component:**
+- Super combat ingredient
+- Standalone strength boost
+- Very high demand
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Demand Drivers:**
+- Super combat production
+- Melee PvM
+- Bossing preparation
+- Slayer tasks
+
+**Tips:**
+- Low buy limit (2,000)
+- Kwuarm herb
+- Limpwurt root secondary
+- Component for super combat
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Ensouled ogre head | OSRS Price Data
+description: "Ensouled ogre head: The creature's soul is still in here.. High alch: 202 GP, GE limit: 3,000."
+osrs:
+  id: 13478
+  name: Ensouled ogre head
+  slug: ensouled-ogre-head
+  examine: The creature's soul is still in here.
+  members: true
+  icon: Ensouled ogre head.png
+  value: 338
+  lowalch: 135
+  highalch: 202
+  limit: 3000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

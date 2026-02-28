@@ -1,0 +1,128 @@
+---
+title: Master wand | OSRS Price Data
+description: "Master wand is a members weapon slot item. High alch: 60,000 GP, GE limit: 70."
+osrs:
+  id: 6914
+  name: Master wand
+  slug: master-wand
+  examine: A master level wand.
+  members: true
+  icon: Master wand.png
+  value: 100001
+  lowalch: 40000
+  highalch: 60000
+  limit: 70
+  item_id: 6914
+  type: equipment
+  tradeable: true
+  weight: 0.907
+  buy_limit: 125
+  equipment:
+    slot: weapon
+    type: magic_wand
+    attack_speed: 4
+    requirements:
+      skills:
+        - skill: magic
+          level: 60
+    stats:
+      attack_magic: 20
+      defence_magic: 0
+  obtaining:
+    minigame:
+      name: Mage Training Arena
+      points_required:
+        telekinetic: 240
+        alchemist: 240
+        enchantment: 2400
+        graveyard: 240
+    upgrade_from:
+      item: Teacher wand
+      item_id: 6912
+  related_items:
+    - slug: kodai-wand
+      name: Kodai wand
+      relation: best_upgrade
+    - slug: teacher-wand
+      name: Teacher wand
+      relation: lower_tier
+    - slug: ancient-staff
+      name: Ancient staff
+      relation: alternative
+    - slug: nightmare-staff
+      name: Nightmare staff
+      relation: best_upgrade
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Wand |
+| Tradeable | Yes |
+| Weight | 0.907 kg |
+| Attack Speed | 4 |
+| Requirements | 60 Magic |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Magic Attack | +20 |
+| Magic Defence | +0 |
+
+## Obtaining
+
+**Mage Training Arena:** Exchange pizazz points for Teacher wand, then upgrade.
+
+| Room | Points |
+|------|--------|
+| Telekinetic | 240 |
+| Alchemist | 240 |
+| Enchantment | 2,400 |
+| Graveyard | 240 |
+
+**Note:** Must first obtain Teacher wand, then upgrade at MTA.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+Required component for Kodai wand. Primary demand comes from Kodai creation.
+
+## Upgrade Path
+
+1. [Beginner wand](/osrs/beginner-wand/) (level 45)
+2. [Apprentice wand](/osrs/apprentice-wand/) (level 50)
+3. [Teacher wand](/osrs/teacher-wand/) (level 55)
+4. **Master wand** (level 60)
+5. [Kodai wand](/osrs/kodai-wand/) (level 75)
+
+## Related Items
+
+- [Kodai wand](/osrs/kodai-wand/) - Best-in-slot upgrade (Master wand + Kodai insignia)
+- [Nightmare staff](/osrs/nightmare-staff/) - Alternative high-tier staff
+- [Teacher wand](/osrs/teacher-wand/) - Lower tier wand
+
+<Adsense />

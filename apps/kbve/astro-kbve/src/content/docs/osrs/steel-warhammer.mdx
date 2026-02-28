@@ -1,0 +1,108 @@
+---
+title: Steel warhammer | OSRS Price Data
+description: "Steel warhammer is a F2P weapon slot item requiring 5 Attack. High alch: 384 GP, GE limit: 125."
+osrs:
+  id: 1339
+  name: Steel warhammer
+  slug: steel-warhammer
+  examine: I don't think it's intended for joinery.
+  members: false
+  icon: Steel warhammer.png
+  value: 640
+  lowalch: 256
+  highalch: 384
+  limit: 125
+  equipment:
+    slot: weapon
+    type: warhammer
+    tradeable: true
+    weight: 1.814
+    requirements:
+      attack: 5
+    stats:
+      attack_stab: -4
+      attack_slash: -4
+      attack_crush: 18
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 16
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1341
+      item_name: Black warhammer
+      slug: black-warhammer
+      relationship: upgrade
+      description: Higher tier warhammer
+    - item_id: 1424
+      item_name: Steel mace
+      slug: steel-mace
+      relationship: alternative
+      description: Alternative crush weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Warhammer |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 5 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | -4 |
+| Slash Attack | -4 |
+| Crush Attack | +18 |
+| Strength | +16 |
+
+## Obtaining
+
+**Smithing:** 39 Smithing with 3 steel bars (112.5 XP).
+
+**Shop:** Vigr's Warhammers, Keldagrim.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~146 gp
+
+Mid-level crush weapon. F2P accessible.
+
+## Related Items
+
+- [Black warhammer](/osrs/black-warhammer/) - Upgrade
+- [Steel mace](/osrs/steel-mace/) - Alternative crush
+
+<Adsense />

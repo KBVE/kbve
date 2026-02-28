@@ -1,0 +1,140 @@
+---
+title: Crystal armour seed | OSRS Price Data
+description: "Crystal armour seed: A seed to be sung into the finest crystal armour.. High alch: 300,000 GP, GE limit: 100."
+osrs:
+  id: 23956
+  name: Crystal armour seed
+  slug: crystal-armour-seed
+  examine: A seed to be sung into the finest crystal armour.
+  members: true
+  icon: Crystal armour seed.png
+  value: 500000
+  lowalch: 200000
+  highalch: 300000
+  limit: 100
+  item:
+    type: crafting material
+    tradeable: true
+  obtaining:
+    - source: The Gauntlet
+      drop_rate: 1/120
+    - source: Corrupted Gauntlet
+      drop_rate: 1/50
+  recipes:
+    - skill: smithing
+      level: 70
+      materials:
+        - item_id: 23956
+          item_name: Crystal armour seed
+          quantity: 1
+        - item_id: 23962
+          item_name: Crystal shard
+          quantity: 50
+      facility: Singing bowl
+      product: Crystal helm
+      product_id: 23971
+    - skill: smithing
+      level: 72
+      materials:
+        - item_id: 23956
+          item_name: Crystal armour seed
+          quantity: 2
+        - item_id: 23962
+          item_name: Crystal shard
+          quantity: 100
+      facility: Singing bowl
+      product: Crystal legs
+      product_id: 23979
+    - skill: smithing
+      level: 74
+      materials:
+        - item_id: 23956
+          item_name: Crystal armour seed
+          quantity: 3
+        - item_id: 23962
+          item_name: Crystal shard
+          quantity: 150
+      facility: Singing bowl
+      product: Crystal body
+      product_id: 23975
+  related_items:
+    - item_id: 23975
+      item_name: Crystal body
+      slug: crystal-body
+      relationship: product
+      description: Created armour piece
+    - item_id: 23962
+      item_name: Crystal shard
+      slug: crystal-shard
+      relationship: component
+      description: Exchange option or crafting material
+    - item_id: 23971
+      item_name: Crystal helm
+      slug: crystal-helm
+      relationship: product
+      description: Created armour piece
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Stackable | No |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| The Gauntlet | 1/120 |
+| Corrupted Gauntlet | 1/50 |
+
+## Uses
+
+| Item | Seeds | Shards | Smithing/Crafting |
+|------|-------|--------|-------------------|
+| Crystal helm | 1 | 50 | 70 |
+| Crystal legs | 2 | 100 | 72 |
+| Crystal body | 3 | 150 | 74 |
+
+**Alternative:** Exchange for 250 crystal shards.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~5K gp
+
+**Tips:**
+- Farm Corrupted Gauntlet for best rates
+- Use for crystal armour or trade for shards
+- Needed for full crystal set
+
+## Related Items
+
+- [Crystal body](/osrs/crystal-body/) - Created item
+- [Crystal shards](/osrs/crystal-shards/) - Exchange option
+- [The Gauntlet](/osrs/the-gauntlet/) - Drop source
+
+<Adsense />

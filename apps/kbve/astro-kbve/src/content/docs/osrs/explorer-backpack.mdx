@@ -1,0 +1,37 @@
+---
+title: Explorer backpack | OSRS Price Data
+description: "Explorer backpack: I'm the Backpack loaded up with things and knick knacks too.. High alch: 930 GP, GE limit: 4."
+osrs:
+  id: 12514
+  name: Explorer backpack
+  slug: explorer-backpack
+  examine: I'm the Backpack loaded up with things and knick knacks too.
+  members: true
+  icon: Explorer backpack.png
+  value: 1550
+  lowalch: 620
+  highalch: 930
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

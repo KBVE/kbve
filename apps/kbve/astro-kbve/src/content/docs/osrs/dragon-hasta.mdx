@@ -1,0 +1,133 @@
+---
+title: Dragon hasta | OSRS Price Data
+description: "Dragon hasta is a members shield slot item requiring 75 Defence. High alch: 37,440 GP, GE limit: 70."
+osrs:
+  id: 22731
+  name: Dragon hasta
+  slug: dragon-hasta
+  examine: A one-handed dragon hasta.
+  members: true
+  icon: Dragon hasta.png
+  value: 62400
+  lowalch: 24960
+  highalch: 37440
+  limit: 70
+  equipment:
+    slot: shield
+    type: shield
+    attack_style: melee
+    requirements:
+      defence: 75
+    stats:
+      defence_stab: 20
+      defence_slash: 25
+      defence_crush: 22
+      defence_ranged: 22
+      strength: 7
+    degradeable: true
+    max_charges: 50
+  effect:
+    dragonfire_protection: true
+    wyvern_protection: partial
+    dragonfire_blast: true
+    blast_damage: 25
+    blast_range: 10
+  recipes:
+    - skill: smithing
+      level: 90
+      xp: 2000
+      materials:
+        - item_name: Anti-dragon shield
+          item_id: 1540
+          quantity: 1
+        - item_name: Draconic visage
+          item_id: 11286
+          quantity: 1
+      product: Dragonfire shield
+      product_id: 11284
+      product_quantity: 1
+      facility: Anvil
+      members_only: true
+  related_items:
+    - item_id: 11286
+      item_name: Draconic visage
+      slug: draconic-visage
+      relationship: component
+      description: Drop from dragons
+    - item_id: 1540
+      item_name: Anti-dragon shield
+      slug: anti-dragon-shield
+      relationship: component
+      description: Base shield
+    - item_id: 22003
+      item_name: Dragonfire ward
+      slug: dragonfire-ward
+      relationship: alternative
+      description: Ranged alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Combine Anti-dragon shield + Draconic visage:
+
+| Method | Requirements | XP |
+|--------|--------------|-----|
+| Smithing | 90 Smithing + anvil + hammer | 2,000 |
+| Oziach (NPC) | Dragon Slayer I + 1,250,000 gp | None |
+
+## Stats
+
+| Stat | Uncharged | Charged (+50) |
+|------|-----------|---------------|
+| Stab defence | +20 | +70 |
+| Slash defence | +25 | +75 |
+| Crush defence | +22 | +72 |
+| Ranged defence | +22 | +72 |
+| Strength | +7 | +7 |
+
+## Effects
+
+**Dragonfire Protection:**
+- Same protection as anti-dragon shield
+- Partial wyvern breath protection
+
+**Dragonfire Blast** (right-click activate):
+- Deals up to 25 damage
+- Uses 1 charge
+- 10-tile range
+- ~2 minute cooldown
+
+## Charging
+
+Charges from absorbing dragonfire attacks (max 50 charges).
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Visage is the expensive component
+- Required for some high-level dragon content
+- Consider Dragonfire ward for ranged
+
+<Adsense />

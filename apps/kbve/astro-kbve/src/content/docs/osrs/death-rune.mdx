@@ -1,0 +1,113 @@
+---
+title: Death rune | OSRS Price Data
+description: "Death rune: Used for medium level missile spells.. High alch: 108 GP, GE limit: 25,000."
+osrs:
+  id: 560
+  name: Death rune
+  slug: death-rune
+  examine: Used for medium level missile spells.
+  members: false
+  icon: Death rune.png
+  value: 180
+  lowalch: 72
+  highalch: 108
+  limit: 25000
+  rune:
+    type: combat
+  runecraft:
+    level: 65
+    xp: 10
+    multiple_at: 99
+    altar: Death Altar
+    altar_location: Temple of Light
+    essence_type: pure
+  recipes:
+    - skill: runecraft
+      level: 65
+      xp: 10
+      materials:
+        - item_name: Pure essence
+          item_id: 7936
+          quantity: 1
+      product: Death rune
+      product_id: 560
+      product_quantity: 1
+      facility: Death altar
+      members_only: true
+  related_items:
+    - item_id: 7936
+      item_name: Pure essence
+      slug: pure-essence
+      relationship: component
+      description: Crafting material
+    - item_id: 565
+      item_name: Blood rune
+      slug: blood-rune
+      relationship: alternative
+      description: Paired for barrages
+    - item_id: 563
+      item_name: Law rune
+      slug: law-rune
+      relationship: alternative
+      description: Tele Block combo
+    - item_id: 11907
+      item_name: Trident of the seas
+      slug: trident-of-the-seas
+      relationship: alternative
+      description: Rune consumer
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Key Spells
+
+| Spell | Death Runes | Spellbook |
+|-------|-------------|-----------|
+| Fire Blast | 1 | Standard |
+| Iban Blast | 1 | Standard |
+| Magic Dart | 1 | Standard |
+| Tele Block | 1 | Standard |
+| Ice Barrage | 4 | Ancient |
+| Blood Barrage | 4 | Ancient |
+| Vengeance | 2 | Lunar |
+
+## Market Flip Strategy
+
+**Runecrafting:**
+- 1 pure essence = 1 death rune
+- Abyss method for speed
+- Mourning's End Part II required
+
+**Buy Limit:** 25,000 per 4 hours
+
+**Demand Drivers:**
+- All burst/barrage spells
+- Slayer training (bursting)
+- PvP (Tele Block, Vengeance)
+- Trident charges
+
+**Tips:**
+- Essential PvM rune
+- Ice Barrage uses 4 per cast
+- High consistent demand
+- Tridents create rune sink
+
+<Adsense />

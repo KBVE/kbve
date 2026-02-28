@@ -1,0 +1,37 @@
+---
+title: Belladonna seed | OSRS Price Data
+description: "Belladonna seed: Also known as Deadly Nightshade - plant in a belladonna patch.. High alch: 106 GP, GE limit: 200."
+osrs:
+  id: 5281
+  name: Belladonna seed
+  slug: belladonna-seed
+  examine: Also known as Deadly Nightshade - plant in a belladonna patch.
+  members: true
+  icon: Belladonna seed 5.png
+  value: 177
+  lowalch: 70
+  highalch: 106
+  limit: 200
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,136 @@
+---
+title: 'Rebel Radio'
+description: |
+    Scrappy handheld transceiver patched together with stolen parts and righteous fury.
+    Tuned to voices the regime can not and must not hear.
+id: 'rebel-radio'
+key: 28
+ref: '01JWCX61HFPET0VWXTZFDG4D06'
+name: 'Rebel Radio'
+type: 'Utility'
+category: 416
+img: '/assets/items/set/data/rebel-radio.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 125
+consumable: false
+stackable: false
+rarity: 'Rare'
+weight: 1.2
+effects: 'Used to contact rebel factions, call support, or jam surveillance signals.'
+price: 975
+durability: 800
+equipped: true
+levelRequirement: 5
+cooldown: 180
+action: 'transmit'
+credits: |
+    Concept by h0lybyte and inspired from Andor, with the pixel art by KBVE Pixel Workshop.
+bonuses:
+    signalAccess: 'encrypted'
+    supportChance: 0.2
+    jamBoost: true
+scripts:
+    - guid: 'c3aa918a7f244a0c83d2e9d552e61aad'
+      vars:
+            contactChannels: encrypted
+            backupChance: 0.2
+            jammingField: true
+            cooldownSeconds: 180
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Rebel Radio** is a cobbled-together shortwave transmitter modified with encryption bypassers and frequency faders.
+When activated, it pings secret nodes, some respond with supplies, some with intel, and others just hiss with static.
+
+Its antenna hums when the regime gets close.
+
+Soldered together from salvaged warband comms, banned ham rigs, and a hope-fueled battery.
+Broadcast range limited by orbital interference. 
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Broadcasts on **rebel, encrypted, and low-orbit frequencies**  
+- **20% chance** to call in **rebel support** (supply drop, distraction, intel ping)  
+- Generates a **local jamming field**, disrupting enemy sensors and drones  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Strategic Use
+
+Use during:
+- **Sieges or extractions**  
+- **Data heist missions**  
+- **Rebel-aligned event chains**
+
+Works best when elevated or near power amplifiers.
+
+---
+
+## Lore
+
+> “The revolution won't be televised. But it will be broadcast, encoded, and bounced off an abandoned satellite on Channel 42069.”  
+> - Signal Jacker `K`
+
+Some say the radio responds even when it's off.
+Others say that's just paranoia. 
+But it does blink... sometimes.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/rebel_radio_field.webp"
+  defaultId="01HTXYZREB001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZREB001',
+      title: 'Static Pulse',
+      description: 'The dial moves on its own.',
+      image: 'https://images.unsplash.com/photo-1520591799316-eb8e0d74ba63?q=80&w=500&auto=format&fit=crop',
+      message: 'You hear breathing. Then coordinates.',
+      choices: [
+        { label: 'Respond with code phrase.', nextId: '01HTXYZREB002' },
+        { label: 'Power it down.', nextId: '01HTXYZREB003' }
+      ]
+    },
+    {
+      id: '01HTXYZREB002',
+      title: 'Connection Established',
+      description: 'A voice crackles through.',
+      image: '/images/scene_rebelcontact.jpg',
+      message: '“Help’s inbound. Stay alive till then.”'
+    },
+    {
+      id: '01HTXYZREB003',
+      title: 'Silent Frequencies',
+      description: 'You cut the feed.',
+      image: '/images/scene_radiosilent.jpg',
+      message: 'The air feels heavier. But safer.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/28/2025 - Rebel Radio added with encrypted communication hooks, jamming field, and random support call-ins

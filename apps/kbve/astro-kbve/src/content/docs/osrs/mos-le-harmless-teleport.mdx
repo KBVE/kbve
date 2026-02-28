@@ -1,0 +1,91 @@
+---
+title: Mos le'harmless teleport | OSRS Price Data
+description: "Mos le'harmless teleport: Teleports you to Mos Le'Harmless.. High alch: 6 GP, GE limit: 10,000."
+osrs:
+  id: 12411
+  name: Mos le'harmless teleport
+  slug: mos-le-harmless-teleport
+  examine: Teleports you to Mos Le'Harmless.
+  members: true
+  icon: Mos le'harmless teleport.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 10000
+  item:
+    type: teleport_scroll
+    destination: Mos Le'Harmless
+    tradeable: true
+    stackable: true
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Hard/Elite/Master
+        drop_rate: Varies by tier
+  related_items:
+    - item_id: 12642
+      item_name: Lumberyard teleport
+      slug: lumberyard-teleport
+      relationship: alternative
+      description: Another clue teleport scroll
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Teleport Scroll |
+| Destination | Mos Le'Harmless |
+| Tradeable | Yes |
+| Stackable | Yes |
+
+## Obtaining
+
+Reward from Treasure Trails (hard, elite, and master tiers).
+
+## Usage
+
+Right-click and select "Teleport" to travel to Mos Le'Harmless.
+
+**Teleport Location:**
+- Mos Le'Harmless island
+- Near the docks
+- Close to Trouble Brewing minigame
+
+## Common Uses
+
+- Cave horrors (black mask farming)
+- Trouble Brewing minigame
+- Morytania Diary tasks
+- Clue scroll steps
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Tips:**
+- Essential for black mask farming
+- Useful for cave horror tasks
+- Stock up for slayer
+
+<Adsense />

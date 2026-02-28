@@ -1,0 +1,110 @@
+---
+title: Nihil horn | OSRS Price Data
+description: "Nihil horn: The horn of a proud nihil.. High alch: 1,200,000 GP."
+osrs:
+  id: 26372
+  name: Nihil horn
+  slug: nihil-horn
+  examine: The horn of a proud nihil.
+  members: true
+  icon: Nihil horn.png
+  value: 2000000
+  lowalch: 800000
+  highalch: 1200000
+  limit: null
+  item:
+    type: upgrade material
+    tradeable: true
+    weight: 0.006
+  obtaining:
+    - source: Nex
+      drop_rate: 1/258
+  recipes:
+    - materials:
+        - item_id: 26372
+          item_name: Nihil horn
+          quantity: 1
+        - item_id: 11785
+          item_name: Armadyl crossbow
+          quantity: 1
+        - item_id: 26231
+          item_name: Nihil shard
+          quantity: 250
+      product: Zaryte crossbow
+      product_id: 26374
+  related_items:
+    - item_id: 11785
+      item_name: Armadyl crossbow
+      slug: armadyl-crossbow
+      relationship: component
+      description: Base weapon for upgrade
+    - item_id: 26374
+      item_name: Zaryte crossbow
+      slug: zaryte-crossbow
+      relationship: product
+      description: BiS crossbow created
+    - item_id: 26231
+      item_name: Nihil shard
+      slug: nihil-shard
+      relationship: component
+      description: Required crafting material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Upgrade Material |
+| Tradeable | Yes |
+| Weight | 0.006 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Nex | 1/258 |
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Zaryte crossbow | Armadyl crossbow + Nihil horn + 250 Nihil shards |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~300M gp
+
+**Tips:**
+- Nex exclusive drop
+- Creates BiS crossbow
+- High value unique
+
+## Related Items
+
+- [Nex](/osrs/nex/) - Boss source
+- [Zaryte crossbow](/osrs/zaryte-crossbow/) - Created weapon
+- [Armadyl crossbow](/osrs/armadyl-crossbow/) - Base weapon
+
+<Adsense />

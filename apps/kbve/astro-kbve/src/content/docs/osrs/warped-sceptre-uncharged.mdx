@@ -1,0 +1,37 @@
+---
+title: Warped sceptre (uncharged) | OSRS Price Data
+description: "Warped sceptre (uncharged): A magical warped weapon.. High alch: 90,000 GP."
+osrs:
+  id: 28583
+  name: Warped sceptre (uncharged)
+  slug: warped-sceptre-uncharged
+  examine: A magical warped weapon.
+  members: true
+  icon: Warped sceptre (uncharged).png
+  value: 150000
+  lowalch: 60000
+  highalch: 90000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

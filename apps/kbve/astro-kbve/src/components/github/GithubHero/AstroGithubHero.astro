@@ -1,0 +1,1182 @@
+---
+/**
+ * AstroGithubHero - Pure Astro component for displaying GitHub contributors
+ * Fetches contributor data at build time - zero client-side JavaScript
+ * Features: Animated glow border, CSS-only tooltips, medal rankings
+ * Supports i18n via prop passthrough for all text strings
+ */
+
+interface Props {
+	limit?: number;
+	class?: string;
+	// i18n text props
+	title?: string;
+	subtitle?: string;
+	commitsLabel?: string;
+	viewAllLabel?: string;
+	issuesLabel?: string;
+	projectLabel?: string;
+	errorMessage?: string;
+	// Rank labels for top 3
+	rank1Label?: string;
+	rank2Label?: string;
+	rank3Label?: string;
+	// a11y text
+	newTabLabel?: string;
+}
+
+interface Contributor {
+	id: number;
+	login: string;
+	avatar_url: string;
+	html_url: string;
+	contributions: number;
+}
+
+const {
+	limit = 10,
+	class: className = '',
+	// i18n defaults
+	title = 'Top Contributors',
+	subtitle = 'Thanks to everyone helping build the platform!',
+	commitsLabel = 'commits',
+	viewAllLabel = 'View all contributors',
+	issuesLabel = 'Issues',
+	projectLabel = 'Project Board',
+	errorMessage = 'Unable to load contributors. Please try again later.',
+	rank1Label = '1st Place',
+	rank2Label = '2nd Place',
+	rank3Label = '3rd Place',
+	newTabLabel = '(opens in new tab)',
+} = Astro.props;
+
+// Hardcoded repo config
+const GITHUB_OWNER = 'kbve';
+const GITHUB_REPO = 'kbve';
+const GITHUB_API_URL = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contributors`;
+const GITHUB_CONTRIBUTORS_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/graphs/contributors`;
+const GITHUB_ISSUES_URL = `https://github.com/${GITHUB_OWNER}/${GITHUB_REPO}/issues`;
+const GITHUB_PROJECT_URL = 'https://github.com/orgs/KBVE/projects/5';
+
+// Bot accounts to filter out
+const EXCLUDED_USERS = ['actions-user', 'github-actions[bot]'];
+
+// Fetch contributors at build time
+let contributors: Contributor[] = [];
+let error: string | null = null;
+
+try {
+	// Fetch extra to account for filtered bots
+	const response = await fetch(
+		`${GITHUB_API_URL}?per_page=${limit + EXCLUDED_USERS.length + 5}`,
+		{
+			headers: { Accept: 'application/vnd.github.v3+json' },
+		},
+	);
+
+	if (!response.ok) {
+		throw new Error(`GitHub API error: ${response.status}`);
+	}
+
+	const allContributors: Contributor[] = await response.json();
+
+	// Filter out bots and limit to requested count
+	contributors = allContributors
+		.filter((c) => !EXCLUDED_USERS.includes(c.login))
+		.slice(0, limit);
+} catch (err) {
+	error = err instanceof Error ? err.message : 'Failed to fetch contributors';
+	console.error('GithubHero fetch error:', error);
+}
+
+// Rank labels for tooltips (using i18n props)
+const rankLabels = [rank1Label, rank2Label, rank3Label];
+const getRankLabel = (index: number): string => {
+	return rankLabels[index] ?? `#${index + 1}`;
+};
+---
+
+<section
+	class:list={['github-hero', className]}
+	aria-labelledby="github-hero-title">
+	<div class="github-hero-inner">
+		<div class="max-w-4xl mx-auto px-4">
+			<!-- Header -->
+			<div class="text-center mb-10">
+				<h2
+					id="github-hero-title"
+					class="text-3xl md:text-4xl font-bold text-[var(--sl-color-white)] mb-3">
+					{title}
+				</h2>
+				<p class="text-lg text-[var(--sl-color-gray-2)]">{subtitle}</p>
+			</div>
+
+			{
+				error ? (
+					<div class="text-center" role="alert">
+						<p class="text-[var(--sl-color-gray-3)]">
+							{errorMessage}
+						</p>
+					</div>
+				) : (
+					<div
+						class="carousel-wrapper"
+						style={`--quantity: ${contributors.length}`}
+						role="list"
+						aria-label="Contributors carousel">
+						<div class="carousel-inner">
+							{contributors.map((contributor, index) => {
+								const isTopThree = index < 3;
+								const rankLabel = getRankLabel(index);
+								const tooltipId = `tooltip-${contributor.id}`;
+
+								return (
+									<a
+										href={contributor.html_url}
+										target="_blank"
+										rel="noopener noreferrer"
+										class:list={[
+											'carousel-card',
+											isTopThree && 'carousel-card-top',
+											index === 0 && 'carousel-card-gold',
+											index === 1 &&
+												'carousel-card-silver',
+											index === 2 &&
+												'carousel-card-bronze',
+										]}
+										style={`--index: ${index}`}
+										aria-describedby={tooltipId}
+										role="listitem">
+										<span
+											class="carousel-tooltip"
+											role="tooltip"
+											id={tooltipId}>
+											<strong>{contributor.login}</strong>
+											<span class="tooltip-rank">
+												{rankLabel}
+											</span>
+											<span class="tooltip-commits">
+												{contributor.contributions.toLocaleString()}{' '}
+												{commitsLabel}
+											</span>
+										</span>
+
+										{isTopThree && (
+											<span
+												class="carousel-medal"
+												aria-hidden="true">
+												{index === 0
+													? '🥇'
+													: index === 1
+														? '🥈'
+														: '🥉'}
+											</span>
+										)}
+
+										<div class="carousel-avatar">
+											<img
+												src={contributor.avatar_url}
+												alt={`${contributor.login}'s avatar`}
+												loading="lazy"
+												decoding="async"
+											/>
+										</div>
+
+										<span class="carousel-name">
+											{contributor.login}
+										</span>
+
+										<span class="carousel-commits">
+											{contributor.contributions.toLocaleString()}{' '}
+											{commitsLabel}
+										</span>
+
+										<span class="sr-only">
+											{newTabLabel}
+										</span>
+									</a>
+								);
+							})}
+						</div>
+					</div>
+				)
+			}
+
+			<!-- Action buttons -->
+			<div class="github-hero-actions">
+				<a
+					href={GITHUB_CONTRIBUTORS_URL}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="github-hero-cta">
+					<svg
+						class="w-5 h-5"
+						fill="currentColor"
+						viewBox="0 0 24 24"
+						aria-hidden="true">
+						<path
+							fill-rule="evenodd"
+							d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"
+							clip-rule="evenodd">
+						</path>
+					</svg>
+					{viewAllLabel}
+					<span class="sr-only">{newTabLabel}</span>
+				</a>
+
+				<!-- Issues button -->
+				<a
+					href={GITHUB_ISSUES_URL}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="github-hero-icon-btn github-hero-icon-btn-issues"
+					aria-label={`${issuesLabel} ${newTabLabel}`}>
+					<span class="icon-btn-tooltip">{issuesLabel}</span>
+					<span class="icon-btn-symbol" aria-hidden="true">!</span>
+				</a>
+
+				<!-- Project button -->
+				<a
+					href={GITHUB_PROJECT_URL}
+					target="_blank"
+					rel="noopener noreferrer"
+					class="github-hero-icon-btn github-hero-icon-btn-project"
+					aria-label={`${projectLabel} ${newTabLabel}`}>
+					<span class="icon-btn-tooltip">{projectLabel}</span>
+					<span class="icon-btn-symbol" aria-hidden="true">?</span>
+				</a>
+			</div>
+		</div>
+	</div>
+</section>
+
+<style>
+	/* Screen reader only utility */
+	.sr-only {
+		position: absolute;
+		width: 1px;
+		height: 1px;
+		padding: 0;
+		margin: -1px;
+		overflow: hidden;
+		clip: rect(0, 0, 0, 0);
+		white-space: nowrap;
+		border: 0;
+	}
+
+	/* Contributors grid - reset list styles */
+	.contributor-grid {
+		display: flex;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 1.5rem;
+		list-style: none !important;
+		padding: 0 !important;
+		margin: 0 !important;
+	}
+
+	@media (min-width: 768px) {
+		.contributor-grid {
+			gap: 2rem;
+		}
+	}
+
+	.contributor-grid li {
+		list-style: none !important;
+		list-style-type: none !important;
+	}
+
+	.contributor-grid li::marker {
+		content: none !important;
+		display: none !important;
+	}
+
+	.contributor-grid li::before {
+		content: none !important;
+		display: none !important;
+	}
+
+	/* Respect reduced motion preferences */
+	@media (prefers-reduced-motion: reduce) {
+		.github-hero::before,
+		.github-hero::after,
+		.github-hero-icon-btn::before,
+		.carousel-inner {
+			animation: none;
+		}
+		.contributor-card,
+		.github-hero-cta,
+		.github-hero-icon-btn,
+		.contributor-tooltip,
+		.carousel-wrapper,
+		.carousel-inner,
+		.carousel-card {
+			transition: none;
+		}
+	}
+
+	/* ============================================
+       3D Carousel Styles
+       Default: Rotating 3D carousel
+       On hover: Slows down and flattens (no layout shift)
+       ============================================ */
+
+	.carousel-wrapper {
+		/* Smaller cards, tighter radius */
+		--card-width: 75px;
+		--card-height: 100px;
+		--translateZ: 140px;
+		--rotateX: -8deg;
+		--perspective: 800px;
+
+		position: relative;
+		width: 100%;
+		height: 220px; /* Fixed height - no layout shift */
+		margin-bottom: 1.5rem;
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		perspective: var(--perspective);
+		overflow: visible;
+	}
+
+	.carousel-inner {
+		position: relative;
+		width: var(--card-width);
+		height: var(--card-height);
+		transform-style: preserve-3d;
+		animation: carousel-rotate 20s linear infinite;
+		/* Smooth transition for transform only */
+		transition: transform 0.8s cubic-bezier(0.33, 1, 0.68, 1);
+	}
+
+	@keyframes carousel-rotate {
+		from {
+			transform: perspective(var(--perspective)) rotateX(var(--rotateX))
+				rotateY(0deg);
+		}
+		to {
+			transform: perspective(var(--perspective)) rotateX(var(--rotateX))
+				rotateY(360deg);
+		}
+	}
+
+	.carousel-card {
+		position: absolute;
+		inset: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		padding: 0.5rem 0.35rem;
+		gap: 0.15rem;
+
+		background: linear-gradient(
+			145deg,
+			var(--sl-color-gray-6),
+			var(--sl-color-bg-nav)
+		);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.75rem;
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+		text-decoration: none;
+		backface-visibility: visible;
+
+		/* Position each card in the 3D space */
+		transform: rotateY(calc((360deg / var(--quantity)) * var(--index)))
+			translateZ(var(--translateZ));
+		/* Smooth transform transition */
+		transition:
+			transform 0.8s cubic-bezier(0.33, 1, 0.68, 1),
+			box-shadow 0.3s ease,
+			border-color 0.3s ease;
+	}
+
+	/* Carousel card hover effects (while still in 3D mode) */
+	.carousel-card:hover {
+		border-color: var(--sl-color-accent);
+		box-shadow: 0 8px 30px rgba(6, 182, 212, 0.3);
+	}
+
+	.carousel-card:focus-visible {
+		outline: none;
+		box-shadow:
+			0 0 0 2px var(--sl-color-accent),
+			0 8px 30px rgba(6, 182, 212, 0.3);
+	}
+
+	/* Carousel avatar */
+	.carousel-avatar {
+		width: 2.5rem;
+		height: 2.5rem;
+		border-radius: 50%;
+		overflow: hidden;
+		box-shadow: 0 0 0 2px var(--sl-color-gray-5);
+		transition: box-shadow 0.2s ease;
+	}
+
+	.carousel-avatar img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.carousel-card:hover .carousel-avatar {
+		box-shadow:
+			0 0 0 2px var(--sl-color-accent),
+			0 4px 15px rgba(6, 182, 212, 0.3);
+	}
+
+	/* Top 3 styling */
+	.carousel-card-gold .carousel-avatar {
+		box-shadow:
+			0 0 0 3px #facc15,
+			0 4px 15px rgba(250, 204, 21, 0.4);
+	}
+	.carousel-card-silver .carousel-avatar {
+		box-shadow:
+			0 0 0 3px #d1d5db,
+			0 4px 15px rgba(209, 213, 219, 0.4);
+	}
+	.carousel-card-bronze .carousel-avatar {
+		box-shadow:
+			0 0 0 3px #f59e0b,
+			0 4px 15px rgba(245, 158, 11, 0.4);
+	}
+
+	.carousel-card-gold:hover .carousel-avatar {
+		box-shadow:
+			0 0 0 3px #facc15,
+			0 8px 25px rgba(250, 204, 21, 0.5);
+	}
+	.carousel-card-silver:hover .carousel-avatar {
+		box-shadow:
+			0 0 0 3px #d1d5db,
+			0 8px 25px rgba(209, 213, 219, 0.5);
+	}
+	.carousel-card-bronze:hover .carousel-avatar {
+		box-shadow:
+			0 0 0 3px #f59e0b,
+			0 8px 25px rgba(245, 158, 11, 0.5);
+	}
+
+	/* Carousel text */
+	.carousel-name {
+		font-size: 0.6rem;
+		font-weight: 600;
+		color: var(--sl-color-text);
+		text-align: center;
+		max-width: 100%;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		white-space: nowrap;
+		transition: color 0.2s ease;
+	}
+
+	.carousel-card:hover .carousel-name {
+		color: var(--sl-color-accent);
+	}
+
+	.carousel-commits {
+		font-size: 0.5rem;
+		color: var(--sl-color-gray-3);
+		text-align: center;
+	}
+
+	/* Carousel medal */
+	.carousel-medal {
+		position: absolute;
+		top: 0.15rem;
+		right: 0.15rem;
+		font-size: 0.8rem;
+		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.4));
+		z-index: 10;
+	}
+
+	/* Carousel tooltip (hidden by default, shows on card hover in grid mode) */
+	.carousel-tooltip {
+		position: absolute;
+		bottom: calc(100% + 10px);
+		left: 50%;
+		transform: translateX(-50%) scale(0.9);
+		z-index: 100;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.5rem 0.75rem;
+		min-width: 120px;
+
+		background: var(--sl-color-black);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.5rem;
+		box-shadow: 0 8px 30px rgba(0, 0, 0, 0.4);
+
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition:
+			opacity 0.2s ease,
+			transform 0.2s ease,
+			visibility 0.2s;
+	}
+
+	.carousel-tooltip::after {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		border: 5px solid transparent;
+		border-top-color: var(--sl-color-gray-5);
+	}
+
+	.carousel-tooltip strong {
+		font-size: 0.8rem;
+		color: var(--sl-color-white);
+	}
+
+	.carousel-tooltip .tooltip-rank {
+		font-size: 0.7rem;
+		font-weight: 500;
+		color: var(--sl-color-accent);
+	}
+
+	.carousel-tooltip .tooltip-commits {
+		font-size: 0.65rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.carousel-card-gold .carousel-tooltip .tooltip-rank {
+		color: #facc15;
+	}
+	.carousel-card-silver .carousel-tooltip .tooltip-rank {
+		color: #d1d5db;
+	}
+	.carousel-card-bronze .carousel-tooltip .tooltip-rank {
+		color: #f59e0b;
+	}
+
+	/* ============================================
+       HOVER STATE: Flatten carousel in place
+       Triggered by parent .github-hero hover
+       No layout changes - only transform animations
+       ============================================ */
+
+	.github-hero:hover .carousel-inner {
+		/* Stop animation completely and force flat transform */
+		animation: none;
+		transform: perspective(var(--perspective)) rotateX(0deg) rotateY(0deg) !important;
+	}
+
+	.github-hero:hover .carousel-card {
+		/* Spread cards out horizontally in a flat line */
+		/* Each card moves from its circular position to a linear position */
+		--spread-offset: calc(
+			(var(--index) - (var(--quantity) - 1) / 2) * 85px
+		);
+		transform: rotateY(0deg) rotateX(0deg) translateX(var(--spread-offset))
+			translateZ(0px) !important;
+	}
+
+	.github-hero:hover .carousel-card:hover .carousel-tooltip,
+	.github-hero:hover .carousel-card:focus-visible .carousel-tooltip {
+		opacity: 1;
+		visibility: visible;
+		transform: translateX(-50%) scale(1);
+	}
+
+	/* Responsive adjustments */
+	@media (max-width: 640px) {
+		.carousel-wrapper {
+			--card-width: 55px;
+			--card-height: 75px;
+			--translateZ: 100px;
+			height: 180px;
+		}
+
+		.carousel-avatar {
+			width: 1.75rem;
+			height: 1.75rem;
+		}
+
+		.carousel-name {
+			font-size: 0.45rem;
+		}
+
+		.carousel-commits {
+			font-size: 0.35rem;
+		}
+
+		.carousel-medal {
+			font-size: 0.6rem;
+			top: 0.1rem;
+			right: 0.1rem;
+		}
+
+		.github-hero:hover .carousel-card {
+			--spread-offset: calc(
+				(var(--index) - (var(--quantity) - 1) / 2) * 60px
+			);
+		}
+	}
+
+	@media (min-width: 768px) {
+		.carousel-wrapper {
+			--card-width: 70px;
+			--card-height: 95px;
+			--translateZ: 130px;
+			height: 200px;
+		}
+
+		.carousel-avatar {
+			width: 2.25rem;
+			height: 2.25rem;
+		}
+
+		.carousel-name {
+			font-size: 0.55rem;
+		}
+
+		.carousel-commits {
+			font-size: 0.45rem;
+		}
+
+		.github-hero:hover .carousel-card {
+			--spread-offset: calc(
+				(var(--index) - (var(--quantity) - 1) / 2) * 78px
+			);
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.carousel-wrapper {
+			--card-width: 80px;
+			--card-height: 105px;
+			--translateZ: 160px;
+			height: 230px;
+		}
+
+		.carousel-avatar {
+			width: 2.5rem;
+			height: 2.5rem;
+		}
+
+		.carousel-name {
+			font-size: 0.6rem;
+		}
+
+		.carousel-commits {
+			font-size: 0.5rem;
+		}
+
+		.github-hero:hover .carousel-card {
+			--spread-offset: calc(
+				(var(--index) - (var(--quantity) - 1) / 2) * 90px
+			);
+		}
+	}
+
+	/* Main section with animated glow border */
+	.github-hero {
+		/* Use Starlight theme colors for the glow */
+		--glow-color-1: var(--sl-color-accent);
+		--glow-color-2: var(--sl-color-accent-high);
+		--glow-color-3: var(--sl-color-text-accent);
+
+		position: relative;
+		width: 100%;
+		padding: 3rem 0;
+		background: linear-gradient(
+			to bottom,
+			var(--sl-color-bg),
+			var(--sl-color-bg-nav)
+		);
+		border-radius: 1.5rem;
+		margin: 1rem 0;
+	}
+
+	/* Animated glow border effect */
+	.github-hero::before {
+		content: '';
+		position: absolute;
+		inset: 0;
+		border-radius: 1.5rem;
+		padding: 2px;
+		background: linear-gradient(
+			135deg,
+			var(--glow-color-1),
+			var(--glow-color-2),
+			var(--glow-color-3),
+			var(--glow-color-1)
+		);
+		background-size: 300% 300%;
+		animation: glow-rotate 8s ease infinite;
+		-webkit-mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		mask:
+			linear-gradient(#fff 0 0) content-box,
+			linear-gradient(#fff 0 0);
+		-webkit-mask-composite: xor;
+		mask-composite: exclude;
+		opacity: 0.6;
+		transition: opacity 0.3s ease;
+	}
+
+	.github-hero:hover::before {
+		opacity: 1;
+	}
+
+	/* Outer glow effect */
+	.github-hero::after {
+		content: '';
+		position: absolute;
+		inset: -4px;
+		border-radius: 1.75rem;
+		background: linear-gradient(
+			135deg,
+			var(--glow-color-1),
+			var(--glow-color-2),
+			var(--glow-color-3),
+			var(--glow-color-1)
+		);
+		background-size: 300% 300%;
+		animation: glow-rotate 8s ease infinite;
+		filter: blur(20px);
+		opacity: 0;
+		z-index: -1;
+		transition: opacity 0.5s ease;
+	}
+
+	.github-hero:hover::after {
+		opacity: 0.3;
+	}
+
+	@keyframes glow-rotate {
+		0%,
+		100% {
+			background-position: 0% 50%;
+		}
+		50% {
+			background-position: 100% 50%;
+		}
+	}
+
+	.github-hero-inner {
+		position: relative;
+		z-index: 1;
+	}
+
+	/* Contributor card with tooltip support */
+	.contributor-card {
+		position: relative;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 0.5rem;
+		border-radius: 0.75rem;
+		transition:
+			transform 0.2s ease,
+			box-shadow 0.2s ease;
+		isolation: isolate;
+		text-decoration: none;
+	}
+
+	.contributor-card:hover {
+		transform: translateY(-4px);
+	}
+
+	.contributor-card:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px var(--sl-color-accent);
+	}
+
+	.contributor-top-three {
+		order: -1;
+	}
+
+	/* Tooltip styles */
+	.contributor-tooltip {
+		position: absolute;
+		bottom: calc(100% + 12px);
+		left: 50%;
+		transform: translateX(-50%) scale(0.9);
+		z-index: 100;
+		isolation: isolate;
+
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.25rem;
+		padding: 0.75rem 1rem;
+		min-width: 140px;
+
+		background: var(--sl-color-black);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.5rem;
+		box-shadow:
+			0 10px 40px rgba(0, 0, 0, 0.4),
+			0 0 20px rgba(6, 182, 212, 0.1);
+
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition:
+			opacity 0.2s ease,
+			transform 0.2s ease,
+			visibility 0.2s;
+	}
+
+	/* Tooltip arrow */
+	.contributor-tooltip::after {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		border: 6px solid transparent;
+		border-top-color: var(--sl-color-gray-5);
+	}
+
+	.contributor-tooltip::before {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		border: 5px solid transparent;
+		border-top-color: var(--sl-color-black);
+		z-index: 1;
+	}
+
+	.contributor-card:hover .contributor-tooltip,
+	.contributor-card:focus-visible .contributor-tooltip {
+		opacity: 1;
+		visibility: visible;
+		transform: translateX(-50%) scale(1);
+	}
+
+	.contributor-tooltip strong {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.tooltip-rank {
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--sl-color-accent);
+	}
+
+	.tooltip-commits {
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	/* Medal colors in tooltip */
+	.contributor-gold .tooltip-rank {
+		color: #facc15;
+	}
+	.contributor-silver .tooltip-rank {
+		color: #d1d5db;
+	}
+	.contributor-bronze .tooltip-rank {
+		color: #f59e0b;
+	}
+
+	/* Medal emoji */
+	.contributor-medal {
+		position: absolute;
+		top: -0.5rem;
+		right: -0.5rem;
+		font-size: 1.25rem;
+		z-index: 10;
+		filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.3));
+	}
+
+	/* Avatar styles */
+	.contributor-avatar {
+		position: relative;
+		width: 3.5rem;
+		height: 3.5rem;
+		border-radius: 50%;
+		overflow: hidden;
+		transition: box-shadow 0.2s ease;
+		ring: 2px;
+		box-shadow: 0 0 0 2px var(--sl-color-gray-5);
+	}
+
+	.contributor-avatar-large {
+		width: 5rem;
+		height: 5rem;
+	}
+
+	@media (min-width: 768px) {
+		.contributor-avatar {
+			width: 4rem;
+			height: 4rem;
+		}
+		.contributor-avatar-large {
+			width: 6rem;
+			height: 6rem;
+		}
+	}
+
+	.contributor-avatar img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	/* Medal-specific avatar styles */
+	.contributor-gold .contributor-avatar {
+		box-shadow:
+			0 0 0 4px #facc15,
+			0 4px 20px rgba(250, 204, 21, 0.4);
+	}
+	.contributor-silver .contributor-avatar {
+		box-shadow:
+			0 0 0 4px #d1d5db,
+			0 4px 20px rgba(209, 213, 219, 0.4);
+	}
+	.contributor-bronze .contributor-avatar {
+		box-shadow:
+			0 0 0 4px #f59e0b,
+			0 4px 20px rgba(245, 158, 11, 0.4);
+	}
+
+	.contributor-card:hover .contributor-avatar {
+		box-shadow:
+			0 0 0 2px var(--sl-color-accent),
+			0 8px 25px rgba(6, 182, 212, 0.3);
+	}
+	.contributor-gold:hover .contributor-avatar {
+		box-shadow:
+			0 0 0 4px #facc15,
+			0 8px 30px rgba(250, 204, 21, 0.5);
+	}
+	.contributor-silver:hover .contributor-avatar {
+		box-shadow:
+			0 0 0 4px #d1d5db,
+			0 8px 30px rgba(209, 213, 219, 0.5);
+	}
+	.contributor-bronze:hover .contributor-avatar {
+		box-shadow:
+			0 0 0 4px #f59e0b,
+			0 8px 30px rgba(245, 158, 11, 0.5);
+	}
+
+	/* Username styles */
+	.contributor-name {
+		margin-top: 0.5rem;
+		font-size: 0.75rem;
+		font-weight: 500;
+		color: var(--sl-color-text);
+		transition: color 0.2s ease;
+	}
+
+	.contributor-name-large {
+		font-size: 0.875rem;
+	}
+
+	@media (min-width: 768px) {
+		.contributor-name-large {
+			font-size: 1rem;
+		}
+	}
+
+	.contributor-card:hover .contributor-name {
+		color: var(--sl-color-accent);
+	}
+
+	/* Commit count styles */
+	.contributor-commits {
+		font-size: 0.625rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.contributor-commits-large {
+		font-size: 0.75rem;
+	}
+
+	@media (min-width: 768px) {
+		.contributor-commits-large {
+			font-size: 0.875rem;
+		}
+	}
+
+	/* Action buttons container */
+	.github-hero-actions {
+		display: flex;
+		justify-content: center;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 2.5rem;
+		flex-wrap: wrap;
+	}
+
+	/* CTA button */
+	.github-hero-cta {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1.5rem;
+		border-radius: 0.5rem;
+		background: var(--sl-color-gray-6);
+		border: 1px solid var(--sl-color-gray-5);
+		color: var(--sl-color-text);
+		font-weight: 500;
+		text-decoration: none;
+		transition: all 0.2s ease;
+	}
+
+	.github-hero-cta:hover {
+		color: var(--sl-color-accent);
+		border-color: var(--sl-color-accent);
+		box-shadow: 0 0 20px rgba(6, 182, 212, 0.2);
+	}
+
+	.github-hero-cta:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px var(--sl-color-accent);
+	}
+
+	/* Icon buttons ([!] and [?]) */
+	.github-hero-icon-btn {
+		position: relative;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2.75rem;
+		height: 2.75rem;
+		border-radius: 0.5rem;
+		background: var(--sl-color-gray-6);
+		border: 1px solid var(--sl-color-gray-5);
+		text-decoration: none;
+		transition: all 0.2s ease;
+		isolation: isolate;
+	}
+
+	.icon-btn-symbol {
+		font-size: 1.25rem;
+		font-weight: 700;
+		font-family: monospace;
+		color: var(--sl-color-text);
+		transition: all 0.2s ease;
+	}
+
+	/* Issues button - orange/red theme */
+	.github-hero-icon-btn-issues:hover {
+		border-color: #f97316;
+		box-shadow: 0 0 20px rgba(249, 115, 22, 0.3);
+	}
+
+	.github-hero-icon-btn-issues:hover .icon-btn-symbol {
+		color: #f97316;
+		text-shadow: 0 0 10px rgba(249, 115, 22, 0.5);
+	}
+
+	/* Project button - purple theme */
+	.github-hero-icon-btn-project:hover {
+		border-color: #a855f7;
+		box-shadow: 0 0 20px rgba(168, 85, 247, 0.3);
+	}
+
+	.github-hero-icon-btn-project:hover .icon-btn-symbol {
+		color: #a855f7;
+		text-shadow: 0 0 10px rgba(168, 85, 247, 0.5);
+	}
+
+	.github-hero-icon-btn:focus-visible {
+		outline: none;
+		box-shadow: 0 0 0 2px var(--sl-color-accent);
+	}
+
+	/* Icon button tooltips */
+	.icon-btn-tooltip {
+		position: absolute;
+		bottom: calc(100% + 8px);
+		left: 50%;
+		transform: translateX(-50%) scale(0.9);
+		z-index: 100;
+
+		padding: 0.375rem 0.75rem;
+		white-space: nowrap;
+		font-size: 0.75rem;
+		font-weight: 500;
+
+		background: var(--sl-color-black);
+		border: 1px solid var(--sl-color-gray-5);
+		border-radius: 0.375rem;
+		color: var(--sl-color-white);
+		box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+
+		opacity: 0;
+		visibility: hidden;
+		pointer-events: none;
+		transition: all 0.2s ease;
+	}
+
+	.icon-btn-tooltip::after {
+		content: '';
+		position: absolute;
+		top: 100%;
+		left: 50%;
+		transform: translateX(-50%);
+		border: 5px solid transparent;
+		border-top-color: var(--sl-color-gray-5);
+	}
+
+	.github-hero-icon-btn:hover .icon-btn-tooltip,
+	.github-hero-icon-btn:focus-visible .icon-btn-tooltip {
+		opacity: 1;
+		visibility: visible;
+		transform: translateX(-50%) scale(1);
+	}
+
+	/* Pulse animation for icon buttons */
+	.github-hero-icon-btn::before {
+		content: '';
+		position: absolute;
+		inset: -2px;
+		border-radius: 0.625rem;
+		opacity: 0;
+		transition: opacity 0.3s ease;
+	}
+
+	.github-hero-icon-btn-issues::before {
+		background: radial-gradient(
+			circle,
+			rgba(249, 115, 22, 0.4) 0%,
+			transparent 70%
+		);
+	}
+
+	.github-hero-icon-btn-project::before {
+		background: radial-gradient(
+			circle,
+			rgba(168, 85, 247, 0.4) 0%,
+			transparent 70%
+		);
+	}
+
+	.github-hero-icon-btn:hover::before {
+		opacity: 1;
+		animation: pulse-glow 1.5s ease-in-out infinite;
+	}
+
+	@keyframes pulse-glow {
+		0%,
+		100% {
+			transform: scale(1);
+			opacity: 0.5;
+		}
+		50% {
+			transform: scale(1.1);
+			opacity: 1;
+		}
+	}
+</style>

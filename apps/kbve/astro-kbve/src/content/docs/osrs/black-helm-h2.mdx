@@ -1,0 +1,37 @@
+---
+title: Black helm (h2) | OSRS Price Data
+description: "Black helm (h2): A black helmet with a heraldic design.. High alch: 633 GP, GE limit: 70."
+osrs:
+  id: 10308
+  name: Black helm (h2)
+  slug: black-helm-h2
+  examine: A black helmet with a heraldic design.
+  members: false
+  icon: Black helm (h2).png
+  value: 1056
+  lowalch: 422
+  highalch: 633
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

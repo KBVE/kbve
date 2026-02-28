@@ -1,0 +1,125 @@
+---
+title: Zaryte vambraces | OSRS Price Data
+description: "Zaryte vambraces is a members hands slot item requiring 80 Ranged. High alch: 120,000 GP, GE limit: 7."
+osrs:
+  id: 26235
+  name: Zaryte vambraces
+  slug: zaryte-vambraces
+  examine: A pair of ancient vambraces.
+  members: true
+  icon: Zaryte vambraces.png
+  value: 200000
+  lowalch: 80000
+  highalch: 120000
+  limit: 7
+  equipment:
+    slot: hands
+    type: ranged
+    attack_style: ranged
+    requirements:
+      ranged: 80
+    stats:
+      attack_ranged: 18
+      defence_ranged: 2
+      prayer: 1
+  effect:
+    passive: true
+    bolt_save_chance: 10
+    description: 10% chance to prevent incoming damage from consuming enchanted bolt effects
+  drop_table:
+    sources:
+      - source: Nex
+        source_id: 11278
+        combat_level: 1001
+        quantity: "1"
+        rarity: Rare
+        drop_rate: 1/43 per unique roll
+        members_only: true
+  related_items:
+    - item_id: 25865
+      item_name: Zaryte crossbow
+      slug: zaryte-crossbow
+      relationship: alternative
+      description: Nex crossbow
+    - item_id: 7462
+      item_name: Barrows gloves
+      slug: barrows-gloves
+      relationship: alternative
+      description: Budget alternative
+    - item_id: 19547
+      item_name: Necklace of anguish
+      slug: necklace-of-anguish
+      relationship: alternative
+      description: Ranged amulet
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Rare drop from Nex.
+
+| Boss | Drop Rate |
+|------|-----------|
+| Nex | 1/43 per unique roll |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged attack | +18 |
+| Prayer | +1 |
+| Ranged defence | +2 |
+| Requirements | 80 Ranged |
+
+**Best-in-slot ranged gloves.**
+
+## Effects
+
+**Special effect:**
+- 10% chance to prevent incoming damage from consuming enchanted bolt effects
+
+## Usage
+
+BiS ranged gloves for:
+- All ranged combat
+- Bossing
+- Raids
+- Crossbow builds
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~72M gp
+
+**Tips:**
+- Only from Nex
+- Best ranged hand slot
+- Pairs with Zaryte crossbow
+
+## Related Items
+
+- [Zaryte crossbow](/osrs/zaryte-crossbow/) - Nex crossbow
+- [Barrows gloves](/osrs/barrows-gloves/) - Budget alternative
+- [Necklace of anguish](/osrs/necklace-of-anguish/) - Ranged amulet
+
+<Adsense />

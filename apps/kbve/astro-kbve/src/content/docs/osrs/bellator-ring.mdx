@@ -1,0 +1,141 @@
+---
+title: Bellator ring | OSRS Price Data
+description: "Bellator ring is a members ring slot item. High alch: 84,000 GP."
+osrs:
+  id: 28316
+  name: Bellator ring
+  slug: bellator-ring
+  examine: An occult ring that grants immense slicing power.
+  members: true
+  icon: Bellator ring.png
+  value: 140000
+  lowalch: 56000
+  highalch: 84000
+  limit: null
+  equipment:
+    slot: ring
+    type: melee
+    requirements:
+      quest: The Whisperer kill
+    stats:
+      attack_slash: 20
+      strength: 6
+  creation:
+    components:
+      - item_id: 28275
+        item_name: Warrior icon
+      - item_id: 28292
+        item_name: Bellator vestige
+      - item_id: 565
+        item_name: Blood rune
+        quantity: 500
+    materials:
+      - item_name: Chromium ingot
+        quantity: 3
+      - item_name: Ring mould
+        quantity: 1
+    skill_requirements:
+      magic: 90
+      crafting: 80
+  drop_table:
+    sources:
+      - source: The Whisperer
+        source_id: 12204
+        combat_level: 600
+        quantity: 1 (Bellator vestige)
+        rarity: Rare
+        members_only: true
+  related_items:
+    - item_id: 28307
+      item_name: Ultor ring
+      slug: ultor-ring
+      relationship: alternative
+      description: Strength focused
+    - item_id: 11772
+      item_name: Warrior ring (i)
+      slug: warrior-ring-i
+      relationship: alternative
+      description: Budget alternative
+    - item_id: 28292
+      item_name: Bellator vestige
+      slug: bellator-vestige
+      relationship: component
+      description: From The Whisperer
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ring |
+| Type | Melee Ring |
+| Tradeable | Yes |
+| Weight | 0.012 kg |
+
+## Creation
+
+1. Combine [Warrior icon](/osrs/warrior-icon/) + [Bellator vestige](/osrs/bellator-vestige/) + 500 blood runes
+2. Craft at furnace with 3 chromium ingots + ring mould
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 90 (boostable) |
+| Crafting | 80 (boostable) |
+| Kill The Whisperer | 1 time |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Slash | +20 |
+| Strength | +6 |
+
+**Requirements:** The Whisperer kill
+
+## Usage
+
+BiS for:
+- Slash accuracy builds
+- High-def targets
+- Accuracy-focused combat
+
+**Highest slash attack bonus ring.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~33M gp
+
+**Tips:**
+- Vestige from The Whisperer
+- Cannot be imbued
+- DT2 content
+
+## Related Items
+
+- [Ultor ring](/osrs/ultor-ring/) - Strength focused
+- [Warrior ring (i)](/osrs/warrior-ring-i/) - Budget alternative
+- [The Whisperer](/osrs/the-whisperer/) - Vestige source
+
+<Adsense />

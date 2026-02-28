@@ -1,0 +1,168 @@
+---
+title: Onyx | OSRS Price Data
+description: "Onyx: This looks valuable.. High alch: 120,000 GP, GE limit: 11,000."
+osrs:
+  id: 6573
+  name: Onyx
+  slug: onyx
+  examine: This looks valuable.
+  members: true
+  icon: Onyx.png
+  value: 200000
+  lowalch: 80000
+  highalch: 120000
+  limit: 11000
+  material:
+    type: gem
+    tier: highest
+  crafting:
+    cutting_level: 67
+    cutting_xp: 167.5
+  shops:
+    - shop_name: TzHaar shops
+      price: 300000
+      currency: Tokkul
+  drop_table:
+    sources:
+      - source: Tekton
+        source_id: 7540
+        combat_level: 0
+        quantity: "1"
+        rarity: 1/450
+        members_only: true
+      - source: Zulrah
+        source_id: 2042
+        combat_level: 725
+        quantity: "1"
+        rarity: rare
+        members_only: true
+      - source: Skotizo
+        source_id: 7286
+        combat_level: 321
+        quantity: "1"
+        rarity: rare
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 67
+      xp: 115
+      materials:
+        - item_name: Onyx
+          item_id: 6573
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Onyx ring
+      product_id: 6575
+      product_quantity: 1
+      facility: Furnace
+      members_only: true
+    - skill: crafting
+      level: 90
+      xp: 165
+      materials:
+        - item_name: Onyx
+          item_id: 6573
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Onyx amulet (u)
+      product_id: 6579
+      product_quantity: 1
+      facility: Furnace
+      members_only: true
+  related_items:
+    - item_id: 6585
+      item_name: Amulet of fury
+      slug: amulet-of-fury
+      relationship: product
+      description: Best product
+    - item_id: 19496
+      item_name: Zenyte
+      slug: zenyte
+      relationship: alternative
+      description: Higher tier gem
+    - item_id: 19529
+      item_name: Zenyte shard
+      slug: zenyte-shard
+      relationship: component
+      description: Zenyte creation
+    - item_id: 9245
+      item_name: Onyx bolts (e)
+      slug: onyx-bolts-e
+      relationship: product
+      description: PvP bolts
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Method |
+|--------|--------|
+| TzHaar shops | 300,000 Tokkul |
+| Tekton (CoX) | 1/450 drop |
+| Zulrah | Rare drop |
+| Skotizo | Rare drop |
+
+## Crafting
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Onyx ring | 67 | 115 |
+| Onyx necklace | 82 | 120 |
+| Onyx amulet | 90 | 165 |
+| Onyx bracelet | 84 | 125 |
+| Onyx bolt tips (24) | 67 | 9.4 |
+
+## Enchanted Jewelry
+
+| Item | Effect |
+|------|--------|
+| Ring of stone | Transform to rock |
+| Berserker necklace | +5 obsidian damage |
+| Amulet of fury | Best-in-slot hybrid amulet |
+| Regen bracelet | 2x HP regen |
+
+## Market Flip Strategy
+
+**High-Value Gem:**
+- Amulet of fury demand
+- TzHaar shop alternative
+- Zenyte creation component
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Amulet of fury crafting
+- Zenyte creation
+- Onyx bolt tips
+- Berserker necklace
+
+**Tips:**
+- TzHaar shop if Tokkul rich
+- Raids drops add supply
+- Required for zenyte gems
+- High alch fury for profit
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+id: "01JCKH7M9K2XQZW3P4R5S6T7V8"
+guid: "81574b4fbd644460b950d519cc5d6cb4"
+drafted: false
+title: "Oak Tree"
+name: "Oak Tree"
+description: "A sturdy oak tree that provides wood when harvested"
+type: "resource"
+resourceType: "wood"
+imagePath: "/assets/mapdb/tree/oak/oak_tree.png"
+pixelsPerUnit: 25
+pivotX: 0.5
+pivotY: 0.5
+sortingLayer: "Foreground"
+amount: 100
+maxAmount: 100
+harvestYield: 5
+harvestTime: 2.5
+isHarvestable: true
+spawnWeight: 0.4
+spawnCount: 50
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+# Oak Tree
+
+A common deciduous tree found throughout the kingdom. Provides quality hardwood for construction.
+
+<MapDBPanel data={frontmatter} />
+
+<Adsense />
+
+## Harvesting Notes
+- Requires basic axe
+- Yields 5 wood per harvest

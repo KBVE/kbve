@@ -1,0 +1,37 @@
+---
+title: Roast beast meat | OSRS Price Data
+description: "Roast beast meat: A delicious looking slab of roast beast.. High alch: 15 GP, GE limit: 6,000."
+osrs:
+  id: 9988
+  name: Roast beast meat
+  slug: roast-beast-meat
+  examine: A delicious looking slab of roast beast.
+  members: true
+  icon: Roast beast meat.png
+  value: 25
+  lowalch: 10
+  highalch: 15
+  limit: 6000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

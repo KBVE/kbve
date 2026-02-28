@@ -1,0 +1,37 @@
+---
+title: Corrupted volatile nightmare staff | OSRS Price Data
+description: "Corrupted volatile nightmare staff: An ancient staff corrupted by darkness. A volatile orb has been added to it.. High alch: 150,000 GP."
+osrs:
+  id: 29602
+  name: Corrupted volatile nightmare staff
+  slug: corrupted-volatile-nightmare-staff
+  examine: An ancient staff corrupted by darkness. A volatile orb has been added to it.
+  members: true
+  icon: Corrupted volatile nightmare staff.png
+  value: 250000
+  lowalch: 100000
+  highalch: 150000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

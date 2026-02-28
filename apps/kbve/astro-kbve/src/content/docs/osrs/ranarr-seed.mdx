@@ -1,0 +1,103 @@
+---
+title: Ranarr seed | OSRS Price Data
+description: "Ranarr seed: A ranarr seed - plant in a herb patch.. High alch: 30 GP, GE limit: 200."
+osrs:
+  id: 5295
+  name: Ranarr seed
+  slug: ranarr-seed
+  examine: A ranarr seed - plant in a herb patch.
+  members: true
+  icon: Ranarr seed 5.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 200
+  seed:
+    type: herb
+    tier: mid-high
+  farming:
+    level: 32
+    xp_plant: 27
+    xp_harvest: 30.5
+    growth_time: 80
+    patches: 9
+    product_id: 207
+    product_name: Grimy ranarr weed
+  related_items:
+    - item_id: 207
+      item_name: Grimy ranarr weed
+      slug: grimy-ranarr-weed
+      relationship: product
+      description: Harvested product
+    - item_id: 257
+      item_name: Ranarr weed
+      slug: ranarr-weed
+      relationship: product
+      description: Cleaned herb
+    - item_id: 2434
+      item_name: Prayer potion(4)
+      slug: prayer-potion-4
+      relationship: product
+      description: Made from ranarr
+    - item_id: 21483
+      item_name: Ultracompost
+      slug: ultracompost
+      relationship: component
+      description: Maximizes yield
+    - item_id: 5300
+      item_name: Snapdragon seed
+      slug: snapdragon-seed
+      relationship: alternative
+      description: Alternative profitable herb
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Farming
+
+Plant in a herb patch to grow Grimy ranarr weed.
+
+| Requirement | Value |
+|-------------|-------|
+| Farming Level | 32 |
+| Growth time | 80 minutes |
+| XP (plant) | 27 |
+| XP (harvest) | 30.5 per herb |
+
+## Market Flip Strategy
+
+**Herb Farming Profit:**
+- Calculate: `(Grimy ranarr × average yield) - Seed price - Compost`
+- Average yield: 6-15 herbs (ultracompost + farming gear)
+- One of the most profitable herb runs
+
+**Yield Boosters:**
+- Ultracompost (essential)
+- Magic secateurs (10% more yield)
+- Farming cape (5% more yield)
+- Attas plant (increased yield)
+
+**Tips:**
+- 9 herb patches available
+- ~10 minute runs, 80 minute regrowth
+- Very profitable GP/hr considering time investment
+
+<Adsense />

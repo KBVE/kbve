@@ -1,0 +1,127 @@
+---
+title: Sanfew serum(4) | OSRS Price Data
+description: "Sanfew serum(4) is a 4-dose members potion that sanfew_serum. High alch: 180 GP, GE limit: 2,000."
+osrs:
+  id: 10925
+  name: Sanfew serum(4)
+  slug: sanfew-serum-4
+  examine: A 4 dose Sanfew Serum.
+  members: true
+  icon: Sanfew serum(4).png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 2000
+  potion:
+    doses: 4
+    type: restoration
+    effect: sanfew_serum
+  herblore:
+    level: 65
+    xp: 192
+    quest_required: Zogre Flesh Eaters
+  recipes:
+    - skill: herblore
+      level: 65
+      xp: 192
+      materials:
+        - item_name: Super restore(4)
+          item_id: 3024
+          quantity: 1
+        - item_name: Unicorn horn dust
+          item_id: 235
+          quantity: 1
+        - item_name: Snake weed
+          item_id: 1526
+          quantity: 1
+        - item_name: Nail beast nails
+          item_id: 10937
+          quantity: 1
+      product: Sanfew serum(4)
+      product_id: 10925
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 3024
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: component
+      description: Base potion
+    - item_id: 235
+      item_name: Unicorn horn dust
+      slug: unicorn-horn-dust
+      relationship: component
+      description: Secondary
+    - item_id: 1526
+      item_name: Snake weed
+      slug: snake-weed
+      relationship: component
+      description: Secondary
+    - item_id: 2434
+      item_name: Prayer potion(4)
+      slug: prayer-potion-4
+      relationship: alternative
+      description: Budget alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 65 |
+| XP | 192 (4-dose) |
+| Quest | Zogre Flesh Eaters (partial) |
+| Ingredients | Super restore + Unicorn horn dust + Snake weed + Nail beast nails |
+
+## Effects
+
+| Effect | Value |
+|--------|-------|
+| Stat restore | Floor(Level × 0.30) + 4 |
+| Prayer restore | Floor(Prayer × 0.30) + 4 |
+| Disease immunity | 15 minutes |
+| Antipoison | 6 minutes |
+
+## Market Flip Strategy
+
+**Premium Restoration:**
+- Combines super restore + antipoison + disease cure
+- Single inventory slot efficiency
+- High-end PvM demand
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Demand Drivers:**
+- Theatre of Blood
+- Nightmare boss
+- General PvM
+- Inventory optimization
+
+**Tips:**
+- Low buy limit (2,000)
+- Complex to make
+- Higher restore than super restore
+- Quest requirement limits supply
+
+<Adsense />

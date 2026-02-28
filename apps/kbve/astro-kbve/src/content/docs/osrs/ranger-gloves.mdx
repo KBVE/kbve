@@ -1,0 +1,128 @@
+---
+title: Ranger gloves | OSRS Price Data
+description: "Ranger gloves is a members hands slot item requiring 40 Ranged. High alch: 2,040 GP, GE limit: 8."
+osrs:
+  id: 19994
+  name: Ranger gloves
+  slug: ranger-gloves
+  examine: Lightweight gloves ideal for rangers.
+  members: true
+  icon: Ranger gloves.png
+  value: 3400
+  lowalch: 1360
+  highalch: 2040
+  limit: 8
+  equipment:
+    slot: hands
+    type: ranged_gloves
+    tradeable: true
+    weight: 0.05
+    requirements:
+      ranged: 40
+    stats:
+      attack_ranged: 11
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Master
+        drop_rate: Rare from reward casket
+  related_items:
+    - item_id: 2581
+      item_name: Robin hood hat
+      slug: robin-hood-hat
+      relationship: set-piece
+      description: Matching headgear
+    - item_id: 12596
+      item_name: Rangers' tunic
+      slug: rangers-tunic
+      relationship: set-piece
+      description: Matching body armour
+    - item_id: 2577
+      item_name: Ranger boots
+      slug: ranger-boots
+      relationship: set-piece
+      description: Matching boots
+    - item_id: 22981
+      item_name: Barrows gloves
+      slug: barrows-gloves
+      relationship: alternative
+      description: Higher ranged bonus gloves
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Hands |
+| Type | Ranged Gloves |
+| Tradeable | Yes |
+| Weight | 0.05 kg |
+
+## Obtaining
+
+Reward from master Treasure Trails.
+
+**Drop Rate:** Rare from reward casket (master)
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged attack | +11 |
+
+**Requirements:** 40 Ranged
+
+## Usage
+
+Master clue ranged gloves:
+- +11 ranged attack bonus
+- Fashionscape with ranger set
+- Master clue exclusive
+
+## Comparison
+
+| Item | Ranged attack | Notes |
+|------|---------------|-------|
+| Ranger gloves | +11 | Master clue |
+| Barrows gloves | +12 | Quest reward |
+| Black d'hide vambs | +8 | Budget option |
+
+## Ranger Set
+
+Complete the ranger set with:
+- [Robin hood hat](/osrs/robin-hood-hat/) (hard clue)
+- [Rangers' tunic](/osrs/rangers-tunic/) (hard clue)
+- [Ranger boots](/osrs/ranger-boots/) (medium clue)
+- [Rangers' tights](/osrs/rangers-tights/) (elite clue)
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Master clue exclusive
+- Fashionscape value
+- Slightly weaker than Barrows gloves
+- Part of ranger outfit
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Red d'hide chaps (g) | OSRS Price Data
+description: "Red d'hide chaps (g): Made from 100% real dragonhide. With colourful trim!. High alch: 3,108 GP, GE limit: 8."
+osrs:
+  id: 12329
+  name: Red d'hide chaps (g)
+  slug: red-d-hide-chaps-g
+  examine: Made from 100% real dragonhide. With colourful trim!
+  members: true
+  icon: Red d'hide chaps (g).png
+  value: 5180
+  lowalch: 2072
+  highalch: 3108
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

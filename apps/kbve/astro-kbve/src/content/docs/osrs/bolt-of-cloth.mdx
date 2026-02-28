@@ -1,0 +1,124 @@
+---
+title: Bolt of cloth | OSRS Price Data
+description: "Bolt of cloth: A bolt of ordinary cloth.. High alch: 300 GP, GE limit: 13,000."
+osrs:
+  id: 8790
+  name: Bolt of cloth
+  slug: bolt-of-cloth
+  examine: A bolt of ordinary cloth.
+  members: true
+  icon: Bolt of cloth.png
+  value: 500
+  lowalch: 200
+  highalch: 300
+  limit: 13000
+  material:
+    type: construction
+    tier: basic
+  construction:
+    cost: 650
+    source: Construction Supplies
+    common_builds:
+      - name: Curtains
+        quantity: 3
+        xp: 225
+      - name: Rug
+        quantity: 2
+        xp: 180
+      - name: Torn curtains
+        quantity: 3
+        xp: 132
+  shop_sources:
+    - name: Sawmill operator
+      location: Various sawmills
+      price: 650
+      stock: 10
+    - name: Construction Supplies (Mahogany Homes)
+      location: Various cities
+      price: 650
+      stock: 10
+  related_items:
+    - item_id: 8786
+      item_name: Marble block
+      slug: marble-block
+      relationship: alternative
+      description: Premium material
+    - item_id: 8784
+      item_name: Gold leaf
+      slug: gold-leaf
+      relationship: alternative
+      description: Premium decoration
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Used together
+    - item_id: 1759
+      item_name: Ball of wool
+      slug: ball-of-wool
+      relationship: alternative
+      description: Crafting material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+**Shop Purchase:**
+- Sawmill operator: 650 GP each
+- Construction Supplies (Mahogany Homes): 650 GP each
+- Various sawmill locations
+
+**Tradeable on Grand Exchange.**
+
+## Construction Uses
+
+| Furniture | Bolts of Cloth | Level | XP |
+|-----------|----------------|-------|-----|
+| Torn curtains | 3 | 2 | 132 |
+| Curtains | 3 | 18 | 225 |
+| Rug | 2 | 13 | 180 |
+| Opulent rug | 4 | 65 | 360 |
+| Bell-pull | 1 | 37 | 120 |
+| Tapestry | 4 | 36 | 290 |
+
+**Common Uses:**
+- Decorating bedrooms, parlours, and dining rooms
+- Required for servant call bell-pulls
+- Rugs and curtains in various rooms
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Tips:**
+- Cheap at 650 GP from shops
+- Low demand item - usually at GE minimum
+- Buy from sawmill when building in bulk
+- Used for Mahogany Homes contracts occasionally
+
+## Related Construction Materials
+
+- [Plank](/osrs/plank/) - Basic construction
+- [Oak plank](/osrs/oak-plank/) - Common training
+- [Steel nails](/osrs/steel-nails/) - Some furniture requires nails
+
+<Adsense />

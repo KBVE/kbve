@@ -1,0 +1,104 @@
+---
+title: Redwood tree seed | OSRS Price Data
+description: "Redwood tree seed: Plant this in a plantpot of soil to grow a sapling.. High alch: 390 GP, GE limit: 200."
+osrs:
+  id: 22871
+  name: Redwood tree seed
+  slug: redwood-tree-seed
+  examine: Plant this in a plantpot of soil to grow a sapling.
+  members: true
+  icon: Redwood tree seed 5.png
+  value: 650
+  lowalch: 260
+  highalch: 390
+  limit: 200
+  item:
+    type: seed
+    tradeable: true
+    stackable: true
+    weight: 0
+    requirements:
+      farming: 90
+  farming:
+    patch_type: redwood
+    location: Farming Guild
+    growth_time: 106.7 hours
+    xp:
+      planting: 230
+      check_health: 22450
+  related_items:
+    - item_id: 19669
+      item_name: Redwood logs
+      slug: redwood-logs
+      relationship: product
+      description: Woodcutting product from grown tree
+    - item_id: 5316
+      item_name: Magic seed
+      slug: magic-seed
+      relationship: alternative
+      description: Alternative high-level tree seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Tree Seed |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 90 Farming |
+
+## Obtaining
+
+Common sources:
+- Bird nests
+- Farming contracts
+- Boss drops (Tormented Demon, Abyssal Sire, Lizardman Shaman)
+- Brimstone and Larran's chests
+
+## Usage
+
+Plant in the **redwood patch** (Farming Guild only).
+
+**Growth Time:** ~106.7 hours (4.4 days)
+
+**Payment:** Cannot be protected
+
+**XP:** 230 (planting) + 22,450 (check-health)
+
+## Market Strategy
+
+**Buy Limit:** 200 per 4 hours
+
+**Price:** ~9k gp
+
+Highest level tree seed. Very long growth time but massive XP reward.
+
+## Related Items
+
+- [Redwood logs](/osrs/redwood-logs/) - Woodcutting product
+- [Farming Guild](/osrs/farming-guild/) - Required location
+- [Magic seed](/osrs/magic-seed/) - Alternative tree seed
+
+<Adsense />

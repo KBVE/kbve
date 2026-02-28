@@ -1,0 +1,37 @@
+---
+title: Camphor blowpipe (empty) | OSRS Price Data
+description: "Camphor blowpipe (empty): Breath powered dart delivering system with a hint of camphor.. High alch: 1,320 GP."
+osrs:
+  id: 31577
+  name: Camphor blowpipe (empty)
+  slug: camphor-blowpipe-empty
+  examine: Breath powered dart delivering system with a hint of camphor.
+  members: true
+  icon: Camphor blowpipe (empty).png
+  value: 2200
+  lowalch: 880
+  highalch: 1320
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

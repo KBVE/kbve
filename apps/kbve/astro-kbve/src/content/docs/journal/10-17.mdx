@@ -1,0 +1,151 @@
+---
+title: 'October: 17th'
+category: Daily
+date: 2025-10-17 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 17th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Rewrite Refactor Rebuild
+
+-   01:13AM
+
+    We are now in the deep sessions of Unity, getting into the max grind.
+
+## 2024
+
+**Redis**
+
+Time to double check our build for the kilobase but this time on the macbook.
+
+**Cargo**
+
+Looks like we have to restructure the way that we handle version bumping because its causing our packages to break during test casing.
+We will do the version bumps manually rather than automatically for now because the errors are a bit out of my scope.
+Ugh, the migration to Nx v20 has been such a pain, I am almost reaching the burnout zone of programming.
+
+Not too sure how I got around resolving this issue but we dropped a bunch of reference points and were able to get to functional build.
+It involved cleaning up all of our cargo and then running a fetch again.
+
+```shell
+cargo clean
+sudo rm -rf ~/.cargo/registry
+cargo update
+cargo fetch
+```
+
+There was a bunch of looping and cargo lock removing but we got past that hurdle.
+Since the supabase docker image is ubuntu 20, we need to drop down the pgrx from `0.12.3` to `0.11.3`.
+
+```shell
+cargo install cargo-pgrx --version 0.11.3 --locked
+```
+
+What a pile of donkeys splat, had to downgrade back to v1.2.0 for the Rust monodon package to even get our basic builds to work.
+This means even at v2.0, we are unable to have stable rust builds, gah!
+
+Well with the version downgrade, we are making some progress.
+
+```
+
+warning: `kilobase` (lib) generated 6 warnings (run `cargo fix --lib -p kilobase` to apply 3 suggestions)
+    Finished `release` profile [optimized] target(s) in 0.19s
+  Installing extension
+     Copying control file to ../../dist/target/kilobase/opt/homebrew/opt/postgresql@15/share/postgresql@15/extension/kilobase.control
+     Copying shared library to ../../dist/target/kilobase/opt/homebrew/opt/postgresql@15/lib/postgresql/kilobase.so
+ Discovering SQL entities
+  Discovered 2 SQL entities: 0 schemas (0 unique), 0 functions, 0 types, 0 enums, 2 sqls, 0 ords, 0 hashes, 0 aggregates, 0 triggers
+     Writing SQL entities to ../../dist/target/kilobase/opt/homebrew/opt/postgresql@15/share/postgresql@15/extension/kilobase--15.1.9.sql
+    Finished installing kilobase
+
+```
+
+Now we will wrap back around and look through the code again tomorrow, making adjustments to the SQL tables that and some of the logic.
+
+**Expo**
+
+Time to take a break from the rust code and take a look at our Expo configuration.
+We have a couple things that we will have to change, including the bbq extension, which has still a bit of cookin left on it.
+The command to start expo will be like this:
+
+```shell
+
+pnpm nx start expo-lcagents
+
+```
+
+Next we will take a look at the current source and I believe the theme needs to be defined again.
+We can double check the tamagui version, I believe that it needs to be updated as well.
+Bumping the tamagui to version 1.115.3, but there should not be other major upgrade yet.
+I believe expo could be bumped up but we can wait on that until the iOS and Android pipelines are ready.
+
+Okay the first issue was the dark mode, we want that to be default for right now.
+This will be a quick fix and should not cause any major problems, we just flip the logic that would apply the default theme of light to dark.
+We can do this inside of the `_layout.tsx` and that solves the dark theme issue.
+Next we want to solve the double root problem, this can be done by removing the register root and just export the app with the expo-root.
+Okay so we no longer see any errors in the web version, I did not yet test this on the iOS version but we can look at that later on.
+
+
+**ExpoDoctor**
+
+Since I am using a new laptop, there will be some plugins that are missing that need to be installed.
+The shell that we could use to verify that is:
+
+```shell
+
+pnpm npx expo-doctor
+
+```
+
+I also believe that the nx monorepo provides another way to call the expo doctor, but regardless, I do not have the data rates to download all the files that we would need to fix this issue.
+When I get back home, I will begin the process of setting up the iOS on the new m3 macbook.
+
+**BBQ**
+
+The next component that I want to add into the bbq would be an account or profile card, but we also need to configure the register and login?
+Thinking through what would be the best option for setting up the register / login, I guess since we are using the tamagui, we can just wrap each of the component pieces with generic components.
+The customization will be isolated from the smaller component pieces, so we should not have any issues.
+To get 
+
+**Kube**
+
+While setting up the expo again, it would be wise to take a look at the kube health, making sure that everything is still functional.
+I am going to run the `kubectl get pods -n supabase`, which returns a great status of everything running the past 12 days without any major errors or restarts.
+With the version of kilobase v15.1.10 getting ready, we want to prepare a rolling cluster update.
+
+
+**hCaptcha**
+
+The next issue that we want to tackle is the loading of the hCaptcha within the react native / expo eco-system.
+It looks like to grab the library, we will have to do this:
+
+```
+pnpm install @hcaptcha/react-native-hcaptcha
+```
+
+Then setup a new component, we can call it `hCaptchaWrapper` that would invoke either of the two units based upon if its web or not?
+I suppose this would be easier since we can throw that into the BBQ and then reutilize or extend it out based upon how we want to integrate the supabase instance.
+For this situation, we will try to avoid placing kilobase directly into this expo logic and just wrap around the supabase too.
+Hmm, okay let me quickly build this component out inside of the bbq package and ship that out.
+
+**DanDaDan**
+
+Nothing says Thursday than a fresh episode of Dan Da Dan?
+After driving around and touching enough grass, I think it would be great to spend the night just programming away and throwing on a series to stream.
+
+**API**
+
+We can deprecate and remove the `api` component within our apps folder.
+Since this application was over a year ago and I have improved a bunch within the rust realm, it would be safe for us to remove it and replace it.
+With that being said, right before we do that migration out and kill it, I should prepare the `kiloedge` instance and make sure that we can deploy edge functions through our self hosted instance of Supabase.
+The way that we will build those self hosted functions, hmm, it would be to just grab the current version of the supabase edge instance within our docker image.
+After grabbing it, we git copy the functions that we want to migrate over to it and then finally build a final image.
+Could throw the cache into there too and make sure everything is included, then making it a read-only application would be our next logical step.

@@ -1,0 +1,122 @@
+---
+title: Sturdy harness | OSRS Price Data
+description: "Sturdy harness: I can use this to combine the forestry kit and log basket into one tool.. High alch: 3,000 GP."
+osrs:
+  id: 28149
+  name: Sturdy harness
+  slug: sturdy-harness
+  examine: I can use this to combine the forestry kit and log basket into one tool.
+  members: true
+  icon: Sturdy harness.png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: null
+  item:
+    type: material
+    tradeable: false
+    weight: 0.907
+  recipes:
+    - skill: smithing
+      level: 75
+      requirements:
+        woodcutting: 75
+      materials:
+        - item_id: 28151
+          item_name: Log brace
+          quantity: 1
+        - item_id: 1539
+          item_name: Steel nails
+          quantity: 45
+        - item_id: 954
+          item_name: Rope
+          quantity: 2
+        - item_id: 2361
+          item_name: Adamantite bar
+          quantity: 3
+      product: Sturdy harness
+      product_id: 28149
+    - skill: crafting
+      materials:
+        - item_id: 28136
+          item_name: Forestry kit
+          quantity: 1
+        - item_id: 28140
+          item_name: Log basket
+          quantity: 1
+        - item_id: 28149
+          item_name: Sturdy harness
+          quantity: 1
+      product: Forestry basket
+      product_id: 28142
+  related_items:
+    - item_id: 28136
+      item_name: Forestry kit
+      slug: forestry-kit
+      relationship: component
+      description: Combine material for Forestry basket
+    - item_id: 28140
+      item_name: Log basket
+      slug: log-basket
+      relationship: component
+      description: Combine material for Forestry basket
+    - item_id: 28142
+      item_name: Forestry basket
+      slug: forestry-basket
+      relationship: product
+      description: Created combined storage item
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | No |
+| Weight | 0.907 kg |
+
+## Creating
+
+**Requirements:** 75 Smithing, 75 Woodcutting
+
+**Materials:**
+- 1 Log brace
+- 45 Steel nails
+- 2 Ropes
+- 3 Adamantite bars
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Forestry basket | Forestry kit + Log basket + Sturdy harness |
+
+Combination is reversible via Forestry basket settings.
+
+## Related Items
+
+- [Forestry kit](/osrs/forestry-kit/) - Combine material
+- [Log basket](/osrs/log-basket/) - Combine material
+- [Forestry basket](/osrs/forestry-basket/) - Created item
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Shattered relics void ornament kit | OSRS Price Data
+description: "Shattered relics void ornament kit is a members-only OSRS item. High alch: 15,000 GP, GE limit: 5."
+osrs:
+  id: 26479
+  name: Shattered relics void ornament kit
+  slug: shattered-relics-void-ornament-kit
+  examine: A kit that can be used on void armour to theme it to Leagues III - Shattered Relics.
+  members: true
+  icon: Shattered relics void ornament kit.png
+  value: 25000
+  lowalch: 10000
+  highalch: 15000
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

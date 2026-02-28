@@ -1,0 +1,37 @@
+---
+title: Large ironwood hull parts | OSRS Price Data
+description: "Large ironwood hull parts: Parts for creating an ironwood hull for a boat.. High alch: 37,500 GP, GE limit: 100."
+osrs:
+  id: 32077
+  name: Large ironwood hull parts
+  slug: large-ironwood-hull-parts
+  examine: Parts for creating an ironwood hull for a boat.
+  members: true
+  icon: Large ironwood hull parts.png
+  value: 62500
+  lowalch: 25000
+  highalch: 37500
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

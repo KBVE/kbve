@@ -1,0 +1,132 @@
+---
+title: Treasonous ring | OSRS Price Data
+description: "Treasonous ring is a members ring slot item. High alch: 30,000 GP, GE limit: 8."
+osrs:
+  id: 12605
+  name: Treasonous ring
+  slug: treasonous-ring
+  examine: A razor sharp ring.
+  members: true
+  icon: Treasonous ring.png
+  value: 50000
+  lowalch: 20000
+  highalch: 30000
+  limit: 8
+  equipment:
+    slot: ring
+    type: stab_ring
+    stats:
+      attack_stab: 4
+      defence_stab: 4
+    imbued_stats:
+      attack_stab: 8
+      defence_stab: 8
+  effect:
+    imbue_cost:
+      nmz_points: 650000
+      nmz_points_with_ca: 325000
+      soul_wars_zeal: 260
+      emirs_arena_points: 200
+  drop_table:
+    sources:
+      - source: Venenatis
+        source_id: 6610
+        combat_level: 464
+        quantity: "1"
+        rarity: 1/512
+        members_only: true
+      - source: Spindel
+        source_id: 11991
+        combat_level: 333
+        quantity: "1"
+        rarity: 1/716
+        members_only: true
+  related_items:
+    - item_id: 12603
+      item_name: Tyrannical ring
+      slug: tyrannical-ring
+      relationship: alternative
+      description: Crush version
+    - item_id: 6737
+      item_name: Berserker ring
+      slug: berserker-ring
+      relationship: alternative
+      description: Strength focus
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ring |
+| Type | Stab Ring |
+| Tradeable | Yes |
+| Weight | 0.4 kg |
+
+## Obtaining
+
+Drop from Wilderness bosses.
+
+| Boss | Drop Rate |
+|------|-----------|
+| Venenatis | 1/512 |
+| Spindel | 1/716 |
+
+## Stats
+
+| Stat | Regular | Imbued |
+|------|---------|--------|
+| Stab attack | +4 | +8 |
+| Stab defence | +4 | +8 |
+
+**Requirements:** None
+
+## Imbue
+
+| Method | Cost |
+|--------|------|
+| NMZ | 650K points (325K with hard CA) |
+| Soul Wars | 260 zeal |
+| Scroll | 200 Emir's Arena points |
+
+## Usage
+
+BiS stab ring for:
+- Stab-focused combat
+- Niche accuracy boost
+- Wilderness PvM
+
+**Stab-specific alternative to Berserker ring.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~175K gp
+
+**Tips:**
+- Wilderness boss drop
+- Imbue for full effect
+- Niche use case
+
+<Adsense />

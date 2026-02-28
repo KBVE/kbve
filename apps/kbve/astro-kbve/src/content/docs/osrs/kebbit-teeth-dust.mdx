@@ -1,0 +1,125 @@
+---
+title: Kebbit teeth dust | OSRS Price Data
+description: "Kebbit teeth dust: Previously a kebbit-sized set of dentures.. High alch: 96 GP, GE limit: 10,000."
+osrs:
+  id: 10111
+  name: Kebbit teeth dust
+  slug: kebbit-teeth-dust
+  examine: Previously a kebbit-sized set of dentures.
+  members: true
+  icon: Kebbit teeth dust.png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: 10000
+  material:
+    type: secondary
+    tier: low
+  hunter:
+    source: Sabre-toothed kebbit
+    level: 51
+    location: Rellekka Hunter area
+  recipes:
+    - skill: herblore
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Kebbit teeth
+          item_id: 10109
+          quantity: 1
+      product: Kebbit teeth dust
+      product_id: 10111
+      product_quantity: 1
+      tool: Pestle and mortar
+      members_only: true
+    - skill: herblore
+      level: 53
+      xp: 120
+      materials:
+        - item_name: Avantoe potion (unf)
+          item_id: 103
+          quantity: 1
+        - item_name: Kebbit teeth dust
+          item_id: 10111
+          quantity: 1
+      product: Hunter potion(3)
+      product_id: 10000
+      members_only: true
+  related_items:
+    - item_id: 10109
+      item_name: Kebbit teeth
+      slug: kebbit-teeth
+      relationship: component
+      description: Ground into dust
+    - item_id: 10000
+      item_name: Hunter potion(3)
+      slug: hunter-potion-3
+      relationship: product
+      description: Main herblore use
+    - item_id: 261
+      item_name: Avantoe
+      slug: avantoe
+      relationship: component
+      description: Primary herb for hunter potion
+    - item_id: 233
+      item_name: Pestle and mortar
+      slug: pestle-and-mortar
+      relationship: component
+      description: Tool for grinding
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Grind kebbit teeth with pestle and mortar:
+- Kebbit teeth from hunting sabre-toothed kebbits
+- 51 Hunter required to catch kebbits
+- Location: Rellekka Hunter area (north of Rellekka)
+
+## Herblore Uses
+
+| Potion | Base | Level | XP |
+|--------|------|-------|-----|
+| Hunter potion(3) | Avantoe potion (unf) | 53 | 120 |
+
+Hunter potions boost Hunter by 3 levels.
+
+## Market Strategy
+
+**Hunter Training:**
+- Hunt sabre-toothed kebbits for teeth
+- Good Hunter XP while gathering
+- Grind teeth for herblore profit
+
+**Hunter Potion Economics:**
+- Compare teeth dust + avantoe cost vs potion price
+- Potions used for high-level hunter catches
+- Useful for herbiboar hunting
+
+**Ironman Notes:**
+- Must hunt kebbits personally
+- Stock up teeth while training Hunter
+- Hunter potions helpful for black chins
+
+**Buy Limit:** 10,000 per 4 hours
+
+<Adsense />

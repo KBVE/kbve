@@ -1,0 +1,116 @@
+---
+title: Infernal ashes | OSRS Price Data
+description: "Infernal ashes: A heap of ashes.. High alch: 1 GP, GE limit: 7,500."
+osrs:
+  id: 25778
+  name: Infernal ashes
+  slug: infernal-ashes
+  examine: A heap of ashes.
+  members: true
+  icon: Infernal ashes.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 7500
+  material:
+    type: ashes
+    tier: highest
+  prayer:
+    xp_scatter: 110
+    xp_demonic_offering: 330
+  drop_table:
+    sources:
+      - source: K'ril Tsutsaroth
+        source_id: 3129
+        combat_level: 650
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Cerberus
+        source_id: 5862
+        combat_level: 318
+        quantity: "2"
+        rarity: always
+        members_only: true
+      - source: Skotizo
+        source_id: 7286
+        combat_level: 321
+        quantity: "3"
+        rarity: always
+        members_only: true
+  related_items:
+    - item_id: 25775
+      item_name: Abyssal ashes
+      slug: abyssal-ashes
+      relationship: downgrade
+      description: Lower XP (85 base)
+    - item_id: 25772
+      item_name: Malicious ashes
+      slug: malicious-ashes
+      relationship: downgrade
+      description: Lower XP (65 base)
+    - item_id: 22124
+      item_name: Superior dragon bones
+      slug: superior-dragon-bones
+      relationship: alternative
+      description: Same XP (150 buried)
+    - item_id: 536
+      item_name: Dragon bones
+      slug: dragon-bones
+      relationship: alternative
+      description: Bone alternative (72 XP)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Prayer Training
+
+Infernal ashes are the highest tier demonic ash:
+
+| Method | XP per ash |
+|--------|------------|
+| Scatter | 110 |
+| Demonic Offering spell | 330 |
+
+## Obtaining
+
+Dropped by boss-level demons:
+- K'ril Tsutsaroth (Zamorak GWD)
+- Cerberus (91 Slayer)
+- Skotizo (totem boss)
+- Demonic Gorillas
+
+## Market Flip Strategy
+
+**Boss Drops:**
+- High-end bosses produce supply
+- Best ashes for Prayer XP
+- Price reflects boss difficulty
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Tips:**
+- Best ashes in game
+- Compare to superior dragon bones
+- Demonic Offering very efficient
+- Boss activity drives supply
+
+<Adsense />

@@ -1,0 +1,96 @@
+---
+title: 'May: 24'
+category: Daily
+date: 2025-05-24 12:00:00
+client: Self
+unsplash: 1716467175711-2e9321925230
+img: https://images.unsplash.com/photo-1716467175711-2e9321925230?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   May 24th. Journal of Information.
+tags:
+    - daily
+---
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+
+## 2025
+
+### Weekly Unity Session
+
+-   07:59PM
+
+    Another great unity session!
+    We are tackling the NPC issue and making sure that the entities we spawn will go ahead and start attacking the player defensive structures.
+    Our goal would be to then to eventually move on to loading and building the items via json from the Astro.
+    The current plans are:
+    
+    1. Build ItemsDB within Astro then load each of the items into Unity
+    2. Build a NPC Prefab Pool of monsters that would build into the "NPC Wave", similar to gears and call of duty zombies.
+    3. Add PGC with hallways and prefabs, extending the map out dynamically, so each play through wont be exactly the same map.
+
+    After we get those three out of the way, we can start to focus on the farming and cooking skill.
+    Once those skills are done, we can do blacksmithing, which will go into the creation of ammo and then alchemy, which will go into the creation of the potions.
+
+    This should be enough to help us move towards a steam demo.
+
+### Baker Issue
+
+-   09:56PM
+
+    Resolving the baking issue with the data not being saved in the right folder, now it updates it within the right asset location.
+    Now I am going to try and resolve the item loading before the next meeting, thus making it easier for us to start the initial stage of a steam release.
+    I am super excited because once the updated item build system is in place, I can finally start to import the 100+ items without having to worry too much.
+    As for the dialogue and storyline, that will be also interesting to build out but will require some time to plan out. 
+    How would we go about doing the quests, I suppose they will be straight forward simple ones from the start?!
+
+### RareIcon v0.3 Build
+
+-   10:15PM
+
+    While waiting or the updates to be processed, I will go ahead and begin a passive build with the recent updates that we finished today.
+    Actually I am not too sure if the builds would be ready, I will have to double check the scene and see if there were changes made to it.
+
+## 2024
+
+**API**
+
+Preparing the API keys and the plugin shop!
+The API key will be important for both KBVE and the ATLAS project, now the question would be the best way to implement them.
+
+I am thinking that the API Key would be the AES salt and that we store the Argon2 hash of the key?
+This way we can create an environmental vault that the user would encrypt with their API key before sending it over to the KBVE API for storage.
+
+I will continue to map or graph out the way we would do it.
+
+**Atlas**
+
+We can extend out some of the `khashvault` storage variables, I am thinking of adding a couple new ones that will help store the messages from the fastAPI that is running inside of the ATLAS.
+
+I would have made more progress with this system but there have been problems with handling the state management, including the process of grabbing information and rendering it again upon update.
+
+
+## 2023
+
+- 9:00am - It's hump day! Time to get cracking at the general vibes of Memegramming. 
+
+- 3:00pm - Time to crack the fingers and get into the full programming flow! I think I will do a quick rush of getting all of the scrapper running and at the same time, do some quick unity too!+
+
+- 4:45pm - Going through all the unity files and decided that it might not be worth the time to update the packages. This would just break a couple of the core features and concepts within the game, which we do not want to do right now. While it is great to have some of the plugins handle the character model, world building, ect.. the draw back is that their updates have game breaking changes and sometimes it is a pain to fix through them.
+
+- 7:00pm - I will start to go through and break down two specific file types, the first will be the GlobalValue.cs and the other will be the PlayerStats.cs. My first train of thought would be to see exactly how the player model is currently reacting within the environment and how it is setup within the whole game. I suppose one additional area would be to see how the character reacts with an online API, however I will make sure the game can be played without having the need to use an active internet connection. 
+
+- 9:30pm - Okay besides AppWrite
+
+## Quote
+
+> Where there is charity and wisdom, there is neither fear nor ignorance.
+> — <cite>Francis of Assisi</cite>
+
+---
+
+## Tasks
+
+- [x] Take out trash
+- [ ] Finish Unity API Login - Not Done, pushing it till next day.

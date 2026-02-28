@@ -1,0 +1,159 @@
+---
+title: Dragon pickaxe | OSRS Price Data
+description: "Dragon pickaxe is a members weapon slot item requiring 60 Attack. High alch: 58,770 GP, GE limit: 40."
+osrs:
+  id: 11920
+  name: Dragon pickaxe
+  slug: dragon-pickaxe
+  examine: If rocks could feel fear, they'd fear this.
+  members: true
+  icon: Dragon pickaxe.png
+  value: 97950
+  lowalch: 39180
+  highalch: 58770
+  limit: 40
+  equipment:
+    slot: weapon
+    type: pickaxe
+    attack_style: melee
+    attack_speed: 5
+    requirements:
+      attack: 60
+      mining: 61
+    stats:
+      attack_stab: 26
+      attack_slash: 16
+      attack_crush: 22
+      strength: 30
+  special_attack:
+    name: Rock Knocker
+    energy: 100
+    effect: +3 Mining boost for 3 minutes
+  drop_table:
+    sources:
+      - source: Kalphite Queen
+        source_id: 963
+        combat_level: 333
+        quantity: "1"
+        rarity: 1/400
+        members_only: true
+      - source: Chaos Elemental
+        source_id: 2054
+        combat_level: 305
+        quantity: "1"
+        rarity: 1/256
+        members_only: true
+      - source: Callisto
+        source_id: 6503
+        combat_level: 470
+        quantity: "1"
+        rarity: 1/256
+        members_only: true
+      - source: Vet'ion
+        source_id: 6611
+        combat_level: 464
+        quantity: "1"
+        rarity: 1/256
+        members_only: true
+      - source: Venenatis
+        source_id: 6504
+        combat_level: 464
+        quantity: "1"
+        rarity: 1/256
+        members_only: true
+      - source: King Black Dragon
+        source_id: 239
+        combat_level: 276
+        quantity: "1"
+        rarity: 1/1,000
+        members_only: true
+  related_items:
+    - item_id: 13243
+      item_name: Infernal pickaxe
+      slug: infernal-pickaxe
+      relationship: upgrade
+      description: 1/3 ore → Smithing XP
+    - item_id: 23680
+      item_name: Crystal pickaxe
+      slug: crystal-pickaxe
+      relationship: upgrade
+      description: +4 invisible Mining levels
+    - item_id: 20014
+      item_name: 3rd age pickaxe
+      slug: 3rd-age-pickaxe
+      relationship: alternative
+      description: Cosmetic/flex
+    - item_id: 13245
+      item_name: Smouldering stone
+      slug: smouldering-stone
+      relationship: component
+      description: Infernal upgrade
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Dropped by Wilderness bosses:
+
+| Boss | Drop Rate |
+|------|-----------|
+| Kalphite Queen | 1/400 |
+| Chaos Elemental | 1/256 |
+| Callisto | 1/256 |
+| Vet'ion | 1/256 |
+| Venenatis | 1/256 |
+| King Black Dragon | 1/1,000 |
+| Artio/Calvar'ion/Spindel | 1/358 |
+
+## Stats
+
+| Requirement | Value |
+|-------------|-------|
+| Attack | 60 (to wield) |
+| Mining | 61 (to use) |
+
+## Special Attack
+
+**Rock Knocker** (100% energy):
+- +3 Mining boost for 3 minutes
+- Decays 1 level per 60 seconds
+- Allows mining at 58 Mining with boost
+
+## Upgrades
+
+| Upgrade | Requirements | Effect |
+|---------|--------------|--------|
+| Infernal pickaxe | 85 Smithing + Smouldering stone | 1/3 ore → Smithing XP |
+| Crystal pickaxe | 76 Crafting/Smithing + 120 shards + seed | +4 invisible Mining levels |
+| 3rd age pickaxe | 65 Mining | Cosmetic/flex |
+
+## Market Strategy
+
+**Buy Limit:** 40 per 4 hours
+
+**Tips:**
+- Best pickaxe before upgrades
+- Required for infernal/crystal
+- Wilderness bosses = risky but common source
+- KQ is safest source
+
+<Adsense />

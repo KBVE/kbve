@@ -1,0 +1,67 @@
+---
+title: 'Garlic Bread'
+description: |
+    A warm slice of bread slathered in butter and garlic.
+    Comfort food that boosts morale for weary adventurers.
+id: 'garlic-bread'
+key: 59
+ref: '01JX11B4TZ6BN2WB3DBVETSZYW'
+name: 'Garlic Bread'
+type: 'Food'
+category: 392
+img: '/assets/items/skills/cooking/dish/garlic_bread.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 60
+consumable: true
+stackable: true
+rarity: 'Uncommon'
+weight: 0.3
+effects: 'Restores health and briefly improves morale.'
+price: 40
+durability: 1
+equipped: false
+levelRequirement: 0
+cooldown: 20
+action: 'consume'
+credits: |
+    Art by KBVE Pixel Workshop.
+bonuses:
+    health: 10
+    morale: 2
+scripts:
+    - guid: '22cc8a2063a2a58b99190df93f083d07'
+      vars:
+            healAmount: 10
+            moraleBoost: 2
+            aroma: 'garlic'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Garlic Bread** warms the soul and wards off stale hunger.
+Crisp edges with a soft center, soaked in butter and speckled with garlic.
+Common fare among wanderers craving comfort between battles.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Grants **{frontmatter.bonuses.health} health** and **{frontmatter.bonuses.morale} morale**
+- Best enjoyed fresh
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Credit
+
+{frontmatter.credits}

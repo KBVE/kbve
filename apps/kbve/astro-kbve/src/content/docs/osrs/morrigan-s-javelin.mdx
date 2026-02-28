@@ -1,0 +1,37 @@
+---
+title: Morrigan's javelin | OSRS Price Data
+description: "Morrigan's javelin: A vicious javelin.. High alch: 2,400 GP, GE limit: 100."
+osrs:
+  id: 22636
+  name: Morrigan's javelin
+  slug: morrigan-s-javelin
+  examine: A vicious javelin.
+  members: true
+  icon: Morrigan's javelin.png
+  value: 4000
+  lowalch: 1600
+  highalch: 2400
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

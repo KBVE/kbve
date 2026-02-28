@@ -1,0 +1,37 @@
+---
+title: Big fishing net | OSRS Price Data
+description: "Big fishing net: Useful for catching lots of fish.. High alch: 12 GP, GE limit: 40."
+osrs:
+  id: 305
+  name: Big fishing net
+  slug: big-fishing-net
+  examine: Useful for catching lots of fish.
+  members: true
+  icon: Big fishing net.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

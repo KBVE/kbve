@@ -1,0 +1,116 @@
+---
+title: Maple longbow | OSRS Price Data
+description: "Maple longbow is a F2P two-handed weapon. High alch: 384 GP, GE limit: 18,000."
+osrs:
+  id: 851
+  name: Maple longbow
+  slug: maple-longbow
+  examine: A nice sturdy bow made out of Maple.
+  members: false
+  icon: Maple longbow.png
+  value: 640
+  lowalch: 256
+  highalch: 384
+  limit: 18000
+  equipment:
+    slot: 2h
+    type: longbow
+    attack_style: ranged
+    attack_speed: 6
+  requirements:
+    ranged: 30
+  stats:
+    attack:
+      ranged: 29
+    other:
+      ranged_strength: 0
+    range: 9
+  fletching:
+    level: 55
+    xp: 58.3
+    method: Maple longbow (u) + bowstring
+  shops:
+    - shop_name: Lowe's Archery Emporium
+      location: Varrock
+      price: 640
+  related_items:
+    - item_id: 855
+      item_name: Yew longbow
+      slug: yew-longbow
+      relationship: upgrade
+      description: Higher tier longbow
+    - item_id: 853
+      item_name: Maple shortbow
+      slug: maple-shortbow
+      relationship: alternative
+      description: Faster attack speed
+    - item_id: 62
+      item_name: Maple longbow (u)
+      slug: maple-longbow-u
+      relationship: component
+      description: Unstrung version
+    - item_id: 1777
+      item_name: Bow string
+      slug: bow-string
+      relationship: component
+      description: Stringing material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-Handed |
+| Type | Longbow |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 30 Ranged |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +29 |
+| Ranged Strength | +0 |
+| Attack Range | 9 |
+
+## Obtaining
+
+**Fletching:** 55 Fletching with maple longbow (u) + bowstring (58.3 XP).
+
+**Shop:** Lowe's Archery Emporium, Varrock.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~276 gp
+
+Higher-level ranged weapon. F2P accessible.
+
+## Related Items
+
+- [Yew longbow](/osrs/yew-longbow/) - Upgrade
+- [Maple shortbow](/osrs/maple-shortbow/) - Faster alternative
+
+<Adsense />

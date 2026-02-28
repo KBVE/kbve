@@ -3,3 +3,9 @@
 /coverage
 /.nx/cache
 /.nx/workspace-data
+
+# Unity WebGL template files use mustache-style {{{ }}} syntax
+apps/kbve/astro-kbve/public/data/scripts/unity/WebGLTemplates/
+
+# Example file with embedded frontmatter in <pre> blocks
+apps/kbve/astro-kbve/src/components/realtime/example.astro

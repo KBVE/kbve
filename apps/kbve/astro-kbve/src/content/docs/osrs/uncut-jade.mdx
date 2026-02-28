@@ -1,0 +1,37 @@
+---
+title: Uncut jade | OSRS Price Data
+description: "Uncut jade: This would be worth more cut.. High alch: 18 GP, GE limit: 10,000."
+osrs:
+  id: 1627
+  name: Uncut jade
+  slug: uncut-jade
+  examine: This would be worth more cut.
+  members: true
+  icon: Uncut jade.png
+  value: 30
+  lowalch: 12
+  highalch: 18
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

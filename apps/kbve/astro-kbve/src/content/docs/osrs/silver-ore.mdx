@@ -1,0 +1,117 @@
+---
+title: Silver ore | OSRS Price Data
+description: "Silver ore: This needs refining.. High alch: 45 GP, GE limit: 13,000."
+osrs:
+  id: 442
+  name: Silver ore
+  slug: silver-ore
+  examine: This needs refining.
+  members: false
+  icon: Silver ore.png
+  value: 75
+  lowalch: 30
+  highalch: 45
+  limit: 13000
+  material:
+    type: ore
+    tier: low
+  mining:
+    level: 20
+    xp: 40
+    locations:
+      - Crafting Guild
+      - Al Kharid mine
+      - Varrock west mine
+  motherlode_mine:
+    level: 30
+  recipes:
+    - skill: smithing
+      level: 20
+      xp: 13.7
+      materials:
+        - item_name: Silver ore
+          item_id: 442
+          quantity: 1
+      product: Silver bar
+      product_id: 2355
+      product_quantity: 1
+      facility: Furnace
+  related_items:
+    - item_id: 2355
+      item_name: Silver bar
+      slug: silver-bar
+      relationship: product
+      description: Smelting product
+    - item_id: 1718
+      item_name: Holy symbol
+      slug: holy-symbol
+      relationship: product
+      description: Crafting product
+    - item_id: 5525
+      item_name: Tiara
+      slug: tiara
+      relationship: product
+      description: RC training
+    - item_id: 1714
+      item_name: Unstrung symbol
+      slug: unstrung-symbol
+      relationship: product
+      description: Intermediate
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Level | XP |
+|--------|-------|-----|
+| Mining silver rocks | 20 | 40 |
+| Motherlode Mine | 30 | Variable |
+| Crafting Guild | - | - |
+
+## Smithing
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Silver bar | 20 | 13.7 |
+
+## Market Flip Strategy
+
+**Silver Bar Production:**
+- Holy symbols demand
+- Tiaras for Runecrafting
+- Low-level Crafting
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Silver bar production
+- Holy symbol crafting
+- Tiara making
+- Unstrung symbol
+
+**Tips:**
+- Crafting Guild has rocks
+- Lower demand than gold
+- Holy symbols for Prayer
+- Tiaras for RC training
+
+<Adsense />

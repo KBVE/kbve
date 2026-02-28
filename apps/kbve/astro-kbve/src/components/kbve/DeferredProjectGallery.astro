@@ -1,0 +1,13 @@
+---
+/**
+ * Deferred wrapper for ProjectGallery
+ * Loads the component only when approaching the viewport
+ * Prevents render-blocking CSS on initial page load
+ */
+import DeferredSection from '@/components/utility/DeferredSection.astro';
+import ProjectGallery from './ProjectGallery.astro';
+---
+
+<DeferredSection id="project-gallery" minHeight="450px" minHeightMobile="400px">
+	<ProjectGallery />
+</DeferredSection>

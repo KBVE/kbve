@@ -1,0 +1,94 @@
+---
+title: 'November: 27th'
+category: Daily
+date: 2024-11-27 12:00:00
+client: Self
+unsplash: 1732279446743-324499ebbeba
+img: https://images.unsplash.com/photo-1732279446743-324499ebbeba?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 27th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2024
+
+-   02:20AM
+
+    **Unity**
+
+    We got ourselves another unity build to test out.
+    While I am doing that, I should look to commission a steam game and bundle?
+    Actually, if the artist that we hire does a good job, we could also have the same artist do our steam page assets?
+    That would save us a bunch of time too.
+
+-   02:37AM
+
+    **SoundManager**
+
+    Looks like the prefab works even though we are not using the addressable object.
+    I am not too sure how I feel about that but for now it will be fine.
+
+-   03:09PM
+
+    **Addressable**
+
+    Looks like the most recent push created the files that we need for addressable-based vcontainers, allowing us to finally call the prefabs during the runtime.
+    This will be an interesting way for us to build out the game, I am thinking that the town itself will be the main scene and when entering a mission or camp, we do an additive loading?
+    Furthermore we would have to fix the URL maps and also the HTML template a bit more.
+
+-   03:36PM
+
+    **Unity Template**
+
+    The unity template needs to be adjusted so that it does not look like karp on the discord activities page.
+    This is an easy fix but I been too distracted to address it!
+    Anyhow, I am going to focus on getting that done today, with the postmessage and sendmessage between the player and iframe as well.
+    Starting off with the canvas issue:
+
+    ```
+
+    <canvas id="unity-canvas" width={{{ WIDTH }}} height={{{ HEIGHT }}} tabindex="-1"></canvas>
+
+    ```
+
+    We will replace that line and move the styling over to the css part.
+
+    Then add our own custom spinner that should just operate with css / javascript.
+
+    ```html
+    
+    <div class="spinner"></div>
+    
+    ```
+
+    I suppose we could do this twice, having another spinner for when the iframe is ready to be displayed?
+    Lets say we render the whole iframe and game off-canvas on the static html page that axum offers to Discord, then we can make the adjustments for our own loading screen?
+    Once the off-cavans is done, we transition over to the main window , hmm, okay this just a future proof of concept that we can do once the game is closer to becoming ready for launch.
+
+    The meta will be added as a commented out line:
+
+    ```html
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+
+    ```
+
+    I am thinking that we can assign it dynamically because if the game is played on mobile, we can make sure that the right meta viewport is assigned.
+
+-   08:40PM
+
+    **Lifetime**
+
+    The next part will be to switch back from the asset management and focus on the lifetime and entrypoints, oh boi.
+    We still need to setup the level manager and multiplayer level manager, once both of those are setup, we move forward with the player and npc list of prefabs.
+
+-   09:18PM
+
+    **Build**
+
+    While we are making some changes, we should move forward with having a build ready to queue up and run!
+    Let me go ahead and move forward the issue, ideally we need to make a couple more changes to the `mmextension` package but there are some issues to resolve.
+    
+<Adsense />

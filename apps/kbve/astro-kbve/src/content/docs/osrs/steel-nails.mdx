@@ -1,0 +1,140 @@
+---
+title: Steel nails | OSRS Price Data
+description: "Steel nails: Keeps things in place fairly permanently.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 1539
+  name: Steel nails
+  slug: steel-nails
+  examine: Keeps things in place fairly permanently.
+  members: false
+  icon: Steel nails.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+  material:
+    type: nails
+    tier: steel
+  smithing:
+    level: 34
+    xp: 37.5
+    bars: 1
+    nails_per_bar: 15
+  construction:
+    bend_rate: Medium
+    min_level: 1
+  recipes:
+    - skill: smithing
+      level: 34
+      xp: 37.5
+      materials:
+        - item_name: Steel bar
+          item_id: 2353
+          quantity: 1
+      product: Steel nails
+      product_id: 1539
+      product_quantity: 15
+  related_items:
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: component
+      description: Smelting material
+    - item_id: 4820
+      item_name: Iron nails
+      slug: iron-nails
+      relationship: downgrade
+      description: Higher bend rate
+    - item_id: 4822
+      item_name: Mithril nails
+      slug: mithril-nails
+      relationship: upgrade
+      description: Lower bend rate
+    - item_id: 960
+      item_name: Plank
+      slug: plank
+      relationship: component
+      description: Used with planks
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: component
+      description: Construction material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+**Smithing:**
+- Requires 34 Smithing
+- 1 [Steel bar](/osrs/steel-bar/) = 15 nails
+- Grants 37.5 XP
+
+**Shops:**
+- Sawmill Operator: 5 GP each
+- Construction supplies shops
+
+**Drops:**
+- Various monsters drop steel nails
+
+## Construction Use
+
+| Property | Value |
+|----------|-------|
+| Bend rate | Medium |
+| Construction level | 1+ |
+| Used with | [Planks](/osrs/plank/) |
+
+**Most common nails for Construction training.** Reasonable bend rate with affordable cost.
+
+**Required for:**
+- Furniture using regular [planks](/osrs/plank/)
+- Some quest builds (e.g., Priest in Peril bridge)
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Tips:**
+- Best value nails for Construction
+- Good balance of cost and bend rate
+- Popular for early Construction training
+- Required for various quests
+
+## Nail Tier Comparison
+
+| Nails | Bend Rate | Shop Price |
+|-------|-----------|------------|
+| [Bronze](/osrs/bronze-nails/) | Highest | 1 GP |
+| [Iron](/osrs/iron-nails/) | High | 2 GP |
+| Steel | Medium | 5 GP |
+| [Mithril](/osrs/mithril-nails/) | Low | 10 GP |
+| [Adamantite](/osrs/adamantite-nails/) | Very Low | 25 GP |
+| [Rune](/osrs/rune-nails/) | Never bends | 100 GP |
+
+## Related Items
+
+- [Plank](/osrs/plank/) - Basic construction material
+- [Steel bar](/osrs/steel-bar/) - Smithing material
+- [Hammer](/osrs/hammer/) - Required tool
+
+<Adsense />

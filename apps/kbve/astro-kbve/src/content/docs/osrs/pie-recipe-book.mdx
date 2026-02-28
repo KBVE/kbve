@@ -1,0 +1,37 @@
+---
+title: Pie recipe book | OSRS Price Data
+description: "Pie recipe book: Lots of pie recipes for me to try.. High alch: 3 GP, GE limit: 15."
+osrs:
+  id: 7162
+  name: Pie recipe book
+  slug: pie-recipe-book
+  examine: Lots of pie recipes for me to try.
+  members: true
+  icon: Pie recipe book.png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,93 @@
+---
+title: Iron longsword | OSRS Price Data
+description: "Iron longsword: A razor sharp longsword.. High alch: 84 GP, GE limit: 125."
+osrs:
+  id: 1293
+  name: Iron longsword
+  slug: iron-longsword
+  examine: A razor sharp longsword.
+  members: false
+  icon: Iron longsword.png
+  value: 140
+  lowalch: 56
+  highalch: 84
+  limit: 125
+  item_id: 1293
+  item_type: equipment
+  slot: weapon
+  type: longsword
+  attack_style: slash
+  attack_speed: 5
+  tradeable: true
+  weight: 1.814
+  requirements:
+    attack: 1
+  stats:
+    stab_attack: 6
+    slash_attack: 8
+    crush_attack: -2
+    strength: 10
+  related_items:
+    - slug: steel-longsword
+    - slug: iron-sword
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Longsword |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 1 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +6 |
+| Slash Attack | +8 |
+| Crush Attack | -2 |
+| Strength | +10 |
+
+## Obtaining
+
+**Smithing:** 21 Smithing with 2 iron bars (50 XP).
+
+**Shop:** Varrock Swordshop.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~40 gp
+
+Early longsword. Higher strength than sword. F2P accessible.
+
+## Related Items
+
+- [Steel longsword](/osrs/steel-longsword/) - Upgrade
+- [Iron sword](/osrs/iron-sword/) - Faster stab
+
+<Adsense />

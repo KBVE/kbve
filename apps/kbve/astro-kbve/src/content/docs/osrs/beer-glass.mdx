@@ -1,0 +1,92 @@
+---
+title: Beer glass | OSRS Price Data
+description: "Beer glass: I need to fill this with beer.. High alch: 1 GP, GE limit: 10,000."
+osrs:
+  id: 1919
+  name: Beer glass
+  slug: beer-glass
+  examine: I need to fill this with beer.
+  members: false
+  icon: Beer glass.png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 10000
+  material:
+    type: glass_product
+    tier: basic
+  crafting:
+    level: 1
+    xp: 17.5
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 17.5
+      materials:
+        - item_name: Molten glass
+          item_id: 1775
+          quantity: 1
+      product: Beer glass
+      product_id: 1919
+      product_quantity: 1
+      facility: Glassblowing pipe
+  related_items:
+    - item_id: 1775
+      item_name: Molten glass
+      slug: molten-glass
+      relationship: component
+      description: Raw material
+    - item_id: 1917
+      item_name: Beer
+      slug: beer
+      relationship: product
+      description: Container use
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Level | Materials |
+|--------|-------|-----------|
+| Glassblowing | 1 | 1 Molten glass |
+| XP | 17.5 | - |
+
+## Usage
+
+Used to hold beer and various other drinks.
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Brewing minigame
+- Collecting ales
+- F2P crafting training
+
+**Tips:**
+- Lowest level glassblowing product
+- F2P accessible
+- Not very profitable
+- Good for early crafting XP
+
+<Adsense />

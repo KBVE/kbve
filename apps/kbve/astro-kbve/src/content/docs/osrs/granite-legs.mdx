@@ -1,0 +1,37 @@
+---
+title: Granite legs | OSRS Price Data
+description: "Granite legs: These look pretty heavy.. High alch: 39,600 GP, GE limit: 70."
+osrs:
+  id: 6809
+  name: Granite legs
+  slug: granite-legs
+  examine: These look pretty heavy.
+  members: true
+  icon: Granite legs.png
+  value: 66000
+  lowalch: 26400
+  highalch: 39600
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

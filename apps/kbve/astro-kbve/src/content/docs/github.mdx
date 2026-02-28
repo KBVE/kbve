@@ -1,0 +1,126 @@
+---
+title: GitHub Ecosystem
+description: Explore KBVE's open-source projects, repositories, and contribution statistics across our GitHub organization.
+template: splash
+sidebar:
+  label: GitHub
+  order: 5
+editUrl: false
+lastUpdated: false
+---
+
+import Adsense from '@/components/astropad/adsense/Adsense.astro';
+
+{/*
+
+## Implementation Plan for GitHub Ecosystem Page
+
+### Phase 1: Core Components
+
+1. **GitHubOrgStats Component**
+   - Display organization-level statistics (total repos, stars, forks, contributors)
+   - Fetch from GitHub API: `https://api.github.com/orgs/KBVE`
+   - Show aggregate metrics across all repositories
+
+2. **RepoCard Component**
+   - Individual repository card showing: name, description, stars, forks, language, last updated
+   - Link to repo and optional live demo
+   - Language color indicators (similar to GitHub)
+
+3. **RepoGrid Component**
+   - Filterable/sortable grid of all KBVE repositories
+   - Filter by: language, topic, activity level
+   - Sort by: stars, forks, recently updated, name
+
+### Phase 2: Enhanced Features
+
+4. **ContributorShowcase Component**
+   - Top contributors across all repos
+   - Contribution heatmap or activity graph
+   - Link to contributor profiles
+
+5. **LanguageBreakdown Component**
+   - Pie/donut chart showing language distribution
+   - Click to filter repos by language
+
+6. **ActivityFeed Component**
+   - Recent commits, PRs, releases across repos
+   - Timeline view of organization activity
+
+### Phase 3: Interactive Features
+
+7. **RepoSearch Component**
+   - Full-text search across repo names and descriptions
+   - Autocomplete suggestions
+
+8. **TopicCloud Component**
+   - Visual cloud of repository topics
+   - Click to filter by topic
+
+9. **StatsOverTime Component**
+   - Growth charts (stars, forks, contributors over time)
+   - Requires data caching/historical tracking
+
+### Technical Considerations
+
+- **Rate Limiting**: GitHub API has rate limits (60 req/hr unauthenticated, 5000 authenticated)
+  - Consider server-side caching or static generation at build time
+  - Use GitHub GraphQL API for more efficient queries
+
+- **Data Freshness**:
+  - Option A: Build-time fetch (stale but fast)
+  - Option B: Client-side fetch with skeleton loading
+  - Option C: Hybrid with ISR (Incremental Static Regeneration)
+
+- **Skeleton Loading**: Match the pattern from AskamaProfileProvider for consistent UX
+
+### API Endpoints Needed
+
+```
+GET https://api.github.com/orgs/KBVE
+GET https://api.github.com/orgs/KBVE/repos?per_page=100&sort=updated
+GET https://api.github.com/orgs/KBVE/members
+GET https://api.github.com/repos/KBVE/{repo}/contributors
+GET https://api.github.com/repos/KBVE/{repo}/languages
+```
+
+### Component File Structure
+
+```
+src/components/github/
+├── GitHubOrgStats.astro        # Org-level stats banner
+├── RepoCard.astro              # Individual repo card
+├── RepoGrid.astro              # Grid container with filters
+├── RepoGridReact.tsx           # Interactive React version
+├── ContributorShowcase.astro   # Top contributors section
+├── LanguageBreakdown.tsx       # Interactive chart (React)
+├── ActivityFeed.astro          # Recent activity timeline
+└── index.ts                    # Barrel exports
+```
+
+### Suggested Starting Point
+
+Start with a simple static version:
+1. Create GitHubOrgStats - fetches org data at build time
+2. Create RepoCard - displays single repo info
+3. Create RepoGrid - maps repos to cards
+4. Add client-side interactivity later (search, filters, sorting)
+
+*/}
+
+## Coming Soon
+
+The KBVE GitHub Ecosystem page is under development. This page will showcase:
+
+- All KBVE open-source repositories
+- Organization statistics and metrics
+- Top contributors and their activity
+- Language distribution across projects
+- Recent commits and releases
+- Searchable and filterable repo browser
+
+For now, visit our GitHub organization directly:
+
+**[github.com/KBVE](https://github.com/KBVE)**
+
+<Adsense />

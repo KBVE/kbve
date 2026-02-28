@@ -1,0 +1,37 @@
+---
+title: Blue d'hide chaps (t) | OSRS Price Data
+description: "Blue d'hide chaps (t): Made from 100% real dragonhide. With colourful trim!. High alch: 2,592 GP, GE limit: 8."
+osrs:
+  id: 7384
+  name: Blue d'hide chaps (t)
+  slug: blue-d-hide-chaps-t
+  examine: Made from 100% real dragonhide. With colourful trim!
+  members: true
+  icon: Blue d'hide chaps (t).png
+  value: 4320
+  lowalch: 1728
+  highalch: 2592
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

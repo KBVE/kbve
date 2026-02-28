@@ -1,0 +1,37 @@
+---
+title: Anchovies | OSRS Price Data
+description: "Anchovies: Some nicely cooked anchovies.. High alch: 9 GP, GE limit: 15,000."
+osrs:
+  id: 319
+  name: Anchovies
+  slug: anchovies
+  examine: Some nicely cooked anchovies.
+  members: false
+  icon: Anchovies.png
+  value: 15
+  lowalch: 6
+  highalch: 9
+  limit: 15000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

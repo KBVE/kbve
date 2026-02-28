@@ -1,0 +1,150 @@
+---
+title: Teak plank | OSRS Price Data
+description: "Teak plank: A plank of fine teak.. High alch: 300 GP, GE limit: 13,000."
+osrs:
+  id: 8780
+  name: Teak plank
+  slug: teak-plank
+  examine: A plank of fine teak.
+  members: true
+  icon: Teak plank.png
+  value: 500
+  lowalch: 200
+  highalch: 300
+  limit: 13000
+  material:
+    type: plank
+    tier: mid
+  construction:
+    xp_per_plank: 90
+    min_level: 35
+    common_builds:
+      - name: Teak garden benches
+        planks: 6
+        xp: 540
+      - name: Teak dining tables
+        planks: 4
+        xp: 360
+  recipes:
+    - skill: construction
+      materials:
+        - item_name: Teak logs
+          item_id: 6333
+          quantity: 1
+      product: Teak plank
+      product_id: 8780
+      product_quantity: 1
+      facility: Sawmill
+      cost: 500
+      members_only: true
+    - skill: magic
+      level: 86
+      xp: 90
+      materials:
+        - item_name: Teak logs
+          item_id: 6333
+          quantity: 1
+        - item_name: Astral rune
+          item_id: 9075
+          quantity: 2
+        - item_name: Nature rune
+          item_id: 561
+          quantity: 1
+        - item_name: Earth rune
+          item_id: 557
+          quantity: 15
+      product: Teak plank
+      product_id: 8780
+      product_quantity: 1
+      cost: 350
+      members_only: true
+      spell: Plank Make
+  related_items:
+    - item_id: 6333
+      item_name: Teak logs
+      slug: teak-logs
+      relationship: component
+      description: Raw material
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: alternative
+      description: Budget option
+    - item_id: 8782
+      item_name: Mahogany plank
+      slug: mahogany-plank
+      relationship: alternative
+      description: Premium option
+    - item_id: 9075
+      item_name: Astral rune
+      slug: astral-rune
+      relationship: component
+      description: For Plank Make
+    - item_id: 561
+      item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: For Plank Make
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Convert [Teak logs](/osrs/teak-logs/) at a Sawmill:
+
+| Method | Cost |
+|--------|------|
+| Sawmill operator | 500 GP per plank |
+| Plank Make spell | 350 GP + runes |
+| Woodcutting Guild sawmill | 450 GP per plank |
+
+## Construction
+
+| XP per plank | 90 |
+|--------------|-----|
+| Mythical cape rack | ~180 XP per plank |
+| Buy limit | 13,000 per 4 hours |
+| Min Construction level | 35 |
+
+**Best XP methods:**
+- Teak garden benches (6 planks, 540 XP)
+- Mahogany Homes contracts (efficient XP)
+- Teak dining tables (4 planks, 360 XP)
+
+## Market Flip Strategy
+
+**Plank Making Profit:**
+- Buy [Teak logs](/osrs/teak-logs/) → Sawmill → Sell planks
+- Calculate: `Teak plank price - Teak log price - 500 GP = Profit`
+
+**Plank Make Spell:**
+- 86 Magic required
+- Only 350 GP per plank (saves 150 GP vs sawmill)
+- Good middle ground between oak and mahogany
+
+**Tips:**
+- Better XP/GP ratio than mahogany
+- Cheaper than mahogany planks
+- Popular for efficient Construction training
+- Mythical cape rack is meta method
+
+<Adsense />

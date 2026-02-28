@@ -1,0 +1,37 @@
+---
+title: Staff of bob the cat | OSRS Price Data
+description: "Staff of bob the cat: A staff styled after the elusive cat.. High alch: 900 GP, GE limit: 8."
+osrs:
+  id: 23363
+  name: Staff of bob the cat
+  slug: staff-of-bob-the-cat
+  examine: A staff styled after the elusive cat.
+  members: true
+  icon: Staff of bob the cat.png
+  value: 1500
+  lowalch: 600
+  highalch: 900
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

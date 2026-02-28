@@ -1,0 +1,37 @@
+---
+title: Trailblazer teleport scroll | OSRS Price Data
+description: "Trailblazer teleport scroll: A scroll which unlocks the Leagues II - Trailblazer home teleport animation.. High alch: 15,000 GP, GE limit: 5."
+osrs:
+  id: 25087
+  name: Trailblazer teleport scroll
+  slug: trailblazer-teleport-scroll
+  examine: A scroll which unlocks the Leagues II - Trailblazer home teleport animation.
+  members: true
+  icon: Trailblazer teleport scroll.png
+  value: 25000
+  lowalch: 10000
+  highalch: 15000
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

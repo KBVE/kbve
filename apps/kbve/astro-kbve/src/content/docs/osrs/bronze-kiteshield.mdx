@@ -1,0 +1,91 @@
+---
+title: Bronze kiteshield | OSRS Price Data
+description: "Bronze kiteshield: A large metal shield.. High alch: 40 GP, GE limit: 125."
+osrs:
+  id: 1189
+  name: Bronze kiteshield
+  slug: bronze-kiteshield
+  examine: A large metal shield.
+  members: false
+  icon: Bronze kiteshield.png
+  value: 68
+  lowalch: 27
+  highalch: 40
+  limit: 125
+  item_id: 1189
+  item_type: armor
+  slot: shield
+  type: kiteshield
+  tradeable: true
+  weight: 5.443
+  requirements:
+    defence: 0
+  stats:
+    stab_defence: 5
+    slash_defence: 7
+    crush_defence: 6
+    ranged_defence: 6
+  related_items:
+    - slug: iron-kiteshield
+    - slug: bronze-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Off Hand |
+| Type | Kiteshield |
+| Tradeable | Yes |
+| Weight | 5.443 kg |
+| Requirements | None |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +5 |
+| Slash Defence | +7 |
+| Crush Defence | +6 |
+| Ranged Defence | +6 |
+
+## Obtaining
+
+**Smithing:** 12 Smithing with 3 bronze bars (37.5 XP).
+
+**Shop:** Cassie's Shield Shop, Falador.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~49 gp
+
+Starter shield. F2P accessible.
+
+## Related Items
+
+- [Iron kiteshield](/osrs/iron-kiteshield/) - Upgrade
+- [Bronze platebody](/osrs/bronze-platebody/) - Set piece
+
+<Adsense />

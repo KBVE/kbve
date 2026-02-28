@@ -1,0 +1,86 @@
+---
+title: 'October: 6th'
+category: Daily
+date: 2025-10-06 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 6th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### KBVE Credits
+
+-   08:15AM
+
+    I have to add back the KBVE credits, we have two sql files in the past that had everything already setup for the credit system!
+    I am going to take both of those and try to create a 3rd all in one sql file that will hold everything for our khash system, maybe even create a new schema around it.
+    The credits will still be 1 million per $1, which we want to automate to a certain extent in terms of payouts and purchases, both would also need audit logs and security.
+    
+### Twitch Stream
+
+-   09:05AM
+
+    Getting the basics of the OBS setup going, this was long over due and honestly I think it will great to get our stream operational, even if its just for the memes.
+
+### MapSettings Author Script
+
+-   10:06AM
+
+    One of the pieces that we are missing in our setup is the MapSettings authoring script, which will take each of the prefabs that we create and build an internal database for it.
+    This is going to be important when we are looking to automate some of the map generation in the future.
+
+### Argo IRC
+
+-   11:36AM
+    
+    Looks like argo's deployment of the irc server is stuck in a processing stage, going to try and resolve it!
+    The irc server is operational but the hang is a bit concerning, so I might as well address that right now.
+    The hang is coming from the SSL cert generation and the cert manager, both of these can be addressed in our current unity pipeline.
+    Let me push this fix up and then handle some of the click house issues!
+
+## 2024
+
+**NewEntry**
+
+I have been slacking on my journal entries, can not even begin to imagine how bad my docs are getting too.
+
+**Unity**
+
+Spent went way too much time trying to figure out `Unity` version 6 , but I made some solid progress.
+However I am back to the original square one and realized we can not have the games repo be open source because the private assets work so much better than any of the open source ones.
+With that being said, I am going to migrate the `unity-rareicon` out of the `apps` and into the Azure DevOps!
+
+Under the Azure Repos, we created the `rareicon` repo again and started to migrate some of the older code into this repo.
+However we will have to adjust or create another `auth` system for unity to help with the login phase.
+For this, I am going to start with a very generic and base concept and work from there.
+
+**Auth**
+
+In perparing for the Auth system, we will create a folder for the `auth` pages and then create the `unity.astro`.
+We will use this `https://kbve.com/auth/unity/` as our general endpoint to help us handle the auth system between our supabase and any Unity instance we want to integrate.
+
+**Skeleton**
+
+We should just name all the base skeletons across all our websites with a `id="skeleton"`, instead of the various other side names that we had.
+This way we can just control the skeleton through the `header` or `mainlayout` rather than remembering to include it in every instance that we need it in.
+
+**Vuplex**
+
+All of the web-based open source webviews are just a bit trash as of right now.
+So we are going back to our old faithful, Vuplex.
+The Vuplex instance will load the `https://kbve.com/auth/unity/` at first to help us with the handling of the login.
+As for registering, I am thinking that it would just make more sense to link them directly back to the `https://kbve.com/register`, rather than include a way to register directly within the application.
+
+**Corgi**
+
+For the 2D engine that we will be using, I am going with the old faithful of Corgi!
+All of this is like a trip back to memory lane, its been such a long time since I had to write and see the word, `GameObject`.
+I am going to go through all the example assets that are included with the Corgi engine and see what we can use as a base for our game.
+Once we get the base of the game setup, I am going to setup the pipeline for building the unity 6 and the general steam flow.
+If everything goes as planned, we can ship to Steam without any major problems.

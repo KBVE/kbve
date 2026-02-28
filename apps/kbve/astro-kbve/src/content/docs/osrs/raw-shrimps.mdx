@@ -1,0 +1,92 @@
+---
+title: Raw shrimps | OSRS Price Data
+description: "Raw shrimps: I should try cooking this.. High alch: 3 GP, GE limit: 15,000."
+osrs:
+  id: 317
+  name: Raw shrimps
+  slug: raw-shrimps
+  examine: I should try cooking this.
+  members: false
+  icon: Raw shrimps.png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 15000
+  material:
+    type: raw_fish
+    tier: lowest
+  fishing:
+    level: 1
+    xp: 10
+    method: Small fishing net
+    locations:
+      - Draynor Village
+      - Lumbridge Swamp
+      - Al Kharid
+  cooking:
+    level: 1
+    xp: 30
+    stop_burn_level: 34
+    product_id: 315
+    product_name: Shrimps
+  recipes:
+    - skill: cooking
+      level: 1
+      xp: 30
+      materials:
+        - item_name: Raw shrimps
+          item_id: 317
+          quantity: 1
+      product: Shrimps
+      product_id: 315
+      product_quantity: 1
+      facility: Fire or range
+  related_items:
+    - item_id: 315
+      item_name: Shrimps
+      slug: shrimps
+      relationship: product
+      description: Cooked version
+    - item_id: 321
+      item_name: Raw anchovies
+      slug: raw-anchovies
+      relationship: alternative
+      description: Also caught at same spots
+    - item_id: 303
+      item_name: Small fishing net
+      slug: small-fishing-net
+      relationship: alternative
+      description: Required to catch
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Cooking
+
+Cook Raw shrimps on a fire or range to get Shrimps.
+
+| Stat | Value |
+|------|-------|
+| **Cooking Level** | 1 |
+| **Burn stop level** | 34 |
+| **XP gained** | 30 |
+
+<Adsense />

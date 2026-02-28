@@ -1,0 +1,128 @@
+---
+title: Dwarf weed | OSRS Price Data
+description: "Dwarf weed: A powerful herb.. High alch: 42 GP, GE limit: 11,000."
+osrs:
+  id: 267
+  name: Dwarf weed
+  slug: dwarf-weed
+  examine: A powerful herb.
+  members: true
+  icon: Dwarf weed.png
+  value: 70
+  lowalch: 28
+  highalch: 42
+  limit: 11000
+  herb:
+    type: clean
+    tier: high
+  farming:
+    level: 79
+    xp: 170.5
+    growth_time: 80
+    seed_id: 5303
+    seed_name: Dwarf weed seed
+  herblore:
+    cleaning_level: 70
+    cleaning_xp: 13.8
+    grimy_id: 217
+    grimy_name: Grimy dwarf weed
+  recipes:
+    - skill: herblore
+      level: 72
+      xp: 162.5
+      materials:
+        - item_name: Dwarf weed
+          item_id: 267
+          quantity: 1
+        - item_name: Wine of zamorak
+          item_id: 245
+          quantity: 1
+      product: Ranging potion(3)
+      product_id: 169
+      members_only: true
+    - skill: herblore
+      level: 85
+      xp: 190
+      materials:
+        - item_name: Dwarf weed
+          item_id: 267
+          quantity: 1
+        - item_name: Nihil dust
+          item_id: 26373
+          quantity: 1
+      product: Ancient brew(4)
+      product_id: 26340
+      members_only: true
+  related_items:
+    - item_id: 169
+      item_name: Ranging potion(3)
+      slug: ranging-potion-3
+      relationship: product
+      description: Main product
+    - item_id: 245
+      item_name: Wine of zamorak
+      slug: wine-of-zamorak
+      relationship: component
+      description: Secondary ingredient
+    - item_id: 269
+      item_name: Torstol
+      slug: torstol
+      relationship: upgrade
+      description: Higher tier herb
+    - item_id: 2481
+      item_name: Lantadyme
+      slug: lantadyme
+      relationship: alternative
+      description: Similar tier herb
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Herblore
+
+| Potion | Level | Secondary |
+|--------|-------|-----------|
+| Ranging potion | 72 | Wine of zamorak |
+| Ancient brew | 85 | Nihil dust |
+| Menaphite remedy | 88 | Lily of the sands |
+
+## Market Flip Strategy
+
+**Ranging Herb:**
+- Ranging potions essential
+- High-level herb
+- Consistent demand
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Ranging potions (PvM/PvP)
+- Ancient brews (raids)
+- Menaphite remedy (ToA)
+- High-level content
+
+**Tips:**
+- Ranging pots always needed
+- Wine of Zamorak expensive
+- Ancient brew for mage builds
+- High farm profit
+
+<Adsense />

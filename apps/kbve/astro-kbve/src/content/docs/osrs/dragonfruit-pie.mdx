@@ -1,0 +1,37 @@
+---
+title: Dragonfruit pie | OSRS Price Data
+description: "Dragonfruit pie: Mmm dragonfruit pie.. High alch: 42 GP, GE limit: 10,000."
+osrs:
+  id: 22795
+  name: Dragonfruit pie
+  slug: dragonfruit-pie
+  examine: Mmm dragonfruit pie.
+  members: true
+  icon: Dragonfruit pie.png
+  value: 70
+  lowalch: 28
+  highalch: 42
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

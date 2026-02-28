@@ -1,0 +1,37 @@
+---
+title: Dragon spear | OSRS Price Data
+description: "Dragon spear: A dragon tipped spear.. High alch: 37,440 GP, GE limit: 70."
+osrs:
+  id: 1249
+  name: Dragon spear
+  slug: dragon-spear
+  examine: A dragon tipped spear.
+  members: true
+  icon: Dragon spear.png
+  value: 62400
+  lowalch: 24960
+  highalch: 37440
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Blighted super restore(4) | OSRS Price Data
+description: "Blighted super restore(4) is a members-only OSRS item. High alch: 24 GP, GE limit: 2,000."
+osrs:
+  id: 24598
+  name: Blighted super restore(4)
+  slug: blighted-super-restore-4
+  examine: 4 doses of super restore potion, blighted so it can be used only in the Wilderness.
+  members: true
+  icon: Blighted super restore(4).png
+  value: 40
+  lowalch: 16
+  highalch: 24
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

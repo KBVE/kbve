@@ -1,0 +1,134 @@
+---
+title: Dark bow | OSRS Price Data
+description: "Dark bow is a members two-handed weapon requiring 60 Ranged. High alch: 72,001 GP, GE limit: 8."
+osrs:
+  id: 11235
+  name: Dark bow
+  slug: dark-bow
+  examine: A bow from a darker dimension.
+  members: true
+  icon: Dark bow.png
+  value: 120002
+  lowalch: 48000
+  highalch: 72001
+  limit: 8
+  equipment:
+    slot: 2h
+    type: bow
+    attack_style: ranged
+    attack_speed: 9
+    requirements:
+      ranged: 60
+    stats:
+      attack_ranged: 95
+  special_attack:
+    name: Descent of Darkness
+    energy: 55
+    effect: +30% max hit, minimum 5 damage per arrow, fires 2 arrows
+    dragon_arrow_name: Descent of Dragons
+    dragon_arrow_effect: +50% max hit, minimum 8 damage per arrow, max 48 per arrow
+  drop_table:
+    sources:
+      - source: Dark beast
+        source_id: 4005
+        combat_level: 182
+        quantity: "1"
+        rarity: 1/512
+        members_only: true
+      - source: Night beast
+        source_id: 8643
+        combat_level: 374
+        quantity: "1"
+        rarity: 3/512
+        members_only: true
+  related_items:
+    - item_id: 11212
+      item_name: Dragon arrow
+      slug: dragon-arrow
+      relationship: component
+      description: Best ammo for spec
+    - item_id: 26374
+      item_name: Zaryte crossbow
+      slug: zaryte-crossbow
+      relationship: alternative
+      description: Modern alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Bow |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Attack Speed | 9 tick (5.4s) - Slowest weapon |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Dark beast | 1/512 |
+| Night beast | 3/512 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged | +95 |
+
+**Requirements:** 60 Ranged
+
+## Special Attack
+
+**Descent of Darkness** (55% energy):
+- +30% max hit
+- Minimum 5 damage per arrow
+- Fires 2 arrows
+
+**Descent of Dragons** (55% energy, dragon arrows):
+- +50% max hit
+- Minimum 8 damage per arrow
+- Max capped at 48 per arrow
+
+## Usage
+
+Essential for:
+- PvP KO weapon
+- Bounty Hunter
+- Castle Wars
+
+**Iconic PvP weapon, fires 2 arrows.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~1.2M gp
+
+**Tips:**
+- 90 Slayer for dark beasts
+- Use dragon arrows for max spec
+- PvP staple
+
+<Adsense />

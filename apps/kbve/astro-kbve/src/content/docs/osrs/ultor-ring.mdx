@@ -1,0 +1,139 @@
+---
+title: Ultor ring | OSRS Price Data
+description: "Ultor ring is a members ring slot item. High alch: 84,000 GP."
+osrs:
+  id: 28307
+  name: Ultor ring
+  slug: ultor-ring
+  examine: An occult ring that grants immense physical power.
+  members: true
+  icon: Ultor ring.png
+  value: 140000
+  lowalch: 56000
+  highalch: 84000
+  limit: null
+  equipment:
+    slot: ring
+    type: melee
+    requirements:
+      quest: Vardorvis kill
+    stats:
+      strength: 12
+  creation:
+    components:
+      - item_id: 28273
+        item_name: Berserker icon
+      - item_id: 28295
+        item_name: Ultor vestige
+      - item_id: 565
+        item_name: Blood rune
+        quantity: 500
+    materials:
+      - item_name: Chromium ingot
+        quantity: 3
+      - item_name: Ring mould
+        quantity: 1
+    skill_requirements:
+      magic: 90
+      crafting: 80
+  drop_table:
+    sources:
+      - source: Vardorvis
+        source_id: 12223
+        combat_level: 776
+        quantity: 1 (Ultor vestige)
+        rarity: Rare
+        members_only: true
+  related_items:
+    - item_id: 11773
+      item_name: Berserker ring (i)
+      slug: berserker-ring-i
+      relationship: alternative
+      description: Budget alternative
+    - item_id: 28316
+      item_name: Bellator ring
+      slug: bellator-ring
+      relationship: alternative
+      description: Slash accuracy
+    - item_id: 28295
+      item_name: Ultor vestige
+      slug: ultor-vestige
+      relationship: component
+      description: From Vardorvis
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ring |
+| Type | Melee Ring |
+| Tradeable | Yes |
+| Weight | 0.012 kg |
+
+## Creation
+
+1. Combine [Berserker icon](/osrs/berserker-icon/) + [Ultor vestige](/osrs/ultor-vestige/) + 500 blood runes
+2. Craft at furnace with 3 chromium ingots + ring mould
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 90 (boostable) |
+| Crafting | 80 (boostable) |
+| Kill Vardorvis | 1 time |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Strength | +12 |
+
+**Requirements:** Vardorvis kill
+
+## Usage
+
+BiS for:
+- All melee DPS
+- Maximum hits
+- Slayer
+
+**Highest strength bonus ring (+4 over berserker (i)).**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~117M gp
+
+**Tips:**
+- Vestige from Vardorvis
+- Cannot be imbued
+- DT2 content
+
+## Related Items
+
+- [Berserker ring (i)](/osrs/berserker-ring-i/) - Budget alternative
+- [Bellator ring](/osrs/bellator-ring/) - Slash accuracy
+- [Vardorvis](/osrs/vardorvis/) - Vestige source
+
+<Adsense />

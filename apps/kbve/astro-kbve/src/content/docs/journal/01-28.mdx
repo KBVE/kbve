@@ -1,0 +1,139 @@
+---
+title: 'January: 28'
+category: Daily
+date: 2026-01-28 12:00:00
+client: Self
+unsplash: 1737798388229-2524c7777c60
+img: https://images.unsplash.com/photo-1737798388229-2524c7777c60?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 28th of each year!
+tags:
+    - daily
+---
+
+
+import { Adsense } from '@/components/astropad';
+
+## Notes
+
+    ### Unreal
+
+        - Unreal Engine Tools, specifically for pipelines, https://src.redpoint.games/redpointgames/uet
+
+<Adsense />
+
+## 2026
+
+### OSRS Items
+
+-   04:11PM
+
+    Making changes to the OSRS items and hopefuly we some really good graph design
+
+## 2025
+
+-   **Godot**
+
+    11:07AM
+
+        The UX/UI extension has been taking a bit too much of my time trying to figure out how to adjust the text display.
+        One of the issues that I am having is trying to balance the text appearing and not getting in a way of the avatar.
+
+    01:49PM
+    
+        A WSL command would make sense to add, where it then runs the build for windows, wasm and linux.
+        Then we can add a m1 build that does mac, wasm and linux?! Hmm, going to keep notes on this for future reference.
+
+        It would look something like this:
+
+```json
+
+  "build-wsl": {
+    "executor": "nx:run-commands",
+    "options": {
+      "commands": [
+        "pnpm nx run rust_godot_towerdefense:build-linux",
+        "pnpm nx run rust_godot_towerdefense:build-windows",
+        "pnpm nx run rust_godot_towerdefense:build-wasm"
+      ],
+      "parallel": false
+    }
+  },
+```
+        This would then run all three for us , making it a bit eaiser via this shell command:
+
+```shell
+
+./kbve.sh -nx rust_godot_towerdefense:build-wsl
+
+```
+
+-   **Menu**
+
+    02:17PM
+
+        The menu system will be expanded later today to include some custom shaders.
+        
+
+## 2024
+
+    -   9:53am  -   `Refactor`
+
+        #### Refactor
+
+            The `kbve` package has a couple errors that needs to be addressed, which are mainly because the user table has `userid` now instead of `ulid` as a reference.
+            
+            Issue one would be under the `guild.rs` but now how should I refactor it? 
+
+            For now I am just updating the references to the `ulid` table as `userid`, since we want to make sure the column names match for the inner/left joins.
+
+            However during the `cargo test`, I noticed the holy crate was broken too, which means I need to go back and fix that as well xD!
+
+            The issue with the holy crate would be the observers, which I have addressed.
+
+            Going back to the `kbve` package and `rust_wasm_embed`, I reset the `hcaptcha` key within the database and we are running into some verification issues.
+
+            To help resolve this, I am going to pull the dev server replication from `5` units to `1` and see what the problem is when it comes to the verification, which is most likely something stupid hehe.
+
+            
+            The goal right now would be to isolate the different functions of the package into their own files, then slowly extend out each one of them.
+            I want to do this slowly but I will skip the integration testing and stack tracing until the base of the refactor is done.
+
+        
+        #### Captcha
+
+            This was a pain to figure out because I could not tell if I was having errors from the HCaptcha service, itself, or if there was just something wrong with the docker network.
+            In the end, I was able to register my test account, which is enough to move forward with the rest of the refactor.
+
+            The current struct for HCaptcha looks like this:
+
+                ```rust
+                
+                    #[derive(Deserialize)]
+                    struct HCaptchaResponse {
+                        success: bool,
+                        challenge_ts: Option<String>, // Timestamp of the challenge
+                        hostname: Option<String>, // Hostname of the site
+                        credit: Option<bool>, // Deprecated field
+                        #[serde(rename = "error-codes")]
+                        error_codes: Option<Vec<String>>, // Error codes, if any
+                    }
+
+                ```
+
+                The `error_codes` or `error-codes` should pass through the json but I can come back to that at a later time.
+
+        #### Checks
+
+            The `health_check` and `speed_test` utility functions will be migrated into one route that we will call system diagnostics.
+            This route will contain all the information we would need to debug, examine and test the live instance.
+
+            In the integration test case, I am calling them like this:
+
+                ```rust
+                                
+                    .route("/health", get(kbve::routes::system_health_check))
+                    .route("/speed", get(kbve::routes::system_database_speed_test))
+
+                ```
+
+            Both of the routes are working fine without any issues at the local point, I will save the progress at this route.

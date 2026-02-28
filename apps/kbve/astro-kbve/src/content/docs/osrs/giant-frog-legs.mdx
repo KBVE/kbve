@@ -1,0 +1,37 @@
+---
+title: Giant frog legs | OSRS Price Data
+description: "Giant frog legs: This could feed a family of gnomes for a week!. High alch: 60 GP, GE limit: 6,000."
+osrs:
+  id: 4517
+  name: Giant frog legs
+  slug: giant-frog-legs
+  examine: This could feed a family of gnomes for a week!
+  members: true
+  icon: Giant frog legs.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: 6000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

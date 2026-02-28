@@ -1,0 +1,132 @@
+---
+title: 'Fried Fish Taco'
+description: |
+    A warm, folded miracle of fried fish, spice, and crunchy greens. 
+    It smells way too good to survive long in your pack.
+id: 'fried-fish-taco'
+key: 31
+ref: '01JWFY6R3G5BQ7FZ7Q3KPKHY2C'
+name: 'Fish Taco'
+type: 'Food'
+category: 392
+img: '/assets/items/skills/cooking/dish/fried_fish_taco.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 40
+consumable: true
+stackable: false
+rarity: 'Common'
+weight: 0.4
+effects: 'Restores health and boosts reflexes for a short time.'
+price: 90
+durability: 1
+equipped: false
+levelRequirement: 0
+cooldown: 60
+action: 'consume'
+credits: |
+    Concept by h0lybyte and Art by KBVE Pixel Workshop.
+bonuses:
+    health: 25
+    agility: 5
+    reflex: 3
+scripts:
+    - guid: 'eef4995c21cb4e7a812aa5e5ec2f449b'
+      vars:
+            healAmount: 25
+            dexterityBoost: 5
+            duration: 180
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Fish Taco** is a handheld culinary wonder.
+Grilled fish, zesty cabbage, and a spicy mayo drizzle all wrapped in a slightly charred tortilla.
+It is simple, satisfying, and somehow makes your fingers move faster.
+
+Perfect for adventurers who need both nutrition and a slight edge in battle but not stealth.
+
+
+A legendary taco, `Fish Taco Ultra`, which is fried fish, veggies and folded by the legendary food vendor Raul “Two-Hand” Velez.
+Crafted during the Crossbay Riots but the recipe was lost to time, thus the **Fish Taco** is a humble homage to that legendary dish.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.health} health**  
+- Grants temporary **+{frontmatter.bonuses.agility} agility** and **+{frontmatter.bonuses.reflex} reflex**  
+- Buff duration: **{frontmatter.scripts[0].vars.duration} seconds**  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Best consumed hot.  
+- May attract NPCs with enhanced smell traits.  
+- Leaves behind a wrapper that smells like home.
+
+---
+
+## Lore
+
+> “He handed it to me as the drones fired tear gas. Said: 'Even the end of the world needs flavor.'”  
+> - Street Survivor's Memoirs, Vol. 3
+
+Some say the original recipe was taught by a seafaring AI chef who only spoke in spice levels.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/fish_taco_flare.webp"
+  defaultId="01HTXYZFTC001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZFTC001',
+      title: 'Vendor Encounter',
+      description: 'Steam rises from the grill.',
+      image: 'https://images.unsplash.com/photo-1606788075763-b15ed96d29c3?q=80&w=500&auto=format&fit=crop',
+      message: '“You look hungry. First one is on me.”',
+      choices: [
+        { label: 'Take the taco.', nextId: '01HTXYZFTC002' },
+        { label: 'Refuse politely.', nextId: '01HTXYZFTC003' }
+      ]
+    },
+    {
+      id: '01HTXYZFTC002',
+      title: 'Flavor Unlocked',
+      description: 'You devour it in one bite.',
+      image: '/images/scene_tacobite.jpg',
+      message: 'You feel fast. Really fast.'
+    },
+    {
+      id: '01HTXYZFTC003',
+      title: 'Too Late',
+      description: 'He shrugs and eats it himself.',
+      image: '/images/scene_tacogone.jpg',
+      message: 'You smell it for hours and regret everything.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/30/2025 - Fish Taco added as consumable food with agility and reflex buff

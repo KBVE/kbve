@@ -1,0 +1,37 @@
+---
+title: Jade bracelet | OSRS Price Data
+description: "Jade bracelet: I wonder if this is valuable.. High alch: 780 GP, GE limit: 10,000."
+osrs:
+  id: 21120
+  name: Jade bracelet
+  slug: jade-bracelet
+  examine: I wonder if this is valuable.
+  members: true
+  icon: Jade bracelet.png
+  value: 1300
+  lowalch: 520
+  highalch: 780
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

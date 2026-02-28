@@ -1,0 +1,37 @@
+---
+title: Dragon cannon barrel | OSRS Price Data
+description: "Dragon cannon barrel: An old part of a dragon cannon.. High alch: 30,000 GP, GE limit: 100."
+osrs:
+  id: 32115
+  name: Dragon cannon barrel
+  slug: dragon-cannon-barrel
+  examine: An old part of a dragon cannon.
+  members: true
+  icon: Dragon cannon barrel.png
+  value: 50000
+  lowalch: 20000
+  highalch: 30000
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

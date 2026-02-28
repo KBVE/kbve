@@ -1,0 +1,37 @@
+---
+title: Raw admiral pie | OSRS Price Data
+description: "Raw admiral pie: This would taste a lot better cooked.. High alch: 93 GP, GE limit: 13,000."
+osrs:
+  id: 7196
+  name: Raw admiral pie
+  slug: raw-admiral-pie
+  examine: This would taste a lot better cooked.
+  members: true
+  icon: Raw admiral pie.png
+  value: 155
+  lowalch: 62
+  highalch: 93
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

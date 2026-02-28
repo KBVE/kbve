@@ -1,0 +1,148 @@
+---
+title: Mithril bar | OSRS Price Data
+description: "Mithril bar: It's a bar of mithril.. High alch: 180 GP, GE limit: 10,000."
+osrs:
+  id: 2359
+  name: Mithril bar
+  slug: mithril-bar
+  examine: It's a bar of mithril.
+  members: false
+  icon: Mithril bar.png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 10000
+  material:
+    type: bar
+    tier: mid
+  smithing:
+    level: 50
+    xp: 30
+    primary_ore: 447
+    primary_ore_name: Mithril ore
+    coal_required: 4
+    blast_furnace_coal: 2
+  recipes:
+    - skill: smithing
+      level: 50
+      xp: 30
+      materials:
+        - item_name: Mithril ore
+          item_id: 447
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 4
+      product: Mithril bar
+      product_id: 2359
+      product_quantity: 1
+      facility: Furnace
+    - skill: smithing
+      level: 50
+      xp: 30
+      materials:
+        - item_name: Mithril ore
+          item_id: 447
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 2
+      product: Mithril bar
+      product_id: 2359
+      product_quantity: 1
+      facility: Blast Furnace
+      members_only: true
+    - skill: smithing
+      level: 54
+      xp: 50
+      materials:
+        - item_name: Mithril bar
+          item_id: 2359
+          quantity: 1
+      product: Mithril dart tip
+      product_id: 822
+      product_quantity: 10
+      facility: Anvil
+      members_only: true
+  related_items:
+    - item_id: 447
+      item_name: Mithril ore
+      slug: mithril-ore
+      relationship: component
+      description: Primary ore
+    - item_id: 453
+      item_name: Coal
+      slug: coal
+      relationship: component
+      description: Required for smelting
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: alternative
+      description: Lower tier
+    - item_id: 2361
+      item_name: Adamantite bar
+      slug: adamantite-bar
+      relationship: alternative
+      description: Higher tier
+    - item_id: 822
+      item_name: Mithril dart tip
+      slug: mithril-dart-tip
+      relationship: product
+      description: Popular product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Smelt 1 [Mithril ore](/osrs/mithril-ore/) + 4 [Coal](/osrs/coal/) (2 coal at Blast Furnace).
+
+| Method | Coal Required | Smithing Level | XP |
+|--------|---------------|----------------|-----|
+| Regular furnace | 4 | 50 | 30 |
+| Blast Furnace | 2 | 50 | 30 |
+
+## Smithing Products
+
+| Item | Bars | Smithing Level | High Alch |
+|------|------|----------------|-----------|
+| [Mithril dagger](/osrs/mithril-dagger/) | 1 | 50 | 390 GP |
+| [Mithril scimitar](/osrs/mithril-scimitar/) | 2 | 55 | 780 GP |
+| [Mithril platebody](/osrs/mithril-platebody/) | 5 | 68 | 1,950 GP |
+| [Mithril platelegs](/osrs/mithril-platelegs/) | 3 | 66 | 1,170 GP |
+| [Mithril dart tip](/osrs/mithril-dart-tip/) | 1 | 54 | N/A |
+
+## Market Flip Strategy
+
+**Blast Furnace Smelting:**
+- Half coal = major savings
+- Calculate: `Mithril bar - Mithril ore - (Coal × 2) = Profit`
+- ~318 GP profit per bar at Blast Furnace
+
+**Dart Tip Making:**
+- 1 bar = 10 [Mithril dart tips](/osrs/mithril-dart-tip/)
+- Popular for Fletching training
+- Check dart tip vs bar prices
+
+**Buy Limit:** 10,000 per 4 hours
+
+<Adsense />

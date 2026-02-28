@@ -1,0 +1,135 @@
+---
+title: 'Kiwi Jigsaw'
+description: |
+    A taxidermy kiwi bird stitched atop a grim ceramic mask. 
+    Equal parts adorable and unnerving.
+    It watches. It judges.
+id: 'kiwi-jigsaw'
+key: 23
+ref: '01JWB04MV4JB6P79G5ZF3XQ122'
+name: 'Kiwi Jigsaw'
+type: 'Curio'
+category: 411
+img: '/assets/items/set/memes/kbve/kiwi_jigsaw.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 100
+consumable: false
+stackable: false
+rarity: 'Unique'
+weight: 1.4
+effects: 'Emits a faint presence. May trigger fear or laughter depending on who is looking.'
+price: 666
+durability: 999
+equipped: false
+levelRequirement: 0
+cooldown: 42069
+action: 'stare'
+credits: |
+    Crafted as a cursed novelty or a misunderstood cultural fusion. Origin unknown. Art by KBVE Pixel Workshop. Warning label missing.
+bonuses:
+    uncannyEffect: true
+    npcEmotionRoll: true
+    cursedPresence: 0.3
+scripts:
+    - guid: 'ccbbac00277c46f4b109e8ba3cfa05e2'
+      vars:
+            rollEmotions: fear
+            auraTrigger: 'visual'
+            curseChance: 0.3
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Kiwi Jigsaw** is... difficult to describe politely. 
+A plush (or preserved?) kiwi bird sits triumphantly atop a white mask, forever grinning in a rictus smirk.
+No one is sure who made it, or why, but the item radiates an aura that makes people pause, squint, and back away slowly?! or laugh until they weep.
+
+Some say it moves when no one is looking.
+Others say it whispers riddles in the night.
+I say it gives you a reason to uninstall the game because you are a wimp.
+
+You know what, try running a bunch of unsafe [rust](/application/rust/) ffi code inside unsafe [unity](/application/unity/).
+Just kidding, you will lose the game, life, even the universe will be gone.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Triggers **random emotional responses** in nearby NPCs or players  
+- Adds **uncanny aura** to your room, display case, or cursed collection  
+- 30% chance to emit a **cursed presence**, affecting luck or mood  
+- Cannot be destroyed. Cannot be duplicated. **Do not feed it.**
+
+---
+
+## Found In
+
+Reported to appear:
+- Inside amusement park basements.
+- Abandoned roadside gift shops.
+- Once, on top of a therapist's desk... mid-session.
+
+---
+
+## Lore
+
+> “You ever stare at something so stupid it became brilliant? Yeah. That. But also cursed.”  
+> - Cpt. Git, last known owner of the Kiwi Jigsaw
+
+No one's been able to remove the kiwi without breaking something important. Some theorize it's part of a larger... puzzle.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/kiwi_jigsaw_shadow.webp"
+  defaultId="01HTXYZKIW001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZKIW001',
+      title: 'It Blinks',
+      description: 'You are sure the eyes just moved.',
+      image: 'https://images.unsplash.com/photo-1603791452906-8f62f02badd4?q=80&w=500&auto=format&fit=crop',
+      message: 'Its expression changes when the light shifts.',
+      choices: [
+        { label: 'Pick it up.', nextId: '01HTXYZKIW002' },
+        { label: 'Back away slowly.', nextId: '01HTXYZKIW003' }
+      ]
+    },
+    {
+      id: '01HTXYZKIW002',
+      title: 'It Chirps',
+      description: 'Somehow. It chirps.',
+      image: '/images/scene_kiwipickup.jpg',
+      message: 'You feel joy. You feel terror. You feel judged.'
+    },
+    {
+      id: '01HTXYZKIW003',
+      title: 'Smart Choice',
+      description: 'You leave it alone.',
+      image: '/images/scene_kiwistare.jpg',
+      message: 'It is still staring. You are still uncomfortable.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/28/2025 - Kiwi Jigsaw added as unique curio item with aura-based reactions and cursed affinity

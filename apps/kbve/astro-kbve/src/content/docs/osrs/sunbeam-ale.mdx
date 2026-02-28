@@ -1,0 +1,37 @@
+---
+title: Sunbeam ale | OSRS Price Data
+description: "Sunbeam ale: Just the thing you need for a day in the sun.. High alch: 4 GP."
+osrs:
+  id: 29409
+  name: Sunbeam ale
+  slug: sunbeam-ale
+  examine: Just the thing you need for a day in the sun.
+  members: true
+  icon: Sunbeam ale.png
+  value: 8
+  lowalch: 3
+  highalch: 4
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

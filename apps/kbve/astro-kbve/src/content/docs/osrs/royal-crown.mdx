@@ -1,0 +1,37 @@
+---
+title: Royal crown | OSRS Price Data
+description: "Royal crown: Who said I'd never be royal?. High alch: 3,600 GP, GE limit: 4."
+osrs:
+  id: 12397
+  name: Royal crown
+  slug: royal-crown
+  examine: Who said I'd never be royal?
+  members: true
+  icon: Royal crown.png
+  value: 6000
+  lowalch: 2400
+  highalch: 3600
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Ensouled tzhaar head | OSRS Price Data
+description: "Ensouled tzhaar head: The creature's soul is still in here.. High alch: 304 GP, GE limit: 3,000."
+osrs:
+  id: 13499
+  name: Ensouled tzhaar head
+  slug: ensouled-tzhaar-head
+  examine: The creature's soul is still in here.
+  members: true
+  icon: Ensouled tzhaar head.png
+  value: 507
+  lowalch: 202
+  highalch: 304
+  limit: 3000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Sunfire fanatic armour set | OSRS Price Data
+description: "Sunfire fanatic armour set is a members-only OSRS item. High alch: 33,000 GP."
+osrs:
+  id: 29424
+  name: Sunfire fanatic armour set
+  slug: sunfire-fanatic-armour-set
+  examine: A set containing a Sunfire Fanatic Helm, Sunfire Fanatic Platebody and Sunfire Fanatic Platelegs.
+  members: true
+  icon: Sunfire fanatic armour set.png
+  value: 55000
+  lowalch: 22000
+  highalch: 33000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

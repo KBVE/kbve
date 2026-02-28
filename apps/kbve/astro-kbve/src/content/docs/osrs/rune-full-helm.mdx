@@ -1,0 +1,150 @@
+---
+title: Rune full helm | OSRS Price Data
+description: "Rune full helm is a F2P head slot item. High alch: 21,120 GP, GE limit: 70."
+osrs:
+  id: 1163
+  name: Rune full helm
+  slug: rune-full-helm
+  examine: A full face helmet.
+  members: false
+  icon: Rune full helm.png
+  value: 35200
+  lowalch: 14080
+  highalch: 21120
+  limit: 70
+  equipment:
+    slot: head
+    type: full_helm
+    attack_style: melee
+    tradeable: true
+    weight: 2.721
+  requirements:
+    defence: 40
+  stats:
+    attack:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -6
+      ranged: -3
+    defence:
+      stab: 30
+      slash: 32
+      crush: 27
+      magic: -1
+      ranged: 30
+    other:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  smithing:
+    level: 92
+    xp: 150
+    bars_required: 2
+    bar_id: 2363
+    bar_name: Runite bar
+  shops:
+    - shop_name: Blast Furnace
+      price: 35200
+    - shop_name: Prifddinas armour shop
+      price: 35200
+  drop_table:
+    sources:
+      - source: Mithril dragon
+        source_id: 5363
+        combat_level: 304
+        quantity: "1"
+        rarity: rare
+        members_only: true
+      - source: Jelly
+        source_id: 437
+        combat_level: 78
+        quantity: "1"
+        rarity: rare
+        members_only: true
+  related_items:
+    - item_id: 1147
+      item_name: Rune med helm
+      slug: rune-med-helm
+      relationship: alternative
+      description: Lighter alternative
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Smithing material
+    - item_id: 1079
+      item_name: Rune platelegs
+      slug: rune-platelegs
+      relationship: alternative
+      description: Set piece
+    - item_id: 1127
+      item_name: Rune platebody
+      slug: rune-platebody
+      relationship: alternative
+      description: Set piece
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Melee Armour |
+| Tradeable | Yes |
+| Weight | 2.721 kg |
+| Requirements | 40 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +30 |
+| Slash Defence | +32 |
+| Crush Defence | +27 |
+| Magic | -6 |
+| Ranged | -3 |
+
+## Obtaining
+
+**Smithing:** Smith from 2 runite bars (92 Smithing, 150 XP).
+
+**Shop:** Blast Furnace, Prifddinas armour shops.
+
+**Drops:** Mithril dragons, jellies, cyclops.
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~20,805 gp
+
+Best F2P full helm. Good alch value.
+
+## Related Items
+
+- [Rune med helm](/osrs/rune-med-helm/) - Lighter alternative
+- [Runite bar](/osrs/runite-bar/) - Smithing material
+
+<Adsense />

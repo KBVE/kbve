@@ -1,0 +1,126 @@
+---
+title: Magic potion(4) | OSRS Price Data
+description: "Magic potion(4) is a 3-dose members potion. High alch: 180 GP, GE limit: 2,000."
+osrs:
+  id: 3040
+  name: Magic potion(4)
+  slug: magic-potion-4
+  examine: 4 doses of Magic potion.
+  members: true
+  icon: Magic potion(4).png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 2000
+  potion:
+    doses: 3
+    type: skill
+    boost_stat: magic
+    boost_formula: "+4"
+  herblore:
+    level: 76
+    xp: 172.5
+  recipes:
+    - skill: herblore
+      level: 76
+      xp: 172.5
+      materials:
+        - item_name: Lantadyme potion (unf)
+          item_id: 2483
+          quantity: 1
+        - item_name: Potato cactus
+          item_id: 3138
+          quantity: 1
+      product: Magic potion(3)
+      product_id: 3040
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 2481
+      item_name: Lantadyme
+      slug: lantadyme
+      relationship: component
+      description: Primary herb
+    - item_id: 3138
+      item_name: Potato cactus
+      slug: potato-cactus
+      relationship: component
+      description: Secondary
+    - item_id: 23739
+      item_name: Divine magic potion(3)
+      slug: divine-magic-potion-3
+      relationship: upgrade
+      description: No-decay version
+    - item_id: 20724
+      item_name: Imbued heart
+      slug: imbued-heart
+      relationship: alternative
+      description: Infinite magic boost
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Mix Lantadyme potion (unf) + Potato cactus.
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 76 |
+| XP gained | 172.5 |
+
+## Effect
+
+Temporarily boosts Magic by +4 levels.
+
+**Note:** Boosted Magic allows casting higher spells but NOT equipping gear above your base level.
+
+## Usage
+
+Useful for:
+- Casting spells above your level
+- Enchanting jewelry
+- Ancient Magicks
+- Lunar spells
+
+## Upgrades
+
+| Potion | Boost | Level |
+|--------|-------|-------|
+| Magic potion(4) | +4 | 76 |
+| Super magic potion(4) | 5 + 15% | - |
+| Divine magic potion(4) | +4 (no decay) | - |
+| Imbued heart | 1 + 10% | - |
+
+## Market Strategy
+
+**Potion Making:**
+- High Herblore level required (76)
+- Calculate: `Magic potion - Lantadyme - Potato cactus = Profit`
+- Buy limit: 2,000 per 4 hours
+
+**Tips:**
+- Often cheaper than Divine version
+- Lantadyme is the expensive component
+- Potato cactus from farming or GE
+
+<Adsense />

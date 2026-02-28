@@ -1,0 +1,104 @@
+---
+title: Superior dragon bones | OSRS Price Data
+description: "Superior dragon bones: There's something unnatural about these bones.. High alch: 96 GP, GE limit: 7,500."
+osrs:
+  id: 22124
+  name: Superior dragon bones
+  slug: superior-dragon-bones
+  examine: There's something unnatural about these bones.
+  members: true
+  icon: Superior dragon bones.png
+  value: 160
+  lowalch: 64
+  highalch: 96
+  limit: 7500
+  prayer:
+    type: bones
+    tier: superior
+    xp_bury: 150
+    xp_gilded: 525
+    xp_chaos: 525
+    xp_ectofuntus: 600
+    xp_sinister: 450
+  drop_table:
+    sources:
+      - source: Vorkath
+        source_id: 8061
+        combat_level: 732
+        quantity: "2"
+        rarity: Always
+        members_only: true
+      - source: Frost dragon
+        source_id: 10083
+        combat_level: 166
+        quantity: "1"
+        rarity: 3/130
+        members_only: true
+  related_items:
+    - item_id: 536
+      item_name: Dragon bones
+      slug: dragon-bones
+      relationship: alternative
+      description: Lower tier bones
+    - item_id: 6729
+      item_name: Dagannoth bones
+      slug: dagannoth-bones
+      relationship: alternative
+      description: Alternative bones
+    - item_id: 201
+      item_name: Marrentill
+      slug: marrentill
+      relationship: component
+      description: For incense
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Vorkath | 2 (always) |
+| Frost dragons | 3/130 |
+
+## Prayer XP
+
+| Method | XP per bone |
+|--------|-------------|
+| Bury | 150 |
+| Gilded altar | 525 |
+| Chaos Temple | 525 |
+| Ectofuntus | 600 |
+| Sinister Offering | 450 |
+
+**Best Prayer XP bones in the game.**
+
+## Market Strategy
+
+**Buy Limit:** 7,500 per 4 hours
+
+**Tips:**
+- Best GP/XP ratio at altar
+- Vorkath makes them common
+- Wilderness altar doubles XP
+- Price tied to Vorkath activity
+
+<Adsense />

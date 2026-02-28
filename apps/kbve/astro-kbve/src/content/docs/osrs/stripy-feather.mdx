@@ -1,0 +1,37 @@
+---
+title: Stripy feather | OSRS Price Data
+description: "Stripy feather: Attractive to other birds and hunters alike.. High alch: 12 GP, GE limit: 8,000."
+osrs:
+  id: 10087
+  name: Stripy feather
+  slug: stripy-feather
+  examine: Attractive to other birds and hunters alike.
+  members: true
+  icon: Stripy feather.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 8000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

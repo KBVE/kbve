@@ -1,0 +1,182 @@
+---
+title: Battlestaff | OSRS Price Data
+description: "Battlestaff is a members weapon slot item. High alch: 4,200 GP, GE limit: 11,000."
+osrs:
+  id: 1391
+  name: Battlestaff
+  slug: battlestaff
+  examine: It's a slightly magical stick.
+  members: true
+  icon: Battlestaff.png
+  value: 7000
+  lowalch: 2800
+  highalch: 4200
+  limit: 11000
+  equipment:
+    slot: weapon
+    type: staff
+    attack_requirement: 30
+    magic_requirement: 30
+  attack_bonuses:
+    crush: 25
+    magic: 12
+  other_bonuses:
+    strength: 32
+  shops:
+    - shop_name: Zaff's Superior Staffs
+      price: 7000
+      currency: Coins
+      stock: Daily
+  recipes:
+    - skill: crafting
+      level: 66
+      xp: 137.5
+      materials:
+        - item_name: Battlestaff
+          item_id: 1391
+          quantity: 1
+        - item_name: Air orb
+          item_id: 573
+          quantity: 1
+      product: Air battlestaff
+      product_id: 1397
+      product_quantity: 1
+      facility: None
+      members_only: true
+    - skill: crafting
+      level: 54
+      xp: 100
+      materials:
+        - item_name: Battlestaff
+          item_id: 1391
+          quantity: 1
+        - item_name: Water orb
+          item_id: 571
+          quantity: 1
+      product: Water battlestaff
+      product_id: 1395
+      product_quantity: 1
+      facility: None
+      members_only: true
+    - skill: crafting
+      level: 58
+      xp: 112.5
+      materials:
+        - item_name: Battlestaff
+          item_id: 1391
+          quantity: 1
+        - item_name: Earth orb
+          item_id: 575
+          quantity: 1
+      product: Earth battlestaff
+      product_id: 1399
+      product_quantity: 1
+      facility: None
+      members_only: true
+    - skill: crafting
+      level: 62
+      xp: 125
+      materials:
+        - item_name: Battlestaff
+          item_id: 1391
+          quantity: 1
+        - item_name: Fire orb
+          item_id: 569
+          quantity: 1
+      product: Fire battlestaff
+      product_id: 1393
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 1397
+      item_name: Air battlestaff
+      slug: air-battlestaff
+      relationship: product
+      description: Air orb product
+    - item_id: 1393
+      item_name: Fire battlestaff
+      slug: fire-battlestaff
+      relationship: product
+      description: Fire orb product
+    - item_id: 567
+      item_name: Unpowered orb
+      slug: unpowered-orb
+      relationship: component
+      description: Orb base
+    - item_id: 23077
+      item_name: Celastrus bark
+      slug: celastrus-bark
+      relationship: component
+      description: Fletching material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Method |
+|--------|--------|
+| Zaff's Superior Staffs | Daily stock |
+| Crafting | Celastrus bark (40 Fletching) |
+| Monster drops | Various |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Attack requirement | 30 |
+| Magic requirement | 30 |
+| Magic attack | +12 |
+| Crush attack | +25 |
+| Strength bonus | +32 |
+
+## Uses
+
+| Product | Additional Item |
+|---------|-----------------|
+| Air battlestaff | Air orb |
+| Water battlestaff | Water orb |
+| Earth battlestaff | Earth orb |
+| Fire battlestaff | Fire orb |
+
+## Market Flip Strategy
+
+**Elemental Staff Base:**
+- Attach orbs for profit
+- Daily Zaff stock
+- High Crafting XP
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Elemental battlestaff crafting
+- Crafting training
+- Varrock diary reward
+- Zaff daily stock
+
+**Tips:**
+- Zaff sells discounted (diary)
+- High Crafting XP per staff
+- Orb charging profit chain
+- Mystic staff upgrades
+
+<Adsense />

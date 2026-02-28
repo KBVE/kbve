@@ -1,0 +1,92 @@
+---
+title: Rune axe | OSRS Price Data
+description: "Rune axe: A powerful axe.. High alch: 7,680 GP, GE limit: 40."
+osrs:
+  id: 1359
+  name: Rune axe
+  slug: rune-axe
+  examine: A powerful axe.
+  members: false
+  icon: Rune axe.png
+  value: 12800
+  lowalch: 5120
+  highalch: 7680
+  limit: 40
+  item_id: 1359
+  item_type: equipment
+  slot: weapon
+  type: axe
+  tradeable: true
+  weight: 1.36
+  requirements:
+    attack: 40
+    woodcutting: 41
+  stats:
+    slash_attack: 43
+    crush_attack: 32
+    strength: 41
+  related_items:
+    - slug: dragon-axe
+    - slug: runite-bar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Axe |
+| Tradeable | Yes |
+| Weight | 1.36 kg |
+| Requirements | 41 Woodcutting, 40 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Slash Attack | +43 |
+| Crush Attack | +32 |
+| Strength | +41 |
+
+## Obtaining
+
+**Smithing:** Smith from 1 runite bar (86 Smithing, 75 XP).
+
+**Shop:** Perry's Chop-chop Shop (40,960 gp).
+
+**Drops:** Kurask, skeletal wyvern, steel dragons.
+
+## Market Strategy
+
+**Buy Limit:** 40 per 4 hours
+
+**Price:** ~7,465 gp
+
+Best F2P axe. Fifth best overall for woodcutting.
+
+## Related Items
+
+- [Dragon axe](/osrs/dragon-axe/) - Upgrade
+- [Runite bar](/osrs/runite-bar/) - Smithing material
+
+<Adsense />

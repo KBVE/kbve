@@ -1,0 +1,37 @@
+---
+title: Mixed hide base | OSRS Price Data
+description: "Mixed hide base: I need this to make mixed hide armour.. High alch: 5,400 GP."
+osrs:
+  id: 29292
+  name: Mixed hide base
+  slug: mixed-hide-base
+  examine: I need this to make mixed hide armour.
+  members: true
+  icon: Mixed hide base.png
+  value: 9000
+  lowalch: 3600
+  highalch: 5400
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

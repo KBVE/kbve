@@ -1,0 +1,121 @@
+---
+title: Red dragonhide | OSRS Price Data
+description: "Red dragonhide: The scaly rough hide from a Red Dragon.. High alch: 87 GP, GE limit: 11,000."
+osrs:
+  id: 1749
+  name: Red dragonhide
+  slug: red-dragonhide
+  examine: The scaly rough hide from a Red Dragon.
+  members: true
+  icon: Red dragonhide.png
+  value: 145
+  lowalch: 58
+  highalch: 87
+  limit: 11000
+  material:
+    type: hide
+    tier: mid-high
+  tanning:
+    cost: 20
+    product_id: 2507
+    product_name: Red dragon leather
+  drop_table:
+    sources:
+      - source: Red dragon
+        source_id: 247
+        combat_level: 152
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Brutal red dragon
+        source_id: 7275
+        combat_level: 289
+        quantity: "2"
+        rarity: always
+        members_only: true
+  related_items:
+    - item_id: 2507
+      item_name: Red dragon leather
+      slug: red-dragon-leather
+      relationship: product
+      description: Tanned version
+    - item_id: 2501
+      item_name: Red d'hide body
+      slug: red-dhide-body
+      relationship: product
+      description: Main product
+    - item_id: 1747
+      item_name: Black dragonhide
+      slug: black-dragonhide
+      relationship: alternative
+      description: Higher tier
+    - item_id: 1751
+      item_name: Blue dragonhide
+      slug: blue-dragonhide
+      relationship: alternative
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Tanning
+
+Take to any tanner to convert to [Red dragon leather](/osrs/red-dragon-leather/).
+
+| Tanner | Cost |
+|--------|------|
+| Regular | 20 GP |
+| Canifis | 45 GP |
+
+## Crafting Products
+
+| Item | Leather | Crafting Level | XP |
+|------|---------|----------------|-----|
+| [Red d'hide vambraces](/osrs/red-d-hide-vambraces/) | 1 | 73 | 78 |
+| [Red d'hide chaps](/osrs/red-d-hide-chaps/) | 2 | 75 | 156 |
+| [Red d'hide body](/osrs/red-d-hide-body/) | 3 | 77 | 234 |
+| [Red d'hide shield](/osrs/red-d-hide-shield/) | 2 | 76 | 156 |
+
+## Market Flip Strategy
+
+**Tanning Profit:**
+- Buy hides → Tan → Sell leather
+- Calculate: `Red dragon leather - Red dragonhide - 20 = Profit`
+- Crafting Guild tanner (bank nearby)
+
+**Crafting Profit:**
+- [Red d'hide body](/osrs/red-d-hide-body/) is most common
+- Check: `Body price - (Leather × 3) = Profit`
+- Popular crafting training
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Drop Sources:**
+- Red dragons (Brimhaven Dungeon, Forthos)
+- Brutal red dragons
+- Red dragon bots common
+
+**Tips:**
+- Second-highest dragonhide tier
+- Higher volume than black
+- Good crafting XP/GP balance
+
+<Adsense />

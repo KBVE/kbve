@@ -1,0 +1,145 @@
+---
+title: Guardian boots | OSRS Price Data
+description: "Guardian boots is a members feet slot item requiring 75 Defence. High alch: 183,000 GP, GE limit: 8."
+osrs:
+  id: 21733
+  name: Guardian boots
+  slug: guardian-boots
+  examine: Some sturdy Bandos boots, made sturdier with the blackened tourmaline core of the Grotesque Guardians.
+  members: true
+  icon: Guardian boots.png
+  value: 305000
+  lowalch: 122000
+  highalch: 183000
+  limit: 8
+  equipment:
+    slot: feet
+    type: melee_boots
+    tradeable: true
+    weight: 7
+    requirements:
+      defence: 75
+    stats:
+      magic_attack: -3
+      ranged_attack: -1
+      strength: 3
+      stab_def: 32
+      slash_def: 32
+      crush_def: 32
+      magic_def: -3
+      ranged_def: 24
+      prayer: 2
+  creation:
+    method: Combine Bandos boots with Black tourmaline core
+    materials:
+      - item_id: 11834
+        item_name: Bandos boots
+        quantity: 1
+      - item_id: 21730
+        item_name: Black tourmaline core
+        quantity: 1
+    notes: Process is irreversible
+  market:
+    buy_limit: 8
+    price_estimate: 3000000
+  related_items:
+    - item_id: 13239
+      item_name: Primordial boots
+      slug: primordial-boots
+      relationship: alternative
+      description: Strength focused
+    - item_id: 11840
+      item_name: Dragon boots
+      slug: dragon-boots
+      relationship: downgrade
+      description: Budget option
+    - item_id: 11834
+      item_name: Bandos boots
+      slug: bandos-boots
+      relationship: component
+      description: Base component
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Feet |
+| Type | Melee Armor (Tank) |
+| Tradeable | Yes |
+| Weight | 7 kg |
+
+## Creation
+
+Combine [Bandos boots](/osrs/bandos-boots/) + [Black tourmaline core](/osrs/black-tourmaline-core/).
+
+**Process is irreversible.**
+
+| Component | Source | Price |
+|-----------|--------|-------|
+| Bandos boots | General Graardor | ~130K |
+| Black tourmaline core | Grotesque Guardians | ~2.9M |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Magic | -3 |
+| Ranged | -1 |
+| Strength | +3 |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +32 |
+| Slash | +32 |
+| Crush | +32 |
+| Magic | -3 |
+| Ranged | +24 |
+
+| Other | Value |
+|-------|-------|
+| Prayer | +2 |
+
+**Requirements:** 75 Defence
+
+## Usage
+
+BiS tank boots for:
+- Tanking roles
+- High defence situations
+- PvM where defence matters
+
+**Trade-off: +1 less strength than Primordial, much more defence.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~3M gp
+
+**Tips:**
+- Tourmaline core from Grotesque Guardians
+- Best defence boots in game
+- Niche but useful
+
+<Adsense />

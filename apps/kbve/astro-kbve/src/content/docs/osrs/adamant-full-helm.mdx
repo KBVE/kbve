@@ -1,0 +1,91 @@
+---
+title: Adamant full helm | OSRS Price Data
+description: "Adamant full helm: A full face helmet.. High alch: 2,112 GP, GE limit: 125."
+osrs:
+  id: 1161
+  name: Adamant full helm
+  slug: adamant-full-helm
+  examine: A full face helmet.
+  members: false
+  icon: Adamant full helm.png
+  value: 3520
+  lowalch: 1408
+  highalch: 2112
+  limit: 125
+  item_id: 1161
+  item_type: armor
+  slot: head
+  type: full_helm
+  tradeable: true
+  weight: 3.175
+  requirements:
+    defence: 30
+  stats:
+    stab_defence: 19
+    slash_defence: 21
+    crush_defence: 16
+    ranged_defence: 19
+  related_items:
+    - slug: rune-full-helm
+    - slug: adamant-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Full Helm |
+| Tradeable | Yes |
+| Weight | 3.175 kg |
+| Requirements | 30 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +19 |
+| Slash Defence | +21 |
+| Crush Defence | +16 |
+| Ranged Defence | +19 |
+
+## Obtaining
+
+**Smithing:** 77 Smithing with 2 adamantite bars (125 XP).
+
+**Shop:** Helmet Shop, Barbarian Village.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~1,896 gp
+
+High-tier F2P helm.
+
+## Related Items
+
+- [Rune full helm](/osrs/rune-full-helm/) - Upgrade
+- [Adamant platebody](/osrs/adamant-platebody/) - Set piece
+
+<Adsense />

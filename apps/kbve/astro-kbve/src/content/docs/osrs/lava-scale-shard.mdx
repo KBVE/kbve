@@ -1,0 +1,119 @@
+---
+title: Lava scale shard | OSRS Price Data
+description: "Lava scale shard: Ground-up lava dragon scale.. High alch: 12 GP, GE limit: 11,000."
+osrs:
+  id: 11994
+  name: Lava scale shard
+  slug: lava-scale-shard
+  examine: Ground-up lava dragon scale.
+  members: true
+  icon: Lava scale shard 5.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 11000
+  item:
+    type: herblore secondary
+    tradeable: true
+    weight: 0
+  recipes:
+    - skill: herblore
+      level: 84
+      materials:
+        - item_id: 2454
+          item_name: Antifire potion
+          quantity: 1
+        - item_id: 11994
+          item_name: Lava scale shard
+          quantity: 1
+      product: Extended antifire
+      product_id: 11951
+    - skill: herblore
+      level: 98
+      materials:
+        - item_id: 21978
+          item_name: Super antifire
+          quantity: 1
+        - item_id: 11994
+          item_name: Lava scale shard
+          quantity: 1
+      product: Extended super antifire
+      product_id: 22209
+  related_items:
+    - item_id: 11992
+      item_name: Lava scale
+      slug: lava-scale
+      relationship: component
+      description: Raw material ground into shards
+    - item_id: 11951
+      item_name: Extended antifire
+      slug: extended-antifire
+      relationship: product
+      description: Primary potion created with shards
+    - item_id: 21357
+      item_name: Infernal eel
+      slug: infernal-eel
+      relationship: alternative
+      description: Alternative source for shards
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Herblore Secondary |
+| Tradeable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+**Primary methods:**
+- Grind lava scales with pestle and mortar (3-6 shards, or 4-9 with Hard Wilderness Diary)
+- Hammer on infernal eels (1/8.75 chance for 1-5 shards)
+
+**Lava scale sources:**
+- Lava dragons
+- Brutal black dragons
+
+## Usage
+
+Secondary ingredient for:
+- **Extended antifire** (with antifire potion)
+- **Extended super antifire** (with super antifire)
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~25 gp
+
+High volume item. Essential for extended antifire production.
+
+## Related Items
+
+- [Lava scale](/osrs/lava-scale/) - Raw material
+- [Extended antifire](/osrs/extended-antifire/) - Primary use
+- [Infernal eel](/osrs/infernal-eel/) - Alternative source
+
+<Adsense />

@@ -1,0 +1,143 @@
+---
+title: Adamantite ore | OSRS Price Data
+description: "Adamantite ore: This needs refining.. High alch: 240 GP, GE limit: 4,500."
+osrs:
+  id: 449
+  name: Adamantite ore
+  slug: adamantite-ore
+  examine: This needs refining.
+  members: false
+  icon: Adamantite ore.png
+  value: 400
+  lowalch: 160
+  highalch: 240
+  limit: 4500
+  material:
+    type: ore
+    tier: adamantite
+  mining:
+    level: 70
+    xp: 95
+    rocks: Adamantite rock
+    respawn_time: 240
+    locations:
+      - Mining Guild
+      - Jatizso mine
+      - Motherlode Mine
+  smithing:
+    level: 70
+    xp: 37.5
+    method: Smelting
+    coal_required: 6
+    coal_required_bf: 3
+  recipes:
+    - skill: smithing
+      level: 70
+      xp: 37.5
+      materials:
+        - item_name: Adamantite ore
+          item_id: 449
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 6
+      product: Adamantite bar
+      product_id: 2361
+      product_quantity: 1
+      facility: Furnace
+    - skill: smithing
+      level: 70
+      xp: 37.5
+      materials:
+        - item_name: Adamantite ore
+          item_id: 449
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 3
+      product: Adamantite bar
+      product_id: 2361
+      product_quantity: 1
+      facility: Blast Furnace
+      members_only: true
+  related_items:
+    - item_id: 2361
+      item_name: Adamantite bar
+      slug: adamantite-bar
+      relationship: product
+      description: Smelting product
+    - item_id: 453
+      item_name: Coal
+      slug: coal
+      relationship: component
+      description: Required for smelting
+    - item_id: 451
+      item_name: Runite ore
+      slug: runite-ore
+      relationship: upgrade
+      description: Higher tier ore
+    - item_id: 447
+      item_name: Mithril ore
+      slug: mithril-ore
+      relationship: downgrade
+      description: Lower tier ore
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Level | XP |
+|--------|-------|-----|
+| Mining adamantite rocks | 70 | 95 |
+| Motherlode Mine | 30 | Variable |
+| Shooting Stars | N/A | N/A |
+
+**Respawn Time:** 4 minutes
+
+## Smithing
+
+| Product | Coal Required | Smithing Level | XP |
+|---------|---------------|----------------|-----|
+| Adamantite bar | 6 (3 at Blast Furnace) | 70 | 37.5 |
+
+## Market Flip Strategy
+
+**High-Tier Ore:**
+- Good Mining XP
+- Long respawn time
+- Blast Furnace halves coal
+
+**Buy Limit:** 4,500 per 4 hours
+
+**Demand Drivers:**
+- Adamant bar production
+- Smithing training
+- Adamant dart tips
+- High-level gear crafting
+
+**Tips:**
+- Blast Furnace saves coal
+- Mining Guild for extra ore
+- 4 minute respawn limits yield
+- Expert mining gloves help
+
+<Adsense />

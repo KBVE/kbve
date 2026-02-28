@@ -1,0 +1,110 @@
+---
+title: Black chinchompa | OSRS Price Data
+description: "Black chinchompa: Just plain nasty.. High alch: 144 GP, GE limit: 11,000."
+osrs:
+  id: 11959
+  name: Black chinchompa
+  slug: black-chinchompa
+  examine: Just plain nasty.
+  members: true
+  icon: Black chinchompa.png
+  value: 240
+  lowalch: 96
+  highalch: 144
+  limit: 11000
+  ammunition:
+    type: chinchompa
+    tier: black
+    ranged_strength: 80
+    attack_range: 9
+    aoe: 3x3
+    max_targets: 12
+    requirements:
+      ranged: 65
+  gathering:
+    skill: hunter
+    level: 73
+    xp: 315
+    tool: Box trap
+    location: Level 32-36 Wilderness
+    members_only: true
+  related_items:
+    - item_id: 10034
+      item_name: Red chinchompa
+      slug: red-chinchompa
+      relationship: alternative
+      description: Budget alternative
+    - item_id: 9976
+      item_name: Grey chinchompa
+      slug: grey-chinchompa
+      relationship: alternative
+      description: Entry level
+    - item_id: 10008
+      item_name: Box trap
+      slug: box-trap
+      relationship: component
+      description: Catching tool
+    - item_id: 22109
+      item_name: Ava's assembler
+      slug: avas-assembler
+      relationship: component
+      description: Ammo saver
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Catching (Wilderness) | 73 Hunter | 315 |
+| Location | Level 32-36 Wilderness | - |
+
+## Combat Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged requirement | 65 |
+| Ranged strength | +80 |
+| Attack range | 9 tiles |
+| AoE | 3x3 (up to 12 targets) |
+
+**Fastest Ranged XP method.**
+
+## Usage
+
+**Best For:**
+- Ranged training (MM2 tunnels)
+- Armadyl GWD
+- AoE slayer tasks
+- Speedrunning
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Tips:**
+- Wilderness only catching
+- PK risk while hunting
+- 3x3 AoE damage
+- Expensive but fast XP
+
+<Adsense />

@@ -1,0 +1,107 @@
+---
+title: Dragon sword | OSRS Price Data
+description: "Dragon sword is a members head slot item requiring 75 Defence. High alch: 43,200 GP, GE limit: 70."
+osrs:
+  id: 21009
+  name: Dragon sword
+  slug: dragon-sword
+  examine: A razor sharp sword.
+  members: true
+  icon: Dragon sword.png
+  value: 72001
+  lowalch: 28800
+  highalch: 43200
+  limit: 70
+  equipment:
+    slot: head
+    type: magic_hat
+    tradeable: true
+    weight: 0.453
+    requirements:
+      magic: 75
+      defence: 75
+    stats:
+      magic_attack: 8
+      magic_def: 8
+      magic_damage_percent: 2
+  drop_table:
+    sources:
+      - source: Chambers of Xeric
+        rate: 3/69
+        notes: Ancient chest
+  truemarket:
+    buy_limit: 8
+    price_estimate: 18000000
+  related_items:
+    - item_id: 21018
+      item_name: Ancestral robe top
+      slug: ancestral-robe-top
+      relationship: set-piece
+      description: Body armor
+    - item_id: 21021
+      item_name: Ancestral robe bottom
+      slug: ancestral-robe-bottom
+      relationship: set-piece
+      description: Leg armor
+    - item_id: 21006
+      item_name: Kodai wand
+      slug: kodai-wand
+      relationship: alternative
+      description: BiS magic weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Rare reward from Chambers of Xeric (CoX).
+
+3/69 chance from Ancient chest.
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Magic attack | +8 |
+| Magic defence | +8 |
+| Magic damage | +2% |
+| Requirements | 75 Magic, Defence |
+
+**Best-in-slot magic helm.**
+
+## Usage
+
+BiS magic helm for:
+- All magic combat
+- Raids
+- Bossing
+- When not using Slayer helm
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Chambers of Xeric drop
+- Part of Ancestral set
+- Cheapest Ancestral piece
+
+<Adsense />

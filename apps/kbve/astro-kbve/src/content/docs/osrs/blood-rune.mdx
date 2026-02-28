@@ -1,0 +1,121 @@
+---
+title: Blood rune | OSRS Price Data
+description: "Blood rune: Used for high level missile spells.. High alch: 240 GP, GE limit: 25,000."
+osrs:
+  id: 565
+  name: Blood rune
+  slug: blood-rune
+  examine: Used for high level missile spells.
+  members: true
+  icon: Blood rune.png
+  value: 400
+  lowalch: 160
+  highalch: 240
+  limit: 25000
+  rune:
+    type: combat
+  runecraft:
+    level: 77
+    xp: 23.8
+    altar: Dark Altar
+    altar_location: Arceuus (Zeah)
+    essence_type: dark
+    method: Dark essence fragments
+  recipes:
+    - skill: runecraft
+      level: 77
+      xp: 23.8
+      materials:
+        - item_name: Dark essence fragments
+          item_id: 7938
+          quantity: 1
+      product: Blood rune
+      product_id: 565
+      product_quantity: 1
+      facility: Dark altar (Arceuus)
+      members_only: true
+  related_items:
+    - item_id: 560
+      item_name: Death rune
+      slug: death-rune
+      relationship: alternative
+      description: Paired for barrages
+    - item_id: 22325
+      item_name: Scythe of vitur
+      slug: scythe-of-vitur
+      relationship: alternative
+      description: Major consumer (3 per swing)
+    - item_id: 22323
+      item_name: Sanguinesti staff
+      slug: sanguinesti-staff
+      relationship: alternative
+      description: Major consumer (3 per attack)
+    - item_id: 7938
+      item_name: Dark essence fragments
+      slug: dark-essence-fragments
+      relationship: component
+      description: Crafting material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Runecrafting
+
+| Requirement | Value |
+|-------------|-------|
+| Runecraft Level | 77 |
+| Method | Dark altar (Arceuus) |
+| XP per rune | 23.8 |
+
+**Note:** Cannot be crafted at true Blood Altar without special requirements.
+
+## Key Spells
+
+| Spell | Blood Runes | Effect |
+|-------|-------------|--------|
+| Fire Wave | 1 | Standard combat |
+| Blood Rush | 2 | Ancient heal |
+| Blood Burst | 4 | Ancient AoE heal |
+| Blood Barrage | 4 | Best Ancient heal |
+| Heal Group | 3 | Lunar healing |
+
+## Market Flip Strategy
+
+**Runecrafting (Zeah):**
+- Dark essence fragments → Blood runes
+- ~1.5m GP/hr at 77+ RC
+- AFK profitable method
+
+**Buy Limit:** 25,000 per 4 hours
+
+**Demand Drivers:**
+- Ancient Magicks combat
+- Scythe of vitur charges
+- Sanguinesti staff charges
+- High-level PvM
+
+**Tips:**
+- Scythe uses 3 per swing
+- Sanguinesti uses 3 per attack
+- ToB gear creates massive sink
+- Price correlates with raid popularity
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Fire element staff crown | OSRS Price Data
+description: "Fire element staff crown: A missing piece from a magical staff.. High alch: 6,000 GP, GE limit: 8."
+osrs:
+  id: 30631
+  name: Fire element staff crown
+  slug: fire-element-staff-crown
+  examine: A missing piece from a magical staff.
+  members: true
+  icon: Fire element staff crown.png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

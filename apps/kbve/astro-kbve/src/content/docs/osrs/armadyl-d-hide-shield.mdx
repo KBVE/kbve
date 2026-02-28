@@ -1,0 +1,37 @@
+---
+title: Armadyl d'hide shield | OSRS Price Data
+description: "Armadyl d'hide shield: Armadyl blessed wooden shield covered in dragon leather.. High alch: 17,000 GP, GE limit: 8."
+osrs:
+  id: 23200
+  name: Armadyl d'hide shield
+  slug: armadyl-d-hide-shield
+  examine: Armadyl blessed wooden shield covered in dragon leather.
+  members: true
+  icon: Armadyl d'hide shield.png
+  value: 28334
+  lowalch: 11333
+  highalch: 17000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

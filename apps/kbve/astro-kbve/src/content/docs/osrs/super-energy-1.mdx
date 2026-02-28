@@ -1,0 +1,118 @@
+---
+title: Super energy(1) | OSRS Price Data
+description: "Super energy(1) is a 3-dose members potion that run_energy. High alch: 54 GP, GE limit: 2,000."
+osrs:
+  id: 3022
+  name: Super energy(1)
+  slug: super-energy-1
+  examine: 1 dose of super energy potion.
+  members: true
+  icon: Super energy(1).png
+  value: 90
+  lowalch: 36
+  highalch: 54
+  limit: 2000
+  potion:
+    doses: 3
+    type: restoration
+    effect: run_energy
+    restore_percent: 20
+  herblore:
+    level: 52
+    xp: 117.5
+  recipes:
+    - skill: herblore
+      level: 52
+      xp: 117.5
+      materials:
+        - item_name: Avantoe potion (unf)
+          item_id: 99
+          quantity: 1
+        - item_name: Mort myre fungus
+          item_id: 2970
+          quantity: 1
+      product: Super energy(3)
+      product_id: 3022
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 261
+      item_name: Avantoe
+      slug: avantoe
+      relationship: component
+      description: Primary herb
+    - item_id: 2970
+      item_name: Mort myre fungus
+      slug: mort-myre-fungus
+      relationship: component
+      description: Secondary
+    - item_id: 12625
+      item_name: Stamina potion(4)
+      slug: stamina-potion-4
+      relationship: product
+      description: Upgraded version
+    - item_id: 3010
+      item_name: Energy potion(3)
+      slug: energy-potion-3
+      relationship: alternative
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 52 |
+| XP | 117.5 |
+| Ingredients | Avantoe + Mort myre fungus |
+
+## Effects
+
+| Effect | Value |
+|--------|-------|
+| Run energy restore | 20% per dose |
+| Total restore | 80% (4-dose) |
+
+## Market Flip Strategy
+
+**Energy Restoration:**
+- Essential for stamina potion production
+- Standalone energy restoration
+- Moderate demand
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Demand Drivers:**
+- Stamina potion production
+- Budget energy restoration
+- Ironman accounts
+- Early-game PvM
+
+**Tips:**
+- Low buy limit (2,000)
+- Avantoe herb base
+- Mort myre fungus secondary
+- Upgrade to stamina potion
+
+<Adsense />

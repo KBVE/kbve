@@ -1,0 +1,37 @@
+---
+title: Moonlight mead(m) | OSRS Price Data
+description: "Moonlight mead(m): This looks a good deal stronger than normal Moonlight Mead.. High alch: 3 GP, GE limit: 2,000."
+osrs:
+  id: 5749
+  name: Moonlight mead(m)
+  slug: moonlight-mead-m
+  examine: This looks a good deal stronger than normal Moonlight Mead.
+  members: true
+  icon: Moonlight mead(m).png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

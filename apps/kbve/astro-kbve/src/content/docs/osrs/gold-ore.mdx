@@ -1,0 +1,132 @@
+---
+title: Gold ore | OSRS Price Data
+description: "Gold ore: This needs refining.. High alch: 90 GP, GE limit: 30,000."
+osrs:
+  id: 444
+  name: Gold ore
+  slug: gold-ore
+  examine: This needs refining.
+  members: false
+  icon: Gold ore.png
+  value: 150
+  lowalch: 60
+  highalch: 90
+  limit: 30000
+  material:
+    type: ore
+    tier: mid
+  mining:
+    level: 40
+    xp: 65
+    locations:
+      - Crafting Guild
+      - Arzinian Mine
+      - Brimhaven dungeon
+  motherlode_mine:
+    level: 30
+  blast_mine:
+    level: 75
+  recipes:
+    - skill: smithing
+      level: 40
+      xp: 22.5
+      materials:
+        - item_name: Gold ore
+          item_id: 444
+          quantity: 1
+      product: Gold bar
+      product_id: 2357
+      product_quantity: 1
+      facility: Furnace
+    - skill: smithing
+      level: 40
+      xp: 56.2
+      materials:
+        - item_name: Gold ore
+          item_id: 444
+          quantity: 1
+      product: Gold bar
+      product_id: 2357
+      product_quantity: 1
+      facility: Blast Furnace (Goldsmith gauntlets)
+      members_only: true
+  related_items:
+    - item_id: 2357
+      item_name: Gold bar
+      slug: gold-bar
+      relationship: product
+      description: Smelting product
+    - item_id: 776
+      item_name: Goldsmith gauntlets
+      slug: goldsmith-gauntlets
+      relationship: alternative
+      description: XP boost
+    - item_id: 1712
+      item_name: Amulet of glory
+      slug: amulet-of-glory
+      relationship: product
+      description: Jewelry product
+    - item_id: 2552
+      item_name: Ring of dueling
+      slug: ring-of-dueling
+      relationship: product
+      description: Jewelry product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Level | XP |
+|--------|-------|-----|
+| Mining gold rocks | 40 | 65 |
+| Motherlode Mine | 30 | Variable |
+| Blast Mine | 75 | Variable |
+
+## Smithing
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Gold bar | 40 | 22.5 |
+| Gold bar (gauntlets) | 40 | 56.2 |
+
+## Market Flip Strategy
+
+**Gold Bar Production:**
+- Jewelry crafting chain
+- Goldsmith gauntlets XP
+- High Smithing XP rates
+
+**Buy Limit:** 30,000 per 4 hours
+
+**Demand Drivers:**
+- Gold bar production
+- Blast Furnace training
+- Jewelry crafting
+- Smithing XP
+
+**Tips:**
+- Goldsmith gauntlets 2.5x XP
+- Blast Furnace efficient
+- No coal required
+- High buy limit (30k)
+
+<Adsense />

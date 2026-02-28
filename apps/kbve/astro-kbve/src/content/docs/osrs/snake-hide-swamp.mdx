@@ -1,0 +1,37 @@
+---
+title: Snake hide (swamp) | OSRS Price Data
+description: "Snake hide (swamp): Scaly but not slimy!. High alch: 21 GP, GE limit: 11,000."
+osrs:
+  id: 7801
+  name: Snake hide (swamp)
+  slug: snake-hide-swamp
+  examine: Scaly but not slimy!
+  members: true
+  icon: Snake hide (swamp).png
+  value: 35
+  lowalch: 14
+  highalch: 21
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

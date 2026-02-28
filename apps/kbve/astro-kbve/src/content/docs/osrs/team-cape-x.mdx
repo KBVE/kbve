@@ -1,0 +1,37 @@
+---
+title: Team cape x | OSRS Price Data
+description: "Team cape x: Ooohhh look at the dirty colours.... High alch: 30 GP, GE limit: 4."
+osrs:
+  id: 20214
+  name: Team cape x
+  slug: team-cape-x
+  examine: Ooohhh look at the dirty colours...
+  members: false
+  icon: Team cape x.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

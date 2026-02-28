@@ -1,0 +1,37 @@
+---
+title: Te salt | OSRS Price Data
+description: "Te salt: A red salt, that when burned with other salts provides various benefits.. High alch: 6 GP, GE limit: 10,000."
+osrs:
+  id: 22593
+  name: Te salt
+  slug: te-salt
+  examine: A red salt, that when burned with other salts provides various benefits.
+  members: true
+  icon: Te salt.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

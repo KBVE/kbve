@@ -1,0 +1,94 @@
+---
+title: Papaya fruit | OSRS Price Data
+description: "Papaya fruit: Looks delicious.. High alch: 38 GP, GE limit: 11,000."
+osrs:
+  id: 5972
+  name: Papaya fruit
+  slug: papaya-fruit
+  examine: Looks delicious.
+  members: true
+  icon: Papaya fruit.png
+  value: 64
+  lowalch: 25
+  highalch: 38
+  limit: 11000
+  item:
+    type: food
+    subtype: fruit
+    tradeable: true
+    weight: 0.028
+  farming:
+    level: 57
+    patch_type: fruit_tree
+  related_items:
+    - item_id: 5288
+      item_name: Palm tree seed
+      slug: palm-tree-seed
+      relationship: alternative
+      description: Protection payment target
+    - item_id: 5289
+      item_name: Papaya tree seed
+      slug: papaya-tree-seed
+      relationship: alternative
+      description: Farming source
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Farming Product / Food |
+| Tradeable | Yes |
+| Weight | 0.028 kg |
+
+## Obtaining
+
+**Primary:** Harvest from papaya trees (57 Farming required)
+
+**Other sources:**
+- Fruit stall thieving (25 Thieving)
+- Kurask drops (~1 per 3 kills)
+- Shops in Civitas illa Fortis, Aldarin
+
+## Usage
+
+**Farming:** Palm tree protection payment (15 papaya fruits)
+
+**Summoning (RS3-era references):** Fruit bat familiar
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~1,265 gp
+
+Good volume. Primary use is palm tree protection.
+
+## Related Items
+
+- [Palm tree seed](/osrs/palm-tree-seed/) - Protection target
+- [Papaya tree seed](/osrs/papaya-tree-seed/) - Farming source
+- [Kurask](/osrs/kurask/) - Drop source
+
+<Adsense />

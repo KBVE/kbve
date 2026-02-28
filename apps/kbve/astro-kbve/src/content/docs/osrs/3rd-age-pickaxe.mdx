@@ -1,0 +1,158 @@
+---
+title: 3rd age pickaxe | OSRS Price Data
+description: "3rd age pickaxe is a members weapon slot item requiring 65 Attack. High alch: 58,770 GP, GE limit: 40."
+osrs:
+  id: 20014
+  name: 3rd age pickaxe
+  slug: 3rd-age-pickaxe
+  examine: A beautifully crafted pickaxe, shaped by ancient smiths.
+  members: true
+  icon: 3rd age pickaxe.png
+  value: 97950
+  lowalch: 39180
+  highalch: 58770
+  limit: 40
+  equipment:
+    slot: weapon
+    type: pickaxe
+    attack_style: melee
+    attack_speed: 5
+    requirements:
+      attack: 65
+      mining: 61
+    stats:
+      attack_stab: 26
+      attack_slash: -2
+      attack_crush: 24
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 1
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      melee_strength: 29
+      prayer_bonus: 0
+  skilling:
+    skill: mining
+    level: 61
+    speed_modifier: dragon_equivalent
+    special: Functions as dragon pickaxe for mining
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        requirements:
+          clue_type: Master
+        rarity: Very Rare
+        description: Extremely rare reward from master clue scrolls
+  related_items:
+    - item_id: 12426
+      item_name: 3rd age longsword
+      slug: 3rd-age-longsword
+      relationship: alternative
+      description: 3rd age melee weapon
+    - item_id: 12424
+      item_name: 3rd age bow
+      slug: 3rd-age-bow
+      relationship: alternative
+      description: 3rd age ranged weapon
+    - item_id: 12422
+      item_name: 3rd age wand
+      slug: 3rd-age-wand
+      relationship: alternative
+      description: 3rd age magic weapon
+    - item_id: 20011
+      item_name: 3rd age axe
+      slug: 3rd-age-axe
+      relationship: alternative
+      description: 3rd age skilling tool
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Pickaxe |
+| Attack Speed | 5 tick (3.0s) |
+| Tradeable | Yes |
+| Members Only | Yes |
+| Weight | 2.267 kg |
+
+## Obtaining
+
+| Method | Details |
+|--------|---------|
+| Source | Master Clue Scrolls |
+| Rarity | Extremely Rare (1/313,168) |
+
+## Combat Stats
+
+| Offence | Value |
+|---------|-------|
+| Stab | +26 |
+| Slash | -2 |
+| Crush | +24 |
+| Strength | +29 |
+
+| Defence | Value |
+|---------|-------|
+| Slash | +1 |
+
+**Requirements:** 65 Attack, 61 Mining (to use for mining)
+
+## Skilling
+
+| Property | Value |
+|----------|-------|
+| Mining Level | 61 |
+| Speed | Dragon equivalent |
+
+The 3rd age pickaxe has the same mining speed as a dragon pickaxe. It can be used with the Motherlode Mine and is compatible with all mining activities that accept the dragon pickaxe.
+
+## About
+
+The 3rd age pickaxe is a rare skilling tool obtained from Treasure Trails. It requires 61 Mining to use for mining and functions identically to a dragon pickaxe in terms of mining speed.
+
+3rd age tools are highly sought after due to their extreme rarity and status symbol value. The pickaxe is both a functional mining tool and a prestigious item.
+
+## Market Strategy
+
+**Investment Notes:**
+- Extremely valuable due to rarity
+- Functional skilling tool with prestige value
+- Price fluctuates based on collector demand
+
+**Trading Tips:**
+- Verify authenticity when trading high-value items
+- Use Grand Exchange for secure trades
+- Monitor price trends before purchasing
+
+## Related Items
+
+- [3rd age longsword](/osrs/3rd-age-longsword/) - 3rd age melee weapon
+- [3rd age bow](/osrs/3rd-age-bow/) - 3rd age ranged weapon
+- [3rd age wand](/osrs/3rd-age-wand/) - 3rd age magic weapon
+- [3rd age axe](/osrs/3rd-age-axe/) - 3rd age skilling tool
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Teak fancy dress box (flatpack) | OSRS Price Data
+description: "Teak fancy dress box (flatpack): Teak fancy dress box.. High alch: 6 GP, GE limit: 500."
+osrs:
+  id: 9866
+  name: Teak fancy dress box (flatpack)
+  slug: teak-fancy-dress-box-flatpack
+  examine: Teak fancy dress box.
+  members: true
+  icon: Teak fancy dress box (flatpack).png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 500
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

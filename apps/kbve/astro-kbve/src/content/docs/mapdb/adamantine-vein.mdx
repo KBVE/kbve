@@ -1,0 +1,49 @@
+---
+id: "01JGFJK3W80FJCB5TZTJ49J3BT"
+guid: "f14b4ea6afbf4e2581059714913076c6"
+drafted: false
+title: "Adamantine Vein"
+name: "Adamantine Vein"
+description: "An impenetrable adamantine deposit with razor edged crystalline facets"
+type: "resource"
+resourceType: "metal"
+imagePath: "/assets/mapdb/metal/adamantine/adamantine_vein.png"
+pixelsPerUnit: 64
+pivot: "Center"
+pivotX: 0.5
+pivotY: 0.5
+meshType: "FullRect"
+extrudeEdges: 1
+sortingLayer: "Foreground"
+sortingIndex: 0
+staticSorting: true
+wrapMode: "Clamp"
+amount: 150
+maxAmount: 150
+harvestYield: 6
+harvestTime: 8.5
+isHarvestable: true
+isDepleted: false
+spawnWeight: 0.05
+spawnCount: 4
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+# Adamantine Vein
+
+A near indestructible adamantine vein that resists conventional mining. 
+Only the most advanced extraction rigs can cleave these crystalline ridges, yielding metal fit for immortal relics.
+
+The metal will provide additional fire resistance.
+
+<MapDBPanel data={frontmatter} />
+
+<Adsense />
+
+## Mining Notes
+- Requires adamant drill with resonance dampeners
+- Yields 6 adamantine ore per successful extraction
+- Overheats tools rapidly without proper coolant cycles
+- Restricted claim zones due to strategic importance

@@ -1,0 +1,37 @@
+---
+title: Large oak hull parts | OSRS Price Data
+description: "Large oak hull parts: Parts for creating an oak hull for larger boats.. High alch: 1,875 GP."
+osrs:
+  id: 32065
+  name: Large oak hull parts
+  slug: large-oak-hull-parts
+  examine: Parts for creating an oak hull for larger boats.
+  members: true
+  icon: Large oak hull parts.png
+  value: 3125
+  lowalch: 1250
+  highalch: 1875
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

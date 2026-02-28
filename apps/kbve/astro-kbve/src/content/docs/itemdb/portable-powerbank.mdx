@@ -1,0 +1,132 @@
+---
+title: 'Portable Powerbank'
+description: |
+    A compact energy reservoir built to survive collapse and recharge whatever still runs.
+    Buzzes faintly when shaken.
+id: 'portable-powerbank'
+key: 25
+ref: '01JWCKTE3TC42CNP3X24TM0BA1'
+name: 'Portable Powerbank'
+type: 'Utility'
+category: 413
+img: '/assets/items/skills/technology/structures/portable_powerbank.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 110
+consumable: false
+stackable: false
+rarity: 'Uncommon'
+weight: 1.9
+effects: 'Recharges devices and tools. May overheat if pushed too far.'
+price: 440
+durability: 400
+equipped: true
+levelRequirement: 2
+cooldown: 60
+action: 'recharge'
+credits: |
+    Concept by h0lybyte and Pixel art by KBVE Workshop.
+bonuses:
+    energyRestore: 25
+    overloadChance: 0.05
+    chargeSlots: 2
+scripts:
+    - guid: 'af148fdc10d842f08bb29a10d38cdabb'
+      vars:
+            chargeAmount: 25
+            chargeTargets: tools
+            overheatChance: 0.05
+            maxConnections: 2
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Portable Powerbank** is a rugged, handheld energy source that recharges up to two devices or machines simultaneously.
+Outfitted with overcharge protection (sort of) and built from hardened composite casing, it's a lifeline in power scarce situations.
+
+It hums like it remembers what electricity used to feel like.
+
+Designed by ReCharge Industries before grid failure protocols.
+Used by explorers, field medics, and rogue AI cultists. 
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+## Usage
+
+- Restores **{frontmatter.bonuses.energyRestore} energy** per charge  
+- Connects to up to **{frontmatter.bonuses.chargeSlots} devices**  
+- 5% chance to **overheat**, causing minor burn or tool misfire  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Compatible Targets
+
+- Power tools  
+- Surveillance drones  
+- Emergency terminals  
+- Synthwave cassette players (untested)
+
+---
+
+## Lore
+
+> “Battery's full. You're not. Rest later.”  
+> - OldField Operator Manual, pg. 7
+
+Some say if you hold it long enough, it pulses in rhythm with your heart.
+Others say that's the capacitor failing.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/powerbank_field.webp"
+  defaultId="01HTXYZPWR001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZPWR001',
+      title: 'Power Detected',
+      description: 'The LED blinks once, then twice.',
+      image: 'https://images.unsplash.com/photo-1625606733549-9609e2d4b622?q=80&w=500&auto=format&fit=crop',
+      message: 'Something nearby draws power. The bank warms in your hand.',
+      choices: [
+        { label: 'Plug in your scanner.', nextId: '01HTXYZPWR002' },
+        { label: 'Save charge for later.', nextId: '01HTXYZPWR003' }
+      ]
+    },
+    {
+      id: '01HTXYZPWR002',
+      title: 'Scan Online',
+      description: 'The device boots with a healthy chirp.',
+      image: '/images/scene_scanner_boot.jpg',
+      message: 'Whatever was buried nearby… is no longer hidden.'
+    },
+    {
+      id: '01HTXYZPWR003',
+      title: 'Reserve Held',
+      description: 'The lights dim. But you feel safe. For now.',
+      image: '/images/scene_powerbank_glow.jpg',
+      message: 'Tomorrow might need it more than today.'
+    }
+  ]}
+/>
+<Adsense />
+
+---
+
+## DevLog
+
+- 05/28/2025 - Portable Powerbank added with multi-device charging logic and risk of overheat

@@ -1,0 +1,134 @@
+---
+title: 'Spooky Skull Candle'
+description: | 
+    A macabre light source carved from bone and wax.
+    Flickers when nearby spirits grow restless.
+id: 'spooky-skull-candle'
+key: 14
+ref: '01J2GHZQ9CXY89NB7NS5Q2DRSC'
+name: 'Spooky Skull Candle'
+type: 'Utility'
+category: 402
+img: '/assets/items/utility/necro/spooky_skull_candle.png'
+pixelDensity: 32
+sortingLayer: Ground
+sortingOrder: 55
+consumable: false
+stackable: false
+rarity: 'Uncommon'
+weight: 1.1
+effects: 'Provides soft ambient light and detects lesser evil spirits.'
+price: 275
+durability: 240
+equipped: true
+levelRequirement: 3
+cooldown: 30
+action: 'illuminate'
+credits: |
+        Lore by h0lybyte and Asset by CraftPix (https://free-game-assets.itch.io/free-undead-loot-pixel-art-icons).
+bonuses:
+    lightRadius: 4
+    detectSpirits: true
+    warningFlicker: true
+scripts:
+    - guid: 'caa98fef44bc41e49ae2399823fcb077'
+      vars:
+            lightRadius: 4
+            spiritDetection: 'minor'
+            flickerOnPresence: true
+            cooldown: 30
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Spooky Skull Candle** is both decorative and functional waxy flame cradled within the hollowed-out top of a [humanoid skull](/itemdb/undead-humanoid-skull/).
+The candle burns with a quiet red hue and flickers when unseen presences draw near.
+Oh the skull can detect lesser magical entities that are within the distance, foreshadowing the evil demons.
+
+It doesn't repel evil... but it knows when it't watching you, think of it as the TSA for the necromancy spirits.
+
+Crafted by Grave Wax Artisans using ethically sourced bone remnants and enchanted bee wax.
+Spirit warning flicker tuned to spectral level-1 resonance.
+
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Provides **light** in a radius of {frontmatter.bonuses.lightRadius} meters
+- Flickers when **lesser evil spirits** are nearby
+- Can be held, placed, or mounted on altars
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+
+---
+
+## Detection Logic
+
+Spirit flicker triggers on:
+- Nearby **Level 1-2** spiritual entities
+- Dormant undead awaiting activation
+- Cursed ground or unmarked grave miasma
+
+---
+
+## Lore
+
+> “Don't trust the light. Trust the flicker.”  
+> - Note carved beneath an old mausoleum
+
+When the candle flickers twice and the flame leans sideways, you're not alone. When it blows itself out… you were too late.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/spirit_warning.webp"
+  defaultId="01HTXYZSKC001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZSKC001',
+      title: 'Flicker Warning',
+      description: 'The candle shivers in still air.',
+      image: 'https://images.unsplash.com/photo-1509803149230-5a8f8a9ebc25?q=80&w=500&auto=format&fit=crop',
+      message: 'The flame bends left. Something invisible breathes too close.',
+      choices: [
+        { label: 'Draw a ward.', nextId: '01HTXYZSKC002' },
+        { label: 'Snuff the candle.', nextId: '01HTXYZSKC003' }
+      ]
+    },
+    {
+      id: '01HTXYZSKC002',
+      title: 'Protection Cast',
+      description: 'The air stills. The flickering fades.',
+      image: '/images/scene_candleward.jpg',
+      message: 'Whatever was near… isn’t now.'
+    },
+    {
+      id: '01HTXYZSKC003',
+      title: 'Darkness Wins',
+      description: 'The wick dies with a hiss.',
+      image: '/images/scene_dark_candle.jpg',
+      message: 'You feel watched. You are.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/27/2025 - Spooky Skull Candle introduced with ambient lighting and spectral detection behaviors

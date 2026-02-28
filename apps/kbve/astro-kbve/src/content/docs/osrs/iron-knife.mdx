@@ -1,0 +1,115 @@
+---
+title: Iron knife | OSRS Price Data
+description: "Iron knife is a members weapon slot item. High alch: 1 GP, GE limit: 7,000."
+osrs:
+  id: 863
+  name: Iron knife
+  slug: iron-knife
+  examine: A finely balanced throwing knife.
+  members: true
+  icon: Iron knife.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 7000
+  equipment:
+    slot: weapon
+    type: thrown
+    attack_style: ranged
+    attack_speed: 3
+  requirements:
+    ranged: 1
+  stats:
+    attack:
+      ranged: 5
+    other:
+      ranged_strength: 4
+  smithing:
+    level: 22
+    xp: 25
+    method: Iron bar at anvil
+    bars: 1
+    quantity: 5
+  related_items:
+    - item_id: 2351
+      item_name: Iron bar
+      slug: iron-bar
+      relationship: component
+      description: Smithing material
+    - item_id: 865
+      item_name: Steel knife
+      slug: steel-knife
+      relationship: upgrade
+      description: Higher tier knife
+    - item_id: 864
+      item_name: Bronze knife
+      slug: bronze-knife
+      relationship: downgrade
+      description: Lower tier knife
+    - item_id: 807
+      item_name: Iron dart
+      slug: iron-dart
+      relationship: alternative
+      description: Alternative thrown weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Thrown |
+| Tradeable | Yes |
+| Weight | 0.006 kg |
+| Requirements | 1 Ranged |
+
+## Obtaining
+
+**Smithing:** 22 Smithing with iron bar at anvil (25 XP, makes 5).
+
+**Drops:** Various monsters.
+
+**Shop:** Ranging Guild.
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +5 |
+| Ranged Strength | +4 |
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~10 gp
+
+Budget throwing knife. Popular for PKing and training.
+
+## Related Items
+
+- [Iron bar](/osrs/iron-bar/) - Smithing material
+- [Steel knife](/osrs/steel-knife/) - Upgrade option
+- [Iron dart](/osrs/iron-dart/) - Alternative thrown
+
+<Adsense />

@@ -1,0 +1,116 @@
+---
+title: 'June: 20'
+category: Daily
+date: 2025-06-20 12:00:00
+client: Self
+unsplash: 1685052386750-902a081b99da
+img: https://images.unsplash.com/photo-1685052386750-902a081b99da?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  June 20th. Monorepo Cleanup.
+tags:
+  - daily
+---
+
+import { Adsense } from '@/components/astropad';
+
+## Notes
+
+The `Atlas` project needs to process the tickets but without the monorepo.
+
+---
+
+## Quote
+
+> If I know what love is, it is because of you.
+> — <cite>Hermann Hesse</cite>
+
+---
+
+## Tasks
+
+- [x] Update Taxes, including the Annual Forms.
+- [x] Start Mother-in-Law Construction Research -> Moved Task.
+- [x] Start Living Trust Research -> Moved Task.
+
+---
+
+## 2025
+
+### Sleep
+
+-   11:15PM
+
+    Just got up, spent most of the day just sleeping, I will have to loop back to my written notes and update todays entry.
+
+## 2024
+
+**Monorepo**
+
+Cleaning up some of the older projects within the monorepo!
+We will have to remove enabled three js and maybe ammo too, these projects are still a bit too early for what we were aimming for.
+Next project we will be removing is the `expressdiscord` and maybe even most of the colyseus library.
+While I think its fine to use nodejs for small projects like this, I feel like the networking might be a bit of a pain via this library and it would make more sense to just use rust.
+We can work with the axum sockets and get better performance / stability than using the colyseus library.
+
+Removing the `e2e` test case for the `expressdiscord` is the next step.
+While I am doing that, I will tackle the Adsense missing in the older journal entries.
+
+The best way to remove this without breaking anything is to do it in small parts.
+Slowly migrating the changes into the main branch, without doing it all at once!
+I am thinking of slowly removing the pieces that we do not need, but limit it to about a couple patches every week.
+This gives us time to backup everything but also make sure nothing is out of bounds or cause massive failures.
+
+**Express**
+
+Removing the `express-colyseus-discord` application from the monorepo, well the `e2e` test case for the application.
+I will swing back around after this release to remove the whole application.
+We should also start to take out the libraries that are causing the npm error, which is the `enable 3d` library.
+The error is because they did not update to the latest three js library and their types are a bit of a mismatch, and since we will not be using them, it just makes sense.
+
+Now we will remove the whole application next since the main branch was updated.
+This next push will be the removal of about 19 files, but for the most part, it should be safe for now.
+
+**Disable The Enabled**
+
+Since we are moving away from the `enabled` library, it would make sense to document the removal of the said libraries.
+
+```shell
+
+pnpm remove @enable3d/ammo-on-nodejs
+
+```
+
+The first library that we will be removing is the `@enable3d/ammo-on-nodejs`.
+Next we will go back to our `03-19.mdx` notes and remove the colyseus from :
+
+```shell
+
+pnpm remove colyseus @colyseus/monitor @colyseus/schema @colyseus/uwebsockets-transport @colyseus/ws-transport
+
+```
+
+For the remaining `enabled` libraries, we will run this code:
+
+```shell
+
+pnpm remove @enable3d/ammo-physics @enable3d/common @enable3d/phaser-extension @enable3d/three-graphics @enable3d/three-wrapper
+
+```
+
+**Atlas**
+
+Ah the issue of the peer dependency is because we did not start with an empty folder, but rather the main branch.
+We could disable the repo checkout for a couple of the initial operations and then work around that?
+
+---
+
+<Adsense />
+
+## 2023
+
+- 11:00am - Woke up a bit late today! :C
+- 2:50pm - Getting ready to open up my midgame office hours! I started to update some of the unity projects and just did my first plastic merge. It was a bit scary, as I hate when I accidently do a rebase or something terrible lol. There were a couple issues that I ran into when merging the main branch into my dev branch. I believe I should have went the other direction but in the future we want to make sure that the main branch is functional before we put any changes onto it. We should also limit the off branch changes to a couple days, so that we are not stuck in a huge problem where the branch forks are really offset.
+- 4:20pm - Making quick plans for dinner! The craving for El Portal is real, I am dreaming about the Mexican restaurant! If you are ever in North Jersey, this is one of the best places to grab food, even if you are vegan.
+- 4:30pm - Updated Gena but it looks like the Unity main branch has a couple broken files. The HealthManager seems to be causing the project to load into Safe Mode. I will take a day break from Unity and switch back over to the main website, I am opening up the Postboy and Manga side projects for the website. I also noticed that the webmaster tools needs to be updated. The best option that I am seeing right now might be to just convert the older code base into the general tailwindcss and then migrate the typewriter effect into the react library, where I can reference it from there.
+- 6:30pm - El Portal with the homies, once I get back, I will make a decision on the the future of the Manga and how I should move forward with it.
+- 11:30pm - After testing a couple concepts out, I think having a MDX file for each page and then letting the writer(s) pick and choose options to display might be the best bet. This would help offset any future SEO issues and also give us the flexibility to add our own custom content, including videos! The big issue that I ran into was if we wanted to do a build-your-own path for the visual novel. The complex index system would be a bit more tough to do within React.

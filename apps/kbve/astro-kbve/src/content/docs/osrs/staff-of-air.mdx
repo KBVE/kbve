@@ -1,0 +1,95 @@
+---
+title: Staff of air | OSRS Price Data
+description: "Staff of air: A Magical staff.. High alch: 900 GP, GE limit: 125."
+osrs:
+  id: 1381
+  name: Staff of air
+  slug: staff-of-air
+  examine: A Magical staff.
+  members: false
+  icon: Staff of air.png
+  value: 1500
+  lowalch: 600
+  highalch: 900
+  limit: 125
+  item_id: 1381
+  item_type: equipment
+  slot: weapon
+  type: staff
+  tradeable: true
+  weight: 2.267
+  requirements:
+    magic: 0
+  stats:
+    magic_attack: 10
+    magic_defence: 10
+  effect:
+    description: Provides unlimited air runes when equipped.
+  related_items:
+    - slug: air-battlestaff
+    - slug: mystic-air-staff
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Staff |
+| Tradeable | Yes |
+| Weight | 2.267 kg |
+| Requirements | None |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Magic Attack | +10 |
+| Magic Defence | +10 |
+
+## Obtaining
+
+**Shop:** Zaff's Superior Staffs (1,500 gp).
+
+**Drops:** Air elementals, killerwatts.
+
+**Transmutation:** Crystal ball in POH.
+
+## Effects
+
+Provides unlimited air runes when equipped.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~2,448 gp
+
+Budget elemental staff. F2P accessible.
+
+## Related Items
+
+- [Air battlestaff](/osrs/air-battlestaff/) - Upgrade
+- [Mystic air staff](/osrs/mystic-air-staff/) - Better stats
+
+<Adsense />

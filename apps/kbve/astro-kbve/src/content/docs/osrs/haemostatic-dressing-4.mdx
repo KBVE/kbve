@@ -1,0 +1,37 @@
+---
+title: Haemostatic dressing (4) | OSRS Price Data
+description: "Haemostatic dressing (4): 4 applications of haemostatic dressing.. High alch: 150 GP."
+osrs:
+  id: 31590
+  name: Haemostatic dressing (4)
+  slug: haemostatic-dressing-4
+  examine: 4 applications of haemostatic dressing.
+  members: true
+  icon: Haemostatic dressing (4).png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

@@ -1,0 +1,145 @@
+---
+title: 'September: 24th'
+category: Daily
+date: 2025-09-24 12:00:00
+client: Self
+unsplash: 1692387164064-5678bd9f1ff3
+img: https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 24th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Zombie Horde Mode
+
+-   04:07AM
+
+    We got the spawning down into the different horde squads, we just need to make the adjustments on how they will move around the map.
+    There are a couple other things we need to include, but that will be for the map itself too, which is another phase in this ECS adventure.
+
+## 2024
+
+**Kilobase**
+
+Already 2am, oh man, the time seems to fly when trouble shooting through kubernetes.
+The goal will be to get the majority of the postgres operational but there are a room full of errors that we need to resolve on the side.
+The kong settings need to be adjusted a bit for the wrapper.sh and the functions, which I will start while waiting for the build to move forward.
+
+- 2:26am
+
+The current error is that it wants to pull the `15.1` image of kilobase, but we released a specific image called `15.1.1`.
+Maybe the issue might be because of cache, regardless, going to go back and switich the pull to Always for now and then see where it goes from there.
+Actually, we could also update the image tag and make it publish with a `15.1` and the `15.1.1`.
+In this case, we will do both and see where it goes from now, going to push out this branch and create a new branch.
+
+- 3:19am
+
+There seems to be a mismatch between the usermod for the postgres, so I am going back and switching it back to the way that Supabase had it, which was 101 for postgres.
+We will bump it up to version `15.1.2` but still release it under `15.1`, but I wonder if that will cause problems, hmm.
+Lets bump up the chart version too, maybe that will help with the current situation.
+
+- 4:42am
+
+Progress has been made, we were able to get the initial databases up and running, but there is still some issues with the other functions unable to connect.
+Going to have go back around and updated all the `DB_HOST` values to be our kubernetes value.
+
+- 4:57am
+
+The function container aka edge container seems to be throwing an error because of the read-only file system, so let us go ahead and update it so that it can write the cache.
+Under its `values.yaml`, we will go ahead and update the function setting, `readOnlyRootFilesystem: false`, which should now let us write.
+One error after another, lets get this going, going to do it for all of them.
+The other idea would be to just fork each of the images that supabase has and make the file changes we want, then publish them as our own images.
+This way we can then force them to be read-only, but that will be way later on in the system.
+Getting closer to the goal, with 35/41 resources running.
+
+Updated the configmap with everything else we might need! Lets hope that it will solve our issue and get this baby closer to operational.
+
+
+**Worker**
+
+Expanded the worker5 sda3 to 50GB and now I am thinking of looping back around and expanding all the remaining VMs in the master series.
+Adding another 18Gb to each of the masters would help with the images that we are pulling and should give us a bit more room to be flexible.
+In the future, with our next worker6 and worker7, we can give them a decent bulk size but that will require some additional planning to pull off.
+We did a quick resize to all the 5 original nodes.
+
+**Markets**
+
+What a rebound in the markets, good to see the post fed rates finally starting to give that much needed boost back to infinite.
+We just need nvidia to come back into that $125 zone and we are officially printing bags.
+
+**SQL**
+
+- 12:40pm
+
+The biggest issue that we have is in the configmap for the post install, which I am thinking we could resolve with our own SQL statements afterwards.
+The current idea would be to isolate these additional sqls into their own configmap and then appy them afterward the main init.
+
+- 4:00pm
+
+It seems that the `$PGUSER` and the `$PGPASS` are reserved for the operator, so we have to remove those from the `env`.
+Thus we can switch back around and update the `kilobase-additional-sql-postgres` with references to those two variables, now I wonder if the `$JWT_SECRET` will still pass through.
+Going to delete the fleet that we just deployed and start the whole process again.
+
+```SQL
+
+
+    -- migrate:up 99-jwt.sql
+    ALTER DATABASE postgres SET "app.settings.jwt_secret" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';
+    ALTER DATABASE postgres SET "app.settings.jwt_exp" TO '{{ .Values.db.environment.JWT_EXP | default "3600" }}';
+
+    -- migrate:down
+
+    -- migrate:up 99-logs.sql
+    CREATE SCHEMA IF NOT EXISTS _analytics;
+    ALTER SCHEMA _analytics OWNER TO '{{ .Values.secret.db.secretRefKey.username }}';
+
+    -- migrate:down
+
+    -- migrate:up 99-realtime.sql
+    CREATE SCHEMA IF NOT EXISTS _realtime;
+    ALTER SCHEMA _realtime OWNER TO '{{ .Values.secret.db.secretRefKey.username }}';
+
+    -- migrate:down
+
+    -- migrate:up 99-roles.sql
+    -- NOTE: change to your own passwords for production environments
+    ALTER USER authenticator WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER pgbouncer WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER supabase_auth_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER supabase_functions_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+    ALTER USER supabase_storage_admin WITH PASSWORD '{{ .Values.secret.db.secretRefKey.password }}';
+
+```
+
+These are the SQL statements that we will have to manually execute on the container to get the rest of the instance up and running.
+Afterwards we can run barman and see if it moves the database into the s3 bucket as a backup.
+If the WAL and the DB get saved to the s3, we can deploy it all again but with a recovery mode, then that should be enough to handle our generic needs for now.
+
+**Meta**
+
+The meta data issue that I am facing is:
+
+Failed to create resource: admission webhook "vcluster.cnpg.io" denied the request: 
+Cluster.postgresql.cnpg.io "kilobase-migrations-kube-charts-kilobase-supabase-supabase-db" is invalid:
+metadata.name: Invalid value: "kilobase-migrations-kube-charts-kilobase-supabase-supabase-db": the maximum length of a cluster name is 50 characters
+
+We could try to scale some of the names back to help with the deployment.
+
+## 2023
+- 9:35am - I woke up a bit late today and I think I am going to go back to sleep a bit more, I need to catch up on my ZZZs.
+- 5:03pm - Okay there are a couple things that I need to overlook when it comes to handling the YoRHa UI, but the issues are still a bit of a pain.
+
+## Quote
+
+> No party has a monopoly on wisdom. No democracy works without compromise.
+> — <cite>Barack Obama</cite>
+
+---
+
+## Tasks
+
+- [ ]

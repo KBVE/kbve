@@ -1,0 +1,77 @@
+---
+title: Ancient brew(3) | OSRS Price Data
+description: "Ancient brew(3) is a 3-dose members potion that boosts magic by 2, restores prayer, drains attack/strength/defence. High alch: 105 GP, GE limit: 2,000."
+osrs:
+  id: 26342
+  name: Ancient brew(3)
+  slug: ancient-brew-3
+  examine: 3 doses of ancient brew.
+  members: true
+  icon: Ancient brew(3).png
+  value: 175
+  lowalch: 70
+  highalch: 105
+  limit: 2000
+  potion:
+    doses: 3
+    herblore_level: 85
+    herblore_xp: 190
+    effect: Boosts Magic by 2, restores Prayer, drains Attack/Strength/Defence
+    effects:
+      - stat: Magic
+        boost_type: boost
+        boost_value: 2
+      - stat: Prayer
+        boost_formula: 2 + floor(level / 4)
+  related_items:
+    - item_id: 26340
+      item_name: Ancient brew(4)
+      slug: ancient-brew-4
+      relationship: variant
+      description: 4-dose version
+    - item_id: 26344
+      item_name: Ancient brew(2)
+      slug: ancient-brew-2
+      relationship: variant
+      description: 2-dose version
+    - item_id: 3024
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: alternative
+      description: Restores all stats
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Usage
+
+3-dose variant of Ancient brew.
+
+## Market Flip Strategy
+
+**Dose Manipulation:**
+- Compare 4-dose vs 3-dose prices
+- Decanting can profit in either direction
+- Use decanting NPC in GE
+
+**Buy Limit:** 2,000 per 4 hours
+
+<Adsense />

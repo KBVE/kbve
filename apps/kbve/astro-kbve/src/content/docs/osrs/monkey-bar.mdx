@@ -1,0 +1,37 @@
+---
+title: Monkey bar | OSRS Price Data
+description: "Monkey bar: It's a monkey bar. It looks highly nutritious.. High alch: 30 GP, GE limit: 6,000."
+osrs:
+  id: 4014
+  name: Monkey bar
+  slug: monkey-bar
+  examine: It's a monkey bar. It looks highly nutritious.
+  members: true
+  icon: Monkey bar.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 6000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

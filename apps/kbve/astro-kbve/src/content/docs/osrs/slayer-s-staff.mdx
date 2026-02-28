@@ -1,0 +1,137 @@
+---
+title: Slayer's staff | OSRS Price Data
+description: "Slayer's staff is a members weapon slot item with +35 melee strength requiring 50 Magic. High alch: 12,600 GP, GE limit: 70."
+osrs:
+  id: 4170
+  name: Slayer's staff
+  slug: slayer-s-staff
+  examine: An old and magical staff.
+  members: true
+  icon: Slayer's staff.png
+  value: 21000
+  lowalch: 8400
+  highalch: 12600
+  limit: 70
+  equipment:
+    slot: weapon
+    type: staff
+    attack_speed: 5
+    attack_bonus:
+      stab: 7
+      slash: -1
+      crush: 25
+      magic: 12
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 10
+      ranged: 0
+    other_bonus:
+      melee_strength: 35
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      magic: 50
+      slayer: 55
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    weight: 1.814
+  shop_source:
+    - name: Slayer Masters
+      cost: 21000
+      currency: coins
+  related_items:
+    - item_id: 22296
+      item_name: Slayer's staff (e)
+      slug: slayers-staff-e
+      relationship: upgrade
+      description: Enchanted version with +15% magic damage
+    - item_id: 21257
+      item_name: Slayer's enchantment
+      slug: slayers-enchantment
+      relationship: component
+      description: Upgrade material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Staff |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 50 Magic, 55 Slayer |
+
+## Obtaining
+
+Purchase from any Slayer Master for 21,000 gp.
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Stab | +7 |
+| Slash | -1 |
+| Crush | +25 |
+| Magic | +12 |
+| Strength | +35 |
+
+| Defence | Bonus |
+|---------|-------|
+| Stab | +2 |
+| Slash | +3 |
+| Crush | +1 |
+| Magic | +10 |
+
+## Special Features
+
+**Autocasts:** Magic Dart, Crumble Undead, Arceuus spells, Wave and Surge spells.
+
+**Required** for Magic Dart against turoth and kurask.
+
+## Upgrades
+
+| Item | Requirements |
+|------|--------------|
+| Slayer's staff (e) | 75 Magic, Slayer's enchantment |
+
+Enchanted version has 2,500 charges, +15% magic damage.
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~21K gp
+
+## Related Items
+
+- [Slayer's staff (e)](/osrs/slayers-staff-e/) - Upgraded version
+- [Magic Dart](/osrs/magic-dart/) - Associated spell
+- [Slayer's enchantment](/osrs/slayers-enchantment/) - Upgrade material
+
+<Adsense />

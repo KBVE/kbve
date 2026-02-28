@@ -1,0 +1,132 @@
+---
+title: Sarachnis cudgel | OSRS Price Data
+description: "Sarachnis cudgel is a members weapon slot item requiring 65 Attack. High alch: 72,000 GP, GE limit: 70."
+osrs:
+  id: 23528
+  name: Sarachnis cudgel
+  slug: sarachnis-cudgel
+  examine: Not to be confused with a Sarachnis cuddle.
+  members: true
+  icon: Sarachnis cudgel.png
+  value: 120001
+  lowalch: 48000
+  highalch: 72000
+  limit: 70
+  equipment:
+    slot: weapon
+    type: blunt
+    attack_style: crush
+    attack_speed: 4
+    requirements:
+      attack: 65
+    stats:
+      attack_stab: 30
+      attack_crush: 70
+      strength: 70
+  drop_table:
+    sources:
+      - source: Sarachnis
+        source_id: 8713
+        combat_level: 318
+        quantity: "1"
+        rarity: Rare
+        drop_rate: 1/384
+        members_only: true
+  related_items:
+    - item_id: 13263
+      item_name: Abyssal bludgeon
+      slug: abyssal-bludgeon
+      relationship: upgrade
+      description: Upgrade path
+    - item_id: 24417
+      item_name: Inquisitor's mace
+      slug: inquisitors-mace
+      relationship: upgrade
+      description: BiS crush
+    - item_id: 11902
+      item_name: Leaf-bladed battleaxe
+      slug: leaf-bladed-battleaxe
+      relationship: alternative
+      description: Alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Melee - Crush |
+| Tradeable | Yes |
+| Weight | 0.453 kg |
+| Attack Speed | 4 tick (2.4s) |
+
+## Obtaining
+
+Drop from Sarachnis in Forthos Dungeon.
+
+| Boss | Drop Rate |
+|------|-----------|
+| Sarachnis | 1/384 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +30 |
+| Crush | +70 |
+| Strength | +70 |
+
+| Defence | Value |
+|---------|-------|
+| All | +0 |
+
+**Requirements:** 65 Attack
+
+## Usage
+
+Budget crush weapon for:
+- Sarachnis
+- Gargoyles
+- Mid-game crush content
+- Kalphite tasks
+
+**Does not degrade - no maintenance cost.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~135K gp
+
+**Tips:**
+- Easy boss to farm
+- No Slayer requirement
+- Good mid-game weapon
+
+## Related Items
+
+- [Abyssal bludgeon](/osrs/abyssal-bludgeon/) - Upgrade path
+- [Inquisitor's mace](/osrs/inquisitors-mace/) - BiS crush
+- [Leaf-bladed battleaxe](/osrs/leaf-bladed-battleaxe/) - Alternative
+
+<Adsense />

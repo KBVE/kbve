@@ -1,0 +1,109 @@
+---
+title: Iron mace | OSRS Price Data
+description: "Iron mace is a F2P weapon slot item requiring 1 Attack. High alch: 37 GP, GE limit: 125."
+osrs:
+  id: 1420
+  name: Iron mace
+  slug: iron-mace
+  examine: A spiky mace.
+  members: false
+  icon: Iron mace.png
+  value: 63
+  lowalch: 25
+  highalch: 37
+  limit: 125
+  equipment:
+    slot: weapon
+    type: mace
+    tradeable: true
+    weight: 1.814
+    requirements:
+      attack: 1
+    stats:
+      attack_stab: 4
+      attack_slash: -2
+      attack_crush: 9
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 7
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  related_items:
+    - item_id: 1424
+      item_name: Steel mace
+      slug: steel-mace
+      relationship: upgrade
+      description: Higher tier mace
+    - item_id: 1335
+      item_name: Iron warhammer
+      slug: iron-warhammer
+      relationship: alternative
+      description: Higher strength alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Mace |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 1 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +4 |
+| Slash Attack | -2 |
+| Crush Attack | +9 |
+| Strength | +7 |
+| Prayer | +1 |
+
+## Obtaining
+
+**Smithing:** 17 Smithing with 1 iron bar (25 XP).
+
+**Shop:** Flynn's Mace Market, Falador.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~12 gp
+
+Early game mace. Has prayer bonus. F2P accessible.
+
+## Related Items
+
+- [Steel mace](/osrs/steel-mace/) - Upgrade
+- [Iron warhammer](/osrs/iron-warhammer/) - Higher strength
+
+<Adsense />

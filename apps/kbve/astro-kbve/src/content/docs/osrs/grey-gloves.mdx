@@ -1,0 +1,37 @@
+---
+title: Grey gloves | OSRS Price Data
+description: "Grey gloves: These will keep my hands warm!. High alch: 300 GP, GE limit: 150."
+osrs:
+  id: 2902
+  name: Grey gloves
+  slug: grey-gloves
+  examine: These will keep my hands warm!
+  members: false
+  icon: Grey gloves.png
+  value: 500
+  lowalch: 200
+  highalch: 300
+  limit: 150
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

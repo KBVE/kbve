@@ -1,0 +1,107 @@
+---
+title: Malicious ashes | OSRS Price Data
+description: "Malicious ashes: A heap of ashes.. High alch: 1 GP."
+osrs:
+  id: 25772
+  name: Malicious ashes
+  slug: malicious-ashes
+  examine: A heap of ashes.
+  members: true
+  icon: Malicious ashes.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: null
+  material:
+    type: ashes
+    tier: medium
+  prayer:
+    xp_scatter: 65
+    xp_demonic_offering: 195
+  drop_table:
+    sources:
+      - source: Black demon
+        source_id: 240
+        combat_level: 172
+        quantity: "1"
+        rarity: always
+      - source: Nechryael
+        source_id: 11
+        combat_level: 115
+        quantity: "1"
+        rarity: always
+        members_only: true
+  related_items:
+    - item_id: 25769
+      item_name: Vile ashes
+      slug: vile-ashes
+      relationship: downgrade
+      description: Lower XP (25 base)
+    - item_id: 25775
+      item_name: Abyssal ashes
+      slug: abyssal-ashes
+      relationship: upgrade
+      description: Higher XP (85 base)
+    - item_id: 25778
+      item_name: Infernal ashes
+      slug: infernal-ashes
+      relationship: upgrade
+      description: Highest XP (110 base)
+    - item_id: 25766
+      item_name: Fiendish ashes
+      slug: fiendish-ashes
+      relationship: downgrade
+      description: Lowest XP (10 base)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Prayer Training
+
+Malicious ashes are a mid-tier demonic ash:
+
+| Method | XP per ash |
+|--------|------------|
+| Scatter | 65 |
+| Demonic Offering spell | 195 |
+
+## Obtaining
+
+Dropped by high-level demons:
+- Black demons (always)
+- Nechryael (always)
+- Greater Nechryael (always)
+
+## Market Flip Strategy
+
+**Slayer Byproduct:**
+- Common from black demon tasks
+- Nechryael barraging popular
+- Steady supply and demand
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Tips:**
+- Good middle-ground ashes
+- Popular Slayer task drops
+- Compare to bone GP/XP ratios
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Trading sticks | OSRS Price Data
+description: "Trading sticks: Karamja currency.. High alch: 1 GP, GE limit: 18,000."
+osrs:
+  id: 6306
+  name: Trading sticks
+  slug: trading-sticks
+  examine: Karamja currency.
+  members: true
+  icon: Trading sticks 10000.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 18000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

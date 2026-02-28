@@ -1,0 +1,128 @@
+---
+title: Tormented bracelet | OSRS Price Data
+description: "Tormented bracelet is a members hands slot item. High alch: 120,600 GP, GE limit: 8."
+osrs:
+  id: 19544
+  name: Tormented bracelet
+  slug: tormented-bracelet
+  examine: A deep sense of torment burns within this powerful bracelet.
+  members: true
+  icon: Tormented bracelet.png
+  value: 201000
+  lowalch: 80400
+  highalch: 120600
+  limit: 8
+  equipment:
+    slot: hands
+    type: bracelet
+    requirements:
+      hitpoints: 75
+    stats:
+      attack_magic: 10
+      magic_damage_percent: 5
+  recipes:
+    - skill: magic
+      level: 93
+      xp: 110
+      materials:
+        - item_name: Zenyte bracelet
+          item_id: 19532
+          quantity: 1
+        - item_name: Soul rune
+          item_id: 566
+          quantity: 20
+        - item_name: Blood rune
+          item_id: 565
+          quantity: 20
+        - item_name: Cosmic rune
+          item_id: 564
+          quantity: 1
+      product: Tormented bracelet
+      product_id: 19544
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 19532
+      item_name: Zenyte bracelet
+      slug: zenyte-bracelet
+      relationship: component
+      description: Base bracelet
+    - item_id: 19553
+      item_name: Amulet of torture
+      slug: amulet-of-torture
+      relationship: alternative
+      description: Melee version
+    - item_id: 19547
+      item_name: Necklace of anguish
+      slug: necklace-of-anguish
+      relationship: alternative
+      description: Ranged version
+    - item_id: 7462
+      item_name: Barrows gloves
+      slug: barrows-gloves
+      relationship: alternative
+      description: All-around option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Enchant Zenyte bracelet with Lvl-7 Enchant spell (93 Magic).
+
+| Material | Quantity |
+|----------|----------|
+| Zenyte bracelet | 1 |
+| Soul rune | 20 |
+| Blood rune | 20 |
+| Cosmic rune | 1 |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Magic attack | +10 |
+| Magic damage | +5% |
+| Requirements | 75 Hitpoints |
+
+## Usage
+
+**PvM:**
+- Best-in-slot magic gloves
+- Essential for max magic setups
+- All magic content
+
+**Best For:**
+- Bossing
+- Bursting/Barraging
+- Magic DPS
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Zenyte from demonic gorillas
+- BiS magic hands slot
+- Only gloves with magic damage
+
+<Adsense />

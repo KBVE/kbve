@@ -1,0 +1,13 @@
+---
+/**
+ * Deferred wrapper for KBVEComicSocials
+ * Loads the component only when approaching the viewport
+ * Prevents render-blocking CSS on initial page load
+ */
+import DeferredSection from '@/components/utility/DeferredSection.astro';
+import KBVEComicSocials from './KBVEComicSocials.astro';
+---
+
+<DeferredSection id="comic-socials" minHeight="600px" minHeightMobile="500px">
+	<KBVEComicSocials />
+</DeferredSection>

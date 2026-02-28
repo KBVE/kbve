@@ -1,0 +1,39 @@
+---
+id: "01JCKH7M9K2XQZW3P4R5S6T7V9"
+guid: "a3f8d9e2c1b74f6e8d5a9c7b4e2f1a8d"
+drafted: false
+title: "Redwood Tree"
+name: "Redwood Tree"
+description: "A massive ancient redwood tree that provides abundant wood"
+type: "resource"
+resourceType: "wood"
+imagePath: "/assets/mapdb/tree/redwood/redwood_tree.png"
+pixelsPerUnit: 25
+pivotX: 0.5
+pivotY: 0.5
+sortingLayer: "Foreground"
+amount: 200
+maxAmount: 200
+harvestYield: 10
+harvestTime: 4.0
+isHarvestable: true
+spawnWeight: 0.2
+spawnCount: 25
+---
+
+import MapDBPanel from '@/components/mapdb/MapDBPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+# Redwood Tree
+
+A towering redwood tree that reaches high into the sky. These ancient giants provide significantly more wood than common trees but are less common in the wild.
+
+<MapDBPanel data={frontmatter} />
+
+<Adsense />
+
+## Harvesting Notes
+- Requires basic axe
+- Yields 10 wood per harvest
+- Takes longer to harvest due to size
+- Less common spawn (20% chance compared to oak)

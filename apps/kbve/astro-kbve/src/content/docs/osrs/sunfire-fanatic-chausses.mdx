@@ -1,0 +1,164 @@
+---
+title: Sunfire fanatic chausses | OSRS Price Data
+description: "Sunfire fanatic chausses is a members legs slot item requiring 40 Defence. High alch: 300,000 GP."
+osrs:
+  id: 28939
+  name: Sunfire fanatic chausses
+  slug: sunfire-fanatic-chausses
+  examine: Chausses forged from sunfire.
+  members: true
+  icon: Sunfire fanatic chausses.png
+  value: 500000
+  lowalch: 200000
+  highalch: 300000
+  limit: null
+  equipment:
+    slot: legs
+    type: melee_prayer
+    tradeable: true
+    weight: 5
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -4
+      ranged: -11
+    defence_bonus:
+      stab: 51
+      slash: 49
+      crush: 47
+      magic: -4
+      ranged: 49
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 8
+    requirements:
+      prayer: 60
+      defence: 40
+  set_effect:
+    name: Sunfire Fanatic
+    pieces:
+      - Sunfire fanatic helm
+      - Sunfire fanatic cuirass
+      - Sunfire fanatic chausses
+    description: Best-in-slot prayer bonus armor set
+  drop_table:
+    primary_source: Fortis Colosseum
+    best_drop_rate: 1/24.47
+    sources:
+      - source: Fortis Colosseum
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 1/24.47 (full completion)
+        members_only: true
+  market:
+    buy_limit: 8
+    price_estimate: 1800000
+  related_items:
+    - item_id: 28933
+      item_name: Sunfire fanatic helm
+      slug: sunfire-fanatic-helm
+      relationship: set-piece
+      description: Head piece
+    - item_id: 28936
+      item_name: Sunfire fanatic cuirass
+      slug: sunfire-fanatic-cuirass
+      relationship: set-piece
+      description: Body piece
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Equipment Info
+
+The Sunfire fanatic chausses are the leg armour piece of the Sunfire Fanatic set, obtained from the Fortis Colosseum. These chausses provide excellent prayer bonuses (+8) while maintaining respectable defensive capabilities.
+
+**Slot:** Legs
+**Requirements:** 60 Prayer, 40 Defence
+
+## Stats
+
+### Defensive Bonuses
+| Defence Type | Bonus |
+|--------------|-------|
+| Stab | +51 |
+| Slash | +49 |
+| Crush | +47 |
+| Magic | -4 |
+| Ranged | +49 |
+
+### Other Bonuses
+| Stat | Bonus |
+|------|-------|
+| Magic Attack | -4 |
+| Ranged Attack | -11 |
+| Prayer | +8 |
+
+## Set Effect
+
+The Sunfire Fanatic set provides the best-in-slot prayer bonus when worn together:
+
+**Full Set Pieces:**
+- Sunfire fanatic helm (+6 Prayer)
+- Sunfire fanatic cuirass (+10 Prayer)
+- Sunfire fanatic chausses (+8 Prayer)
+
+**Total Set Prayer Bonus:** +24
+
+The chausses contribute a substantial +8 prayer bonus, making them the second-highest prayer bonus piece in the set.
+
+## Obtaining
+
+Dropped from the Fortis Colosseum upon full completion:
+- **Drop Rate:** 1/24.47
+- Requires defeating Sol Heredit (Wave 12)
+- Members only content
+
+## Usage
+
+Best uses for the Sunfire fanatic chausses:
+
+- **Inferno:** Essential for prayer management
+- **Fight Caves:** Extended Jad attempts
+- **GWD:** Reduced prayer potion usage
+- **Cox/TOB:** Prayer preservation in raids
+- **General PvM:** Efficient for prayer-heavy content
+
+**Comparison to Proselyte:**
+- Proselyte cuisse: +6 Prayer
+- Sunfire fanatic chausses: +8 Prayer (+2 more)
+- Much better defensive stats than Proselyte
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+**Estimated Price:** ~1.8M GP
+
+**Tips:**
+- Mid-priced piece in the set
+- Good balance of prayer and defence
+- Pairs well with other prayer gear
+- Consider full set for maximum efficiency
+- Stable demand from PvM community
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Filled plant pot | OSRS Price Data
+description: "Filled plant pot: A plant pot filled with soil.. High alch: 1 GP, GE limit: 2,000."
+osrs:
+  id: 5354
+  name: Filled plant pot
+  slug: filled-plant-pot
+  examine: A plant pot filled with soil.
+  members: true
+  icon: Filled plant pot.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

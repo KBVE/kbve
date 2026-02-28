@@ -1,0 +1,38 @@
+---
+// src/components/auth/AstroCallback.astro
+// Handles OAuth callback redirect
+import ReactAuthCallback from './ReactAuthCallback';
+---
+
+<ReactAuthCallback client:only="react" />
+
+<style is:global>
+	.auth-container {
+		text-align: center;
+		padding: 3rem 1rem;
+	}
+	.spinner {
+		width: 50px;
+		height: 50px;
+		margin: 0 auto 20px;
+		border: 4px solid var(--sl-color-accent-low);
+		border-top-color: var(--sl-color-accent);
+		border-radius: 50%;
+		animation: spin 1s linear infinite;
+	}
+	@keyframes spin {
+		to {
+			transform: rotate(360deg);
+		}
+	}
+	.message {
+		font-size: 18px;
+		margin-bottom: 10px;
+		color: var(--sl-color-text);
+	}
+	.sub-message {
+		font-size: 14px;
+		opacity: 0.8;
+		color: var(--sl-color-text);
+	}
+</style>

@@ -1,0 +1,103 @@
+---
+title: Uncut zenyte | OSRS Price Data
+description: "Uncut zenyte: This would be worth more cut.. High alch: 45,000 GP, GE limit: 10,000."
+osrs:
+  id: 19496
+  name: Uncut zenyte
+  slug: uncut-zenyte
+  examine: This would be worth more cut.
+  members: true
+  icon: Uncut zenyte.png
+  value: 75000
+  lowalch: 30000
+  highalch: 45000
+  limit: 10000
+  item:
+    type: gem
+    tradeable: true
+    weight: 0.003
+  obtaining:
+    methods:
+      - source: Ape Atoll flame
+        method: Combine onyx with zenyte shard
+        requirements:
+          quest: Monkey Madness II
+          item: zombie monkey greegree
+  creation:
+    crafting_level: 70
+    cutting:
+      level: 89
+      xp: 200
+      result: Zenyte
+  usage:
+    description: Used for best-in-slot jewelry
+    note: Highest tier gem
+  related_items:
+    - item_id: 19529
+      item_name: Zenyte shard
+      slug: zenyte-shard
+      relationship: component
+      description: Component
+    - item_id: 19493
+      item_name: Zenyte
+      slug: zenyte
+      relationship: product
+      description: Cut form
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Gem |
+| Tradeable | Yes |
+| Weight | 0.003 kg |
+| Requirements | 70 Crafting (to create), 89 (to cut) |
+
+## Obtaining
+
+**Creation:** Combine onyx with zenyte shard at Ape Atoll flame.
+
+**Requirements:** Monkey Madness II, zombie monkey greegree.
+
+## Usage
+
+Cut into zenyte (89 Crafting, 200 XP).
+
+Used for best-in-slot jewelry.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~16,871,364 gp
+
+Highest tier gem. Component of zenyte jewelry.
+
+## Related Items
+
+- [Zenyte shard](/osrs/zenyte-shard/) - Component
+- [Zenyte](/osrs/zenyte/) - Cut form
+
+<Adsense />

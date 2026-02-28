@@ -1,0 +1,238 @@
+---
+title: 'May: 01'
+category: Daily
+date: 2025-05-01 12:00:00
+client: Self
+unsplash: 1680118534066-849f48822ece
+img: https://images.unsplash.com/photo-1680118534066-849f48822ece?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    Daily Log for May 1st of each year.
+tags:
+    - daily
+---
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+
+## 2025
+
+### Binary Websockets
+
+-	03:03PM
+
+	Going to aim at finishing up the binary websockets today and hopefully we can get the client side going too.
+	We want to websockets to work with binary first and then fallback to JSON.
+	After we get that going, we can work on the client side workers to connect and handle the binary data.
+	If we get both of those wired, we can do the Unity client next.
+
+### Proto Enums
+
+-	04:08PM
+
+	The biggest issue with the proto files is that we can not get them to generate the right rust code with serde because of the enums.
+	Two options that we can do, one would be to wrap them in a custom structure or try to find a way to include the serde attributes without breaking the generated proto.
+	Updating the build.rs within the Jedi crate again and it seems we were able to get the protos to generate the correct serde code!
+	Now we need to update the flex.rs with additional utility and helper functions to handle the binary / json serde data.
+
+-	04:54PM
+
+	Okay! Figured out the problem, it seems that our Field struct is already built to handle binary data, `u8` but we are doing `str` in our `FieldData`.
+	Lets go ahead and rewrite the `FieldData` to be a `Vec<u8>` and then we can convert it to a string when we need to.
+	Updated the FieldData to use `Bytes` instead , with the goal of keeping that protobuf wire format while still supporting the flexbuffer.
+
+### ZeroCopy Removal
+
+-	10:53PM
+
+	Removing some of the older zerocopy code from the redis_wrapper.
+	Here is the code below that we removed, I will keep it here as a reference for the future.
+	I might take a shot at this again in a couple months.
+
+```rust
+/// TODO: ZeroCopy WebSocket Format
+/// ! START]
+#[derive(Debug)]
+pub enum ZeroCopyWsFormat<'a> {
+  JsonText(String),
+  Binary(Arc<Cow<'a, [u8]>>),
+}
+
+#[derive(Debug)]
+pub struct ZeroCopyWsRequestContext<'a> {
+  pub envelope: RedisEnvelope,
+  pub raw: Option<ZeroCopyWsFormat<'a>>,
+  pub connection_id: Option<[u8; 16]>,
+}
+
+/// ! [END]
+/// 
+```
+
+### Redis Wrapper
+
+-	10:55PM
+
+	Updating the redis wrapper to use the changes from the flex module.
+	I did not get a chance to add XTRIM and a couple other x-data commands because I think it would make sense to get the generic linking out of the way first.
+	Once we can confirm that nested streams are working aka x-data through websockets, then we can loop back around and add the batch and trim commands.
+	XGroup is a bit tricky because we will have to link the connection_id to the group, so that there is no weird crosstalk among the groups and the conncetion_ids.
+
+## 2024
+
+**Rust**
+
+Nothing says a great start of the day than having Rust issues that you have to resolve!
+We got two major issues with our database command:
+
+1. kbve Crate
+
+```
+
+error[E0277]: the trait bound `diesel::sql_types::Json: Deserialize<'_>` is not satisfied
+  --> src/models.rs:93:5
+   |
+93 |     pub items: Json,
+   |     ^^^ the trait `Deserialize<'_>` is not implemented for `diesel::sql_types::Json`
+
+```
+
+2. erust Crate
+
+```
+error[E0412]: cannot find type `Json` in this scope
+  --> src/state/dbmodels.rs:84:16
+   |
+84 |     pub items: Json,
+   |                ^^^^ not found in this scope
+
+
+```
+
+We are testing these with these commands:
+
+```shell
+
+cargo publish -p kbve --dry-run
+
+```
+
+For the kbve crate, it looks like we were missing a `serde_json` feature, but let me commit this and run the test again.
+
+Next, just to be safe, remember to run a `cargo check`.
+
+Okay! Instead of messing around with the serde_json directly, I am going to just pass `use serde_json::{ Value as Json};` as the Json representation for that model and move forward.
+
+Finally we have the erust issue, which we need to resolve!
+
+So we know that after we create the erust models using the shell script, we need a way to patch it.
+
+```shell
+
+            sed -i 's/(Queryable, Debug)/(serde::Deserialize, serde::Serialize, Default, Debug, Clone, PartialEq)/g' ../erust/src/state/dbmodels.rs
+            echo "Patching the DBModels"
+
+```
+
+We can use this method below, to patch the `dbmodels.rs`
+
+```shell
+
+            { head -n 4 src/models.rs; echo 'use diesel::prelude::*;'; echo 'use serde_json::{ Value as Json};'; echo 'use serde::{ Serialize, Deserialize};'; tail -n +5 src/models.rs; } > src/temp_models.rs && mv src/temp_models.rs src/models.rs
+
+```
+
+We need to insert the rust code below into the `../erust/src/state/dbmodels.rs`
+
+```rust 
+
+use serde_json::{ Value as Json};
+
+```
+
+Okay! Here is what we can do using grep, 
+
+```shell
+
+grep -q 'use serde_json::' "../erust/src/state/dbmodels.rs" || sed -i '5 a use serde_json::{Value as Json};' "../erust/src/state/dbmodels.rs"
+echo "Patching Part 2 of the DBModels"
+
+```
+
+This should patch the dbmodels to use `Json` without having any issues, both seem to run fine with dry runs as well.
+
+While we wait for that to build up and move along the pipeline, we can focus on the register method once more for KBVE.
+
+**Register**
+
+The register function will require updates on both the client and server side! Oh boy, this is going to be another one of those days.
+
+We need to change the error system on the `register` function within the KBVE API.
+The older error system needs to be replaced with the x-kbve shield style, so we can capture the error headers outside of the rust application too.
+Oh, I need to also include a `127.0.0.1:4321` in the CORS policy for the application.
+
+As we wait for the branch to pull into production, we can start updating the next couple functions during this build phase, hmm while I cook myself some beans.
+
+```rust
+
+return spellbook_error!(
+				axum::http::StatusCode::BAD_REQUEST,
+			 	"email-exists"
+		);
+
+```
+
+Above is the older rust code, which works fine but we need to sort out the return json, so the client-side code can easily figure out what is going on.
+
+
+```rust
+
+      let mut headers = axum::http::HeaderMap::new();
+
+			let header_name = axum::http::header::HeaderName
+				::from_str("x-kbve")
+				.unwrap();
+			
+      let header_value = axum::http::HeaderValue
+				::from_str(&format!("shield_{}", "email_exists"))
+				.unwrap();
+
+			headers.insert(header_name, header_value);
+
+			return (
+				StatusCode::INTERNAL_SERVER_ERROR,
+				headers,
+				Json(WizardResponse {
+					data: serde_json::json!({"status": "error"}),
+					message: serde_json::json!({"error": "email_exists"}),
+				}),
+			).into_response();
+
+```
+
+This is now the updated rust code, which sends back a header with the error code and displays the error within the message.
+I suppose we could just send the data back with the error code because the status error could be handled via the `StatusCode` but I am thinking that there might be edge cases in the future where we need the data to hold additional information and the message to be for the end-user.
+
+The great part of n8n is that we can also no-code some temporary routes to help us with test casing and those edge cases.
+I am currently writing an automation that would generate an invoice through n8n without using the Rust API, this gives us the flexibility to move fast without having to break the Rust API.
+
+
+## 2023
+
+- 8:00am - My new alarm for the morning is this [Electric Speed](https://www.youtube.com/watch?v=1PV55o9AsTg) song and it has to be the best song to get you up out of bed. Do not use it for anything but as your alarm, so you can Pavlov yourself out of bed.
+- 10:00am - Got ready, did a couple set of squats and pushups, now about to venture into the main city and do some site seeing.
+- 12:15pm - After a couple hours of walking around and getting into the flow, now I am about to sit at my favorite cafe , jam out and do some programming sessions.
+- 1:00pm - Restructuring the media section of the knowledge garden and will start to include content that I found to be interesting and entertaining. One of my future plans was to summarize podcasts into short 3-5min DOC LOFI songs but that is definitely later down the line as the AI-generated music scene is still a bit rough.
+- 3:00pm - Took a quick break and toured around an university art show but they would not allow photographs, which makes sense because the artwork could is copyrighted. 
+- 4:00pm - Came back to the cafe and now looking through the flutter docs and need to sync the `kbve.com` repo with my online IDE. I am looking over flutter again and I might need to take a break from Astro and update the Flutter application to the latest before launching. Let me begin the quest of fluttering my brain cells into a cyclone of psychological fallacies. 
+
+## Quote
+
+> To follow, without halt, one aim: There is the secret of success.
+> — <cite>Anna Pavlova</cite>
+
+---
+
+## Tasks
+
+- [ ]

@@ -1,0 +1,143 @@
+---
+title: Avantoe | OSRS Price Data
+description: "Avantoe: A useful herb.. High alch: 28 GP, GE limit: 13,000."
+osrs:
+  id: 261
+  name: Avantoe
+  slug: avantoe
+  examine: A useful herb.
+  members: true
+  icon: Avantoe.png
+  value: 48
+  lowalch: 19
+  highalch: 28
+  limit: 13000
+  herb:
+    type: clean
+    tier: mid
+  farming:
+    level: 50
+    xp: 61.5
+    growth_time: 80
+    seed_id: 5298
+    seed_name: Avantoe seed
+  herblore:
+    cleaning_level: 48
+    cleaning_xp: 10
+    grimy_id: 211
+    grimy_name: Grimy avantoe
+  recipes:
+    - skill: herblore
+      level: 50
+      xp: 100
+      materials:
+        - item_name: Avantoe
+          item_id: 261
+          quantity: 1
+        - item_name: Snape grass
+          item_id: 231
+          quantity: 1
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+      product: Fishing potion(3)
+      product_id: 151
+      members_only: true
+    - skill: herblore
+      level: 52
+      xp: 117.5
+      materials:
+        - item_name: Avantoe
+          item_id: 261
+          quantity: 1
+        - item_name: Mort myre fungus
+          item_id: 2970
+          quantity: 1
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+      product: Super energy(3)
+      product_id: 3018
+      members_only: true
+    - skill: herblore
+      level: 66
+      xp: 155
+      materials:
+        - item_name: Avantoe
+          item_id: 261
+          quantity: 1
+        - item_name: Kebbit teeth dust
+          item_id: 10111
+          quantity: 1
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+      product: Hunter potion(3)
+      product_id: 10000
+      members_only: true
+  related_items:
+    - item_id: 211
+      item_name: Grimy avantoe
+      slug: grimy-avantoe
+      relationship: component
+      description: Uncleaned version
+    - item_id: 5298
+      item_name: Avantoe seed
+      slug: avantoe-seed
+      relationship: component
+      description: For farming
+    - item_id: 3016
+      item_name: Super energy(4)
+      slug: super-energy-4
+      relationship: product
+      description: Primary product
+    - item_id: 2970
+      item_name: Mort myre fungus
+      slug: mort-myre-fungus
+      relationship: component
+      description: Super energy secondary
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Herblore Uses
+
+| Potion | Secondary | Level | XP |
+|--------|-----------|-------|-----|
+| Fishing potion(3) | Snape grass | 50 | 100 |
+| Super energy(3) | Mort myre fungus | 52 | 117.5 |
+| Hunter potion(3) | Kebbit teeth dust | 66 | 155 |
+
+## Market Strategy
+
+**Super Energy Profit:**
+- Most common use for avantoe
+- Calculate: `Super energy - Avantoe - Mort myre fungus - Vial`
+- Base ingredient for stamina potions
+
+**Herb Farming:**
+- 50 Farming to grow
+- Moderate profit per run
+- Consider disease risk vs profit
+
+**Buy Limit:** 11,000 per 4 hours
+
+<Adsense />

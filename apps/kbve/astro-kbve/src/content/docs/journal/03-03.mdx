@@ -1,0 +1,96 @@
+---
+title: 'March: 03'
+category: Daily
+date: 2024-03-03 12:00:00
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1709065556197-2cbe782878e1?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    March 3rd! The weather shift for this month is always wild.
+tags:
+    - daily
+---
+
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+
+
+## Notes
+
+## 2025
+
+### Godot Build Test
+
+-   01:56AM
+
+    There was a weird error in our build, going to fix it now.
+    The new command for the `q` crate will be the `debug-mac`, which will not only run the mac build command but also move the final dylib into the right directory for testing.
+
+
+## 2024
+
+
+### FishChip
+
+The final day of the game jam! We got only a couple hours before the submission, so we need to make sure everything is good to go!
+
+The two major things left are shifting the tilesets with the new ones and then submitting the game.
+
+After game submission, I will go back and update the game to resolve any bugs.
+
+It seems that the character sheet is missing some tilesets but other than that its good to go!
+
+Archandroid fixed up the character sheet with the matching colors! So now that the character matches with the rest of the game, I am going to finish up the pipeline checks and then go back to the Itch page.
+
+For the game credits, we will have to include all the people that help with the changes.
+
+Developers would be:
+- `BChip`
+- `h0lybyte`
+- `David`
+
+Then for the 2D artists, we have:
+- `ArchanDroid` - Sprite
+- `Nezt50` - Tiles
+- `Retornodomal` - Menu
+
+Now for the itch page, there are a couple files that we need for the submission page.
+
+For credits, we need to reference the original assets:
+
+Original placeholder assets are from https://finalbossblues.com/ and were modified by Annoraaq, Raiper34, splashsky, therebelrobot and xLink.
+
+Phaser loaded via Astro.
+React / TailWindCSS.
+
+
+I noticed that the scrollbar appears in the frame, maybe I need to disable that within the internal iframe?
+
+Inside of the `page.tsx`, I updated the Iframe code.
+
+```javascript
+
+    <iframe src="https://kbve.com/arcade/fishchip/itch/" height="1024px" width="100%" frameBorder="0" scrolling="no" >Your browser doesnot support iframes<a href="https://kbve.com/arcade/fishchip/" data-astro-prefetch> click here to view the page directly. </a></iframe>
+
+```
+
+I am getting type errors for the `frameBorder` and `scrolling`, as it seems to be no longer valid, hmm, given the time limit, I will just skip them.
+
+I think we can keep this the way it is for now and then come back to it later, probably after the jam is over.
+
+
+#### WASD
+
+By popular demand, we patched up the movement so that it would also include the W A S D keys.
+I normally kept this out because I thought it might conflict with the minigames but that was just a minor error on my part.
+
+The patch to add the W A S D was just checking for the keys being down and then having the engine move the asset.
+
+
+#### Inventory
+
+I went through the start of the inventory proof of concept!
+I am aware that there might be some issues with how to handle it via iframe.
+

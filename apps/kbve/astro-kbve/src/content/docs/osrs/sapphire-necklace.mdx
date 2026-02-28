@@ -1,0 +1,37 @@
+---
+title: Sapphire necklace | OSRS Price Data
+description: "Sapphire necklace: I wonder if this is valuable.. High alch: 630 GP, GE limit: 18,000."
+osrs:
+  id: 1656
+  name: Sapphire necklace
+  slug: sapphire-necklace
+  examine: I wonder if this is valuable.
+  members: false
+  icon: Sapphire necklace.png
+  value: 1050
+  lowalch: 420
+  highalch: 630
+  limit: 18000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

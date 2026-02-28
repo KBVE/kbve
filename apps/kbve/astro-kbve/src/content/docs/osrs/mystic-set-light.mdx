@@ -1,0 +1,37 @@
+---
+title: Mystic set (light) | OSRS Price Data
+description: "Mystic set (light): A set containing light mystic hat, robe top and bottom, gloves and boots.. High alch: 141,000 GP, GE limit: 70."
+osrs:
+  id: 23110
+  name: Mystic set (light)
+  slug: mystic-set-light
+  examine: A set containing light mystic hat, robe top and bottom, gloves and boots.
+  members: true
+  icon: Mystic set (light).png
+  value: 235000
+  lowalch: 94000
+  highalch: 141000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

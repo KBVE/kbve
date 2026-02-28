@@ -1,0 +1,37 @@
+---
+title: Ahrim's robeskirt 0 | OSRS Price Data
+description: "Ahrim's robeskirt 0: Ahrim the Blighted's armoured robe skirt.. High alch: 28,200 GP, GE limit: 15."
+osrs:
+  id: 4878
+  name: Ahrim's robeskirt 0
+  slug: ahrim-s-robeskirt-0
+  examine: Ahrim the Blighted's armoured robe skirt.
+  members: true
+  icon: Ahrim's robeskirt 0.png
+  value: 47000
+  lowalch: 18800
+  highalch: 28200
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Farseer helm | OSRS Price Data
+description: "Farseer helm: This helmet is worn by farseers.. High alch: 36,000 GP, GE limit: 70."
+osrs:
+  id: 3755
+  name: Farseer helm
+  slug: farseer-helm
+  examine: This helmet is worn by farseers.
+  members: true
+  icon: Farseer helm.png
+  value: 60000
+  lowalch: 24000
+  highalch: 36000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

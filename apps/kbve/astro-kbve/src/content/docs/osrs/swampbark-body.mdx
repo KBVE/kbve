@@ -1,0 +1,37 @@
+---
+title: Swampbark body | OSRS Price Data
+description: "Swampbark body: Keeps my chest protected.. High alch: 72,000 GP."
+osrs:
+  id: 25389
+  name: Swampbark body
+  slug: swampbark-body
+  examine: Keeps my chest protected.
+  members: true
+  icon: Swampbark body.png
+  value: 120000
+  lowalch: 48000
+  highalch: 72000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

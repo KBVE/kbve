@@ -1,0 +1,37 @@
+---
+title: Shield left half | OSRS Price Data
+description: "Shield left half: The left half of a dragon square shield.. High alch: 66,000 GP, GE limit: 50."
+osrs:
+  id: 2366
+  name: Shield left half
+  slug: shield-left-half
+  examine: The left half of a dragon square shield.
+  members: true
+  icon: Shield left half.png
+  value: 110000
+  lowalch: 44000
+  highalch: 66000
+  limit: 50
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

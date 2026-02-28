@@ -1,0 +1,46 @@
+---
+title: 'October: 15th'
+category: Daily
+date: 2025-10-15 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 15th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Wedding
+
+-   05:00PM
+
+    Shopping the whole day with the family, need to get my outfits ready for the wedding next month.
+
+
+## 2024
+
+**Herbmail**
+
+The first goal for today will be to rewrite some of the front page parts of herbmail and begin the kilobase integration!
+My approach might be less of the split of components and try to just integrate everything from the `/pages` level, which should make future development easier.
+Okay let us begin the process, going back and making sure our flowbite library works without any problems.
+
+Oh! I am going to remove the e2e for the herbmail.com, this will be handled through an test action that will operate outside of our monorepo.
+
+**Preline**
+
+Let us go ahead and just remove the flowbite then swap it with preline.
+I believe that we can just keep using the preline across all our websites, making it easier for us to write different components without having to go too crazy.
+On the other hand, we could just migrate over to shadui and just skip all these extra libraries, hmm.
+
+**Nx v20**
+
+Looks like we can not add the shadui because it requires us to be at least nx v19 or higher, which also means we need to make sure that everything works before moving forward.
+The balancing act of keeping nx operational and not having everything break is always a rough one, definitely when moving from nx v18 to nx v20.
+During this process, I am already seeing errors and parts of the ubuntu instance crashing, damn.
+I never realized that I could crash WSL with a simple command, hmm, ugh the feels are getting rough already. 
+Maybe I will try to upgrade the whole repo again but using my macbook.

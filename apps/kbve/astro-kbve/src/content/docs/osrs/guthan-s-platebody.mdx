@@ -1,0 +1,37 @@
+---
+title: Guthan's platebody | OSRS Price Data
+description: "Guthan's platebody: Guthan the Infested's platebody armour.. High alch: 168,000 GP, GE limit: 15."
+osrs:
+  id: 4728
+  name: Guthan's platebody
+  slug: guthan-s-platebody
+  examine: Guthan the Infested's platebody armour.
+  members: true
+  icon: Guthan's platebody.png
+  value: 280000
+  lowalch: 112000
+  highalch: 168000
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

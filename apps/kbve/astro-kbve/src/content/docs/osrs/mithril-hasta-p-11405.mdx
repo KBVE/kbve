@@ -1,0 +1,37 @@
+---
+title: Mithril hasta(p++) | OSRS Price Data
+description: "Mithril hasta(p++): A poison-tipped, one-handed mithril hasta.. High alch: 507 GP, GE limit: 125."
+osrs:
+  id: 11405
+  name: Mithril hasta(p++)
+  slug: mithril-hasta-p
+  examine: A poison-tipped, one-handed mithril hasta.
+  members: true
+  icon: Mithril hasta(p++).png
+  value: 845
+  lowalch: 338
+  highalch: 507
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

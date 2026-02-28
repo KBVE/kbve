@@ -1,0 +1,116 @@
+---
+title: Strawberry | OSRS Price Data
+description: "Strawberry is a members food item healing 1 HP. High alch: 10 GP, GE limit: 11,000."
+osrs:
+  id: 5504
+  name: Strawberry
+  slug: strawberry
+  examine: A freshly picked strawberry.
+  members: true
+  icon: Strawberry.png
+  value: 17
+  lowalch: 6
+  highalch: 10
+  limit: 11000
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    weight: 0.028
+  food:
+    heals: 1
+    heals_max: 6
+    heals_formula: based on Hitpoints level
+  skilling_source:
+    skill: farming
+    level: 31
+    xp: 26
+  drop_table:
+    sources:
+      - source: Fruit stall
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        drop_rate: 7/100
+        members_only: true
+      - source: Gourmet impling
+        source_id: 1643
+        combat_level: 0
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/100
+        members_only: true
+  related_items:
+    - item_id: 5323
+      item_name: Strawberry seed
+      slug: strawberry-seed
+      relationship: component
+      description: Farming source
+    - item_id: 5405
+      item_name: Strawberry basket
+      slug: strawberry-basket
+      relationship: product
+      description: Processed form
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Farming Product / Food |
+| Tradeable | Yes |
+| Weight | 0.028 kg |
+| Requirements | 31 Farming |
+
+## Obtaining
+
+**Primary:** Harvest from allotment patches (31 Farming)
+
+**Other sources:**
+- Fruit stall thieving (7/100 at 25 Thieving)
+- Gryphon monster drops
+- Gourmet implings (1/100)
+- Spawn near Shayziens' Wall
+
+## Usage
+
+**Food:** Heals 1-6 HP based on hitpoints level
+
+**Cooking:** Strawberry basket ingredient
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~80 gp
+
+Moderate volume. Used in cooking and as food source.
+
+## Related Items
+
+- [Strawberry seed](/osrs/strawberry-seed/) - Farming source
+- [Strawberry basket](/osrs/strawberry-basket/) - Processed form
+- [Fruit stall](/osrs/fruit-stall/) - Thieving source
+
+<Adsense />

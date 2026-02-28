@@ -1,0 +1,98 @@
+---
+title: 'February: 13'
+category: Daily
+date: 2025-02-13 12:00:00
+client: Self
+unsplash: 1739382445475-1cc4fcedff2c
+img: https://images.unsplash.com/photo-1739382445475-1cc4fcedff2c?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 13th for each year!
+tags:
+    - daily
+---
+
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+## Notes
+
+## 2025
+
+### n8n
+
+-   02:09AM
+
+    Need to prepare the supabase n8n edge runtimes but I been way too swamped.
+    I can get that understanding of being so far behind, that it makes more sense to outsource more of the work.
+
+### Nx 20.4
+
+-   04:58AM
+
+    The morning sun is about to rise and I went off tangent really quick but got some work done.
+    Upgraded the Monorepo to Nx v20.4.3 and finally upgraded to the latest Astro v5.x!
+    The biggest issue was getting the vite v6 support out there and operational, which the latest nx/vite supports.
+
+-   03:08PM
+
+    The migration works fine on the mac but now its time to test it on the WSL instance.
+    Besides updating the pnpm, I need to remember to delete the `node_modules` folder and run a fresh install.
+
+### pnpm v10
+
+-   03:08PM
+
+    Updating the pnpm to v10.30.
+
+### CI - Astro v5
+
+-   03:10PM
+
+    The migration to Astro v5 has just one small issue, its the playwrite that needs to be installed before deployment / build.
+    Need to make sure that will not be a problem on my WSL instance.
+    I believe the playwrite is used to generate the mermaid graphs.
+
+```shell 
+
+    pnpm exec playwright install
+
+```
+
+    If the error comes up, it does warn us in the terminal.
+    I went ahead and updated the `package.json` to include the post install of it.
+
+### Godot User Data v0
+
+-   05:19PM
+
+    Testing the loading of the user data, it seems to crash the whole application, so I will have to figure out why.
+
+```shell
+
+./kbve.sh -nx rust_godot_towerdefense:build-windows
+
+```
+
+## 2024
+
+#### Windows
+
+It might be time to switch the build process towards focusing on the Steam and Windows build for the unity game!
+While I did enjoy some of the WebGL/WASM process, I think for the sake of time, I am go ing to push forward the steam build, as it is over due.
+
+I am not going to drop the WASM/WebGL build completely but I will come back to it later on, when there is abetter WebGPU support.
+
+Since we are going to use Unity DOTs, which does not build to WebGL, so we have to change that to `StandaloneWindows64`.
+
+That means editing the pipeline, `ci-alpha`, and comment out all the `WebGL`.
+
+While I am testing the build pipeline, I am going to add the `Toon RP` as a render engine because it would help resolve some of the style issues that I was having earlier.
+
+I made a mistake when doing the branches, I ended up doing a bit too many changes within just one branch, so I need to scale it back and rebuild the changes independantly.
+
+Under the branch 697, https://github.com/KBVE/kbve/pull/697/files, or patch atomic unity saber render engine 02 13 2024, the idea was to change the pipeline for a custom toon one but I feel like that might cause some problems with the way we are building this application.
+
+The inital toon shader was under the `toon-rp` package but I think it would make sense to look for a new cell shader that would work with the universal pipeline because then having it work across multiple devices will not be an issue.
+
+Now the best way to handle this would be to look through the docs and notes, and seeing if we can reference another shader, or... worse comes to worse, we would have to build our own custom shader.
+

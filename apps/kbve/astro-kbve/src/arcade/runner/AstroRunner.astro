@@ -1,0 +1,30 @@
+---
+import ReactRunnerApp from './ReactRunnerApp';
+---
+
+<div class="not-content w-full h-full">
+	<!-- Container with fixed aspect ratio to prevent layout shift -->
+	<div
+		id="runner-game-container"
+		class="rounded-lg overflow-hidden border-2 border-gray-700 shadow-xl focus:outline-none relative bg-[#1a202c]"
+		style="width: 100%; aspect-ratio: 16/9;"
+		tabindex="0">
+		<!-- Canvas is created by Phaser, but container is pre-sized -->
+		<div id="runner-game-inner" class="w-full h-full">
+			<ReactRunnerApp client:only="react" />
+		</div>
+	</div>
+</div>
+
+<style>
+	/* Ensure the game container maintains aspect ratio and doesn't cause layout shift */
+	#runner-game-container {
+		container-type: inline-size;
+	}
+
+	@container (max-width: 600px) {
+		#runner-game-container {
+			aspect-ratio: 4/3;
+		}
+	}
+</style>

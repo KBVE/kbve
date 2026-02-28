@@ -1,0 +1,136 @@
+---
+title: Masori mask | OSRS Price Data
+description: "Masori mask is a members body slot item requiring 30 Defence. High alch: 480,000 GP, GE limit: 8."
+osrs:
+  id: 27226
+  name: Masori mask
+  slug: masori-mask
+  examine: An ancient mask once worn by a powerful ranger.
+  members: true
+  icon: Masori mask.png
+  value: 800000
+  lowalch: 320000
+  highalch: 480000
+  limit: 8
+  equipment:
+    slot: body
+    type: masori_armor
+    attack_style: ranged
+    requirements:
+      ranged: 80
+      defence: 30
+    stats:
+      attack_ranged: 30
+      attack_magic: -6
+      defence_ranged: 8
+      ranged_strength: 2
+  set_bonus:
+    with_full_set: true
+    regular_damage: 10
+    fortified_damage: 12.5
+  drop_table:
+    sources:
+      - source: Tombs of Amascut
+        source_id: 11751
+        combat_level: 0
+        quantity: "1"
+        rarity: 1/48 at 150 invocation
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 90
+      xp: 0
+      materials:
+        - item_name: Masori body
+          item_id: 27226
+          quantity: 1
+        - item_name: Armadyl chestplate
+          item_id: 11826
+          quantity: 1
+      product: Masori body (f)
+      product_id: 27235
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 27229
+      item_name: Masori chaps
+      slug: masori-chaps
+      relationship: alternative
+      description: Leg armor
+    - item_id: 27232
+      item_name: Masori mask
+      slug: masori-mask
+      relationship: alternative
+      description: Helm slot
+    - item_id: 11826
+      item_name: Armadyl chestplate
+      slug: armadyl-chestplate
+      relationship: component
+      description: Used for fortifying
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Rare drop from Tombs of Amascut (1/48 at 150 invocation).
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged attack | +30 |
+| Magic attack | -6 |
+| Ranged defence | +8 |
+| Ranged strength | +2 |
+| Requirements | 80 Ranged, 30 Defence |
+
+## Set Bonus
+
+**With full Masori armor (fortified):**
+- +12.5% ranged damage bonus
+
+**With regular Masori:**
+- +10% ranged damage bonus
+
+## Usage
+
+BiS ranged body armor for:
+- All ranged combat
+- Raids
+- Bossing
+- Slayer
+
+**Fortified version requires Armadyl chestplate.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~62M gp (regular), ~100M (fortified)
+
+**Tips:**
+- Regular from ToA
+- Fortify with Armadyl piece
+- Set bonus is massive DPS increase
+
+<Adsense />

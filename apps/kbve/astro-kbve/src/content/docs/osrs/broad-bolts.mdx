@@ -1,0 +1,100 @@
+---
+title: Broad bolts | OSRS Price Data
+description: "Broad bolts is a members ammo slot item requiring 61 Ranged. High alch: 33 GP, GE limit: 7,000."
+osrs:
+  id: 11875
+  name: Broad bolts
+  slug: broad-bolts
+  examine: Crossbow bolts with broad tips.
+  members: true
+  icon: Broad bolts 5.png
+  value: 55
+  lowalch: 22
+  highalch: 33
+  limit: 7000
+  equipment:
+    slot: ammo
+    type: ammunition
+    tradeable: true
+    stackable: true
+    weight: 0
+    requirements:
+      slayer: 55
+      ranged: 61
+    stats:
+      ranged_strength: 100
+  related_items:
+    - item_id: 21316
+      item_name: Amethyst broad bolts
+      slug: amethyst-broad-bolts
+      relationship: upgrade
+      description: Higher tier broad bolts
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Ammunition |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+| Requirements | 55 Slayer, 61 Ranged |
+
+## Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged strength | +100 |
+
+## Obtaining
+
+**Slayer Master Shop:**
+- 35 Slayer points per 250 bolts
+
+**Fletching (55 Fletching):**
+- 10 Unfinished broad bolts + 10 Feathers
+- 30 XP per 10 bolts
+- Requires "Broader fletching" unlock (300 Slayer points)
+
+## Usage
+
+**Slayer:** Required for killing Turoth and Kurask with ranged.
+
+**Compatible Crossbows:** Rune, Dragon hunter, Dragon, Armadyl, Zaryte.
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~64 gp
+
+**Daily Volume:** ~1.6M trades
+
+## Related Items
+
+- [Amethyst broad bolts](/osrs/amethyst-broad-bolts/) - Upgrade
+- [Turoth](/osrs/turoth/) - Use target
+- [Kurask](/osrs/kurask/) - Use target
+
+<Adsense />

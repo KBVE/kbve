@@ -1,0 +1,102 @@
+---
+title: 'January: 06'
+category: Daily
+date: 2026-01-06 12:00:00
+client: Self
+unsplash: 1703511606233-9c7537658701
+img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 6th of each year!
+tags:
+    - daily
+---
+
+
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+
+## Notes
+
+## 2026
+
+### Profile Operations
+
+-   03:15PM
+
+    Always have Fudster be our tom, key for the friend list, hmm.
+    Banner for the background should be parallax and stored as the unsplash id.
+    For the youtube player and general playlist, we will keep that saved on the supabase side for now. 
+    Finally, we have the special effects that would be boolean, which can be snow or rain or leaves?
+    Oh, then there is the guestbook and wall concept, but I am not too sure if that might be worth it.
+
+### Clickhouse Edge Functions
+
+-   08:44PM
+
+    The clickhouse operations still need some adjustments, one of them would be to make sure the backups are done.
+    I still need to check the recovery, since barman helps us on the postgres level, I will have to find something for the clickhouse.
+
+## 2025
+
+-   01:22AM
+
+    **Stream**
+
+    Finally got OBS to work among multiple machines, had to downgrade to v30.2 because v31 certs were not approved for League.
+
+-   05:44AM
+
+    **Dockerfile**
+
+    OKay let me get the dockerfile rolling for the `pydiscordsh`.
+    Well before we do the docker, we need to add `https://pypi.org/project/fastapi/`, so lets do that next.
+    The command would be: 
+
+```shell
+        pnpm nx run pydiscordsh:add --name fastapi
+```
+
+-   05:21PM
+
+    **Python**
+
+    After adding the fastapi, we will need to also add the supabase and then figure out the best way to add the service key.
+    I am not too sure if we just need the basic service key or if we need a whole new key, hmm but regardless, I was thinking that we could also integrate turso aka sqlite.
+    Majority of the voting records, bumps and server information should be stored in the turso db, but the user information should be through the supabase.
+
+```shell
+        pnpm nx run pydiscordsh:add --name supabase
+```
+
+-   05:58PM
+
+    **Atlas**
+
+    Looks like the atlas build seem to fail, but it might be because the version was not bumped?
+    We can loop back around and see why there were issues on that end.
+
+## 2024
+
+-   3:54pm - Working on the JS Embed Passport with Soksoa!
+    We removed the dangerously set HTML component.
+
+-   7:45pm - After spending some time in the shadow realm, err, I mean doing WASM research, I believe I am ready to move towards building my first component.
+    The library that I have been experimenting with is `egui` and it has handled all my personal benchmarks and abstract test casing, including working flawless in my tesla.
+    I was looking for a way to migrate out of javascript and into something that could be utilized in both web and mobile, but also embedable systems in the future.
+    The logs for today are a bit out of scope, so I will have to come back to them another day and clean them up.
+
+-   9:40pm - Playing some quick rounds of League, but this time on the PBE server! I am a bit surprised with the item shift too, while it feels great to get out of the forced mythic, there is still some mental lag.
+    The best thing out of the update is the change to the support items, or well it is just now one item but with the flexibility to choose what it becomes later on!
+    This makes it easier to formulate your build as the game goes on, giving room to go a bit more tanky or more damage.
+
+## Quote
+
+> “.”
+> — <cite></cite>
+
+---
+
+## Tasks
+
+-   [x] -   No Tasks!

@@ -1,0 +1,37 @@
+---
+title: The dogsword | OSRS Price Data
+description: "The dogsword: A dog couldn't wield a sword this powerful."
+osrs:
+  id: 33038
+  name: The dogsword
+  slug: the-dogsword
+  examine: A dog couldn't wield a sword this powerful.
+  members: true
+  icon: The dogsword.png
+  value: 0
+  lowalch: null
+  highalch: null
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+
+
+<Adsense />

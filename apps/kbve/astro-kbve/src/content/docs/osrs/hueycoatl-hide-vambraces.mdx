@@ -1,0 +1,157 @@
+---
+title: Hueycoatl hide vambraces | OSRS Price Data
+description: "Hueycoatl hide vambraces is a members hands slot item requiring 40 Defence. High alch: 2,592 GP."
+osrs:
+  id: 30082
+  name: Hueycoatl hide vambraces
+  slug: hueycoatl-hide-vambraces
+  examine: Made from real Huey hide!
+  members: true
+  icon: Hueycoatl hide vambraces.png
+  value: 4320
+  lowalch: 1728
+  highalch: 2592
+  limit: null
+  equipment:
+    slot: hands
+    type: ranged
+    tradeable: true
+    weight: 0.2
+    requirements:
+      defence: 40
+      ranged: 70
+    stats:
+      attack_ranged: 11
+      attack_magic: -10
+      defence_stab: 6
+      defence_slash: 5
+      defence_crush: 7
+      defence_magic: 8
+      prayer: 1
+  recipes:
+    - skill: crafting
+      level: 76
+      xp: 95
+      materials:
+        - item_id: 30085
+          item_name: Hueycoatl hide
+          quantity: 1
+        - item_id: 1734
+          item_name: Thread
+          quantity: 1
+  market:
+    buy_limit: 70
+    price_estimate: 550000
+  related_items:
+    - item_id: 30085
+      item_name: Hueycoatl hide
+      slug: hueycoatl-hide
+      relationship: component
+      description: Crafting material
+    - item_id: 30073
+      item_name: Hueycoatl hide coif
+      slug: hueycoatl-hide-coif
+      relationship: set-piece
+      description: Head armor
+    - item_id: 30076
+      item_name: Hueycoatl hide body
+      slug: hueycoatl-hide-body
+      relationship: set-piece
+      description: Body armor
+    - item_id: 30079
+      item_name: Hueycoatl hide chaps
+      slug: hueycoatl-hide-chaps
+      relationship: set-piece
+      description: Leg armor
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Equipment Info
+
+The Hueycoatl hide vambraces are the glove slot piece of the Hueycoatl hide armor set. They provide ranged attack bonuses, light defences, and a prayer bonus.
+
+**Slot:** Hands
+**Weight:** 0.2 kg
+**Tradeable:** Yes
+
+## Requirements
+
+- 40 Defence
+- 70 Ranged
+
+## Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +11 |
+| Magic Attack | -10 |
+| Stab Defence | +6 |
+| Slash Defence | +5 |
+| Crush Defence | +7 |
+| Magic Defence | +8 |
+| Prayer | +1 |
+
+## Crafting
+
+| Requirement | Value |
+|-------------|-------|
+| Skill | Crafting |
+| Level | 76 |
+| Experience | 95 XP |
+
+**Materials:**
+- 1x Hueycoatl hide
+- 1x Thread
+
+## Obtaining
+
+**Method 1:** Craft from Hueycoatl hides (76 Crafting required)
+**Method 2:** Buy from Grand Exchange or other players
+
+## Usage
+
+The Hueycoatl hide vambraces complete the armor set:
+
+- **Good ranged attack:** +11 ranged attack for glove slot
+- **Prayer bonus:** +1 prayer adds up with full set
+- **Lightweight:** Only 0.2 kg
+
+**Best used with:**
+- Hueycoatl hide coif
+- Hueycoatl hide body
+- Hueycoatl hide chaps
+
+**Set completion:** The vambraces are the easiest piece to craft (lowest hide cost, tied lowest level requirement) and complete the full +8 prayer bonus from the set.
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+**Estimated Price:** ~550K GP
+
+**Tips:**
+- Cheapest piece of the set
+- Only requires 1 hide to craft
+- Entry point for Crafting training with Hueycoatl hides
+- Good profit margins when hides are cheap
+- Often the last piece bought when completing the set
+
+<Adsense />

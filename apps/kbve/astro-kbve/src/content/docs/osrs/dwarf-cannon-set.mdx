@@ -1,0 +1,37 @@
+---
+title: Dwarf cannon set | OSRS Price Data
+description: "Dwarf cannon set: A set containing the four parts of the Dwarf Multicannon.. High alch: 360,000 GP, GE limit: 40."
+osrs:
+  id: 12863
+  name: Dwarf cannon set
+  slug: dwarf-cannon-set
+  examine: A set containing the four parts of the Dwarf Multicannon.
+  members: true
+  icon: Dwarf cannon set.png
+  value: 600000
+  lowalch: 240000
+  highalch: 360000
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

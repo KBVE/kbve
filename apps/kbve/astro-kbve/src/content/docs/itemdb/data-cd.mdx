@@ -1,0 +1,131 @@
+---
+title: 'Data CD'
+description: |
+    A disc etched with quantum-layer encoding.
+    Looks like a Blu-ray.
+    Reads like a library.
+    Feels like infinity.
+id: 'data-cd'
+key: 27
+ref: '01JWCWVCGTZRJQ3FD5Z0MVS5XH'
+name: 'Data CD'
+type: 'Curio'
+category: 415
+img: '/assets/items/set/data/data-cd.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 120
+consumable: false
+stackable: true
+rarity: 'Rare'
+weight: 0.1
+effects: 'Holds infinite digital data. Compatible with quantum and legacy disc readers.'
+price: 777
+durability: 999
+equipped: false
+levelRequirement: 1
+cooldown: 0
+action: 'read'
+credits: |
+    Engineered by PostCore Archives using polyphase crystalline layering. Art by KBVE Pixel Workshop. Handle with light gloves.
+bonuses:
+    infiniteStorage: true
+    quantumCompatible: true
+    memoryPressure: 0.6
+scripts:
+    - guid: 'eebc1d58adf84d0e913f9c63c7f7d9be'
+      vars:
+            storageLayers: 'infinite'
+            readSignal: 'quantum-optical'
+            emotionalLeakChance: 0.1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Data CD** appears like any old Blu-ray disc—until you scan it.
+The laser loops endlessly, never hitting the same pattern twice.
+With its multi-dimensional encoding, this CD holds simulations, archives, full planetary scans, and forgotten AI constructs.
+
+No one's ever seen it full. Some say it reflects your thoughts. Others say it writes them down.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Holds **infinite digital data**, stored in layered quantum lattices  
+- Compatible with advanced **quantum readers**, legacy disc trays (poorly), and **neural uplinks** (dangerous)  
+- 10% chance to **trigger an emotional memory leak** during playback  
+- Stackable, but each disc is uniquely etched — no duplicates
+
+---
+
+## Known Contents (when scanned)
+
+- *Backup of a failed AI uprising*  
+- *Map of a city that does not exist anymore*  
+- *Complete philosophical works of 90,000 authors, including yourself*  
+- *Encrypted. Unreadable. Still warm.*
+
+---
+
+## Lore
+
+> “They said optical storage was dead. Then someone built a library that bent time using only 32 discs and a mirror.”  
+> - Archivist Rau, Deep Spindle Node
+
+Some say you don't find the data and that it finds you. 
+Especially if you stare at the disc too long.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/data_cd_layered.webp"
+  defaultId="01HTXYZCDC001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZCDC001',
+      title: 'Reflective Surface',
+      description: 'You tilt the disc. It refracts in impossible ways.',
+      image: 'https://images.unsplash.com/photo-1609697536920-7e8e6ff0d7bc?q=80&w=500&auto=format&fit=crop',
+      message: 'Your reflection blinks independently. The disc is waiting.',
+      choices: [
+        { label: 'Insert into reader.', nextId: '01HTXYZCDC002' },
+        { label: 'Store it safely.', nextId: '01HTXYZCDC003' }
+      ]
+    },
+    {
+      id: '01HTXYZCDC002',
+      title: 'Accessing Layers',
+      description: 'The disc begins to spin.',
+      image: '/images/scene_cdspin.jpg',
+      message: 'It does not stop. But you’re already inside.'
+    },
+    {
+      id: '01HTXYZCDC003',
+      title: 'Unread Yet Known',
+      description: 'You store it in a shielded pouch.',
+      image: '/images/scene_cdquiet.jpg',
+      message: 'You feel lighter. Like it offloaded something from you.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/28/2025 - Data CD added as infinite-storage curio with emotional memory and quantum-read triggers

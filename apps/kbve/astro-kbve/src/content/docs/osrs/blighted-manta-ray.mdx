@@ -1,0 +1,37 @@
+---
+title: Blighted manta ray | OSRS Price Data
+description: "Blighted manta ray: A rare catch, now blighted so it can be eaten only in the Wilderness.. High alch: 30 GP, GE limit: 10,000."
+osrs:
+  id: 24589
+  name: Blighted manta ray
+  slug: blighted-manta-ray
+  examine: A rare catch, now blighted so it can be eaten only in the Wilderness.
+  members: true
+  icon: Blighted manta ray.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

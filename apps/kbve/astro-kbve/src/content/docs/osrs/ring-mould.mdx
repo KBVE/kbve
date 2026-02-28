@@ -1,0 +1,133 @@
+---
+title: Ring mould | OSRS Price Data
+description: "Ring mould: Used to make rings.. High alch: 3 GP, GE limit: 40."
+osrs:
+  id: 1592
+  name: Ring mould
+  slug: ring-mould
+  examine: Used to make rings.
+  members: false
+  icon: Ring mould.png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 40
+  material:
+    type: mould
+    tier: crafting_tool
+  crafting:
+    use: ring
+  shops:
+    - shop_name: Crafting shops
+      price: 5
+      currency: Coins
+  uses:
+    - product: Gold ring
+      product_id: 1635
+      bar: Gold bar
+      bar_id: 2357
+      crafting_level: 5
+      crafting_xp: 15
+    - product: Sapphire ring
+      product_id: 1637
+      crafting_level: 20
+      crafting_xp: 40
+    - product: Emerald ring
+      product_id: 1639
+      crafting_level: 27
+      crafting_xp: 55
+    - product: Ruby ring
+      product_id: 1641
+      crafting_level: 34
+      crafting_xp: 70
+    - product: Diamond ring
+      product_id: 1643
+      crafting_level: 43
+      crafting_xp: 85
+    - product: Dragonstone ring
+      product_id: 1645
+      crafting_level: 55
+      crafting_xp: 100
+    - product: Onyx ring
+      product_id: 6575
+      crafting_level: 67
+      crafting_xp: 115
+    - product: Zenyte ring
+      product_id: 19538
+      crafting_level: 89
+      crafting_xp: 150
+  related_items:
+    - item_id: 2357
+      item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Material used
+    - item_id: 1635
+      item_name: Gold ring
+      slug: gold-ring
+      relationship: product
+      description: Basic product
+    - item_id: 2550
+      item_name: Ring of recoil
+      slug: ring-of-recoil
+      relationship: product
+      description: Enchanted product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Price |
+|--------|-------|
+| Crafting shops | 5 gp |
+| Grand Exchange | Market price |
+
+## Usage
+
+Make rings at a furnace:
+
+| Ring | Level | XP | Gem Required |
+|------|-------|-----|--------------|
+| Gold ring | 5 | 15 | None |
+| Sapphire ring | 20 | 40 | Sapphire |
+| Emerald ring | 27 | 55 | Emerald |
+| Ruby ring | 34 | 70 | Ruby |
+| Diamond ring | 43 | 85 | Diamond |
+| Dragonstone ring | 55 | 100 | Dragonstone |
+| Onyx ring | 67 | 115 | Onyx |
+| Zenyte ring | 89 | 150 | Zenyte |
+
+## Market Strategy
+
+**Buy Limit:** 40 per 4 hours
+
+**Demand Drivers:**
+- Ring crafting
+- Jewelry production
+
+**Tips:**
+- One-time purchase
+- Not consumed on use
+- Essential for jewelry
+- Buy from shop
+
+<Adsense />

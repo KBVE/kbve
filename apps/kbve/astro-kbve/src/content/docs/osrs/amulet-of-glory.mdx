@@ -1,0 +1,148 @@
+---
+title: Amulet of glory | OSRS Price Data
+description: "Amulet of glory is a members neck slot item with +6 melee strength. High alch: 10,575 GP, GE limit: 10,000."
+osrs:
+  id: 1704
+  name: Amulet of glory
+  slug: amulet-of-glory
+  examine: A very powerful dragonstone amulet.
+  members: true
+  icon: Amulet of glory.png
+  value: 17625
+  lowalch: 7050
+  highalch: 10575
+  limit: 10000
+  equipment:
+    slot: neck
+    weight: 0.01
+    attack_bonus:
+      stab: 10
+      slash: 10
+      crush: 10
+      magic: 10
+      ranged: 10
+    defence_bonus:
+      stab: 3
+      slash: 3
+      crush: 3
+      magic: 3
+      ranged: 3
+    other_bonus:
+      melee_strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 3
+  charges:
+    current: 4
+    max: 6
+    recharge: Fountain of Rune
+  special_effect:
+    name: Glory Effect
+    description: Teleports to Edgeville, Karamja, Draynor, Al Kharid. Increases gem mining chance.
+    triggers: on_use
+  recipes:
+    - skill: magic
+      level: 68
+      xp: 78
+      spell: Lvl-5 Enchant
+      materials:
+        - item_name: Dragonstone amulet
+          item_id: 1702
+          quantity: 1
+        - item_name: Cosmic rune
+          item_id: 564
+          quantity: 1
+        - item_name: Earth rune
+          item_id: 557
+          quantity: 15
+        - item_name: Water rune
+          item_id: 555
+          quantity: 15
+  related_items:
+    - item_id: 1712
+      item_name: Amulet of glory(6)
+      slug: amulet-of-glory-6
+      relationship: variant
+      description: Fully charged
+    - item_id: 19707
+      item_name: Eternal glory
+      slug: eternal-glory
+      relationship: upgrade
+      description: Unlimited charges
+    - item_id: 6585
+      item_name: Amulet of fury
+      slug: amulet-of-fury
+      relationship: upgrade
+      description: Combat upgrade
+    - item_id: 1615
+      item_name: Dragonstone
+      slug: dragonstone
+      relationship: component
+      description: Gem component
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Stats
+
+| Stat | Bonus |
+|------|-------|
+| All attack styles | +10 |
+| All defences | +3 |
+| Strength | +6 |
+| Prayer | +3 |
+
+## Teleport Locations
+
+- Edgeville
+- Karamja (Musa Point)
+- Draynor Village
+- Al Kharid
+
+## Effects
+
+| Effect | Description |
+|--------|-------------|
+| Gem chance | Increased while mining |
+| Charges | 4 (6 at Fountain of Rune) |
+
+## Market Flip Strategy
+
+**Essential Teleport Amulet:**
+- Edgeville teleport popular
+- Mining gem bonus
+- Hybrid combat stats
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Demand Drivers:**
+- Teleportation
+- Mining gem chance
+- Hybrid PvM
+- New accounts
+
+**Tips:**
+- Recharge at Fountain of Rune
+- Mount in POH for unlimited
+- Edgeville most used teleport
+- Eternal glory rare upgrade
+
+<Adsense />

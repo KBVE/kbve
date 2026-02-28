@@ -1,0 +1,152 @@
+---
+title: Serpentine helm (uncharged) | OSRS Price Data
+description: "Serpentine helm (uncharged) is a members head slot item requiring 75 Defence. High alch: 66,000 GP, GE limit: 8."
+osrs:
+  id: 12929
+  name: Serpentine helm (uncharged)
+  slug: serpentine-helm-uncharged
+  examine: Needs to be charged with Zulrah's scales.
+  members: true
+  icon: Serpentine helm (uncharged).png
+  value: 110000
+  lowalch: 44000
+  highalch: 66000
+  limit: 8
+  equipment:
+    slot: head
+    type: helm
+    attack_style: melee
+    requirements:
+      defence: 75
+    stats:
+      defence_stab: 52
+      defence_slash: 55
+      defence_crush: 58
+      defence_ranged: 50
+      strength: 5
+      magic: -5
+      ranged: -5
+  charging:
+    material_id: 12934
+    material_name: Zulrah's scales
+    max_charges: 11000
+    duration: 16.5 hours of combat
+  passive_effects:
+    - name: Venom Immunity
+      description: Immune to venom and poison
+    - name: Melee Venom
+      description: 16.7% chance to envenom on melee hit
+  related_items:
+    - item_id: 12934
+      item_name: Zulrah's scales
+      slug: zulrahs-scales
+      relationship: component
+      description: Charges
+    - item_id: 12927
+      item_name: Serpentine visage
+      slug: serpentine-visage
+      relationship: component
+      description: From Zulrah
+    - item_id: 12924
+      item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+      relationship: alternative
+      description: Also uses scales
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Melee Helm |
+| Tradeable | Yes |
+| Weight | 0.9 kg |
+
+## Creation
+
+Use chisel on [Serpentine visage](/osrs/serpentine-visage/).
+
+| Requirement | Value |
+|-------------|-------|
+| Crafting | 52 |
+| XP | 120 |
+
+## Stats
+
+| Defence | Value |
+|---------|-------|
+| Stab | +52 |
+| Slash | +55 |
+| Crush | +58 |
+| Ranged | +50 |
+
+| Offense | Value |
+|---------|-------|
+| Strength | +5 |
+| Magic | -5 |
+| Ranged | -5 |
+
+**Requirements:** 75 Defence
+
+## Passive Effects
+
+**Venom Immunity:**
+- Immune to venom and poison
+
+**Melee Venom:**
+- 16.7% chance to envenom on melee hit
+
+## Charging
+
+- 11,000 scales for full charge
+- 16.5 hours of combat
+- ~2.4M per full charge
+
+## Usage
+
+BiS for:
+- Zulrah (venom immunity)
+- Any venom content
+- AFK melee training
+
+**Only helm with venom immunity.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~4.5M gp (uncharged)
+
+**Tips:**
+- Scales from Zulrah
+- Recolors available
+- High upkeep cost
+
+## Related Items
+
+- [Zulrah's scales](/osrs/zulrahs-scales/) - Charges
+- [Serpentine visage](/osrs/serpentine-visage/) - From Zulrah
+- [Toxic blowpipe](/osrs/toxic-blowpipe/) - Also uses scales
+
+<Adsense />

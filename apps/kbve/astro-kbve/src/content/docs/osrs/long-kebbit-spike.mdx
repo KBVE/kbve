@@ -1,0 +1,37 @@
+---
+title: Long kebbit spike | OSRS Price Data
+description: "Long kebbit spike: These bone spikes are both very tough and very sharp.. High alch: 90 GP, GE limit: 10,000."
+osrs:
+  id: 10107
+  name: Long kebbit spike
+  slug: long-kebbit-spike
+  examine: These bone spikes are both very tough and very sharp.
+  members: true
+  icon: Long kebbit spike.png
+  value: 150
+  lowalch: 60
+  highalch: 90
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

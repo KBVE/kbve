@@ -1,0 +1,37 @@
+---
+title: Piscarilius banner | OSRS Price Data
+description: "Piscarilius banner: A stained glass banner displaying the sigil of house Piscarilius.. High alch: 42 GP, GE limit: 4."
+osrs:
+  id: 20260
+  name: Piscarilius banner
+  slug: piscarilius-banner
+  examine: A stained glass banner displaying the sigil of house Piscarilius.
+  members: true
+  icon: Piscarilius banner.png
+  value: 70
+  lowalch: 28
+  highalch: 42
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,121 @@
+---
+title: Justiciar chestguard | OSRS Price Data
+description: "Justiciar chestguard is a members body slot item requiring 75 Defence. High alch: 3,600,000 GP, GE limit: 8."
+osrs:
+  id: 22327
+  name: Justiciar chestguard
+  slug: justiciar-chestguard
+  examine: A Justiciar's chestguard. They once roamed the land casting judgements on wrongdoers, their decisions were never questioned.
+  members: true
+  icon: Justiciar chestguard.png
+  value: 6000000
+  lowalch: 2400000
+  highalch: 3600000
+  limit: 8
+  equipment:
+    slot: body
+    type: tank armour
+    tradeable: true
+    weight: 9.979
+    requirements:
+      defence: 75
+    stats:
+      defence_stab: 132
+      defence_slash: 130
+      defence_crush: 117
+      defence_magic: -16
+      defence_ranged: 142
+      prayer: 4
+  set_effect:
+    name: Justiciar Damage Reduction
+    description: "Reduces all combat damage (PvM only). Formula: defence bonus / 3000"
+  related_items:
+    - item_id: 22326
+      item_name: Justiciar faceguard
+      slug: justiciar-faceguard
+      relationship: alternative
+      description: Set helm for Justiciar armour
+    - item_id: 22328
+      item_name: Justiciar legguards
+      slug: justiciar-legguards
+      relationship: alternative
+      description: Set legs for Justiciar armour
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Tank Armour |
+| Tradeable | Yes |
+| Weight | 9.979 kg |
+| Requirements | 75 Defence |
+
+## Obtaining
+
+Rare drop from [Theatre of Blood](/osrs/theatre-of-blood/).
+
+## Stats
+
+| Defence | Bonus |
+|---------|-------|
+| Stab | +132 |
+| Slash | +130 |
+| Crush | +117 |
+| Magic | -16 |
+| Ranged | +142 |
+
+| Other | Bonus |
+|-------|-------|
+| Prayer | +4 |
+
+## Set Effect
+
+**Damage Reduction (full set):**
+- Reduces all combat damage (PvM only)
+- Formula: defence bonus / 3000
+- Higher defence = more reduction
+
+## Usage
+
+BiS for:
+- Tanking
+- Inferno
+- Solo bossing
+
+**Part of Justiciar set.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~15M gp
+
+## Related Items
+
+- [Theatre of Blood](/osrs/theatre-of-blood/) - Drop source
+- [Justiciar faceguard](/osrs/justiciar-faceguard/) - Set helm
+- [Justiciar legguards](/osrs/justiciar-legguards/) - Set legs
+
+<Adsense />

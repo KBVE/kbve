@@ -1,0 +1,123 @@
+---
+title: Dragon battleaxe | OSRS Price Data
+description: "Dragon battleaxe is a members weapon slot item with +85 melee strength requiring 60 Attack. High alch: 120,000 GP, GE limit: 70."
+osrs:
+  id: 1377
+  name: Dragon battleaxe
+  slug: dragon-battleaxe
+  examine: A vicious looking axe.
+  members: true
+  icon: Dragon battleaxe.png
+  value: 200000
+  lowalch: 80000
+  highalch: 120000
+  limit: 70
+  equipment:
+    slot: weapon
+    weapon_type: battleaxe
+    weight: 1.814
+    attack_speed: 6
+    attack_range: 1
+    attack_bonus:
+      stab: -2
+      slash: 70
+      crush: 65
+      magic: -4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 85
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 60
+  quest_requirements:
+    - quest_name: Heroes' Quest
+      quest_id: 63
+      required: true
+      notes: Required to purchase from shop
+  special_attack:
+    name: Rampage
+    energy: 100
+    description: Drains Attack, Defence, Ranged, and Magic by 10% + 1, and boosts Strength by 10 + (drained levels / 4)
+  related_items:
+    - item_id: 1434
+      item_name: Dragon mace
+      slug: dragon-mace
+      relationship: alternative
+      description: Also from Heroes' Quest content
+    - item_id: 1305
+      item_name: Dragon longsword
+      slug: dragon-longsword
+      relationship: alternative
+      description: Also from Heroes' Quest content
+    - item_id: 4587
+      item_name: Dragon scimitar
+      slug: dragon-scimitar
+      relationship: alternative
+      description: Popular alternative dragon weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+**Shop:** Purchased from the Happy Heroes' Hemporium in the Heroes' Guild for 200,000 coins.
+
+**Requirements:**
+- Heroes' Quest completion
+
+**Drops:** Various monsters (Brutal black dragons, Kalphite Queen, etc.)
+
+## Usage
+
+**Special Attack - Rampage:**
+- Uses 100% special attack energy
+- Drains your Attack, Defence, Ranged, and Magic
+- Boosts Strength significantly
+- Used as a strength potion alternative
+
+**Common Uses:**
+- Super Combat replacement for Strength boost
+- Budget Strength training with spec
+- Ironman accounts before Strength potions
+
+## Stats
+
+| Stat | Bonus |
+|------|-------|
+| Slash | +70 |
+| Crush | +65 |
+| Strength | +85 |
+
+## Notes
+
+- Slower than scimitar (6 tick vs 4 tick)
+- Special attack popular for Strength boosting
+- Often carried just for the spec
+
+<Adsense />

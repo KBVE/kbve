@@ -1,0 +1,37 @@
+---
+title: Trailblazer reloaded relic hunter (t1) armour set | OSRS Price Data
+description: "Trailblazer reloaded relic hunter (t1) armour set is a members-only OSRS item. High alch: 30,000 GP."
+osrs:
+  id: 28777
+  name: Trailblazer reloaded relic hunter (t1) armour set
+  slug: trailblazer-reloaded-relic-hunter-t1-armour-set
+  examine: A set containing Trailblazer Reloaded boots (t1), Trailblazer Reloaded trousers (t1), Trailblazer Reloaded top (t1) and Trailblazer Reloaded hood (t1).
+  members: true
+  icon: Trailblazer reloaded relic hunter (t1) armour set.png
+  value: 50000
+  lowalch: 20000
+  highalch: 30000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

@@ -1,0 +1,488 @@
+---
+interface Rule {
+	number: string;
+	title: string;
+	description: string;
+	icon:
+		| 'ban'
+		| 'peace'
+		| 'shield'
+		| 'mic'
+		| 'crown'
+		| 'question'
+		| 'bell'
+		| 'megaphone'
+		| 'scroll'
+		| 'ad'
+		| 'gavel'
+		| 'sticker';
+}
+
+interface Props {
+	rules?: Rule[];
+}
+
+const defaultRules: Rule[] = [
+	{
+		number: '01',
+		title: 'Zero Tolerance Policy',
+		description:
+			'Racist, sexist, and unconstitutional statements and images are prohibited.',
+		icon: 'ban',
+	},
+	{
+		number: '02',
+		title: 'Respectful Communication',
+		description:
+			'No insults—conflicts can be resolved peacefully. Quoting is permitted.',
+		icon: 'peace',
+	},
+	{
+		number: '03',
+		title: 'Content Guidelines',
+		description: 'Pornographic content of any kind is strictly prohibited.',
+		icon: 'shield',
+	},
+	{
+		number: '04',
+		title: 'Recording Policy',
+		description:
+			'Recording voice or video conversations is prohibited unless you are in a designated streaming channel.',
+		icon: 'mic',
+	},
+	{
+		number: '05',
+		title: 'Staff Authority',
+		description: "The Discord Team's word is final.",
+		icon: 'crown',
+	},
+	{
+		number: '06',
+		title: 'Support Channels',
+		description:
+			'If you have questions or complaints, please contact an Admin. For complaints about team members, contact an Admin directly.',
+		icon: 'question',
+	},
+	{
+		number: '07',
+		title: 'Ping Etiquette',
+		description:
+			"Don't ping team members without a valid reason. Staff will also minimize unnecessary pings.",
+		icon: 'bell',
+	},
+	{
+		number: '08',
+		title: 'No Advertising',
+		description:
+			'No advertising for YouTube channels, websites, other servers, etc. Any form of advertising must be approved by administration beforehand.',
+		icon: 'megaphone',
+	},
+	{
+		number: '09',
+		title: 'Terms of Service',
+		description:
+			"Discord's Terms of Service must be observed at all times.",
+		icon: 'scroll',
+	},
+	{
+		number: '10',
+		title: 'Final Decisions',
+		description: 'Staff decisions are final.',
+		icon: 'gavel',
+	},
+	{
+		number: '11',
+		title: 'Sticker Policy',
+		description:
+			'Reactions using stickers that are illegal or pornographic are prohibited.',
+		icon: 'sticker',
+	},
+];
+
+const { rules = defaultRules } = Astro.props;
+
+const icons: Record<string, string> = {
+	ban: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636"/>`,
+	peace: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z"/>`,
+	shield: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"/>`,
+	mic: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11a7 7 0 01-7 7m0 0a7 7 0 01-7-7m7 7v4m0 0H8m4 0h4m-4-8a3 3 0 01-3-3V5a3 3 0 116 0v6a3 3 0 01-3 3z"/>`,
+	crown: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M5 3l3.5 4L12 3l3.5 4L19 3v13a2 2 0 01-2 2H7a2 2 0 01-2-2V3z"/>`,
+	question: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M8.228 9c.549-1.165 2.03-2 3.772-2 2.21 0 4 1.343 4 3 0 1.4-1.278 2.575-3.006 2.907-.542.104-.994.54-.994 1.093m0 3h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>`,
+	bell: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>`,
+	megaphone: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M11 5.882V19.24a1.76 1.76 0 01-3.417.592l-2.147-6.15M18 13a3 3 0 100-6M5.436 13.683A4.001 4.001 0 017 6h1.832c4.1 0 7.625-1.234 9.168-3v14c-1.543-1.766-5.067-3-9.168-3H7a3.988 3.988 0 01-1.564-.317z"/>`,
+	scroll: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/>`,
+	ad: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 20H5a2 2 0 01-2-2V6a2 2 0 012-2h10a2 2 0 012 2v1m2 13a2 2 0 01-2-2V7m2 13a2 2 0 002-2V9a2 2 0 00-2-2h-2m-4-3H9M7 16h6M7 8h6v4H7V8z"/>`,
+	gavel: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3"/>`,
+	sticker: `<path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M14.828 14.828a4 4 0 01-5.656 0M9 10h.01M15 10h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>`,
+};
+---
+
+<section id="discord-rules">
+	<div class="rules-container">
+		<div class="rules-header">
+			<div class="header-accent"></div>
+			<div class="header-content">
+				<div class="discord-icon">
+					<svg viewBox="0 0 24 24" fill="currentColor">
+						<path
+							d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03zM8.02 15.33c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.956-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.956 2.418-2.157 2.418zm7.975 0c-1.183 0-2.157-1.085-2.157-2.419 0-1.333.955-2.419 2.157-2.419 1.21 0 2.176 1.096 2.157 2.42 0 1.333-.946 2.418-2.157 2.418z">
+						</path>
+					</svg>
+				</div>
+				<h2 class="rules-title">Community Guidelines</h2>
+				<p class="rules-subtitle">
+					Please read and follow these rules to maintain a positive
+					environment
+				</p>
+			</div>
+		</div>
+
+		<div class="rules-grid">
+			{
+				rules.map((rule, index) => (
+					<div class="rule-card" style={`--index: ${index}`}>
+						<div class="rule-number">{rule.number}</div>
+						<div class="rule-icon">
+							<svg
+								xmlns="http://www.w3.org/2000/svg"
+								fill="none"
+								viewBox="0 0 24 24"
+								stroke="currentColor"
+								set:html={icons[rule.icon]}
+							/>
+						</div>
+						<div class="rule-content">
+							<h3 class="rule-title">{rule.title}</h3>
+							<p class="rule-description">{rule.description}</p>
+						</div>
+						<div class="rule-glow" />
+					</div>
+				))
+			}
+		</div>
+
+		<div class="rules-footer">
+			<div class="footer-line"></div>
+			<p class="copyright">
+				&copy; Copyright KBVE. 2025 All Rights Reserved.
+			</p>
+			<a
+				href="https://discord.com/terms"
+				target="_blank"
+				rel="noopener noreferrer"
+				class="tos-link">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor"
+					class="link-icon">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14">
+					</path>
+				</svg>
+				Discord Terms of Service
+			</a>
+		</div>
+	</div>
+</section>
+
+<style>
+	#discord-rules {
+		--rule-bg: var(--sl-color-bg, #0d1117);
+		--rule-bg-accent: var(--sl-color-bg-accent, #164e63);
+		--rule-text: var(--sl-color-text, #e6edf3);
+		--rule-text-muted: var(--sl-color-gray-3, #8b949e);
+		--rule-border: var(--sl-color-hairline, #30363d);
+		--rule-accent: var(--sl-color-accent, #5865f2);
+		--rule-accent-high: var(--sl-color-accent-high, #7289da);
+		--discord-blurple: #5865f2;
+		--octagon-cut: 1rem;
+	}
+
+	#discord-rules {
+		background: transparent;
+		padding: 4rem 1rem;
+	}
+
+	.rules-container {
+		max-width: 1200px;
+		margin: 0 auto;
+	}
+
+	/* Header */
+	.rules-header {
+		text-align: center;
+		margin-bottom: 3rem;
+		position: relative;
+	}
+
+	.header-accent {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		width: 300px;
+		height: 300px;
+		background: radial-gradient(
+			circle,
+			var(--discord-blurple) 0%,
+			transparent 70%
+		);
+		opacity: 0.1;
+		filter: blur(60px);
+		pointer-events: none;
+	}
+
+	.header-content {
+		position: relative;
+		z-index: 1;
+	}
+
+	.discord-icon {
+		width: 4rem;
+		height: 4rem;
+		margin: 0 auto 1.5rem;
+		padding: 1rem;
+		background: linear-gradient(
+			135deg,
+			var(--discord-blurple) 0%,
+			var(--rule-accent-high) 100%
+		);
+		border-radius: 1rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		box-shadow: 0 0 40px rgba(88, 101, 242, 0.3);
+	}
+
+	.discord-icon svg {
+		width: 2rem;
+		height: 2rem;
+		color: white;
+	}
+
+	.rules-title {
+		font-size: 2.5rem;
+		font-weight: 700;
+		color: var(--rule-text);
+		margin: 0 0 0.75rem;
+		letter-spacing: -0.02em;
+	}
+
+	.rules-subtitle {
+		font-size: 1.125rem;
+		color: var(--rule-text-muted);
+		margin: 0;
+	}
+
+	/* Rules Grid */
+	.rules-grid {
+		display: grid;
+		grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+		gap: 1.25rem;
+	}
+
+	/* Rule Card */
+	.rule-card {
+		position: relative;
+		padding: 1.5rem;
+		background: linear-gradient(
+			135deg,
+			rgba(88, 101, 242, 0.08) 0%,
+			transparent 100%
+		);
+		box-shadow: inset 0 0 0 1px var(--rule-border);
+		display: grid;
+		grid-template-columns: auto 1fr;
+		grid-template-rows: auto 1fr;
+		gap: 0.75rem 1rem;
+		opacity: 0;
+		transform: translateY(20px);
+		animation: fadeInUp 0.5s ease forwards;
+		animation-delay: calc(var(--index) * 0.05s);
+		transition:
+			clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+		clip-path: polygon(
+			0% 0%,
+			100% 0%,
+			100% 0%,
+			100% 100%,
+			100% 100%,
+			0% 100%,
+			0% 100%,
+			0% 0%
+		);
+		overflow: hidden;
+	}
+
+	.rule-card:hover {
+		clip-path: polygon(
+			var(--octagon-cut) 0%,
+			calc(100% - var(--octagon-cut)) 0%,
+			100% var(--octagon-cut),
+			100% calc(100% - var(--octagon-cut)),
+			calc(100% - var(--octagon-cut)) 100%,
+			var(--octagon-cut) 100%,
+			0% calc(100% - var(--octagon-cut)),
+			0% var(--octagon-cut)
+		);
+		box-shadow:
+			inset 0 0 0 1px var(--discord-blurple),
+			0 0 30px rgba(88, 101, 242, 0.15);
+		transform: translateY(-4px);
+	}
+
+	@keyframes fadeInUp {
+		to {
+			opacity: 1;
+			transform: translateY(0);
+		}
+	}
+
+	.rule-glow {
+		position: absolute;
+		inset: 0;
+		background: linear-gradient(
+			135deg,
+			var(--discord-blurple) 0%,
+			transparent 60%
+		);
+		opacity: 0;
+		transition: opacity 0.5s ease;
+		pointer-events: none;
+		z-index: 0;
+	}
+
+	.rule-card:hover .rule-glow {
+		opacity: 0.08;
+	}
+
+	/* Rule Number */
+	.rule-number {
+		grid-row: 1;
+		grid-column: 1;
+		font-size: 0.75rem;
+		font-weight: 700;
+		font-family: monospace;
+		color: var(--discord-blurple);
+		background: rgba(88, 101, 242, 0.15);
+		padding: 0.25rem 0.5rem;
+		border-radius: 0.25rem;
+		width: fit-content;
+		height: fit-content;
+		position: relative;
+		z-index: 1;
+	}
+
+	/* Rule Icon */
+	.rule-icon {
+		grid-row: 2;
+		grid-column: 1;
+		width: 2.5rem;
+		height: 2.5rem;
+		display: flex;
+		align-items: flex-start;
+		justify-content: center;
+		position: relative;
+		z-index: 1;
+	}
+
+	.rule-icon svg {
+		width: 1.5rem;
+		height: 1.5rem;
+		color: var(--rule-accent-high);
+		transition: transform 0.3s ease;
+	}
+
+	.rule-card:hover .rule-icon svg {
+		transform: scale(1.1);
+	}
+
+	/* Rule Content */
+	.rule-content {
+		grid-row: 1 / -1;
+		grid-column: 2;
+		position: relative;
+		z-index: 1;
+	}
+
+	.rule-title {
+		font-size: 1rem;
+		font-weight: 600;
+		color: var(--rule-text);
+		margin: 0 0 0.5rem;
+		line-height: 1.3;
+	}
+
+	.rule-description {
+		font-size: 0.875rem;
+		color: var(--rule-text-muted);
+		margin: 0;
+		line-height: 1.6;
+	}
+
+	/* Footer */
+	.rules-footer {
+		margin-top: 3rem;
+		text-align: center;
+	}
+
+	.footer-line {
+		width: 100px;
+		height: 2px;
+		background: linear-gradient(
+			90deg,
+			transparent,
+			var(--discord-blurple),
+			transparent
+		);
+		margin: 0 auto 1.5rem;
+	}
+
+	.copyright {
+		font-size: 0.875rem;
+		color: var(--rule-text-muted);
+		margin: 0 0 1rem;
+	}
+
+	.tos-link {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		font-size: 0.875rem;
+		color: var(--discord-blurple);
+		text-decoration: none;
+		padding: 0.5rem 1rem;
+		border-radius: 0.5rem;
+		transition: all 0.3s ease;
+	}
+
+	.tos-link:hover {
+		background: rgba(88, 101, 242, 0.1);
+		color: var(--rule-accent-high);
+	}
+
+	.link-icon {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	/* Reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.rule-card {
+			animation: none;
+			opacity: 1;
+			transform: none;
+		}
+
+		.rule-card:hover {
+			transform: none;
+		}
+	}
+</style>

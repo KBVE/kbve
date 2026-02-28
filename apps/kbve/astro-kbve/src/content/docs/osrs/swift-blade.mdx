@@ -1,0 +1,37 @@
+---
+title: Swift blade | OSRS Price Data
+description: "Swift blade: A dull blade that moves at incredible speed.. High alch: 900 GP."
+osrs:
+  id: 24219
+  name: Swift blade
+  slug: swift-blade
+  examine: A dull blade that moves at incredible speed.
+  members: false
+  icon: Swift blade.png
+  value: 1500
+  lowalch: 600
+  highalch: 900
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

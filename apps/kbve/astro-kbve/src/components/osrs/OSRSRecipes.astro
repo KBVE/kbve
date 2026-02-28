@@ -1,0 +1,299 @@
+---
+/**
+ * OSRSRecipes Component
+ *
+ * Displays crafting/creation recipes for an item
+ * Shows skill, level, XP, materials, and tools required
+ */
+import type { OSRSRecipe } from '@/data/schema';
+
+interface Props {
+	recipes: OSRSRecipe[];
+}
+
+const { recipes } = Astro.props;
+
+// Format skill name for display
+function formatSkill(skill: string | null | undefined): string {
+	if (!skill || skill === 'none') return 'Combine';
+	return skill.charAt(0).toUpperCase() + skill.slice(1);
+}
+
+// Get skill icon color
+function getSkillColor(skill: string | null | undefined): string {
+	if (!skill) return 'var(--sl-color-accent)';
+	const colors: Record<string, string> = {
+		herblore: '#22c55e',
+		crafting: '#a855f7',
+		smithing: '#64748b',
+		fletching: '#84cc16',
+		cooking: '#f97316',
+		construction: '#eab308',
+		runecraft: '#3b82f6',
+		magic: '#60a5fa',
+		firemaking: '#ef4444',
+	};
+	return colors[skill] || 'var(--sl-color-accent)';
+}
+---
+
+<div class="osrs-recipes">
+	<div class="osrs-recipes__header">
+		<span class="osrs-recipes__icon">
+			<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+				<path
+					d="M7.5 5.6L10 7 8.6 4.5 10 2 7.5 3.4 5 2l1.4 2.5L5 7zm12 9.8L17 14l1.4 2.5L17 19l2.5-1.4L22 19l-1.4-2.5L22 14zM22 2l-2.5 1.4L17 2l1.4 2.5L17 7l2.5-1.4L22 7l-1.4-2.5zm-7.63 5.29c-.39-.39-1.02-.39-1.41 0L1.29 18.96c-.39.39-.39 1.02 0 1.41l2.34 2.34c.39.39 1.02.39 1.41 0L16.7 11.05c.39-.39.39-1.02 0-1.41l-2.33-2.35zm-1.03 5.49l-2.12-2.12 2.44-2.44 2.12 2.12-2.44 2.44z">
+				</path>
+			</svg>
+		</span>
+		<h4 class="osrs-recipes__title">Creation Recipes</h4>
+	</div>
+
+	<div class="osrs-recipes__list">
+		{
+			recipes.map((recipe, index) => (
+				<div
+					class="osrs-recipe"
+					style={`--skill-color: ${getSkillColor(recipe.skill)}`}>
+					<div class="osrs-recipe__header">
+						<span class="osrs-recipe__skill">
+							{formatSkill(recipe.skill)}
+						</span>
+						<span class="osrs-recipe__level">
+							Level {recipe.level}
+						</span>
+						{recipe.xp && (
+							<span class="osrs-recipe__xp">{recipe.xp} XP</span>
+						)}
+						{recipe.members_only && (
+							<span class="osrs-recipe__p2p">P2P</span>
+						)}
+					</div>
+
+					{recipe.materials && recipe.materials.length > 0 && (
+						<div class="osrs-recipe__materials">
+							<span class="osrs-recipe__label">Materials:</span>
+							<div class="osrs-recipe__items">
+								{recipe.materials.map((mat, i) => (
+									<span class="osrs-recipe__item">
+										{mat.quantity > 1 && (
+											<span class="osrs-recipe__qty">
+												{mat.quantity}x
+											</span>
+										)}
+										{mat.item_id ? (
+											<a
+												href={`/osrs/${mat.item_name.toLowerCase().replace(/[^a-z0-9]+/g, '-')}/`}
+												class="osrs-recipe__link">
+												{mat.item_name}
+											</a>
+										) : (
+											<span>{mat.item_name}</span>
+										)}
+										{!mat.consumed && (
+											<span class="osrs-recipe__not-consumed">
+												(not consumed)
+											</span>
+										)}
+									</span>
+								))}
+							</div>
+						</div>
+					)}
+
+					{recipe.tools && recipe.tools.length > 0 && (
+						<div class="osrs-recipe__tools">
+							<span class="osrs-recipe__label">Tools:</span>
+							<span class="osrs-recipe__tool-list">
+								{recipe.tools.join(', ')}
+							</span>
+						</div>
+					)}
+
+					{recipe.facility && (
+						<div class="osrs-recipe__facility">
+							<span class="osrs-recipe__label">Facility:</span>
+							<span>{recipe.facility}</span>
+						</div>
+					)}
+
+					<div class="osrs-recipe__meta">
+						{recipe.ticks && (
+							<span class="osrs-recipe__ticks">
+								{recipe.ticks} ticks (
+								{(recipe.ticks * 0.6).toFixed(1)}s)
+							</span>
+						)}
+						{recipe.output_quantity &&
+							recipe.output_quantity > 1 && (
+								<span class="osrs-recipe__output">
+									Makes {recipe.output_quantity}
+								</span>
+							)}
+						{recipe.quest_required && (
+							<span class="osrs-recipe__quest">
+								Requires: {recipe.quest_required}
+							</span>
+						)}
+					</div>
+				</div>
+			))
+		}
+	</div>
+</div>
+
+<style>
+	.osrs-recipes {
+		margin-top: 1rem;
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-gray-5);
+		background: var(--sl-color-bg-nav);
+		overflow: hidden;
+	}
+
+	.osrs-recipes__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 0.625rem 0.75rem;
+		background: var(--sl-color-gray-6);
+		border-bottom: 1px solid var(--sl-color-gray-5);
+	}
+
+	.osrs-recipes__icon {
+		color: var(--sl-color-accent);
+	}
+
+	.osrs-recipes__title {
+		font-size: 0.8125rem;
+		font-weight: 600;
+		color: var(--sl-color-white);
+		margin: 0;
+	}
+
+	.osrs-recipes__list {
+		display: flex;
+		flex-direction: column;
+	}
+
+	.osrs-recipe {
+		padding: 0.625rem 0.75rem;
+		border-bottom: 1px solid var(--sl-color-gray-6);
+	}
+
+	.osrs-recipe:last-child {
+		border-bottom: none;
+	}
+
+	.osrs-recipe__header {
+		display: flex;
+		align-items: center;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+		margin-bottom: 0.375rem;
+	}
+
+	.osrs-recipe__skill {
+		font-size: 0.75rem;
+		font-weight: 600;
+		color: var(--skill-color, var(--sl-color-accent));
+	}
+
+	.osrs-recipe__level {
+		font-size: 0.6875rem;
+		font-weight: 500;
+		padding: 0.0625rem 0.25rem;
+		border-radius: 0.1875rem;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-white);
+	}
+
+	.osrs-recipe__xp {
+		font-size: 0.625rem;
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-recipe__p2p {
+		font-size: 0.5rem;
+		font-weight: 600;
+		padding: 0.0625rem 0.1875rem;
+		border-radius: 0.125rem;
+		text-transform: uppercase;
+		background: var(--sl-color-accent-low);
+		color: var(--sl-color-accent-high);
+	}
+
+	.osrs-recipe__materials,
+	.osrs-recipe__tools,
+	.osrs-recipe__facility {
+		display: flex;
+		align-items: flex-start;
+		gap: 0.375rem;
+		margin-top: 0.25rem;
+		font-size: 0.6875rem;
+	}
+
+	.osrs-recipe__label {
+		color: var(--sl-color-gray-3);
+		flex-shrink: 0;
+	}
+
+	.osrs-recipe__items {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.25rem 0.5rem;
+	}
+
+	.osrs-recipe__item {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.125rem;
+		color: var(--sl-color-gray-2);
+	}
+
+	.osrs-recipe__qty {
+		font-weight: 600;
+		color: var(--sl-color-white);
+	}
+
+	.osrs-recipe__link {
+		color: var(--sl-color-accent);
+		text-decoration: none;
+	}
+
+	.osrs-recipe__link:hover {
+		text-decoration: underline;
+	}
+
+	.osrs-recipe__not-consumed {
+		font-size: 0.5625rem;
+		color: var(--sl-color-gray-4);
+		font-style: italic;
+	}
+
+	.osrs-recipe__tool-list {
+		color: var(--sl-color-gray-2);
+	}
+
+	.osrs-recipe__meta {
+		display: flex;
+		flex-wrap: wrap;
+		gap: 0.5rem;
+		margin-top: 0.375rem;
+	}
+
+	.osrs-recipe__ticks,
+	.osrs-recipe__output,
+	.osrs-recipe__quest {
+		font-size: 0.5625rem;
+		padding: 0.0625rem 0.25rem;
+		border-radius: 0.125rem;
+		background: var(--sl-color-gray-6);
+		color: var(--sl-color-gray-3);
+	}
+
+	.osrs-recipe__quest {
+		background: rgba(234, 179, 8, 0.1);
+		color: #eab308;
+	}
+</style>

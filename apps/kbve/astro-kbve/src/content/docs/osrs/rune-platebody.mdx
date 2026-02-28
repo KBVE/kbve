@@ -1,0 +1,123 @@
+---
+title: Rune platebody | OSRS Price Data
+description: "Rune platebody is a F2P body slot item requiring 40 Defence. High alch: 39,000 GP, GE limit: 70."
+osrs:
+  id: 1127
+  name: Rune platebody
+  slug: rune-platebody
+  examine: Provides excellent protection.
+  members: false
+  icon: Rune platebody.png
+  value: 65000
+  lowalch: 26000
+  highalch: 39000
+  limit: 70
+  equipment:
+    slot: body
+    weight: 9.979
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: -30
+      ranged: 0
+    defence_bonus:
+      stab: 82
+      slash: 80
+      crush: 72
+      magic: -6
+      ranged: 80
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 40
+  smithing:
+    level: 99
+    xp: 375
+    bars_required: 5
+  alch:
+    high: 39000
+    low: 26000
+  recipes:
+    - skill: smithing
+      level: 99
+      xp: 375
+      materials:
+        - item_name: Runite bar
+          item_id: 2363
+          quantity: 5
+      product: Rune platebody
+      product_id: 1127
+      product_quantity: 1
+      facility: Anvil
+  related_items:
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: component
+      description: Raw material (×5)
+    - item_id: 1079
+      item_name: Rune platelegs
+      slug: rune-platelegs
+      relationship: set-piece
+      description: Alternative rune armor
+    - item_id: 1319
+      item_name: Rune 2h sword
+      slug: rune-2h-sword
+      relationship: alternative
+      description: Alternative alch item
+    - item_id: 561
+      item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: For High Alchemy
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## High Alchemy
+
+| Alch Type | Value |
+|-----------|-------|
+| **High Alch** | **39,000 GP** |
+| Low Alch | 26,000 GP |
+
+## Market Flip Strategy
+
+**Alch Flipping:**
+- High Alch value: **39,000 GP**
+- Calculate: `39,000 - Rune platebody price - Nature rune = Profit`
+- One of the highest alch value items
+
+**Smithing Profit:**
+- Cost: 5 Runite bars
+- Revenue: 39,000 GP (alch) or GE price
+- Compare: `39,000 - (5 × Runite bar price) - Nature rune`
+
+**Tips:**
+- Buy limit: 8 per 4 hours (low limit!)
+- Dragon Slayer 1 completion required to equip
+- Popular PvM drop - check drop sources for supply
+
+<Adsense />

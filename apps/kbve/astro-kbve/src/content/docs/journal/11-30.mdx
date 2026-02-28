@@ -1,0 +1,75 @@
+---
+title: 'November: 30th'
+category: Daily
+date: 2024-11-30 12:00:00
+client: Self
+unsplash: 1722790892030-a4298d6df175
+img: https://images.unsplash.com/photo-1722790892030-a4298d6df175?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 30th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2024
+
+-   04:04AM
+
+    **Secrets**
+
+    To add our sealed secrets, we will have do a couple things ahead of time before we can do it.
+    First we need to update our code to accept the env variable for the discord client and discord secret.
+    Both of these will be used for discord sdk communication but we also need to create the sealed secrets too for the fleet.
+
+    The rust code will look like this:
+
+    ```rust
+    static ENV_VARS: Lazy<HashMap<&'static str, String>> = Lazy::new(|| {
+    let mut map = HashMap::new();
+    map.insert(
+        "DISCORD_CLIENT_ID",
+        std::env::var("DISCORD_CLIENT_ID").expect("DISCORD_CLIENT_ID not set"),
+    );
+    map.insert(
+        "DISCORD_CLIENT_SECRET",
+        std::env::var("DISCORD_CLIENT_SECRET").expect("DISCORD_CLIENT_SECRET not set"),
+    );
+    map
+    });
+    ```
+
+    The idea here would be to create a static map that holds these two variables because we only write once , but read many.
+    This static block will just focus on the first write.
+
+    ```shell
+    ./kbve.sh -nx rust_rareicon_gameserver:orb
+    ```
+
+-   04:08AM
+
+    **Seals**
+
+    While working on that docker build test, we can run this to generate the seals.
+
+    ```shell
+    ./kbve.sh -nx kilobase:seal  --namespace="rareicon" --keyName="DISCORD_CLIENT_SECRET" --secrets="DISCORD_CLIENT_SECRET=pepethefroog"
+    ```
+
+-   03:55PM
+
+    **Helm**
+
+    Time to update the docker image for the helm chart and see if we can get the discord oauth / token / login out of the way.
+    Inside of the `axum-gameserver.yaml` , we will manually update the rareicon game server image with this hash:
+    `image: "kbve/rareicongs@sha256:32fecd31c9d84b002455fc6e10fbdf26d8d693521774b940e3d658d2eb281b5b"`
+
+    I would do this via tag systems but the number of deployments would drive me crazy, or well further insane, or well to the edge of escapism.
+
+-   04:19PM
+
+    **AiBrain**
+
+    We are going to start building out the whole ai brain again but something that we can use just directly through the C# code.
+    This way we can work on the ai brain without having to mess around directly with unity.
+    Furthermore, this allows us to use this ai code in future projects as well.

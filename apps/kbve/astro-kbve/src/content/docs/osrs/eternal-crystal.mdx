@@ -1,0 +1,117 @@
+---
+title: Eternal crystal | OSRS Price Data
+description: "Eternal crystal: A powerful crystal of magic.. High alch: 27,000 GP, GE limit: 15."
+osrs:
+  id: 13227
+  name: Eternal crystal
+  slug: eternal-crystal
+  examine: A powerful crystal of magic.
+  members: true
+  icon: Eternal crystal.png
+  value: 45000
+  lowalch: 18000
+  highalch: 27000
+  limit: 15
+  item:
+    type: crafting_material
+    tradeable: true
+  obtaining:
+    methods:
+      - source: Cerberus
+        drop_rate: 1/520
+        requirements:
+          slayer: 91
+  creation:
+    creates:
+      item_id: 13235
+      item_name: Eternal boots
+      slug: eternal-boots
+    combine_with:
+      item_id: 6920
+      item_name: Infinity boots
+      slug: infinity-boots
+    requirements:
+      magic: 60
+      runecraft: 60
+    warning: Irreversible process
+  related_items:
+    - item_id: 0
+      item_name: Cerberus
+      slug: cerberus
+      relationship: component
+      description: Boss drop
+    - item_id: 13235
+      item_name: Eternal boots
+      slug: eternal-boots
+      relationship: product
+      description: Created item
+    - item_id: 13231
+      item_name: Primordial crystal
+      slug: primordial-crystal
+      relationship: alternative
+      description: Melee version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Stackable | No |
+
+## Obtaining
+
+Drop from [Cerberus](/osrs/cerberus/) (1/520).
+
+**Requires 91 Slayer.**
+
+## Uses
+
+Combine with [Infinity boots](/osrs/infinity-boots/) to create [Eternal boots](/osrs/eternal-boots/).
+
+| Requirement | Level |
+|-------------|-------|
+| Magic | 60 |
+| Runecraft | 60 |
+
+**Warning:** Irreversible process.
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~6M gp
+
+**Tips:**
+- Mid-value Cerberus crystal
+- Creates BiS mage boots
+- Farm Cerberus on task
+
+## Related Items
+
+- [Cerberus](/osrs/cerberus/) - Boss drop
+- [Eternal boots](/osrs/eternal-boots/) - Created item
+- [Primordial crystal](/osrs/primordial-crystal/) - Melee version
+
+<Adsense />

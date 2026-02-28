@@ -1,0 +1,140 @@
+---
+title: Wizard boots | OSRS Price Data
+description: "Wizard boots is a members feet slot item requiring 20 Magic. High alch: 120 GP, GE limit: 8."
+osrs:
+  id: 2579
+  name: Wizard boots
+  slug: wizard-boots
+  examine: Slightly magical boots.
+  members: true
+  icon: Wizard boots.png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 8
+  equipment:
+    slot: feet
+    type: magic_boots
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 4
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      magic: 20
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    weight: 0.5
+  drop_table:
+    primary_source: Medium clue casket
+    best_drop_rate: 1/1,133
+    sources:
+      - source: Medium clue casket
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/1,133
+  related_items:
+    - item_id: 13235
+      item_name: Eternal boots
+      slug: eternal-boots
+      relationship: upgrade
+      description: BiS magic boots
+    - item_id: 6920
+      item_name: Infinity boots
+      slug: infinity-boots
+      relationship: upgrade
+      description: +5 magic bonus
+    - item_id: 2577
+      item_name: Ranger boots
+      slug: ranger-boots
+      relationship: alternative
+      description: Ranged equivalent from same clue tier
+    - item_id: 12598
+      item_name: Holy sandals
+      slug: holy-sandals
+      relationship: alternative
+      description: Prayer equivalent from same clue tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Reward from medium Treasure Trails.
+
+**Drop Rate:** 1/1,133 from reward casket (medium)
+
+## Equipment Info
+
+| Stat | Value |
+|------|-------|
+| Slot | Feet |
+| Magic requirement | 20 |
+| Weight | 0.5 kg |
+
+## Stats
+
+| Bonus | Value |
+|-------|-------|
+| Magic attack | +4 |
+| Magic defence | +4 |
+
+## Usage
+
+Budget magic boots option:
+- Early game magic training
+- F2P-style mage builds
+- Much cheaper than [Eternal boots](/osrs/eternal-boots/)
+
+**Note:** [Infinity boots](/osrs/infinity-boots/) (+5 magic) are better but require Mage Training Arena.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Medium clue reward
+- Budget option for magic setups
+- Often stocked by clue hunters
+
+## Related Items
+
+- [Ranger boots](/osrs/ranger-boots/) - Ranged equivalent (same clue tier)
+- [Holy sandals](/osrs/holy-sandals/) - Prayer equivalent
+- [Infinity boots](/osrs/infinity-boots/) - Upgrade option
+- [Eternal boots](/osrs/eternal-boots/) - BiS magic boots
+
+<Adsense />

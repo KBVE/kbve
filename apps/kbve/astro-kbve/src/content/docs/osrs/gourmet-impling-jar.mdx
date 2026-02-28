@@ -1,0 +1,37 @@
+---
+title: Gourmet impling jar | OSRS Price Data
+description: "Gourmet impling jar: A gourmet impling in a jar.. High alch: 30 GP, GE limit: 18,000."
+osrs:
+  id: 11242
+  name: Gourmet impling jar
+  slug: gourmet-impling-jar
+  examine: A gourmet impling in a jar.
+  members: true
+  icon: Gourmet impling jar.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 18000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

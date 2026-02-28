@@ -1,0 +1,37 @@
+---
+title: Camphor seed | OSRS Price Data
+description: "Camphor seed: Plant this in a plantpot of soil to grow a sapling.. High alch: 36 GP, GE limit: 200."
+osrs:
+  id: 31547
+  name: Camphor seed
+  slug: camphor-seed
+  examine: Plant this in a plantpot of soil to grow a sapling.
+  members: true
+  icon: Camphor seed 5.png
+  value: 60
+  lowalch: 24
+  highalch: 36
+  limit: 200
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

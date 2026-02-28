@@ -1,0 +1,91 @@
+---
+title: Adamant kiteshield | OSRS Price Data
+description: "Adamant kiteshield: A large metal shield.. High alch: 3,264 GP, GE limit: 125."
+osrs:
+  id: 1199
+  name: Adamant kiteshield
+  slug: adamant-kiteshield
+  examine: A large metal shield.
+  members: false
+  icon: Adamant kiteshield.png
+  value: 5440
+  lowalch: 2176
+  highalch: 3264
+  limit: 125
+  item_id: 1199
+  item_type: armor
+  slot: shield
+  type: kiteshield
+  tradeable: true
+  weight: 5.896
+  requirements:
+    defence: 30
+  stats:
+    stab_defence: 27
+    slash_defence: 31
+    crush_defence: 29
+    ranged_defence: 29
+  related_items:
+    - slug: rune-kiteshield
+    - slug: adamant-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Off Hand |
+| Type | Kiteshield |
+| Tradeable | Yes |
+| Weight | 5.896 kg |
+| Requirements | 30 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +27 |
+| Slash Defence | +31 |
+| Crush Defence | +29 |
+| Ranged Defence | +29 |
+
+## Obtaining
+
+**Smithing:** 82 Smithing with 3 adamantite bars (187.5 XP).
+
+**Drops:** King Black Dragon, Greater Nechryael, Basilisk Knight.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~3,080 gp
+
+High-tier F2P shield.
+
+## Related Items
+
+- [Rune kiteshield](/osrs/rune-kiteshield/) - Upgrade
+- [Adamant platebody](/osrs/adamant-platebody/) - Set piece
+
+<Adsense />

@@ -1,0 +1,133 @@
+---
+title: Avantoe potion (unf) | OSRS Price Data
+description: "Avantoe potion (unf) is a 4-dose members potion. High alch: 28 GP, GE limit: 10,000."
+osrs:
+  id: 103
+  name: Avantoe potion (unf)
+  slug: avantoe-potion-unf
+  examine: I need another ingredient to finish this Avantoe potion.
+  members: true
+  icon: Avantoe potion (unf).png
+  value: 48
+  lowalch: 19
+  highalch: 28
+  limit: 10000
+  potion:
+    type: unfinished
+    tier: mid-high
+  herblore:
+    level: 50
+    xp: 0
+    method: Add avantoe to vial of water
+  recipes:
+    - skill: herblore
+      level: 50
+      xp: 0
+      materials:
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+        - item_name: Avantoe
+          item_id: 261
+          quantity: 1
+      product: Avantoe potion (unf)
+      product_id: 103
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 261
+      item_name: Avantoe
+      slug: avantoe
+      relationship: component
+      description: Herb ingredient
+    - item_id: 227
+      item_name: Vial of water
+      slug: vial-of-water
+      relationship: component
+      description: Base liquid
+    - item_id: 2970
+      item_name: Mort myre fungus
+      slug: mort-myre-fungus
+      relationship: component
+      description: Secondary for super energy
+    - item_id: 10111
+      item_name: Kebbit teeth dust
+      slug: kebbit-teeth-dust
+      relationship: component
+      description: Secondary for hunter potion
+    - item_id: 3016
+      item_name: Super energy(3)
+      slug: super-energy-3
+      relationship: product
+      description: Restores run energy
+    - item_id: 10000
+      item_name: Hunter potion(3)
+      slug: hunter-potion-3
+      relationship: product
+      description: Boosts hunter
+    - item_id: 12625
+      item_name: Fishing potion(3)
+      slug: fishing-potion-3
+      relationship: product
+      description: Boosts fishing
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Unfinished Potion |
+| Tradeable | Yes |
+| Weight | 0.056 kg |
+| Requirements | 50 Herblore |
+
+## Obtaining
+
+**Creation:** Add avantoe to vial of water (50 Herblore).
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Usage
+
+Add secondary ingredient to create:
+- **Super energy potion** (+ mort myre fungus)
+- **Hunter potion** (+ kebbit teeth dust)
+- **Fishing potion** (+ snape grass)
+
+Popular for super energy production.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+High demand for super energy potions. Very active GE trading.
+
+## Related Items
+
+- [Avantoe](/osrs/avantoe/) - Herb ingredient
+- [Mort myre fungus](/osrs/mort-myre-fungus/) - Secondary for super energy
+- [Super energy](/osrs/super-energy/) - Final product
+- [Hunter potion](/osrs/hunter-potion/) - Final product
+
+<Adsense />

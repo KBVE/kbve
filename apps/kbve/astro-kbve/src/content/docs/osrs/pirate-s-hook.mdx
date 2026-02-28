@@ -1,0 +1,37 @@
+---
+title: Pirate's hook | OSRS Price Data
+description: "Pirate's hook: You should see the shark.... High alch: 53 GP, GE limit: 4."
+osrs:
+  id: 2997
+  name: Pirate's hook
+  slug: pirate-s-hook
+  examine: You should see the shark...
+  members: true
+  icon: Pirate's hook.png
+  value: 89
+  lowalch: 35
+  highalch: 53
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

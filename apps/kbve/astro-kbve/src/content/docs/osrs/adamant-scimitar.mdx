@@ -1,0 +1,94 @@
+---
+title: Adamant scimitar | OSRS Price Data
+description: "Adamant scimitar: A vicious, curved sword.. High alch: 1,536 GP, GE limit: 125."
+osrs:
+  id: 1331
+  name: Adamant scimitar
+  slug: adamant-scimitar
+  examine: A vicious, curved sword.
+  members: false
+  icon: Adamant scimitar.png
+  value: 2560
+  lowalch: 1024
+  highalch: 1536
+  limit: 125
+  item_id: 1331
+  item_type: equipment
+  slot: weapon
+  type: scimitar
+  attack_style: slash
+  attack_speed: 4
+  tradeable: true
+  weight: 2.041
+  requirements:
+    attack: 30
+  stats:
+    slash_attack: 29
+    strength: 28
+  related_items:
+    - slug: rune-scimitar
+    - slug: adamantite-bar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Melee Weapon |
+| Tradeable | Yes |
+| Weight | 2.041 kg |
+| Requirements | 30 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Slash Attack | +29 |
+| Strength | +28 |
+| Attack Speed | 4 ticks |
+
+## Obtaining
+
+**Smithing:** Smith from 2 adamantite bars (75 Smithing, 125 XP).
+
+**Shop:** Iorwerth's Arms, Fortis Blacksmith.
+
+**Quest:** The Feud reward.
+
+**Thieving:** Scimitar Stall (65 Thieving).
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~1,555 gp
+
+Mid-tier training weapon. F2P accessible.
+
+## Related Items
+
+- [Rune scimitar](/osrs/rune-scimitar/) - Upgrade
+- [Adamantite bar](/osrs/adamantite-bar/) - Smithing material
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Hunter's spear | OSRS Price Data
+description: "Hunter's spear: Throw it... Or don't.. High alch: 210 GP."
+osrs:
+  id: 29305
+  name: Hunter's spear
+  slug: hunter-s-spear
+  examine: Throw it... Or don't.
+  members: true
+  icon: Hunter's spear.png
+  value: 350
+  lowalch: 140
+  highalch: 210
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

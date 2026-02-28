@@ -1,0 +1,127 @@
+---
+title: 'September: 15th'
+category: Daily
+date: 2025-09-15 12:00:00
+client: Self
+unsplash: 1706943384958-e42ad4ee2f73
+img: https://images.unsplash.com/photo-1706943384958-e42ad4ee2f73?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 15th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### OneJS UIUX
+
+-   11:15PM
+
+    Late night notes, we were focused on the migration of all the unity ui into the one js / javascript uiux.
+    Eventually all of the fancy unity ui aspects will just be part of that One Js system and we can really push the tsx integration.
+    Furthermore, we have the tencent typescript/javascript to c sharp integration that I want to spend more time understanding!
+    This can make the future UI side of the game easier to understand and scale, as I stated before, it would replace the whole need for react native too.
+    The bridges that we want to build will be around 4-6, one for each of the core services and they will be placed inside of the database extension that we been building.
+    I might have to refactor it again in the future and move all the steam parts into its own future extension, so that we can do the mobile builds without issues.
+
+## 2024
+
+**Deadlock**
+
+The game is getting really fun and I am starting to fall into love with it!
+However, I really should spend the time to focus more on the backlog, but once charles gets operational then I will definitely have a couple more rounds ready.
+Playing the game on the laptop is a still a bit rough and it might be because it is not optimized.
+Besides playing haze, I am about to try out the melee build next.
+
+**Github.ts**
+
+Updating the github.ts with the updated functions and making sure that they work at the local level before moving them up.
+It is a bit tough to write test cases for the different parts of the github code because they are wrapped around the live github api.
+The formatting of the new pull request is now all within a function, called `_$gha_formatCommits`.
+
+```ts
+
+export function _$gha_formatCommits(cleanedCommit: CleanedCommit): string {
+  const { branch, categorizedCommits } = cleanedCommit;
+  const { ci, fix, docs, feat, merge, other } = categorizedCommits;
+
+  let commitSummary = `## PR Report for ${branch} with categorized commits: <br> <br>`;
+
+  if (ci.length)
+    commitSummary += `### CI Changes: <br> ${ci.join('<br>')} <br> <br>`;
+  if (fix.length)
+    commitSummary += `### Fixes: <br> ${fix.join('<br>')} <br> <br>`;
+  if (docs.length)
+    commitSummary += `### Documentation: <br> ${docs.join('<br>')} <br> <br>`;
+  if (feat.length)
+    commitSummary += `### Features: <br> ${feat.join('<br>')} <br> <br>`;
+  if (merge.length)
+    commitSummary += `### Merge Commits: <br> ${merge.join('<br>')} <br> <br>`;
+  if (other.length)
+    commitSummary += `### Other Commits: <br> ${other.join('<br>')} <br> <br>`;
+
+  commitSummary += `<img src="https://kbve.com/assets/img/letter_logo.png" alt="KBVE Logo Image"><br>`;
+  commitSummary += `For more details, visit [the docs](https://kbve.com/welcome-to-docs/).<br>`;
+
+  return commitSummary;
+}
+
+
+```
+
+We will save this function the way it is for now and move it up.
+Extending it out and adding a couple helpful links, making it a bit cuter and things of that nature can be done later tonight.
+Maybe we can add some helper constants, like `logo_markdown` and `footer_markdown`, which should wrap around the formatted commit.
+
+```ts
+
+const logo_markdown = `[![KBVE Logo](https://kbve.com/assets/img/letter_logo.png)](https://kbve.com)<br>`;
+const footer_markdown = `For more details, visit [the docs](https://kbve.com/welcome-to-docs/).<br>`;
+
+```
+
+We can work with that for now!
+
+- 10:05pm: Time to test out the next pull request! Yay!
+
+**Rust Api Profile**
+
+On the side, I wanted to get back around test casing the rust api deployment with the different jemalloc deployments.
+After looking through some of the examples, there are some ways that I could rewrite the api profile to be extremely clean and limit the clones.
+I am updating the Dockerfile for the chisel to include these configurations:
+
+```Dockerfile
+
+ENV MALLOC_CONF="background_thread:true,dirty_decay_ms:1000,muzzy_decay_ms:1000,lg_tcache_max:16,narenas:4,oversize_threshold:8388608"
+
+```
+
+We could also lower the oversize_threshold and adjust the tcache/arenas but for now these should do more than enough.
+
+
+**PlanetScale**
+
+The HA deployment of postgres is going great and it might be time to start shutting down the database, they were a great service for testing but $40 a month is just too much.
+The price point is great for the 3 deployments of 10gb space but with our current movement towards postgres, it would make sense that we slowly shutdown the mysql operations.
+Now let us see how easy it will be to leave them, but I doubt there would be any major hurdles, our last bill is just around $20.
+
+<Adsense />
+
+## 2023
+- 3:30am - The n8n message was sent to me a bit early into my sleep but I was able to get a hand of it and read it through. I do need a better understanding of Agents and chains, however some of what I been reading and seeing has really gotten me a bit ahead of the curve, per say. I am able to understand a decent more than what I had even a week ago, there are a couple things that I want to test case out. Now I must sleep.
+- 10:05am - Almost missed a meeting! I made a mistake in not having my phone turned into silent and the device got me. Once that blue light from the screen hit my eyes, it was all over, the dreams had faded away and I was wired. 
+- 12:50pm - I need to review all the issue tickets that I currently have and then start to resolve them within this weekend. This should help us stay in focus and build out what we need to move forward. 
+- 2:02pm - Fixed up MDXJS so that the padding is not a nightmare in the mobile mode. Shifted some of the layers for the stocks/crypto and now I need to do the test casing for the widgets.  
+- 4:44pm - Just got back from getting coffee with a new friend, we were only suppose to be there for 30mins but ended up being there for a bit too long, so I had to cut the conversation short and told them that I had to go. Now I will just keep it cool and move forward! 
+- 7:38pm - Setting up the Appwrite Register function for KBVE, including a completely new one that we can utilize in the future.
+## Quote
+
+> Give whatever you are doing and whoever you are with the gift of your attention.
+> — <cite>Jim Rohn</cite>
+
+---
+
+## Tasks
+
+- [ ]

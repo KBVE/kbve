@@ -1,0 +1,37 @@
+---
+title: Dragonstone platebody | OSRS Price Data
+description: "Dragonstone platebody: A stylish rune platebody inlaid with dragonstones.. High alch: 39,000 GP."
+osrs:
+  id: 24037
+  name: Dragonstone platebody
+  slug: dragonstone-platebody
+  examine: A stylish rune platebody inlaid with dragonstones.
+  members: false
+  icon: Dragonstone platebody.png
+  value: 65000
+  lowalch: 26000
+  highalch: 39000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

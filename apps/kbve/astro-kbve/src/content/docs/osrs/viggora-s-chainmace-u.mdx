@@ -1,0 +1,182 @@
+---
+title: Viggora's chainmace (u) | OSRS Price Data
+description: "Viggora's chainmace (u) is a members two-handed weapon requiring 80 Attack. High alch: 72,000 GP, GE limit: 8."
+osrs:
+  id: 22542
+  name: Viggora's chainmace (u)
+  slug: viggora-s-chainmace-u
+  examine: An ancient chainmace with a peculiar mechanism that allows for varying attack styles.
+  members: true
+  icon: Viggora's chainmace (u).png
+  value: 120000
+  lowalch: 48000
+  highalch: 72000
+  limit: 8
+  equipment:
+    slot: 2h
+    type: scythe
+    attack_style: slash
+    attack_speed: 5
+    attack_range: 1
+    tradeable: true
+    weight: 3.628
+    requirements:
+      attack: 80
+      strength: 90
+    stats:
+      attack_stab: 70
+      attack_slash: 125
+      attack_crush: 30
+      strength: 75
+    degradeable: true
+  charging:
+    material_1_id: 565
+    material_1_name: Blood rune
+    material_1_per_hit: 1
+    material_2_id: 21880
+    material_2_name: Vial of blood
+    blood_per_vial: 300
+    max_charges: 20000
+  special_attack:
+    none: true
+    notes: No special attack
+  passive_effect:
+    name: Multi-hit
+    description: Hits up to 3 times per attack on large targets
+    hit_1_damage: 100
+    hit_2_damage: 50
+    hit_3_damage: 25
+    large_target_requirement: 3x3 or larger
+  drop_table:
+    sources:
+      - source: Theatre of Blood
+        source_id: 8370
+        combat_level: 0
+        quantity: "1"
+        rarity: Rare
+        drop_rate: Variable based on performance
+        members_only: true
+  market:
+    buy_limit: 8
+    price_estimate: 330000000
+  related_items:
+    - item_id: 22324
+      item_name: Ghrazi rapier
+      slug: ghrazi-rapier
+      relationship: alternative
+      description: Single target alternative
+    - item_id: 22481
+      item_name: Sanguinesti staff
+      slug: sanguinesti-staff
+      relationship: alternative
+      description: Other ToB unique
+    - item_id: 22477
+      item_name: Avernic defender hilt
+      slug: avernic-defender-hilt
+      relationship: alternative
+      description: Other ToB unique
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Scythe |
+| Tradeable | Yes |
+| Weight | 3.628 kg |
+| Attack Speed | 5 tick (3.0s) |
+| Attack Range | 1 tile |
+
+## Obtaining
+
+Rare drop from [Theatre of Blood](/osrs/theatre-of-blood/).
+
+Drop rate scales with raid performance and difficulty mode.
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +70 |
+| Slash | +125 |
+| Crush | +30 |
+| Strength | +75 |
+
+**Requirements:** 80 Attack, 90 Strength
+
+## Passive Effect
+
+**Multi-hit:**
+On targets 3x3 or larger, the Scythe hits up to 3 times per attack:
+- 1st hit: 100% damage
+- 2nd hit: 50% damage
+- 3rd hit: 25% damage
+
+**Total: 175% of a normal hit on large targets.**
+
+## Charging
+
+| Resource | Per Hit | Cost |
+|----------|---------|------|
+| Blood rune | 1 | ~300 gp |
+| Vial of blood | 0.003 | ~600 gp |
+
+**Total cost per hit:** ~900 gp
+
+| Charge Info | Value |
+|-------------|-------|
+| Max charges | 20,000 |
+| Full charge cost | ~18M gp |
+
+## Usage
+
+BiS for large targets:
+- Theatre of Blood (all rooms except Maiden)
+- Nightmare/Phosani's Nightmare
+- Cerberus
+- Abyssal Sire
+- Thermonuclear Smoke Devil
+- Duke Sucellus
+
+**NOT effective on small targets (1x1 or 2x2).**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~330M gp
+
+**Tips:**
+- Expensive to maintain
+- BiS for 3x3+ targets
+- ToB is primary source
+- Consider charge cost in DPS calculations
+
+## Related Items
+
+- [Ghrazi rapier](/osrs/ghrazi-rapier/) - Small target alternative
+- [Sanguinesti staff](/osrs/sanguinesti-staff/) - Magic equivalent
+- [Theatre of Blood](/osrs/theatre-of-blood/) - Source
+
+<Adsense />

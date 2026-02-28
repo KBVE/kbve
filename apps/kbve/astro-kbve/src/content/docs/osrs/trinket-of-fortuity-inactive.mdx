@@ -1,0 +1,37 @@
+---
+title: Trinket of fortuity (inactive) | OSRS Price Data
+description: Trinket of fortuity (inactive) is a members-only OSRS item.
+osrs:
+  id: 33047
+  name: Trinket of fortuity (inactive)
+  slug: trinket-of-fortuity-inactive
+  examine: A magic rock! This one increases the chance of obtaining rare items when active.
+  members: true
+  icon: Trinket of fortuity (inactive).png
+  value: 0
+  lowalch: null
+  highalch: null
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+
+
+<Adsense />

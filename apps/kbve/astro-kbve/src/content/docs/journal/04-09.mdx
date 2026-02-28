@@ -1,0 +1,214 @@
+---
+title: 'April: 09'
+category: Daily
+date: 2025-04-09 12:00:00
+client: Self
+unsplash: 1712251351568-1c56602c31aa
+img: https://images.unsplash.com/photo-1712251351568-1c56602c31aa?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    9th of April.
+tags:
+    - daily
+---
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+
+## Notes
+
+## 2025
+
+### Market Tar Rifts
+
+-   04:40PM
+
+    Just like the last time we had a market crash, things just flip over really quick.
+
+
+### DiscordSH Research
+
+-   07:55PM
+
+    Okay! I am thinking that a quick way to grow up the DiscordSH website would be to make a card game built into the bot?
+    We can then use the `discord.sh` to host the different cards that would be displayed and collected, then offer a trading platform for them.
+    The main site would still be a topsite, this would just be a way to advertise the website and get people to visit the website.
+    As for the card game, we could work out the exact specifics that would be required, but I am positive that we can make it work, given the resources that we have.
+
+-   08:06PM
+
+    Anime Wifu Bot/Game?
+    It seems that there is massive demand for this type of game as well, hmm.
+    I am not too sure how I feel about it but it would be interesting to see it built out and maybe could be offered as another / additional bot?
+    I am also wondering what the costs would be to run both of these bots at the same time, I think the server should be able to handle it.
+
+### WoW Hunters
+
+-   08:05PM
+
+    Hunter and Mage run, but this time we use the boar to gather all the mobs together and then have the mage do the AoE damage.
+    The boar would act like the tank and eat the hits from the different monsters, while the mage does the frost blizzard damage?
+    The more that I am thinking about it, the easier that it will be.
+
+-   11:43PM
+
+    Looks like we were running priest and mage this time, but I think the combo should be tested in the future.
+
+## 2024
+
+
+### Discord App Pitch
+
+The docker build seems to error out for the Discord App Pitch 2024 game, so lets take a look at the error and see what we can do to resolve it.
+
+The Docker build on action #1273 had this error:
+`apps/express-colyseus-discord/src/rooms/MyRoom.ts:1:30 - error TS2307: Cannot find module '@colyseus/core' or its corresponding type declarations.`
+
+and then we went ahead and did the `pnpm install @colyseus/core` and then I will push this through and see what the next error might be.
+
+There were a couple other errors, but that might have been either a typescript error because the the module was missing OR our typescript configurations might be wrong.
+
+Yay! We were able to get the docker to build and publish, now its time to update the docker compose and add in our game files into the build process.
+
+
+### Charles 
+
+The new power supply is in and I will go ahead and swap it out.
+
+If the power supply is not the issue then the bigger issue would be the amount of power that is coming out of the outlet, ugh, that would be terrible for us.
+
+
+
+### GHA
+
+We need to update the Github Actions to perform test casing and integration testing across the board, but this might be a bit more painful than what I had expected.
+
+Besides updating the actions to perform intergration testing, we also need to update the deprecated node v16 instances within our actions, bumping it up to node 20.
+
+Part of this issue might be our node 18 usage as well, so going through all the code and making sure that we are using only node v20 as of right now.
+
+
+
+### Python
+
+After we release a new python library version of atlas, we would want a function that gets called to help bump the version up by `0.0.1`, so in our action we release version `1.0.3` and now we want it to automatically bump it up to `1.0.4`.
+
+For this situation, we can take a look at how we handle the cargo version bump and use that concept as a base for the automatic version bump.
+
+Here is a base function that we can use to help do this!
+
+```shell
+
+# Function to bump the Python package version
+bump_python_package_version() {
+    local package_dir="$1"
+
+    # Ensure the package directory is provided and exists
+    if [ -z "$package_dir" ] || [ ! -d "$package_dir" ]; then
+        echo "Error: Package directory is missing or does not exist."
+        return 1
+    fi
+
+    local pyproject_file="$package_dir/pyproject.toml"
+
+    # Ensure the pyproject.toml file exists
+    if [ ! -f "$pyproject_file" ]; then
+        echo "Error: pyproject.toml not found in $package_dir"
+        return 1
+    fi
+
+    # Read the current version from the file
+    local current_version_line=$(grep '^version = "[0-9]*\.[0-9]*\.[0-9]*"' "$pyproject_file")
+    if [ -z "$current_version_line" ]; then
+        echo "Error: Version line not found in pyproject.toml"
+        return 1
+    fi
+
+    local current_version=$(echo "$current_version_line" | grep -oP 'version = "\K[0-9]+\.[0-9]+\.[0-9]+')
+
+    # Increment the patch version number
+    local base_version=${current_version%.*}
+    local patch_version=${current_version##*.}
+    local new_patch_version=$((patch_version + 1))
+    local new_version="$base_version.$new_patch_version"
+
+    # Replace the old version with the new version in pyproject.toml
+    sed -i "s/version = \"$current_version\"/version = \"$new_version\"/" "$pyproject_file"
+    echo "Version bumped in $pyproject_file to $new_version"
+}
+
+```
+
+Now for us to execute this command, we have to add it into the shell command.
+
+```shell
+
+    -pythonbump)
+        [ -z "$2" ] && { echo "No package directory specified. Usage: $0 -pythonbump [package_directory]"; exit 1; }
+        package_dir="$2"
+        bump_python_package_version "$package_dir"
+        ;;
+
+```
+
+Finally, after the package is release, we will run: 
+
+```
+./kbve.sh -pythonbump apps/atlas
+```
+
+Besides the version bumping, I am thinking of making a simple command that we can use to get started with python development, at least a bit faster.
+
+Since the `venv` needs to be activated and based upon the different types of applications, it could get a bit messy, definitely with upgrading around it.
+
+My solution would be to add a `py` flag within the kbve shell and have it handle it for us, hmm maybe it would look like this:
+
+`./kbve.sh -py atlas` and then have it run these two commands:
+
+`source apps/atlas/.venv/bin/activate` and then followed by `code .` to open it up in VSCode.
+
+To do this setup, we will go ahead and add the python_venv_activate function:
+
+```shell
+
+python_venv_activate_and_run_vscode() {
+    local directory_name="$1"
+    local venv_path=""
+
+    # Check the first potential path for the virtual environment
+    if [ -f "packages/$directory_name/.venv/bin/activate" ]; then
+        venv_path="packages/$directory_name/.venv/bin/activate"
+    # Check the second potential path for the virtual environment
+    elif [ -f "apps/$directory_name/.venv/bin/activate" ]; then
+        venv_path="apps/$directory_name/.venv/bin/activate"
+    else
+        echo "Error: Virtual environment 'activate' script not found."
+        return 1
+    fi
+
+    # Activate the virtual environment
+    echo "Activating virtual environment from: $venv_path"
+    # Use `source` to activate the virtual environment
+    source "$venv_path"
+    
+    # Open Visual Studio Code in the current directory
+    echo "Opening Visual Studio Code..."
+    code .
+}
+
+
+```
+
+Then under our custom flags, we will add the `-py` to the rest of the commands:
+
+```shell
+
+    -py)
+        [ -z "$2" ] && { echo "No project directory specified. Usage: $0 -py [project_directory]"; exit 1; }
+        directory_name="$2"
+        python_venv_activate_and_run_vscode "$directory_name"
+        ;;
+
+```
+
+So now we can just call the `-py` flag to help automatically setup the environments, making it easier for us to build and rotate around the different projects.

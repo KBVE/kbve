@@ -1,0 +1,37 @@
+---
+title: Antidote+ mix(2) | OSRS Price Data
+description: "Antidote+ mix(2): Two doses of fishy extra strength antidote potion.. High alch: 129 GP, GE limit: 2,000."
+osrs:
+  id: 11501
+  name: Antidote+ mix(2)
+  slug: antidote-mix-2
+  examine: Two doses of fishy extra strength antidote potion.
+  members: true
+  icon: Antidote+ mix(2).png
+  value: 216
+  lowalch: 86
+  highalch: 129
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

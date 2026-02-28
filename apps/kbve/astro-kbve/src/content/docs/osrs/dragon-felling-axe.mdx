@@ -1,0 +1,37 @@
+---
+title: Dragon felling axe | OSRS Price Data
+description: "Dragon felling axe: A woodcutter's axe.. High alch: 33,000 GP."
+osrs:
+  id: 28217
+  name: Dragon felling axe
+  slug: dragon-felling-axe
+  examine: A woodcutter's axe.
+  members: true
+  icon: Dragon felling axe.png
+  value: 55000
+  lowalch: 22000
+  highalch: 33000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

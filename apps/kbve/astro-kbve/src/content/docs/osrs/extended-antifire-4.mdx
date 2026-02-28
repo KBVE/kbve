@@ -1,0 +1,119 @@
+---
+title: Extended antifire(4) | OSRS Price Data
+description: "Extended antifire(4) is a 3-dose members potion that dragonfire. High alch: 264 GP, GE limit: 2,000."
+osrs:
+  id: 11951
+  name: Extended antifire(4)
+  slug: extended-antifire-4
+  examine: 4 doses of extended anti-firebreath potion.
+  members: true
+  icon: Extended antifire(4).png
+  value: 440
+  lowalch: 176
+  highalch: 264
+  limit: 2000
+  potion:
+    doses: 3
+    type: protection
+    effect: dragonfire
+    duration: 720
+  herblore:
+    level: 84
+    xp: 27.5
+  recipes:
+    - skill: herblore
+      level: 84
+      xp: 27.5
+      materials:
+        - item_name: Antifire potion(4)
+          item_id: 2454
+          quantity: 1
+        - item_name: Lava scale shard
+          item_id: 11992
+          quantity: 4
+      product: Extended antifire(4)
+      product_id: 11951
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 2452
+      item_name: Antifire potion(3)
+      slug: antifire-potion-3
+      relationship: component
+      description: Base potion
+    - item_id: 11992
+      item_name: Lava scale shard
+      slug: lava-scale-shard
+      relationship: component
+      description: Upgrade material
+    - item_id: 21978
+      item_name: Super antifire(3)
+      slug: super-antifire-3
+      relationship: alternative
+      description: Full protection version
+    - item_id: 11283
+      item_name: Dragonfire shield
+      slug: dragonfire-shield
+      relationship: alternative
+      description: Alternative protection
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 84 |
+| XP | 27.5 per shard |
+| Ingredients | Antifire potion + Lava scale shard |
+
+## Effects
+
+| Effect | Value |
+|--------|-------|
+| Dragonfire protection | Partial (slight) |
+| With anti-dragon shield | Full immunity |
+| Duration | 12 minutes per dose |
+
+## Market Flip Strategy
+
+**Extended Dragon Protection:**
+- Double duration of regular
+- Popular for dragon tasks
+- Lava scale shards from Wilderness
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Demand Drivers:**
+- Long dragon tasks
+- Vorkath farming
+- Efficient dragon killing
+- Less potion switching
+
+**Tips:**
+- Low buy limit (2,000)
+- Lava scale shards from lava dragons
+- 12 min vs 6 min duration
+- Worth the upgrade cost
+
+<Adsense />

@@ -1,0 +1,135 @@
+---
+title: Armadylean plate | OSRS Price Data
+description: "Armadylean plate: High grade material.. High alch: 60,000 GP."
+osrs:
+  id: 27269
+  name: Armadylean plate
+  slug: armadylean-plate
+  examine: High grade material.
+  members: true
+  icon: Armadylean plate.png
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: null
+  item:
+    type: material
+    tradeable: true
+    weight: 0.5
+  recipes:
+    - skill: crafting
+      level: 90
+      materials:
+        - item_id: 11826
+          item_name: Armadyl helmet
+          quantity: 1
+      product: Armadylean plate
+      product_id: 27269
+      yield: 1
+    - skill: crafting
+      level: 90
+      materials:
+        - item_id: 11828
+          item_name: Armadyl chestplate
+          quantity: 1
+      product: Armadylean plate
+      product_id: 27269
+      yield: 4
+    - skill: crafting
+      level: 90
+      materials:
+        - item_id: 11830
+          item_name: Armadyl chainskirt
+          quantity: 1
+      product: Armadylean plate
+      product_id: 27269
+      yield: 3
+  related_items:
+    - item_id: 11828
+      item_name: Armadyl chestplate
+      slug: armadyl-chestplate
+      relationship: component
+      description: Source - yields 4 plates
+    - item_id: 27238
+      item_name: Masori body (f)
+      slug: masori-body-f
+      relationship: product
+      description: Created BiS ranged body
+    - item_id: 27241
+      item_name: Masori chaps (f)
+      slug: masori-chaps-f
+      relationship: product
+      description: Created BiS ranged legs
+    - item_id: 27232
+      item_name: Masori mask (f)
+      slug: masori-mask-f
+      relationship: product
+      description: Created BiS ranged helm
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 0.5 kg |
+
+## Obtaining
+
+Created by using chisel on Armadyl armour (90 Crafting):
+
+| Source | Plates |
+|--------|--------|
+| Armadyl helmet | 1 |
+| Armadyl chestplate | 4 |
+| Armadyl chainskirt | 3 |
+
+## Uses
+
+Fortifies Masori armour (90 Crafting):
+
+| Item Created | Plates Needed |
+|--------------|---------------|
+| Masori mask (f) | 1 |
+| Masori body (f) | 4 |
+| Masori chaps (f) | 3 |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~9.9M gp
+
+**Tips:**
+- From dismantling Armadyl gear
+- Creates BiS ranged armour
+- 90 Crafting required
+
+## Related Items
+
+- [Armadyl chestplate](/osrs/armadyl-chestplate/) - Source (4 plates)
+- [Masori body (f)](/osrs/masori-body-f/) - Created item
+- [Masori chaps (f)](/osrs/masori-chaps-f/) - Created item
+
+<Adsense />

@@ -1,0 +1,105 @@
+---
+title: Raw dark crab | OSRS Price Data
+description: "Raw dark crab: I should try cooking this.. High alch: 195 GP, GE limit: 15,000."
+osrs:
+  id: 11934
+  name: Raw dark crab
+  slug: raw-dark-crab
+  examine: I should try cooking this.
+  members: true
+  icon: Raw dark crab.png
+  value: 325
+  lowalch: 130
+  highalch: 195
+  limit: 15000
+  material:
+    type: raw_fish
+    tier: high
+  fishing:
+    level: 85
+    xp: 130
+    method: Lobster pot
+    locations:
+      - Resource Area (Wilderness)
+  cooking:
+    level: 90
+    xp: 215
+    stop_burn_level: 99
+    raw_item_id: 11934
+    raw_item_name: Raw dark crab
+    product_id: 11936
+    product_name: Dark crab
+  related_items:
+    - item_id: 11936
+      item_name: Dark crab
+      slug: dark-crab
+      relationship: product
+      description: Cooked version, heals 22
+    - item_id: 11940
+      item_name: Dark fishing bait
+      slug: dark-fishing-bait
+      relationship: component
+      description: Required bait
+    - item_id: 383
+      item_name: Raw shark
+      slug: raw-shark
+      relationship: alternative
+      description: Safer alternative
+    - item_id: 389
+      item_name: Raw manta ray
+      slug: raw-manta-ray
+      relationship: alternative
+      description: Non-wilderness alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Raw dark crabs are caught in the **Wilderness Resource Area** (level 51-54 Wilderness):
+- Requires 85 Fishing
+- 130 Fishing XP per catch
+- Requires dark fishing bait
+- **Warning:** PKers frequent this area
+
+## Cooking
+
+| Level | XP | Stop Burning |
+|-------|-----|--------------|
+| 90 | 215 | 99 (with cooking gauntlets at lower levels) |
+
+Dark crabs heal 22 HP when cooked, tied with manta rays for highest single-bite healing.
+
+## Market Strategy
+
+**Wilderness Risk/Reward:**
+- High profit potential but dangerous location
+- Raw crabs often supply comes from PvMers/skillers
+- Bait cost affects margins
+
+**Food Comparison:**
+- Same healing as manta ray (22 HP)
+- Often cheaper due to wilderness sourcing
+- Popular for PvP due to 1-tick eating
+
+**Buy Limit:** 6,000 per 4 hours
+
+<Adsense />

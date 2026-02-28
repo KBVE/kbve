@@ -1,0 +1,13 @@
+---
+/**
+ * Deferred wrapper for SVGLogo
+ * Loads the component only when approaching the viewport
+ * Prevents render-blocking CSS on initial page load (386 lines)
+ */
+import DeferredSection from '@/components/utility/DeferredSection.astro';
+import SVGLogo from './SVGLogo.astro';
+---
+
+<DeferredSection id="svg-logo" minHeight="300px" minHeightMobile="250px">
+	<SVGLogo />
+</DeferredSection>

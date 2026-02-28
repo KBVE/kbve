@@ -1,0 +1,128 @@
+---
+title: Adamant arrow | OSRS Price Data
+description: "Adamant arrow is a F2P ammo slot item. High alch: 48 GP, GE limit: 11,000."
+osrs:
+  id: 890
+  name: Adamant arrow
+  slug: adamant-arrow
+  examine: Arrows with adamant heads.
+  members: false
+  icon: Adamant arrow 5.png
+  value: 80
+  lowalch: 32
+  highalch: 48
+  limit: 11000
+  equipment:
+    slot: ammo
+    type: arrow
+    attack_style: ranged
+  requirements:
+    ranged: 30
+  stats:
+    other:
+      ranged_strength: 31
+  fletching:
+    level: 60
+    xp: 10
+    method: Adamant arrowtips + headless arrows
+  drop_table:
+    sources:
+      - source: Ankou
+        source_id: 2514
+        combat_level: 75
+        quantity: 5-15
+        rarity: common
+      - source: Steel dragon
+        source_id: 274
+        combat_level: 246
+        quantity: 20-50
+        rarity: common
+        members_only: true
+  shops:
+    - shop_name: Lowe's Archery Emporium
+      location: Varrock
+      price: 160
+    - shop_name: Brian's Archery Supplies
+      location: Rimmington
+      price: 160
+  related_items:
+    - item_id: 892
+      item_name: Rune arrow
+      slug: rune-arrow
+      relationship: upgrade
+      description: Higher tier arrow
+    - item_id: 888
+      item_name: Mithril arrow
+      slug: mithril-arrow
+      relationship: downgrade
+      description: Lower tier arrow
+    - item_id: 43
+      item_name: Adamant arrowtips
+      slug: adamant-arrowtips
+      relationship: component
+      description: Fletching material
+    - item_id: 53
+      item_name: Headless arrow
+      slug: headless-arrow
+      relationship: component
+      description: Fletching material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammo |
+| Type | Arrows |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 30 Ranged |
+
+## Obtaining
+
+**Fletching:** Combine adamant arrowtips with headless arrows (60 Fletching, 150 XP per 15).
+
+**Shops:** Lowe's Archery Emporium, Brian's Archery Supplies.
+
+**Drops:** Various monsters including dragons and ankou.
+
+## Usage
+
+Used with any shortbow or longbow.
+
+Mid-tier arrow for training and combat.
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~74 gp
+
+Popular training ammunition. High volume.
+
+## Related Items
+
+- [Adamant arrowtips](/osrs/adamant-arrowtips/) - Crafting material
+- [Rune arrow](/osrs/rune-arrow/) - Upgrade option
+
+<Adsense />

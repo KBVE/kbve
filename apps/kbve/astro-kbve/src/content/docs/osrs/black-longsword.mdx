@@ -1,0 +1,108 @@
+---
+title: Black longsword | OSRS Price Data
+description: "Black longsword is a F2P weapon slot item requiring 10 Attack. High alch: 576 GP, GE limit: 125."
+osrs:
+  id: 1297
+  name: Black longsword
+  slug: black-longsword
+  examine: A razor sharp longsword.
+  members: false
+  icon: Black longsword.png
+  value: 960
+  lowalch: 384
+  highalch: 576
+  limit: 125
+  equipment:
+    slot: weapon
+    type: longsword
+    tradeable: true
+    weight: 1.814
+    requirements:
+      attack: 10
+    stats:
+      attack_stab: 13
+      attack_slash: 18
+      attack_crush: -2
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 16
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1299
+      item_name: Mithril longsword
+      slug: mithril-longsword
+      relationship: upgrade
+      description: Higher tier longsword
+    - item_id: 1283
+      item_name: Black scimitar
+      slug: black-scimitar
+      relationship: alternative
+      description: Faster slash alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Longsword |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 10 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +13 |
+| Slash Attack | +18 |
+| Crush Attack | -2 |
+| Strength | +16 |
+
+## Obtaining
+
+**Shop:** Varrock Swordshop.
+
+**Drops:** Black knights, ice warriors.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~409 gp
+
+Cannot be smithed. F2P accessible.
+
+## Related Items
+
+- [Mithril longsword](/osrs/mithril-longsword/) - Upgrade
+- [Black scimitar](/osrs/black-scimitar/) - Faster slash
+
+<Adsense />

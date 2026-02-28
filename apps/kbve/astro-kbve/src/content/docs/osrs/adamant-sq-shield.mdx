@@ -1,0 +1,93 @@
+---
+title: Adamant sq shield | OSRS Price Data
+description: "Adamant sq shield: A medium square shield.. High alch: 2,304 GP, GE limit: 125."
+osrs:
+  id: 1183
+  name: Adamant sq shield
+  slug: adamant-sq-shield
+  examine: A medium square shield.
+  members: false
+  icon: Adamant sq shield.png
+  value: 3840
+  lowalch: 1536
+  highalch: 2304
+  limit: 125
+  item_id: 1183
+  item_type: armor
+  slot: shield
+  type: square_shield
+  tradeable: true
+  weight: 4.082
+  requirements:
+    defence: 30
+  stats:
+    stab_defence: 24
+    slash_defence: 26
+    crush_defence: 22
+    magic_defence: 0
+    ranged_defence: 24
+  related_items:
+    - slug: rune-sq-shield
+    - slug: adamant-kiteshield
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Off Hand |
+| Type | Square Shield |
+| Tradeable | Yes |
+| Weight | 4.082 kg |
+| Requirements | 30 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +24 |
+| Slash Defence | +26 |
+| Crush Defence | +22 |
+| Magic Defence | +0 |
+| Ranged Defence | +24 |
+
+## Obtaining
+
+**Smithing:** 78 Smithing with 2 adamantite bars (125 XP).
+
+**Shop:** Cassie's Shield Shop, Falador.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~2,171 gp
+
+High-tier square shield. F2P accessible.
+
+## Related Items
+
+- [Rune sq shield](/osrs/rune-sq-shield/) - Upgrade
+- [Adamant kiteshield](/osrs/adamant-kiteshield/) - More defence
+
+<Adsense />

@@ -1,0 +1,105 @@
+---
+title: Bronze bolts | OSRS Price Data
+description: "Bronze bolts is a F2P ammo slot item requiring 1 Ranged. High alch: 1 GP, GE limit: 7,000."
+osrs:
+  id: 877
+  name: Bronze bolts
+  slug: bronze-bolts
+  examine: Bronze crossbow bolts.
+  members: false
+  icon: Bronze bolts 5.png
+  value: 0
+  lowalch: 1
+  highalch: 1
+  limit: 7000
+  equipment:
+    slot: ammo
+    type: bolts
+    tradeable: true
+    weight: 0
+    requirements:
+      ranged: 1
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 0
+      ranged_strength: 10
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 9140
+      item_name: Iron bolts
+      slug: iron-bolts
+      relationship: upgrade
+      description: Higher tier bolts
+    - item_id: 9174
+      item_name: Bronze crossbow
+      slug: bronze-crossbow
+      relationship: alternative
+      description: Compatible crossbow
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammo |
+| Type | Bolts |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 1 Ranged |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Strength | +10 |
+
+## Obtaining
+
+**Fletching:** 9 Fletching with bronze bolts (unf) + feathers (0.5 XP each).
+
+**Shop:** Crossbow Shop, Keldagrim.
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~3 gp
+
+Starter crossbow ammo. Used with bronze crossbow.
+
+## Related Items
+
+- [Iron bolts](/osrs/iron-bolts/) - Upgrade
+- [Bronze crossbow](/osrs/bronze-crossbow/) - Compatible crossbow
+
+<Adsense />

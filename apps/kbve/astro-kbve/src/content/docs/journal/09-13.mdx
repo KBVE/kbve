@@ -1,0 +1,149 @@
+---
+title: 'September: 13th'
+category: Daily
+date: 2025-09-13 12:00:00
+client: Self
+unsplash: 1691427954002-688e16d6cfc3
+img: https://images.unsplash.com/photo-1691427954002-688e16d6cfc3?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 13th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### CSProj Unity
+
+-   08:50PM
+
+    After getting a better understanding of how embedded packages work within the unity eco-system, we can remove those extra CSProject files that are in our code.
+    This makes our lives so much easier and streamlines the whole package management and production!
+    I am glad that we have three open source extensions within our eco-system, it opens up so much more in the future, maybe I might start to advertise them later on.
+
+## 2024
+
+**DevOps**
+
+Yesterday I spent some time preparing to fix the automated pull requests and one of the features that I wanted to add into the system would be the ability to automatically summarize the changes.
+This means that we will have to be a bit creative with how we handle the markdown formating for each request.
+My initial plan was to place these directly into the workflow, test case them and then writing new functions within the devops library that will help us move them around.
+With that being said, the goal for today will be to go ahead and migrate those over!
+The first thing we need to add is a helper function to grab the pull request number, we will try to follow the same naming convention.
+
+```ts
+
+export async function _$gha_getPullRequestNumber(
+  github: any,
+  context: any,
+): Promise<number> {
+  try {
+    const { repo, owner } = context.repo;
+    const branch = context.ref.replace('refs/heads/', '');
+
+    const { data: pullRequests } = await github.rest.pulls.list({
+      owner,
+      repo,
+      head: `${owner}:${branch}`,
+      state: 'open',
+    });
+
+    if (pullRequests.length === 0) {
+      throw new Error('No open pull requests found for this branch');
+    }
+
+    const prNumber = pullRequests[0].number;
+    return prNumber;
+  } catch (error) {
+    console.error('Error fetching pull request number:', error);
+    throw error;
+  }
+}
+
+```
+
+This helper function follows the `_$gha_` naming convention and will be a core part of the helper function.
+The example of it grabbing the `pullRequestNumber` would look like this:
+
+```ts
+
+const pullRequestBody = '## DemoForHoly';
+const pullRequestNumber = await _$gha_getPullRequestNumber(github, context);
+
+await github.rest.pulls.update({
+  owner: context.repo.owner,
+  repo: context.repo.repo,
+  pull_number: pullRequestNumber,
+  body: pullRequestBody,
+});
+
+```
+
+Next we want to create another helper function that would handle the actual git difference and organizing the different types of conventional commits.
+The helper function that we are going to add next is `_$gha_updatePullRequestBody`, which will work ontop of the previous helper function that we wrote above.
+It will look something like this:
+
+```ts
+
+export async function _$gha_updatePullRequestBody(
+  github: any,
+  context: any,
+  prBody: string,
+): Promise<void> {
+  try {
+    const { repo, owner } = context.repo;
+    const prNumber = await _$gha_getPullRequestNumber(github, context);
+    await github.rest.pulls.update({
+      owner,
+      repo,
+      pull_number: prNumber,
+      body: prBody,
+    });
+    console.log(`PR #${prNumber} updated successfully`);
+  } catch (err) {
+    console.error('Error updating PR body:', err);
+    throw err;
+  }
+}
+
+```
+
+Granted, in the future, we will have to loop back around and create a whole new debug class to handle our `console.log` and `console.error`, but for now this should be fine.
+
+**Publish**
+
+We released two new packages today, the updated jedi crate with the zerocopy regex functions and then these minor changes to the devops library.
+The next part of this will be to actually add in the npm package and see if we can get it to work the way we were planning in the past.
+Updated the ci-patch and lets see how it works in the next push!
+
+**KillTony**
+
+The second MSG episode just dropped and it was perfect, seeing trump and biden return only made it even better.
+I am a bit upset that black keys played and I could have seen them there, like damn!
+I really feel bad for the people that got the first night because the second night was a whole new level of entertainment.
+
+**Pipeline**
+
+Pushing up the pipeline again, it looks we are getting a bit better with the quick releases.
+Making sure that we keep the cycle clean and operational should be a side goal that we maintain, I might also start to splinter up some of the patches.
+The next branch that I want to introduce would be either `major` style or maybe `issue` style, such that they are specific to an issue until it gets resolved, hmm.
+
+<Adsense />
+
+## 2023
+- 8:34am - The mornings need to be a bit better, I might have to start sleeping early again or maybe finding a way to still program without having to be in-front of a screen. It could be the blue light or just the brain drain that comes with the amount of thinking that would be involved. There is something to be said about how fast things are moving in the machine learning eco-system, its moving too fast and my brain is unable to keep up with all the movement. 
+- 9:45am - Good to see the markets performing well, I am going to have to push my calls further up for the week and hopefully my TSLA puts expire in the money! While I am not in debt, the current cash reserves are dropping really low, I am currently sitting with only $29,500, which has been the lowest cash balance in years and I am not too sure how I feel about it. I have made extreme budget cuts but there might be not be other options other than moving forward with increasing income. I will have to pivot a certain part of my calendar with more blocks towards generating an increased amount of profits.
+- 2:05pm - Within the scope of the Appwrite's storage, I am thinking that JuicyFS would be the best move to stress test this weekend! I will have to see how it performs with I/O and net speeds between the datacenter and my local Charles. 
+- 7:53pm - The whole unity engine drama seems to be getting worse! I am extremely sadden with how they are handling all of this and honestly their engine is not even worth this type of drama! The idea that they will get better revenue in the short term is not worth their long term growth because unreal is already leaps ahead in terms of rendering, ugh, even typing this out makes me sad. 
+
+## Quote
+
+> Give whatever you are doing and whoever you are with the gift of your attention.
+> — <cite>Jim Rohn</cite>
+
+---
+
+## Tasks
+
+- [ ]

@@ -1,0 +1,37 @@
+---
+title: Dragon bolts (unf) | OSRS Price Data
+description: "Dragon bolts (unf): Unfeathered dragon crossbow bolts.. High alch: 84 GP, GE limit: 13,000."
+osrs:
+  id: 21930
+  name: Dragon bolts (unf)
+  slug: dragon-bolts-unf
+  examine: Unfeathered dragon crossbow bolts.
+  members: true
+  icon: Dragon bolts (unf) 5.png
+  value: 141
+  lowalch: 56
+  highalch: 84
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

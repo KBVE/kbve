@@ -1,0 +1,37 @@
+---
+title: Bandos d'hide boots | OSRS Price Data
+description: "Bandos d'hide boots: Bandos blessed dragonhide boots.. High alch: 5,580 GP, GE limit: 8."
+osrs:
+  id: 19924
+  name: Bandos d'hide boots
+  slug: bandos-d-hide-boots
+  examine: Bandos blessed dragonhide boots.
+  members: true
+  icon: Bandos d'hide boots.png
+  value: 9300
+  lowalch: 3720
+  highalch: 5580
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

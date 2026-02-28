@@ -1,0 +1,107 @@
+---
+title: Nature rune | OSRS Price Data
+description: "Nature rune: Used for alchemy spells.. High alch: 108 GP, GE limit: 18,000."
+osrs:
+  id: 561
+  name: Nature rune
+  slug: nature-rune
+  examine: Used for alchemy spells.
+  members: false
+  icon: Nature rune.png
+  value: 180
+  lowalch: 72
+  highalch: 108
+  limit: 18000
+  rune:
+    type: utility
+  runecraft:
+    level: 44
+    xp: 9
+    multiple_at: 91
+    altar: Nature Altar
+    altar_location: Karamja (north)
+    essence_type: pure
+  recipes:
+    - skill: runecraft
+      level: 44
+      xp: 9
+      materials:
+        - item_name: Pure essence
+          item_id: 7936
+          quantity: 1
+      product: Nature rune
+      product_id: 561
+      product_quantity: 1
+      facility: Nature altar
+      members_only: true
+  related_items:
+    - item_id: 554
+      item_name: Fire rune
+      slug: fire-rune
+      relationship: component
+      description: Required for High Alchemy
+    - item_id: 855
+      item_name: Yew longbow
+      slug: yew-longbow
+      relationship: alternative
+      description: Common alch target
+    - item_id: 859
+      item_name: Magic longbow
+      slug: magic-longbow
+      relationship: alternative
+      description: High value alch target
+    - item_id: 1387
+      item_name: Staff of fire
+      slug: staff-of-fire
+      relationship: alternative
+      description: Infinite fire runes
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Usage
+
+Nature runes are primarily used for **Alchemy spells**:
+
+| Spell | Magic Level | Runes Required |
+|-------|-------------|----------------|
+| Low Alchemy | 21 | 1 Nature rune |
+| High Alchemy | 55 | 1 Nature rune, 5 Fire runes |
+
+## Market Flip Strategy
+
+**Alch Flipping Basics:**
+Nature rune cost is critical for alch profit calculations:
+- `High Alch value - Item cost - Nature rune = Profit`
+
+**Popular Alch Items:**
+- Yew longbow - Alchs for 768 GP
+- Magic longbow - Alchs for 1,536 GP
+- Rune items - Various high alch values
+
+**Nature Rune Sources:**
+- Grand Exchange (buy limit: 18,000)
+- Runecrafting (44 RC, 91 for double)
+- Nature Chest (Ardougne)
+- Monster drops
+- Shops (180 GP each)
+
+<Adsense />

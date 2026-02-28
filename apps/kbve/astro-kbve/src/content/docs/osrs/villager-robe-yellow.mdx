@@ -1,0 +1,37 @@
+---
+title: Villager robe (yellow) | OSRS Price Data
+description: "Villager robe (yellow): A brightly coloured robe prized by the Tai Bwo Wannai peoples.. High alch: 150 GP, GE limit: 150."
+osrs:
+  id: 6363
+  name: Villager robe (yellow)
+  slug: villager-robe-yellow
+  examine: A brightly coloured robe prized by the Tai Bwo Wannai peoples.
+  members: true
+  icon: Villager robe (yellow).png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 150
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

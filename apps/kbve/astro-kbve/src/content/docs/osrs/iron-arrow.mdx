@@ -1,0 +1,105 @@
+---
+title: Iron arrow | OSRS Price Data
+description: "Iron arrow is a F2P ammo slot item requiring 1 Ranged. High alch: 1 GP, GE limit: 7,000."
+osrs:
+  id: 884
+  name: Iron arrow
+  slug: iron-arrow
+  examine: Arrows with iron heads.
+  members: false
+  icon: Iron arrow 5.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 7000
+  equipment:
+    slot: ammo
+    type: arrow
+    tradeable: true
+    weight: 0
+    requirements:
+      ranged: 1
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 0
+      ranged_strength: 10
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 886
+      item_name: Steel arrow
+      slug: steel-arrow
+      relationship: upgrade
+      description: Higher tier arrow
+    - item_id: 841
+      item_name: Shortbow
+      slug: shortbow
+      relationship: alternative
+      description: Compatible bow
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammo |
+| Type | Arrow |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 1 Ranged |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Strength | +10 |
+
+## Obtaining
+
+**Fletching:** 15 Fletching with iron arrowtips + headless arrows (2.5 XP each).
+
+**Shop:** Lowe's Archery Emporium, Varrock.
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~8 gp
+
+Early game ammo. F2P accessible.
+
+## Related Items
+
+- [Steel arrow](/osrs/steel-arrow/) - Upgrade
+- [Shortbow](/osrs/shortbow/) - Compatible bow
+
+<Adsense />

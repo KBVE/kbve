@@ -1,0 +1,37 @@
+---
+title: Aether rune | OSRS Price Data
+description: "Aether rune: A combined cosmic and soul rune.. High alch: 180 GP, GE limit: 25,000."
+osrs:
+  id: 30843
+  name: Aether rune
+  slug: aether-rune
+  examine: A combined cosmic and soul rune.
+  members: true
+  icon: Aether rune.png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 25000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

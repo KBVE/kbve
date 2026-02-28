@@ -1,0 +1,37 @@
+---
+title: Blood pint | OSRS Price Data
+description: "Blood pint: It's literally a pint of blood.. High alch: 1 GP, GE limit: 2,000."
+osrs:
+  id: 24774
+  name: Blood pint
+  slug: blood-pint
+  examine: It's literally a pint of blood.
+  members: true
+  icon: Blood pint.png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

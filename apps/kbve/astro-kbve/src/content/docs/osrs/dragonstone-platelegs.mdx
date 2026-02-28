@@ -1,0 +1,37 @@
+---
+title: Dragonstone platelegs | OSRS Price Data
+description: "Dragonstone platelegs: A stylish pair of rune platelegs inlaid with dragonstones.. High alch: 38,400 GP."
+osrs:
+  id: 24040
+  name: Dragonstone platelegs
+  slug: dragonstone-platelegs
+  examine: A stylish pair of rune platelegs inlaid with dragonstones.
+  members: false
+  icon: Dragonstone platelegs.png
+  value: 64000
+  lowalch: 25600
+  highalch: 38400
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

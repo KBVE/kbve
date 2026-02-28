@@ -1,0 +1,37 @@
+---
+title: Umbral coral | OSRS Price Data
+description: "Umbral coral: Seems to absorb light from all around it.. High alch: 93 GP."
+osrs:
+  id: 31487
+  name: Umbral coral
+  slug: umbral-coral
+  examine: Seems to absorb light from all around it.
+  members: true
+  icon: Umbral coral.png
+  value: 156
+  lowalch: 62
+  highalch: 93
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

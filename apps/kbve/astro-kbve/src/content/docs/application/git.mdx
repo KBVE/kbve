@@ -1,0 +1,888 @@
+---
+title: Git
+description: |
+    Git is a distributed version control system designed to handle everything from small to very large projects with speed and efficiency.
+    Git allows multiple developers to collaborate, track changes, and manage project history effectively. Ideal for version tracking and collaboration.
+sidebar:
+    label: Git
+    order: 1000
+unsplash: 1618401479427-c8ef9465fbe1
+img: https://images.unsplash.com/photo-1618401479427-c8ef9465fbe1?fit=crop&w=1400&h=700&q=75
+tags:
+    - cloud
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Information
+
+Git, a powerful distributed version control system, excels in managing project history and facilitating collaboration among multiple developers.
+By efficiently tracking changes in source code, Git enables seamless coordination and conflict resolution, ensuring that every contribution is accounted for.
+Boasting lightning-fast performance and robust branching capabilities, Git supports a wide range of workflows, from individual development to large-scale enterprise projects.
+Renowned for its flexibility and reliability, Git has become an indispensable tool in modern software development, empowering teams to innovate and iterate with confidence.
+
+---
+
+<Aside>
+	Git commands can be powerful and sometimes destructive. Always make sure you
+	understand the implications of a command before running it, especially those
+	that alter history, such as **git reset**, **git rebase**, and **git
+	filter-branch**. It's often a good idea to create backups or work on a
+	separate branch when experimenting with these commands.
+</Aside>
+
+<Adsense />
+
+## Cheatsheet
+
+| Command                                                 | Description                                                                     |
+| ------------------------------------------------------- | ------------------------------------------------------------------------------- |
+| `git init`                                              | Initializes a new Git repository.                                               |
+| `git clone <repo>`                                      | Clones an existing repository into a new directory.                             |
+| `git status`                                            | Displays the state of the working directory and the staging area.               |
+| `git add <file>`                                        | Stages changes to be committed.                                                 |
+| `git commit -m "message"`                               | Records the staged changes with a descriptive message.                          |
+| `git push`                                              | Uploads local repository content to a remote repository.                        |
+| `git pull`                                              | Fetches from and integrates with another repository or a local branch.          |
+| `git fetch`                                             | Downloads objects and refs from another repository.                             |
+| `git merge <branch>`                                    | Joins two or more development histories together.                               |
+| `git branch`                                            | Lists all branches in the repository.                                           |
+| `git branch <branch-name>`                              | Creates a new branch.                                                           |
+| `git checkout <branch-name>`                            | Switches to the specified branch.                                               |
+| `git checkout -b <branch-name>`                         | Creates and switches to a new branch.                                           |
+| `git log`                                               | Shows the commit logs.                                                          |
+| `git remote -v`                                         | Shows the URLs of the remote repositories.                                      |
+| `git remote add <name> <url>`                           | Adds a new remote repository.                                                   |
+| `git diff`                                              | Shows changes between commits, commit and working tree, etc.                    |
+| `git reset <file>`                                      | Unstages a file while retaining changes in the working directory.               |
+| `git reset --hard <commit>`                             | Resets the index and working directory to the specified commit.                 |
+| `git rm <file>`                                         | Removes a file from the working directory and the index.                        |
+| `git stash`                                             | Temporarily saves changes in a dirty working directory.                         |
+| `git stash pop`                                         | Restores the most recently stashed files.                                       |
+| `git tag <tag-name>`                                    | Creates a new tag.                                                              |
+| `git show <object>`                                     | Displays information about any Git object.                                      |
+| `git config --global user.name "name"`                  | Sets the user name for all repositories on the local machine.                   |
+| `git config --global user.email "email"`                | Sets the user email for all repositories on the local machine.                  |
+| `git rebase <branch>`                                   | Reapplies commits on top of another base tip.                                   |
+| `git cherry-pick <commit>`                              | Apply changes introduced by some existing commits.                              |
+| `git mv <old-file> <new-file>`                          | Renames a file and stages the move.                                             |
+| `git bisect start`                                      | Starts a binary search to find the commit that introduced a bug.                |
+| `git bisect bad`                                        | Marks the current commit as bad during bisecting.                               |
+| `git bisect good <commit>`                              | Marks a known good commit during bisecting.                                     |
+| `git blame <file>`                                      | Shows what revision and author last modified each line of a file.               |
+| `git clean -f`                                          | Removes untracked files from the working directory.                             |
+| `git reflog`                                            | Shows a log of changes to the tip of branches and other references.             |
+| `git shortlog`                                          | Summarizes git log output.                                                      |
+| `git describe --tags`                                   | Describes a commit using the most recent tag reachable from it.                 |
+| `git archive --format=zip --output=<file.zip> <commit>` | Creates an archive of files from a named tree.                                  |
+| `git gc`                                                | Runs a garbage collection on the repository.                                    |
+| `git fsck`                                              | Verifies the connectivity and validity of objects in the database.              |
+| `git apply <patch>`                                     | Applies a patch to files and/or to the index.                                   |
+| `git cherry <branch>`                                   | Lists commits not merged upstream on a given branch.                            |
+| `git ls-tree <tree-ish>`                                | Lists the contents of a tree object.                                            |
+| `git grep <pattern>`                                    | Searches for a pattern in the working directory and index.                      |
+| `git show-branch`                                       | Shows branches and their commits.                                               |
+| `git rev-list <commit>`                                 | Lists commit objects in reverse chronological order.                            |
+| `git commit --amend`                                    | Rewrites the most recent commit message or adds changes to the previous commit. |
+| `git submodule add <repo> <path>`                       | Adds a submodule to a repository.                                               |
+| `git submodule update --init`                           | Initializes, fetches and checks out the submodule.                              |
+| `git merge --abort`                                     | Aborts a conflicted merge.                                                      |
+| `git mergetool`                                         | Launches a merge conflict resolution tool.                                      |
+| `git archive --format=tar <commit> -o <file.tar>`       | Creates a tar archive of the files in a commit.                                 |
+| `git reset --soft <commit>`                             | Resets the index but not the working directory.                                 |
+| `git diff --staged`                                     | Shows the difference between the index and the last commit.                     |
+| `git blame -L <start>,<end> <file>`                     | Shows blame information for the specified line range of a file.                 |
+| `git rebase --interactive <commit>`                     | Starts an interactive rebase session.                                           |
+| `git checkout -- <file>`                                | Discards changes in the working directory for a specific file.                  |
+| `git filter-branch --tree-filter 'command' HEAD`        | Rewrites branches by applying a command on each tree.                           |
+| `git symbolic-ref HEAD <ref>`                           | Changes the current branch by updating the symbolic reference.                  |
+
+---
+
+## Conventional Commits Cheatsheet
+
+| Commit Message                     | Description                                                                                                   |
+| ---------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `feat: new feature`                | Introduce a new feature                                                                                       |
+| `feat!: breaking change`           | Introduce a breaking change                                                                                   |
+| `feat(scope)!: rework API`         | Rework API with a breaking change                                                                             |
+| `chore(deps): update dependencies` | Update dependencies                                                                                           |
+| `build`                            | Changes that affect the build system or external dependencies (example scopes: gulp, broccoli, npm)           |
+| `ci`                               | Changes to CI configuration files and scripts (example scopes: Travis, Circle, BrowserStack, SauceLabs)       |
+| `chore`                            | Changes which don't change source code or tests e.g. changes to the build process, auxiliary tools, libraries |
+| `docs`                             | Documentation only changes                                                                                    |
+| `fix`                              | A bug fix                                                                                                     |
+| `fix(scope): bug in scope`         | Fix a bug within a specific scope                                                                             |
+| `perf`                             | A code change that improves performance                                                                       |
+| `refactor`                         | A code change that neither fixes a bug nor adds a feature                                                     |
+| `revert`                           | Revert something                                                                                              |
+| `style`                            | Changes that do not affect the meaning of the code (white-space, formatting, missing semi-colons, etc)        |
+| `test`                             | Adding missing tests or correcting existing tests                                                             |
+
+---
+
+## Github
+
+GitHub, a leading platform for version control and collaboration, leverages Git to provide a seamless environment for developers to host, review, and manage code.
+Offering features like pull requests, code reviews, and integrated issue tracking, GitHub streamlines the development workflow and fosters collaboration among team members.
+With its robust community and extensive ecosystem of tools and integrations, GitHub enhances productivity and innovation, making it an essential resource for both open-source projects and private repositories.
+Additionally, GitHub's user-friendly interface and powerful features make it a popular choice for developers seeking to share their work and contribute to the global coding community.
+
+### Github Pages
+
+GitHub Pages is a static site hosting service that enables developers to publish web content directly from a repository.
+Supporting custom domains, Jekyll-powered themes, and HTTPS enforcement, the platform simplifies the process of deploying personal projects, documentation, or portfolio websites.
+Pages are generated from branches within a repository, allowing seamless integration with version control while ensuring updates reflect instantly upon deployment.
+With support for Markdown and HTML, developers can craft content-rich pages without relying on complex backend infrastructure.
+The service enhances accessibility by offering free hosting for public repositories, making it a valuable tool for both individual creators and collaborative teams.
+
+<Aside type="tip">
+
+Did you know that this whole document is hosted on Github Pages?
+
+Our docs are powered by [Astro](/application/javascript/#astro)!
+
+</Aside>
+
+While Jekyll is a popular choice for generating static sites on GitHub Pages, alternative frameworks like Astro, Next.js, and Hugo provide additional flexibility and performance benefits.
+Astro excels in optimizing content delivery by shipping minimal JavaScript while enabling seamless integration with UI frameworks such as React, Vue, and Svelte.
+Next.js, although primarily designed for server-side rendering and dynamic applications, can generate static exports that work efficiently with GitHub Pages when configured correctly.
+Hugo, known for its blazing-fast build times and Go-based architecture, offers a lightweight solution for content-heavy websites.
+By leveraging these frameworks, developers can tailor their projects to suit different performance needs, content workflows, and interactive experiences beyond traditional Jekyll-based sites.
+
+<Aside type="tip">
+
+Remember to setup your CNAME and **.nojekyll** file, if you plan on using a custom domain and want to use another static generator.
+
+</Aside>
+
+Now the other topic with the Github pages is the security!
+Github recommends that you verify your domain with our profile or organization.
+
+### Github Actions
+
+GitHub Actions are YAML files designed to automate repetitive tasks using predefined workflows and variables, enabling seamless integration and continuous deployment.
+They enhance productivity by managing build, test, and deployment processes directly within the GitHub environment.
+
+#### KBVE API GROQ
+
+These are the custom notes on our github actions!
+
+#### CI Patch
+
+<Aside type="tip">
+
+This CI Patch is slated to be deprecated in the future!
+
+</Aside>
+
+The `ci-patch.yml` GitHub Action is designed to automate the process of creating pull requests for branches that follow a naming pattern starting with "patch".
+When a push event occurs on any of these branches, the action triggers and runs on the latest version of Ubuntu.
+It first checks out the code using the `actions/checkout` action. Then, it uses the `diillson/auto-pull-request` action to automatically create a pull request from the patch branch to the `dev` branch.
+The pull request will have a title indicating the source branch and a body containing the message "An automated PR".
+Additionally, the pull request will be labeled with "auto-pr".
+
+```yaml
+name: CI Patch
+
+on:
+    push:
+        branches:
+            - 'patch*'
+
+jobs:
+    handle:
+        runs-on: ubuntu-latest
+        steps:
+            - name: Checkout
+              uses: actions/checkout@v4
+
+            - name: Auto-Pull
+              uses: diillson/auto-pull-request@latest
+              with:
+                  github_token: ${{ secrets.GITHUB_TOKEN }}
+                  destination_branch: 'dev'
+                  pr_title: 'Pulling ${{ github.ref }} into Dev'
+                  pr_body: |
+                      *An automated PR*
+                  pr_label: 'auto-pr'
+```
+
+### kbve-shell
+
+Example of calling the KBVE Shell
+
+```yaml
+- name: React Fish & Chip
+  if: needs.alter.outputs.reactfishchip == 'true'
+  uses: ./.github/actions/kbve-shell
+  with:
+      flag: '-build react-phaser-fish-chip'
+      create_pull_request: true
+      github_token: ${{ secrets.GITHUB_TOKEN }}
+      pull_request_title: 'react-fish-chip-built-request'
+      pull_request_body: 'React Fish and Chip Built Request'
+```
+
+### Matrix
+
+#### Crate Publish
+
+<Aside type="tip">
+
+Remember to setup your secrets for the `CRATES_TOKEN`!
+
+</Aside>
+
+These are brief notes on the `rust-publish-crate.yml` within our monorepo, which is used to publish Rust crates to crates.io.
+
+```yaml
+generate_crates_matrix:
+    needs: ['deploy', 'alter', 'globals']
+    runs-on: ubuntu-latest
+    outputs:
+        matrix: ${{ steps.set-matrix.outputs.matrix }}
+    steps:
+        - name: Generate Matrix
+          id: set-matrix
+          run: |
+              MATRIX=$(jq -n '{
+                include: [
+                  { "name": "q", "condition": "${{ needs.alter.outputs.q_crate }}" },
+                  { "name": "jedi", "condition": "${{ needs.alter.outputs.jedi_crate }}" },
+                  { "name": "soul", "condition": "${{ needs.alter.outputs.soul_crate }}" },
+                  { "name": "kbve", "condition": "${{ needs.alter.outputs.kbve_crate }}" },
+                  { "name": "erust", "condition": "${{ needs.alter.outputs.erust_crate }}" },
+                  { "name": "holy", "condition": "${{ needs.alter.outputs.holy_crate }}" }
+                ]
+              } | .include |= map(select(.condition == "true"))')
+              echo "matrix=$MATRIX" >> "$GITHUB_OUTPUT"
+
+publish_crates:
+    needs: ['generate_crates_matrix']
+    name: Publish Rust Crates
+    strategy:
+        matrix: ${{ fromJson(needs.generate_crates_matrix.outputs.matrix) }}
+    uses: KBVE/kbve/.github/workflows/rust-publish-crate.yml@main
+    with:
+        package: ${{ matrix.name }}
+    secrets:
+        CRATES_TOKEN: ${{ secrets.CRATES_TOKEN }}
+```
+
+#### Music
+
+These are brief notes on the `i-music-process.yml` within our monorepo.
+
+These two steps are the core for the action that would process our music issue tickets.
+The first is design to parse the body of the created issue ticket and prepare it for a JSON POST, while the second step does the actual system prompt and sends the post request to the API.
+
+```yaml
+
+ - name: Escape issue body for JSON
+      if: env.HAS_YOUTUBE_LINK == 'true' && env.IS_MUSIC_ISSUE == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+              const marked = require('marked');
+              const DOMPurify = require('dompurify')(new (require('jsdom').JSDOM)().window);
+              const { JSDOM } = require('jsdom');
+
+              function markdownToJsonSafeString(markdownContent) {
+                  // Convert markdown to HTML
+                  const htmlContent = marked.parse(markdownContent);
+
+                  // Sanitize the HTML content
+                  const sanitizedHtmlContent = DOMPurify.sanitize(htmlContent);
+
+                  // Use jsdom to create a temporary DOM element to extract text content from sanitized HTML
+                  const dom = new JSDOM(sanitizedHtmlContent);
+                  const textContent = dom.window.document.body.textContent || '';
+
+                  // Ensure the text content is JSON-safe
+                  const jsonSafeString = JSON.stringify(textContent);
+
+                  return jsonSafeString;
+              }
+
+              const issueBody = context.payload.issue.body;
+              const escapedIssueBody = markdownToJsonSafeString(issueBody);
+              core.exportVariable('ESCAPED_ISSUE_BODY', escapedIssueBody);
+
+    - name: Extract and display YouTube ID if link is found
+      if: env.HAS_YOUTUBE_LINK == 'true' && env.IS_MUSIC_ISSUE == 'true'
+      uses: actions/github-script@v7
+      with:
+        script: |
+          const { YOUTUBE_ID, ESCAPED_ISSUE_BODY } = process.env;
+          const system = `Imagine three different data experts are answering this task. All experts will write down their steps of their thinking, then share it with the group. Then all experts will go on to the next step, etc. If any expert realizes they're wrong at any point then they leave. Remember the goal is to complete all of the steps provided and generate the final command. \n\n Please read the provided text, extract the required information, sanitize the title, and fill it into the specified command format. The title should only contain numbers, letters, spaces, hyphens, and characters (, ), ., and -. Your task is to complete a finalized kbve.sh shell command with the extracted information. If you can not complete the command, go back and process the input data again. \n\n Hint: Titles may contain multiple words separated by quotes and hyphens. These words are often the band name and followed by the song. **Example:**\n\`\`\`\n\n**Fill out the Form**\n\nYouTube Link: https://www.youtube.com/watch?v=<yt_id>\nTitle:  <title> \nGenre:  <genre>\n\nPick only one of the different genres!\ndnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n\n\n\`\`\`\n\n**Output:**\n\n\`\`\`bash\n./kbve.sh -nx kbve.com:music --args=\\\"--file=<genre>--title='<title>' --ytid=<yt_id>\\\"\"\n\nHere is the template for the command:\n\`\`\`\n./kbve.sh -nx kbve.com:music --args=\\\"--file=[insert file/genre here] --title='[insert sanitized title here]' --ytid=[insert YouTube ID here]\\\"\n\nEnsure to:\n1. Extract the \`File/Genre\`, \`Title\`, and \`YouTube ID\` from the text.\n2. Sanitize the \`Title\` to only include numbers, letters, spaces, hyphens, quotes, periods, the characters () . and -. Please do not replace spaces with any other characters and keep the spaces in the sanitized title.\n3. Only acceptable genres/file are dnb, chillstep, lofihiphop, nujazz, electroswing, edm, rock, japrock\n4. Fill in the command template with the extracted and sanitized values.\n\n**Your Task:**\nPlease parse the provided text below and generate the command. You must follow all the steps that are stated and make sure to wrap the kbve.sh command in bash code block. \n\n`;
+          const message = ESCAPED_ISSUE_BODY;
+          const payload = JSON.stringify({
+            system,
+            message,
+            model: "mixtral-8x7b-32768"
+          });
+
+          const axios = require('axios');
+          const response = await axios.post('https://rust.kbve.com/api/v1/call_groq', payload, {
+            headers: {
+              'Content-Type': 'application/json'
+            }
+          });
+          core.exportVariable('GROQ_OUTPUT', response.data);
+
+```
+
+#### Itch
+
+Github Action for deploying the application build onto the Itch platform!
+
+Deploying your application build to the Itch platform has never been easier, thanks to GitHub Actions!
+The **Itch.io Publish** GitHub Action automates the process, streamlining your workflow and ensuring that your latest builds are always up-to-date on Itch.io.
+
+**GitHub Action - Itch.io Publish**
+
+-   **Marketplace [Action](https://github.com/marketplace/actions/itch-io-publish)**: Discover the action on GitHub Marketplace, where you can integrate it directly into your repositories.
+-   **Dev [Repo](https://github.com/KikimoraGames/itch-publish)**: Explore the development repository to understand the inner workings of the action, contribute, or customize it for your needs.
+
+This powerful tool takes the manual effort out of deploying to Itch.io, allowing you to focus more on development and less on the repetitive tasks of deployment.
+Embrace automation and enhance your productivity with GitHub Actions and Itch.io!
+
+Below is an example of a GitHub Itch workflow configuration. Note that tab indentations might be out of sync!
+
+```yaml
+name: Itch Deploy
+
+on: push
+env:
+  ITCH_USERNAME: my-itch-username
+  ITCH_GAME_ID: my-itch-game-id
+jobs:
+  deploy:
+    name: Upload to Itch
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        channel:
+          - windows
+          - webgl
+    runs-on: ubuntu-latest
+    name: Deploy - Itch.io ${{ matrix.template }}
+    steps:
+      - uses: actions/download-artifact@v2.0.8
+        with:
+          name: ${{ matrix.channel }}
+          path: build/${{ matrix.channel }}
+      - uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{secrets.BUTLER_API_KEY}}
+          gameData: ./build/${{ matrix.template }}
+          itchUsername: ${{env.ITCH_USERNAME}}
+          itchGameId: ${{ env.ITCH_GAME_ID }}
+          buildChannel: ${{ matrix.channel }}
+          buildNumber: ${{ needs.version.outputs.version_hash }}
+
+```
+
+Remember to add your secrets, `BUTLER_API_KEY`, before deploying to Itch.
+
+You can grab the `BUTLER_API_KEY` from Itch via [API Keys](https://itch.io/user/settings/api-keys) , which will allow Github Actions to communicate with Itch.io's API.
+
+KBVE Example:
+
+```yaml
+name: Itch KBVE Deploy
+
+on: push
+env:
+  ITCH_USERNAME: kbve
+  ITCH_GAME_ID: my-itch-game-id
+jobs:
+  deploy:
+    name: Upload to Itch
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+      matrix:
+        channel:
+          - windows
+          - webgl
+    runs-on: ubuntu-latest
+    name: Deploy - Itch.io ${{ matrix.template }}
+    steps:
+      - uses: actions/download-artifact@v2.0.8
+        with:
+          name: ${{ matrix.channel }}
+          path: build/${{ matrix.channel }}
+      - uses: KikimoraGames/itch-publish@v0.0.3
+        with:
+          butlerApiKey: ${{secrets.BUTLER_API_KEY}}
+          gameData: ./build/${{ matrix.template }}
+          itchUsername: ${{env.ITCH_USERNAME}}
+          itchGameId: ${{ env.ITCH_GAME_ID }}
+          buildChannel: ${{ matrix.channel }}
+          buildNumber: ${{ needs.version.outputs.version_hash }}
+```
+
+#### Unity
+
+Introducing the Unity Test Runner as a GitHub Action, a seamless way to integrate automated testing into your Unity projects!
+This action allows you to run unit tests, integration tests, and play mode tests directly from your GitHub repository, ensuring your game code maintains high quality and functionality throughout development.
+
+**GitHub Action - Unity Test Runner**
+
+-   **Marketplace [Action](https://github.com/marketplace/actions/unity-test-runner)**: Find the Unity Test Runner action on GitHub Marketplace, ready for easy integration into your workflows.
+-   **Dev [Repo](https://github.com/webbertakken/unity-test-runner)**: Visit the development repository for detailed setup instructions, contribution guidelines, and customization options.
+
+By incorporating the Unity Test Runner into your CI/CD pipeline, you can automate testing, catch bugs early, and maintain code quality with minimal effort.
+Elevate your Unity development process with this efficient and reliable testing solution!
+
+Below is a sample GitHub Actions configuration for running Unity tests, ensuring your game code maintains high quality and functionality through continuous integration.
+
+```yaml
+
+- uses: game-ci/unity-test-runner@v2.1.0
+    id: testRunner
+    env:
+        UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+    with:
+        projectPath: ${{ matrix.projectPath }}
+        unityVersion: ${{ matrix.unityVersion }}
+        githubToken: ${{ secrets.GITHUB_TOKEN }}
+        customParameters: '-nographics'
+- uses: actions/upload-artifact@v2
+        if: always()
+        with:
+            name: Test results (all modes)
+            path: ${{ steps.testRunner.outputs.artifactsPath }}
+
+```
+
+-   Remember that you will need a valid Unity license for this action!
+
+Here is step-by-step breakdown of a Unity GitHub Action
+
+<Steps>
+1.  **Define the Workflow**
+
+    ```yaml
+    name: Unity Test Runner
+    ```
+    - The `name` field sets the name of the workflow, making it easier to identify in the GitHub Actions tab.
+
+2.  **Specify the Trigger Events**
+
+    ```yaml
+    on: [push, pull_request]
+    ```
+
+    -   The `on` field specifies the events that trigger this workflow. Here, it triggers on `push` and `pull_request` events.
+
+3.  **Define the Job and Environment**
+
+    ```yaml
+    jobs:
+        test:
+            runs-on: ubuntu-latest
+    ```
+
+    -   The `jobs` field defines the jobs that will run as part of this workflow. The `test` job runs on the `ubuntu-latest` environment, which provides a clean and consistent Linux environment for running the tests.
+
+4.  **Set Up the Matrix Strategy**
+
+    ```yaml
+    strategy:
+        matrix:
+            projectPath: [path/to/your/project]
+            unityVersion: [2020.3.11f1, 2021.1.13f1]
+    ```
+
+    -   The `matrix` strategy allows you to define multiple configurations for your jobs.
+        Here, it sets up multiple Unity versions and project paths to test against, ensuring compatibility across different environments.
+
+5.  **Checkout the Repository**
+
+    ```yaml
+    steps:
+        - name: Checkout repository
+          uses: actions/checkout@v2
+    ```
+
+    -   The `steps` field lists the steps in the job.
+        The first step uses the `actions/checkout` action to clone the repository, providing access to the codebase for subsequent steps.
+
+6.  **Cache Unity Packages**
+
+    ```yaml
+    - name: Cache Unity packages
+      uses: actions/cache@v2
+      with:
+          path: ~/.local/share/unity3d/Unity/
+          key: ${{ runner.os }}-unity-${{ matrix.unityVersion }}
+          restore-keys: |
+              ${{ runner.os }}-unity-
+    ```
+
+    -   Caching saves downloaded Unity packages between workflow runs, reducing the time needed for setup.
+        The cache is identified by a unique key based on the runner OS and Unity version.
+
+7.  **Run Unity Test Runner**
+
+    ```yaml
+    - name: Run Unity Test Runner
+      uses: game-ci/unity-test-runner@v2.1.0
+      id: testRunner
+      env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+      with:
+          projectPath: ${{ matrix.projectPath }}
+          unityVersion: ${{ matrix.unityVersion }}
+          githubToken: ${{ secrets.GITHUB_TOKEN }}
+          customParameters: '-nographics'
+    ```
+
+    -   This step runs the Unity Test Runner action:
+        -   `uses` specifies the action to run.
+        -   `id` gives this step an identifier for later reference.
+        -   `env` sets environment variables, including `UNITY_LICENSE`, which is essential for running Unity in batch mode.
+        -   `with` specifies parameters for the action:
+            -   `projectPath` sets the path to the Unity project.
+            -   `unityVersion` specifies the Unity version.
+            -   `githubToken` is used for authentication.
+            -   `customParameters` allows passing additional parameters to Unity, such as `-nographics` for headless execution.
+
+8.  **Upload Test Results**
+
+    ```yaml
+    - name: Upload Test Results
+      uses: actions/upload-artifact@v2
+      if: always()
+      with:
+          name: Test results (all modes)
+          path: ${{ steps.testRunner.outputs.artifactsPath }}
+    ```
+
+    -   This step uploads the test results as artifacts:
+        -   `if: always()` ensures this step runs regardless of the previous step’s outcome.
+        -   `with` specifies parameters for the upload:
+            -   `name` sets the artifact's name.
+            -   `path` specifies the file path to upload, using the output from the `testRunner` step.
+
+</Steps>
+
+<Aside>
+
+-   **Unity License**: Ensure you have a valid Unity license stored as a GitHub Secret **UNITY_LICENSE**. This license is required to run Unity in batch mode.
+-   **Matrix Strategy**: Testing against multiple Unity versions and project paths ensures comprehensive coverage and compatibility.
+-   **Caching**: Utilizing the cache can significantly speed up workflow runs by reusing previously downloaded Unity packages.
+-   **Artifact Upload**: Storing test results as artifacts allows you to review the outcomes of your tests even after the workflow completes, facilitating debugging and quality assurance.
+
+</Aside>
+
+When you finish following these steps, you will be setting up a robust and automated testing pipeline for your future Unity projects, enhancing your development workflow and ensuring higher code quality.
+
+#### Godot
+
+Boost your Godot development workflow with these handy GitHub Actions references! Automate your build, test, and deployment processes to streamline your project management.
+
+-   **GitHub Actions via [godot-ci](https://github.com/marketplace/actions/godot-ci)**: Utilize the godot-ci action from the GitHub Marketplace to automate your Godot engine tasks, including exporting your project to multiple platforms.
+-   **GitHub Actions HTML5 Workflow [Gist by doctor-g](https://gist.github.com/doctor-g/57cd32c10beb04fcbd3b83f23f439d37)**: Explore this detailed gist by doctor-g, showcasing a GitHub Actions workflow for exporting Godot projects to HTML5, making it easy to deploy your game on the web.
+
+These resources will help you integrate GitHub Actions into your Godot projects, ensuring efficient and reliable automation throughout your development process.
+
+#### Docker
+
+---
+
+## GitLab
+
+GitLab is a comprehensive DevOps platform that provides a wide range of tools for software development, continuous integration, and continuous delivery.
+With features like issue tracking, code review, and built-in CI/CD pipelines, GitLab enables teams to collaborate efficiently and accelerate their development cycles.
+GitLab's robust version control capabilities, combined with its scalable and flexible infrastructure, make it an ideal choice for both small teams and large enterprises.
+By integrating all stages of the DevOps lifecycle into a single application, GitLab simplifies workflow management, enhances productivity, and promotes seamless collaboration across the entire development process.
+
+---
+
+## Gitea
+
+Gitea is a lightweight, self-hosted Git service designed to provide a seamless and efficient way to manage version control for software projects.
+Offering features like issue tracking, code review, and a built-in wiki, Gitea supports collaborative development and project management.
+Its user-friendly interface and minimal resource requirements make it an excellent choice for small to medium-sized teams looking for a straightforward and customizable Git hosting solution.
+With easy installation and maintenance, Gitea empowers developers to host their own repositories and control their workflow, ensuring flexibility and security in their development processes.
+
+---
+
+## Submodules
+
+Git submodules are a powerful feature that allows you to include and manage external repositories within your own project.
+By embedding one Git repository as a subdirectory of another, submodules enable the use of libraries or dependencies while maintaining their own version control.
+This setup ensures that each submodule retains its history and can be updated independently, providing modularity and reducing code duplication.
+Managing submodules requires specific commands to clone, update, and commit changes, but it offers a robust way to handle complex projects with multiple dependencies, keeping the main repository clean and organized.
+
+<Aside>
+These are notes and guides on how to build out submodules inside of Git, so that you can control certain plugins throughout multiple repos effortlessly.
+This can go into private packages later on, if we need to.
+
+The shift to the private packages will come as we grow bigger and require more control.
+
+</Aside>
+
+### Submodule Symbolic Link
+
+Submodule symbolic links provide a method to seamlessly integrate multiple directories from different repositories without duplicating the contents.
+By creating symbolic links, you can reference submodules in a way that allows for easy navigation and management within your main project directory.
+This approach avoids the common pitfalls associated with managing multiple directories, such as redundancy and synchronization issues.
+Symbolic links effectively act as shortcuts, pointing to the actual location of the submodule, thereby streamlining your workflow and maintaining a clean project structure.
+Utilizing symbolic links in conjunction with submodules can significantly enhance the organization and efficiency of handling external dependencies in complex projects.
+
+#### KBVE Module Example
+
+Suppose we have already added our submodule for an Unity project, via `KBVE/UnitySubModule` and wanted to link them into our source, well this is how:
+
+Create a folder inside of `Assets` named `Plugins` and then cd into it:
+
+Example of the shell, do not copy and paste, make sure you read through the commands and swap out the right variables!
+
+```shell
+cd ./unityRootProject
+cd ./Assets
+mkdir Plugins
+cd ./Plugins
+
+```
+
+Once inside the `Plugins` folder, we can execute the symbolic link using the `ln` command, like this:
+
+```shell
+
+ln -s ../../submodules/UnitySubModules/Vuplex
+
+```
+
+---
+
+## Scripts
+
+Script commands for Git act as powerful helper scripts that automate and streamline various Git operations.
+These commands can simplify complex workflows by combining multiple Git actions into a single executable script.
+For instance, shell commands can automate the process of staging changes, committing with a message, and pushing to the current branch, saving developers time and reducing the risk of errors.
+Thus, by leveraging the flexibility of shell scripting, developers can create custom workflows tailored to their specific needs, enhancing productivity and ensuring consistent Git practices across projects.
+
+### Commit
+
+The `commit` command stages all changes, commits them with the message "Minor change sync," and pushes the commit to the current branch.
+This sequence ensures that all modifications are saved and synchronized with the remote repository.
+
+```sh
+branch=$(git rev-parse --abbrev-ref HEAD) && git add . && git commit -m "Minor change sync" && git push origin $branch
+```
+
+This command does the following:
+
+<Steps>
+
+1.  **Environmentals**:
+
+    ```shell
+    branch=$(git rev-parse --abbrev-ref HEAD)
+    ```
+
+    Stores the current branch name in the `branch` variable.
+
+2.  **Git Add**
+
+    ```shell
+    git add .
+    ```
+
+    Stages all changes.
+
+3.  **Commit**
+
+    ```shell
+    git commit -m "Minor change sync"
+    ```
+
+    : Commits the changes with the message "Minor change sync".
+
+4.  **Push**:
+
+    ```shell
+    git push origin $branch
+    ```
+
+    Pushes the changes to the current branch on the remote repository.
+
+</Steps>
+
+This way, you don't need to manually replace the branch name each time.
+
+---
+
+## DevOps
+
+DevOps is a collaborative and integrated approach to software development and IT operations, aimed at shortening the development lifecycle and delivering high-quality software continuously. By combining practices, tools, and cultural philosophies, DevOps enables organizations to automate and streamline processes, enhancing efficiency and reliability. Key practices include continuous integration and continuous deployment (CI/CD), infrastructure as code (IaC), monitoring, and feedback loops. This approach fosters a culture of collaboration between development and operations teams, ensuring rapid delivery of features, quick resolution of issues, and improved scalability and security.
+Ultimately, DevOps empowers organizations to innovate faster and respond more effectively to market demands.
+
+### DevOps Introduction
+
+DevOps, short for Development and Operations, is a transformative approach to software development and IT operations.
+It bridges the gap between traditionally siloed teams, fostering a culture of collaboration and shared responsibility.
+Originating from agile methodologies and lean practices, DevOps emphasizes continuous improvement and customer satisfaction.
+By integrating development and operations, DevOps aims to deliver software more efficiently and reliably, addressing the rapid pace of today's digital marketplace.
+
+### Key Concepts and Principles
+
+-   **Culture and Collaboration**: Promoting a culture of shared responsibility, openness, and mutual trust.
+-   **Automation**: Leveraging tools to automate repetitive tasks, reducing human error and increasing efficiency.
+-   **Lean Principles**: Focusing on value stream mapping and eliminating waste to optimize processes.
+-   **Measurement and Feedback**: Implementing metrics to measure performance and using feedback loops to continuously improve.
+
+### DevOps Lifecycle
+
+-   **Plan**: Involving stakeholders to gather requirements and plan the project roadmap.
+-   **Code**: Utilizing version control systems to manage code repositories and collaboration.
+-   **Build**: Automating builds and integrating code changes frequently.
+-   **Test**: Implementing automated testing to ensure code quality and reliability.
+-   **Release**: Deploying code to production environments seamlessly and efficiently.
+-   **Deploy**: Using Infrastructure as Code (IaC) for consistent and reproducible deployments.
+-   **Operate**: Monitoring systems and applications to maintain performance and availability.
+-   **Monitor**: Gathering metrics and logs to gain insights and feedback for continuous improvement.
+
+### Tools and Technologies
+
+-   **Version Control**: Git, GitHub, GitLab.
+-   **CI/CD**: Jenkins, Travis CI, CircleCI, GitHub Actions.
+-   **Configuration Management**: Ansible, Chef, Puppet.
+-   **Containerization**: Docker, Kubernetes.
+-   **Cloud Providers**: AWS, Azure, Google Cloud.
+-   **Monitoring and Logging**: Prometheus, Grafana, ELK Stack.
+
+### Practices and Methodologies
+
+-   **Continuous Integration and Continuous Deployment (CI/CD)**.
+-   **Infrastructure as Code (IaC)**.
+-   **Microservices and Containerization**.
+-   **Automated Testing**.
+-   **Security in DevOps (DevSecOps)**.
+
+### Implementing DevOps
+
+-   **Setting up a CI/CD Pipeline**: Step-by-step guide to setting up CI/CD pipelines.
+-   **Using Docker for Containerization**: Introduction and examples of Docker usage.
+-   **Managing Infrastructure with Terraform**: How to use Terraform for IaC.
+-   **Configuration Management with Ansible**: Using Ansible to manage configurations.
+
+### Case Studies and Examples
+
+-   **Real-World Examples**: Success stories of DevOps implementations.
+-   **Step-by-Step Guides**: Detailed tutorials for practical DevOps implementations.
+
+### Best Practices and Challenges
+
+-   **DevOps Best Practices**: Tips and strategies for successful DevOps.
+-   **Common Challenges**: How to overcome typical DevOps challenges.
+
+### Advanced Topics
+
+-   **Site Reliability Engineering (SRE)**.
+-   **Advanced Monitoring and Alerting**.
+-   **Scalability and High Availability**.
+-   **Performance Optimization**.
+
+### Resources and Further Reading
+
+-   **Books, Blogs, and Websites**.
+-   **Online Courses and Certifications**.
+-   **Community Forums and Groups**.
+
+---
+
+## FlyIO
+
+<Aside>
+	When preparing to remotely deploy to flyio via github action, we should make
+	sure your fly token is set as a secret variable.
+</Aside>
+
+FlyIO is a simple way to deploy your application quickly onto the cloud.
+We believe that flyio is great for launching a quick demo application when utilizing a low level language like zig or rust.
+
+---
+
+## Monorepo
+
+<Aside type="caution" title="Monorepo Considerations">
+	Adopting a monorepo can require a significant upfront time investment to
+	configure tooling, establish consistent workflows, and migrate existing
+	projects into a unified structure. This complexity may slow initial
+	development velocity, especially for teams unfamiliar with managing shared
+	dependencies and large-scale repositories.
+</Aside>
+
+In the sprawling kingdom of software development, monorepos stand as grand citadels, uniting multiple projects under a single, majestic repository to streamline collaboration and dependency management.
+Nx, a seasoned knight forged by Nrwl, wields a powerful arsenal of tools, including advanced task orchestration and a rich plugin ecosystem, to tame the complexities of enterprise-scale monorepos with its intelligent caching and interactive project graph visualizations.
+Meanwhile, Turborepo, a nimble warrior honed by Vercel, charges into the fray with a focus on blistering build speeds, leveraging Rust-based efficiency and straightforward caching to empower developers seeking simplicity without sacrificing performance.
+Together, they cater to a realm where code colocation reigns supreme, offering developers the choice between Nx’s comprehensive, battle-tested governance—ideal for sprawling, interdependent codebases—and Turborepo’s lean, agile prowess, perfect for swift, modular conquests.
+Picture a bustling medieval marketplace: Nx is the meticulous steward ensuring every stall aligns perfectly, while Turborepo is the swift courier darting through the crowd, delivering goods with minimal fuss.
+Both champions draw strength from the monorepo philosophy, where shared libraries and atomic commits forge a cohesive empire, yet they diverge in their quests—Nx fortifies the castle with deep customization, while Turborepo races to optimize the kingdom’s pulse.
+As the JavaScript ecosystem evolves, these tools stand as twin beacons, illuminating paths through the tangled forests of modern development. Whether a guild of engineers opts for Nx’s robust scaffold or Turborepo’s rapid stride, the monorepo remains a unifying banner, promising consistency and scalability beneath its vast, singular canopy.
+
+### Nx
+
+Imagine Nx as the master conductor of a grand cosmic orchestra, orchestrating the chaos of a monorepo galaxy where countless project planets orbit a single, unified repository star.
+Forged by the ingenious minds at Nrwl, this stellar system thrives on its ability to harmonize enterprise-scale codebases, wielding a high-tech baton of task orchestration to ensure builds, tests, and deployments perform in perfect symphony.
+Its intelligent caching acts like a time-warping archive, zapping redundant computations into oblivion, while the interactive project graph—a dazzling holographic map—reveals the intricate web of dependencies with the precision of a sci-fi navigator.
+Nx’s plugin ecosystem is a bustling spaceport, docking ships of customization for frameworks like React, Angular, and Node, making it a versatile ally for developers traversing vast, interdependent terrains.
+Unlike a rogue asteroid of complexity, Nx brings order to the monorepo universe, empowering teams with atomic commits and shared libraries that bind the galaxy together.
+From its command-line cockpit, developers pilot with confidence, knowing Nx’s robust tooling can scale from a lone shuttle to an armada of microservices without breaking a sweat or your galatic bank.
+In this interstellar saga of software, Nx is the trusty droid you’d want by your side, turning the sprawling void of code into a well-charted cosmos.
+
+#### Nx Run Executor
+
+In an Nx monorepo, the `nx:run-commands` executor is a powerful and flexible tool provided by the `@nx/run-commands` plugin, designed to execute arbitrary shell commands or scripts across one or more projects within the workspace.
+This executor is particularly useful for tasks that don’t fit neatly into predefined build, test, or serve workflows, allowing developers to customize automation for specific needs.
+It is configured in the `project.json` file (or equivalent configuration) of a project, where you define a target—such as `"lint"`, `"deploy"`, or any custom name—and specify the `commands` array containing the shell commands to execute (e.g., `"eslint ."` or `"npm run build"`).
+Options like `parallel` (to run commands concurrently), `cwd` (to set the working directory), and `env` (to pass environment variables) provide additional control over execution.
+The executor leverages Nx’s dependency graph to determine whether a command should run based on affected projects, making it efficient in large monorepos.
+For example, a target might look like: `"my-task": { "executor": "@nx/run-commands", "options": { "commands": ["echo Hello", "node script.js"], "parallel": false } }`, enabling sequential or parallel execution with full integration into Nx’s caching and task orchestration features.
+Thus making `nx:run-commands` ideal for scripting one-off tasks, integrating external tools, or handling complex workflows in a consistent, reproducible way.
+
+Here is another example from the Q crate for debugging mac builds!
+
+```json
+ "debug-mac": {
+      "executor": "nx:run-commands",
+      "options": {
+        "commands": [
+          "pnpm nx run q:build-mac",
+          "mkdir -p apps/rentearth/re-game/addons/q/macos",
+          "cp packages/rust/q/release/addons/q/macos/*.dylib apps/rentearth/re-game/addons/q/macos/"
+        ],
+        "parallel": false
+      }
+    }
+```
+
+<Aside type="tip" title="Nx Run Commands">
+Take advantage of the `parallel` option in `nx:run-commands` to speed up execution by running independent commands concurrently, especially for multi-step tasks across large monorepos.
+Use the `--args` flag when running `nx run <project>:<target> --args="--verbose"` to pass custom arguments to your commands dynamically, enhancing flexibility without hardcoding values.
+</Aside>
+
+<Aside type="danger" title="Nx Run Commands Security">
+	Be cautious when using `nx:run-commands` with dynamic or user-provided input
+	in shell commands, as it can expose your monorepo to security risks like
+	command injection if not properly sanitized. Avoid running untrusted scripts
+	or exposing sensitive environment variables, as these could inadvertently
+	leak credentials or allow malicious code execution in your CI/CD pipeline.
+</Aside>

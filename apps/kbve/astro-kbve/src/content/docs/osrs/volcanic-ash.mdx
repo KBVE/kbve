@@ -1,0 +1,110 @@
+---
+title: Volcanic ash | OSRS Price Data
+description: "Volcanic ash: One of the ingredients for making ultra compost.. High alch: 120 GP, GE limit: 13,000."
+osrs:
+  id: 21622
+  name: Volcanic ash
+  slug: volcanic-ash
+  examine: One of the ingredients for making ultra compost.
+  members: true
+  icon: Volcanic ash.png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 13000
+  material:
+    type: mining_resource
+    tradeable: true
+    stackable: true
+    weight: 0
+  gathering:
+    skill: mining
+    level: 22
+    location: Fossil Island Volcano ash piles
+    yield: 1-6 ash per action based on Mining level
+  drop_table:
+    sources:
+      - source: Wyverns
+      - source: Ancient zygomites
+      - source: Fossil Island creatures
+  uses:
+    - result_id: 21483
+      result_name: Ultracompost
+      method: Add 2 ash to supercompost bucket
+    - use: Fertile Soil spell
+  market:
+    buy_limit: 13000
+    price_estimate: 111
+  related_items:
+    - item_id: 21483
+      item_name: Ultracompost
+      slug: ultracompost
+      relationship: product
+      description: Created product
+    - item_id: 6034
+      item_name: Supercompost
+      slug: supercompost
+      relationship: alternative
+      description: Required base
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Mining Resource |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 22 Mining |
+
+## Obtaining
+
+**Mining:** Mine ash piles on Fossil Island Volcano.
+
+**Yield:** 1-6 ash per action based on Mining level.
+
+**Drops:** Wyverns, ancient zygomites, Fossil Island creatures.
+
+## Usage
+
+Primary ingredient for ultracompost.
+
+Add 2 to supercompost for ultracompost.
+
+Used with Fertile Soil spell.
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Price:** ~111 gp
+
+High demand for farming. Fossil Island exclusive.
+
+## Related Items
+
+- [Ultracompost](/osrs/ultracompost/) - Created product
+- [Supercompost](/osrs/supercompost/) - Required base
+
+<Adsense />

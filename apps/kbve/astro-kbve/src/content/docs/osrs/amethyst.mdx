@@ -1,0 +1,120 @@
+---
+title: Amethyst | OSRS Price Data
+description: "Amethyst: Maybe I can make something with this.. High alch: 2,340 GP, GE limit: 13,000."
+osrs:
+  id: 21347
+  name: Amethyst
+  slug: amethyst
+  examine: Maybe I can make something with this.
+  members: true
+  icon: Amethyst.png
+  value: 3900
+  lowalch: 1560
+  highalch: 2340
+  limit: 13000
+  material:
+    type: gem
+    tier: amethyst
+    tradeable: true
+    weight: 0.01
+  gathering:
+    skill: mining
+    level: 92
+    xp: 240
+    tool: Pickaxe
+    location: Mining Guild
+    members_only: true
+  crafting_products:
+    - product_id: 21350
+      product_name: Amethyst arrowtips
+      crafting_level: 85
+      xp: 60
+      quantity: 15
+    - product_id: 21338
+      product_name: Amethyst bolt tips
+      crafting_level: 83
+      xp: 60
+      quantity: 15
+    - product_id: 21352
+      product_name: Amethyst javelin heads
+      crafting_level: 87
+      xp: 60
+      quantity: 5
+    - product_id: 25853
+      product_name: Amethyst dart tips
+      crafting_level: 89
+      xp: 60
+      quantity: 8
+  market:
+    buy_limit: 13000
+    price_estimate: 1500
+  related_items:
+    - item_id: 21326
+      item_name: Amethyst arrow
+      slug: amethyst-arrow
+      relationship: product
+      description: Popular ammo
+    - item_id: 21316
+      item_name: Amethyst broad bolts
+      slug: amethyst-broad-bolts
+      relationship: product
+      description: Slayer bolts
+    - item_id: 25849
+      item_name: Amethyst dart
+      slug: amethyst-dart
+      relationship: product
+      description: Blowpipe ammo
+    - item_id: 1755
+      item_name: Chisel
+      slug: chisel
+      relationship: component
+      description: For cutting
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Mining amethyst crystals | 92 | 240 |
+| Location | Mining Guild | - |
+
+## Crafting
+
+| Product | Level | Amount |
+|---------|-------|--------|
+| Amethyst arrowtips | 85 | 15 |
+| Amethyst bolt tips | 83 | 15 |
+| Amethyst javelin heads | 87 | 5 |
+| Amethyst dart tips | 89 | 8 |
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Tips:**
+- Mining Guild only
+- Expert mining gloves help
+- AFK mining income
+- Cut for more profit
+
+<Adsense />

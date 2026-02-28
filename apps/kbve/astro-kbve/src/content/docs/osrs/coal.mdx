@@ -1,0 +1,111 @@
+---
+title: Coal | OSRS Price Data
+description: "Coal: Hmm a non-renewable energy source!. High alch: 27 GP, GE limit: 13,000."
+osrs:
+  id: 453
+  name: Coal
+  slug: coal
+  examine: Hmm a non-renewable energy source!
+  members: false
+  icon: Coal.png
+  value: 45
+  lowalch: 18
+  highalch: 27
+  limit: 13000
+  material:
+    type: ore
+    tier: coal
+  mining:
+    level: 30
+    xp: 50
+    rocks: Coal rock
+    locations:
+      - Mining Guild
+      - Motherlode Mine
+      - Coal trucks
+  recipes:
+    - skill: smithing
+      level: 30
+      xp: 17.5
+      materials:
+        - item_name: Iron ore
+          item_id: 440
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 2
+      product: Steel bar
+      product_id: 2353
+      product_quantity: 1
+      facility: Furnace
+  related_items:
+    - item_id: 440
+      item_name: Iron ore
+      slug: iron-ore
+      relationship: alternative
+      description: For steel bars
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: product
+      description: Basic coal product
+    - item_id: 2359
+      item_name: Mithril bar
+      slug: mithril-bar
+      relationship: product
+      description: Mid-tier bar (4 coal)
+    - item_id: 2363
+      item_name: Runite bar
+      slug: runite-bar
+      relationship: product
+      description: High-tier bar (8 coal)
+    - item_id: 451
+      item_name: Runite ore
+      slug: runite-ore
+      relationship: alternative
+      description: For rune bars
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Smithing
+
+Coal is required to smelt higher tier bars:
+
+| Bar | Coal Required | Other Ore | Smithing Level |
+|-----|---------------|-----------|----------------|
+| Steel bar | 2 | 1 Iron ore | 30 |
+| Mithril bar | 4 | 1 Mithril ore | 50 |
+| Adamantite bar | 6 | 1 Adamantite ore | 70 |
+| Runite bar | 8 | 1 Runite ore | 85 |
+
+## Market Flip Strategy
+
+**Blast Furnace Smelting:**
+- At Blast Furnace, coal requirement is halved
+- Steel: 1 coal, Mithril: 2 coal, Adamant: 3 coal, Rune: 4 coal
+- Major cost savings for bar production
+
+**Profit Calculation:**
+- `Bar price - (Ore price + Coal price × amount) = Smelting profit`
+- Check current coal prices vs bar margins
+
+<Adsense />

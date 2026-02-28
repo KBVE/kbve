@@ -1,0 +1,37 @@
+---
+title: Masori armour set (f) | OSRS Price Data
+description: "Masori armour set (f): A set containing a Masori mask (f), Masori body (f), Masori chaps (f). High alch: 87,000 GP, GE limit: 5."
+osrs:
+  id: 27355
+  name: Masori armour set (f)
+  slug: masori-armour-set-f
+  examine: A set containing a Masori mask (f), Masori body (f), Masori chaps (f)
+  members: true
+  icon: Masori armour set (f).png
+  value: 145000
+  lowalch: 58000
+  highalch: 87000
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

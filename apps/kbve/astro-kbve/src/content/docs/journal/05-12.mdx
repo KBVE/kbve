@@ -1,0 +1,71 @@
+---
+title: 'May: 12'
+category: Daily
+date: 2024-05-12 12:00:00
+client: Self
+unsplash: 1715446273822-f9b3243a5569
+img: https://images.unsplash.com/photo-1715446273822-f9b3243a5569?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   May 12th - The Daily Journal
+tags:
+    - daily
+---
+
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+## 2025
+
+### KBVE Rewrite
+
+-   02:00PM
+
+    After thinking it through, the issue might be a silent vite problem with svelte 5 and the pre and post processing.
+    Moving forward, I will try to write libraries to be framework agonstic, avoiding the issue of svelte or react migrations.
+    The whole moving from react 18 to react 19 was a huge pain, having to do a svelte 4 to svelte 5 would just make it worse.
+    There are migration scripts out there but honestly after doing the axum migrations, it feels like I am not moving fast enough to keep up with the breaking changes.
+
+-   09:37PM
+
+    The first step would be to build the meta file for the layout!
+    Here we can focus on the meta title and description, but also the social information and og tags.
+    This should not be too hard to setup.
+
+### Droid Lib
+
+-   04:58PM
+
+    Taking a quick break from the astro situation before having to do a refactor for it!
+    The droid library was something that I wanted to do for a while now, and I been getting better at using javascript workers.
+    The goal would be a modular worker collection with service, shared and dedicated workers that all handle different tasks.
+    I will try to build this out without causing too many issues down the road.
+    On a side note, I do hate having to write tests but it is what it is.
+
+-   06:39PM
+
+    Adding the module support for the droids library will make it easier to then load the supabase and phaser as workers.
+    This means that in the future, we can setup a pretty fast and isolated worker system that gives us a vast amount of flexibility.
+    There is a down side, since there is no free lunch, which is that there will be a slight delay between loading the modules and the actual events.
+    One way to handle this would be to run our own internal event engine that then would make things even more modular and easier to work with?
+    Let me think this through before I go any further, I might loop back to the KBVE rewrite.
+
+## 2024
+
+**Happy Mothers Day**
+
+We did a quick calendar event with the family!
+I started to do this thing where I buy a bunch of different slices of cake, that way we can have a bit of each kind.
+All the cakes except the carrot were on point.
+
+
+**Cypress**
+
+I fixed up the Cypress testing for KBVE.com and now I am going to deploy the github action under the beta branch to perform the tests.
+Having AI help with building out the test cases is huge for development.
+No one ever wants to write the different unit tests and integration testing, but AI is nearly perfect with helping build the different test case functions.
+Now let us see if it performs well with this next couple git code pushes.
+
+**Updates**
+
+I made a quick list of all the updates that the monorepo needs, but I will hold some of those updates back to avoid breaking anything.

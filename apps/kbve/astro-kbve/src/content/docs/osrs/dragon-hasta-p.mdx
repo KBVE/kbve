@@ -1,0 +1,37 @@
+---
+title: Dragon hasta(p) | OSRS Price Data
+description: "Dragon hasta(p): A poison-tipped, one-handed dragon hasta. High alch: 37,440 GP, GE limit: 70."
+osrs:
+  id: 22734
+  name: Dragon hasta(p)
+  slug: dragon-hasta-p
+  examine: A poison-tipped, one-handed dragon hasta
+  members: true
+  icon: Dragon hasta(p).png
+  value: 62400
+  lowalch: 24960
+  highalch: 37440
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

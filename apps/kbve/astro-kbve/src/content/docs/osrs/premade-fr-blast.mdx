@@ -1,0 +1,37 @@
+---
+title: Premade fr' blast | OSRS Price Data
+description: "Premade fr' blast: A premade Fruit Blast.. High alch: 18 GP, GE limit: 2,000."
+osrs:
+  id: 2034
+  name: Premade fr' blast
+  slug: premade-fr-blast
+  examine: A premade Fruit Blast.
+  members: true
+  icon: Premade fr' blast.png
+  value: 30
+  lowalch: 12
+  highalch: 18
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

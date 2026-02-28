@@ -1,0 +1,56 @@
+---
+interface Props {
+	htmlCode: string;
+}
+
+const { htmlCode } = Astro.props;
+const uniqueId = `devcode-${Math.random().toString(36).substring(2, 11)}`;
+---
+
+<div
+	id={uniqueId}
+	class="devcode-container my-6 rounded-lg border border-gray-200 dark:border-gray-700 overflow-hidden">
+	<div
+		class="devcode-preview p-6 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+		<div
+			class="preview-label text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase mb-3">
+			Preview
+		</div>
+		<Fragment set:html={htmlCode} />
+	</div>
+	<div class="devcode-source">
+		<div
+			class="flex items-center justify-between px-4 py-2 bg-gray-100 dark:bg-gray-900">
+			<span
+				class="text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase">
+				HTML
+			</span>
+			<button
+				class="copy-btn text-xs px-2 py-1 rounded bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 text-gray-700 dark:text-gray-300 transition-colors"
+				data-code={htmlCode}>
+				Copy
+			</button>
+		</div>
+		<pre
+			class="m-0 p-4 bg-gray-50 dark:bg-gray-950 overflow-x-auto"><code class="text-sm text-gray-800 dark:text-gray-200">{htmlCode}</code></pre>
+	</div>
+</div>
+
+<script is:inline define:vars={{ uniqueId }}>
+	const container = document.getElementById(uniqueId);
+	if (container) {
+		const btn = container.querySelector('.copy-btn');
+		if (btn && !btn.hasAttribute('data-initialized')) {
+			btn.setAttribute('data-initialized', 'true');
+			btn.addEventListener('click', async () => {
+				const code = btn.getAttribute('data-code') || '';
+				await navigator.clipboard.writeText(code);
+				const originalText = btn.textContent;
+				btn.textContent = 'Copied!';
+				setTimeout(() => {
+					btn.textContent = originalText;
+				}, 2000);
+			});
+		}
+	}
+</script>

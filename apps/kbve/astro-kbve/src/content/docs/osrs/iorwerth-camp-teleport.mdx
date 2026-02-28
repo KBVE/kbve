@@ -1,0 +1,37 @@
+---
+title: Iorwerth camp teleport | OSRS Price Data
+description: "Iorwerth camp teleport: Teleports you to the Iorwerth Camp.. High alch: 6 GP, GE limit: 10,000."
+osrs:
+  id: 12410
+  name: Iorwerth camp teleport
+  slug: iorwerth-camp-teleport
+  examine: Teleports you to the Iorwerth Camp.
+  members: true
+  icon: Iorwerth camp teleport.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

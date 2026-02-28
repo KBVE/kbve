@@ -1,0 +1,128 @@
+---
+title: 'Gin'
+description: |
+    A clear, fragrant spirit infused with juniper berries and botanical madness. 
+    Smoother than truth and sharper than betrayal.
+id: 'gin'
+key: 43
+ref: '01J2GHZQ9CXY89NB7NS5Q2DRGN'
+name: 'Gin'
+type: 'Drink'
+category: 392
+img: '/assets/items/skills/cooking/materials/liquor/gin.png'
+pixelDensity: 32
+sortingLayer: Ground
+sortingOrder: 51
+consumable: true
+stackable: true
+rarity: 'Uncommon'
+weight: 0.75
+effects: 'Increases charm and clarity briefly, but risks hallucination or truth leaks.'
+price: 140
+durability: 1
+equipped: false
+levelRequirement: 2
+cooldown: 60
+action: 'consume'
+credits: |
+    Art by KBVE Pixel Workshop.
+bonuses:
+    charm: 2
+    perception: 1
+    hallucinationChance: true
+scripts:
+    - guid: 'fd49c54d37de48cb8703e8b63e832a12'
+      vars:
+            buffDuration: 90
+            effectRisk: 'hallucination'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Gin** is not a drink for warriors but rather a diplomat's dagger in a glass.
+Infused with fragrant botanicals and fermented regrets, it sharpens social instincts while fraying the veil between truths.
+Crafted in copper coils by botanists and liars. 
+A staple of dystopian salons and rebel diplomats. 
+
+Best sipped when plotting, deceiving, or seducing intel.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+## Usage
+
+- Grants **+{frontmatter.bonuses.charm} charm** and **+{frontmatter.bonuses.perception} perception**  
+- Has a **chance to trigger hallucinations or leaks of hidden truths**  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Preferred drink of elite smugglers and network infiltrators  
+- Can be mixed into *Truth Serum Tonic*, *Martini Protocols*, or *Floral Explosives*  
+- Best used in low-noise environments due to speech slurring or spontaneous riddles
+
+---
+
+## Lore
+
+> “He offered me gin and asked no questions. That was the first question.”  
+> - Excerpt from *The Botanist's Interrogation*
+
+Gin's origins are tangled with witchcraft, alchemy, and espionage.
+It's banned in three cities and worshipped in two.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/gin_tumbler.webp"
+  defaultId="01HTXYZGIN001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZGIN001',
+      title: 'Fragrance Uncorked',
+      description: 'You pop the bottle. A floral sting rises.',
+      image: 'https://images.unsplash.com/photo-1599488615732-580fe214e592?q=80&w=500&auto=format&fit=crop',
+      message: 'Your thoughts swirl into patterns.',
+      choices: [
+        { label: 'Drink slowly.', nextId: '01HTXYZGIN002' },
+        { label: 'Use in ritual crafting.', nextId: '01HTXYZGIN003' }
+      ]
+    },
+    {
+      id: '01HTXYZGIN002',
+      title: 'Clarity & Confusion',
+      description: 'You feel clear. And then too clear.',
+      image: '/images/scene_gin_drink.jpg',
+      message: 'You charm the air. And suspect it charms back.'
+    },
+    {
+      id: '01HTXYZGIN003',
+      title: 'Alchemical Touch',
+      description: 'The gin reacts. So does reality.',
+      image: '/images/scene_gin_craft.jpg',
+      message: 'Aroma alone causes mild revelations.'
+    }
+  ]}
+/>
+
+<Adsense />
+
+---
+
+## DevLog
+
+- 05/30/2025 - Gin added as charm/perception drink with botanical flavor, hallucination risk, and crafting potential

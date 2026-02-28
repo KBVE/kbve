@@ -1,0 +1,37 @@
+---
+title: Repair kit | OSRS Price Data
+description: "Repair kit: A simple wooden boat repair kit.. High alch: 90 GP, GE limit: 13,000."
+osrs:
+  id: 31964
+  name: Repair kit
+  slug: repair-kit
+  examine: A simple wooden boat repair kit.
+  members: true
+  icon: Repair kit.png
+  value: 150
+  lowalch: 60
+  highalch: 90
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,85 @@
+---
+title: 'March: 29'
+category: Daily
+date: 2025-03-29 12:00:00
+client: Self
+unsplash: 1615563821068-a15bbe32b305
+img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    29th of March.
+tags:
+    - daily
+---
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+
+## Notes
+
+## 2025
+
+### Warcraft Hardcore
+
+-   05:49AM
+
+    Level 34 Mage Hardcore!
+    Lets go? Magi for the win?!
+
+### Sidecar
+
+-   06:36AM
+
+    Updating the `sidecar.rs` in the Jedi crate for the twitch relay!
+    Besides wrapping around the login, I find the development cycle to be way too slow and annoying, hmm.
+    Maybe the best way to load the env variables for the twitch bot might be through the postgres / supabase secrets?
+    But if I go down that path, then I have to peddle back and finish up the supabase integration, ugh!
+    I was reading up on Nix, maybe that might be the next route in my development journey.
+
+### Unity
+
+-   03:57PM
+
+    Saturday means Unity!
+    We will be looking at another unity session, hopefully one that will go nice and smooth this time around.
+    To be honest, I been slacking on the unity side, so I should spend a weekend or two catching myself up and finally resolving that javascript ffi issue.
+    Before the session starts, let me do a quick webgl build and see where we stand.
+
+-   04:28PM
+
+    Unity WebGL build is failing but I can not tell exactly where the dev build is failing.
+    The error logs are all over the place, maybe I have some old cache data?
+    Best bet would be to clean it all up and try again, I was making room earlier and maybe I might have removed something important.
+
+## 2024
+
+
+### Ruffle
+
+There was some issues with Ruffle being loaded twice! So it seems that there might be issues in the future with how we load the library, but for now I was able to get it working again.
+
+This can be an interesting test case for future problems that I need to break down, including the dynamic loading of certain types of content, including the phaser or adsense.
+
+The core of the problem was that it was importing and registering the `astro-ruffle` twice, once from the `astro-ve` library and then again with our custom library. The solution, at least in the future, would be to extend the `astro-ve` ruffle component, rather than use the one that we are using,
+Yet I feel like that a decent amount of the content does not need to be included inside of the library, as it is a waste of time for everyone involved, mainly because it feels like its an offset library that I do not plan on using on any other website.
+
+Lets go ahead and push this all up the CI/CD and make sure that it works in the production phase.
+
+
+### Applications
+
+The next part of the application process would be to setup a `video` embed, which I am going to do next!
+Okay so the bento grid needs to be updated and the dark theme needs to be stripped out, partly because we do not need to support a light theme.
+I rather just stick with one universal theme and focus on that point, maybe later on we can use dynamic colors to help with the light shifting?
+
+The `dark:` tailwindcss has been stripped out from the `bento` and now we can focus on the line clamping.
+
+
+
+### Blog
+
+Going to migrate a decent amount of the blog posts, :O that I have saved throughout the decade of time, into their new home directory.
+I honestly hope that I do not have to do this again, any time in the future.
+
+Currently the only one that I will migrate for tonight will be `theorycraft`.
+

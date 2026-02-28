@@ -1,0 +1,130 @@
+---
+title: Pegasian boots | OSRS Price Data
+description: "Pegasian boots is a members feet slot item requiring 60 Magic. High alch: 45,000 GP, GE limit: 15."
+osrs:
+  id: 13237
+  name: Pegasian boots
+  slug: pegasian-boots
+  examine: A pair of upgraded ranger boots.
+  members: true
+  icon: Pegasian boots.png
+  value: 75000
+  lowalch: 30000
+  highalch: 45000
+  limit: 15
+  equipment:
+    slot: feet
+    type: boots
+    attack_style: ranged
+    requirements:
+      magic: 60
+      runecraft: 60
+    stats:
+      attack_ranged: 12
+      defence_ranged: 5
+      defence_stab: 5
+      defence_slash: 5
+      defence_crush: 5
+      attack_magic: -12
+  recipes:
+    - skill: crafting
+      level: 1
+      xp: 200
+      materials:
+        - item_name: Ranger boots
+          item_id: 2577
+          quantity: 1
+        - item_name: Pegasian crystal
+          item_id: 13229
+          quantity: 1
+      product: Pegasian boots
+      product_id: 13237
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 13235
+      item_name: Eternal boots
+      slug: eternal-boots
+      relationship: alternative
+      description: Magic variant
+    - item_id: 13239
+      item_name: Primordial boots
+      slug: primordial-boots
+      relationship: alternative
+      description: Melee variant
+    - item_id: 13229
+      item_name: Pegasian crystal
+      slug: pegasian-crystal
+      relationship: component
+      description: From Cerberus
+    - item_id: 2577
+      item_name: Ranger boots
+      slug: ranger-boots
+      relationship: component
+      description: Base boots (medium clues)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Combine Ranger boots + Pegasian crystal.
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 60 |
+| Runecraft | 60 |
+| XP | 200 Magic, 200 Runecraft |
+
+**Process is irreversible.**
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged attack | +12 |
+| Ranged defence | +5 |
+| All defence | +5 |
+| Magic attack | -12 |
+
+**Second-best ranged boots** (behind Avernic treads)
+
+## Usage
+
+BiS ranged boots for:
+- All ranged combat
+- Slayer
+- Bossing
+- Raids
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~22.9M gp
+
+**Tips:**
+- Ranger boots are expensive base (~38M)
+- Crystal from Cerberus (~5M)
+- Total cost can exceed finished boots
+
+<Adsense />
