@@ -58,6 +58,11 @@ pub struct GameCardTemplate {
     // Room
     pub room_badges: Vec<RoomBadge>,
     pub turn: u32,
+
+    // Party indicator
+    pub is_party_mode: bool,
+    pub party_count: usize,
+    pub party_alive: usize,
 }
 
 // ── Helpers ─────────────────────────────────────────────────────────
@@ -281,6 +286,10 @@ impl GameCardTemplate {
 
             room_badges: build_room_badges(session),
             turn: session.turn,
+
+            is_party_mode: session.mode == SessionMode::Party,
+            party_count: session.players.len(),
+            party_alive: session.players.values().filter(|p| p.alive).count(),
         }
     }
 }
@@ -345,7 +354,6 @@ mod tests {
             room: super::super::content::generate_room(0),
             log: Vec::new(),
             show_items: false,
-            member_status: None,
         }
     }
 

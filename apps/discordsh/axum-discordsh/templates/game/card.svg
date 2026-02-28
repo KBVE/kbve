@@ -87,4 +87,9 @@
 
   <!-- Phase label -->
   <text x="20" y="392" font-family="Alagard, sans-serif" font-size="10" fill="#555555">{{ phase_label }}</text>
+
+  {% if is_party_mode %}
+  <!-- Party indicator -->
+  <text x="400" y="392" text-anchor="middle" font-family="Alagard, sans-serif" font-size="10" fill="#9b59b6">Party {{ party_alive }}/{{ party_count }}</text>
+  {% endif %}
 </svg>

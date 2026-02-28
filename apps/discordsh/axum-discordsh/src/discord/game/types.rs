@@ -148,6 +148,7 @@ pub struct PlayerState {
     pub inventory: Vec<ItemStack>,
     pub accuracy: f32,
     pub alive: bool,
+    pub member_status: MemberStatusTag,
 }
 
 impl Default for PlayerState {
@@ -162,6 +163,7 @@ impl Default for PlayerState {
             inventory: Vec::new(),
             accuracy: 1.0,
             alive: true,
+            member_status: MemberStatusTag::Guest,
         }
     }
 }
@@ -293,7 +295,6 @@ pub struct SessionState {
     pub room: RoomState,
     pub log: Vec<String>,
     pub show_items: bool,
-    pub member_status: Option<MemberStatusTag>,
 }
 
 impl SessionState {
@@ -321,6 +322,18 @@ impl SessionState {
     /// Check if all players are dead.
     pub fn all_players_dead(&self) -> bool {
         self.players.values().all(|p| !p.alive)
+    }
+
+    /// Ordered list of (UserId, &PlayerState) for roster display.
+    /// Owner is always first, then party members in join order.
+    pub fn roster(&self) -> Vec<(serenity::UserId, &PlayerState)> {
+        let mut result = vec![(self.owner, self.owner_player())];
+        for &uid in &self.party {
+            if let Some(player) = self.players.get(&uid) {
+                result.push((uid, player));
+            }
+        }
+        result
     }
 }
 
@@ -352,5 +365,44 @@ mod tests {
         assert!(p.inventory.is_empty());
         assert!(p.effects.is_empty());
         assert!(p.alive);
+        assert_eq!(p.member_status, MemberStatusTag::Guest);
+    }
+
+    #[test]
+    fn roster_owner_first() {
+        use std::time::Instant;
+        let owner = serenity::UserId::new(1);
+        let member = serenity::UserId::new(2);
+        let mut players = HashMap::new();
+        players.insert(owner, PlayerState::default());
+        players.insert(
+            member,
+            PlayerState {
+                name: "Bob".to_owned(),
+                ..PlayerState::default()
+            },
+        );
+        let session = SessionState {
+            id: uuid::Uuid::new_v4(),
+            short_id: "test1234".to_owned(),
+            owner,
+            party: vec![member],
+            mode: SessionMode::Party,
+            phase: GamePhase::Exploring,
+            channel_id: serenity::ChannelId::new(1),
+            message_id: serenity::MessageId::new(1),
+            created_at: Instant::now(),
+            last_action_at: Instant::now(),
+            turn: 0,
+            players,
+            enemy: None,
+            room: super::super::content::generate_room(0),
+            log: Vec::new(),
+            show_items: false,
+        };
+        let roster = session.roster();
+        assert_eq!(roster.len(), 2);
+        assert_eq!(roster[0].0, owner);
+        assert_eq!(roster[1].0, member);
     }
 }

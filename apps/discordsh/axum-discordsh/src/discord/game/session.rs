@@ -126,7 +126,6 @@ mod tests {
             room: content::generate_room(0),
             log: Vec::new(),
             show_items: false,
-            member_status: None,
         }
     }
 

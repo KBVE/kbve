@@ -4,6 +4,40 @@ use rand::Rng;
 use super::content;
 use super::types::*;
 
+// ── Enemy targeting ─────────────────────────────────────────────────
+
+/// Pick an enemy target: 50% the acting player, 50% a random alive party member.
+/// In solo mode, always targets the actor.
+fn pick_enemy_target(session: &SessionState, actor: serenity::UserId) -> serenity::UserId {
+    if session.mode == SessionMode::Solo {
+        return actor;
+    }
+
+    let alive_players: Vec<serenity::UserId> = session
+        .players
+        .iter()
+        .filter(|(_, p)| p.alive)
+        .map(|(uid, _)| *uid)
+        .collect();
+
+    if alive_players.len() <= 1 {
+        return actor;
+    }
+
+    let mut rng = rand::thread_rng();
+    if rng.gen_bool(0.5)
+        && session
+            .players
+            .get(&actor)
+            .map(|p| p.alive)
+            .unwrap_or(false)
+    {
+        return actor;
+    }
+
+    alive_players[rng.gen_range(0..alive_players.len())]
+}
+
 // ── Action validation ───────────────────────────────────────────────
 
 /// Check if the actor is allowed to take actions in this session.
@@ -87,7 +121,8 @@ pub fn apply_action(
             let msg = apply_item(session, item_id, actor)?;
             let mut logs = vec![msg];
             if session.phase == GamePhase::Combat {
-                logs.extend(enemy_turn(session, actor));
+                let target = pick_enemy_target(session, actor);
+                logs.extend(enemy_turn(session, target));
             }
             logs
         }
@@ -197,8 +232,9 @@ fn resolve_combat_turn(
         return logs;
     }
 
-    // Enemy phase — attacks the player who just acted
-    logs.extend(enemy_turn(session, actor));
+    // Enemy phase — targets a party member (50% actor, 50% random alive)
+    let target = pick_enemy_target(session, actor);
+    logs.extend(enemy_turn(session, target));
 
     // Tick player effects (DoT damage)
     let (effect_logs, tick_dmg) = tick_effects(&mut session.player_mut(actor).effects);
@@ -272,6 +308,7 @@ fn enemy_turn(session: &mut SessionState, target: serenity::UserId) -> Vec<Strin
         .fold(1.0f32, |a, b| a * b);
 
     // Read target player stats for damage calculation
+    let target_name = session.player(target).name.clone();
     let target_armor = session.player(target).armor;
     let target_shielded = session
         .player(target)
@@ -294,7 +331,10 @@ fn enemy_turn(session: &mut SessionState, target: serenity::UserId) -> Vec<Strin
                 let final_dmg = if target_shielded { actual / 2 } else { actual };
                 EnemyAction::DealDamage {
                     dmg: final_dmg,
-                    msg: format!("{} attacks for {} damage!", enemy.name, final_dmg),
+                    msg: format!(
+                        "{} attacks {} for {} damage!",
+                        enemy.name, target_name, final_dmg
+                    ),
                 }
             }
             Intent::HeavyAttack { dmg } => {
@@ -303,8 +343,8 @@ fn enemy_turn(session: &mut SessionState, target: serenity::UserId) -> Vec<Strin
                 EnemyAction::DealDamage {
                     dmg: actual,
                     msg: format!(
-                        "{} unleashes a devastating blow for {} damage!",
-                        enemy.name, actual
+                        "{} unleashes a devastating blow on {} for {} damage!",
+                        enemy.name, target_name, actual
                     ),
                 }
             }
@@ -372,10 +412,11 @@ fn enemy_turn(session: &mut SessionState, target: serenity::UserId) -> Vec<Strin
     let player = session.player_mut(target);
     if player.hp <= 0 {
         player.alive = false;
+        let defeated_name = player.name.clone();
         if session.all_players_dead() {
             session.phase = GamePhase::GameOver(GameOverReason::Defeated);
         }
-        logs.push("You have been defeated...".to_owned());
+        logs.push(format!("{} has been defeated...", defeated_name));
     }
 
     logs
@@ -398,9 +439,9 @@ fn resolve_flee(session: &mut SessionState, actor: serenity::UserId) -> Vec<Stri
         session.phase = GamePhase::Exploring;
         vec!["You dash through a narrow passage, escaping the fight!".to_owned()]
     } else {
-        // Failure — enemy gets a free hit
+        // Failure — enemy gets a free hit on the fleeing player
         let mut logs = vec!["You stumble trying to flee! The enemy strikes!".to_owned()];
-        logs.extend(enemy_turn(session, actor));
+        logs.extend(enemy_turn(session, actor)); // Always hits the fleeing player
         logs
     }
 }
@@ -821,7 +862,6 @@ mod tests {
             room: content::generate_room(0),
             log: Vec::new(),
             show_items: false,
-            member_status: None,
         }
     }
 
@@ -1166,6 +1206,64 @@ mod tests {
         let result = apply_action(&mut session, GameAction::Explore, OWNER);
         assert!(result.is_err());
         assert!(result.unwrap_err().contains("defeated"));
+    }
+
+    #[test]
+    fn pick_enemy_target_solo_always_actor() {
+        let session = test_session();
+        for _ in 0..20 {
+            let target = pick_enemy_target(&session, OWNER);
+            assert_eq!(target, OWNER);
+        }
+    }
+
+    #[test]
+    fn pick_enemy_target_party_returns_alive() {
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        let member_id = serenity::UserId::new(42);
+        session.party.push(member_id);
+        session.players.insert(
+            member_id,
+            PlayerState {
+                name: "PartyMember".to_owned(),
+                inventory: content::starting_inventory(),
+                ..PlayerState::default()
+            },
+        );
+
+        let mut saw_owner = false;
+        let mut saw_member = false;
+        for _ in 0..100 {
+            let target = pick_enemy_target(&session, OWNER);
+            assert!(target == OWNER || target == member_id);
+            if target == OWNER {
+                saw_owner = true;
+            }
+            if target == member_id {
+                saw_member = true;
+            }
+        }
+        // With 100 tries at 50/50, both should appear
+        assert!(saw_owner, "Expected owner to be targeted at least once");
+        assert!(saw_member, "Expected member to be targeted at least once");
+    }
+
+    #[test]
+    fn pick_enemy_target_skips_dead() {
+        let mut session = test_session();
+        session.mode = SessionMode::Party;
+        let member_id = serenity::UserId::new(42);
+        session.party.push(member_id);
+        let mut dead_player = PlayerState::default();
+        dead_player.alive = false;
+        session.players.insert(member_id, dead_player);
+
+        // Only owner is alive, so target should always be owner
+        for _ in 0..20 {
+            let target = pick_enemy_target(&session, OWNER);
+            assert_eq!(target, OWNER);
+        }
     }
 
     #[test]
