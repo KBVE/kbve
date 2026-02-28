@@ -1,9 +1,11 @@
 from pydantic import BaseModel, Field
 
+
 class TimeInfo(BaseModel):
     updated: str
     updatedISO: str
     updateduk: str
+
 
 class CurrencyInfo(BaseModel):
     code: str
@@ -12,10 +14,12 @@ class CurrencyInfo(BaseModel):
     description: str
     rate_float: float
 
+
 class BitcoinPriceIndex(BaseModel):
     USD: CurrencyInfo
     GBP: CurrencyInfo
     EUR: CurrencyInfo
+
 
 class CoinDeskAPIResponse(BaseModel):
     time: TimeInfo

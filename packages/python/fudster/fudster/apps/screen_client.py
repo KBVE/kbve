@@ -4,6 +4,8 @@ import random
 import math
 import tempfile
 
+from ..api.utils import ImageUtility
+
 logger = logging.getLogger("uvicorn")
 
 try:
@@ -16,8 +18,6 @@ except ImportError:
     cv2 = None
     np = None
     SystemCursor = None
-
-from ..api.utils import ImageUtility
 
 
 class ScreenClient:
@@ -69,7 +69,10 @@ class ScreenClient:
                 cursor = SystemCursor()
                 cursor.click_on([click_x, click_y])
 
-                logger.info(f"Clicked at position: ({click_x}, {click_y}) with offset ({random_offset_x}, {random_offset_y})")
+                logger.info(
+                    f"Clicked at position: ({click_x}, {click_y}) "
+                    f"with offset ({random_offset_x}, {random_offset_y})"
+                )
                 return "Click successful"
             else:
                 error_msg = "Image not found with sufficient confidence."

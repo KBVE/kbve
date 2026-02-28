@@ -1,6 +1,7 @@
 import importlib
 from fastapi import FastAPI, HTTPException
 
+
 class DynamicEndpoint:
     def __init__(self, app: FastAPI):
         self.app = app

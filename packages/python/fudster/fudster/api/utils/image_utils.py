@@ -12,6 +12,7 @@ try:
 except ImportError:
     cv2 = None
 
+
 class ImageUtility:
     def __init__(self, cache_dir="image_cache", timeout=10):
         self.cache_dir = cache_dir

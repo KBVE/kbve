@@ -7,6 +7,7 @@ import logging
 
 logger = logging.getLogger("uvicorn")
 
+
 class GroqClient(APIConnector):
     def __init__(self, api_key: str = None):
         super().__init__("https://rust.kbve.com/api/v1")
@@ -31,7 +32,10 @@ class GroqClient(APIConnector):
             raise
         return groq_response
 
-    async def groq_process_pathways(self, pathways: dict, pathway: str, payload: AiGroqPayload, max_calls: int = 5) -> GroqResponse:
+    async def groq_process_pathways(
+        self, pathways: dict, pathway: str,
+        payload: AiGroqPayload, max_calls: int = 5
+    ) -> GroqResponse:
         current_pathway = pathway
         for _ in range(max_calls):
             if current_pathway not in pathways:

@@ -49,7 +49,8 @@ class ChromeClient:
             for job_listing in section.find_all("div", class_="opening"):
                 job_title = job_listing.find("a").get_text(strip=True) if job_listing.find("a") else "No Title"
                 job_link = job_listing.find("a")["href"] if job_listing.find("a") else ""
-                location = job_listing.find("span", class_="location").get_text(strip=True) if job_listing.find("span", class_="location") else "No Location"
+                loc_span = job_listing.find("span", class_="location")
+                location = loc_span.get_text(strip=True) if loc_span else "No Location"
 
                 job_data.append({
                     "department": department_name,

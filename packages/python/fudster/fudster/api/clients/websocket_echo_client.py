@@ -1,5 +1,6 @@
 from ..api_connector import APIConnector
 
+
 class WebsocketEchoClient(APIConnector):
     """
     A client for interacting with a WebSocket echo server.
