@@ -1,6 +1,6 @@
 [package]
 name = "kbve-mc-plugin"
-version = "0.1.8"
+version = "0.1.9"
 edition = "2024"
 rust-version = "1.89"
 
@@ -23,6 +23,7 @@ askama = "0.15.4"
 tower-http = { version = "0.6.8", features = ["fs", "compression-full", "set-header"] }
 tower = { version = "0.5.3", features = ["util"] }
 dashmap = "6"
+uuid = "1"
 serde_json = "1"
 ureq = "3"
 

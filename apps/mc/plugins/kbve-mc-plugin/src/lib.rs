@@ -2,6 +2,7 @@
 
 #[macro_use]
 mod macros;
+mod stats;
 mod web;
 
 use std::sync::atomic::{AtomicBool, AtomicU64, Ordering};
@@ -348,6 +349,14 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                 }
             }
 
+            // Initialize character stats, show sidebar + XP boss bar by default
+            let uuid_bits = player.gameprofile.id.as_u128();
+            let char_data = stats::CharacterData::default();
+            stats::PLAYER_STATS.insert(uuid_bits, char_data.clone());
+            stats::send_stats_sidebar(&player, &char_data).await;
+            stats::SIDEBAR_VISIBLE.insert(uuid_bits, true);
+            stats::send_xp_bossbar(&player, &char_data).await;
+
             info!(
                 "WelcomeHandler for {name} completed in {:.1?}",
                 handler_start.elapsed()
@@ -371,7 +380,10 @@ impl EventHandler<PlayerLeaveEvent> for LeaveHandler {
         let player = Arc::clone(&event.player);
         Box::pin(async move {
             let name = &player.gameprofile.name;
+            let uuid_bits = player.gameprofile.id.as_u128();
             web::ONLINE_PLAYERS.remove(name);
+            stats::remove_xp_bossbar(&player).await;
+            stats::cleanup_player(uuid_bits);
             info!(
                 "Player left: {name} (online: {})",
                 web::ONLINE_PLAYERS.len()
@@ -745,7 +757,10 @@ fn kbve_command_tree() -> CommandTree {
             ),
         );
     }
-    CommandTree::new(["kbve"], "KBVE custom items").then(give)
+    let stats_cmd = literal("stats").execute(stats::StatsCommandExecutor);
+    CommandTree::new(["kbve"], "KBVE custom items")
+        .then(give)
+        .then(stats_cmd)
 }
 
 // ---------------------------------------------------------------------------
@@ -896,6 +911,21 @@ impl EventHandler<PlayerRespawnEvent> for RespawnHandler {
                         .color_named(NamedColor::Green),
                 )
                 .await;
+
+            // Remove old boss bar before re-sending (prevents stacking)
+            stats::remove_xp_bossbar(&player).await;
+            let uuid_bits = player.gameprofile.id.as_u128();
+            if let Some(data) = stats::PLAYER_STATS.get(&uuid_bits) {
+                stats::send_xp_bossbar(&player, &data).await;
+                // Re-send sidebar if it was visible
+                if stats::SIDEBAR_VISIBLE
+                    .get(&uuid_bits)
+                    .map(|v| *v)
+                    .unwrap_or(false)
+                {
+                    stats::send_stats_sidebar(&player, &data).await;
+                }
+            }
         })
     }
 }
