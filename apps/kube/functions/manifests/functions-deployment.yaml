@@ -12,48 +12,13 @@ spec:
         metadata:
             labels:
                 app: functions
+            annotations:
+                rollout-restart: '2026-02-28T00:00:00Z'
         spec:
-            initContainers:
-                - name: setup-functions
-                  image: busybox:latest
-                  command:
-                      - sh
-                      - -c
-                      - |
-                          echo "Setting up Edge Functions directory structure..."
-                          mkdir -p /home/deno/functions/main
-                          mkdir -p /home/deno/functions/vault-reader
-                          mkdir -p /home/deno/functions/_shared
-
-                          if [ -f /config/main-index.ts ]; then
-                            cp /config/main-index.ts /home/deno/functions/main/index.ts
-                            echo "Copied main function"
-                          fi
-
-                          if [ -f /config/vault-reader-index.ts ]; then
-                            cp /config/vault-reader-index.ts /home/deno/functions/vault-reader/index.ts
-                            echo "Copied vault-reader function"
-                          fi
-
-                          if [ -f /config/shared-cors.ts ]; then
-                            cp /config/shared-cors.ts /home/deno/functions/_shared/cors.ts
-                            echo "Copied shared CORS configuration"
-                          fi
-
-                          echo "Functions setup complete. Directory structure:"
-                          ls -la /home/deno/functions/
-                          ls -la /home/deno/functions/main/
-                          ls -la /home/deno/functions/vault-reader/
-                          ls -la /home/deno/functions/_shared/
-                  volumeMounts:
-                      - name: functions-config
-                        mountPath: /config
-                      - name: functions-dir
-                        mountPath: /home/deno/functions
             containers:
                 - name: edge-functions
-                  image: supabase/edge-runtime:v1.69.6
-                  imagePullPolicy: IfNotPresent
+                  image: ghcr.io/kbve/edge:latest
+                  imagePullPolicy: Always
                   command:
                       - 'edge-runtime'
                       - 'start'
@@ -89,11 +54,6 @@ spec:
                                 key: secret-key
                       - name: VERIFY_JWT
                         value: 'true'
-                      - name: RELEASE_TRIGGER
-                        value: '2025-09-03-004'
-                  volumeMounts:
-                      - name: functions-dir
-                        mountPath: /home/deno/functions
                   resources:
                       requests:
                           memory: '256Mi'
@@ -101,9 +61,3 @@ spec:
                       limits:
                           memory: '512Mi'
                           cpu: '500m'
-            volumes:
-                - name: functions-config
-                  configMap:
-                      name: custom-functions
-                - name: functions-dir
-                  emptyDir: {}

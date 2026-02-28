@@ -20,30 +20,33 @@
     Room {{ room_number }}: {{ room_name }}
   </text>
 
-  <!-- ─── Player Panel (left) ─── -->
-  <text x="30" y="85" font-family="Alagard, sans-serif" font-size="18" fill="#e0e0e0">{{ player_name }}</text>
-
-  <!-- Player HP bar -->
-  <rect x="30" y="96" width="340" height="22" rx="4" fill="#2a2a3a"/>
-  <rect x="30" y="96" width="{{ player_hp_width }}" height="22" rx="4" fill="{{ player_hp_color }}"/>
-  <text x="200" y="112" text-anchor="middle" font-family="Alagard, sans-serif" font-size="14" fill="#ffffff">
-    HP {{ player_hp }}/{{ player_max_hp }}
-  </text>
-
-  <!-- Player DEF + Gold -->
-  <!-- Shield icon -->
-  <path d="M42,140 L30,148 L30,155 C30,162 36,168 42,170 C48,168 54,162 54,155 L54,148 Z" fill="#5dade2" opacity="0.8"/>
-  <text x="60" y="160" font-family="Alagard, sans-serif" font-size="14" fill="#5dade2">DEF {{ player_armor }}</text>
-
-  <!-- Gold coin -->
-  <circle cx="145" cy="155" r="10" fill="#f1c40f" opacity="0.8"/>
-  <text x="142" y="159" text-anchor="middle" font-family="Alagard, sans-serif" font-size="10" fill="#8b6914" font-weight="bold">G</text>
-  <text x="162" y="160" font-family="Alagard, sans-serif" font-size="14" fill="#f1c40f">{{ player_gold }}</text>
-
-  <!-- Player effects -->
-  {% for effect in player_effects %}
-  <circle cx="{{ effect.x }}" cy="190" r="7" fill="{{ effect.color }}"/>
-  <text x="{{ effect.label_x }}" y="194" font-family="Alagard, sans-serif" font-size="10" fill="#cccccc">{{ effect.label }} {{ effect.turns }}t</text>
+  <!-- ─── Player Panel(s) (left) ─── -->
+  {% for p in players %}
+  {% if p.compact %}
+  <!-- Compact player: {{ p.name }} -->
+  <text x="30" y="{{ p.y_name }}" font-family="Alagard, sans-serif" font-size="13" fill="{% if p.alive %}#e0e0e0{% else %}#666666{% endif %}">{{ p.name }}{% if !p.alive %} [DEFEATED]{% endif %}</text>
+  <rect x="30" y="{{ p.y_bar }}" width="340" height="16" rx="3" fill="#2a2a3a"/>
+  {% if p.alive %}<rect x="30" y="{{ p.y_bar }}" width="{{ p.hp_width }}" height="16" rx="3" fill="{{ p.hp_color }}"/>{% endif %}
+  <text x="200" y="{{ p.y_bar_text }}" text-anchor="middle" font-family="Alagard, sans-serif" font-size="11" fill="#ffffff">HP {{ p.hp }}/{{ p.max_hp }}</text>
+  <text x="30" y="{{ p.y_stats }}" font-family="Alagard, sans-serif" font-size="11" fill="#5dade2">DEF {{ p.armor }}</text>
+  <text x="120" y="{{ p.y_stats }}" font-family="Alagard, sans-serif" font-size="11" fill="#f1c40f">Gold {{ p.gold }}</text>
+  {% for effect in p.effects %}
+  <circle cx="{{ effect.x }}" cy="{{ p.y_effects }}" r="5" fill="{{ effect.color }}"/>
+  <text x="{{ effect.label_x }}" y="{{ p.y_effects_text }}" font-family="Alagard, sans-serif" font-size="9" fill="#cccccc">{{ effect.label }} {{ effect.turns }}t</text>
+  {% endfor %}
+  {% else %}
+  <!-- Full player: {{ p.name }} -->
+  <text x="30" y="{{ p.y_name }}" font-family="Alagard, sans-serif" font-size="18" fill="{% if p.alive %}#e0e0e0{% else %}#666666{% endif %}">{{ p.name }}{% if !p.alive %} [DEFEATED]{% endif %}</text>
+  <rect x="30" y="{{ p.y_bar }}" width="340" height="22" rx="4" fill="#2a2a3a"/>
+  {% if p.alive %}<rect x="30" y="{{ p.y_bar }}" width="{{ p.hp_width }}" height="22" rx="4" fill="{{ p.hp_color }}"/>{% endif %}
+  <text x="200" y="{{ p.y_bar_text }}" text-anchor="middle" font-family="Alagard, sans-serif" font-size="14" fill="#ffffff">HP {{ p.hp }}/{{ p.max_hp }}</text>
+  <text x="30" y="{{ p.y_stats }}" font-family="Alagard, sans-serif" font-size="14" fill="#5dade2">DEF {{ p.armor }}</text>
+  <text x="140" y="{{ p.y_stats }}" font-family="Alagard, sans-serif" font-size="14" fill="#f1c40f">Gold {{ p.gold }}</text>
+  {% for effect in p.effects %}
+  <circle cx="{{ effect.x }}" cy="{{ p.y_effects }}" r="7" fill="{{ effect.color }}"/>
+  <text x="{{ effect.label_x }}" y="{{ p.y_effects_text }}" font-family="Alagard, sans-serif" font-size="10" fill="#cccccc">{{ effect.label }} {{ effect.turns }}t</text>
+  {% endfor %}
+  {% endif %}
   {% endfor %}
 
   {% if has_enemy %}
