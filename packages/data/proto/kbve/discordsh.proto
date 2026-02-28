@@ -1,0 +1,179 @@
+syntax = "proto3";
+
+package kbve.discordsh;
+
+import "kbve/common.proto";
+
+// =============================================================================
+// Enums
+// =============================================================================
+
+// Server lifecycle / moderation status
+enum ServerStatus {
+  SERVER_STATUS_UNSPECIFIED = 0;
+  SERVER_STATUS_ACTIVE = 1;       // Live and visible in directory
+  SERVER_STATUS_PENDING = 2;      // Awaiting moderation review
+  SERVER_STATUS_HIDDEN = 3;       // Hidden by owner or soft-removed
+  SERVER_STATUS_BANNED = 4;       // Hard-removed by admin
+}
+
+// Server category (maps to SMALLINT in SQL)
+enum ServerCategory {
+  SERVER_CATEGORY_UNSPECIFIED = 0;
+  SERVER_CATEGORY_GAMING = 1;
+  SERVER_CATEGORY_ANIME = 2;
+  SERVER_CATEGORY_MUSIC = 3;
+  SERVER_CATEGORY_TECH = 4;
+  SERVER_CATEGORY_ART = 5;
+  SERVER_CATEGORY_EDUCATION = 6;
+  SERVER_CATEGORY_SOCIAL = 7;
+  SERVER_CATEGORY_PROGRAMMING = 8;
+  SERVER_CATEGORY_MEMES = 9;
+  SERVER_CATEGORY_CRYPTO = 10;
+  SERVER_CATEGORY_ROLEPLAY = 11;
+  SERVER_CATEGORY_NSFW = 12;
+}
+
+// Sort options for server listing
+enum ServerSort {
+  SERVER_SORT_UNSPECIFIED = 0;
+  SERVER_SORT_VOTES = 1;          // Highest vote count
+  SERVER_SORT_MEMBERS = 2;        // Highest member count
+  SERVER_SORT_NEWEST = 3;         // Most recently submitted
+  SERVER_SORT_BUMPED = 4;         // Most recently bumped
+}
+
+// =============================================================================
+// Core Messages
+// =============================================================================
+
+// A Discord server listing in the directory
+message DiscordServer {
+  string server_id = 1;                  // Discord snowflake ID (TEXT PK)
+  string owner_id = 2;                   // Supabase auth.users UUID
+  string name = 3;                       // Server display name (1-100 chars)
+  string summary = 4;                    // Short description (1-200 chars)
+  optional string description = 5;       // Long description (up to 2000 chars)
+  optional string icon_url = 6;          // Server icon CDN URL
+  optional string banner_url = 7;        // Server banner CDN URL
+  string invite_code = 8;                // Discord invite code (alphanumeric)
+
+  // Categorization
+  repeated ServerCategory categories = 9;  // Up to 3 categories (SMALLINT[] in SQL)
+  repeated string tags = 10;              // Free-form tags (up to 10, TEXT[])
+
+  // Denormalized counters
+  int64 vote_count = 11;
+  int64 member_count = 12;
+  bool is_online = 13;
+
+  // Status & timestamps
+  ServerStatus status = 14;
+  string created_at = 15;
+  optional string updated_at = 16;
+  optional string bumped_at = 17;
+}
+
+// A user's vote for a server
+message ServerVote {
+  string id = 1;                    // ULID PK
+  string server_id = 2;            // Discord snowflake FK
+  string user_id = 3;              // Supabase auth.users UUID FK
+  string created_at = 4;
+}
+
+// A server tag (for free-text tagging)
+message ServerTag {
+  string tag = 1;                   // Lowercase slug (1-50 chars)
+  int64 usage_count = 2;           // How many servers use this tag
+}
+
+// =============================================================================
+// Requests / Responses
+// =============================================================================
+
+// --- List servers (feed) ---
+
+message ListServersRequest {
+  int32 limit = 1;                        // Items per page (1-50, default 24)
+  int32 page = 2;                         // Page number (1-based, default 1)
+  ServerSort sort = 3;                    // Sort order
+  optional ServerCategory category = 4;   // Filter by category
+  optional string search = 5;            // Full-text search on name/summary
+}
+
+message ListServersResponse {
+  repeated DiscordServer servers = 1;
+  int32 total = 2;
+  bool has_more = 3;
+}
+
+// --- Get single server ---
+
+message GetServerRequest {
+  string server_id = 1;            // Discord snowflake
+}
+
+message GetServerResponse {
+  bool found = 1;
+  optional DiscordServer server = 2;
+}
+
+// --- Submit a new server ---
+
+message SubmitServerRequest {
+  string server_id = 1;            // Discord snowflake
+  string name = 2;
+  string summary = 3;
+  optional string description = 4;
+  optional string icon_url = 5;
+  optional string banner_url = 6;
+  string invite_code = 7;
+  repeated ServerCategory categories = 8;
+  repeated string tags = 9;
+  int64 member_count = 10;
+}
+
+message SubmitServerResponse {
+  kbve.common.Result result = 1;
+  optional DiscordServer server = 2;
+}
+
+// --- Vote for a server ---
+
+message VoteServerRequest {
+  string server_id = 1;
+}
+
+message VoteServerResponse {
+  kbve.common.Result result = 1;
+  optional ServerVote vote = 2;
+}
+
+// --- Bump a server ---
+
+message BumpServerRequest {
+  string server_id = 1;
+}
+
+message BumpServerResponse {
+  kbve.common.Result result = 1;
+  optional string bumped_at = 2;
+}
+
+// =============================================================================
+// Service
+// =============================================================================
+
+service DiscordShData {
+  // Browse directory
+  rpc ListServers (ListServersRequest) returns (ListServersResponse);
+  rpc GetServer (GetServerRequest) returns (GetServerResponse);
+
+  // Server management
+  rpc SubmitServer (SubmitServerRequest) returns (SubmitServerResponse);
+
+  // Engagement
+  rpc VoteServer (VoteServerRequest) returns (VoteServerResponse);
+  rpc BumpServer (BumpServerRequest) returns (BumpServerResponse);
+}

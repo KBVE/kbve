@@ -1,0 +1,41 @@
+---
+import type { ServerCard } from '@/lib/servers/types';
+import { ReactServerCard } from './ReactServerCard';
+
+interface Props {
+	server: ServerCard;
+}
+
+const { server } = Astro.props;
+---
+
+<div class="server-card-shell">
+	<ReactServerCard client:visible server={server} />
+	<noscript>
+		<div class="server-card-noscript">
+			<strong>{server.name}</strong>
+			<span>{server.summary}</span>
+			<a
+				href={`https://discord.gg/${server.invite_code}`}
+				target="_blank"
+				rel="noopener noreferrer">
+				Join Server
+			</a>
+		</div>
+	</noscript>
+</div>
+
+<style>
+	.server-card-noscript {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+		padding: 1rem;
+		border: 1px solid var(--sl-color-gray-5, #374151);
+		border-radius: 0.75rem;
+		background: var(--sl-color-gray-7, #1f2937);
+	}
+	.server-card-noscript a {
+		color: var(--sl-color-accent, #8b5cf6);
+	}
+</style>
