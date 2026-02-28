@@ -5,7 +5,7 @@ import { CATEGORY_MAP, buildInviteUrl, formatMemberCount } from '@/lib/servers';
 
 interface Props {
 	server: ServerCard;
-	onVote?: (serverId: string) => void;
+	onVote?: (serverId: string) => Promise<boolean>;
 }
 
 const slVar = (name: string, fallback: string) =>
@@ -13,12 +13,18 @@ const slVar = (name: string, fallback: string) =>
 
 export function ReactServerCard({ server, onVote }: Props) {
 	const [voted, setVoted] = useState(false);
+	const [voting, setVoting] = useState(false);
 
-	const handleVote = useCallback(() => {
-		if (voted) return;
-		setVoted(true);
-		onVote?.(server.server_id);
-	}, [voted, onVote, server.server_id]);
+	const handleVote = useCallback(async () => {
+		if (voted || voting || !onVote) return;
+		setVoting(true);
+		try {
+			const success = await onVote(server.server_id);
+			if (success) setVoted(true);
+		} finally {
+			setVoting(false);
+		}
+	}, [voted, voting, onVote, server.server_id]);
 
 	const categoryBadges = server.categories
 		.map((id) => CATEGORY_MAP.get(id))
@@ -180,7 +186,7 @@ export function ReactServerCard({ server, onVote }: Props) {
 				}}>
 				<button
 					onClick={handleVote}
-					disabled={voted}
+					disabled={voted || voting}
 					aria-label={`Vote for ${server.name}`}
 					style={{
 						display: 'flex',
@@ -198,7 +204,8 @@ export function ReactServerCard({ server, onVote }: Props) {
 						color: voted
 							? slVar('accent', '#8b5cf6')
 							: slVar('gray-3', '#9ca3af'),
-						cursor: voted ? 'default' : 'pointer',
+						cursor: voted || voting ? 'default' : 'pointer',
+						opacity: voting ? 0.6 : 1,
 						transition: 'all 0.15s',
 						fontSize: '0.75rem',
 						fontWeight: 600,
