@@ -56,6 +56,47 @@ impl Default for CharacterData {
 }
 
 impl CharacterData {
+    /// Parse a character from the edge function JSON response.
+    /// Falls back to defaults for any missing or invalid fields.
+    pub fn from_edge_json(json: &serde_json::Value) -> Self {
+        let defaults = Self::default();
+        let stats = json.get("base_stats").unwrap_or(json);
+        Self {
+            level: json
+                .get("level")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(defaults.level as i64) as i32,
+            experience: json
+                .get("experience")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(defaults.experience),
+            strength: stats
+                .get("strength")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(defaults.strength as i64) as i32,
+            dexterity: stats
+                .get("dexterity")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(defaults.dexterity as i64) as i32,
+            constitution: stats
+                .get("constitution")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(defaults.constitution as i64) as i32,
+            intelligence: stats
+                .get("intelligence")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(defaults.intelligence as i64) as i32,
+            wisdom: stats
+                .get("wisdom")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(defaults.wisdom as i64) as i32,
+            charisma: stats
+                .get("charisma")
+                .and_then(|v| v.as_i64())
+                .unwrap_or(defaults.charisma as i64) as i32,
+        }
+    }
+
     /// XP required to reach a given level: `(level - 1)^2 * 100`
     pub fn xp_for_level(level: i32) -> i64 {
         let l = (level - 1) as i64;
