@@ -1,0 +1,12 @@
+---
+import Layout from '../layouts/Layout.astro';
+import ReactMemeContent from '../components/feed/ReactMemeContent';
+import { OverlayShell } from '../components/overlay/OverlayShell';
+import ReactNavBar from '../components/navigation/ReactNavBar';
+---
+
+<Layout title="Feed | Meme.sh" description="Swipe through the freshest memes">
+  <ReactNavBar client:only="react" currentPath="/feed" />
+  <ReactMemeContent client:only="react" />
+  <OverlayShell client:only="react" />
+</Layout>

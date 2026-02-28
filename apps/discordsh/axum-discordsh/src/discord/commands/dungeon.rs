@@ -79,6 +79,7 @@ async fn start(
     let player = PlayerState {
         name: player_name,
         inventory: content::starting_inventory(),
+        member_status: member_tag,
         ..PlayerState::default()
     };
 
@@ -100,7 +101,6 @@ async fn start(
         room,
         log: vec!["You descend into The Glass Catacombs...".to_owned()],
         show_items: false,
-        member_status: Some(member_tag),
     };
 
     let components = render::render_components(&session_state);
@@ -192,21 +192,65 @@ async fn join(ctx: Context<'_>) -> Result<(), Error> {
         }
     };
 
+    // Pre-validate with lock, then drop before async membership lookup
+    {
+        let session = handle.lock().await;
+
+        if session.mode != SessionMode::Party {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content(
+                        "This is a solo session. Start a party session with `/dungeon start party`.",
+                    )
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+
+        if session.owner == user || session.party.contains(&user) {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content("You're already in this session.")
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+
+        if session.party.len() >= 3 {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content("Party is full (max 4 players including owner).")
+                    .ephemeral(true),
+            )
+            .await?;
+            return Ok(());
+        }
+    } // Lock dropped here before async lookup
+
+    // Membership lookup for joining player
+    let member_status_raw = ctx.data().app.members.lookup(user.get()).await;
+    let (joiner_name, joiner_tag) = match &member_status_raw {
+        MemberStatus::Member(profile) => (
+            profile
+                .discord_username
+                .clone()
+                .unwrap_or_else(|| ctx.author().name.clone()),
+            MemberStatusTag::Member {
+                username: profile
+                    .discord_username
+                    .clone()
+                    .unwrap_or_else(|| ctx.author().name.clone()),
+            },
+        ),
+        MemberStatus::Guest { .. } => (ctx.author().name.clone(), MemberStatusTag::Guest),
+    };
+
+    // Re-acquire lock and re-validate (another player may have joined)
     let mut session = handle.lock().await;
 
-    if session.mode != SessionMode::Party {
-        ctx.send(
-            poise::CreateReply::default()
-                .content(
-                    "This is a solo session. Start a party session with `/dungeon start party`.",
-                )
-                .ephemeral(true),
-        )
-        .await?;
-        return Ok(());
-    }
-
-    if session.owner == user || session.party.contains(&user) {
+    if session.party.contains(&user) {
         ctx.send(
             poise::CreateReply::default()
                 .content("You're already in this session.")
@@ -228,10 +272,10 @@ async fn join(ctx: Context<'_>) -> Result<(), Error> {
 
     session.party.push(user);
 
-    // Create an independent PlayerState for the new party member
     let joiner_player = PlayerState {
-        name: ctx.author().name.clone(),
+        name: joiner_name,
         inventory: content::starting_inventory(),
+        member_status: joiner_tag,
         ..PlayerState::default()
     };
     session.players.insert(user, joiner_player);
@@ -240,11 +284,30 @@ async fn join(ctx: Context<'_>) -> Result<(), Error> {
         .log
         .push(format!("{} joined the party!", ctx.author().name));
 
+    // Drop lock before sending response
+    drop(session);
+
     ctx.send(
         poise::CreateReply::default()
             .content(format!("{} joined the dungeon party!", ctx.author().name)),
     )
     .await?;
+
+    // One-time guest notice for joining player
+    if let MemberStatus::Guest { notified } = &member_status_raw {
+        if !notified {
+            ctx.send(
+                poise::CreateReply::default()
+                    .content(
+                        "You're playing as a **Guest**. Link your Discord account at \
+                         <https://kbve.com> to unlock Member perks!",
+                    )
+                    .ephemeral(true),
+            )
+            .await?;
+            ctx.data().app.members.mark_notified(user.get());
+        }
+    }
 
     Ok(())
 }

@@ -213,7 +213,6 @@ mod tests {
             room: content::generate_room(0),
             log: vec!["Test session".to_owned()],
             show_items: false,
-            member_status: None,
         };
         state.app.sessions.create(session);
         short_id

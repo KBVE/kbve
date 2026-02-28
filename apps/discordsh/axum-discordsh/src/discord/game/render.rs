@@ -155,42 +155,46 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         embed = embed.image("attachment://game_card.png");
     }
 
-    // Player stats field (owner's stats for Solo, or compact roster for Party)
-    let owner = session.owner_player();
-    let mut player_lines = vec![
-        hp_bar(owner.hp, owner.max_hp, 10),
-        format!("DEF `{}`  Gold `{}`", owner.armor, owner.gold),
-    ];
-    if let Some(fx) = format_effects(&owner.effects) {
-        player_lines.push(format!("Status: {fx}"));
-    }
-    if !owner.alive {
-        player_lines.push("**DEFEATED**".to_owned());
-    }
-    embed = embed.field(
-        format!("-- {} --", owner.name),
-        player_lines.join("\n"),
-        true,
-    );
-
-    // Party roster (compact HP display for non-owner members)
-    if session.mode == SessionMode::Party {
-        let mut roster_lines = Vec::new();
-        for (&uid, player) in &session.players {
-            if uid == session.owner {
-                continue;
+    // Player stats — unified roster in party mode, owner-only in solo
+    if session.mode == SessionMode::Party && session.players.len() > 1 {
+        for (_, player) in session.roster() {
+            let mut lines = vec![
+                hp_bar(player.hp, player.max_hp, 10),
+                format!("DEF `{}`  Gold `{}`", player.armor, player.gold),
+            ];
+            if let Some(fx) = format_effects(&player.effects) {
+                lines.push(format!("Status: {fx}"));
             }
-            let status = if player.alive { "" } else { " [DEAD]" };
-            roster_lines.push(format!(
-                "**{}**{}: {}",
-                player.name,
-                status,
-                hp_bar(player.hp, player.max_hp, 10)
-            ));
+            if !player.alive {
+                lines.push("**DEFEATED**".to_owned());
+            }
+            let member_badge = match &player.member_status {
+                MemberStatusTag::Member { .. } => " [M]",
+                MemberStatusTag::Guest => "",
+            };
+            embed = embed.field(
+                format!("-- {}{} --", player.name, member_badge),
+                lines.join("\n"),
+                true,
+            );
         }
-        if !roster_lines.is_empty() {
-            embed = embed.field("-- Party --", roster_lines.join("\n"), true);
+    } else {
+        let owner = session.owner_player();
+        let mut player_lines = vec![
+            hp_bar(owner.hp, owner.max_hp, 10),
+            format!("DEF `{}`  Gold `{}`", owner.armor, owner.gold),
+        ];
+        if let Some(fx) = format_effects(&owner.effects) {
+            player_lines.push(format!("Status: {fx}"));
         }
+        if !owner.alive {
+            player_lines.push("**DEFEATED**".to_owned());
+        }
+        embed = embed.field(
+            format!("-- {} --", owner.name),
+            player_lines.join("\n"),
+            true,
+        );
     }
 
     // Enemy field (if in combat)
@@ -306,15 +310,28 @@ pub fn render_embed(session: &SessionState, with_card: bool) -> serenity::Create
         embed = embed.field(label, log_display, false);
     }
 
-    // Footer
-    let member_badge = match &session.member_status {
-        Some(MemberStatusTag::Member { username }) => format!("Member: {}", username),
-        Some(MemberStatusTag::Guest) | None => "Guest".to_owned(),
-    };
-    embed = embed.footer(serenity::CreateEmbedFooter::new(format!(
-        "Turn {}  //  Session {}  //  {}",
-        session.turn, session.short_id, member_badge
-    )));
+    // Footer — party roster with membership badges
+    let roster_parts: Vec<String> = session
+        .roster()
+        .iter()
+        .enumerate()
+        .map(|(i, (_, player))| {
+            let badge = match &player.member_status {
+                MemberStatusTag::Member { username } => {
+                    format!("{} -- kbve.com/@{}", player.name, username)
+                }
+                MemberStatusTag::Guest => format!("{} (Guest)", player.name),
+            };
+            format!("[{}] {}", i + 1, badge)
+        })
+        .collect();
+    let footer_text = format!(
+        "Turn {}  //  Session {}\n{}",
+        session.turn,
+        session.short_id,
+        roster_parts.join("  |  ")
+    );
+    embed = embed.footer(serenity::CreateEmbedFooter::new(footer_text));
 
     embed
 }
@@ -486,7 +503,6 @@ mod tests {
             room: super::super::content::generate_room(0),
             log: Vec::new(),
             show_items: false,
-            member_status: None,
         }
     }
 

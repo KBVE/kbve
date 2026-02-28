@@ -1,0 +1,10 @@
+---
+/**
+ * Custom PageSidebar override for Starlight.
+ * TODO: Port full implementation from ~/kbve.com/website/astro/src/components/pagesidebar/PageSidebar.astro
+ */
+import type { Props } from '@astrojs/starlight/props';
+import Default from '@astrojs/starlight/components/PageSidebar.astro';
+---
+
+<Default {...Astro.props}><slot /></Default>
