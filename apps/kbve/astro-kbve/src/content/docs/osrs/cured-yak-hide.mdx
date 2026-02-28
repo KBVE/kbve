@@ -1,0 +1,37 @@
+---
+title: Cured yak-hide | OSRS Price Data
+description: "Cured yak-hide: Ready to be cut and sewn into armour.. High alch: 60 GP, GE limit: 13,000."
+osrs:
+  id: 10820
+  name: Cured yak-hide
+  slug: cured-yak-hide
+  examine: Ready to be cut and sewn into armour.
+  members: true
+  icon: Cured yak-hide.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

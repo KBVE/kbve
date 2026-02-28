@@ -1,0 +1,146 @@
+---
+title: Karil's crossbow | OSRS Price Data
+description: "Karil's crossbow is a members two-handed weapon requiring 70 Ranged. High alch: 96,000 GP, GE limit: 15."
+osrs:
+  id: 4734
+  name: Karil's crossbow
+  slug: karil-s-crossbow
+  examine: Karil the Tainted's repeating crossbow.
+  members: true
+  icon: Karil's crossbow.png
+  value: 160000
+  lowalch: 64000
+  highalch: 96000
+  limit: 15
+  equipment:
+    slot: 2h
+    type: barrows_weapon
+    attack_style: ranged
+    attack_speed: 4
+    attack_range: 8
+    requirements:
+      ranged: 70
+    stats:
+      attack_ranged: 84
+    degradeable: true
+    degrade_hours: 15
+    ammo_type: Bolt rack
+  set_bonus:
+    set_name: Karil's
+    effect: Chance to lower target's Agility
+    aotd_effect: 25% chance for second hit at 50% damage
+  drop_table:
+    sources:
+      - source: Barrows chest
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: 7 × 1/2,448
+        members_only: true
+  related_items:
+    - item_id: 4736
+      item_name: Karil's leathertop
+      slug: karils-leathertop
+      relationship: component
+      description: Set piece
+    - item_id: 11785
+      item_name: Armadyl crossbow
+      slug: armadyl-crossbow
+      relationship: upgrade
+      description: Better alternative
+    - item_id: 4740
+      item_name: Bolt rack
+      slug: bolt-rack
+      relationship: component
+      description: Required ammo
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Ranged - Crossbow |
+| Tradeable | Yes |
+| Weight | 3.628 kg |
+| Attack Speed | 4 tick (2.4s) |
+| Range | 8 tiles |
+
+## Obtaining
+
+Drop from Barrows reward chest.
+
+| Source | Drop Rate |
+|--------|-----------|
+| Barrows chest | 7 × 1/2,448 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged attack | +84 |
+| Ranged strength | +0 |
+
+| Defence | Value |
+|---------|-------|
+| All | +0 |
+
+**Requirements:** 70 Ranged
+
+## Set Effect
+
+**Full Karil's:**
+- Chance to lower target's Agility
+
+**With Amulet of the Damned:**
+- 25% chance for second hit at 50% damage
+
+## Ammunition
+
+Uses Bolt racks - break on use, cannot be recovered.
+
+## Degradation
+
+Degrades over 15 hours of combat.
+
+## Usage
+
+Niche uses:
+- Set effect is unique
+- Fast attack speed
+- Barrows completion
+
+**Generally outclassed by other crossbows.**
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~120K gp
+
+**Tips:**
+- Barrows grind
+- Bolt racks add cost
+- Set effect is situational
+
+<Adsense />

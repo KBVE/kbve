@@ -1,0 +1,37 @@
+---
+title: Musketeer pants | OSRS Price Data
+description: "Musketeer pants: One for all!. High alch: 1,122 GP, GE limit: 4."
+osrs:
+  id: 12443
+  name: Musketeer pants
+  slug: musketeer-pants
+  examine: One for all!
+  members: true
+  icon: Musketeer pants.png
+  value: 1870
+  lowalch: 748
+  highalch: 1122
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

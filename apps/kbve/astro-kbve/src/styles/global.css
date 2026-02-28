@@ -1,41 +1,122 @@
 @layer base, starlight, theme, components, utilities, galaxy, my-overrides;
 
 @import '@astrojs/starlight-tailwind';
-@import 'tailwindcss/theme' layer(theme);
-@import 'tailwindcss/utilities' layer(utilities);
+@import 'tailwindcss/theme.css' layer(theme);
+@import 'tailwindcss/utilities.css' layer(utilities);
 
 :root {
-	--sl-color-accent-low: #1a3a4a;
+	--sl-color-accent-low: #ecfeff;
 	--sl-color-accent: #06b6d4;
-	--sl-color-accent-high: #a5f3fc;
+	--sl-color-accent-high: #0e7490;
+	--sl-color-text-accent: #0891b2;
+	--sl-color-link: #06b6d4;
+	--sl-color-link-hover: #22d3ee;
+	--sl-color-bg-accent: #cffafe;
+	--sl-color-code-bg: #083344;
+	--sl-color-border: #67e8f9;
 }
-
 :root[data-theme='dark'] {
 	--sl-color-accent-low: #083344;
 	--sl-color-accent: #06b6d4;
 	--sl-color-accent-high: #a5f3fc;
+	--sl-color-text-accent: #22d3ee;
+	--sl-color-link: #22d3ee;
+	--sl-color-link-hover: #67e8f9;
+	--sl-color-bg-accent: #164e63;
+	--sl-color-code-bg: #083344;
+	--sl-color-border: #155e75;
 }
 
 @layer utilities {
 	.focus-ring {
-		@apply focus:outline-none focus:ring-2 focus:ring-cyan-500 focus:ring-offset-2;
+		@apply ring-cyan-500 ring-offset-2 focus:outline-none focus-visible:ring-2;
 	}
 }
-
-@layer my-overrides {
-	a.sl-link-button {
-		text-decoration: none;
+@layer components {
+	.sl-link-button {
+		@apply bg-cyan-600 hover:bg-cyan-700 text-white;
 	}
-
 	.sl-markdown-content a {
-		color: var(--sl-color-accent);
-	}
-
-	.sl-markdown-content a:hover {
-		color: var(--sl-color-accent-high);
+		@apply text-cyan-600 hover:text-cyan-700 dark:text-cyan-400 dark:hover:text-cyan-300;
 	}
 }
 
 @view-transition {
 	navigation: auto;
+}
+
+/* OSRS Price Widget Styles */
+@layer components {
+	.osrs-price-widget {
+		@apply rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-4 my-4;
+	}
+
+	.osrs-price-widget--loading,
+	.osrs-price-widget--error {
+		@apply flex items-center justify-center min-h-[100px];
+	}
+
+	.osrs-price-loading {
+		@apply flex items-center gap-2 text-slate-500 dark:text-slate-400;
+	}
+
+	.osrs-price-loading__spinner {
+		@apply w-4 h-4 border-2 border-slate-300 dark:border-slate-600 border-t-cyan-500 rounded-full animate-spin;
+	}
+
+	.osrs-price-error {
+		@apply flex items-center gap-2 text-red-600 dark:text-red-400;
+	}
+
+	.osrs-price-error__icon {
+		@apply w-6 h-6 rounded-full bg-red-100 dark:bg-red-900/30 flex items-center justify-center font-bold text-sm;
+	}
+
+	.osrs-price-error__retry {
+		@apply ml-2 px-2 py-1 text-sm bg-slate-200 dark:bg-slate-700 hover:bg-slate-300 dark:hover:bg-slate-600 rounded transition-colors;
+	}
+
+	.osrs-price-grid {
+		@apply grid grid-cols-1 sm:grid-cols-3 gap-3;
+	}
+
+	.osrs-price-card {
+		@apply rounded-md p-3 text-center;
+	}
+
+	.osrs-price-card--buy {
+		@apply bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800;
+	}
+
+	.osrs-price-card--sell {
+		@apply bg-green-50 dark:bg-green-900/20 border border-green-200 dark:border-green-800;
+	}
+
+	.osrs-price-card--avg {
+		@apply bg-cyan-50 dark:bg-cyan-900/20 border border-cyan-200 dark:border-cyan-800;
+	}
+
+	.osrs-price-card__label {
+		@apply text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 mb-1;
+	}
+
+	.osrs-price-card__value {
+		@apply text-lg font-bold text-slate-900 dark:text-slate-100;
+	}
+
+	.osrs-price-card__gp {
+		@apply text-sm font-normal text-amber-600 dark:text-amber-400;
+	}
+
+	.osrs-price-card__time {
+		@apply text-xs text-slate-500 dark:text-slate-400 mt-1;
+	}
+
+	.osrs-price-footer {
+		@apply flex flex-wrap items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-200 dark:border-slate-700 text-xs text-slate-500 dark:text-slate-400;
+	}
+
+	.osrs-price-footer__refresh {
+		@apply px-2 py-1 bg-cyan-100 dark:bg-cyan-900/30 hover:bg-cyan-200 dark:hover:bg-cyan-800/50 text-cyan-700 dark:text-cyan-300 rounded transition-colors;
+	}
 }

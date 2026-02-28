@@ -1,10 +1,38 @@
 ---
-/**
- * Custom PageSidebar override for Starlight.
- * TODO: Port full implementation from ~/kbve.com/website/astro/src/components/pagesidebar/PageSidebar.astro
- */
-import type { Props } from '@astrojs/starlight/props';
 import Default from '@astrojs/starlight/components/PageSidebar.astro';
+import { PageGraph, PageBacklinks } from 'starlight-site-graph/components';
 ---
 
-<Default {...Astro.props}><slot /></Default>
+<div class="mx-auto p-3">
+	<a
+		href="https://store.steampowered.com/app/2238370/"
+		target="_blank"
+		rel="noopener noreferrer"
+		class="inline-block group transition-transform hover:scale-105 focus-visible:outline-none">
+		<div
+			class="w-64 h-64 p-1 bg-gradient-to-br from-cyan-400/30 to-zinc-800/60 rounded-2xl shadow-lg hover:shadow-cyan-500/30 transition duration-300">
+			<img
+				src="/assets/images/brand/rareicon/rareicon_wishlist.webp"
+				alt="Wishlist on Steam"
+				class="w-full h-full object-contain rounded-xl group-hover:brightness-110 group-hover:contrast-125 transition"
+				width="256"
+				height="256"
+				loading="lazy"
+			/>
+		</div>
+	</a>
+</div>
+
+<PageGraph class="right-sidebar-panel slsg-graph-panel graph-panel">
+	<h2 slot="title">Das {Astro.locals.t('starlight-site-graph.graph')}</h2>
+</PageGraph>
+
+<Default>
+	<slot />
+</Default>
+
+<PageBacklinks class="right-sidebar-panel backlinks-panel">
+	<h2 slot="title">{Astro.locals.t('starlight-site-graph.backlinks')}</h2>
+</PageBacklinks>
+
+<br />

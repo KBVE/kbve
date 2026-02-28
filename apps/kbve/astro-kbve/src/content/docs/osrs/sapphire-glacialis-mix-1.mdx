@@ -1,0 +1,37 @@
+---
+title: Sapphire glacialis mix (1) | OSRS Price Data
+description: "Sapphire glacialis mix (1): There's a sapphire glacialis butterfly in here.. High alch: 18 GP."
+osrs:
+  id: 29198
+  name: Sapphire glacialis mix (1)
+  slug: sapphire-glacialis-mix-1
+  examine: There's a sapphire glacialis butterfly in here.
+  members: true
+  icon: Sapphire glacialis mix (1).png
+  value: 30
+  lowalch: 12
+  highalch: 18
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

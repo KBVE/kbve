@@ -1,0 +1,108 @@
+---
+title: Steel 2h sword | OSRS Price Data
+description: "Steel 2h sword is a F2P two-handed weapon requiring 5 Attack. High alch: 600 GP, GE limit: 125."
+osrs:
+  id: 1311
+  name: Steel 2h sword
+  slug: steel-2h-sword
+  examine: A two handed sword.
+  members: false
+  icon: Steel 2h sword.png
+  value: 1000
+  lowalch: 400
+  highalch: 600
+  limit: 125
+  equipment:
+    slot: 2h
+    type: two-handed sword
+    tradeable: true
+    weight: 3.628
+    requirements:
+      attack: 5
+    stats:
+      attack_stab: -4
+      attack_slash: 21
+      attack_crush: 16
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 22
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1313
+      item_name: Black 2h sword
+      slug: black-2h-sword
+      relationship: upgrade
+      description: Higher tier 2h sword
+    - item_id: 1295
+      item_name: Steel longsword
+      slug: steel-longsword
+      relationship: alternative
+      description: One-handed alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-Handed |
+| Type | Two-Handed Sword |
+| Tradeable | Yes |
+| Weight | 3.628 kg |
+| Requirements | 5 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | -4 |
+| Slash Attack | +21 |
+| Crush Attack | +16 |
+| Strength | +22 |
+
+## Obtaining
+
+**Smithing:** 44 Smithing with 3 steel bars (112.5 XP).
+
+**Shop:** Gaius's Two-Handed Shop, Taverley.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~379 gp
+
+Mid-level 2h sword. F2P accessible.
+
+## Related Items
+
+- [Black 2h sword](/osrs/black-2h-sword/) - Upgrade
+- [Steel longsword](/osrs/steel-longsword/) - One-handed alternative
+
+<Adsense />

@@ -1,0 +1,115 @@
+---
+title: Steel knife | OSRS Price Data
+description: "Steel knife is a members weapon slot item. High alch: 6 GP, GE limit: 7,000."
+osrs:
+  id: 865
+  name: Steel knife
+  slug: steel-knife
+  examine: A finely balanced throwing knife.
+  members: true
+  icon: Steel knife.png
+  value: 11
+  lowalch: 4
+  highalch: 6
+  limit: 7000
+  equipment:
+    slot: weapon
+    type: thrown
+    attack_style: ranged
+    attack_speed: 3
+  requirements:
+    ranged: 5
+  stats:
+    attack:
+      ranged: 8
+    other:
+      ranged_strength: 7
+  smithing:
+    level: 37
+    xp: 37.5
+    method: Steel bar at anvil
+    bars: 1
+    quantity: 5
+  related_items:
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: component
+      description: Smithing material
+    - item_id: 866
+      item_name: Mithril knife
+      slug: mithril-knife
+      relationship: upgrade
+      description: Higher tier knife
+    - item_id: 863
+      item_name: Iron knife
+      slug: iron-knife
+      relationship: downgrade
+      description: Lower tier knife
+    - item_id: 808
+      item_name: Steel dart
+      slug: steel-dart
+      relationship: alternative
+      description: Alternative thrown weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Thrown |
+| Tradeable | Yes |
+| Weight | 0.006 kg |
+| Requirements | 5 Ranged |
+
+## Obtaining
+
+**Smithing:** 37 Smithing with steel bar at anvil (37.5 XP, makes 5).
+
+**Drops:** Various monsters.
+
+**Shop:** Ranging Guild.
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +8 |
+| Ranged Strength | +7 |
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~15 gp
+
+Mid-tier throwing knife. Good balance of cost and damage.
+
+## Related Items
+
+- [Steel bar](/osrs/steel-bar/) - Smithing material
+- [Mithril knife](/osrs/mithril-knife/) - Upgrade option
+- [Steel dart](/osrs/steel-dart/) - Alternative thrown
+
+<Adsense />

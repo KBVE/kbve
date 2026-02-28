@@ -1,0 +1,91 @@
+---
+title: Black platebody | OSRS Price Data
+description: "Black platebody: Provides excellent protection.. High alch: 2,304 GP, GE limit: 125."
+osrs:
+  id: 1125
+  name: Black platebody
+  slug: black-platebody
+  examine: Provides excellent protection.
+  members: false
+  icon: Black platebody.png
+  value: 3840
+  lowalch: 1536
+  highalch: 2304
+  limit: 125
+  item_id: 1125
+  item_type: armor
+  slot: body
+  type: platebody
+  tradeable: true
+  weight: 9.979
+  requirements:
+    defence: 10
+  stats:
+    stab_defence: 41
+    slash_defence: 40
+    crush_defence: 30
+    ranged_defence: 40
+  related_items:
+    - slug: mithril-platebody
+    - slug: black-full-helm
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Platebody |
+| Tradeable | Yes |
+| Weight | 9.979 kg |
+| Requirements | 10 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +41 |
+| Slash Defence | +40 |
+| Crush Defence | +30 |
+| Ranged Defence | +40 |
+
+## Obtaining
+
+**Shop:** Horvik's Armour Shop (3,840 gp).
+
+**Drops:** Ice trolls, Giant Rock Crabs.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~4,782 gp
+
+Cannot be smithed. F2P accessible.
+
+## Related Items
+
+- [Mithril platebody](/osrs/mithril-platebody/) - Upgrade
+- [Black full helm](/osrs/black-full-helm/) - Set piece
+
+<Adsense />

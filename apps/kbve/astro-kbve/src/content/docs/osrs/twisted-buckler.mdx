@@ -1,0 +1,129 @@
+---
+title: Twisted buckler | OSRS Price Data
+description: "Twisted buckler is a members shield slot item requiring 75 Defence. High alch: 54,000 GP, GE limit: 8."
+osrs:
+  id: 21000
+  name: Twisted buckler
+  slug: twisted-buckler
+  examine: A buckler carved from the twisted remains of the Great Olm.
+  members: true
+  icon: Twisted buckler.png
+  value: 90000
+  lowalch: 36000
+  highalch: 54000
+  limit: 8
+  equipment:
+    slot: shield
+    type: ranged_shield
+    tradeable: true
+    weight: 5.443
+    requirements:
+      ranged: 75
+      defence: 75
+    stats:
+      ranged_attack: 18
+      stab_def: 22
+      slash_def: 24
+      crush_def: 22
+      magic_def: 26
+      ranged_def: 58
+  drop_table:
+    sources:
+      - source: Chambers of Xeric
+        rate: Rare
+  truemarket:
+    buy_limit: 8
+    price_estimate: 4500000
+  related_items:
+    - item_id: 22002
+      item_name: Dragonfire ward
+      slug: dragonfire-ward
+      relationship: alternative
+      description: Dragon content
+    - item_id: 11926
+      item_name: Odium ward
+      slug: odium-ward
+      relationship: downgrade
+      description: Budget option
+    - item_id: 11785
+      item_name: Armadyl crossbow
+      slug: armadyl-crossbow
+      relationship: alternative
+      description: Pairs well
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Shield |
+| Type | Ranged Shield |
+| Tradeable | Yes |
+| Weight | 5.443 kg |
+
+## Obtaining
+
+Rare reward from Chambers of Xeric.
+
+| Source | Rate |
+|--------|------|
+| CoX reward | Rare |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged attack | +18 |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +22 |
+| Slash | +24 |
+| Crush | +22 |
+| Magic | +26 |
+| Ranged | +58 |
+
+**Requirements:** 75 Ranged, 75 Defence
+
+## Usage
+
+BiS ranged shield for:
+- All ranged combat (non-dragon)
+- Raids
+- Bossing
+- Slayer
+
+**Best ranged attack bonus from shield slot.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~4.5M gp
+
+**Tips:**
+- CoX is only source
+- Best offensive ranged shield
+- Use DFW for dragons
+
+<Adsense />

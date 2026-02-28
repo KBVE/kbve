@@ -1,0 +1,37 @@
+---
+title: Belle's folly | OSRS Price Data
+description: "Belle's folly: A well balanced blade adorned with gold.. High alch: 27,000 GP."
+osrs:
+  id: 31248
+  name: Belle's folly
+  slug: belle-s-folly
+  examine: A well balanced blade adorned with gold.
+  members: true
+  icon: Belle's folly.png
+  value: 45000
+  lowalch: 18000
+  highalch: 27000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

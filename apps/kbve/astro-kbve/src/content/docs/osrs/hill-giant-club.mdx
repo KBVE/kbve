@@ -1,0 +1,134 @@
+---
+title: Hill giant club | OSRS Price Data
+description: "Hill giant club is a F2P two-handed weapon requiring 40 Attack. High alch: 36,000 GP, GE limit: 125."
+osrs:
+  id: 20756
+  name: Hill giant club
+  slug: hill-giant-club
+  examine: A brutal weapon popular among giants.
+  members: false
+  icon: Hill giant club.png
+  value: 60000
+  lowalch: 24000
+  highalch: 36000
+  limit: 125
+  equipment:
+    slot: 2h
+    type: crush_weapon
+    attack_style: melee
+    attack_speed: 7
+    tradeable: true
+    weight: 3.628
+    requirements:
+      attack: 40
+    stats:
+      attack_stab: -4
+      attack_slash: 50
+      attack_crush: 65
+      magic_attack: -4
+      strength: 70
+      ranged_def: -1
+  special_effect:
+    name: F2P BiS Crush
+    description: Best crush weapon in free-to-play, effective against rune armour
+    notes:
+      - Can cut spider webs with slash attack
+  drop_table:
+    sources:
+      - source: Chest (Obor's lair)
+        rate: 1/118
+        notes: Use giant key on chest after killing Obor
+  market:
+    buy_limit: 125
+    price_estimate: 1300000
+  related_items:
+    - item_id: 7416
+      item_name: Obor
+      slug: obor
+      relationship: component
+      description: Source boss
+    - item_id: 20754
+      item_name: Giant key
+      slug: giant-key
+      relationship: component
+      description: Required access
+    - item_id: 1319
+      item_name: Rune 2h sword
+      slug: rune-2h-sword
+      relationship: alternative
+      description: F2P alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-handed |
+| Type | Crush Weapon |
+| Tradeable | Yes |
+| Weight | 3.628 kg |
+| Requirements | 40 Attack |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Chest (Obor's lair) | 1/118 |
+
+Use giant key on chest after killing Obor.
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Stab | -4 |
+| Slash | +50 |
+| Crush | +65 |
+| Magic | -4 |
+| Strength | +70 |
+
+| Defence | Bonus |
+|---------|-------|
+| Ranged | -1 |
+
+**Attack Speed:** 7-tick (4.2s)
+
+## Usage
+
+**F2P BiS crush weapon.** Effective against rune armour.
+
+Can cut spider webs with slash attack.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~1.3M gp
+
+## Related Items
+
+- [Obor](/osrs/obor/) - Source boss
+- [Giant key](/osrs/giant-key/) - Required access
+- [Rune 2h sword](/osrs/rune-2h-sword/) - F2P alternative
+
+<Adsense />

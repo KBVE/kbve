@@ -1,0 +1,37 @@
+---
+title: Willow stock | OSRS Price Data
+description: "Willow stock: A willow crossbow stock.. High alch: 31 GP, GE limit: 10,000."
+osrs:
+  id: 9444
+  name: Willow stock
+  slug: willow-stock
+  examine: A willow crossbow stock.
+  members: true
+  icon: Willow stock.png
+  value: 53
+  lowalch: 21
+  highalch: 31
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Dharok's armour set | OSRS Price Data
+description: "Dharok's armour set: A set containing a Dharok's helm, platelegs, platebody and greataxe.. High alch: 240,000 GP, GE limit: 8."
+osrs:
+  id: 12877
+  name: Dharok's armour set
+  slug: dharok-s-armour-set
+  examine: A set containing a Dharok's helm, platelegs, platebody and greataxe.
+  members: true
+  icon: Dharok's armour set.png
+  value: 400000
+  lowalch: 160000
+  highalch: 240000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

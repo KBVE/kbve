@@ -1,0 +1,37 @@
+---
+title: Dragon armour set (lg) | OSRS Price Data
+description: "Dragon armour set (lg): A set containing a full helm, platebody, legs and kiteshield.. High alch: 300,000 GP, GE limit: 8."
+osrs:
+  id: 21882
+  name: Dragon armour set (lg)
+  slug: dragon-armour-set-lg
+  examine: A set containing a full helm, platebody, legs and kiteshield.
+  members: true
+  icon: Dragon armour set (lg).png
+  value: 500000
+  lowalch: 200000
+  highalch: 300000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

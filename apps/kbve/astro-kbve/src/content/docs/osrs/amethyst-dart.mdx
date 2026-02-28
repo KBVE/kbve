@@ -1,0 +1,118 @@
+---
+title: Amethyst dart | OSRS Price Data
+description: "Amethyst dart is a members ammo slot item. High alch: 240 GP, GE limit: 11,000."
+osrs:
+  id: 25849
+  name: Amethyst dart
+  slug: amethyst-dart
+  examine: A deadly throwing dart with an amethyst tip.
+  members: true
+  icon: Amethyst dart.png
+  value: 400
+  lowalch: 160
+  highalch: 240
+  limit: 11000
+  equipment:
+    slot: ammo
+    type: dart
+    ranged_requirement: 50
+  ranged_bonuses:
+    ranged_strength: 28
+  fletching:
+    level: 90
+    xp: 21
+  recipes:
+    - skill: fletching
+      level: 90
+      xp: 21
+      materials:
+        - item_name: Amethyst dart tip
+          item_id: 25853
+          quantity: 1
+        - item_name: Feather
+          item_id: 314
+          quantity: 1
+      product: Amethyst dart
+      product_id: 25849
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 25853
+      item_name: Amethyst dart tip
+      slug: amethyst-dart-tip
+      relationship: component
+      description: Crafting component
+    - item_id: 314
+      item_name: Feather
+      slug: feather
+      relationship: component
+      description: Base material
+    - item_id: 11230
+      item_name: Dragon dart
+      slug: dragon-dart
+      relationship: alternative
+      description: Higher tier
+    - item_id: 811
+      item_name: Rune dart
+      slug: rune-dart
+      relationship: alternative
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Level | XP |
+|--------|-------|-----|
+| Fletching | 90 | 21 (per dart) |
+| Materials | Amethyst dart tip + Feather | - |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged requirement | 50 |
+| Ranged strength | +28 |
+
+## Market Flip Strategy
+
+**Mid-Tier Blowpipe Ammo:**
+- Between rune and dragon
+- Cost-effective option
+- No quest requirements
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Toxic blowpipe users
+- Budget PvM
+- Slayer tasks
+- Training ammo
+
+**Tips:**
+- Good balance of cost/damage
+- 90 Fletching to make
+- Amethyst from Mining Guild
+- Popular budget option
+
+<Adsense />

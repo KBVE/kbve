@@ -1,0 +1,159 @@
+---
+title: Weapon poison(+) | OSRS Price Data
+description: "Weapon poison(+) is a 4-dose members potion. High alch: 172 GP, GE limit: 2,000."
+osrs:
+  id: 5937
+  name: Weapon poison(+)
+  slug: weapon-poison
+  examine: A vial of extra strong weapon poison, for spears and daggers.
+  members: true
+  icon: Weapon poison(+).png
+  value: 288
+  lowalch: 115
+  highalch: 172
+  limit: 2000
+  potion:
+    type: poison
+    tier: mid
+  herblore:
+    level: 73
+    xp: 165
+    method: Mix cactus spine with weapon poison
+  recipes:
+    - skill: herblore
+      level: 73
+      xp: 165
+      materials:
+        - item_name: Weapon poison
+          item_id: 187
+          quantity: 1
+        - item_name: Cactus spine
+          item_id: 6016
+          quantity: 1
+      product: Weapon poison(+)
+      product_id: 5937
+      product_quantity: 1
+      members_only: true
+    - skill: herblore
+      level: 73
+      xp: 165
+      materials:
+        - item_name: Coconut milk
+          item_id: 5935
+          quantity: 1
+        - item_name: Cactus spine
+          item_id: 6016
+          quantity: 1
+        - item_name: Red spiders' eggs
+          item_id: 223
+          quantity: 1
+      product: Weapon poison(+)
+      product_id: 5937
+      product_quantity: 1
+      members_only: true
+  combat:
+    effect: Poisons target
+    damage: 5 starting poison
+    duration: Until cured
+  related_items:
+    - item_id: 187
+      item_name: Weapon poison
+      slug: weapon-poison
+      relationship: component
+      description: Base poison
+    - item_id: 6016
+      item_name: Cactus spine
+      slug: cactus-spine
+      relationship: component
+      description: Upgrade ingredient
+    - item_id: 5940
+      item_name: Weapon poison(++)
+      slug: weapon-poison-plus-plus
+      relationship: variant
+      description: Strongest version
+    - item_id: 223
+      item_name: Red spiders' eggs
+      slug: red-spiders-eggs
+      relationship: component
+      description: Alternative recipe
+    - item_id: 5935
+      item_name: Coconut milk
+      slug: coconut-milk
+      relationship: component
+      description: Alternative recipe base
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Weapon Poison |
+| Tradeable | Yes |
+| Weight | 0.025 kg |
+| Requirements | 73 Herblore |
+
+## Obtaining
+
+**Method 1:** Mix cactus spine with weapon poison (73 Herblore, 165 XP).
+
+**Method 2:** Mix coconut milk + cactus spine + red spiders' eggs (73 Herblore, 165 XP).
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Usage
+
+Apply to weapons to add poison damage:
+- Applies 5 starting poison damage
+- Works on melee weapons, arrows, bolts, darts, javelins, knives
+- Stronger than basic weapon poison
+
+## Weapon Poison Tiers
+
+| Version | Starting Damage | Herblore Level |
+|---------|-----------------|----------------|
+| Weapon poison | 4 | 60 |
+| Weapon poison(+) | 5 | 73 |
+| Weapon poison(++) | 6 | 82 |
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Demand Drivers:**
+- PvP combat
+- Mid-tier poison option
+- Herblore training
+
+**Tips:**
+- Middle ground between basic and ++
+- Two creation methods available
+- Cactus spines from farming
+
+## Related Items
+
+- [Weapon poison](/osrs/weapon-poison/) - Weaker version
+- [Weapon poison(++)](/osrs/weapon-poison-plus-plus/) - Strongest version
+- [Cactus spine](/osrs/cactus-spine/) - Key ingredient
+
+<Adsense />

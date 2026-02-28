@@ -1,0 +1,37 @@
+---
+title: Haemostatic poultice | OSRS Price Data
+description: "Haemostatic poultice is a members-only OSRS item. High alch: 102 GP."
+osrs:
+  id: 31587
+  name: Haemostatic poultice
+  slug: haemostatic-poultice
+  examine: A healing poultice, can be applied to cotton yarn to create a haemostatic dressing.
+  members: true
+  icon: Haemostatic poultice.png
+  value: 170
+  lowalch: 68
+  highalch: 102
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

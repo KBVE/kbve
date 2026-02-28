@@ -1,0 +1,123 @@
+---
+title: 'October: 5th'
+category: Daily
+date: 2025-10-05 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 5th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Unity MapDB
+
+-   10:05PM
+
+    We made some progress with the mapdb, finally getting some objects to go from the MDX to the Unity ECS map!
+    There are still some tweaks that need to be made, but I am glad that we are making progress on this, if everything goes to plan, we could easily have a couple hundred resources for the map.
+
+## 2024
+
+**Avatar**
+
+For safety reasons and logistics, I am going to just remove the ability to let users upload or reference avatars for now.
+I believe the best solution will be to integrate the discord application and use that as a reference to their avatar or maybe do it via github and their profile picture.
+This would remove the burden on us to store and fetch the avatar image! Moving it to the imgur, discord, github, ect.. whatever server that we can integrate into the system.
+
+Thus the avatar_url part of the table needs to be deleted and furthermore, we could also remove the ability for the user to change their username.
+Both of these might be a security concern for now, as we could have a username squating.
+
+After thinking it through, I believe it would make sense to drop the "avatar_url" and the "bio" from the `user_profile` table, then lock down the whole table.
+This is just a security precaution that we want to implement right now and then come back around to making the adjustments again. 
+
+Okay! After dropping the two of them, we can go back around and update the `kilobase` class to adjust for the new schemas.
+This means that our current setup will not work at 100% typesaftey because we changed the userprofile to now only be the id, username and the last updated.
+In the future, this is where we would place the reference to any additional information that the user profile might require. 
+
+To make the SQLs a bit cleaner, I moved the three migrations into their own subfolder, `user_profiles`. This will make referencing them in the future a bit easier.
+I was thinking of also adding additional paths for referencing but this should be fine as is.
+
+**WAL**
+
+While we were playing with the postgres/supabase tables, we came across a new problem that was pretty easy to resolve.
+Our postgres default volumnes were around `2Gb` in size but with the massive WAL files, we ended up growing way too far past that!
+Furthermore these additional table changes, which have to be applied to the replica sets, caused us to blow past into nearly `3Gb` size!
+This caused our database to `crash`, well not crash in the way that it would have been a pain but rather the volume size was just way too small.
+The solution was a bit more than just expanding the storage!
+I had to go back around and pull the triggers on deleting some of our older instances of VMs, so we shall say its official, RIP Portainer and RIP Coolify.
+Both were amazing tools for our eco-system and growth, but it is time we commit fully towards the kubernetes eco-system.
+Now the next issue will be migrating the main operating systems into a read-only state but that is for another time in the future.
+
+**SQL**
+
+The SQL file management and migration is a bit disorganized and we might need to find a better way to handle it.
+I am currently thinking creating more subfolders inside of the `sql` folder, then moving the different sql files into the right locations.
+Furthermore, we will have to add deprecation tags to the older sql files, including those for mysql / planetscale, since we migrated out of that system.
+
+
+**Backup**
+
+After the WAL issue earlier this morning, I timed my ability to resolve it.
+It took about 46mins from crash to production, including figuring out what caused the crash.
+I am hoping that this gives me the experience that I would need in future jobs but also building out a bunch of possible test cases would make sense.
+These are things thats that I should keep noted and plan around, but the lack of resources does make this harder.
+For example, if we want to do a live migration from Cluster A to Cluser B to Cluster C, ugh, we would need all three clusters to be operational and we just do not have the resources to currently do that.
+I am looking into ways we could achieve this but at the scale we are operating at, it just would not be possible.
+This is what made me realize why services like RDS and managed postgres instances exist for, the fact that you need to have so much extra resources to do live cluster migration is insane.
+
+
+**Bonobo**
+
+While programming tonight, the jams will be just straight bonobo.
+We are going through a couple of his boiler room sets and his Royal UK concerts too.
+His music just hits the perfect spot when doing postgres work, that and 80s japanese music blended into hiphop.
+
+**JSONB**
+
+Okay! We are a step closer with building our own public facing profiles aka user cards.
+We got the table setup and its under the `enable_user_cards.sql`.
+
+We also have two more queries to run to help stablize the user cards.
+
+The first is to give all the older users a user_card row.
+
+```sql
+
+-- Insert into user_cards for existing users in user_profiles that do not have a user_card yet
+INSERT INTO public.user_cards (id, username, bio, socials, style)
+SELECT 
+    id,
+    username,
+    NULL,         -- Default bio value, can be adjusted as needed
+    NULL,         -- Default socials value, can be adjusted as needed
+    NULL          -- Default style value, can be adjusted as needed
+FROM public.user_profiles
+WHERE id NOT IN (SELECT id FROM public.user_cards);
+
+```
+
+Then there is the materialized view refresh:
+
+```sql 
+
+REFRESH MATERIALIZED VIEW public.user_cards_public;
+
+```
+Under the `sync_user_cards_mat_views.sql`, we have a bit cleaner and safer method:
+
+```sql
+
+DO $$
+BEGIN
+    IF EXISTS (SELECT 1 FROM pg_matviews WHERE matviewname = 'user_cards_public') THEN
+        REFRESH MATERIALIZED VIEW public.user_cards_public;
+    END IF;
+END $$;
+
+
+```

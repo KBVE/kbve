@@ -13,6 +13,7 @@ members = [
 	'apps/memes/axum-memes',
 	'apps/irc/irc-gateway',
 	'apps/discordsh/axum-discordsh',
+	'apps/kbve/axum-kbve',
 ]
 
 [profile.dev]

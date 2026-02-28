@@ -1,0 +1,37 @@
+---
+title: Bowl wig | OSRS Price Data
+description: "Bowl wig: The bowl wig.. High alch: 1 GP, GE limit: 4."
+osrs:
+  id: 20110
+  name: Bowl wig
+  slug: bowl-wig
+  examine: The bowl wig.
+  members: true
+  icon: Bowl wig.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

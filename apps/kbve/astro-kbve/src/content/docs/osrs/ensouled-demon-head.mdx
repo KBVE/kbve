@@ -1,0 +1,110 @@
+---
+title: Ensouled demon head | OSRS Price Data
+description: "Ensouled demon head: The creature's soul is still in here.. High alch: 316 GP, GE limit: 7,500."
+osrs:
+  id: 13502
+  name: Ensouled demon head
+  slug: ensouled-demon-head
+  examine: The creature's soul is still in here.
+  members: true
+  icon: Ensouled demon head.png
+  value: 527
+  lowalch: 210
+  highalch: 316
+  limit: 7500
+  material:
+    type: ensouled_head
+    tier: master
+  prayer:
+    xp_reanimate: 1170
+    magic_level: 90
+    spell: Master Reanimation
+  drop_table:
+    sources:
+      - source: Greater demon
+        source_id: 2026
+        combat_level: 92
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Black demon
+        source_id: 240
+        combat_level: 172
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+  related_items:
+    - item_id: 13496
+      item_name: Ensouled bloodveld head
+      slug: ensouled-bloodveld-head
+      relationship: downgrade
+      description: Lower XP (1,040)
+    - item_id: 13508
+      item_name: Ensouled abyssal head
+      slug: ensouled-abyssal-head
+      relationship: upgrade
+      description: Higher XP (1,300)
+    - item_id: 13511
+      item_name: Ensouled dragon head
+      slug: ensouled-dragon-head
+      relationship: upgrade
+      description: Best XP (1,560)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Prayer Training
+
+| Method | XP |
+|--------|-----|
+| Reanimate (Dark Altar) | 1,170 |
+
+**Magic Level Required:** 90
+**Spell:** Master Reanimation
+
+## Obtaining
+
+Dropped by demons when Arceuus favour is unlocked:
+- Greater demons
+- Black demons
+- Lesser demons
+
+## Usage
+
+1. Cast Master Reanimation spell on the head
+2. Kill the reanimated creature
+3. Receive Prayer XP
+
+## Market Flip Strategy
+
+**Premium Heads:**
+- High Prayer XP
+- Good supply from demon tasks
+- Popular for efficient training
+
+**Buy Limit:** 50 per 4 hours
+
+**Tips:**
+- Black demon tasks common
+- 90 Magic requirement
+- Popular efficient method
+
+<Adsense />

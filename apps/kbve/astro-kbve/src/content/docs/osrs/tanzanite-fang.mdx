@@ -1,0 +1,108 @@
+---
+title: Tanzanite fang | OSRS Price Data
+description: "Tanzanite fang: Maybe you could use a chisel to fletch this into a blowpipe.. High alch: 66,000 GP, GE limit: 5."
+osrs:
+  id: 12922
+  name: Tanzanite fang
+  slug: tanzanite-fang
+  examine: Maybe you could use a chisel to fletch this into a blowpipe.
+  members: true
+  icon: Tanzanite fang.png
+  value: 110000
+  lowalch: 44000
+  highalch: 66000
+  limit: 5
+  item:
+    type: crafting_material
+    tradeable: true
+    weight: 0.01
+  obtaining:
+    methods:
+      - source: Zulrah
+        drop_rate: 1/1,024
+  creation:
+    creates:
+      item_id: 12924
+      item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+    method: Use chisel to create Toxic blowpipe
+    requirements:
+      fletching: 53
+  related_items:
+    - item_id: 0
+      item_name: Zulrah
+      slug: zulrah
+      relationship: component
+      description: Boss drop
+    - item_id: 12924
+      item_name: Toxic blowpipe
+      slug: toxic-blowpipe
+      relationship: product
+      description: Created weapon
+    - item_id: 12932
+      item_name: Magic fang
+      slug: magic-fang
+      relationship: alternative
+      description: Sister drop
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 0.01 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Zulrah | 1/1,024 |
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Toxic blowpipe | Tanzanite fang (chisel) |
+
+**Use chisel to create Toxic blowpipe.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~2.7M gp
+
+**Tips:**
+- Zulrah exclusive drop
+- Creates BiS ranged weapon
+- 53 Fletching required
+
+## Related Items
+
+- [Zulrah](/osrs/zulrah/) - Boss drop
+- [Toxic blowpipe](/osrs/toxic-blowpipe/) - Created weapon
+- [Magic fang](/osrs/magic-fang/) - Sister drop
+
+<Adsense />

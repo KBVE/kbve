@@ -1,0 +1,37 @@
+---
+title: Steel full helm (t) | OSRS Price Data
+description: "Steel full helm (t): A steel full helmet with trim.. High alch: 330 GP, GE limit: 125."
+osrs:
+  id: 20193
+  name: Steel full helm (t)
+  slug: steel-full-helm-t
+  examine: A steel full helmet with trim.
+  members: false
+  icon: Steel full helm (t).png
+  value: 550
+  lowalch: 220
+  highalch: 330
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

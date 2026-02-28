@@ -1,0 +1,136 @@
+---
+title: 3rd age bow | OSRS Price Data
+description: "3rd age bow is a members weapon slot item requiring 65 Ranged. High alch: 90,000 GP, GE limit: 8."
+osrs:
+  id: 12424
+  name: 3rd age bow
+  slug: 3rd-age-bow
+  examine: A beautifully crafted bow carved by ancient archers.
+  members: true
+  icon: 3rd age bow.png
+  value: 150000
+  lowalch: 60000
+  highalch: 90000
+  limit: 8
+  equipment:
+    slot: weapon
+    type: shortbow
+    attack_style: ranged
+    attack_speed: 4
+    requirements:
+      ranged: 65
+    stats:
+      attack_ranged: 65
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      ranged_strength: 0
+      prayer_bonus: 0
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        requirements:
+          clue_type: Master
+        rarity: Very Rare
+        description: Extremely rare reward from master clue scrolls
+  related_items:
+    - item_id: 12426
+      item_name: 3rd age longsword
+      slug: 3rd-age-longsword
+      relationship: alternative
+      description: 3rd age melee weapon
+    - item_id: 12422
+      item_name: 3rd age wand
+      slug: 3rd-age-wand
+      relationship: alternative
+      description: 3rd age magic weapon
+    - item_id: 20014
+      item_name: 3rd age pickaxe
+      slug: 3rd-age-pickaxe
+      relationship: alternative
+      description: 3rd age skilling tool
+    - item_id: 20011
+      item_name: 3rd age axe
+      slug: 3rd-age-axe
+      relationship: alternative
+      description: 3rd age skilling tool
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Shortbow |
+| Attack Speed | 4 tick (2.4s) |
+| Tradeable | Yes |
+| Members Only | Yes |
+| Weight | 0.907 kg |
+
+## Obtaining
+
+| Method | Details |
+|--------|---------|
+| Source | Master Clue Scrolls |
+| Rarity | Extremely Rare (1/313,168) |
+
+## Combat Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged Attack | +65 |
+
+**Requirements:** 65 Ranged
+
+## About
+
+The 3rd age bow is a rare ranged weapon obtained from Treasure Trails. It requires 65 Ranged to wield and functions as a shortbow, attacking at the same speed as other shortbows while providing excellent accuracy.
+
+3rd age weapons are highly sought after due to their extreme rarity and status symbol value. The bow can use any type of arrow.
+
+## Market Strategy
+
+**Investment Notes:**
+- Extremely valuable due to rarity
+- Price fluctuates based on collector demand
+- More common than druidic but still very rare
+
+**Trading Tips:**
+- Verify authenticity when trading high-value items
+- Use Grand Exchange for secure trades
+- Monitor price trends before purchasing
+
+## Related Items
+
+- [3rd age longsword](/osrs/3rd-age-longsword/) - 3rd age melee weapon
+- [3rd age wand](/osrs/3rd-age-wand/) - 3rd age magic weapon
+- [3rd age pickaxe](/osrs/3rd-age-pickaxe/) - 3rd age skilling tool
+- [3rd age axe](/osrs/3rd-age-axe/) - 3rd age skilling tool
+
+<Adsense />

@@ -1,0 +1,780 @@
+---
+
+---
+
+<style>
+	/* Comic Book Panel Section */
+	.comic-section {
+		position: relative;
+		min-height: 600px;
+		overflow: hidden;
+		border-image: url('/assets/images/ui/comic-frame.png') 22 16 16 22;
+		border-width: 12px;
+		border-style: solid;
+		background: transparent;
+	}
+
+	/* Parallax Background */
+	.parallax-bg {
+		position: absolute;
+		inset: 0;
+		background-image: url('https://images.unsplash.com/photo-1620336655052-b57986f5a26a?q=80&w=2340&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D');
+		background-attachment: fixed;
+		background-position: center;
+		background-repeat: no-repeat;
+		background-size: cover;
+		z-index: 0;
+	}
+
+	/* Dark overlay with transparency */
+	.dark-overlay {
+		position: absolute;
+		inset: 0;
+		background: rgba(0, 0, 0, 0.6);
+		z-index: 1;
+	}
+
+	/* Main content container */
+	.comic-content {
+		position: relative;
+		z-index: 2;
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 2rem;
+		padding: 3rem;
+		min-height: 600px;
+		align-items: center;
+	}
+
+	/* Left Panel - Comic Book Style */
+	.comic-panel {
+		background: var(--sl-color-bg);
+		border: 4px solid #000;
+		box-shadow:
+			8px 8px 0 0 #000,
+			12px 12px 0 0 var(--sl-color-accent);
+		padding: 2rem;
+		position: relative;
+		transform: rotate(-1deg);
+		transition: transform 0.3s ease;
+	}
+
+	.comic-panel:hover {
+		transform: rotate(0deg) scale(1.02);
+	}
+
+	/* Comic panel inner border */
+	.comic-panel::before {
+		content: '';
+		position: absolute;
+		inset: 8px;
+		border: 2px solid var(--sl-color-border);
+		pointer-events: none;
+	}
+
+	/* Halftone dots overlay for comic effect */
+	.comic-panel::after {
+		content: '';
+		position: absolute;
+		inset: 0;
+		background-image: radial-gradient(
+			circle,
+			rgba(0, 0, 0, 0.1) 1px,
+			transparent 1px
+		);
+		background-size: 4px 4px;
+		pointer-events: none;
+		opacity: 0.3;
+	}
+
+	.panel-label {
+		display: inline-block;
+		background: var(--sl-color-accent);
+		color: var(--sl-color-accent-low);
+		padding: 0.25rem 0.75rem;
+		font-size: 0.75rem;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+		margin-bottom: 1rem;
+		transform: skewX(-5deg);
+	}
+
+	.panel-title {
+		font-size: 2rem;
+		font-weight: 900;
+		color: var(--sl-color-text);
+		text-transform: uppercase;
+		line-height: 1.1;
+		margin-bottom: 1rem;
+		text-shadow: 2px 2px 0 var(--sl-color-accent);
+	}
+
+	.panel-title .accent {
+		color: var(--sl-color-accent);
+		text-shadow: 2px 2px 0 var(--sl-color-text);
+	}
+
+	.panel-description {
+		color: var(--sl-color-text);
+		opacity: 0.9;
+		font-size: 1rem;
+		line-height: 1.6;
+		margin-bottom: 1.5rem;
+	}
+
+	/* Speech bubble style for "Read more" */
+	.speech-bubble {
+		display: inline-flex;
+		align-items: center;
+		gap: 0.5rem;
+		background: var(--sl-color-accent-low);
+		border: 2px solid var(--sl-color-accent);
+		padding: 0.5rem 1rem;
+		border-radius: 20px;
+		position: relative;
+		color: var(--sl-color-text-accent);
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 0.3s ease;
+	}
+
+	.speech-bubble::before {
+		content: '';
+		position: absolute;
+		bottom: -8px;
+		left: 20px;
+		width: 0;
+		height: 0;
+		border-left: 8px solid transparent;
+		border-right: 8px solid transparent;
+		border-top: 8px solid var(--sl-color-accent);
+	}
+
+	.speech-bubble::after {
+		content: '';
+		position: absolute;
+		bottom: -5px;
+		left: 22px;
+		width: 0;
+		height: 0;
+		border-left: 6px solid transparent;
+		border-right: 6px solid transparent;
+		border-top: 6px solid var(--sl-color-accent-low);
+	}
+
+	.speech-bubble:hover {
+		background: var(--sl-color-accent);
+		color: var(--sl-color-accent-low);
+		transform: translateY(-2px);
+	}
+
+	.speech-bubble svg {
+		width: 1rem;
+		height: 1rem;
+		fill: currentColor;
+	}
+
+	/* Right side - Floating image */
+	.right-panel {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 2rem;
+	}
+
+	.floating-image {
+		width: 300px;
+		height: 300px;
+		border: 4px solid #000;
+		box-shadow:
+			-8px 8px 0 0 #000,
+			-12px 12px 0 0 var(--sl-color-accent);
+		transform: rotate(3deg);
+		transition: transform 0.3s ease;
+		overflow: hidden;
+		background: var(--sl-color-accent-low);
+	}
+
+	.floating-image:hover {
+		transform: rotate(0deg) scale(1.05);
+	}
+
+	.floating-image img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	/* Author credit - comic style */
+	.author-credit {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-top: 1.5rem;
+		padding-top: 1rem;
+		border-top: 2px dashed var(--sl-color-border);
+	}
+
+	.author-credit svg {
+		width: 1.25rem;
+		height: 1.25rem;
+		fill: var(--sl-color-text-accent);
+	}
+
+	.author-credit span {
+		font-size: 0.875rem;
+		color: var(--sl-color-text);
+		opacity: 0.8;
+	}
+
+	.read-time {
+		font-size: 0.75rem;
+		color: var(--sl-color-text-accent);
+		background: var(--sl-color-accent-low);
+		padding: 0.25rem 0.5rem;
+		border-radius: 4px;
+	}
+
+	/* Chaos Terminal Button Styles */
+	.chaos-terminal {
+		width: 250px;
+		height: 100px;
+		position: relative;
+		cursor: pointer;
+		transform-style: preserve-3d;
+	}
+
+	.main-frame {
+		width: 100%;
+		height: 100%;
+		background:
+			linear-gradient(
+				90deg,
+				#000 0%,
+				#fff 2%,
+				#000 4%,
+				#fff 6%,
+				#000 8%,
+				#fff 10%,
+				#000 100%
+			),
+			repeating-linear-gradient(
+				0deg,
+				#000 0px,
+				#000 1px,
+				#fff 1px,
+				#fff 2px
+			);
+		border: 4px solid #000;
+		position: relative;
+		overflow: visible;
+		transition: all 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+		box-shadow:
+			0 0 0 2px #fff,
+			0 0 0 4px #000,
+			0 0 0 6px #fff,
+			0 0 0 8px #000,
+			8px 8px 0 8px #00ffff,
+			16px 16px 0 8px rgba(0, 0, 0, 0.8);
+	}
+
+	.main-frame::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background:
+			repeating-conic-gradient(
+				from 0deg,
+				#000 0deg,
+				#000 5deg,
+				#fff 5deg,
+				#fff 10deg
+			),
+			repeating-linear-gradient(
+				45deg,
+				transparent 0px,
+				transparent 3px,
+				#00ffff 3px,
+				#00ffff 4px
+			);
+		opacity: 4%;
+		animation: patternShift 3s linear infinite;
+	}
+
+	.chaos-text {
+		position: absolute;
+		top: 50%;
+		left: 50%;
+		transform: translate(-50%, -50%);
+		font-weight: 900;
+		font-size: 16px;
+		color: #000;
+		text-transform: uppercase;
+		letter-spacing: 2px;
+		z-index: 10;
+		text-shadow:
+			1px 1px 0 #fff,
+			-1px -1px 0 #fff,
+			1px -1px 0 #fff,
+			-1px 1px 0 #fff,
+			2px 2px 0 #00ffff;
+		animation: textGlitch 2s linear infinite;
+	}
+
+	@keyframes textGlitch {
+		0%,
+		100% {
+			transform: translate(-50%, -50%);
+		}
+		10% {
+			transform: translate(-51%, -49%);
+		}
+		20% {
+			transform: translate(-49%, -51%);
+		}
+		30% {
+			transform: translate(-52%, -50%);
+		}
+		40% {
+			transform: translate(-48%, -52%);
+		}
+		50% {
+			transform: translate(-50%, -48%);
+		}
+		60% {
+			transform: translate(-53%, -51%);
+		}
+		70% {
+			transform: translate(-47%, -49%);
+		}
+		80% {
+			transform: translate(-51%, -53%);
+		}
+		90% {
+			transform: translate(-49%, -47%);
+		}
+	}
+
+	.icon-chaos {
+		position: absolute;
+		top: -10px;
+		left: -10px;
+		width: calc(100% + 20px);
+		height: calc(100% + 20px);
+		display: grid;
+		grid-template-columns: repeat(4, 1fr);
+		gap: 5px;
+		padding: 15px;
+		background:
+			repeating-linear-gradient(
+				0deg,
+				#000 0px,
+				#000 3px,
+				#fff 3px,
+				#fff 6px
+			),
+			repeating-linear-gradient(
+				90deg,
+				#000 0px,
+				#000 3px,
+				#fff 3px,
+				#fff 6px
+			);
+		border: 4px solid #000;
+		transform: scale(0) rotate(180deg);
+		opacity: 0;
+		transition: all 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+		z-index: 15;
+		box-shadow:
+			0 0 0 2px #00ffff,
+			0 0 0 4px #000,
+			0 0 0 6px #fff,
+			0 0 0 8px #000;
+	}
+
+	.icon-chaos::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background:
+			repeating-radial-gradient(
+				circle at 50% 50%,
+				#000 0px,
+				#000 2px,
+				#fff 2px,
+				#fff 4px
+			),
+			linear-gradient(
+				45deg,
+				transparent 40%,
+				#00ffff 50%,
+				transparent 60%
+			);
+		opacity: 0.3;
+		animation: iconChaosPattern 4s linear infinite;
+	}
+
+	.social-unit {
+		width: 100%;
+		height: 100%;
+		background: #fff;
+		border: 2px solid #000;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+		transform: scale(0) rotate(360deg);
+		transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+		box-shadow: inset 0 0 0 1px #00ffff;
+	}
+
+	.social-unit::before {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: repeating-linear-gradient(
+			45deg,
+			transparent 0px,
+			transparent 2px,
+			#000 2px,
+			#000 3px
+		);
+		opacity: 0.1;
+	}
+
+	.social-unit svg {
+		width: 20px;
+		height: 20px;
+		fill: #000;
+		transition: all 0.2s ease;
+		filter: drop-shadow(1px 1px 0 #00ffff);
+	}
+
+	.noise-layer {
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background:
+			repeating-linear-gradient(
+				0deg,
+				transparent 0px,
+				transparent 1px,
+				rgba(0, 255, 255, 0.1) 1px,
+				rgba(0, 255, 255, 0.1) 2px
+			),
+			repeating-linear-gradient(
+				90deg,
+				transparent 0px,
+				transparent 1px,
+				rgba(0, 0, 0, 0.1) 1px,
+				rgba(0, 0, 0, 0.1) 2px
+			);
+		pointer-events: none;
+		z-index: 20;
+		animation: noiseShift 1s linear infinite;
+	}
+
+	@keyframes noiseShift {
+		0% {
+			transform: translateX(0) translateY(0);
+		}
+		25% {
+			transform: translateX(1px) translateY(-1px);
+		}
+		50% {
+			transform: translateX(-1px) translateY(1px);
+		}
+		75% {
+			transform: translateX(1px) translateY(1px);
+		}
+		100% {
+			transform: translateX(0) translateY(0);
+		}
+	}
+
+	.chaos-terminal:hover .main-frame {
+		transform: scale(0.9) rotate(5deg);
+		opacity: 0.3;
+		box-shadow:
+			0 0 0 2px #fff,
+			0 0 0 4px #000,
+			0 0 0 6px #fff,
+			0 0 0 8px #000,
+			20px 20px 0 8px #00ffff,
+			40px 40px 0 8px rgba(0, 0, 0, 0.4);
+	}
+
+	.chaos-terminal:hover .chaos-text {
+		transform: translate(-50%, -50%) scale(0) rotate(720deg);
+		opacity: 0;
+	}
+
+	.chaos-terminal:hover .icon-chaos {
+		transform: scale(1) rotate(0deg);
+		opacity: 100%;
+		transition-delay: 0.2s;
+	}
+
+	.chaos-terminal:hover .social-unit:nth-child(1) {
+		transform: scale(1) rotate(0deg);
+		transition-delay: 0.1s;
+	}
+
+	.chaos-terminal:hover .social-unit:nth-child(2) {
+		transform: scale(1) rotate(0deg);
+		transition-delay: 0.1s;
+	}
+
+	.chaos-terminal:hover .social-unit:nth-child(3) {
+		transform: scale(1) rotate(0deg);
+		transition-delay: 0.1s;
+	}
+
+	.chaos-terminal:hover .social-unit:nth-child(4) {
+		transform: scale(1) rotate(0deg);
+		transition-delay: 0.1s;
+	}
+
+	.social-unit:hover {
+		background: #00ffff;
+		transform: scale(1.2) rotate(180deg) !important;
+		box-shadow:
+			inset 0 0 0 1px #000,
+			0 0 0 2px #fff,
+			0 0 0 4px #000,
+			0 0 20px #00ffff;
+	}
+
+	.social-unit:hover svg {
+		fill: #000;
+		transform: scale(1.2) rotate(-180deg);
+		filter: drop-shadow(1px 1px 0 #fff);
+	}
+
+	.chaos-terminal:active {
+		animation: terminalDestroy 0.8s ease;
+	}
+
+	@keyframes terminalDestroy {
+		0% {
+			transform: scale(1) rotate(0deg);
+		}
+		50% {
+			transform: scale(0.8) rotate(-5deg);
+			filter: invert(1) hue-rotate(180deg);
+		}
+		100% {
+			transform: scale(1) rotate(0deg);
+		}
+	}
+
+	.chaos-terminal::after {
+		content: '';
+		position: absolute;
+		top: 0;
+		left: 0;
+		width: 100%;
+		height: 100%;
+		background: repeating-linear-gradient(
+			0deg,
+			transparent 0px,
+			transparent 2px,
+			rgba(0, 255, 255, 0.205) 2px,
+			rgba(0, 255, 255, 0.394) 4px
+		);
+		pointer-events: none;
+		z-index: 25;
+		animation: scanlines 1s linear infinite;
+	}
+
+	@keyframes scanlines {
+		0% {
+			transform: translateY(0);
+		}
+		100% {
+			transform: translateY(10px);
+		}
+	}
+
+	/* Responsive */
+	@media (max-width: 1024px) {
+		.comic-content {
+			grid-template-columns: 1fr;
+			padding: 2rem;
+		}
+
+		.right-panel {
+			order: -1;
+		}
+
+		.floating-image {
+			width: 250px;
+			height: 250px;
+		}
+
+		.comic-panel {
+			transform: rotate(0deg);
+		}
+	}
+
+	@media (max-width: 640px) {
+		.comic-section {
+			min-height: auto;
+		}
+
+		.comic-content {
+			padding: 1.5rem;
+			gap: 1.5rem;
+		}
+
+		.comic-panel {
+			padding: 1.5rem;
+		}
+
+		.panel-title {
+			font-size: 1.5rem;
+		}
+
+		.floating-image {
+			width: 200px;
+			height: 200px;
+		}
+
+		.chaos-terminal {
+			width: 200px;
+			height: 80px;
+		}
+
+		.parallax-bg {
+			background-attachment: scroll;
+		}
+	}
+</style>
+
+<section class="comic-section">
+	<!-- Parallax Background -->
+	<div class="parallax-bg"></div>
+
+	<!-- Dark Overlay -->
+	<div class="dark-overlay"></div>
+
+	<!-- Main Content -->
+	<div class="comic-content container mx-auto">
+		<!-- Left Panel - Comic Book Style -->
+		<div class="comic-panel">
+			<span class="panel-label">Community</span>
+			<h1 class="panel-title">
+				Join the <span class="accent">KBVE</span> Universe
+			</h1>
+			<p class="panel-description">
+				Connect with developers, creators, and innovators building the
+				future of open-source technology. Share ideas, collaborate on
+				projects, and be part of something extraordinary.
+			</p>
+
+			<a
+				rel="noopener noreferrer"
+				href="/discord/"
+				data-astro-prefetch
+				class="speech-bubble">
+				<span>Join Our Discord</span>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+					<path
+						fill-rule="evenodd"
+						d="M12.293 5.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414l-4 4a1 1 0 01-1.414-1.414L14.586 11H3a1 1 0 110-2h11.586l-2.293-2.293a1 1 0 010-1.414z"
+						clip-rule="evenodd">
+					</path>
+				</svg>
+			</a>
+
+			<!-- Chaos Terminal Button -->
+			<div class="chaos-terminal" style="margin-top: 2rem;">
+				<div class="main-frame">
+					<div class="chaos-text">SOCIALS</div>
+				</div>
+				<div class="icon-chaos">
+					<a
+						href="https://kbve.com/discord"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="social-unit">
+						<svg viewBox="0 0 24 24">
+							<path
+								d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z">
+							</path>
+						</svg>
+					</a>
+					<a
+						href="https://twitch.tv/kbve"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="social-unit">
+						<svg viewBox="0 0 24 24">
+							<path
+								d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z">
+							</path>
+						</svg>
+					</a>
+					<a
+						href="https://linkedin.com/company/kbve"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="social-unit">
+						<svg viewBox="0 0 24 24">
+							<path
+								d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433c-1.144 0-2.063-.926-2.063-2.065 0-1.138.92-2.063 2.063-2.063 1.14 0 2.064.925 2.064 2.063 0 1.139-.925 2.065-2.064 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z">
+							</path>
+						</svg>
+					</a>
+					<a
+						href="https://www.youtube.com/@kbve"
+						target="_blank"
+						rel="noopener noreferrer"
+						class="social-unit">
+						<svg viewBox="0 0 24 24">
+							<path
+								d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z">
+							</path>
+						</svg>
+					</a>
+				</div>
+				<div class="noise-layer"></div>
+			</div>
+
+			<div class="author-credit">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
+					<path
+						fill-rule="evenodd"
+						d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-6-3a2 2 0 11-4 0 2 2 0 014 0zm-2 4a5 5 0 00-4.546 2.916A5.986 5.986 0 0010 16a5.986 5.986 0 004.546-2.084A5 5 0 0010 11z"
+						clip-rule="evenodd">
+					</path>
+				</svg>
+				<span>KBVE Team</span>
+				<span class="read-time">Open Source</span>
+			</div>
+		</div>
+
+		<!-- Right Panel - Floating Image -->
+		<div class="right-panel">
+			<div class="floating-image">
+				<img
+					src="/assets/images/brand/earth_ceo.png"
+					alt="KBVE Community"
+				/>
+			</div>
+		</div>
+	</div>
+</section>

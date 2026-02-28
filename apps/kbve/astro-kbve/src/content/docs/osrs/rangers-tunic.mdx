@@ -1,0 +1,138 @@
+---
+title: Rangers' tunic | OSRS Price Data
+description: "Rangers' tunic is a members body slot item requiring 40 Defence. High alch: 7,200 GP, GE limit: 4."
+osrs:
+  id: 12596
+  name: Rangers' tunic
+  slug: rangers-tunic
+  examine: Lightweight body armour ideal for rangers.
+  members: true
+  icon: Rangers' tunic.png
+  value: 12000
+  lowalch: 4800
+  highalch: 7200
+  limit: 4
+  equipment:
+    slot: body
+    type: ranged_armour
+    tradeable: true
+    weight: 3.6
+    requirements:
+      ranged: 40
+      defence: 40
+    stats:
+      attack_ranged: 15
+      defence_stab: 36
+      defence_slash: 30
+      defence_crush: 39
+      defence_magic: -10
+      defence_ranged: 36
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Hard
+        drop_rate: Rare from reward casket
+  related_items:
+    - item_id: 2581
+      item_name: Robin hood hat
+      slug: robin-hood-hat
+      relationship: set-piece
+      description: Matching headgear
+    - item_id: 19994
+      item_name: Ranger gloves
+      slug: ranger-gloves
+      relationship: set-piece
+      description: Matching gloves (master clue)
+    - item_id: 2577
+      item_name: Ranger boots
+      slug: ranger-boots
+      relationship: set-piece
+      description: Matching boots (medium clue)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Ranged Armour |
+| Tradeable | Yes |
+| Weight | 3.6 kg |
+
+## Obtaining
+
+Reward from hard Treasure Trails.
+
+**Drop Rate:** Rare from reward casket (hard)
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged attack | +15 |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +36 |
+| Slash | +30 |
+| Crush | +39 |
+| Magic | -10 |
+| Ranged | +36 |
+
+**Requirements:** 40 Ranged, 40 Defence
+
+## Usage
+
+Good ranged body armour:
+- Hard clue exclusive
+- Same ranged bonus as black d'hide body
+- Better defences than d'hide
+- Fashionscape with ranger set
+
+## Comparison
+
+| Item | Ranged attack | Defence |
+|------|---------------|---------|
+| Rangers' tunic | +15 | Higher |
+| Black d'hide body | +15 | Lower |
+| Blessed d'hide body | +15 | Similar |
+
+## Ranger Set
+
+Complete the ranger set with:
+- [Robin hood hat](/osrs/robin-hood-hat/) (hard clue)
+- [Ranger gloves](/osrs/ranger-gloves/) (master clue)
+- [Ranger boots](/osrs/ranger-boots/) (medium clue)
+- [Rangers' tights](/osrs/rangers-tights/) (elite clue)
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Hard clue exclusive
+- Part of ranger outfit
+- Good stats for fashionscape
+- Collection log item
+
+<Adsense />

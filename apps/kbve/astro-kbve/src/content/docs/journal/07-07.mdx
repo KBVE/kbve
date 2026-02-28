@@ -1,0 +1,165 @@
+---
+title: 'July: 07'
+category: Daily
+date: 2025-07-07 12:00:00
+client: Self
+unsplash: 1688040831954-3656d0544270
+img: https://images.unsplash.com/photo-1688040831954-3656d0544270?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  July 7th. More Items!
+tags:
+  - daily
+---
+
+
+import { Adsense } from '@/components/astropad';
+
+## 2025
+
+### AstroPad
+
+-   10:43PM
+
+    Time to migrate all of the supabase files again into the astropad.
+    Other than that, it was a slow day of note taking.
+
+## 2024
+
+**Items**
+
+I adjusted the items a bit today, adding a couple from AndSam's Eve Guild Campaign!
+After we add a couple more items for Eves guild, we could open up the bar and let users come into it and buy those potions, maybe we can do a barter system.
+
+I am also trying to avoid dumping a bunch of random pixel art without making sure it has an exact usage and with credits.
+
+**Settings**
+
+The next update should be organizing all of the settings into a single interface, making it easier to call through out the game and any future game.
+I believe we should also include another function that will wipe all the save data, just to do a clear restart during each session.
+
+```ts
+
+export interface UserSettings {
+  tooltipItemId: string | null;
+  tooltipItemPosition: {
+    x: number;
+    y: number;
+  };
+  submenuItemId: string | null;
+  submenuItemPosition: {
+    x: number;
+    y: number;
+  };
+  isStatsMenuCollapsed: boolean;
+}
+
+```
+
+Now that I am thinking about it, we could introduce the submenu for the different NPC characters too, upon clicking them and then rendering the actions for them?
+This would free up the action menu and make things a bit easier for us to manage.
+With that being said, let us go ahead and update the types again but this time something along these lines?
+
+```ts
+
+export interface UserGenericMenu {
+  id: string | null;
+  position: {
+    x: number;
+    y: number;
+  };
+}
+
+export interface UserSettings {
+  tooltipItem: UserGenericMenu;
+  submenuItem: UserGenericMenu;
+  tooltipNPC: UserGenericMenu;
+  isStatsMenuCollapsed: boolean;
+}
+
+```
+
+Inside of the `localdb.ts`, we went ahead and created the store, like this:
+
+```ts
+
+export const settings = createPersistentAtom<UserSettings>(
+  'settings',
+  defaultSettings,
+);
+
+```
+
+And then added two helper functions, that are setup like this:
+
+```ts
+
+export const getUserSetting = <T extends keyof UserSettings>(key: T): UserSettings[T] => {
+  return settings.get()[key];
+};
+
+export const setUserSetting = <T extends keyof UserSettings>(key: T, value: UserSettings[T]): void => {
+  task(async () => {
+    const currentSettings = settings.get();
+    settings.set({ ...currentSettings, [key]: value });
+  });
+};
+
+```
+
+We will be wrapping the set function inside of a task, making it a bit easier in the future to extend out into event and chaining style functions.
+One other suggestion was to add a class / factory for it all and then extend it out but I think that might be too much work within this first write.
+I will most likely rewrite all of laser again in a couple months, as a trad meme programmer.
+
+**Dice**
+
+Now the next fun begins, which will be to find a way to implement the dice rolling and have it done outside of Phaser.
+I am thinking we should do this whole Dice rolling using just React and Three, so that we can utilize this dice rolling in the future and across other applications, like Unity.
+After drafting out the dice plans, I was going to originally do a multi-dye , with the option of swapping out different ranges to create that perfect illusion of dice rolling.
+Yet for some reason, I felt the need to just use a simple 6 face set of dice, we could adjust the 
+
+We got to this part so far:
+
+```ts 
+dice.rotation.set(Math.PI, 0, 0);  // shows 6
+dice.rotation.set(0, 0, -Math.PI / 2) // Shows a 5
+          dice.rotation.set(Math.PI / 2, Math.PI, Math.PI)  // shows a 4
+dice.rotation.set(0, -Math.PI / 2, -Math.PI / 2) // shows a 3
+dice.rotation.set(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2)  // shows a 1
+
+ ```
+
+ Getting closer
+
+ ```ts 
+
+   1: new THREE.Euler(-Math.PI / 2, -Math.PI / 2, -Math.PI / 2),          // Face 1 on top
+  2: new THREE.Euler(Math.PI / 2, 0, 0), // Face 2 on top
+  3: new THREE.Euler(0, -Math.PI / 2, -Math.PI / 2), // Face 3 on top
+  4: new THREE.Euler(Math.PI / 2, Math.PI, Math.PI),// Face 4 on top
+  5: new THREE.Euler(0, 0, -Math.PI / 2),// Face 5 on top
+  6: new THREE.Euler(Math.PI, 0, 0),    // Face 6 on top
+
+  ```
+
+  <Adsense />
+
+  ## 2023
+- 6:00am - After my early morning ritual, I figured it might make sense to do some updates across the board for various projects. I will push through some of the general updates and then sync the repo before I grab my mini-laptop.
+- 6:30am - Pushing the sync command and taking a nice break from the house! Early morning touch grass sessions are so relaxing and fun, a great way to start the day.
+- 8:00am - While I am in the zone, I am going to layout an effective game plan for myself to quickly do sprints in the form of post-it style issue tickets. I am thinking to compile almost every issue within KBVE, projects and sub-projects into one large kanban. The idea here should be within the scope of keeping each issue / task within the size of a post-it note, minus any technical debt, like links and resources. I should make it a habit of doing this at least once a month, with the idea of keeping certain issues open until they get downsized to smaller ones that can be referenced back to the larger ones? I am rambling a bit here while I type away, but I suppose that is the idea of the journal. Keeping written logs and then typing logs?! Ugh.
+- 9:00am - As I am resting in my bed, hoping that I do not take a nap, I am thinking through all the small notes that I made and seeing how far I can push the kanban post-it game plan will be an interesting experiment. 
+- 9:20am - Created an issue regarding the A to Z of FinTech. I am going to try and keep dual set of logs, a bit of double accounting style with how I approach each unit within the kanban board. 
+- 10:22am - Quickly rolled a SPY $442 call for Monday , quick $50 and rolled 2 TSLA $270 put for $800. Completely forgot to do my Friday specials xD, dumped all that extra cash into O, for about 13 shares, which is another $3.30 additional monthly income. 
+- 10:30am - Twitch Mockup / Builder concept notes? Maybe that could be placed into a tools -> stream concept? Where we could generate a bunch of pre-built renders / concepts for people. 
+- EOD - n8n is a monster when it comes to debugging certain types of situations, but it seems that I was able to get the duplicate GitHub triggers resolved for now.
+
+## Quote
+
+> The teacher who is indeed wise does not bid you to enter the house of his wisdom but rather leads you to the threshold of your mind.
+> — <cite>Kahlil Gibran</cite>
+
+---
+
+## Tasks
+
+- [x] Resolve n8n bug.

@@ -1,0 +1,37 @@
+---
+title: Mithril halberd | OSRS Price Data
+description: "Mithril halberd: A mithril halberd.. High alch: 1,560 GP, GE limit: 125."
+osrs:
+  id: 3198
+  name: Mithril halberd
+  slug: mithril-halberd
+  examine: A mithril halberd.
+  members: true
+  icon: Mithril halberd.png
+  value: 2600
+  lowalch: 1040
+  highalch: 1560
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

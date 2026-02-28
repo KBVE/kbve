@@ -1,0 +1,110 @@
+---
+title: 'Holographic Arcade Token'
+description: |
+    A translucent coin shimmering with neon hues.
+    Insert it into any retro cabinet to unlock hidden game modes.
+id: 'holographic-arcade-token'
+key: 65
+ref: '01JX5617TYSVQC68T3R8ZA91ND'
+name: 'Holographic Arcade Token'
+type: 'Curio'
+category: 420
+img: '/assets/items/set/data/arcade_token.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 140
+consumable: false
+stackable: true
+rarity: 'Rare'
+weight: 0.1
+effects: 'Activates secret features in vintage arcade machines.'
+price: 120
+durability: 100
+equipped: false
+levelRequirement: 1
+cooldown: 0
+action: 'use'
+credits: |
+    Pixel art by KBVE Pixel Workshop.
+bonuses:
+    nostalgia: true
+    highScoreBoost: 5
+scripts:
+    - guid: 'dd2931f8821244c9bfaebfef1182d93a'
+      vars:
+            secretModes: true
+            scoreMultiplier: 1.05
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Holographic Arcade Token** pulses with retro energy. Drop it into a functioning cabinet and watch as hidden menus and bonus stages flicker to life. Some swear it whispers cheat codes when held close to the screen.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Unlocks **secret game modes** and **bonus levels** when used
+- Grants **{frontmatter.bonuses.highScoreBoost}% score boost** for that session
+- Durable and reusable across multiple machines
+
+---
+
+## Lore
+
+> "The token glowed, the screen glitched, and suddenly I was fighting the final boss on level one." – Anonymous arcade junkie
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/arcade_token.webp"
+  defaultId="01HTXYZARC001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZARC001',
+      title: 'Neon Flicker',
+      description: 'The token vibrates as you approach a cabinet.',
+      image: 'https://images.unsplash.com/photo-1580127187073-0671bf6929a8?q=80&w=500&auto=format&fit=crop',
+      message: 'Insert coin? The screen seems eager.',
+      choices: [
+        { label: 'Insert the token.', nextId: '01HTXYZARC002' },
+        { label: 'Pocket it for later.', nextId: '01HTXYZARC003' }
+      ]
+    },
+    {
+      id: '01HTXYZARC002',
+      title: 'Secret Stage',
+      description: 'Lights flare and music shifts.',
+      image: '/images/scene_arcade_secret.jpg',
+      message: 'A hidden level appears!'
+    },
+    {
+      id: '01HTXYZARC003',
+      title: 'Another Time',
+      description: 'You hold onto the token.',
+      image: '/images/scene_arcade_pocket.jpg',
+      message: 'Maybe the next machine will react.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 07/02/2025 - Added Holographic Arcade Token with secret stage mechanic and score boost
+

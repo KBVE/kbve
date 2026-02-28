@@ -1,0 +1,37 @@
+---
+title: Dragon pickaxe upgrade kit | OSRS Price Data
+description: "Dragon pickaxe upgrade kit: Makes a dragon pickaxe more beautiful.. High alch: 960 GP, GE limit: 50."
+osrs:
+  id: 12800
+  name: Dragon pickaxe upgrade kit
+  slug: dragon-pickaxe-upgrade-kit
+  examine: Makes a dragon pickaxe more beautiful.
+  members: true
+  icon: Dragon pickaxe upgrade kit.png
+  value: 1600
+  lowalch: 640
+  highalch: 960
+  limit: 50
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

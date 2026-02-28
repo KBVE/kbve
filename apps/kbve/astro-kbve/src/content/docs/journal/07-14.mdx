@@ -1,0 +1,108 @@
+---
+title: 'July: 14'
+category: Daily
+date: 2025-07-14 12:00:00
+client: Self
+unsplash: 1686672605288-f83df6f815f7
+img: https://images.unsplash.com/photo-1686672605288-f83df6f815f7?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  July 14th. Dialogue System.
+tags:
+  - daily
+---
+import { Adsense } from '@/components/astropad';
+
+## 2025
+
+### TSLA Puts
+
+-   11:40AM
+
+    Going to roll another 3-4 wheels on Tesla, hoping that it will not drop too quickly to under $300.
+    I might also exit the position if the swings are a bit rough over the hump day.
+
+### Rain Rain Rain
+
+-   07:05PM
+
+    So much rain, it is a bit insane the amount of water that is being dumped into the streets.
+    I also ran out of seltzer water and I am debating if I want to take the trip to get more.
+
+### Astro UserProfiles
+
+-   09:26PM
+
+    Moving the user profiles into a bento grid that will utilize the react window and a bit better caching of the modal.
+
+
+## 2024
+
+**Zod**
+
+The dialogue zod is still a pain to create but we are getting there slowly.
+Maybe we just have one structure for the dialogue node and then have it include possible actions as an optional ulid.
+
+For this case, we can just do this:
+
+```ts 
+
+export interface IDialogueObject {
+  id: string;
+  title: string;
+  message: string;
+  actions?: string[];  // Array of ULIDs pointing to actions/effects
+  options?: string[];  // Array of ULIDs pointing to other dialogue objects
+  style?: string; 
+  backgroundImage?: string;
+}
+
+```
+
+Actually we could add in the playerResponse as a string too.
+
+```ts
+
+const DialogueObjectSchema = z.object({
+  id: z.string(),
+  title: z.string(),
+  message: z.string(),
+  playerResponse: z.string().optional(),
+  actions: z.array(z.string()).optional(), 
+  options: z.array(z.string()).optional(),
+  style: z.string().optional(),
+  backgroundImage: z.string().optional(),
+});
+
+```
+
+Okay while waiting for this to move into the `production` branch, I am going to continue to improve the codebase.
+I believe we can make some changes to the `NPCDatabase` that can be useful in the future!
+Lets make some minor changes first to the NPCDB, making sure we got the core fundamentals down.
+
+**Princess Mononoke**
+
+The `Kodama ` from the movie were nearly perfect, I think we should have those hidden through a forest scene.
+We will have to work out the background image for them and not try to copy exactly how they look, maybe mix them in with the unknowns and pikmen?
+So a cute and easy to draw spirit that will appear throughout the background scenes for the different NPCs within the forest.
+
+**Dialogue**
+The next step for the dialogue system will be to render the visual novel style but also include a way to add some color to the text when going through the typewriter effect.
+We also might want to play a sound when the character is typing out, similar to the Animal Crossing effect?
+
+
+
+
+## 2023
+- 6:00am - React Native time. I am going to try and build out an application as fast as I can? There will be a mixture of me learning how different template engines work and how to use the different routing styles.
+- 8:00am - I need to rewrite the notes from this date back into this journal entry for reference. `FLAG`
+
+## Quote
+
+> Imagination rules the world.
+> — <cite>Napoleon</cite>
+
+---
+
+## Tasks
+
+- [x] Study React Native

@@ -1,0 +1,37 @@
+---
+title: Attack potion(4) | OSRS Price Data
+description: "Attack potion(4): 4 doses of Attack potion.. High alch: 9 GP, GE limit: 2,000."
+osrs:
+  id: 2428
+  name: Attack potion(4)
+  slug: attack-potion-4
+  examine: 4 doses of Attack potion.
+  members: true
+  icon: Attack potion(4).png
+  value: 15
+  lowalch: 6
+  highalch: 9
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

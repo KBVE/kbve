@@ -1,0 +1,37 @@
+---
+title: Krandorian hops | OSRS Price Data
+description: "Krandorian hops: A handful of Krandorian Hops.. High alch: 6 GP, GE limit: 11,000."
+osrs:
+  id: 6000
+  name: Krandorian hops
+  slug: krandorian-hops
+  examine: A handful of Krandorian Hops.
+  members: true
+  icon: Krandorian hops.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

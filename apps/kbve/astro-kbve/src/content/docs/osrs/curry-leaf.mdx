@@ -1,0 +1,37 @@
+---
+title: Curry leaf | OSRS Price Data
+description: "Curry leaf: I could make a spicy curry with this.. High alch: 11 GP, GE limit: 11,000."
+osrs:
+  id: 5970
+  name: Curry leaf
+  slug: curry-leaf
+  examine: I could make a spicy curry with this.
+  members: true
+  icon: Curry leaf.png
+  value: 19
+  lowalch: 7
+  highalch: 11
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

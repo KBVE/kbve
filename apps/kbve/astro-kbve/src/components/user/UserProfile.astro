@@ -1,0 +1,782 @@
+---
+// UserProfile - Dashboard for the logged-in user
+// This component handles the authenticated user's profile page at /profile
+// It connects to Supabase for auth state and displays user information
+
+interface Props {
+	class?: string;
+}
+
+const { class: className = '' } = Astro.props;
+---
+
+<section id="user-profile" class:list={['user-profile-section', className]}>
+	<div class="profile-container">
+		<!-- Loading State -->
+		<div class="profile-card loading-state" id="profile-loading">
+			<div class="loading-avatar">
+				<div class="skeleton-pulse"></div>
+			</div>
+			<div class="loading-content">
+				<div class="skeleton-text w-32 h-6"></div>
+				<div class="skeleton-text w-24 h-4 mt-2"></div>
+			</div>
+			<p class="loading-message">Loading your profile...</p>
+		</div>
+
+		<!-- Not Logged In State -->
+		<div
+			class="profile-card auth-state"
+			id="profile-auth"
+			style="display: none;">
+			<div class="auth-icon">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="1.5"
+						d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z">
+					</path>
+				</svg>
+			</div>
+			<h2 class="auth-title">Welcome to KBVE</h2>
+			<p class="auth-subtitle">
+				Sign in to access your profile and connect your accounts
+			</p>
+			<div class="auth-buttons">
+				<a href="/login" class="btn btn-primary">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1">
+						</path>
+					</svg>
+					Sign In
+				</a>
+				<a href="/register" class="btn btn-secondary">
+					<svg
+						xmlns="http://www.w3.org/2000/svg"
+						fill="none"
+						viewBox="0 0 24 24"
+						stroke="currentColor">
+						<path
+							stroke-linecap="round"
+							stroke-linejoin="round"
+							stroke-width="2"
+							d="M18 9v3m0 0v3m0-3h3m-3 0h-3m-2-5a4 4 0 11-8 0 4 4 0 018 0zM3 20a6 6 0 0112 0v1H3v-1z">
+						</path>
+					</svg>
+					Create Account
+				</a>
+			</div>
+		</div>
+
+		<!-- Logged In State -->
+		<div
+			class="profile-card user-state"
+			id="profile-user"
+			style="display: none;">
+			<header class="user-header">
+				<div class="user-avatar" id="user-avatar">
+					<span class="avatar-letter" id="avatar-letter">?</span>
+				</div>
+				<div class="user-info">
+					<h1 class="user-name" id="user-name">User</h1>
+					<p class="user-email" id="user-email">loading...</p>
+					<div class="user-badges">
+						<span class="badge badge-member">KBVE Member</span>
+					</div>
+				</div>
+			</header>
+
+			<section class="connected-accounts">
+				<h2 class="section-title">Connected Accounts</h2>
+				<div class="providers-list" id="providers-list">
+					<p class="no-providers">Loading providers...</p>
+				</div>
+			</section>
+
+			<section class="account-actions">
+				<h2 class="section-title">Account</h2>
+				<div class="actions-grid">
+					<a href="/settings" class="action-card">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
+							</path>
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="M15 12a3 3 0 11-6 0 3 3 0 016 0z">
+							</path>
+						</svg>
+						<span>Settings</span>
+					</a>
+					<button class="action-card logout-btn" id="logout-btn">
+						<svg
+							xmlns="http://www.w3.org/2000/svg"
+							fill="none"
+							viewBox="0 0 24 24"
+							stroke="currentColor">
+							<path
+								stroke-linecap="round"
+								stroke-linejoin="round"
+								stroke-width="1.5"
+								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1">
+							</path>
+						</svg>
+						<span>Sign Out</span>
+					</button>
+				</div>
+			</section>
+
+			<a href="/" class="back-link">
+				<svg
+					xmlns="http://www.w3.org/2000/svg"
+					fill="none"
+					viewBox="0 0 24 24"
+					stroke="currentColor">
+					<path
+						stroke-linecap="round"
+						stroke-linejoin="round"
+						stroke-width="2"
+						d="M10 19l-7-7m0 0l7-7m-7 7h18">
+					</path>
+				</svg>
+				Back to KBVE
+			</a>
+		</div>
+	</div>
+</section>
+
+<style>
+	#user-profile {
+		--profile-bg: var(--sl-color-bg, #0d1117);
+		--profile-bg-accent: var(--sl-color-bg-accent, #164e63);
+		--profile-text: var(--sl-color-text, #e6edf3);
+		--profile-text-muted: var(--sl-color-gray-3, #8b949e);
+		--profile-border: var(--sl-color-hairline, #30363d);
+		--profile-accent: var(--sl-color-accent, #06b6d4);
+		--profile-accent-high: var(--sl-color-accent-high, #67e8f9);
+		--octagon-cut: 1rem;
+	}
+
+	.user-profile-section {
+		background: transparent;
+		padding: 2rem 1rem;
+		min-height: 60vh;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.profile-container {
+		width: 100%;
+		max-width: 480px;
+	}
+
+	.profile-card {
+		background: linear-gradient(
+			180deg,
+			var(--profile-bg-accent) 0%,
+			transparent 100%
+		);
+		box-shadow: inset 0 0 0 1px var(--profile-border);
+		padding: 2rem;
+		position: relative;
+		transition:
+			clip-path 0.5s cubic-bezier(0.4, 0, 0.2, 1),
+			box-shadow 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+		clip-path: polygon(
+			var(--octagon-cut) 0%,
+			calc(100% - var(--octagon-cut)) 0%,
+			100% var(--octagon-cut),
+			100% calc(100% - var(--octagon-cut)),
+			calc(100% - var(--octagon-cut)) 100%,
+			var(--octagon-cut) 100%,
+			0% calc(100% - var(--octagon-cut)),
+			0% var(--octagon-cut)
+		);
+	}
+
+	/* Loading State */
+	.loading-state {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+		padding: 3rem 2rem;
+	}
+
+	.loading-avatar {
+		width: 80px;
+		height: 80px;
+		border-radius: 50%;
+		overflow: hidden;
+	}
+
+	.skeleton-pulse {
+		width: 100%;
+		height: 100%;
+		background: linear-gradient(
+			90deg,
+			var(--profile-border) 25%,
+			var(--profile-bg-accent) 50%,
+			var(--profile-border) 75%
+		);
+		background-size: 200% 100%;
+		animation: shimmer 1.5s ease-in-out infinite;
+	}
+
+	.skeleton-text {
+		border-radius: 4px;
+		background: linear-gradient(
+			90deg,
+			var(--profile-border) 25%,
+			var(--profile-bg-accent) 50%,
+			var(--profile-border) 75%
+		);
+		background-size: 200% 100%;
+		animation: shimmer 1.5s ease-in-out infinite;
+	}
+
+	@keyframes shimmer {
+		0% {
+			background-position: 200% 0;
+		}
+		100% {
+			background-position: -200% 0;
+		}
+	}
+
+	.loading-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+	}
+
+	.loading-message {
+		font-size: 0.875rem;
+		color: var(--profile-text-muted);
+		margin: 0;
+	}
+
+	/* Auth State */
+	.auth-state {
+		text-align: center;
+		padding: 3rem 2rem;
+	}
+
+	.auth-icon {
+		width: 80px;
+		height: 80px;
+		margin: 0 auto 1.5rem;
+		background: linear-gradient(
+			135deg,
+			var(--profile-accent) 0%,
+			var(--profile-accent-high) 100%
+		);
+		border-radius: 50%;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.auth-icon svg {
+		width: 40px;
+		height: 40px;
+		color: white;
+	}
+
+	.auth-title {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: var(--profile-text);
+		margin: 0 0 0.5rem;
+	}
+
+	.auth-subtitle {
+		font-size: 0.875rem;
+		color: var(--profile-text-muted);
+		margin: 0 0 2rem;
+	}
+
+	.auth-buttons {
+		display: flex;
+		flex-direction: column;
+		gap: 0.75rem;
+	}
+
+	.btn {
+		display: inline-flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		padding: 0.75rem 1.5rem;
+		border-radius: 0.5rem;
+		font-size: 0.875rem;
+		font-weight: 600;
+		text-decoration: none;
+		transition: all 0.3s ease;
+		cursor: pointer;
+		border: none;
+	}
+
+	.btn svg {
+		width: 1.25rem;
+		height: 1.25rem;
+	}
+
+	.btn-primary {
+		background: linear-gradient(
+			135deg,
+			var(--profile-accent) 0%,
+			var(--profile-accent-high) 100%
+		);
+		color: white;
+	}
+
+	.btn-primary:hover {
+		box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+		transform: translateY(-2px);
+	}
+
+	.btn-secondary {
+		background: transparent;
+		color: var(--profile-text);
+		box-shadow: inset 0 0 0 1px var(--profile-border);
+	}
+
+	.btn-secondary:hover {
+		box-shadow: inset 0 0 0 1px var(--profile-accent);
+		color: var(--profile-accent-high);
+	}
+
+	/* User State */
+	.user-state {
+		padding: 2rem;
+	}
+
+	.user-header {
+		display: flex;
+		gap: 1rem;
+		align-items: center;
+		padding-bottom: 1.5rem;
+		border-bottom: 1px solid var(--profile-border);
+		margin-bottom: 1.5rem;
+	}
+
+	.user-avatar {
+		width: 64px;
+		height: 64px;
+		border-radius: 50%;
+		background: linear-gradient(
+			135deg,
+			var(--profile-accent) 0%,
+			#8b5cf6 100%
+		);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		overflow: hidden;
+	}
+
+	.user-avatar img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.avatar-letter {
+		font-size: 1.5rem;
+		font-weight: 700;
+		color: white;
+		text-transform: uppercase;
+	}
+
+	.user-info {
+		flex: 1;
+		min-width: 0;
+	}
+
+	.user-name {
+		font-size: 1.25rem;
+		font-weight: 700;
+		color: var(--profile-text);
+		margin: 0 0 0.25rem;
+	}
+
+	.user-email {
+		font-size: 0.875rem;
+		color: var(--profile-text-muted);
+		margin: 0 0 0.5rem;
+	}
+
+	.user-badges {
+		display: flex;
+		gap: 0.5rem;
+		flex-wrap: wrap;
+	}
+
+	.badge {
+		font-size: 0.625rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		padding: 0.25rem 0.5rem;
+		border-radius: 9999px;
+	}
+
+	.badge-member {
+		background: rgba(6, 182, 212, 0.15);
+		color: var(--profile-accent-high);
+		border: 1px solid rgba(6, 182, 212, 0.3);
+	}
+
+	/* Sections */
+	.section-title {
+		font-size: 0.6875rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--profile-text-muted);
+		margin: 0 0 0.75rem;
+	}
+
+	.connected-accounts {
+		margin-bottom: 1.5rem;
+	}
+
+	.providers-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.provider-item {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		padding: 0.75rem;
+		background: rgba(0, 0, 0, 0.2);
+		border-radius: 0.5rem;
+		border-left: 3px solid var(--provider-color, var(--profile-border));
+	}
+
+	.provider-item.discord {
+		--provider-color: #5865f2;
+	}
+	.provider-item.github {
+		--provider-color: #238636;
+	}
+	.provider-item.twitch {
+		--provider-color: #9146ff;
+	}
+	.provider-item.google {
+		--provider-color: #ea4335;
+	}
+
+	.provider-icon {
+		width: 32px;
+		height: 32px;
+		border-radius: 50%;
+		background: var(--profile-border);
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		overflow: hidden;
+	}
+
+	.provider-icon img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+
+	.provider-icon svg {
+		width: 16px;
+		height: 16px;
+		color: var(--profile-text-muted);
+	}
+
+	.provider-info {
+		flex: 1;
+	}
+
+	.provider-name {
+		font-size: 0.875rem;
+		font-weight: 600;
+		color: var(--profile-text);
+		margin: 0;
+	}
+
+	.provider-username {
+		font-size: 0.75rem;
+		color: var(--profile-text-muted);
+		margin: 0;
+	}
+
+	.no-providers {
+		font-size: 0.875rem;
+		color: var(--profile-text-muted);
+		text-align: center;
+		padding: 1rem;
+		margin: 0;
+	}
+
+	/* Actions */
+	.actions-grid {
+		display: grid;
+		grid-template-columns: 1fr 1fr;
+		gap: 0.75rem;
+	}
+
+	.action-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 0.5rem;
+		padding: 1rem;
+		background: rgba(0, 0, 0, 0.2);
+		border: 1px solid var(--profile-border);
+		border-radius: 0.5rem;
+		color: var(--profile-text);
+		text-decoration: none;
+		font-size: 0.75rem;
+		font-weight: 500;
+		transition: all 0.3s ease;
+		cursor: pointer;
+	}
+
+	.action-card svg {
+		width: 1.5rem;
+		height: 1.5rem;
+		color: var(--profile-text-muted);
+		transition: color 0.3s ease;
+	}
+
+	.action-card:hover {
+		border-color: var(--profile-accent);
+		background: rgba(6, 182, 212, 0.1);
+	}
+
+	.action-card:hover svg {
+		color: var(--profile-accent-high);
+	}
+
+	.logout-btn {
+		font-family: inherit;
+	}
+
+	.logout-btn:hover {
+		border-color: #ef4444;
+		background: rgba(239, 68, 68, 0.1);
+	}
+
+	.logout-btn:hover svg {
+		color: #ef4444;
+	}
+
+	/* Back Link */
+	.back-link {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		gap: 0.5rem;
+		margin-top: 1.5rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid var(--profile-border);
+		color: var(--profile-text-muted);
+		text-decoration: none;
+		font-size: 0.875rem;
+		transition: color 0.3s ease;
+	}
+
+	.back-link:hover {
+		color: var(--profile-accent-high);
+	}
+
+	.back-link svg {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	/* Responsive */
+	@media (max-width: 480px) {
+		.profile-card {
+			padding: 1.5rem;
+		}
+
+		.user-header {
+			flex-direction: column;
+			text-align: center;
+		}
+
+		.user-badges {
+			justify-content: center;
+		}
+	}
+
+	/* Reduced motion */
+	@media (prefers-reduced-motion: reduce) {
+		.skeleton-pulse,
+		.skeleton-text {
+			animation: none;
+		}
+
+		.btn:hover,
+		.action-card:hover {
+			transform: none;
+		}
+	}
+</style>
+
+<script>
+	// User Profile Script
+	// This will be replaced with actual Supabase auth integration
+	document.addEventListener('DOMContentLoaded', async () => {
+		const loadingEl = document.getElementById('profile-loading');
+		const authEl = document.getElementById('profile-auth');
+		const userEl = document.getElementById('profile-user');
+		const logoutBtn = document.getElementById('logout-btn');
+
+		// Simulate checking auth state (replace with actual Supabase check)
+		async function checkAuth() {
+			try {
+				// TODO: Replace with actual Supabase auth check
+				// const { data: { user } } = await supabase.auth.getUser();
+
+				// For now, show the auth state (not logged in)
+				// Remove this simulation when Supabase is integrated
+				await new Promise((resolve) => setTimeout(resolve, 1000));
+
+				const user = null; // Replace with actual user
+
+				if (loadingEl) loadingEl.style.display = 'none';
+
+				if (user) {
+					showUserProfile(user);
+				} else {
+					if (authEl) authEl.style.display = 'block';
+				}
+			} catch (error) {
+				console.error('Auth check failed:', error);
+				if (loadingEl) loadingEl.style.display = 'none';
+				if (authEl) authEl.style.display = 'block';
+			}
+		}
+
+		function showUserProfile(user: any) {
+			if (!userEl) return;
+			userEl.style.display = 'block';
+
+			const nameEl = document.getElementById('user-name');
+			const emailEl = document.getElementById('user-email');
+			const avatarLetterEl = document.getElementById('avatar-letter');
+			const avatarEl = document.getElementById('user-avatar');
+
+			if (nameEl)
+				nameEl.textContent =
+					user.user_metadata?.full_name ||
+					user.email?.split('@')[0] ||
+					'User';
+			if (emailEl) emailEl.textContent = user.email || '';
+			if (avatarLetterEl)
+				avatarLetterEl.textContent = (
+					user.email?.[0] || 'U'
+				).toUpperCase();
+
+			// If user has avatar URL
+			if (user.user_metadata?.avatar_url && avatarEl) {
+				avatarEl.innerHTML = `<img src="${user.user_metadata.avatar_url}" alt="Avatar" />`;
+			}
+
+			// Load connected providers
+			loadProviders(user);
+		}
+
+		function loadProviders(user: any) {
+			const providersList = document.getElementById('providers-list');
+			if (!providersList) return;
+
+			// TODO: Get actual connected providers from user identities
+			const providers: any[] = user.identities || [];
+
+			if (providers.length === 0) {
+				providersList.innerHTML =
+					'<p class="no-providers">No connected accounts yet</p>';
+				return;
+			}
+
+			providersList.innerHTML = providers
+				.map(
+					(identity: any) => `
+				<div class="provider-item ${identity.provider}">
+					<div class="provider-icon">
+						${getProviderIcon(identity.provider)}
+					</div>
+					<div class="provider-info">
+						<p class="provider-name">${capitalizeFirst(identity.provider)}</p>
+						<p class="provider-username">${identity.identity_data?.email || identity.identity_data?.preferred_username || ''}</p>
+					</div>
+				</div>
+			`,
+				)
+				.join('');
+		}
+
+		function getProviderIcon(provider: string): string {
+			const icons: Record<string, string> = {
+				discord:
+					'<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.317 4.37a19.791 19.791 0 0 0-4.885-1.515.074.074 0 0 0-.079.037c-.21.375-.444.864-.608 1.25a18.27 18.27 0 0 0-5.487 0 12.64 12.64 0 0 0-.617-1.25.077.077 0 0 0-.079-.037A19.736 19.736 0 0 0 3.677 4.37a.07.07 0 0 0-.032.027C.533 9.046-.32 13.58.099 18.057a.082.082 0 0 0 .031.057 19.9 19.9 0 0 0 5.993 3.03.078.078 0 0 0 .084-.028 14.09 14.09 0 0 0 1.226-1.994.076.076 0 0 0-.041-.106 13.107 13.107 0 0 1-1.872-.892.077.077 0 0 1-.008-.128 10.2 10.2 0 0 0 .372-.292.074.074 0 0 1 .077-.01c3.928 1.793 8.18 1.793 12.062 0a.074.074 0 0 1 .078.01c.12.098.246.198.373.292a.077.077 0 0 1-.006.127 12.299 12.299 0 0 1-1.873.892.077.077 0 0 0-.041.107c.36.698.772 1.362 1.225 1.993a.076.076 0 0 0 .084.028 19.839 19.839 0 0 0 6.002-3.03.077.077 0 0 0 .032-.054c.5-5.177-.838-9.674-3.549-13.66a.061.061 0 0 0-.031-.03z"/></svg>',
+				github: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.374 0 0 5.373 0 12c0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23A11.509 11.509 0 0 1 12 5.803c1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576C20.566 21.797 24 17.3 24 12c0-6.627-5.373-12-12-12z"/></svg>',
+				google: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/></svg>',
+				twitch: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714z"/></svg>',
+			};
+			return (
+				icons[provider] ||
+				'<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10"/></svg>'
+			);
+		}
+
+		function capitalizeFirst(str: string): string {
+			return str.charAt(0).toUpperCase() + str.slice(1);
+		}
+
+		// Logout handler
+		if (logoutBtn) {
+			logoutBtn.addEventListener('click', async () => {
+				try {
+					// TODO: Replace with actual Supabase logout
+					// await supabase.auth.signOut();
+					window.location.href = '/';
+				} catch (error) {
+					console.error('Logout failed:', error);
+				}
+			});
+		}
+
+		// Initialize
+		checkAuth();
+	});
+</script>

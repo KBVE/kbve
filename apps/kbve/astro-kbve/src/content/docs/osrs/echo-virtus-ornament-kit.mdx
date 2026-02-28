@@ -1,0 +1,37 @@
+---
+title: Echo virtus ornament kit | OSRS Price Data
+description: "Echo virtus ornament kit: Used on Virtus robes to decorate them in the style of Leagues V: Raging Echoes.. High alch: 3,000 GP."
+osrs:
+  id: 30443
+  name: Echo virtus ornament kit
+  slug: echo-virtus-ornament-kit
+  examine: "Used on Virtus robes to decorate them in the style of Leagues V: Raging Echoes."
+  members: true
+  icon: Echo virtus ornament kit.png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

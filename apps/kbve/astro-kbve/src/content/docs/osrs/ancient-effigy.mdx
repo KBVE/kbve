@@ -1,0 +1,37 @@
+---
+title: Ancient effigy | OSRS Price Data
+description: "Ancient effigy: A mysterious artifact of ancient times, very precious to emblem traders.. High alch: 4,800,000 GP, GE limit: 250."
+osrs:
+  id: 22302
+  name: Ancient effigy
+  slug: ancient-effigy
+  examine: A mysterious artifact of ancient times, very precious to emblem traders.
+  members: true
+  icon: Ancient effigy.png
+  value: 8000000
+  lowalch: 3200000
+  highalch: 4800000
+  limit: 250
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

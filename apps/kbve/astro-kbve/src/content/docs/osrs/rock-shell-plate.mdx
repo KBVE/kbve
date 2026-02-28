@@ -1,0 +1,37 @@
+---
+title: Rock-shell plate | OSRS Price Data
+description: "Rock-shell plate: A sturdy body armour made from rock crab pieces.. High alch: 39,000 GP, GE limit: 70."
+osrs:
+  id: 6129
+  name: Rock-shell plate
+  slug: rock-shell-plate
+  examine: A sturdy body armour made from rock crab pieces.
+  members: true
+  icon: Rock-shell plate.png
+  value: 65000
+  lowalch: 26000
+  highalch: 39000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Jungle camo legs (equipped) | OSRS Price Data
+description: "Jungle camo legs (equipped): These should make me harder to spot in jungle areas.. High alch: 12 GP."
+osrs:
+  id: 28848
+  name: Jungle camo legs (equipped)
+  slug: jungle-camo-legs-equipped
+  examine: These should make me harder to spot in jungle areas.
+  members: true
+  icon: Jungle camo legs.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

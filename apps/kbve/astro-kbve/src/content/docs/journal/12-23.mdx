@@ -1,0 +1,42 @@
+---
+title: 'Decemeber: 23rd'
+category: Daily
+date: 2025-12-23 12:00:00
+client: Self
+unsplash: 1511512578047-dfb367046420
+img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Decemeber 23rd.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+#### Unity DOTS Prefab
+
+-   05:50PM
+
+    Taking a look at Fudster's recent push to resolve the DOTS prefab issue.
+    I am hoping that he got it, then I will look at fixing the movement on the map.
+    It seems that this is a bandaid because the hybrid render is being applied to everything. 
+    Now the other issue is that collision might not work because of that, since gameobjects use a different physics component.
+    We will need to figure out a way to convert it over.
+
+### KBVE Main Site
+
+-   07:31PM
+
+    Updating the 404 Error pages so that they no longer give a blank 404 page.
+    Later on we can look at improving the pipeline flow.
+    Okay the 404 page no longer fails and loads without issues.
+
+## 2024
+
+-   05:15AM
+
+    **Docker**
+
+    Before building out the helm chart, we want to make sure that the docker build is good to go.
+    We need it to be published and then have the ability to pull that docker image from the hub before we can move forward with the helm chart.

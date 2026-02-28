@@ -1,0 +1,106 @@
+---
+title: Ensouled troll head | OSRS Price Data
+description: "Ensouled troll head: The creature's soul is still in here.. High alch: 230 GP, GE limit: 7,500."
+osrs:
+  id: 13484
+  name: Ensouled troll head
+  slug: ensouled-troll-head
+  examine: The creature's soul is still in here.
+  members: true
+  icon: Ensouled troll head.png
+  value: 384
+  lowalch: 153
+  highalch: 230
+  limit: 7500
+  material:
+    type: ensouled_head
+    tier: adept
+  prayer:
+    xp_reanimate: 780
+    magic_level: 41
+    spell: Adept Reanimation
+  drop_table:
+    sources:
+      - source: Troll
+        source_id: 1106
+        combat_level: 75
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Mountain troll
+        source_id: 937
+        combat_level: 69
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+  related_items:
+    - item_id: 13475
+      item_name: Ensouled giant head
+      slug: ensouled-giant-head
+      relationship: downgrade
+      description: Lower XP (650)
+    - item_id: 13490
+      item_name: Ensouled kalphite head
+      slug: ensouled-kalphite-head
+      relationship: upgrade
+      description: Higher XP (884)
+    - item_id: 13502
+      item_name: Ensouled demon head
+      slug: ensouled-demon-head
+      relationship: upgrade
+      description: Higher XP (1,170)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Prayer Training
+
+| Method | XP |
+|--------|-----|
+| Reanimate (Dark Altar) | 780 |
+
+**Magic Level Required:** 41
+**Spell:** Adept Reanimation
+
+## Obtaining
+
+Dropped by trolls when Arceuus favour is unlocked.
+
+## Usage
+
+1. Cast Adept Reanimation spell on the head
+2. Kill the reanimated creature
+3. Receive Prayer XP
+
+## Market Flip Strategy
+
+**Mid-Tier Heads:**
+- Decent Prayer XP
+- Medium supply from Slayer
+
+**Buy Limit:** 50 per 4 hours
+
+**Tips:**
+- Troll tasks provide supply
+- Compare GP/XP to alternatives
+- Mid-level Prayer training
+
+<Adsense />

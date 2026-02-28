@@ -1,0 +1,37 @@
+---
+title: Spottier cape | OSRS Price Data
+description: "Spottier cape: A really surprisingly aerodynamic cape.. High alch: 480 GP, GE limit: 125."
+osrs:
+  id: 10071
+  name: Spottier cape
+  slug: spottier-cape
+  examine: A really surprisingly aerodynamic cape.
+  members: true
+  icon: Spottier cape.png
+  value: 800
+  lowalch: 320
+  highalch: 480
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

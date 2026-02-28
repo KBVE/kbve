@@ -1,0 +1,37 @@
+---
+title: Uncharged trident (e) | OSRS Price Data
+description: "Uncharged trident (e): It needs to be charged with death runes, chaos runes, fire runes and coins.. High alch: 58,800 GP, GE limit: 8."
+osrs:
+  id: 22290
+  name: Uncharged trident (e)
+  slug: uncharged-trident-e
+  examine: It needs to be charged with death runes, chaos runes, fire runes and coins.
+  members: true
+  icon: Uncharged trident (e).png
+  value: 98000
+  lowalch: 39200
+  highalch: 58800
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

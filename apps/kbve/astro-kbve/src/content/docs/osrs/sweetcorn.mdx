@@ -1,0 +1,100 @@
+---
+title: Sweetcorn | OSRS Price Data
+description: "Sweetcorn: Raw sweetcorn.. High alch: 5 GP, GE limit: 11,000."
+osrs:
+  id: 5986
+  name: Sweetcorn
+  slug: sweetcorn
+  examine: Raw sweetcorn.
+  members: true
+  icon: Sweetcorn.png
+  value: 9
+  lowalch: 3
+  highalch: 5
+  limit: 11000
+  item:
+    type: crop
+    subtype: food
+    tradeable: true
+    weight: 0.028
+  farming:
+    level: 20
+    patch_type: allotment
+  uses:
+    - name: Cooking
+      description: Cook on range for cooked sweetcorn
+    - name: Farming
+      description: Scarecrow ingredient
+  related_items:
+    - item_id: 5320
+      item_name: Sweetcorn seed
+      slug: sweetcorn-seed
+      relationship: alternative
+      description: Farming source
+    - item_id: 5988
+      item_name: Cooked sweetcorn
+      slug: cooked-sweetcorn
+      relationship: product
+      description: Processed form
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Farming Product / Food |
+| Tradeable | Yes |
+| Weight | 0.028 kg |
+| Requirements | 20 Farming |
+
+## Obtaining
+
+**Primary:** Harvest from allotment patches (20 Farming)
+
+**Other sources:**
+- Field picking (Outer Fortis, Kastori)
+- Gryphon monster drops
+- Farming shops
+
+## Usage
+
+**Cooking:** Cook on range for cooked sweetcorn
+
+**Farming:** Scarecrow ingredient
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~145 gp
+
+Moderate volume farming product.
+
+## Related Items
+
+- [Sweetcorn seed](/osrs/sweetcorn-seed/) - Farming source
+- [Cooked sweetcorn](/osrs/cooked-sweetcorn/) - Processed form
+- [Scarecrow](/osrs/scarecrow/) - Crafting use
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Torag's hammers 0 | OSRS Price Data
+description: "Torag's hammers 0: Torag the Corrupted's twin hammers.. High alch: 96,000 GP, GE limit: 15."
+osrs:
+  id: 4962
+  name: Torag's hammers 0
+  slug: torag-s-hammers-0
+  examine: Torag the Corrupted's twin hammers.
+  members: true
+  icon: Torag's hammers 0.png
+  value: 160000
+  lowalch: 64000
+  highalch: 96000
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

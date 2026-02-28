@@ -1,0 +1,144 @@
+---
+title: Binding necklace | OSRS Price Data
+description: "Binding necklace is a members neck slot item. High alch: 855 GP, GE limit: 10,000."
+osrs:
+  id: 5521
+  name: Binding necklace
+  slug: binding-necklace
+  examine: A necklace embedded with mystical power.
+  members: true
+  icon: Binding necklace.png
+  value: 1425
+  lowalch: 570
+  highalch: 855
+  limit: 10000
+  equipment:
+    slot: neck
+    type: runecraft_necklace
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    weight: 0.01
+  special_effect:
+    name: Combination Rune Success
+    description: 100% success rate on combination runes
+    charges: 16
+  recipes:
+    - skill: magic
+      level: 27
+      xp: 37
+      materials:
+        - item_name: Emerald necklace
+          item_id: 1658
+          quantity: 1
+        - item_name: Cosmic rune
+          item_id: 564
+          quantity: 1
+        - item_name: Air rune
+          item_id: 556
+          quantity: 3
+  related_items:
+    - item_id: 4695
+      item_name: Lava rune
+      slug: lava-rune
+      relationship: product
+      description: Common combo rune
+    - item_id: 1658
+      item_name: Emerald necklace
+      slug: emerald-necklace
+      relationship: component
+      description: Base item for enchantment
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Neck |
+| Type | Runecraft Necklace |
+| Tradeable | Yes |
+| Weight | 0.01 kg |
+
+## Creation
+
+Enchant [Emerald necklace](/osrs/emerald-necklace/) with Lvl-2 Enchant.
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 27 |
+| Cosmic rune | 1 |
+| Air rune | 3 |
+
+Alternative: Abyss monster drops
+
+## Passive Effect
+
+**Combination Rune Success:**
+- 100% success rate on combo runes
+- 16 charges total
+- 1 charge per craft
+
+## Usage
+
+Essential for:
+- Lava runes (best RC XP)
+- All combination runes
+- Runecraft training
+
+**Required for combo rune crafting.**
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~200 gp
+
+**Tips:**
+- Essential for lava runes
+- Very cheap
+- 16 uses per necklace
+
+## Related Items
+
+- [Lava rune](/osrs/lava-rune/) - Common combo rune
+- [Emerald necklace](/osrs/emerald-necklace/) - Base item
+- [Runecraft](/osrs/runecraft/) - Related skill
+
+<Adsense />

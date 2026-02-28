@@ -1,0 +1,100 @@
+---
+title: Cabbage | OSRS Price Data
+description: "Cabbage: Yuck I don't like cabbage.. High alch: 1 GP, GE limit: 6,000."
+osrs:
+  id: 1965
+  name: Cabbage
+  slug: cabbage
+  examine: Yuck I don't like cabbage.
+  members: false
+  icon: Cabbage.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 6000
+  produce:
+    type: allotment
+    tier: low
+  farming:
+    seed_id: 5324
+    seed_name: Cabbage seed
+    level: 7
+    xp_plant: 10
+    xp_harvest: 11.5
+    growth_time: 40
+    patches: 8
+  related_items:
+    - item_id: 5324
+      item_name: Cabbage seed
+      slug: cabbage-seed
+      relationship: component
+      description: Planted to grow cabbage
+    - item_id: 1957
+      item_name: Onion
+      slug: onion
+      relationship: alternative
+      description: Alternative allotment produce
+    - item_id: 1982
+      item_name: Tomato
+      slug: tomato
+      relationship: alternative
+      description: Alternative allotment produce
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+**Farming:** Harvest from allotment patches after planting cabbage seeds (7 Farming).
+
+**Other Sources:**
+- Spawn locations around Gielinor (Draynor Manor, various farms)
+- Various monster drops
+- Market stalls
+
+## Farming Info
+
+| Requirement | Value |
+|-------------|-------|
+| Farming Level | 7 |
+| Growth time | 40 minutes |
+| XP (plant) | 10 |
+| XP (harvest) | 11.5 per cabbage |
+
+## Uses
+
+- Protection payment for onion seeds
+- Used in cooking recipes
+- Draynor Manor cabbage is special (Black Knight's Fortress quest)
+
+## Market Strategy
+
+**Allotment Farming:**
+- Low-tier crop
+- Very low value
+- Good for early farming training
+
+**Ironman Notes:**
+- Easy to obtain
+- Required for some quests
+- Good early farming crop
+
+<Adsense />

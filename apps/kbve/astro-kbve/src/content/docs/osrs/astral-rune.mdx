@@ -1,0 +1,131 @@
+---
+title: Astral rune | OSRS Price Data
+description: "Astral rune: Used for Lunar spells.. High alch: 30 GP, GE limit: 25,000."
+osrs:
+  id: 9075
+  name: Astral rune
+  slug: astral-rune
+  examine: Used for Lunar spells.
+  members: true
+  icon: Astral rune.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 25000
+  rune:
+    type: catalytic
+    element: astral
+  runecraft:
+    level: 40
+    xp: 8.7
+    multiple_at: 82
+    altar: Astral Altar
+    altar_location: Lunar Isle
+    essence_type: pure
+    quest_required: Lunar Diplomacy
+  recipes:
+    - skill: runecraft
+      level: 40
+      xp: 8.7
+      materials:
+        - item_name: Pure essence
+          item_id: 7936
+          quantity: 1
+      product: Astral rune
+      product_id: 9075
+      product_quantity: 1
+      facility: Astral altar
+      members_only: true
+  related_items:
+    - item_id: 561
+      item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: Lunar spell combo
+    - item_id: 557
+      item_name: Earth rune
+      slug: earth-rune
+      relationship: component
+      description: Plank Make combo
+    - item_id: 560
+      item_name: Death rune
+      slug: death-rune
+      relationship: component
+      description: Vengeance combo
+    - item_id: 563
+      item_name: Law rune
+      slug: law-rune
+      relationship: component
+      description: Teleport spells
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Amount |
+|--------|--------|
+| Astral Altar | Runecrafting |
+| Lunar Isle shops | Limited stock |
+| Monster drops | Various |
+
+## Runecrafting
+
+| Requirement | Value |
+|-------------|-------|
+| Runecraft Level | 40 |
+| XP per rune | 8.7 |
+| Quest | Lunar Diplomacy |
+| Altar location | Lunar Isle |
+
+## Key Spells
+
+| Spell | Astral Runes | Magic Level |
+|-------|--------------|-------------|
+| Plank Make | 2 | 86 |
+| Vengeance | 4 | 94 |
+| String Jewellery | 2 | 80 |
+| Superglass Make | 2 | 77 |
+| Tan Leather | 2 | 78 |
+| Fertile Soil | 3 | 83 |
+| NPC Contact | 1 | 67 |
+
+## Market Flip Strategy
+
+**Lunar Spellbook Essential:**
+- All Lunar spells use astral
+- Plank Make drives demand
+- Vengeance for PvP
+
+**Buy Limit:** 25,000 per 4 hours
+
+**Demand Drivers:**
+- Plank Make (Construction)
+- Vengeance (PvP/PvM)
+- String Jewellery (Crafting)
+- Tan Leather (Crafting)
+
+**Tips:**
+- Lunar Diplomacy required to craft
+- Plank Make most common use
+- Vengeance always in demand
+
+<Adsense />

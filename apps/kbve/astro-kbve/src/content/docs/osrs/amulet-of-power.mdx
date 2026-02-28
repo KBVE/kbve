@@ -1,0 +1,108 @@
+---
+title: Amulet of power | OSRS Price Data
+description: "Amulet of power is a F2P neck slot item. High alch: 2,115 GP, GE limit: 125."
+osrs:
+  id: 1731
+  name: Amulet of power
+  slug: amulet-of-power
+  examine: An enchanted diamond amulet of power.
+  members: false
+  icon: Amulet of power.png
+  value: 3525
+  lowalch: 1410
+  highalch: 2115
+  limit: 125
+  equipment:
+    slot: neck
+    type: amulet
+    tradeable: true
+    weight: 0.01
+    stats:
+      attack_stab: 6
+      attack_slash: 6
+      attack_crush: 6
+      attack_magic: 6
+      attack_ranged: 6
+      defence_stab: 6
+      defence_slash: 6
+      defence_crush: 6
+      defence_magic: 6
+      defence_ranged: 6
+      strength: 6
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 1
+  related_items:
+    - item_id: 1700
+      item_name: Diamond amulet
+      slug: diamond-amulet
+      relationship: component
+      description: Unenchanted form
+    - item_id: 1712
+      item_name: Amulet of glory
+      slug: amulet-of-glory
+      relationship: upgrade
+      description: P2P upgrade
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Neck |
+| Type | Amulet |
+| Tradeable | Yes |
+| Weight | 0.01 kg |
+| Requirements | None |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Attack (All) | +6 |
+| Defence (All) | +6 |
+| Strength | +6 |
+| Prayer | +1 |
+
+## Obtaining
+
+**Enchanting:** Cast Lvl-4 Enchant on diamond amulet (57 Magic).
+
+**Shop:** Davon's Amulet Store (4,230 gp).
+
+**Drops:** King Black Dragon (7/128).
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~2,217 gp
+
+Balanced F2P amulet. Popular for all combat styles.
+
+## Related Items
+
+- [Diamond amulet](/osrs/diamond-amulet/) - Unenchanted form
+- [Amulet of glory](/osrs/amulet-of-glory/) - Upgrade
+
+<Adsense />

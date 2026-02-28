@@ -1,0 +1,37 @@
+---
+title: Hemp | OSRS Price Data
+description: "Hemp: I should use this with a spinning wheel.. High alch: 18 GP."
+osrs:
+  id: 31457
+  name: Hemp
+  slug: hemp
+  examine: I should use this with a spinning wheel.
+  members: true
+  icon: Hemp.png
+  value: 30
+  lowalch: 12
+  highalch: 18
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

@@ -1,0 +1,122 @@
+---
+title: Grimy kwuarm | OSRS Price Data
+description: "Grimy kwuarm: It needs cleaning.. High alch: 12 GP, GE limit: 13,000."
+osrs:
+  id: 213
+  name: Grimy kwuarm
+  slug: grimy-kwuarm
+  examine: It needs cleaning.
+  members: true
+  icon: Grimy kwuarm.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 13000
+  herb:
+    type: grimy
+    tier: mid-high
+  herblore:
+    cleaning_level: 54
+    cleaning_xp: 11.3
+    clean_id: 263
+    clean_name: Kwuarm
+  farming:
+    level: 56
+    seed_id: 5299
+    seed_name: Kwuarm seed
+  drop_table:
+    sources:
+      - source: Aberrant spectre
+        source_id: 2927
+        combat_level: 96
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Nechryael
+        source_id: 1
+        combat_level: 115
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 263
+      item_name: Kwuarm
+      slug: kwuarm
+      relationship: product
+      description: Cleaned version
+    - item_id: 105
+      item_name: Kwuarm potion (unf)
+      slug: kwuarm-potion-unf
+      relationship: product
+      description: Unfinished potion
+    - item_id: 2440
+      item_name: Super strength(4)
+      slug: super-strength-4
+      relationship: product
+      description: Primary end product
+    - item_id: 5299
+      item_name: Kwuarm seed
+      slug: kwuarm-seed
+      relationship: component
+      description: Farming seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Grimy Herb |
+| Tradeable | Yes |
+| Weight | 0.007 kg |
+| Herblore Level | 54 (to clean) |
+
+## Obtaining
+
+Common sources:
+- Farming kwuarm (56 Farming)
+- Monster drops
+- Slayer creatures
+
+## Usage
+
+Clean to produce **kwuarm** for Herblore.
+
+Kwuarm used for:
+- **Super strength**
+- **Weapon poison**
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Price:** ~3,071 gp
+
+Mid-level herb. 11.3 XP from cleaning.
+
+## Related Items
+
+- [Kwuarm](/osrs/kwuarm/) - Cleaned form
+- [Super strength](/osrs/super-strength/) - Primary use
+
+<Adsense />

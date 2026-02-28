@@ -1,0 +1,37 @@
+---
+title: Golden statuette | OSRS Price Data
+description: "Golden statuette: A small golden statuette.. High alch: 18 GP, GE limit: 13,000."
+osrs:
+  id: 9034
+  name: Golden statuette
+  slug: golden-statuette
+  examine: A small golden statuette.
+  members: true
+  icon: Golden statuette.png
+  value: 30
+  lowalch: 12
+  highalch: 18
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

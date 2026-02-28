@@ -1,0 +1,104 @@
+---
+title: Grimy lantadyme | OSRS Price Data
+description: "Grimy lantadyme: It needs cleaning.. High alch: 13 GP, GE limit: 11,000."
+osrs:
+  id: 2485
+  name: Grimy lantadyme
+  slug: grimy-lantadyme
+  examine: It needs cleaning.
+  members: true
+  icon: Grimy lantadyme.png
+  value: 23
+  lowalch: 9
+  highalch: 13
+  limit: 11000
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    weight: 0.007
+  recipes:
+    - skill: herblore
+      level: 67
+      xp: 10.5
+      materials:
+        - item_name: Grimy lantadyme
+          item_id: 2485
+          quantity: 1
+      description: Cleaning grimy lantadyme
+  related_items:
+    - item_id: 2481
+      item_name: Lantadyme
+      slug: lantadyme
+      relationship: product
+      description: Cleaned form
+    - item_id: 2452
+      item_name: Antifire potion(4)
+      slug: antifire-potion-4
+      relationship: product
+      description: Primary potion use
+    - item_id: 3040
+      item_name: Magic potion(4)
+      slug: magic-potion-4
+      relationship: product
+      description: Secondary potion use
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Grimy Herb |
+| Tradeable | Yes |
+| Weight | 0.007 kg |
+| Herblore Level | 67 (to clean) |
+
+## Obtaining
+
+Common sources:
+- Farming lantadyme (73 Farming)
+- Monster drops
+- Slayer creatures
+
+## Usage
+
+Clean to produce **lantadyme** for Herblore.
+
+Lantadyme used for:
+- **Antifire**
+- **Magic potion**
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~2,484 gp
+
+Mid-high level herb. Essential for antifire production.
+
+## Related Items
+
+- [Lantadyme](/osrs/lantadyme/) - Cleaned form
+- [Antifire potion](/osrs/antifire-potion/) - Primary use
+
+<Adsense />

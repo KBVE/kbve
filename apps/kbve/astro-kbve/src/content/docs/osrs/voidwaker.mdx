@@ -1,0 +1,163 @@
+---
+title: Voidwaker | OSRS Price Data
+description: "Voidwaker is a members weapon slot item requiring 75 Attack. High alch: 1,200,000 GP, GE limit: 70."
+osrs:
+  id: 27690
+  name: Voidwaker
+  slug: voidwaker
+  examine: A truly fearsome weapon.
+  members: true
+  icon: Voidwaker.png
+  value: 2000000
+  lowalch: 800000
+  highalch: 1200000
+  limit: 70
+  equipment:
+    slot: weapon
+    type: sword
+    attack_style: melee
+    attack_speed: 4
+    attack_range: 1
+    requirements:
+      attack: 75
+    stats:
+      attack_stab: 70
+      attack_slash: 80
+      attack_crush: -2
+      attack_magic: 5
+      defence_slash: 1
+      defence_magic: 2
+      melee_strength: 80
+  special_attack:
+    name: Disrupt
+    cost: 50
+    description: Deals guaranteed magic damage between 50-150% of maximum melee hit, grants 2 Magic XP per damage dealt
+  obtaining:
+    methods:
+      - source: Assembly
+        npc: Madam Sikaro
+        cost: 500,000 coins
+        materials:
+          - item_name: Voidwaker blade
+            item_id: 27681
+          - item_name: Voidwaker hilt
+            item_id: 27684
+          - item_name: Voidwaker gem
+            item_id: 27687
+  related_items:
+    - item_id: 27681
+      item_name: Voidwaker blade
+      slug: voidwaker-blade
+      relationship: component
+      description: Dropped by Vet'ion/Calvar'ion
+    - item_id: 27684
+      item_name: Voidwaker hilt
+      slug: voidwaker-hilt
+      relationship: component
+      description: Dropped by Callisto/Artio
+    - item_id: 27687
+      item_name: Voidwaker gem
+      slug: voidwaker-gem
+      relationship: component
+      description: Dropped by Venenatis/Spindel
+    - item_id: 11802
+      item_name: Armadyl godsword
+      slug: armadyl-godsword
+      relationship: alternative
+      description: Alternative spec weapon
+    - item_id: 13652
+      item_name: Dragon claws
+      slug: dragon-claws
+      relationship: alternative
+      description: Alternative spec weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Sword |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Attack Speed | 4 tick (2.4s) |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +70 |
+| Slash | +80 |
+| Crush | -2 |
+| Magic | +5 |
+| Melee Strength | +80 |
+
+| Defense | Value |
+|---------|-------|
+| Slash | +1 |
+| Magic | +2 |
+
+**Requirements:** 75 Attack
+
+## Special Attack
+
+**Disrupt (50% spec):**
+- Deals guaranteed magic damage
+- Hits between 50-150% of max melee hit
+- Grants 2 Magic XP per damage dealt
+- Cannot be blocked or reduced
+
+## Obtaining
+
+Assemble with Madam Sikaro for 500,000 coins:
+- Voidwaker blade (Vet'ion/Calvar'ion)
+- Voidwaker hilt (Callisto/Artio)
+- Voidwaker gem (Venenatis/Spindel)
+
+## Usage
+
+Best for:
+- PvP KO weapon
+- Spec weapon for bossing
+- Wilderness PKing
+
+**Top-tier special attack weapon.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~37M gp
+
+**Tips:**
+- Guaranteed damage makes it reliable
+- Popular PvP spec weapon
+- Components from Wilderness bosses
+
+## Related Items
+
+- [Voidwaker blade](/osrs/voidwaker-blade/) - Component from Vet'ion
+- [Voidwaker hilt](/osrs/voidwaker-hilt/) - Component from Callisto
+- [Voidwaker gem](/osrs/voidwaker-gem/) - Component from Venenatis
+
+<Adsense />

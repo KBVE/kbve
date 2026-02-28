@@ -1021,6 +1021,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "axum-kbve"
+version = "0.1.0"
+dependencies = [
+ "anyhow",
+ "askama",
+ "axum 0.8.8",
+ "axum-extra",
+ "dotenvy",
+ "http-body-util",
+ "jedi",
+ "kbve",
+ "num_cpus",
+ "serde",
+ "serde_json",
+ "serial_test",
+ "socket2 0.6.2",
+ "thiserror 2.0.18",
+ "tikv-jemallocator",
+ "tokio",
+ "tower 0.5.3",
+ "tower-http",
+ "tracing",
+ "tracing-subscriber",
+]
+
+[[package]]
 name = "axum-macros"
 version = "0.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"

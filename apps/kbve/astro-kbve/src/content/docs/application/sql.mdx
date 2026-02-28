@@ -1,0 +1,397 @@
+---
+title: SQL
+description: |
+    SQL is the standard language for managing data in relational databases like MySQL and PostgreSQL, enabling robust and scalable operations.
+sidebar:
+    label: SQL
+    order: 409
+unsplash: 1567604713218-36a0f5841046
+img: https://images.unsplash.com/photo-1567604713218-36a0f5841046?fit=crop&w=1400&h=700&q=75
+tags:
+    - database
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+  Code,
+  FileTree,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Information
+
+SQL (Structured Query Language) is the standard programming language used for managing relational databases and performing various operations on the data they contain.
+The SQL ecosystem includes a wide array of database systems such as MySQL and PostgreSQL, which are known for their robustness, scalability, and support for complex queries.
+These systems are integral to many applications, providing transactional support, ACID compliance, and advanced data management capabilities to ensure data integrity and performance across numerous industries.
+
+---
+
+<Adsense />
+
+## Cheatsheet
+
+### MySQL/MariaDB Cheatsheet
+
+-   Admin Commands
+
+    -   Drop Database (Be extremely careful when running this)
+
+        -   ```sql
+            DROP DATABASE {$db_name};
+            ```
+            -   Replace `{$db_Name}` with the database that you wish to DROP.
+            -   _Remember that all the data will be removed and can not be recovered._
+
+    -   List All Users
+
+        -   ```sql
+            SELECT user, host FROM mysql.user;
+            ```
+            -   This will display all the users within the database instance.
+
+    -   Create User
+
+        -   ```sql
+            CREATE USER {$user[@'host']} IDENTIFIED BY 'plain-text-password';
+            ```
+            -   `{$user[@'host']}` can be replaced by an example like this `'root'@'localhost'` or `'root'@'10.%.%.%'`
+                -   `10.%.%.%` - The `%` is a wildcard for the IP Address subnet.
+
+    -   Drop User
+
+        -   ```sql
+            DROP USER {$user[@'host']}
+            ```
+            -   This will only remove the user from the mysql instance.
+
+    -   Create Database
+
+        -   ```sql
+            CREATE DATABASE {$database_name}
+            ```
+            -   `{$database_name}` can be replaced as `database_name_example` , thus creating a statement like `CREATE DATABASE database_name_example`.
+
+    -   Grant permissions / privilegages.
+        -   ```sql
+            GRANT ALL ON ${database_name}.* TO {$user[@'host']}
+            ```
+            -   There are a couple situations that this statement creates, first it gives `ALL` permissions to the database, `${database_name}` with the `.*` being a wildcard for all the tables inside of the database. Finally the `{$user[@'host']}` represents the user connecting via the IP Address.
+
+---
+
+## MySQL
+
+---
+
+## MariaDB
+
+---
+
+## PostgreSQL
+
+PostgreSQL is an advanced open-source relational database system known for its robustness, performance, and extensibility.
+It adheres to SQL standards and supports a wide range of data types, making it suitable for handling structured, semi-structured, and unstructured data.
+Developers and database administrators alike benefit from its rich feature set, including support for JSON, full-text search, and spatial data through extensions like `PostGIS`.
+For those looking to leverage machine learning capabilities, `pgvector` offers native support for storing and querying vector embeddings, ideal for AI-based applications.
+PostgreSQL also provides powerful tools like `pg_barman` for seamless backups and disaster recovery, ensuring data safety and availability.
+With built-in support for logical replication and partitioning, PostgreSQL can scale horizontally and handle complex workloads efficiently.
+Additionally, advanced users can create custom functions and procedures using various languages such as PL/pgSQL, Python, and even JavaScript, enhancing its capabilities further.
+But wait, there is more, because of its thriving community and vast ecosystem, PostgreSQL is a versatile solution for developers and enterprises looking to build high-performance, scalable, and secure data-driven applications.
+
+### PSQL
+
+`psql` is a powerful command-line interface and interactive terminal for PostgreSQL, offering a convenient way to interact with databases through SQL commands.
+This tool can be used to connect to databases, execute queries, and manage database objects such as tables, schemas, and extensions.
+For beginners, psql provides a straightforward method to learn SQL and interact with PostgreSQL, featuring built-in help and command-line flags to assist in query execution.
+Advanced users and database administrators can leverage its full scripting capabilities, including support for automated backups, customized reports, and database tuning.
+Furthermore, the tool also provides powerful meta-commands (such as \dt, \du, and \l) to display database information and manipulate objects quickly.
+Additionally, psql can be used to execute SQL scripts, manage PostgreSQL configurations, and run commands for extensions like `pg_stat_statements` or `pgvector`.
+It is a versatile tool that is essential for PostgreSQL users of all skill levels, serving as both a learning environment and a robust management utility.
+
+<Aside title='Note: Using psql'>
+
+This guide provides an overview of using the `psql` command-line interface with PostgreSQL 15, 16, and 17.
+
+It is intended for users who want to manage their PostgreSQL databases efficiently. 
+Some advanced features, such as certain meta-commands and flags, may behave differently or be unavailable in older versions of `psql`.
+Be sure to check the compatibility of specific commands if using an older PostgreSQL version.
+
+</Aside>
+
+
+---
+
+
+### Extensions
+
+Postgres extensions provide powerful enhancements to the core database, enabling advanced features such as full-text search, geospatial queries, and custom data types.
+With the flexibility of extensions, developers can easily tailor Postgres to suit specific use cases and application needs.
+Setting up extensions like pg_stat_statements or pg_cron helps monitor performance and schedule maintenance tasks within the database itself.
+Building custom extensions allows organizations to embed domain-specific logic directly into the database, making it a robust platform for complex data operations.
+It's essential to verify extension compatibility with your Postgres version to avoid conflicts.
+This guide will walk through the setup, configuration, and best practices for both built-in and third-party extensions, ensuring a seamless experience for database administrators.
+
+---
+
+### CNPG
+
+CloudNativePG, aka CNPG, is an open-source Kubernetes operator designed to manage PostgreSQL clusters natively within Kubernetes environments.
+It supports the entire lifecycle of a PostgreSQL cluster, from initial deployment to ongoing maintenance, with built-in features like automated failover, scaling of read replicas, and rolling updates.
+CloudNativePG leverages native PostgreSQL streaming replication to provide high availability and disaster recovery options.
+It integrates directly with the Kubernetes API server, eliminating the need for external failover management tools.
+Additionally, it supports common PostgreSQL extensions and offers monitoring capabilities through Prometheus integration.
+This operator is tailored to modern cloud-native architecture and is ideal for PostgreSQL deployments that require seamless management within Kubernetes.
+
+#### CNPG Image Requirements
+
+The CloudNativePG operator for Kubernetes requires that certain PostgreSQL executables and tools be present within the container image during the image build process.
+These requirements are essential for the operator to automate the management of PostgreSQL clusters, including initialization, backups, and restoration.
+Without these components, the operator will not be able to perform tasks such as setting up the database, handling replication, or managing cloud-based backup solutions like Barman.
+Additionally, if audit logging is required, the pgaudit extension should be installed as part of the container image build.
+
+1. PostgreSQL Executables in Path:
+
+- `initdb`
+- `postgres`
+- `pg_ctl`
+- `pg_controldata`
+- `pg_basebackup`
+
+2. Barman Cloud Executables in Path (for integration with cloud storage):
+
+- `barman-cloud-backup`
+- `barman-cloud-backup-delete`
+- `barman-cloud-backup-list`
+- `barman-cloud-check-wal-archive`
+- `barman-cloud-restore`
+- `barman-cloud-wal-archive`
+- `barman-cloud-wal-restore`
+
+3. Optional PostgreSQL Extensions:
+
+- `PGAudit` - The pgaudit extension should be pre-installed in the image if audit logging is required within the deployed PostgreSQL clusters.
+
+4. Locale Settings:
+
+- Ensure that appropriate locale settings are configured to support the desired language and encoding for the PostgreSQL database.
+
+
+These requirements ensure compatibility and proper functionality of CloudNativePG with various PostgreSQL features, including cloud-based backup and restoration via Barman Cloud, as well as extended audit capabilities through PGAudit.
+
+---
+
+#### CNPG Deployment Example
+
+Here is a quick base example of the bootstrap initdb that we are using to start our cluster.
+
+```yaml
+
+bootstrap:
+    initdb:
+        database: app
+        owner: app
+        dataChecksums: true
+        encoding: 'UTF8'
+        postInitApplicationSQLRefs:
+            configMapRefs:
+                -   name: {{ include "supabase.db.fullname" . }}-init
+                    key: configmap.sql
+                -   name: {{ include "supabase.db.fullname" . }}-sql
+                    key: alt.sql
+        postInitApplicationSQL:
+            - "ALTER DATABASE postgres SET \"app.settings.jwt_secret\" TO '{{ .Values.secret.jwt.secretRefKey.secret }}';"
+            - "ALTER DATABASE postgres SET \"app.settings.jwt_exp\" TO '3600';"
+
+
+```
+
+#### CNPG Recovery Example
+
+Here is our CNPG recovery example using AWS for our self hosted supabase instance.
+It should be noted that the new cluster should not share some the same variables like `name` because it might cause some errors with the new cluster's WAL.
+
+```yaml
+
+bootstrap:
+    recovery:
+        source: supabase
+
+externalClusters:
+    - name: supabase
+      barmanObjectStore:
+        serverName: supabase
+        destinationPath: s3://kilobase/barman/restore/
+        s3Credentials:
+          accessKeyId:
+            name: {{ .Values.secret.s3.secretRef }}
+            key: {{ .Values.secret.s3.secretRefKey.keyId | quote }}
+          secretAccessKey:
+            name: {{ .Values.secret.s3.secretRef }}
+            key: {{ .Values.secret.s3.secretRefKey.accessKey | quote }}
+        wal:
+          compression: gzip
+
+```
+
+---
+
+#### CNPG Backup Example
+
+There are two types of backups that we can utilize, the `Kind: Backup` and `Kind: ScheduledBackup`, both will store the postgres data into the barman object store in these examples.
+Below is the `cnpg-cluster-backup.yaml` that we added for our self hosted supabase cluster.
+The current `schedule: "0 0 0 * * 0"` is set for weekly backups but that can be easily adjusted for daily.
+
+```yaml 
+
+apiVersion: postgresql.cnpg.io/v1
+kind: Backup
+metadata:
+  name: {{ include "supabase.db.fullname" . }}-backup
+spec:
+  method: barmanObjectStore
+  cluster:
+    name: {{ include "supabase.db.fullname" . }}
+
+---
+apiVersion: postgresql.cnpg.io/v1
+kind: ScheduledBackup
+metadata:
+  name: {{ include "supabase.db.fullname" . }}-bk-job
+spec:
+  schedule: "0 0 0 * * 0"
+  backupOwnerReference: self
+  cluster:
+    name: {{ include "supabase.db.fullname" . }}
+
+```
+
+<Aside>
+
+Remember to test case the recovery of the backups using a secondary cluster deployment and becareful of the WAL locations, to avoid an overwrite.
+
+</Aside>
+
+---
+
+
+### Barman
+
+
+Barman (Backup and Recovery Manager) is an advanced backup and recovery solution designed specifically for PostgreSQL databases.
+It allows database administrators to automate backup processes, perform disaster recovery, and maintain business continuity by ensuring that data is always recoverable.
+Barman can be installed using Python’s package manager (pip) or through PostgreSQL’s official PPA (Personal Package Archive), making it easy to set up and integrate into existing infrastructures.
+Once installed, Barman provides a command-line interface (barman-cli) that supports managing backups, restoring databases, monitoring replication, and verifying the integrity of stored data.
+One of its key features is Point-in-Time Recovery (PITR), which enables the restoration of a database to a specific moment, even down to the second, providing a flexible approach for handling data inconsistencies or unintentional deletions.
+Barman also supports parallel streaming and synchronous WAL (Write-Ahead Log) archiving, ensuring that backups remain up-to-date with minimal performance impact on the source database.
+Additionally, Barman offers monitoring capabilities with built-in commands for checking the status of backups, space utilization, and replication delays, enabling proactive maintenance and alerts.
+For cloud deployments, Barman Cloud CLI extends its capabilities by offering integration with cloud storage providers such as AWS S3, Azure Blob Storage, and Google Cloud Storage, making it a versatile solution for hybrid and cloud-native environments.
+With the Barman Cloud CLI, you can seamlessly configure cloud storage, perform backups, restore operations, and leverage cloud-based encryption for an added layer of data security.
+Overall, Barman and its cloud extension provide a comprehensive toolkit for database administrators to manage the complexities of PostgreSQL backups, ensuring data is securely stored, quickly recoverable, and effectively managed both on-premises and in the cloud.
+
+<Aside>
+
+💡 Reminder: Always test your Barman backup and recovery setup in a non-production environment before a real disaster occurs.
+Running recovery simulations ensures that your backups are correctly configured and that the recovery process works as expected, giving you confidence that your data is safe and recoverable.
+Regular testing is crucial to avoid unexpected failures during critical moments.
+
+</Aside>
+
+We want the barman to be installed directly into our postgres image and thus we will add a stage called `Barman`.
+Here is a brief example of us setting up the barman cloud cli inside of our `kilobase` image that is based upon the supabase image.
+
+```Dockerfile
+
+# Install necessary utilities like wget and gnupg before adding the PostgreSQL PPA
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    gnupg \
+    wget \
+    ca-certificates && \
+    rm -rf /var/lib/apt/lists/*
+
+# Add the PostgreSQL PPA and import the key
+RUN sh -c 'echo "deb http://apt.postgresql.org/pub/repos/apt/ focal-pgdg main" > /etc/apt/sources.list.d/pgdg.list' && \
+    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add -
+
+# Update and install barman-cli-cloud from the PostgreSQL PPA
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    barman-cli-cloud
+
+# Clean up unnecessary files to reduce image size
+RUN apt-get clean && \
+    rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+```
+
+<Aside title="Recap">
+
+    The Postgres  is a powerful, open-source relational database system known for its advanced features, reliability, and strong standards compliance.
+    It supports complex queries, data integrity, and extensibility through a variety of plugins, making it ideal for both small and large-scale applications.
+    With support for ACID transactions, JSON, and custom extensions, Postgres is a popular choice for developers and enterprises alike.
+
+</Aside>
+
+---
+
+## PlanetScale
+
+---
+
+## Supabase
+
+
+Supabase is an open-source backend-as-a-service that provides a suite of tools to simplify building applications.
+It offers a powerful, hosted PostgreSQL database with a built-in authentication system, storage services, and real-time functionality.
+Supabase is built to scale with your application and supports various PostgreSQL extensions like pgvector for vector similarity searches and pgTAP for testing.
+The platform includes a SQL Editor, allowing users to manage their data, run queries, and save frequently used SQL commands.
+Supabase also integrates with tools like Barman for database backups and supports advanced features like row-level security to ensure data privacy and security.
+
+Supabase is ideal for both beginners and experts due to its flexibility and comprehensive feature set.
+It can be used for rapid prototyping, building full-stack applications, or extending existing apps with complex data relationships.
+Additionally, Supabase is highly extensible, allowing developers to add Postgres extensions with just a few clicks from the dashboard, making it easy to expand database capabilities as needed!
+
+### Supabase Schemas
+
+
+https://supabase-schema.vercel.app
+
+
+---
+
+## Backup
+
+If you need a quick way to backup the `mysql` database, then use this command below:
+
+```shell
+sudo docker exec [$mysql_container_name] /usr/bin/mysqldump -u [$mysql_username] --password=[$mysql_password] [$database_name] > [$destination_path]
+```
+
+You could save the execution command as a shell file and/or reference it inside of your AWX stack.
+
+More information on [AWX](/application/ansible/#awx) and [Docker](/application/docker/)
+
+---
+
+## Notes
+
+---
+
+## Videos
+
+---
+
+## References
+
+### Q&A
+
+-   #### What to do if you just installed `mysql-server` on Ubuntu on WSL and it never even prompted you for a password?
+
+    -   [Well here's a cool link](https://stackoverflow.com/questions/42421585/default-password-of-mysql-in-ubuntu-server-16-04) that tells you exactly what to do.
+    -   Long story short it's like `ALTER USER 'root'@'localhost' IDENTIFIED BY 'password'` once you actually get in
+
+-   #### What to do if you've never used this foreign and vaguely antiquated technology before and you wish you had a time machine that would let you go back in time so you could sit with the pioneers of this dying technology and learn from them what drugs they were smoking when they decided on the syntax?
+
+    -   [Well here's a cool link](https://devhints.io/mysql) that will help in your journey to understand the aforementioned topics.

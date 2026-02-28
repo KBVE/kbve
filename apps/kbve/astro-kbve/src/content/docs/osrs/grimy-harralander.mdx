@@ -1,0 +1,122 @@
+---
+title: Grimy harralander | OSRS Price Data
+description: "Grimy harralander: It needs cleaning.. High alch: 9 GP, GE limit: 13,000."
+osrs:
+  id: 205
+  name: Grimy harralander
+  slug: grimy-harralander
+  examine: It needs cleaning.
+  members: true
+  icon: Grimy harralander.png
+  value: 16
+  lowalch: 6
+  highalch: 9
+  limit: 13000
+  herb:
+    type: grimy
+    tier: low
+  herblore:
+    cleaning_level: 20
+    cleaning_xp: 6.3
+    clean_id: 255
+    clean_name: Harralander
+  farming:
+    level: 26
+    seed_id: 5294
+    seed_name: Harralander seed
+  drop_table:
+    sources:
+      - source: Chaos druid
+        source_id: 181
+        combat_level: 13
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Master Farmer
+        source_id: 5730
+        quantity: "1"
+        rarity: rare
+        members_only: true
+  related_items:
+    - item_id: 255
+      item_name: Harralander
+      slug: harralander
+      relationship: product
+      description: Cleaned version
+    - item_id: 97
+      item_name: Harralander potion (unf)
+      slug: harralander-potion-unf
+      relationship: product
+      description: Unfinished potion
+    - item_id: 3010
+      item_name: Energy potion(4)
+      slug: energy-potion-4
+      relationship: product
+      description: End product
+    - item_id: 5294
+      item_name: Harralander seed
+      slug: harralander-seed
+      relationship: component
+      description: Farming seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Grimy Herb |
+| Tradeable | Yes |
+| Weight | 0.007 kg |
+| Herblore Level | 20 (to clean) |
+
+## Obtaining
+
+Common sources:
+- Farming harralander (26 Farming)
+- Monster drops
+- Master farmers
+
+## Usage
+
+Clean to produce **harralander** for Herblore.
+
+Harralander used for:
+- **Compost potion**
+- **Restore potion**
+- **Energy potion**
+
+## Market Strategy
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Price:** ~526 gp
+
+Low-level herb. 6.3 XP from cleaning.
+
+## Related Items
+
+- [Harralander](/osrs/harralander/) - Cleaned form
+- [Energy potion](/osrs/energy-potion/) - Common use
+
+<Adsense />

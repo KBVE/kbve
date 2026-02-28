@@ -1,0 +1,121 @@
+---
+title: 'Lunar Lantern'
+description: |
+    A lantern forged with moonstone dust.
+    Illuminates hidden paths and dispels minor illusions when bathed in moonlight.
+id: 'lunar-lantern'
+key: 66
+ref: '01JX727N5R6EKJ61NME0QD08RW'
+name: 'Lunar Lantern'
+type: 'Utility'
+category: 402
+img: '/assets/items/utility/magic/lunar_lantern.png'
+pixelDensity: 128
+sortingLayer: Ground
+sortingOrder: 50
+consumable: false
+stackable: false
+rarity: 'Rare'
+weight: 1.2
+effects: 'Reveals secrets and sheds bright silver light at night.'
+price: 850
+durability: 300
+equipped: true
+levelRequirement: 4
+cooldown: 30
+action: 'illuminate'
+credits: |
+    Concept and pixel art by KBVE Pixel Workshop.
+bonuses:
+    lightRadius: 6
+    revealIllusions: true
+    nightVision: 2
+scripts:
+    - guid: '3e4071deb6e4448982bca27c7302c1c8'
+      vars:
+            lightRadius: 6
+            reveals: true
+            nightVision: 2
+            cooldown: 30
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Lunar Lantern** gleams with a pale glow even during the day. When the moon rises, its power peaks, casting silver beams that unveil hidden runes and shadowy passages.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+## Usage
+
+- Emits light within **{frontmatter.bonuses.lightRadius} meters**
+- Reveals **illusions and hidden markings** at night
+- Grants **+{frontmatter.bonuses.nightVision} night vision** while equipped
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Crafting
+
+Combine purified moonstone with enchanted glass and alchemical oils at a tier-two crafting station.
+
+---
+
+## Lore
+
+> "Where moonlight fails, the Lunar Lantern guides." - inscription on an ancient temple wall
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/lunarlantern.webp"
+  defaultId="01HTXYZLUN001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZLUN001',
+      title: 'Moonlit Glow',
+      description: 'The lantern pulses softly.',
+      image: 'https://images.unsplash.com/photo-1501785888041-af3ef285b470?q=80&w=500&auto=format&fit=crop',
+      message: 'Silvery light spills out, revealing faint footprints.',
+      choices: [
+        { label: 'Follow the trail.', nextId: '01HTXYZLUN002' },
+        { label: 'Hold your ground.', nextId: '01HTXYZLUN003' }
+      ]
+    },
+    {
+      id: '01HTXYZLUN002',
+      title: 'Hidden Path',
+      description: 'A secret walkway glimmers into view.',
+      image: '/images/scene_moontrail.jpg',
+      message: 'Each step echoes softly beneath the moon.'
+    },
+    {
+      id: '01HTXYZLUN003',
+      title: 'Still Night',
+      description: 'Nothing stirs.',
+      image: '/images/scene_silence.jpg',
+      message: 'The lantern dims, waiting for your choice.'
+    }
+  ]}
+/>
+
+<Adsense />
+
+---
+
+## DevLog
+
+- 06/08/2025 - Lunar Lantern item added with moonlight-based abilities
+

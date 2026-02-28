@@ -1,0 +1,115 @@
+---
+title: Elysian sigil | OSRS Price Data
+description: "Elysian sigil: A sigil in the shape of an elysian symbol.. High alch: 450,000 GP, GE limit: 5."
+osrs:
+  id: 12819
+  name: Elysian sigil
+  slug: elysian-sigil
+  examine: A sigil in the shape of an elysian symbol.
+  members: true
+  icon: Elysian sigil.png
+  value: 750000
+  lowalch: 300000
+  highalch: 450000
+  limit: 5
+  item:
+    type: sigil
+    tradeable: true
+    weight: 3
+  obtaining:
+    methods:
+      - source: Corporeal Beast
+        drop_rate: 1/4,095
+        note: Rarest sigil drop
+  creation:
+    creates:
+      item_id: 12817
+      item_name: Elysian spirit shield
+      slug: elysian-spirit-shield
+    method: Combine with Blessed spirit shield
+    requirements:
+      prayer: 90
+      smithing: 85
+    alternative: Pay Abbot Langley 1,500,000 gp
+  created_effect:
+    name: Divine Protection
+    description: 70% chance to reduce incoming damage by 25%
+  related_items:
+    - item_id: 0
+      item_name: Corporeal Beast
+      slug: corporeal-beast
+      relationship: component
+      description: Source
+    - item_id: 12817
+      item_name: Elysian spirit shield
+      slug: elysian-spirit-shield
+      relationship: product
+      description: Created item
+    - item_id: 12831
+      item_name: Blessed spirit shield
+      slug: blessed-spirit-shield
+      relationship: component
+      description: Required material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Sigil |
+| Tradeable | Yes |
+| Weight | 3 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Corporeal Beast | 1/4,095 |
+
+Rarest sigil drop from Corporeal Beast.
+
+## Usage
+
+| Item Created | Materials | Requirements |
+|--------------|-----------|--------------|
+| Elysian spirit shield | Elysian sigil + Blessed spirit shield | 90 Prayer, 85 Smithing |
+
+Alternatively, pay Abbot Langley 1,500,000 gp.
+
+## Created Item Effect
+
+**Elysian Spirit Shield:** 70% chance to reduce incoming damage by 25%.
+
+## Market Strategy
+
+**Buy Limit:** 5 per 4 hours
+
+**Price:** ~700M gp
+
+## Related Items
+
+- [Corporeal Beast](/osrs/corporeal-beast/) - Source
+- [Elysian spirit shield](/osrs/elysian-spirit-shield/) - Created item
+- [Blessed spirit shield](/osrs/blessed-spirit-shield/) - Required material
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Guthix rest(2) | OSRS Price Data
+description: "Guthix rest(2): A cup of Guthix Rest.. High alch: 30 GP, GE limit: 2,000."
+osrs:
+  id: 4421
+  name: Guthix rest(2)
+  slug: guthix-rest-2
+  examine: A cup of Guthix Rest.
+  members: true
+  icon: Guthix rest(2).png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,121 @@
+---
+title: Mort myre fungus | OSRS Price Data
+description: "Mort myre fungus: A mushroom from the swamps of Mort Myre.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 2970
+  name: Mort myre fungus
+  slug: mort-myre-fungus
+  examine: A mushroom from the swamps of Mort Myre.
+  members: true
+  icon: Mort myre fungus.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+  material:
+    type: secondary
+    tier: mid
+  sources:
+    - name: Mort Myre Swamp
+      method: Bloom spell on rotting logs
+    - name: Sulliuscep mushrooms
+      method: Woodcutting
+    - name: Monster drops
+      method: Zygomites, Vyrewatch
+  recipes:
+    - skill: herblore
+      level: 52
+      xp: 117.5
+      materials:
+        - item_name: Avantoe potion (unf)
+          item_id: 99
+          quantity: 1
+        - item_name: Mort myre fungus
+          item_id: 2970
+          quantity: 1
+      product: Super energy(3)
+      product_id: 3022
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 3022
+      item_name: Super energy(3)
+      slug: super-energy-3
+      relationship: product
+      description: Main product
+    - item_id: 261
+      item_name: Avantoe
+      slug: avantoe
+      relationship: component
+      description: Primary herb
+    - item_id: 12625
+      item_name: Stamina potion(4)
+      slug: stamina-potion-4
+      relationship: product
+      description: Final product
+    - item_id: 2963
+      item_name: Blessed silver sickle
+      slug: blessed-silver-sickle
+      relationship: component
+      description: Collection tool
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Method |
+|--------|--------|
+| Mort Myre Swamp | Bloom spell on rotting logs |
+| Tools | Blessed silver sickle, Ivandis flail |
+| Monster drops | Zygomites, Vyrewatch |
+| Sulliuscep mushrooms | Woodcutting |
+
+## Uses
+
+| Use | Details |
+|-----|---------|
+| Super energy potion | Herblore 52 |
+| Druid pouch | Adds 1 charge |
+
+## Market Flip Strategy
+
+**Essential Secondary:**
+- Super energy production
+- Stamina potion chain
+- Consistent demand
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Super energy potions
+- Stamina potion production
+- Druid pouch charging
+- Ironman accounts
+
+**Tips:**
+- Bloom spell farming profitable
+- Nature Spirit quest required
+- Consistent pricing
+- Essential for stamina chain
+
+<Adsense />

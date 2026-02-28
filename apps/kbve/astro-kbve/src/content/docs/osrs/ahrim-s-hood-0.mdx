@@ -1,0 +1,37 @@
+---
+title: Ahrim's hood 0 | OSRS Price Data
+description: "Ahrim's hood 0: Ahrim the Blighted's leather hood.. High alch: 7,800 GP, GE limit: 15."
+osrs:
+  id: 4860
+  name: Ahrim's hood 0
+  slug: ahrim-s-hood-0
+  examine: Ahrim the Blighted's leather hood.
+  members: true
+  icon: Ahrim's hood 0.png
+  value: 13000
+  lowalch: 5200
+  highalch: 7800
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

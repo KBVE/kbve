@@ -1,0 +1,130 @@
+---
+title: Dodgy necklace | OSRS Price Data
+description: "Dodgy necklace is a members neck slot item. High alch: 630 GP, GE limit: 10,000."
+osrs:
+  id: 21143
+  name: Dodgy necklace
+  slug: dodgy-necklace
+  examine: Lets you get away with it - sometimes.
+  members: true
+  icon: Dodgy necklace.png
+  value: 1050
+  lowalch: 420
+  highalch: 630
+  limit: 10000
+  equipment:
+    slot: neck
+    type: thieving_necklace
+    tradeable: true
+    weight: 0.01
+  creation:
+    method: Enchant Opal necklace with Lvl-1 Enchant
+    requirements:
+      magic: 7
+    runes:
+      - rune: Cosmic
+        quantity: 1
+      - rune: Water
+        quantity: 1
+  special_effect:
+    name: Stun Prevention
+    description: 25% chance to avoid stun and damage when pickpocketing
+    charges: 10
+    notes:
+      - Works on all pickpocketing
+      - Stacks with Shadow Veil (36.25% total)
+  market:
+    buy_limit: 10000
+    price_estimate: 1592
+  related_items:
+    - item_id: 21168
+      item_name: Rogue equipment
+      slug: rogue-equipment
+      relationship: alternative
+      description: Double loot
+    - item_id: 23049
+      item_name: Shadow veil
+      slug: shadow-veil
+      relationship: alternative
+      description: Stacking protection
+    - item_id: 13121
+      item_name: Ardougne cloak
+      slug: ardougne-cloak
+      relationship: alternative
+      description: Thieving bonus
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Neck |
+| Type | Thieving Necklace |
+| Tradeable | Yes |
+| Weight | 0.01 kg |
+
+## Creation
+
+Enchant [Opal necklace](/osrs/opal-necklace/) with Lvl-1 Enchant.
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 7 |
+| Cosmic rune | 1 |
+| Water rune | 1 |
+
+## Passive Effect
+
+**Stun Prevention:**
+- 25% chance to avoid stun/damage
+- Works on all pickpocketing
+- 10 charges
+- Stacks with Shadow Veil (36.25% total)
+
+## Usage
+
+Essential for:
+- All pickpocketing
+- Ardy Knights
+- Master Farmers
+
+**Must-have for thieving.**
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~1,592 gp
+
+**Tips:**
+- Very high volume item
+- Essential for thieving
+- Stacks with other bonuses
+
+## Related Items
+
+- [Rogue equipment](/osrs/rogue-equipment/) - Double loot
+- [Shadow veil](/osrs/shadow-veil/) - Stacking protection
+- [Ardougne cloak](/osrs/ardougne-cloak/) - Thieving bonus
+
+<Adsense />

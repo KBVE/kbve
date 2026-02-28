@@ -1,0 +1,37 @@
+---
+title: Camphor pyre logs | OSRS Price Data
+description: "Camphor pyre logs: Camphor logs prepared with sacred oil for a funeral pyre.. High alch: 264 GP."
+osrs:
+  id: 31383
+  name: Camphor pyre logs
+  slug: camphor-pyre-logs
+  examine: Camphor logs prepared with sacred oil for a funeral pyre.
+  members: true
+  icon: Camphor pyre logs.png
+  value: 440
+  lowalch: 176
+  highalch: 264
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

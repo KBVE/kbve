@@ -1,0 +1,37 @@
+---
+title: Trousers (lilac) | OSRS Price Data
+description: "Trousers (lilac): A pair of long dwarven trousers... long for dwarves, of course.. High alch: 420 GP, GE limit: 150."
+osrs:
+  id: 5038
+  name: Trousers (lilac)
+  slug: trousers-lilac
+  examine: A pair of long dwarven trousers... long for dwarves, of course.
+  members: true
+  icon: Trousers (lilac).png
+  value: 700
+  lowalch: 280
+  highalch: 420
+  limit: 150
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,91 @@
+---
+title: Black full helm | OSRS Price Data
+description: "Black full helm: A full face helmet.. High alch: 633 GP, GE limit: 125."
+osrs:
+  id: 1165
+  name: Black full helm
+  slug: black-full-helm
+  examine: A full face helmet.
+  members: false
+  icon: Black full helm.png
+  value: 1056
+  lowalch: 422
+  highalch: 633
+  limit: 125
+  item_id: 1165
+  item_type: armor
+  slot: head
+  type: full_helm
+  tradeable: true
+  weight: 2.721
+  requirements:
+    defence: 10
+  stats:
+    stab_defence: 12
+    slash_defence: 13
+    crush_defence: 10
+    ranged_defence: 12
+  related_items:
+    - slug: mithril-full-helm
+    - slug: black-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Full Helm |
+| Tradeable | Yes |
+| Weight | 2.721 kg |
+| Requirements | 10 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +12 |
+| Slash Defence | +13 |
+| Crush Defence | +10 |
+| Ranged Defence | +12 |
+
+## Obtaining
+
+**Shop:** Valaine's Shop of Champions (1,372 gp).
+
+**Drops:** Lesser demons, Cyclops, Animated Black Armour.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~498 gp
+
+Cannot be smithed. F2P accessible.
+
+## Related Items
+
+- [Mithril full helm](/osrs/mithril-full-helm/) - Upgrade
+- [Black platebody](/osrs/black-platebody/) - Set piece
+
+<Adsense />

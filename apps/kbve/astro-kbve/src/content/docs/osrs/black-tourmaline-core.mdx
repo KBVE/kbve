@@ -1,0 +1,111 @@
+---
+title: Black tourmaline core | OSRS Price Data
+description: "Black tourmaline core: The blackened heart of the Grotesque Guardians.. High alch: 24,900 GP, GE limit: 5."
+osrs:
+  id: 21730
+  name: Black tourmaline core
+  slug: black-tourmaline-core
+  examine: The blackened heart of the Grotesque Guardians.
+  members: true
+  icon: Black tourmaline core.png
+  value: 41500
+  lowalch: 16600
+  highalch: 24900
+  limit: 5
+  material:
+    type: upgrade_material
+    tradeable: true
+    weight: 0.001
+  drop_table:
+    sources:
+      - source: Grotesque Guardians
+        rate: 1/1,000
+        requirements:
+          slayer: 75
+  uses:
+    - result_id: 21733
+      result_name: Guardian boots
+      materials:
+        - Bandos boots
+        - Black tourmaline core
+  market:
+    buy_limit: 8
+    price_estimate: 7500000
+  related_items:
+    - item_id: 11923
+      item_name: Grotesque Guardians
+      slug: grotesque-guardians
+      relationship: component
+      description: Boss drop
+    - item_id: 11836
+      item_name: Bandos boots
+      slug: bandos-boots
+      relationship: component
+      description: Base item
+    - item_id: 21733
+      item_name: Guardian boots
+      slug: guardian-boots
+      relationship: product
+      description: Created boots
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Upgrade Material |
+| Tradeable | Yes |
+| Weight | 0.001 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Grotesque Guardians | 1/1,000 |
+
+**Requires 75 Slayer.**
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Guardian boots | Bandos boots + Black tourmaline core |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~7.5M gp
+
+**Tips:**
+- From Grotesque Guardians only
+- 75 Slayer required for boss
+- Creates BiS tank boots
+
+## Related Items
+
+- [Grotesque Guardians](/osrs/grotesque-guardians/) - Boss drop
+- [Bandos boots](/osrs/bandos-boots/) - Base item
+- [Guardian boots](/osrs/guardian-boots/) - Created boots
+
+<Adsense />

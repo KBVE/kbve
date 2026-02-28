@@ -1,0 +1,37 @@
+---
+title: Adamant bolts (p++) | OSRS Price Data
+description: "Adamant bolts (p++): Super poisoned adamantite bolts.. High alch: 34 GP, GE limit: 11,000."
+osrs:
+  id: 9304
+  name: Adamant bolts (p++)
+  slug: adamant-bolts-p
+  examine: Super poisoned adamantite bolts.
+  members: true
+  icon: Adamant bolts (p++) 5.png
+  value: 58
+  lowalch: 23
+  highalch: 34
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,124 @@
+---
+title: 3rd age vambraces | OSRS Price Data
+description: "3rd age vambraces is a members hands slot item requiring 65 Ranged. High alch: 30,300 GP, GE limit: 8."
+osrs:
+  id: 10336
+  name: 3rd age vambraces
+  slug: 3rd-age-vambraces
+  examine: Fabulously ancient range protection crafted from white dragonhide.
+  members: true
+  icon: 3rd age vambraces.png
+  value: 50500
+  lowalch: 20200
+  highalch: 30300
+  limit: 8
+  equipment:
+    slot: hands
+    type: ranged armour
+    attack_style: ranged
+    requirements:
+      ranged: 65
+    stats:
+      attack_ranged: 11
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      ranged_strength: 0
+      prayer_bonus: 0
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        requirements:
+          clue_type: Master
+        rarity: Very Rare
+        description: Extremely rare reward from master clue scrolls
+  related_items:
+    - item_id: 10334
+      item_name: 3rd age range coif
+      slug: 3rd-age-range-coif
+      relationship: set-piece
+      description: Head slot of 3rd age range set
+    - item_id: 10330
+      item_name: 3rd age range top
+      slug: 3rd-age-range-top
+      relationship: set-piece
+      description: Body slot of 3rd age range set
+    - item_id: 10332
+      item_name: 3rd age range legs
+      slug: 3rd-age-range-legs
+      relationship: set-piece
+      description: Leg slot of 3rd age range set
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Hands |
+| Type | Ranged Armour |
+| Tradeable | Yes |
+| Members Only | Yes |
+| Weight | 0.453 kg |
+
+## Obtaining
+
+| Method | Details |
+|--------|---------|
+| Source | Master Clue Scrolls |
+| Rarity | Extremely Rare (1/313,168) |
+
+## Combat Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged Attack | +11 |
+
+**Requirements:** 65 Ranged
+
+## About
+
+The 3rd age vambraces are part of the 3rd age ranged set, one of the rarest and most prestigious armour sets in Old School RuneScape. They require 65 Ranged to wear and provide the best ranged attack bonus of any vambraces.
+
+3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
+
+## Market Strategy
+
+**Investment Notes:**
+- Extremely valuable due to rarity
+- Price fluctuates based on collector demand
+- Consider set value vs individual pieces
+
+**Trading Tips:**
+- Verify authenticity when trading high-value items
+- Use Grand Exchange for secure trades
+- Monitor price trends before purchasing
+
+## Related Items
+
+- [3rd age range coif](/osrs/3rd-age-range-coif/) - Head slot of 3rd age range set
+- [3rd age range top](/osrs/3rd-age-range-top/) - Body slot of 3rd age range set
+- [3rd age range legs](/osrs/3rd-age-range-legs/) - Leg slot of 3rd age range set
+
+<Adsense />

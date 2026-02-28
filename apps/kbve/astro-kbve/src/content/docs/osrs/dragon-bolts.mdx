@@ -1,0 +1,129 @@
+---
+title: Dragon bolts | OSRS Price Data
+description: "Dragon bolts: Dragon crossbow bolts.. High alch: 255 GP, GE limit: 11,000."
+osrs:
+  id: 21905
+  name: Dragon bolts
+  slug: dragon-bolts
+  examine: Dragon crossbow bolts.
+  members: true
+  icon: Dragon bolts 5.png
+  value: 425
+  lowalch: 170
+  highalch: 255
+  limit: 11000
+  ammunition:
+    type: bolt
+    tradeable: true
+    stackable: true
+    weight: 0
+    requirements:
+      ranged: 64
+    stats:
+      ranged_strength: 122
+  creation:
+    method: Fletching
+    requirements:
+      fletching: 84
+    materials:
+      - item_name: Dragon bolts (unfinished)
+        quantity: 10
+      - item_name: Feathers
+        quantity: 10
+    xp: 12
+    notes: Per bolt
+  variants:
+    - name: Dragon bolts (p)
+      effect: Basic poison
+    - name: Dragon bolts (p+)
+      effect: Extra poison
+    - name: Dragon bolts (p++)
+      effect: Super poison
+  notes:
+    - Can be tipped with gem bolt tips and enchanted
+  market:
+    buy_limit: 11000
+    price_estimate: 3500
+  related_items:
+    - item_id: 21918
+      item_name: Dragon bolts (unf)
+      slug: dragon-bolts-unf
+      relationship: component
+      description: Base item
+    - item_id: 21944
+      item_name: Ruby dragon bolts (e)
+      slug: ruby-dragon-bolts-e
+      relationship: variant
+      description: Popular variant
+    - item_id: 21946
+      item_name: Diamond dragon bolts (e)
+      slug: diamond-dragon-bolts-e
+      relationship: variant
+      description: Popular variant
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Ammunition |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+| Requirements | 64 Ranged |
+
+## Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged strength | +122 |
+
+## Obtaining
+
+**Fletching (84 Fletching):**
+- 10 Dragon bolts (unfinished) + 10 Feathers
+- 12 XP per bolt
+
+## Variants
+
+| Type | Effect |
+|------|--------|
+| Dragon bolts (p) | Basic poison |
+| Dragon bolts (p+) | Extra poison |
+| Dragon bolts (p++) | Super poison |
+
+Can be tipped with gem bolt tips and enchanted.
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~3.5K gp
+
+## Related Items
+
+- [Dragon bolts (unf)](/osrs/dragon-bolts-unf/) - Base item
+- [Ruby dragon bolts (e)](/osrs/ruby-dragon-bolts-e/) - Popular variant
+- [Diamond dragon bolts (e)](/osrs/diamond-dragon-bolts-e/) - Popular variant
+
+<Adsense />

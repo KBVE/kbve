@@ -1,0 +1,114 @@
+---
+title: White platelegs | OSRS Price Data
+description: "White platelegs is a members legs slot item requiring 25 Defence. High alch: 1,152 GP, GE limit: 125."
+osrs:
+  id: 6625
+  name: White platelegs
+  slug: white-platelegs
+  examine: Big, White and heavy looking.
+  members: true
+  icon: White platelegs.png
+  value: 1920
+  lowalch: 768
+  highalch: 1152
+  limit: 125
+  equipment:
+    slot: legs
+    type: armour
+    prayer_bonus: 1
+    requirements:
+      defence: 25
+      quest: Wanted!
+    combat_stats:
+      stab_defence: 30
+      slash_defence: 28
+      crush_defence: 27
+      magic_defence: -4
+      ranged_defence: 29
+  related_items:
+    - item_id: 6617
+      item_name: White platebody
+      slug: white-platebody
+      relationship: set-piece
+      description: Body (+1 Prayer)
+    - item_id: 6623
+      item_name: White full helm
+      slug: white-full-helm
+      relationship: set-piece
+      description: Helm (+1 Prayer)
+    - item_id: 6633
+      item_name: White kiteshield
+      slug: white-kiteshield
+      relationship: set-piece
+      description: Shield (+1 Prayer)
+    - item_id: 9676
+      item_name: Proselyte cuisse
+      slug: proselyte-cuisse
+      relationship: upgrade
+      description: Better prayer bonus (+6)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Prayer Bonus | +1 |
+| Defence Req | 25 |
+| Quest Req | Wanted! |
+
+## Obtaining
+
+**Shop:** Sir Vyvin (White Knights' Castle)
+
+**Quest:** Wanted! required for purchase
+
+## Usage
+
+- Low prayer bonus platelegs
+- White Knight themed gear
+- Stepping stone to Proselyte
+
+## White Equipment Set
+
+| Piece | Prayer Bonus |
+|-------|--------------|
+| White full helm | +1 |
+| White platebody | +1 |
+| White platelegs | +1 |
+| White kiteshield | +1 |
+| **Total** | **+4** |
+
+## Market Flip Strategy
+
+**Quest-Locked:**
+- Requires Wanted! quest
+- Shop purchase only
+- Not tradeable on GE
+
+**Tips:**
+- Inferior to Proselyte
+- Cosmetic/collection value
+- Low practical use
+
+<Adsense />

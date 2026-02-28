@@ -1,0 +1,152 @@
+---
+title: Bronze bar | OSRS Price Data
+description: "Bronze bar: It's a bar of bronze.. High alch: 4 GP, GE limit: 10,000."
+osrs:
+  id: 2349
+  name: Bronze bar
+  slug: bronze-bar
+  examine: It's a bar of bronze.
+  members: false
+  icon: Bronze bar.png
+  value: 8
+  lowalch: 3
+  highalch: 4
+  limit: 10000
+  material:
+    type: bar
+    tier: basic
+  smithing:
+    level: 1
+    xp: 6.2
+    primary_ore: 436
+    primary_ore_name: Copper ore
+    secondary_ore: 438
+    secondary_ore_name: Tin ore
+  recipes:
+    - skill: smithing
+      level: 1
+      xp: 6.2
+      materials:
+        - item_name: Copper ore
+          item_id: 436
+          quantity: 1
+        - item_name: Tin ore
+          item_id: 438
+          quantity: 1
+      product: Bronze bar
+      product_id: 2349
+      product_quantity: 1
+      facility: Furnace
+    - skill: smithing
+      level: 4
+      xp: 12.5
+      materials:
+        - item_name: Bronze bar
+          item_id: 2349
+          quantity: 1
+      product: Bronze nails
+      product_id: 4819
+      product_quantity: 15
+      facility: Anvil
+  related_items:
+    - item_id: 2351
+      item_name: Iron bar
+      slug: iron-bar
+      relationship: alternative
+      description: Next tier bar
+    - item_id: 436
+      item_name: Copper ore
+      slug: copper-ore
+      relationship: component
+      description: Smelting material
+    - item_id: 438
+      item_name: Tin ore
+      slug: tin-ore
+      relationship: component
+      description: Smelting material
+    - item_id: 4819
+      item_name: Bronze nails
+      slug: bronze-nails
+      relationship: product
+      description: Construction use
+    - item_id: 2347
+      item_name: Hammer
+      slug: hammer
+      relationship: component
+      description: For Smithing
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Method | Requirements |
+|--------|--------------|
+| Smelting | 1 Smithing, 1 copper + 1 tin ore |
+| Blast Furnace | Half coal requirement |
+| Buying | Various shops |
+| Monster drops | Common |
+
+## Smelting
+
+| Method | Time | XP |
+|--------|------|-----|
+| Furnace | 5 ticks (3s) | 6.2 |
+| Blast Furnace | 11 ticks (6.6s) | 6.2 |
+| Superheat Item | 3 ticks (1.8s) | 6.2 + 53 Magic |
+
+## Smithing
+
+| Product | Bars | Level | XP |
+|---------|------|-------|-----|
+| Bronze dagger | 1 | 1 | 12.5 |
+| Bronze axe | 1 | 1 | 12.5 |
+| Bronze mace | 1 | 2 | 12.5 |
+| Bronze med helm | 1 | 3 | 12.5 |
+| Bronze sword | 1 | 4 | 12.5 |
+| Bronze wire | 1 | 4 | 12.5 |
+| Bronze nails (15) | 1 | 4 | 12.5 |
+| Bronze scimitar | 2 | 5 | 25 |
+| Bronze platelegs | 3 | 16 | 37.5 |
+| Bronze platebody | 5 | 18 | 62.5 |
+
+## Market Flip Strategy
+
+**Training Material:**
+- First bar for Smithing
+- Low value but consistent
+- Tutorial Island creates supply
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Demand Drivers:**
+- New player equipment
+- Ironman early game
+- Bronze nails for Construction
+- F2P Smithing training
+
+**Tips:**
+- Tutorial Island floods market
+- Very low profit margins
+- Bronze wire for crossbows
+- Nails for early Construction
+
+<Adsense />

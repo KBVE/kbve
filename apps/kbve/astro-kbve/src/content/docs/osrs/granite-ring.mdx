@@ -1,0 +1,129 @@
+---
+title: Granite ring | OSRS Price Data
+description: "Granite ring is a members ring slot item requiring 50 Defence. High alch: 9,000 GP, GE limit: 70."
+osrs:
+  id: 21739
+  name: Granite ring
+  slug: granite-ring
+  examine: A solid ring.
+  members: true
+  icon: Granite ring.png
+  value: 15000
+  lowalch: 6000
+  highalch: 9000
+  limit: 70
+  equipment:
+    slot: ring
+    weight: 3
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 2
+      crush: 2
+      magic: -2
+      ranged: 12
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      defence: 50
+      strength: 50
+  drop_table:
+    primary_source: Grotesque Guardians
+    best_drop_rate: 2/500
+    sources:
+      - source: Grotesque Guardians
+        source_id: 7851
+        combat_level: 228
+        quantity: "1"
+        rarity: rare
+        drop_rate: 2/500
+        members_only: true
+  related_items:
+    - item_id: 21736
+      item_name: Granite gloves
+      slug: granite-gloves
+      relationship: alternative
+      description: Another Grotesque Guardian drop
+    - item_id: 21742
+      item_name: Granite hammer
+      slug: granite-hammer
+      relationship: alternative
+      description: Another Grotesque Guardian drop
+    - item_id: 21730
+      item_name: Black tourmaline core
+      slug: black-tourmaline-core
+      relationship: alternative
+      description: Rare Grotesque Guardian drop
+    - item_id: 21752
+      item_name: Granite ring (i)
+      slug: granite-ring-i
+      relationship: upgrade
+      description: Imbued version with doubled stats
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Dropped by Grotesque Guardians on the Slayer Tower rooftop.
+
+**Requirements:**
+- 75 Slayer
+- Brittle key (dropped by Gargoyles)
+- Access to Slayer Tower
+
+**Drop rate:** 2 x 1/500 (effectively 1/250 per kill)
+
+## Usage
+
+**Best ranged defence ring:**
+- +12 Ranged defence (highest of any ring)
+- Can be imbued to double all stats
+
+**Imbuing methods:**
+- Nightmare Zone: 500,000 points
+- Soul Wars: 200 Zeal Tokens
+- PvP Arena: Scroll of imbuing
+
+**When imbued:**
+- +4 Stab/Slash/Crush defence
+- -4 Magic defence
+- +24 Ranged defence
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Niche tanking ring
+- Best for ranged defence specifically
+- Consider imbuing for doubled stats
+- Part of Grotesque Guardian collection
+
+<Adsense />

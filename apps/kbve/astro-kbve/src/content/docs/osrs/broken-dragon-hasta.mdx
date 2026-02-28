@@ -1,0 +1,37 @@
+---
+title: Broken dragon hasta | OSRS Price Data
+description: "Broken dragon hasta: The item to make into a hasta.. High alch: 37,440 GP, GE limit: 70."
+osrs:
+  id: 22963
+  name: Broken dragon hasta
+  slug: broken-dragon-hasta
+  examine: The item to make into a hasta.
+  members: true
+  icon: Broken dragon hasta.png
+  value: 62400
+  lowalch: 24960
+  highalch: 37440
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

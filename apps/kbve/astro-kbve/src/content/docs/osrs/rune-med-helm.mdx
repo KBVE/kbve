@@ -1,0 +1,93 @@
+---
+title: Rune med helm | OSRS Price Data
+description: "Rune med helm: A medium sized helmet.. High alch: 11,520 GP, GE limit: 70."
+osrs:
+  id: 1147
+  name: Rune med helm
+  slug: rune-med-helm
+  examine: A medium sized helmet.
+  members: false
+  icon: Rune med helm.png
+  value: 19200
+  lowalch: 7680
+  highalch: 11520
+  limit: 70
+  item_id: 1147
+  item_type: armor
+  slot: head
+  type: med_helm
+  tradeable: true
+  weight: 1.814
+  requirements:
+    defence: 40
+  stats:
+    stab_defence: 22
+    slash_defence: 23
+    crush_defence: 21
+    magic: -3
+  related_items:
+    - slug: rune-full-helm
+    - slug: runite-bar
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Melee Armour |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 40 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +22 |
+| Slash Defence | +23 |
+| Crush Defence | +21 |
+| Magic | -3 |
+
+## Obtaining
+
+**Smithing:** Smith from 1 runite bar (88 Smithing, 75 XP).
+
+**Shop:** Blast Furnace Armour Store (19,200 gp).
+
+**Drops:** Lesser demons, cyclops, abyssal demons.
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~11,239 gp
+
+F2P melee helm. Good alch value.
+
+## Related Items
+
+- [Rune full helm](/osrs/rune-full-helm/) - Better version
+- [Runite bar](/osrs/runite-bar/) - Smithing material
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Sigil of the chef | OSRS Price Data
+description: "Sigil of the chef: A power enhancing sigil not yet attuned to you.. High alch: 6,000 GP, GE limit: 10."
+osrs:
+  id: 26033
+  name: Sigil of the chef
+  slug: sigil-of-the-chef
+  examine: A power enhancing sigil not yet attuned to you.
+  members: true
+  icon: Sigil of the chef.png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: 10
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

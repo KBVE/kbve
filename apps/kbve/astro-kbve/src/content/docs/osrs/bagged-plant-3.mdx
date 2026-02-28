@@ -1,0 +1,37 @@
+---
+title: Bagged plant 3 | OSRS Price Data
+description: "Bagged plant 3: You can plant this in your garden.. High alch: 6,000 GP, GE limit: 10,000."
+osrs:
+  id: 8435
+  name: Bagged plant 3
+  slug: bagged-plant-3
+  examine: You can plant this in your garden.
+  members: true
+  icon: Bagged plant 3.png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

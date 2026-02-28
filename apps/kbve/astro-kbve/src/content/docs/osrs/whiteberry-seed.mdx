@@ -1,0 +1,37 @@
+---
+title: Whiteberry seed | OSRS Price Data
+description: "Whiteberry seed: A whiteberry bush seed - plant in a bush patch.. High alch: 79 GP, GE limit: 200."
+osrs:
+  id: 5105
+  name: Whiteberry seed
+  slug: whiteberry-seed
+  examine: A whiteberry bush seed - plant in a bush patch.
+  members: true
+  icon: Whiteberry seed 5.png
+  value: 133
+  lowalch: 53
+  highalch: 79
+  limit: 200
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

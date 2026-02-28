@@ -1,0 +1,184 @@
+---
+title: 'October: 1st'
+category: Daily
+date: 2025-10-01 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 1st. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### OCT CC Payments
+
+-   12:51PM
+
+    Need to make sure that all the bills got paid and then prepare to build around that.
+    The flow for payments are like this: Discord -> Capital One -> Paypal -> Amazon.
+    Yet before those payments get automatically posted, it has to pull the capital out of the TD account, so first run gathers the total CC cost, then it runs a zelle between the two accounts.
+    Once that zelle is done, it loops back and should make the payments for each of the cards.
+    However this is still an issue for me to automate, so I will look further into that either next month or try a bit of a different approach.
+    I should look more into the linuxserver image deployments, with how they are handling the VNC through the kubernetes.
+
+
+## 2024
+
+**Redis**
+
+Back at it again with the redis extension for the Docker image!
+The plan is still a continuation from yesterday, right now I am just testing the role bindings and making sure that the main container can connect to the redis.
+
+**Recovery**
+
+For the Postgres cluster, the hardest part of the whole thing is to maintain a level of security.
+In the current state of resources, we are unable to setup and run two clusters, aka the `main` and `dev` or `production` and `development`.
+As of right now, we are only running the `dev` cluster.
+
+```
+
+ kubectl get pods -n supabase
+NAME                                                   READY   STATUS                       RESTARTS   AGE
+supabase-release-supabase-analytics-76f4b968cf-4tcfq   1/1     Running                      0          16h
+supabase-release-supabase-auth-6955f59486-cj5vc        1/1     Running                      0          16h
+supabase-release-supabase-db-1                         1/1     Running                      0          16h
+supabase-release-supabase-db-2                         1/1     Running                      0          16h
+supabase-release-supabase-db-3                         0/1     CreateContainerConfigError   0          11h
+supabase-release-supabase-functions-64c9b5c6c7-vvsrj   1/1     Running                      0          16h
+supabase-release-supabase-imgproxy-65c697f6b8-zjr82    1/1     Running                      0          16h
+supabase-release-supabase-kong-8568c4bccf-2tx2n        1/1     Running                      0          16h
+supabase-release-supabase-meta-74dcdf58dc-psgnk        1/1     Running                      0          16h
+supabase-release-supabase-realtime-7f6846b545-nbmjx    1/1     Running                      0          16h
+supabase-release-supabase-rest-7ccb7f5954-8qhvj        1/1     Running                      0          16h
+supabase-release-supabase-storage-857d655cd7-fx4bz     1/1     Running                      0          16h
+supabase-release-supabase-studio-798b47644b-5fd5r      1/1     Running                      0          16h
+supabase-release-supabase-vector-7bc47494f-swb9r       1/1     Running                      0          16h
+
+```
+
+6:40pm - The current error is:
+
+```
+
+ErrApplied(1) [Bundle kilobase-migrations-kube-charts-kilobase: cannot patch "supabase-release-supabase-db" with kind Cluster: admission webhook "vcluster.cnpg.io" denied the request:
+Cluster.cluster.cnpg.io "supabase-release-supabase-db" is invalid: spec.bootstrap: Invalid value: "": 
+Too many bootstrap types specified]; cluster.postgresql.cnpg.io supabase/supabase-release-supabase-db [progressing] Cluster Is Not Ready
+
+```
+
+To move things forward, we will go ahead and run this shell command:
+
+```shell
+
+kubectl delete pod supabase-release-supabase-db-3 -n supabase
+
+```
+
+Looks like the `CreateContainerConfigError` popped back up again, so we will go ahead and run a new command to describe the error.
+
+```shell
+
+kubectl describe pod supabase-release-supabase-db-3 -n supabase
+
+```
+
+The error that we are facing now is that:
+
+```
+  Warning  Failed                  92s (x7 over 2m34s)  kubelet                  Error: secret "redis-auth" not found
+```
+
+The postgres db was unable to find the `redis-auth`.
+My theory is that we might need to adjust the `Role` kind for the secert and make it a `ClusterRole` instead, thus updating the `redis-armada-bridge.yaml` to reflect the role change.
+Hmm, we ran into the same problem again and I am thinking that we need to tell the ClusteRole to grab the secret from the `armada` namespace?
+
+```yaml
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+    name: redis-secret-reader
+rules:
+    - apiGroups: ['']
+      resources: ['secrets']
+      verbs: ['get', 'list']
+      resourceNames:
+          - redis-auth
+      namespaces: ['armada']
+
+```
+
+To be safe, we will double check the `redis-auth` secret and make sure that it exists in the `armada` namespace.
+
+```shell
+
+kubectl get secret redis-auth -n armada
+
+```
+
+Now , we still have that issue with grabbing the secret, when running this command:
+
+```shell
+
+kubectl get secret redis-auth -n supabase
+
+```
+
+This next update, we will be adjusting the `ServiceAccount` under the `ClusterRoleBinding`.
+
+Maybe we are doing too many changes and it is causing this backlog of updates, thus we will comment out the `REDIS_AUTH` env for now and move forward with the recovery of the cluster again.
+Once we can confirm that the `redis-auth` secret can be accessed, we will revert the recovery process again.
+
+The other issue that I see in the namespace is that the `redis-secret-reader` and `redis-secret-reader-binding` are both running under the `Role` and `RoleBinding`, thus I am thinking we delete those.
+So we would run these commands:
+
+```shell
+
+kubectl delete role redis-secret-reader -n supabase
+kubectl delete rolebinding redis-secret-reader-binding -n supabase
+kubectl get clusterrole redis-secret-reader -o yaml
+kubectl get clusterrolebinding redis-secret-reader-binding -o yaml
+
+```
+
+The issue ended up being that the namespace for the sealed secret was scoped to just the `armada` and thus we will have to seal the secret for the redis again for the supabase namespace.
+The other option was to open the secret up to other namespaces but I feel like that might be too much of a security issue for us in the future.
+
+We can move this up to the Alpha branch and then start looking into the n8n deployment as the next chart / container for our supabase instance.
+However, I am thinking that we could also split the n8n out into its own namespace, but that might also be not worth it, hmm. 
+
+**Schema**
+
+We got the hcaptcha schema added and the user profile!
+Both of these are still a bit of work in progress type of schemas because we need to make sure that users can even register and make accounts.
+
+From my understanding both of the two schemas are part of the auth system, where the hcaptcha gets triggered before the creation of the user and the profile gets triggered after the user is created.
+However we need to add a couple things for the username unique check before the person is able to register, I was thinking of placing an automatic string for the username based upon their email and then let them change the username later on.
+
+We also need to make sure that these changes are saved and then apply a recovery test against them tomorrow.
+Overall, if everything goes as planned, then we should be close to having our self hosted postgres nearing a production level.
+
+
+**Credit**
+
+While I am doing the postgres schemas, I had to double check all our accounts because we need to make sure that everything has been cleaned up.
+I want to make sure that there are no open credits.
+
+## 2023
+
+NULL
+
+## Quote
+
+> Habit, if not resisted, soon becomes necessity.
+> — <cite>Augustine of Hippo</cite>
+
+---
+
+## Tasks
+
+- [ ]

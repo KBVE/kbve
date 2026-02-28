@@ -1,0 +1,106 @@
+---
+title: Diamond bolts (e) | OSRS Price Data
+description: "Diamond bolts (e) is a members ammo slot item requiring 61 Ranged. High alch: 126 GP, GE limit: 11,000."
+osrs:
+  id: 9243
+  name: Diamond bolts (e)
+  slug: diamond-bolts-e
+  examine: Enchanted Diamond tipped Adamantite Crossbow Bolts.
+  members: true
+  icon: Diamond bolts (e) 5.png
+  value: 211
+  lowalch: 84
+  highalch: 126
+  limit: 11000
+  equipment:
+    slot: ammo
+    type: enchanted_bolts
+    tradeable: true
+    weight: 0
+    requirements:
+      ranged: 61
+  effect:
+    name: Armour Piercing
+    description: Ignores portion of target's defence
+  enchanting:
+    spell: Enchant Crossbow Bolt (Diamond)
+    magic_level: 57
+    runes:
+      - item_name: Earth rune
+        quantity: 10
+      - item_name: Law rune
+        quantity: 2
+      - item_name: Cosmic rune
+        quantity: 1
+    bolts_per_cast: 10
+  related_items:
+    - item_id: 9340
+      item_name: Diamond bolts
+      slug: diamond-bolts
+      relationship: component
+      description: Unenchanted version
+    - item_id: 9242
+      item_name: Ruby bolts (e)
+      slug: ruby-bolts-e
+      relationship: alternative
+      description: High HP boss alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammo |
+| Type | Enchanted Bolts |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 61 Ranged |
+
+## Obtaining
+
+**Enchanting:** Cast Enchant Crossbow Bolt (Diamond) at 57 Magic.
+
+**Runes:** 10 earth, 2 law, 1 cosmic per 10 bolts.
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Effects
+
+**Armour Piercing:** Ignores portion of target's defence.
+
+Effective against high-defence targets.
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~228 gp
+
+Popular for bossing. Good against armored targets.
+
+## Related Items
+
+- [Diamond bolts](/osrs/diamond-bolts/) - Unenchanted version
+- [Ruby bolts (e)](/osrs/ruby-bolts-e/) - High HP boss alternative
+
+<Adsense />

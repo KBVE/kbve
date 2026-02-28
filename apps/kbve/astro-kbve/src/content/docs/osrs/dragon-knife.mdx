@@ -1,0 +1,123 @@
+---
+title: Dragon knife | OSRS Price Data
+description: "Dragon knife is a members weapon slot item. High alch: 100 GP, GE limit: 11,000."
+osrs:
+  id: 22804
+  name: Dragon knife
+  slug: dragon-knife
+  examine: A finely balanced and powerful throwing knife.
+  members: true
+  icon: Dragon knife.png
+  value: 167
+  lowalch: 66
+  highalch: 100
+  limit: 11000
+  equipment:
+    slot: weapon
+    type: thrown
+    attack_style: ranged
+    attack_speed: 3
+  requirements:
+    ranged: 60
+  stats:
+    attack:
+      ranged: 28
+    other:
+      ranged_strength: 30
+  special_attack:
+    name: Draconic Puncture
+    energy: 25
+    description: Two rapid attacks with 5% increased accuracy
+  obtaining:
+    - source: Hydra
+      location: Karuulm Slayer Dungeon
+      members_only: true
+    - source: Alchemical Hydra
+      location: Karuulm Slayer Dungeon
+      members_only: true
+  related_items:
+    - item_id: 868
+      item_name: Rune knife
+      slug: rune-knife
+      relationship: downgrade
+      description: Lower tier knife
+    - item_id: 22806
+      item_name: Dragon knife (p++)
+      slug: dragon-knife-p++
+      relationship: variant
+      description: Poisoned version
+    - item_id: 11230
+      item_name: Dragon dart
+      slug: dragon-dart
+      relationship: alternative
+      description: Alternative dragon thrown
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Thrown |
+| Tradeable | Yes |
+| Weight | 0.006 kg |
+| Requirements | 60 Ranged |
+
+## Obtaining
+
+**Drops:**
+- Hydra (Karuulm Slayer Dungeon)
+- Alchemical Hydra (rare drop)
+
+**Cannot be smithed.**
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +28 |
+| Ranged Strength | +30 |
+
+## Special Attack
+
+**Draconic Puncture:**
+- 25% special energy
+- Two rapid attacks
+- 5% increased accuracy per hit
+- Popular for PvP combos
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~800 gp
+
+Best throwing knife in game. Excellent for PvP with special attack.
+
+## Related Items
+
+- [Rune knife](/osrs/rune-knife/) - Budget alternative
+- [Dragon knife (p++)](/osrs/dragon-knife-p++/) - Poisoned version
+- [Dragon dart](/osrs/dragon-dart/) - Alternative dragon thrown
+
+<Adsense />

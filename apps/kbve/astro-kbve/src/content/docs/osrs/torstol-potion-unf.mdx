@@ -1,0 +1,121 @@
+---
+title: Torstol potion (unf) | OSRS Price Data
+description: "Torstol potion (unf) is a 4-dose members potion. High alch: 15 GP, GE limit: 10,000."
+osrs:
+  id: 111
+  name: Torstol potion (unf)
+  slug: torstol-potion-unf
+  examine: I need another ingredient to finish this Torstol potion.
+  members: true
+  icon: Torstol potion (unf).png
+  value: 25
+  lowalch: 10
+  highalch: 15
+  limit: 10000
+  potion:
+    type: unfinished
+    tier: high
+  herblore:
+    level: 78
+    xp: 0
+    method: Add torstol to vial of water
+  recipes:
+    - skill: herblore
+      level: 78
+      xp: 0
+      materials:
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+        - item_name: Torstol
+          item_id: 269
+          quantity: 1
+      product: Torstol potion (unf)
+      product_id: 111
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 269
+      item_name: Torstol
+      slug: torstol
+      relationship: component
+      description: Herb ingredient
+    - item_id: 227
+      item_name: Vial of water
+      slug: vial-of-water
+      relationship: component
+      description: Base liquid
+    - item_id: 247
+      item_name: Jangerberries
+      slug: jangerberries
+      relationship: component
+      description: Secondary for zamorak brew
+    - item_id: 189
+      item_name: Zamorak brew(3)
+      slug: zamorak-brew-3
+      relationship: product
+      description: Attack boost potion
+    - item_id: 3042
+      item_name: Super combat potion(4)
+      slug: super-combat-potion-4
+      relationship: product
+      description: Ultimate combat potion
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Unfinished Potion |
+| Tradeable | Yes |
+| Weight | 0.056 kg |
+| Requirements | 78 Herblore |
+
+## Obtaining
+
+**Creation:** Add torstol to vial of water (78 Herblore).
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Usage
+
+Add secondary ingredient to create:
+- **Zamorak brew** (+ jangerberries)
+- **Super combat potion** (combined with other potions)
+
+High-level herblore content.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+Premium unfinished potion. Torstol is expensive.
+
+## Related Items
+
+- [Torstol](/osrs/torstol/) - Herb ingredient
+- [Jangerberries](/osrs/jangerberries/) - Secondary for zamorak brew
+- [Zamorak brew](/osrs/zamorak-brew/) - Final product
+
+<Adsense />

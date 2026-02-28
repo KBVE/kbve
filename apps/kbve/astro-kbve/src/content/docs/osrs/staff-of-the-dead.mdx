@@ -1,0 +1,119 @@
+---
+title: Staff of the dead | OSRS Price Data
+description: "Staff of the dead is a members weapon slot item requiring 75 Attack. High alch: 600,003 GP, GE limit: 8."
+osrs:
+  id: 11791
+  name: Staff of the dead
+  slug: staff-of-the-dead
+  examine: A ghastly weapon with evil origins.
+  members: true
+  icon: Staff of the dead.png
+  value: 1000005
+  lowalch: 400002
+  highalch: 600003
+  limit: 8
+  equipment:
+    slot: weapon
+    type: staff
+    attack_style: magic
+    attack_speed: 4
+    requirements:
+      magic: 75
+      attack: 75
+    stats:
+      attack_magic: 17
+      attack_stab: 55
+      attack_slash: 70
+      strength: 72
+      magic_damage_percent: 15
+  special_attack:
+    name: Power of Death
+    energy: 100
+    effect: Halves melee damage received for 1 minute
+  drop_sources:
+    - name: K'ril Tsutsaroth
+      combat_level: 650
+      drop_rate: 1/508
+      members_only: true
+  related_items:
+    - item_id: 12902
+      item_name: Toxic staff of the dead
+      slug: toxic-staff-of-the-dead
+      relationship: upgrade
+      description: Venomed version
+    - item_id: 21006
+      item_name: Kodai wand
+      slug: kodai-wand
+      relationship: alternative
+      description: Higher magic attack
+    - item_id: 24423
+      item_name: Harmonised nightmare staff
+      slug: harmonised-nightmare-staff
+      relationship: alternative
+      description: Best magic DPS
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Dropped by K'ril Tsutsaroth in the God Wars Dungeon at a rate of 1/508.
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Magic attack | +17 |
+| Magic damage | +15% |
+| Stab attack | +55 |
+| Slash attack | +70 |
+| Strength bonus | +72 |
+| Requirements | 75 Magic, 75 Attack |
+
+## Special Attack
+
+**Power of Death** (100% energy):
+- Halves melee damage received
+- Lasts 1 minute
+- Great for tanking
+
+## Usage
+
+**PvM:**
+- Hybrid magic/melee staff
+- Good for Slayer
+- Budget magic option
+
+**PvP:**
+- Melee defence spec
+- Tribrid setups
+- Staff bash damage
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- K'ril drop drives supply
+- Component for toxic version
+- Budget magic weapon
+
+<Adsense />

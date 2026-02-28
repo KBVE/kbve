@@ -1,0 +1,107 @@
+---
+title: Basilisk jaw | OSRS Price Data
+description: "Basilisk jaw: The jaw of a Basilisk Knight.. High alch: 300,000 GP."
+osrs:
+  id: 24268
+  name: Basilisk jaw
+  slug: basilisk-jaw
+  examine: The jaw of a Basilisk Knight.
+  members: true
+  icon: Basilisk jaw.png
+  value: 500000
+  lowalch: 200000
+  highalch: 300000
+  limit: null
+  item:
+    type: upgrade material
+    tradeable: true
+    weight: 1
+  obtaining:
+    - source: Basilisk Knight
+      drop_rate: 1/1,000
+      notes: Requires 60 Slayer and The Fremennik Exiles
+  recipes:
+    - skill: crafting
+      level: 1
+      materials:
+        - item_id: 24268
+          item_name: Basilisk jaw
+          quantity: 1
+        - item_id: 10828
+          item_name: Helm of neitiznot
+          quantity: 1
+      product: Neitiznot faceguard
+      product_id: 24271
+  related_items:
+    - item_id: 10828
+      item_name: Helm of neitiznot
+      slug: helm-of-neitiznot
+      relationship: component
+      description: Base helm for upgrade
+    - item_id: 24271
+      item_name: Neitiznot faceguard
+      slug: neitiznot-faceguard
+      relationship: product
+      description: BiS melee helm created
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Upgrade Material |
+| Tradeable | Yes |
+| Weight | 1 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Basilisk Knight | 1/1,000 |
+
+**Requires 60 Slayer and completion of The Fremennik Exiles.**
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Neitiznot faceguard | Helm of neitiznot + Basilisk jaw |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~5.5M gp
+
+**Tips:**
+- Basilisk Knights only source
+- Requires Fremennik Exiles
+- Creates BiS melee helm
+
+## Related Items
+
+- [Basilisk Knight](/osrs/basilisk-knight/) - Drop source
+- [Helm of neitiznot](/osrs/helm-of-neitiznot/) - Base helm
+- [Neitiznot faceguard](/osrs/neitiznot-faceguard/) - Created helm
+
+<Adsense />

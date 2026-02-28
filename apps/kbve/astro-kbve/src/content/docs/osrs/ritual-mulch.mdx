@@ -1,0 +1,37 @@
+---
+title: Ritual mulch | OSRS Price Data
+description: "Ritual mulch: I can use items with this for nature offerings.. High alch: 60 GP."
+osrs:
+  id: 28154
+  name: Ritual mulch
+  slug: ritual-mulch
+  examine: I can use items with this for nature offerings.
+  members: true
+  icon: Ritual mulch.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

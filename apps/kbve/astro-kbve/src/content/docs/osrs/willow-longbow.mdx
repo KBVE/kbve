@@ -1,0 +1,116 @@
+---
+title: Willow longbow | OSRS Price Data
+description: "Willow longbow is a F2P two-handed weapon. High alch: 192 GP, GE limit: 18,000."
+osrs:
+  id: 847
+  name: Willow longbow
+  slug: willow-longbow
+  examine: A nice sturdy bow made out of willow.
+  members: false
+  icon: Willow longbow.png
+  value: 320
+  lowalch: 128
+  highalch: 192
+  limit: 18000
+  equipment:
+    slot: 2h
+    type: longbow
+    attack_style: ranged
+    attack_speed: 6
+  requirements:
+    ranged: 20
+  stats:
+    attack:
+      ranged: 20
+    other:
+      ranged_strength: 0
+    range: 9
+  fletching:
+    level: 40
+    xp: 41.5
+    method: Willow longbow (u) + bowstring
+  shops:
+    - shop_name: Lowe's Archery Emporium
+      location: Varrock
+      price: 320
+  related_items:
+    - item_id: 851
+      item_name: Maple longbow
+      slug: maple-longbow
+      relationship: upgrade
+      description: Higher tier longbow
+    - item_id: 849
+      item_name: Willow shortbow
+      slug: willow-shortbow
+      relationship: alternative
+      description: Faster attack speed
+    - item_id: 58
+      item_name: Willow longbow (u)
+      slug: willow-longbow-u
+      relationship: component
+      description: Unstrung version
+    - item_id: 1777
+      item_name: Bow string
+      slug: bow-string
+      relationship: component
+      description: Stringing material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Two-Handed |
+| Type | Longbow |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 20 Ranged |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +20 |
+| Ranged Strength | +0 |
+| Attack Range | 9 |
+
+## Obtaining
+
+**Fletching:** 40 Fletching with willow longbow (u) + bowstring (41.5 XP).
+
+**Shop:** Lowe's Archery Emporium, Varrock.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~97 gp
+
+Mid-level ranged weapon. F2P accessible.
+
+## Related Items
+
+- [Maple longbow](/osrs/maple-longbow/) - Upgrade
+- [Willow shortbow](/osrs/willow-shortbow/) - Faster alternative
+
+<Adsense />

@@ -1,0 +1,48 @@
+[package]
+name = "axum-kbve"
+authors = ["kbve", "h0lybyte"]
+version = "0.1.0"
+edition = "2021"
+publish = false
+
+[dependencies]
+anyhow = "1.0"
+thiserror = "2"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tower = { version = "0.5.3", features = ["util", "timeout", "load-shed", "limit"] }
+tower-http = { version = "0.6.8", features = [
+    "compression-full",
+    "limit",
+    "trace",
+    "fs",
+    "cors",
+    "set-header"
+] }
+tokio = { version = "1.0", features = ["full", "rt-multi-thread"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+axum = { version = "0.8.5", features = ["ws", "macros"] }
+axum-extra = { version = "0.12.1", features = ["cookie"] }
+askama = "0.15.4"
+socket2 = "0.6.1"
+num_cpus = "1.17.0"
+dotenvy = "0.15"
+
+# Workspace path dependencies
+jedi = { path = "../../../packages/rust/jedi" }
+kbve = { path = "../../../packages/rust/kbve" }
+
+[target.'cfg(not(target_env = "msvc"))'.dependencies]
+tikv-jemallocator = { version = "0.6", optional = true }
+
+[dev-dependencies]
+serial_test = "3"
+http-body-util = "0.1"
+
+[features]
+default = []
+jemalloc = ["dep:tikv-jemallocator"]
+
+[package.metadata.askama]
+dirs = ["templates"]

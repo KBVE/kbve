@@ -1,0 +1,108 @@
+---
+title: Ruby bolt tips | OSRS Price Data
+description: "Ruby bolt tips: Ruby bolt tips.. High alch: 40 GP, GE limit: 11,000."
+osrs:
+  id: 9191
+  name: Ruby bolt tips
+  slug: ruby-bolt-tips
+  examine: Ruby bolt tips.
+  members: true
+  icon: Ruby bolt tips 5.png
+  value: 67
+  lowalch: 26
+  highalch: 40
+  limit: 11000
+  item:
+    type: ammunition_component
+    tradeable: true
+    stackable: true
+    weight: 0
+  recipes:
+    - skill: fletching
+      level: 63
+      xp: 6.3
+      materials:
+        - item_name: Ruby
+          quantity: 1
+      product: Ruby bolt tips
+      product_quantity: 12
+  related_items:
+    - item_id: 9339
+      item_name: Ruby bolts
+      slug: ruby-bolts
+      relationship: product
+      description: Created item
+    - item_id: 9242
+      item_name: Ruby bolts (e)
+      slug: ruby-bolts-e
+      relationship: alternative
+      description: Enchanted version
+    - item_id: 21944
+      item_name: Ruby dragon bolts
+      slug: ruby-dragon-bolts
+      relationship: alternative
+      description: Dragon variant
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Ammunition Component |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+**Crafting (63 Fletching):**
+- Cut ruby with chisel -> 12 tips
+- 6.3 XP per gem
+
+**Monster Drops:**
+- Vorkath (25-30)
+- Hydra (20)
+- Various slayer creatures
+
+## Uses
+
+| Bolt Created | Materials | Fletching |
+|--------------|-----------|-----------|
+| Ruby bolts | Adamant bolts + Ruby bolt tips | 63 |
+| Ruby dragon bolts | Dragon bolts + Ruby bolt tips | 84 |
+
+Can be enchanted after attachment.
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~89 gp
+
+## Related Items
+
+- [Ruby bolts](/osrs/ruby-bolts/) - Created item
+- [Ruby bolts (e)](/osrs/ruby-bolts-e/) - Enchanted version
+- [Ruby dragon bolts](/osrs/ruby-dragon-bolts/) - Dragon variant
+
+<Adsense />

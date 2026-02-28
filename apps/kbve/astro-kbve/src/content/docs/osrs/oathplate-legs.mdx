@@ -1,0 +1,37 @@
+---
+title: Oathplate legs | OSRS Price Data
+description: "Oathplate legs: Platelegs forged from infernal metal.. High alch: 240,000 GP."
+osrs:
+  id: 30756
+  name: Oathplate legs
+  slug: oathplate-legs
+  examine: Platelegs forged from infernal metal.
+  members: true
+  icon: Oathplate legs.png
+  value: 400000
+  lowalch: 160000
+  highalch: 240000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

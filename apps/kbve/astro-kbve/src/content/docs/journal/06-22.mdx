@@ -1,0 +1,88 @@
+---
+title: 'June: 22'
+category: Daily
+date: 2025-06-22 12:00:00
+client: Self
+unsplash: 685194926944-9750afc26e39
+img: https://images.unsplash.com/photo-685194926944-9750afc26e39?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  June 22nd. Too Many Languages.
+tags:
+  - daily
+---
+
+import { Adsense } from '@/components/astropad';
+
+## 2025
+
+### AutoLogin Test
+
+-   05:17AM
+
+    Time to test the automatic login system, its been a while since we did anything within the java side.
+    There still needs to be some level of integration amoung the java, python and js side of supabase.
+    Let me get the ball rolling on this end.
+
+## 2024
+
+**Switch Up**
+I been wondering if anyone else gets a bit bent when having to work in multiple languages, like having to switch from typescript, javascript, python, yaml, rust, all of which in a short peroid of time.
+The other issue with moving in between multiple languages is that the build cache gets a bit too big, but I am thinking we can resolve it by being a bit creative with how we would handle the cache storage.
+I am thinking of writing a custom `node_modules` and `python` cache system, basically holding our storage within a 3rd party location, pulling it only when doing safe builds.
+
+**Prompt**
+The prompt for the jukebox is still having some issues that we need to resolve, it seems to output a python script when we need it to output just a json.
+
+**DevOps**
+I am going to extend out the `github.ts` within the `@kbve/devops` library to have some general wrappers around the github actions.
+The goal would be to make it easier to extend these actions around in future libraries and to make the workflow a bit cleaner to manager.
+During the most recent pull request, it seems like the execution handler was not able to write a pull request and I am thinking that it might have been the permissions that we assigned at the time of the workflow.
+What we could do is migrate the permissions down to an individual job level within the workflow and see if that can help resolve this issue.
+The worst part is that I am going to make more changes in the wrapper, but for now we can test case both in the next push.
+
+Yay! We are finally getting the base system built out and tested.
+There are still some concepts that I need to improve upon, but we are getting the gist of it out of the way.
+Now the next part will be the discussion integration, which has two parts to it.
+
+**Merge**
+
+While the pull requests seem to be fine, there seems to be a merge conflict, it might be from the fact that its pulling from `main`, instead of dev?
+We should update it so that it is checking out the `dev` branch instead.
+
+```yaml
+- name: Checkout repository
+  uses: actions/checkout@v4
+  with:
+    ref: dev
+```
+
+This should help prevent some of the merge conflicts but it wont resolve all of them.
+I wonder if we could do some level of automatic management of the pull request.
+We know it should only edit one file and then maybe find a way to help resolve the merge conflict, if it appears?
+
+Okay the `dev` checkout is working as intended, but we still have to be a bit careful when it comes to the issue tickets.
+I think the best move would be to limit the amount of executions and back to back genre additions.
+
+Lets wrap back around and prepare the discussion and auto resolving.
+For the automatic resolving, we could run a diff check and force it to automatically accept both merges but this might not be worth it for now.
+As for the discussion based trigger, the idea would be to post a youtube link under the discussion thread and then have it automatically parse and add it into the jukebox.
+
+<Adsense />
+
+## 2023
+
+- 9:00am - Time to look through the backyard and do some general upkeep. The lawn looks healthy but part of me wants to start replacing certain aspects of it. One of my dream concepts would be to expand the mint garden, to the point where there is a natural aura of mint that flows through the property.
+- 10:00am - I should really think about placing a quick recipe onto KBVE for my amazing mint tea. Hmm should I go with a generic tea style and then build upon it? Maybe include various ways to show it off too.
+- 6:00pm - I was a bit slacking on the note taking but there is a general flow of how I would want to improve upon that.
+- 8:00pm - One of my side projects look like it is on the verge of failure. This is a point where it gets a bit tough, the letting go. Part of any project is knowing when it ends, when it stales and when it dies. Death and ending are two different concepts when I look at a project, with one being sudden and unexpected, while the other being a bit planned.
+
+## Quote
+
+> A failure is a man who has blundered but is not capable of cashing in on the experience.
+> — <cite>Elbert Hubbard</cite>
+
+---
+
+## Tasks
+
+- [x] Mock / MVP Design of the Manga.

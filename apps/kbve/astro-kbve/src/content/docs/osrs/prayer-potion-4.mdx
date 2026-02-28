@@ -1,0 +1,115 @@
+---
+title: Prayer potion(4) | OSRS Price Data
+description: "Prayer potion(4) is a 4-dose members potion that restores 7-31 prayer points based on prayer level. High alch: 114 GP, GE limit: 2,000."
+osrs:
+  id: 2434
+  name: Prayer potion(4)
+  slug: prayer-potion-4
+  examine: 4 doses of Prayer restore potion.
+  members: true
+  icon: Prayer potion(4).png
+  value: 190
+  lowalch: 76
+  highalch: 114
+  limit: 2000
+  potion:
+    doses: 4
+    herblore_level: 38
+    herblore_xp: 87.5
+    effect: Restores 7-31 Prayer points based on Prayer level
+    effects:
+      - stat: Prayer
+        boost_formula: 7 + floor(level / 4)
+  recipes:
+    - skill: herblore
+      level: 38
+      xp: 87.5
+      materials:
+        - item_name: Ranarr weed
+          item_id: 257
+          quantity: 1
+        - item_name: Snape grass
+          item_id: 231
+          quantity: 1
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+          consumed: true
+      ticks: 2
+      members_only: true
+  related_items:
+    - item_id: 257
+      item_name: Ranarr weed
+      slug: ranarr-weed
+      relationship: component
+      description: Primary herb
+    - item_id: 231
+      item_name: Snape grass
+      slug: snape-grass
+      relationship: component
+      description: Secondary ingredient
+    - item_id: 3024
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: alternative
+      description: Also restores stats
+    - item_id: 10925
+      item_name: Sanfew serum(4)
+      slug: sanfew-serum-4
+      relationship: upgrade
+      description: Premium version (cures poison)
+    - item_id: 2436
+      item_name: Prayer potion(3)
+      slug: prayer-potion-3
+      relationship: variant
+      description: 3-dose version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Usage
+
+Prayer potions are essential for:
+- All boss fights
+- Slayer tasks with protection prayers
+- Raids (CoX, ToB, ToA)
+- PvP combat
+- Wilderness activities
+
+## Market Flip Strategy
+
+**Potion Making Profit:**
+- Calculate: `Prayer potion(4) - Ranarr weed - Snape grass - Vial of water`
+- High volume, consistent demand
+- Essential consumable = stable prices
+
+**Dose Manipulation:**
+- Buy 4-dose, decant to 3-dose (or vice versa)
+- Check price differences between dose sizes
+- Use decanting NPC in GE
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Tips:**
+- One of the highest volume potions traded
+- Price follows Ranarr weed price closely
+
+<Adsense />

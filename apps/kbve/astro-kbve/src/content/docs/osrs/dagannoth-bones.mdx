@@ -1,0 +1,111 @@
+---
+title: Dagannoth bones | OSRS Price Data
+description: "Dagannoth bones: These would feed a dogfish for months!. High alch: 90 GP, GE limit: 7,500."
+osrs:
+  id: 6729
+  name: Dagannoth bones
+  slug: dagannoth-bones
+  examine: These would feed a dogfish for months!
+  members: true
+  icon: Dagannoth bones.png
+  value: 150
+  lowalch: 60
+  highalch: 90
+  limit: 7500
+  item_id: 6729
+  type: bones
+  tradeable: true
+  weight: 1.5
+  buy_limit: 7500
+  prayer:
+    xp_bury: 125
+    xp_gilded: 437.5
+    xp_chaos: 437.5
+    xp_ectofuntus: 500
+    xp_sinister: 375
+  drop_table:
+    sources:
+      - source: Dagannoth Rex
+        rate: Always
+        members_only: true
+      - source: Dagannoth Prime
+        rate: Always
+        members_only: true
+      - source: Dagannoth Supreme
+        rate: Always
+        members_only: true
+  related_items:
+    - slug: dragon-bones
+      name: Dragon bones
+      relation: alternative
+    - slug: superior-dragon-bones
+      name: Superior dragon bones
+      relation: higher_tier
+    - slug: dagannoth-kings
+      name: Dagannoth Kings
+      relation: drop_source
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Bones |
+| Tradeable | Yes |
+| Weight | 1.5 kg |
+| Prayer XP | 125 (buried) |
+
+## Obtaining
+
+**Exclusive drops from Dagannoth Kings:**
+- Dagannoth Rex
+- Dagannoth Prime
+- Dagannoth Supreme
+
+**Not dropped by regular Dagannoths.**
+
+## Usage
+
+**Prayer training:** Bury for 125 XP.
+
+**Enhanced methods:**
+- Gilded/Chaos altar: 437.5 XP
+- Ectofuntus: 500 XP
+- Sinister Offering: 375 XP
+
+## Market Strategy
+
+**Buy Limit:** 7,500 per 4 hours
+
+**Price:** ~11,918 gp
+
+High-value bones. Popular for Prayer training due to good XP/gp ratio.
+
+## Related Items
+
+- [Dragon bones](/osrs/dragon-bones/) - Alternative option
+- [Superior dragon bones](/osrs/superior-dragon-bones/) - Higher tier
+- [Dagannoth Kings](/osrs/dagannoth-kings/) - Drop source
+
+<Adsense />

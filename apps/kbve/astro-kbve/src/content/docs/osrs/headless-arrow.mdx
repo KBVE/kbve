@@ -1,0 +1,118 @@
+---
+title: Headless arrow | OSRS Price Data
+description: "Headless arrow: A wooden arrow shaft with flights attached.. High alch: 1 GP, GE limit: 11,000."
+osrs:
+  id: 53
+  name: Headless arrow
+  slug: headless-arrow
+  examine: A wooden arrow shaft with flights attached.
+  members: true
+  icon: Headless arrow.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 11000
+  material:
+    type: fletching
+    tier: intermediate
+  fletching:
+    level: 1
+    xp: 1
+    method: Feathers on arrow shafts
+  recipes:
+    - skill: fletching
+      level: 1
+      xp: 15
+      materials:
+        - item_name: Arrow shaft
+          item_id: 52
+          quantity: 15
+        - item_name: Feather
+          item_id: 314
+          quantity: 15
+      product: Headless arrow
+      product_id: 53
+      product_quantity: 15
+  related_items:
+    - item_id: 52
+      item_name: Arrow shaft
+      slug: arrow-shaft
+      relationship: component
+      description: Base material
+    - item_id: 314
+      item_name: Feather
+      slug: feather
+      relationship: component
+      description: Required component
+    - item_id: 39
+      item_name: Bronze arrowtips
+      slug: bronze-arrowtips
+      relationship: component
+      description: For bronze arrows
+    - item_id: 44
+      item_name: Rune arrowtips
+      slug: rune-arrowtips
+      relationship: component
+      description: For rune arrows
+    - item_id: 1511
+      item_name: Logs
+      slug: logs
+      relationship: component
+      description: Source of arrow shafts
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Use Feather on Arrow shaft.
+
+| Action | Fletching Level | XP |
+|--------|-----------------|-----|
+| Add feathers | 1 | 1 per arrow |
+
+## Usage
+
+Add arrowtips to create finished arrows:
+
+| Arrow Type | Tips Needed | Fletching Level |
+|------------|-------------|-----------------|
+| Bronze arrow | Bronze arrowtips | 1 |
+| Iron arrow | Iron arrowtips | 15 |
+| Steel arrow | Steel arrowtips | 30 |
+| Mithril arrow | Mithril arrowtips | 45 |
+| Adamant arrow | Adamant arrowtips | 60 |
+| Rune arrow | Rune arrowtips | 75 |
+| Amethyst arrow | Amethyst arrowtips | 82 |
+| Dragon arrow | Dragon arrowtips | 90 |
+
+## Market Flip Strategy
+
+**Bulk Processing:**
+- Buy Arrow shaft + Feather
+- Fletch into Headless arrows
+- Sell to arrow finishers
+
+**Calculation:**
+- `Headless arrow price - Arrow shaft price - Feather price = Profit`
+- High volume, low margin flip
+
+<Adsense />

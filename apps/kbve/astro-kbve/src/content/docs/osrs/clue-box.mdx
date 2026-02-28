@@ -1,0 +1,105 @@
+---
+title: Clue box | OSRS Price Data
+description: "Clue box: Protects your clue scroll if you die.. High alch: 6 GP, GE limit: 50."
+osrs:
+  id: 12789
+  name: Clue box
+  slug: clue-box
+  examine: Protects your clue scroll if you die.
+  members: true
+  icon: Clue box.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 50
+  item:
+    type: protection_item
+    tradeable: true
+    weight: 0.005
+  obtaining:
+    methods:
+      - source: Last Man Standing
+        cost: 5 LMS points
+  effect:
+    name: Wilderness Protection
+    description: Protects clue scroll or reward casket on death
+    notes:
+      - Protected item kept in addition to normal death mechanics
+      - Clue box itself is always lost on death
+      - Protects bottom-right most scroll/casket only
+      - Multiple boxes provide no additional benefit
+      - Ultimate Ironmen cannot use the protective function
+  related_items:
+    - item_id: 0
+      item_name: Last Man Standing
+      slug: last-man-standing
+      relationship: component
+      description: Source
+    - item_id: 0
+      item_name: Clue scroll
+      slug: clue-scroll
+      relationship: variant
+      description: Protected item
+    - item_id: 0
+      item_name: Reward casket
+      slug: reward-casket
+      relationship: variant
+      description: Protected item
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Protection Item |
+| Tradeable | Yes |
+| Weight | 0.005 kg |
+
+## Obtaining
+
+Purchase from Last Man Standing shop for 5 LMS points.
+
+## Effect
+
+**Wilderness Protection:** Protects clue scroll or reward casket on death.
+
+- Protected item kept in addition to normal death mechanics
+- Clue box itself is always lost on death
+- Protects bottom-right most scroll/casket only
+- Multiple boxes provide no additional benefit
+
+**Note:** Ultimate Ironmen cannot use the protective function.
+
+## Market Strategy
+
+**Buy Limit:** 100 per 4 hours
+
+**Price:** ~340K gp
+
+## Related Items
+
+- [Last Man Standing](/osrs/last-man-standing/) - Source
+- [Clue scroll](/osrs/clue-scroll/) - Protected item
+- [Reward casket](/osrs/reward-casket/) - Protected item
+
+<Adsense />

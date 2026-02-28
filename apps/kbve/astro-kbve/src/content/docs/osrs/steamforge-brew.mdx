@@ -1,0 +1,37 @@
+---
+title: Steamforge brew | OSRS Price Data
+description: "Steamforge brew: A dwarven delight from Cam Torum.. High alch: 4 GP."
+osrs:
+  id: 29412
+  name: Steamforge brew
+  slug: steamforge-brew
+  examine: A dwarven delight from Cam Torum.
+  members: true
+  icon: Steamforge brew.png
+  value: 8
+  lowalch: 3
+  highalch: 4
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

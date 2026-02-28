@@ -1,0 +1,109 @@
+---
+title: Vial of water | OSRS Price Data
+description: "Vial of water: A glass vial containing water.. High alch: 1 GP, GE limit: 13,000."
+osrs:
+  id: 227
+  name: Vial of water
+  slug: vial-of-water
+  examine: A glass vial containing water.
+  members: false
+  icon: Vial of water.png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 13000
+  material:
+    type: container
+    tier: basic
+  shops:
+    - shop_name: General stores
+      price: 2
+      currency: Coins
+    - shop_name: Herblore shops
+      price: 2
+      currency: Coins
+  uses:
+    - purpose: Unfinished potions
+      skill: herblore
+    - purpose: Soft clay creation
+      skill: crafting
+  related_items:
+    - item_id: 229
+      item_name: Vial
+      slug: vial
+      relationship: component
+      description: Empty container
+    - item_id: 1781
+      item_name: Soft clay
+      slug: soft-clay
+      relationship: product
+      description: Alternative use
+    - item_id: 249
+      item_name: Grimy guam leaf
+      slug: grimy-guam-leaf
+      relationship: component
+      description: Herblore partner
+    - item_id: 207
+      item_name: Grimy ranarr weed
+      slug: grimy-ranarr-weed
+      relationship: component
+      description: Herblore partner
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Method |
+|--------|--------|
+| Shops | Buy vials + fill at fountain |
+| Grand Exchange | Direct purchase |
+| Lunar spells | Humidify |
+
+## Uses
+
+| Purpose | Skill |
+|---------|-------|
+| Unfinished potions | Herblore |
+| Soft clay creation | Crafting |
+
+## Market Flip Strategy
+
+**Herblore Essential:**
+- Base for all potions
+- Very high volume
+- Cheap bulk item
+
+**Buy Limit:** 13,000 per 4 hours
+
+**Demand Drivers:**
+- Herblore training
+- Potion production
+- Soft clay creation
+- Ironman accounts
+
+**Tips:**
+- Shops sell empty vials
+- Fill at any water source
+- Humidify spell efficient
+- Bulk buy for training
+
+<Adsense />

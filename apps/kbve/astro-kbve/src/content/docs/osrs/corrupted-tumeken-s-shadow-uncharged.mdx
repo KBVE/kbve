@@ -1,0 +1,37 @@
+---
+title: Corrupted tumeken's shadow (uncharged) | OSRS Price Data
+description: "Corrupted tumeken's shadow (uncharged): An ancient staff created using a higher power.. High alch: 150,000 GP."
+osrs:
+  id: 28549
+  name: Corrupted tumeken's shadow (uncharged)
+  slug: corrupted-tumeken-s-shadow-uncharged
+  examine: An ancient staff created using a higher power.
+  members: true
+  icon: Corrupted tumeken's shadow (uncharged).png
+  value: 250000
+  lowalch: 100000
+  highalch: 150000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

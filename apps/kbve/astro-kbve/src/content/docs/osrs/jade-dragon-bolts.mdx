@@ -1,0 +1,37 @@
+---
+title: Jade dragon bolts | OSRS Price Data
+description: "Jade dragon bolts: Dragon crossbow bolts, tipped with jade.. High alch: 360 GP, GE limit: 11,000."
+osrs:
+  id: 21957
+  name: Jade dragon bolts
+  slug: jade-dragon-bolts
+  examine: Dragon crossbow bolts, tipped with jade.
+  members: true
+  icon: Jade dragon bolts 5.png
+  value: 600
+  lowalch: 240
+  highalch: 360
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

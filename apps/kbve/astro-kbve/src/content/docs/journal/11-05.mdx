@@ -1,0 +1,65 @@
+---
+title: 'November: 5th'
+category: Daily
+date: 2025-11-05 12:00:00
+client: Self
+unsplash: 1721332154373-17e78d19b4a4
+img: https://images.unsplash.com/photo-1721332154373-17e78d19b4a4?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: November 5th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Burn Shader Effect
+
+-	11:30AM
+
+	After a card is used in a combo, we should make sure that there is a cool effect that happens.
+	I am thinking that we have the card burn via a direction, maybe at random.
+	Then we make sure that the different shader effects are removed as we place back into the pool.
+
+## 2024
+
+-	09:45AM
+
+	**Docs**
+
+	Decided to make a quick repo for the microbot community.
+	It was a great refresh for operating inside my own repo without having to deal with a monorepo?
+	Without that extra layer, it does make things so much easier to build and quickly deploy.
+
+
+-	11:40AM
+
+	**Election**
+
+	The day of the year is finally here and I can not wait until the day is over.
+	There is going to be a nice release of all that political gunk stuck in everyones mind, its post election nut clarity.
+
+-	01:07PM
+
+	**Supabase**
+
+	Table structure is currently:
+		-	`user_cards`
+		- 	`user_cards_public`
+		-	`user_profiles`
+
+		With the `user_cards_public` being a materialized view, so we will not have to worry too much about it.
+
+	Trigger structure, there are two areas that we need to process for the triggers, the `auth` schema and the `public` schema.
+	Under the `auth` schema, we only have the `on_auth_new_card_created` trigger active but that will be disabled in this next query.
+	The bigger concern will be under the public schema, where we have 4 more triggers!
+		-	`handle_user_card_update` - under table `user_cards` with function `handle_user_card_update`
+		-	`handle_user_cards_update` - under table `user_cards` with function `moddatetime`
+		-	`handle_user_profile_update` - under table `user_profiles` with function `handle_profile_update`
+		-	`handle_user_profiles_update` - under table `user_profiles` with function `moddatetime`
+
+	Finally we have the database functions, which are split into into the two schemas again, `auth` and `public`.
+	Under the `public`, we have:
+		-	`before_insert_hcaptcha_verfication` with 0 arguements, a return type of trigger and security of invoker.
+		-	`create_user_profile` - with `_username` as text, a return type of void and a security definer.

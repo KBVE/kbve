@@ -1,0 +1,151 @@
+---
+title: Pharaoh's sceptre (uncharged) | OSRS Price Data
+description: "Pharaoh's sceptre (uncharged) is a members weapon slot item requiring 30 Attack. High alch: 50,000 GP."
+osrs:
+  id: 26945
+  name: Pharaoh's sceptre (uncharged)
+  slug: pharaoh-s-sceptre-uncharged
+  examine: This sceptre has no remaining charges.
+  members: true
+  icon: Pharaoh's sceptre (uncharged).png
+  value: 83334
+  lowalch: 33333
+  highalch: 50000
+  limit: null
+  equipment:
+    slot: weapon
+    type: staff
+    tradeable: true
+    weight: 2
+    attack_speed: 5
+    requirements:
+      attack: 30
+      magic: 30
+    stats:
+      attack_stab: 7
+      attack_slash: -1
+      attack_crush: 25
+      attack_magic: 10
+      attack_ranged: 0
+      defence_stab: 2
+      defence_slash: 3
+      defence_crush: 1
+      defence_magic: 10
+      defence_ranged: 0
+      strength: 32
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  obtaining:
+    - source: Pyramid Plunder
+      location: Golden chests and sarcophagi
+      rates:
+        - rooms: 1-4
+          drop_rate: 1/4,200
+        - rooms: 5-6
+          drop_rate: 1/1,250
+        - rooms: 7-8
+          drop_rate: 1/650
+  effect:
+    teleport_locations:
+      - destination: Jalsavrah
+        location: Pyramid Plunder lobby
+      - destination: Jaleustrophos
+        location: Simon Templeton's camp
+      - destination: Jaldraocht
+        location: Pyramid entrance
+      - destination: Jaltevas
+        location: Necropolis obelisk
+  charging:
+    base_capacity: 3
+    elite_desert_capacity: 100
+  related_items:
+    - item_id: 9010
+      item_name: Skull sceptre
+      slug: skull-sceptre
+      relationship: alternative
+      description: Similar teleport sceptre item
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Staff |
+| Tradeable | Yes (uncharged only) |
+| Weight | 2 kg |
+| Requirements | 30 Attack, 30 Magic |
+
+## Obtaining
+
+Pyramid Plunder golden chests and sarcophagi.
+
+| Room | Drop Rate |
+|------|-----------|
+| Room 1-4 | 1/4,200 |
+| Room 5-6 | 1/1,250 |
+| Room 7-8 | 1/650 |
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Stab | +7 |
+| Slash | -1 |
+| Crush | +25 |
+| Magic | +10 |
+| Strength | +32 |
+
+| Defence | Bonus |
+|---------|-------|
+| Stab | +2 |
+| Slash | +3 |
+| Crush | +1 |
+| Magic | +10 |
+
+**Attack Speed:** 5-tick (3.0s)
+
+## Teleport Locations
+
+| Destination | Location |
+|-------------|----------|
+| Jalsavrah | Pyramid Plunder lobby |
+| Jaleustrophos | Simon Templeton's camp |
+| Jaldraocht | Pyramid entrance |
+| Jaltevas | Necropolis obelisk |
+
+## Charges
+
+| Diary Tier | Capacity |
+|------------|----------|
+| None | 3 |
+| Elite Desert | 100 |
+
+## Related Items
+
+- [Pyramid Plunder](/osrs/pyramid-plunder/) - Source
+- [Desert Diary](/osrs/desert-diary/) - Charge upgrade
+- [Skull sceptre](/osrs/skull-sceptre/) - Similar item
+
+<Adsense />

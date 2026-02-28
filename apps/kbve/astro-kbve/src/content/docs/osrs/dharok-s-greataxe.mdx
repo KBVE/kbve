@@ -1,0 +1,145 @@
+---
+title: Dharok's greataxe | OSRS Price Data
+description: "Dharok's greataxe is a members two-handed weapon requiring 70 Attack. High alch: 124,800 GP, GE limit: 15."
+osrs:
+  id: 4718
+  name: Dharok's greataxe
+  slug: dharok-s-greataxe
+  examine: Dharok the Wretched's greataxe.
+  members: true
+  icon: Dharok's greataxe.png
+  value: 208000
+  lowalch: 83200
+  highalch: 124800
+  limit: 15
+  equipment:
+    slot: 2h
+    type: barrows_weapon
+    attack_style: melee
+    attack_speed: 7
+    requirements:
+      attack: 70
+      strength: 70
+    stats:
+      attack_stab: -4
+      attack_slash: 103
+      attack_crush: 95
+      attack_magic: -4
+      strength: 105
+    degradeable: true
+    degrade_hours: 15
+  set_bonus:
+    set_name: Dharok's
+    effect: Damage increases as HP decreases, up to +98.9% at 1 HP
+  drop_table:
+    sources:
+      - source: Barrows chest
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: 7 × 1/2,448
+        members_only: true
+  related_items:
+    - item_id: 4720
+      item_name: Dharok's platebody
+      slug: dharoks-platebody
+      relationship: component
+      description: Set piece
+    - item_id: 26786
+      item_name: Absorption potion
+      slug: absorption-potion
+      relationship: alternative
+      description: NMZ combo
+    - item_id: 11730
+      item_name: Overload
+      slug: overload
+      relationship: alternative
+      description: NMZ boost
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Melee - Slash/Crush |
+| Tradeable | Yes |
+| Weight | 3.175 kg |
+| Attack Speed | 7 tick (4.2s) |
+
+## Obtaining
+
+Drop from Barrows reward chest.
+
+| Source | Drop Rate |
+|--------|-----------|
+| Barrows chest | 7 × 1/2,448 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | -4 |
+| Slash | +103 |
+| Crush | +95 |
+| Magic | -4 |
+| Strength | +105 |
+
+| Defence | Value |
+|---------|-------|
+| All | +0 |
+
+**Requirements:** 70 Attack, 70 Strength
+
+## Set Effect
+
+**Full Dharok's:**
+- Damage increases as HP decreases
+- At 1 HP with 99 max: +98.9% bonus damage
+- Can hit 100+ with max strength
+
+## Degradation
+
+Degrades over 15 hours of combat.
+
+## Usage
+
+Essential for:
+- NMZ training (absorption method)
+- PvP (low HP rushing)
+- Mole hunting
+
+**Highest possible max hit in game.**
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~650K gp
+
+**Tips:**
+- Popular for NMZ
+- Use with absorption pots
+- High risk, high reward
+
+<Adsense />

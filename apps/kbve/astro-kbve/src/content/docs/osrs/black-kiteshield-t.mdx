@@ -1,0 +1,37 @@
+---
+title: Black kiteshield (t) | OSRS Price Data
+description: "Black kiteshield (t): Black kiteshield with trim.. High alch: 979 GP, GE limit: 8."
+osrs:
+  id: 2589
+  name: Black kiteshield (t)
+  slug: black-kiteshield-t
+  examine: Black kiteshield with trim.
+  members: false
+  icon: Black kiteshield (t).png
+  value: 1632
+  lowalch: 652
+  highalch: 979
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

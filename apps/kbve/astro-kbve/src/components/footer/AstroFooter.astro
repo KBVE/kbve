@@ -1,10 +1,582 @@
 ---
-/**
- * Custom Footer override for Starlight.
- * TODO: Port full implementation from ~/kbve.com/website/astro/src/components/footer/AstroFooter.astro
- */
-import type { Props } from '@astrojs/starlight/props';
-import Default from '@astrojs/starlight/components/Footer.astro';
+// React component for dynamic footer content
+import ReactFooter from './ReactFooter.tsx';
+
+// Legal Links
+const legalLinks = [
+	{ href: '/legal/privacy', label: 'Privacy' },
+	{ href: '/legal/tos', label: 'Terms' },
+	{ href: '/legal/', label: 'Legal' },
+];
+
+// Resource Links
+const resourceLinks = [
+	{ href: '/docs', label: 'Documentation' },
+	{ href: '/api', label: 'API Reference' },
+	{ href: '/blog', label: 'Blog' },
+	{ href: '/changelog', label: 'Changelog' },
+];
+
+// Quick Links (static skeleton - React will overlay dynamic version)
+const quickLinks = [
+	{ href: '/dashboard/', label: 'Dashboard' },
+	{ href: '/project/', label: 'Projects' },
+	{ href: '/analysis/', label: 'Analytics' },
+	{ href: '/settings/', label: 'Settings' },
+	{ href: '/support/', label: 'Support' },
+];
+
+// Social Media Links
+const socialLinks = [
+	{ name: 'GitHub', href: 'https://github.com/kbve', icon: 'github' },
+	{ name: 'Discord', href: 'https://kbve.com/discord', icon: 'discord' },
+	{ name: 'YouTube', href: 'https://youtube.com/@kbve', icon: 'youtube' },
+	{ name: 'Twitch', href: 'https://twitch.tv/kbve', icon: 'twitch' },
+];
 ---
 
-<Default {...Astro.props}><slot /></Default>
+<footer id="kbve-footer" class="kf-footer">
+	<!-- Hexgrid Honeycomb Animation Background -->
+	<div class="kf-hexgrid" aria-hidden="true">
+		<!-- Row 0 (bottom, even row - no offset) -->
+		<div class="kf-hex" style="--row: 0; --col: -6;"></div>
+		<div class="kf-hex" style="--row: 0; --col: -5;"></div>
+		<div class="kf-hex" style="--row: 0; --col: -4;"></div>
+		<div class="kf-hex" style="--row: 0; --col: -3;"></div>
+		<div class="kf-hex" style="--row: 0; --col: -2;"></div>
+		<div class="kf-hex" style="--row: 0; --col: -1;"></div>
+		<div class="kf-hex" style="--row: 0; --col: 0;"></div>
+		<div class="kf-hex" style="--row: 0; --col: 1;"></div>
+		<div class="kf-hex" style="--row: 0; --col: 2;"></div>
+		<div class="kf-hex" style="--row: 0; --col: 3;"></div>
+		<div class="kf-hex" style="--row: 0; --col: 4;"></div>
+		<div class="kf-hex" style="--row: 0; --col: 5;"></div>
+		<div class="kf-hex" style="--row: 0; --col: 6;"></div>
+		<!-- Row 1 (odd row - offset by half) -->
+		<div class="kf-hex" style="--row: 1; --col: -6;"></div>
+		<div class="kf-hex" style="--row: 1; --col: -5;"></div>
+		<div class="kf-hex" style="--row: 1; --col: -4;"></div>
+		<div class="kf-hex" style="--row: 1; --col: -3;"></div>
+		<div class="kf-hex" style="--row: 1; --col: -2;"></div>
+		<div class="kf-hex" style="--row: 1; --col: -1;"></div>
+		<div class="kf-hex" style="--row: 1; --col: 0;"></div>
+		<div class="kf-hex" style="--row: 1; --col: 1;"></div>
+		<div class="kf-hex" style="--row: 1; --col: 2;"></div>
+		<div class="kf-hex" style="--row: 1; --col: 3;"></div>
+		<div class="kf-hex" style="--row: 1; --col: 4;"></div>
+		<div class="kf-hex" style="--row: 1; --col: 5;"></div>
+		<div class="kf-hex" style="--row: 1; --col: 6;"></div>
+		<!-- Row 2 (even row - no offset) -->
+		<div class="kf-hex" style="--row: 2; --col: -6;"></div>
+		<div class="kf-hex" style="--row: 2; --col: -5;"></div>
+		<div class="kf-hex" style="--row: 2; --col: -4;"></div>
+		<div class="kf-hex" style="--row: 2; --col: -3;"></div>
+		<div class="kf-hex" style="--row: 2; --col: -2;"></div>
+		<div class="kf-hex" style="--row: 2; --col: -1;"></div>
+		<div class="kf-hex" style="--row: 2; --col: 0;"></div>
+		<div class="kf-hex" style="--row: 2; --col: 1;"></div>
+		<div class="kf-hex" style="--row: 2; --col: 2;"></div>
+		<div class="kf-hex" style="--row: 2; --col: 3;"></div>
+		<div class="kf-hex" style="--row: 2; --col: 4;"></div>
+		<div class="kf-hex" style="--row: 2; --col: 5;"></div>
+		<div class="kf-hex" style="--row: 2; --col: 6;"></div>
+		<!-- Row 3 (odd row - offset by half) -->
+		<div class="kf-hex" style="--row: 3; --col: -6;"></div>
+		<div class="kf-hex" style="--row: 3; --col: -5;"></div>
+		<div class="kf-hex" style="--row: 3; --col: -4;"></div>
+		<div class="kf-hex" style="--row: 3; --col: -3;"></div>
+		<div class="kf-hex" style="--row: 3; --col: -2;"></div>
+		<div class="kf-hex" style="--row: 3; --col: -1;"></div>
+		<div class="kf-hex" style="--row: 3; --col: 0;"></div>
+		<div class="kf-hex" style="--row: 3; --col: 1;"></div>
+		<div class="kf-hex" style="--row: 3; --col: 2;"></div>
+		<div class="kf-hex" style="--row: 3; --col: 3;"></div>
+		<div class="kf-hex" style="--row: 3; --col: 4;"></div>
+		<div class="kf-hex" style="--row: 3; --col: 5;"></div>
+		<div class="kf-hex" style="--row: 3; --col: 6;"></div>
+	</div>
+
+	<div class="kf-container">
+		<div class="kf-grid">
+			<!-- Brand Section -->
+			<div class="kf-brand">
+				<div class="kf-logo-group">
+					<div class="kf-logo-wrapper">
+						<svg
+							viewBox="0 0 76 76"
+							class="kf-logo-svg"
+							xmlns="http://www.w3.org/2000/svg">
+							<path
+								fill="currentColor"
+								d="M 19.3919,37.5442C 19.6211,31.4744 22.697,25.8757 28.3209,22.1759C 28.3375,22.1822 28.4831,22.1291 28.4166,22.255C 27.9707,22.668 19.9618,32.1286 27.3341,39.5966C 27.3341,39.5966 31.2074,43.3197 34.2103,39.7866C 34.2103,39.7866 37.1747,35.9499 34.173,30.134C 34.173,30.134 33.4135,28.2344 30.6765,27.057L 32.8808,24.6247C 32.8808,24.6247 34.7436,25.424 36.1859,27.5916C 36.1859,27.5916 36.2626,25.3093 34.5143,22.8771L 37.9323,19L 41.3153,22.8411C 41.3153,22.8411 39.7596,25.0452 39.645,27.6276C 39.645,27.6276 40.7072,25.8795 42.9887,24.6247L 45.1531,27.057C 45.1531,27.057 43.0717,27.7423 41.6775,30.1087C 40.4786,32.3015 39.5556,36.9906 41.7314,39.867C 41.7314,39.867 44.1662,43.3197 48.45,39.663C 48.45,39.663 56.3257,32.6062 47.6423,22.4039C 47.6423,22.4039 47.168,21.9846 47.7007,22.2127C 51.5385,25.0066 56.1339,28.6918 56.6082,37.8876C 56.4214,49.0393 48.9535,57 38.0487,57C 27.3715,57 19.0713,48.0899 19.3919,37.5442 Z">
+							</path>
+						</svg>
+					</div>
+					<span class="kf-logo-text">KBVE</span>
+				</div>
+				<p class="kf-description">
+					Open-source tools, games, and applications crafted for
+					developers and creators.
+				</p>
+				<div class="kf-social">
+					{
+						socialLinks.map(({ name, href, icon }) => (
+							<a
+								href={href}
+								target="_blank"
+								rel="noopener noreferrer"
+								class="kf-social-link"
+								aria-label={name}>
+								{icon === 'github' && (
+									<svg
+										viewBox="0 0 24 24"
+										fill="currentColor"
+										class="kf-social-icon">
+										<path d="M12 0c-6.626 0-12 5.373-12 12 0 5.302 3.438 9.8 8.207 11.387.599.111.793-.261.793-.577v-2.234c-3.338.726-4.033-1.416-4.033-1.416-.546-1.387-1.333-1.756-1.333-1.756-1.089-.745.083-.729.083-.729 1.205.084 1.839 1.237 1.839 1.237 1.07 1.834 2.807 1.304 3.492.997.107-.775.418-1.305.762-1.604-2.665-.305-5.467-1.334-5.467-5.931 0-1.311.469-2.381 1.236-3.221-.124-.303-.535-1.524.117-3.176 0 0 1.008-.322 3.301 1.23.957-.266 1.983-.399 3.003-.404 1.02.005 2.047.138 3.006.404 2.291-1.552 3.297-1.23 3.297-1.23.653 1.653.242 2.874.118 3.176.77.84 1.235 1.911 1.235 3.221 0 4.609-2.807 5.624-5.479 5.921.43.372.823 1.102.823 2.222v3.293c0 .319.192.694.801.576 4.765-1.589 8.199-6.086 8.199-11.386 0-6.627-5.373-12-12-12z" />
+									</svg>
+								)}
+								{icon === 'discord' && (
+									<svg
+										viewBox="0 0 24 24"
+										fill="currentColor"
+										class="kf-social-icon">
+										<path d="M20.317 4.3698a19.7913 19.7913 0 00-4.8851-1.5152.0741.0741 0 00-.0785.0371c-.211.3753-.4447.8648-.6083 1.2495-1.8447-.2762-3.68-.2762-5.4868 0-.1636-.3933-.4058-.8742-.6177-1.2495a.077.077 0 00-.0785-.037 19.7363 19.7363 0 00-4.8852 1.515.0699.0699 0 00-.0321.0277C.5334 9.0458-.319 13.5799.0992 18.0578a.0824.0824 0 00.0312.0561c2.0528 1.5076 4.0413 2.4228 5.9929 3.0294a.0777.0777 0 00.0842-.0276c.4616-.6304.8731-1.2952 1.226-1.9942a.076.076 0 00-.0416-.1057c-.6528-.2476-1.2743-.5495-1.8722-.8923a.077.077 0 01-.0076-.1277c.1258-.0943.2517-.1923.3718-.2914a.0743.0743 0 01.0776-.0105c3.9278 1.7933 8.18 1.7933 12.0614 0a.0739.0739 0 01.0785.0095c.1202.099.246.1981.3728.2924a.077.077 0 01-.0066.1276 12.2986 12.2986 0 01-1.873.8914.0766.0766 0 00-.0407.1067c.3604.698.7719 1.3628 1.225 1.9932a.076.076 0 00.0842.0286c1.961-.6067 3.9495-1.5219 6.0023-3.0294a.077.077 0 00.0313-.0552c.5004-5.177-.8382-9.6739-3.5485-13.6604a.061.061 0 00-.0312-.0286zM8.02 15.3312c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9555-2.4189 2.157-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.9555 2.4189-2.1569 2.4189zm7.9748 0c-1.1825 0-2.1569-1.0857-2.1569-2.419 0-1.3332.9554-2.4189 2.1569-2.4189 1.2108 0 2.1757 1.0952 2.1568 2.419 0 1.3332-.946 2.4189-2.1568 2.4189Z" />
+									</svg>
+								)}
+								{icon === 'youtube' && (
+									<svg
+										viewBox="0 0 24 24"
+										fill="currentColor"
+										class="kf-social-icon">
+										<path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z" />
+									</svg>
+								)}
+								{icon === 'twitch' && (
+									<svg
+										viewBox="0 0 24 24"
+										fill="currentColor"
+										class="kf-social-icon">
+										<path d="M11.571 4.714h1.715v5.143H11.57zm4.715 0H18v5.143h-1.714zM6 0L1.714 4.286v15.428h5.143V24l4.286-4.286h3.428L22.286 12V0zm14.571 11.143l-3.428 3.428h-3.429l-3 3v-3H6.857V1.714h13.714Z" />
+									</svg>
+								)}
+							</a>
+						))
+					}
+				</div>
+			</div>
+
+			<!-- Quick Links -->
+			<nav class="kf-nav" aria-labelledby="quick-links-heading">
+				<h3 id="quick-links-heading" class="kf-nav-title">
+					Quick Links
+				</h3>
+				<div
+					id="footer-quicklinks-skeleton"
+					data-skeleton="footer-quicklinks"
+					class="kf-skeleton">
+					<ul class="kf-nav-list">
+						{
+							quickLinks.map((link) => (
+								<li>
+									<a
+										href={link.href}
+										class="kf-nav-link"
+										data-astro-prefetch>
+										{link.label}
+									</a>
+								</li>
+							))
+						}
+					</ul>
+				</div>
+				<div id="footer-quicklinks-content" class="kf-dynamic-content">
+				</div>
+			</nav>
+
+			<!-- Resources -->
+			<nav class="kf-nav" aria-labelledby="resources-heading">
+				<h3 id="resources-heading" class="kf-nav-title">Resources</h3>
+				<ul class="kf-nav-list">
+					{
+						resourceLinks.map((link) => (
+							<li>
+								<a
+									href={link.href}
+									class="kf-nav-link"
+									data-astro-prefetch>
+									{link.label}
+								</a>
+							</li>
+						))
+					}
+				</ul>
+			</nav>
+		</div>
+
+		<!-- Bottom Bar -->
+		<div class="kf-bottom">
+			<div class="kf-bottom-content">
+				<p class="kf-copyright">
+					© {new Date().getFullYear()} KBVE. All rights reserved.
+				</p>
+				<nav class="kf-legal" aria-label="Legal">
+					{
+						legalLinks.map((link) => (
+							<a
+								href={link.href}
+								class="kf-legal-link"
+								data-astro-prefetch>
+								{link.label}
+							</a>
+						))
+					}
+				</nav>
+			</div>
+		</div>
+	</div>
+
+	<!-- React Footer Component - Handles dynamic content -->
+	<ReactFooter client:only="react" />
+</footer>
+
+<style>
+	/* KBVE Footer - Scoped styles */
+	#kbve-footer {
+		--kf-corner-size: 0.75rem;
+	}
+
+	.kf-footer {
+		margin-top: auto;
+		background: var(--sl-color-bg);
+		border-top: 1px solid var(--sl-color-border);
+		position: relative;
+		overflow: hidden;
+	}
+
+	/* Hexgrid Honeycomb Animation - Proper Tilemap */
+	.kf-hexgrid {
+		position: absolute;
+		inset: 0;
+		pointer-events: none;
+		overflow: hidden;
+	}
+
+	.kf-hex {
+		/* Pointy-top hexagon dimensions */
+		--hex-size: 44px;
+		--hex-width: var(--hex-size);
+		--hex-height: calc(var(--hex-size) * 1.1547);
+		/* Horizontal spacing: hexes touch at edges */
+		--hex-horiz: calc(var(--hex-width) * 0.75);
+		/* Vertical spacing: rows interlock */
+		--hex-vert: calc(var(--hex-height) * 0.5);
+		/* Odd rows offset horizontally by half hex width */
+		--is-odd-row: calc(var(--row) - 2 * floor(var(--row) / 2));
+
+		position: absolute;
+		width: var(--hex-width);
+		height: var(--hex-height);
+		background: var(--sl-color-accent);
+		/* Pointy-top hexagon */
+		clip-path: polygon(
+			50% 0%,
+			100% 25%,
+			100% 75%,
+			50% 100%,
+			0% 75%,
+			0% 25%
+		);
+
+		/* Position in honeycomb grid - centered at 50% */
+		left: calc(
+			50% + (var(--col) * var(--hex-horiz)) - (var(--hex-width) * 0.5)
+		);
+		bottom: calc(var(--row) * var(--hex-vert) + 8px);
+		/* Offset odd rows by half a hex width */
+		transform: translateX(calc(var(--is-odd-row) * var(--hex-horiz) * 0.5));
+
+		/* Staggered animation delay - center breaks last */
+		--dist-from-center: max(var(--col), calc(-1 * var(--col)));
+		--delay: calc(
+			2s + (var(--row) * 0.4s) + (var(--dist-from-center) * 0.2s)
+		);
+
+		/* Drift direction based on position */
+		--drift-x: calc(var(--col) * 25px);
+		--drift-y: calc(-120px - (var(--row) * 30px));
+		--rotation: calc(var(--col) * 12deg);
+
+		opacity: 0.15;
+		animation: kf-hex-dissolve 14s ease-in-out infinite;
+		animation-delay: var(--delay);
+	}
+
+	/* Use mod() fallback for odd row detection */
+	.kf-hex[style*='--row: 1'],
+	.kf-hex[style*='--row: 3'] {
+		transform: translateX(calc(var(--hex-horiz) * 0.5));
+	}
+
+	.kf-hex[style*='--row: 0'],
+	.kf-hex[style*='--row: 2'] {
+		transform: translateX(0);
+	}
+
+	@keyframes kf-hex-dissolve {
+		/* Hold as honeycomb */
+		0%,
+		20% {
+			opacity: 0.15;
+			transform: translateX(var(--row-offset, 0)) translateY(0)
+				rotate(0deg) scale(1);
+		}
+		/* Start breaking apart */
+		35% {
+			opacity: 0.12;
+			transform: translateX(var(--row-offset, 0)) translateY(-8px)
+				rotate(0deg) scale(1);
+		}
+		/* Drifting apart */
+		55% {
+			opacity: 0.08;
+			transform: translateX(
+					calc(var(--row-offset, 0) + var(--drift-x) * 0.4)
+				)
+				translateY(calc(var(--drift-y) * 0.4))
+				rotate(calc(var(--rotation) * 0.3)) scale(0.9);
+		}
+		/* Fading out */
+		75% {
+			opacity: 0.03;
+			transform: translateX(
+					calc(var(--row-offset, 0) + var(--drift-x) * 0.8)
+				)
+				translateY(calc(var(--drift-y) * 0.7))
+				rotate(calc(var(--rotation) * 0.7)) scale(0.7);
+		}
+		/* Gone */
+		90%,
+		100% {
+			opacity: 0;
+			transform: translateX(calc(var(--row-offset, 0) + var(--drift-x)))
+				translateY(var(--drift-y)) rotate(var(--rotation)) scale(0.4);
+		}
+	}
+
+	/* Reduce motion for accessibility */
+	@media (prefers-reduced-motion: reduce) {
+		.kf-hex {
+			animation: none;
+			opacity: 0.08;
+		}
+	}
+
+	/* Responsive hex sizes */
+	@media (max-width: 768px) {
+		.kf-hex {
+			--hex-size: 36px;
+		}
+	}
+
+	@media (max-width: 480px) {
+		.kf-hex {
+			--hex-size: 28px;
+		}
+	}
+
+	.kf-container {
+		max-width: 72rem;
+		margin: 0 auto;
+		padding: 2rem 1.5rem;
+		position: relative;
+		z-index: 1;
+	}
+
+	.kf-grid {
+		display: grid;
+		grid-template-columns: 1fr;
+		gap: 2rem;
+	}
+
+	@media (min-width: 640px) {
+		.kf-grid {
+			grid-template-columns: repeat(2, 1fr);
+		}
+	}
+
+	@media (min-width: 1024px) {
+		.kf-grid {
+			grid-template-columns: 2fr 1fr 1fr;
+		}
+	}
+
+	/* Brand Section */
+	.kf-brand {
+		grid-column: 1 / -1;
+	}
+
+	@media (min-width: 1024px) {
+		.kf-brand {
+			grid-column: 1;
+		}
+	}
+
+	.kf-logo-group {
+		display: flex;
+		align-items: center;
+		gap: 0.75rem;
+		margin-bottom: 1rem;
+	}
+
+	.kf-logo-wrapper {
+		width: 2.5rem;
+		height: 2.5rem;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background: var(--sl-color-accent-low);
+		border-radius: 0.5rem;
+		border: 1px solid var(--sl-color-border);
+	}
+
+	.kf-logo-svg {
+		width: 1.5rem;
+		height: 1.5rem;
+		color: var(--sl-color-accent);
+	}
+
+	.kf-logo-text {
+		font-size: 1.25rem;
+		font-weight: 700;
+		letter-spacing: 0.05em;
+		color: var(--sl-color-text);
+	}
+
+	.kf-description {
+		font-size: 0.875rem;
+		line-height: 1.6;
+		color: var(--sl-color-gray-2);
+		max-width: 20rem;
+		margin-bottom: 1rem;
+	}
+
+	/* Social Links */
+	.kf-social {
+		display: flex;
+		gap: 0.75rem;
+	}
+
+	.kf-social-link {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 2rem;
+		height: 2rem;
+		color: var(--sl-color-gray-2);
+		background: var(--sl-color-accent-low);
+		border: 1px solid var(--sl-color-border);
+		border-radius: 0.375rem;
+		transition: all 0.2s ease;
+	}
+
+	.kf-social-link:hover {
+		color: var(--sl-color-accent);
+		border-color: var(--sl-color-accent);
+		transform: translateY(-2px);
+	}
+
+	.kf-social-icon {
+		width: 1rem;
+		height: 1rem;
+	}
+
+	/* Navigation Sections */
+	.kf-nav {
+		position: relative;
+	}
+
+	.kf-nav-title {
+		font-size: 0.75rem;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.1em;
+		color: var(--sl-color-accent);
+		margin-bottom: 1rem;
+	}
+
+	.kf-nav-list {
+		list-style: none;
+		padding: 0;
+		margin: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 0.5rem;
+	}
+
+	.kf-nav-link {
+		font-size: 0.875rem;
+		color: var(--sl-color-gray-2);
+		text-decoration: none;
+		transition: color 0.2s ease;
+		display: inline-block;
+	}
+
+	.kf-nav-link:hover {
+		color: var(--sl-color-accent);
+	}
+
+	/* Skeleton for dynamic content */
+	.kf-skeleton {
+		transition: opacity 0.3s ease;
+	}
+
+	.kf-dynamic-content {
+		position: absolute;
+		top: 2rem;
+		left: 0;
+		right: 0;
+	}
+
+	/* Bottom Bar */
+	.kf-bottom {
+		margin-top: 2rem;
+		padding-top: 1.5rem;
+		border-top: 1px solid var(--sl-color-border);
+	}
+
+	.kf-bottom-content {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 1rem;
+	}
+
+	@media (min-width: 640px) {
+		.kf-bottom-content {
+			flex-direction: row;
+			justify-content: space-between;
+		}
+	}
+
+	.kf-copyright {
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3);
+		margin: 0;
+	}
+
+	.kf-legal {
+		display: flex;
+		gap: 1.5rem;
+	}
+
+	.kf-legal-link {
+		font-size: 0.75rem;
+		color: var(--sl-color-gray-3);
+		text-decoration: none;
+		transition: color 0.2s ease;
+	}
+
+	.kf-legal-link:hover {
+		color: var(--sl-color-accent);
+	}
+</style>

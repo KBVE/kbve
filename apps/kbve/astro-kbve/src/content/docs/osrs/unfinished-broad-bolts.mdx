@@ -1,0 +1,37 @@
+---
+title: Unfinished broad bolts | OSRS Price Data
+description: "Unfinished broad bolts: Add feathers to make broad-tipped crossbow bolts.. High alch: 33 GP, GE limit: 7,000."
+osrs:
+  id: 11876
+  name: Unfinished broad bolts
+  slug: unfinished-broad-bolts
+  examine: Add feathers to make broad-tipped crossbow bolts.
+  members: true
+  icon: Unfinished broad bolts 5.png
+  value: 55
+  lowalch: 22
+  highalch: 33
+  limit: 7000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

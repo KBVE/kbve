@@ -1,0 +1,37 @@
+---
+title: Rock-shell boots | OSRS Price Data
+description: "Rock-shell boots: Some Fremennik boots, made from the shards of a rock crab's shell.. High alch: 390 GP, GE limit: 125."
+osrs:
+  id: 6145
+  name: Rock-shell boots
+  slug: rock-shell-boots
+  examine: Some Fremennik boots, made from the shards of a rock crab's shell.
+  members: true
+  icon: Rock-shell boots.png
+  value: 650
+  lowalch: 260
+  highalch: 390
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

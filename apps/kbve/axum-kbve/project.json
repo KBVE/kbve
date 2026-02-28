@@ -1,0 +1,127 @@
+{
+	"name": "axum-kbve",
+	"$schema": "../../../node_modules/nx/schemas/project-schema.json",
+	"projectType": "application",
+	"sourceRoot": "apps/kbve/axum-kbve/src",
+	"targets": {
+		"dev": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"./kbve.sh -nx astro-kbve:build",
+					"STATIC_DIR=./dist/apps/astro-kbve STATIC_PRECOMPRESSED=false cargo run -p axum-kbve"
+				],
+				"parallel": false
+			}
+		},
+		"build": {
+			"executor": "@monodon/rust:build",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/axum-kbve"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"test": {
+			"executor": "@monodon/rust:test",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/axum-kbve"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"lint": {
+			"executor": "@monodon/rust:lint",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/axum-kbve"
+			}
+		},
+		"run": {
+			"executor": "@monodon/rust:run",
+			"outputs": ["{options.target-dir}"],
+			"options": {
+				"target-dir": "dist/target/axum-kbve"
+			},
+			"configurations": {
+				"production": {
+					"release": true
+				}
+			}
+		},
+		"container-prep": {
+			"executor": "nx:run-commands",
+			"options": {
+				"commands": [
+					"./kbve.sh -nx astro-kbve:build",
+					"rm -rf ./apps/kbve/axum-kbve/dist/",
+					"mkdir -p ./apps/kbve/axum-kbve/dist/",
+					"cp -a ./dist/apps/astro-kbve/. ./apps/kbve/axum-kbve/dist/"
+				],
+				"parallel": false
+			}
+		},
+		"container": {
+			"executor": "nx:run-commands",
+			"dependsOn": ["container-prep"],
+			"defaultConfiguration": "local",
+			"options": {
+				"parallel": false
+			},
+			"configurations": {
+				"local": {
+					"commands": [
+						"./kbve.sh -nx axum-kbve:containerx",
+						"VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
+					]
+				},
+				"production": {
+					"commands": [
+						"./kbve.sh -nx axum-kbve:containerx --configuration=production",
+						"VERSION=$(grep '^version' apps/kbve/axum-kbve/Cargo.toml | head -1 | sed 's/.*\"\\(.*\\)\"/\\1/') && docker tag kbve/kbve:latest kbve/kbve:$VERSION && docker tag ghcr.io/kbve/kbve:latest ghcr.io/kbve/kbve:$VERSION && echo \"Tagged kbve/kbve:$VERSION\""
+					]
+				}
+			}
+		},
+		"containerx": {
+			"executor": "@nx-tools/nx-container:build",
+			"defaultConfiguration": "local",
+			"options": {
+				"engine": "docker",
+				"context": ".",
+				"file": "apps/kbve/axum-kbve/Dockerfile",
+				"load": true
+			},
+			"configurations": {
+				"local": {
+					"load": true,
+					"push": false,
+					"tags": ["kbve/kbve:latest"]
+				},
+				"production": {
+					"load": true,
+					"push": false,
+					"metadata": {
+						"images": ["ghcr.io/kbve/kbve", "kbve/kbve"],
+						"tags": ["latest"]
+					},
+					"cache-from": [
+						"type=registry,ref=ghcr.io/kbve/kbve:buildcache"
+					],
+					"cache-to": [
+						"type=registry,ref=ghcr.io/kbve/kbve:buildcache,mode=max"
+					]
+				}
+			}
+		}
+	},
+	"tags": []
+}

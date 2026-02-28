@@ -1,0 +1,37 @@
+---
+title: Torva armour set | OSRS Price Data
+description: "Torva armour set: A set containing a Torva full helm, Torva platebody and Torva platelegs.. High alch: 87,000 GP."
+osrs:
+  id: 31145
+  name: Torva armour set
+  slug: torva-armour-set
+  examine: A set containing a Torva full helm, Torva platebody and Torva platelegs.
+  members: true
+  icon: Torva armour set.png
+  value: 145000
+  lowalch: 58000
+  highalch: 87000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

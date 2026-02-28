@@ -1,0 +1,112 @@
+---
+title: Venator shard | OSRS Price Data
+description: "Venator shard: A broken shard of an ancient weapon.. High alch: 90,000 GP, GE limit: 8."
+osrs:
+  id: 27614
+  name: Venator shard
+  slug: venator-shard
+  examine: A broken shard of an ancient weapon.
+  members: true
+  icon: Venator shard.png
+  value: 150000
+  lowalch: 60000
+  highalch: 90000
+  limit: 8
+  item:
+    type: material
+    tradeable: true
+    stackable: true
+    weight: 0
+  drop_table:
+    sources:
+      - source: Phantom Muspah
+        rate: 1/100
+      - source: Frozen cache
+        rate: 1/500
+  recipes:
+    - skill: crafting
+      materials:
+        - item_id: 27614
+          item_name: Venator shard
+          quantity: 5
+      product: Venator bow
+      product_id: 27610
+    - skill: processing
+      materials:
+        - item_id: 27614
+          item_name: Venator shard
+          quantity: 1
+      product: Ancient essence
+      product_id: 27616
+      yield: 50000
+  related_items:
+    - item_id: 27610
+      item_name: Venator bow
+      slug: venator-bow
+      relationship: product
+      description: Created weapon (5 shards)
+    - item_id: 27616
+      item_name: Ancient essence
+      slug: ancient-essence
+      relationship: product
+      description: Breakdown product (50,000 per shard)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Phantom Muspah | 1/100 |
+| Frozen cache | 1/500 |
+
+## Uses
+
+| Use | Materials |
+|-----|-----------|
+| Venator bow | 5 shards |
+| Ancient essence | 1 shard -> 50,000 essence |
+
+**Note:** Breaking down for essence results in significant loss.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~13.9M gp
+
+## Related Items
+
+- [Phantom Muspah](/osrs/phantom-muspah/) - Source
+- [Venator bow](/osrs/venator-bow/) - Created item
+- [Ancient essence](/osrs/ancient-essence/) - Breakdown product
+
+<Adsense />

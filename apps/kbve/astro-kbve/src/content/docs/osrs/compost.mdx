@@ -1,0 +1,101 @@
+---
+title: Compost | OSRS Price Data
+description: "Compost: Good for plants, helps them grow.. High alch: 12 GP, GE limit: 2,000."
+osrs:
+  id: 6032
+  name: Compost
+  slug: compost
+  examine: Good for plants, helps them grow.
+  members: true
+  icon: Compost.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 2000
+  item_id: 6032
+  type: farming_material
+  tradeable: true
+  weight: 3
+  buy_limit: 2000
+  requirements:
+    skills: []
+  obtaining:
+    primary:
+      method: Compost Bin
+      details: Fill with 15 weeds or vegetables
+    shop:
+      name: Various farming shops
+      price: 20
+    drops:
+      - Gangsters
+      - Earth implings
+  usage:
+    farming: Basic disease prevention for crops
+    upgrade: Can upgrade to supercompost with compost potion
+  related_items:
+    - slug: supercompost
+      name: Supercompost
+      relation: upgrade
+    - slug: compost-potion
+      name: Compost potion
+      relation: upgrade_method
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Farming Material |
+| Tradeable | Yes |
+| Weight | 3 kg |
+| Requirements | None |
+
+## Obtaining
+
+**Compost Bin:** Fill with 15 weeds or vegetables.
+
+**Shops:** Various farming shops (20 gp each).
+
+**Drops:** Gangsters, earth implings.
+
+## Usage
+
+Basic disease prevention for crops.
+
+Can upgrade to supercompost with compost potion.
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Price:** ~10 gp
+
+Budget farming option. Low value.
+
+## Related Items
+
+- [Supercompost](/osrs/supercompost/) - Upgrade
+- [Compost potion](/osrs/compost-potion/) - Upgrade method
+
+<Adsense />

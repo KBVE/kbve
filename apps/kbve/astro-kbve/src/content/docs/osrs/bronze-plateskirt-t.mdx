@@ -1,0 +1,37 @@
+---
+title: Bronze plateskirt (t) | OSRS Price Data
+description: "Bronze plateskirt (t): Bronze plateskirt with trim.. High alch: 48 GP, GE limit: 4."
+osrs:
+  id: 12219
+  name: Bronze plateskirt (t)
+  slug: bronze-plateskirt-t
+  examine: Bronze plateskirt with trim.
+  members: false
+  icon: Bronze plateskirt (t).png
+  value: 80
+  lowalch: 32
+  highalch: 48
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

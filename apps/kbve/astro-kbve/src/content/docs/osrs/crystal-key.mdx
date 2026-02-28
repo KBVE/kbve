@@ -1,0 +1,94 @@
+---
+title: Crystal key | OSRS Price Data
+description: "Crystal key: A mysterious key for a mysterious chest.. High alch: 90 GP, GE limit: 11,000."
+osrs:
+  id: 989
+  name: Crystal key
+  slug: crystal-key
+  examine: A mysterious key for a mysterious chest.
+  members: true
+  icon: Crystal key.png
+  value: 150
+  lowalch: 60
+  highalch: 90
+  limit: 11000
+  item:
+    type: material
+    tradeable: true
+  related_items:
+    - item_id: 985
+      item_name: Tooth half of key
+      slug: tooth-half-of-key
+      relationship: component
+      description: Required to create crystal key
+    - item_id: 987
+      item_name: Loop half of key
+      slug: loop-half-of-key
+      relationship: component
+      description: Required to create crystal key
+    - item_id: 1631
+      item_name: Uncut dragonstone
+      slug: uncut-dragonstone
+      relationship: alternative
+      description: Guaranteed reward from crystal chest
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Key |
+| Tradeable | Yes |
+| Weight | 0.01 kg |
+| Requirements | None |
+
+## Obtaining
+
+**Creation:** Combine tooth half with loop half of key.
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Usage
+
+Opens the Crystal Chest in Taverley.
+
+Always contains uncut dragonstone plus bonus loot.
+
+Key is consumed on use.
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~21,059 gp
+
+Popular for dragonstone farming. Decent profit per key.
+
+## Related Items
+
+- [Tooth half of key](/osrs/tooth-half-of-key/) - Component
+- [Loop half of key](/osrs/loop-half-of-key/) - Component
+- [Uncut dragonstone](/osrs/uncut-dragonstone/) - Guaranteed reward
+
+<Adsense />

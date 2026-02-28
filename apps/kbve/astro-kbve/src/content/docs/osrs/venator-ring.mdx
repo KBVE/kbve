@@ -1,0 +1,141 @@
+---
+title: Venator ring | OSRS Price Data
+description: "Venator ring is a members ring slot item. High alch: 84,000 GP."
+osrs:
+  id: 28310
+  name: Venator ring
+  slug: venator-ring
+  examine: An occult ring that grants immense dexterity.
+  members: true
+  icon: Venator ring.png
+  value: 140000
+  lowalch: 56000
+  highalch: 84000
+  limit: null
+  equipment:
+    slot: ring
+    type: ranged
+    requirements:
+      quest: The Leviathan kill
+    stats:
+      attack_ranged: 10
+      ranged_strength: 2
+  creation:
+    components:
+      - item_id: 28271
+        item_name: Archer icon
+      - item_id: 28289
+        item_name: Venator vestige
+      - item_id: 565
+        item_name: Blood rune
+        quantity: 500
+    materials:
+      - item_name: Chromium ingot
+        quantity: 3
+      - item_name: Ring mould
+        quantity: 1
+    skill_requirements:
+      magic: 90
+      crafting: 80
+  drop_table:
+    sources:
+      - source: The Leviathan
+        source_id: 12214
+        combat_level: 800
+        quantity: 1 (Venator vestige)
+        rarity: Rare
+        members_only: true
+  related_items:
+    - item_id: 11771
+      item_name: Archers ring (i)
+      slug: archers-ring-i
+      relationship: alternative
+      description: Budget alternative
+    - item_id: 28313
+      item_name: Magus ring
+      slug: magus-ring
+      relationship: alternative
+      description: Magic equivalent
+    - item_id: 28289
+      item_name: Venator vestige
+      slug: venator-vestige
+      relationship: component
+      description: From The Leviathan
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ring |
+| Type | Ranged Ring |
+| Tradeable | Yes |
+| Weight | 0.012 kg |
+
+## Creation
+
+1. Combine [Archer icon](/osrs/archer-icon/) + [Venator vestige](/osrs/venator-vestige/) + 500 blood runes
+2. Craft at furnace with 3 chromium ingots + ring mould
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 90 (boostable) |
+| Crafting | 80 (boostable) |
+| Kill The Leviathan | 1 time |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged | +10 |
+| Ranged Strength | +2 |
+
+**Requirements:** The Leviathan kill
+
+## Usage
+
+BiS for:
+- All ranged combat
+- Maximum ranged DPS
+- Raids
+
+**Only ring with ranged strength bonus.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~41M gp
+
+**Tips:**
+- Vestige from The Leviathan
+- Cannot be imbued
+- DT2 content
+
+## Related Items
+
+- [Archers ring (i)](/osrs/archers-ring-i/) - Budget alternative
+- [Magus ring](/osrs/magus-ring/) - Magic equivalent
+- [The Leviathan](/osrs/the-leviathan/) - Vestige source
+
+<Adsense />

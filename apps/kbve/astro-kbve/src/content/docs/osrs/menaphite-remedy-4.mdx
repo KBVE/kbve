@@ -1,0 +1,37 @@
+---
+title: Menaphite remedy(4) | OSRS Price Data
+description: "Menaphite remedy(4): 4 doses of Menaphite remedy.. High alch: 66 GP, GE limit: 2,000."
+osrs:
+  id: 27202
+  name: Menaphite remedy(4)
+  slug: menaphite-remedy-4
+  examine: 4 doses of Menaphite remedy.
+  members: true
+  icon: Menaphite remedy(4).png
+  value: 110
+  lowalch: 44
+  highalch: 66
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

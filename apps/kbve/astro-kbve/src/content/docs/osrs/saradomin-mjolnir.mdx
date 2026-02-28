@@ -1,0 +1,37 @@
+---
+title: Saradomin mjolnir | OSRS Price Data
+description: "Saradomin mjolnir: A Saradomin Mjolnir.. High alch: 375 GP, GE limit: 8."
+osrs:
+  id: 6762
+  name: Saradomin mjolnir
+  slug: saradomin-mjolnir
+  examine: A Saradomin Mjolnir.
+  members: true
+  icon: Saradomin mjolnir.png
+  value: 625
+  lowalch: 250
+  highalch: 375
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

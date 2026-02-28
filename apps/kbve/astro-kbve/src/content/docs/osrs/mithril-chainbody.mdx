@@ -1,0 +1,93 @@
+---
+title: Mithril chainbody | OSRS Price Data
+description: "Mithril chainbody: A series of connected metal rings.. High alch: 1,170 GP, GE limit: 125."
+osrs:
+  id: 1109
+  name: Mithril chainbody
+  slug: mithril-chainbody
+  examine: A series of connected metal rings.
+  members: false
+  icon: Mithril chainbody.png
+  value: 1950
+  lowalch: 780
+  highalch: 1170
+  limit: 125
+  item_id: 1109
+  item_type: armor
+  slot: body
+  type: chainbody
+  tradeable: true
+  weight: 5.896
+  requirements:
+    defence: 20
+  stats:
+    stab_defence: 25
+    slash_defence: 35
+    crush_defence: 42
+    magic_defence: -3
+    ranged_defence: 27
+  related_items:
+    - slug: adamant-chainbody
+    - slug: mithril-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Chainbody |
+| Tradeable | Yes |
+| Weight | 5.896 kg |
+| Requirements | 20 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +25 |
+| Slash Defence | +35 |
+| Crush Defence | +42 |
+| Magic Defence | -3 |
+| Ranged Defence | +27 |
+
+## Obtaining
+
+**Smithing:** 61 Smithing with 3 mithril bars (150 XP).
+
+**Shop:** Wayne's Chains, Falador.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~986 gp
+
+Mid-tier chainbody. F2P accessible.
+
+## Related Items
+
+- [Adamant chainbody](/osrs/adamant-chainbody/) - Upgrade
+- [Mithril platebody](/osrs/mithril-platebody/) - More defence
+
+<Adsense />

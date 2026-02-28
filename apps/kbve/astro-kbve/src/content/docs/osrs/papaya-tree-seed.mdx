@@ -1,0 +1,130 @@
+---
+title: Papaya tree seed | OSRS Price Data
+description: "Papaya tree seed: Plant in a plantpot of soil to grow a sapling.. High alch: 69 GP, GE limit: 200."
+osrs:
+  id: 5288
+  name: Papaya tree seed
+  slug: papaya-tree-seed
+  examine: Plant in a plantpot of soil to grow a sapling.
+  members: true
+  icon: Papaya tree seed 5.png
+  value: 115
+  lowalch: 46
+  highalch: 69
+  limit: 200
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: true
+    weight: 0
+  skilling_source:
+    skill: farming
+    level: 57
+    xp: 72
+    growth_time: 960
+  drop_table:
+    sources:
+      - source: Bird nests (Woodcutting)
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Kalphite Queen
+        source_id: 963
+        combat_level: 333
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Zulrah
+        source_id: 2044
+        combat_level: 725
+        quantity: "2"
+        rarity: uncommon
+        members_only: true
+      - source: Sarachnis
+        source_id: 8713
+        combat_level: 318
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+  related_items:
+    - item_id: 5972
+      item_name: Papaya fruit
+      slug: papaya-fruit
+      relationship: product
+      description: Harvested fruit
+    - item_id: 2114
+      item_name: Pineapple
+      slug: pineapple
+      relationship: component
+      description: Protection payment (10)
+    - item_id: 5289
+      item_name: Palm tree seed
+      slug: palm-tree-seed
+      relationship: upgrade
+      description: Higher tier option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Fruit Tree Seed |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 57 Farming |
+
+## Obtaining
+
+Common sources:
+- Bird nests (Woodcutting, Bird houses)
+- Boss drops (Kalphite Queen, Zulrah, Sarachnis)
+- Monster drops
+
+## Usage
+
+Plant in **fruit tree patches** to grow papaya trees.
+
+**Growth Time:** 16 hours
+
+**Payment:** 10 pineapples (optional protection)
+
+**XP:** 72 (planting) + 6,146.4 (check-health)
+
+## Market Strategy
+
+**Buy Limit:** 200 per 4 hours
+
+**Price:** ~1.8k gp
+
+Budget-friendly fruit tree seed. Often used for protection payments on palm trees.
+
+## Related Items
+
+- [Papaya fruit](/osrs/papaya-fruit/) - Harvested fruit
+- [Pineapple](/osrs/pineapple/) - Protection payment
+- [Palm tree seed](/osrs/palm-tree-seed/) - Higher tier option
+
+<Adsense />

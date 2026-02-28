@@ -1,0 +1,111 @@
+---
+title: Ancient staff | OSRS Price Data
+description: "Ancient staff is a members weapon slot item with +50 melee strength requiring 50 Attack. High alch: 60,000 GP, GE limit: 70."
+osrs:
+  id: 4675
+  name: Ancient staff
+  slug: ancient-staff
+  examine: A magical staff of ancient origin...
+  members: true
+  icon: Ancient staff.png
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: 70
+  equipment:
+    slot: weapon
+    weapon_type: staff
+    weight: 2.267
+    attack_speed: 5
+    attack_range: 1
+    attack_bonus:
+      stab: 10
+      slash: -1
+      crush: 40
+      magic: 15
+      ranged: 0
+    defence_bonus:
+      stab: 2
+      slash: 3
+      crush: 1
+      magic: 15
+      ranged: 0
+    other_bonus:
+      melee_strength: 50
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+    requirements:
+      attack: 50
+      magic: 50
+  quest_requirements:
+    - quest_name: Desert Treasure
+      quest_id: 62
+      required: true
+  special_features:
+    - name: Ancient Magicks
+      description: Required to autocast Ancient Magicks spells
+  related_items:
+    - item_id: 12904
+      item_name: Toxic staff of the dead
+      slug: toxic-staff-of-the-dead
+      relationship: upgrade
+      description: Superior magic staff with venom
+    - item_id: 11791
+      item_name: Staff of the dead
+      slug: staff-of-the-dead
+      relationship: upgrade
+      description: Superior magic staff
+    - item_id: 4657
+      item_name: Ring of visibility
+      slug: ring-of-visibility
+      relationship: alternative
+      description: Also obtained during Desert Treasure
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Purchased from Eblis in the Bandit Camp Quarry after completing Desert Treasure.
+
+**Requirements:**
+- Desert Treasure quest completion
+- 80,000 coins
+
+## Usage
+
+**Ancient Magicks Autocasting:**
+- Only standard staff that can autocast Ancient spells
+- Essential for Ancient Magicks training
+
+**Combat Stats:**
+- +15 Magic attack bonus
+- +15 Magic defence bonus
+- Can be used for melee (50 strength bonus)
+
+## Notes
+
+- Cheap alternative for Ancient Magicks autocasting
+- Replaced by Staff of the dead / Nightmare staff for high-level content
+- Free replacement from Eblis if lost
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Iron knife(p++) | OSRS Price Data
+description: "Iron knife(p++): A finely balanced throwing knife.. High alch: 1 GP, GE limit: 7,000."
+osrs:
+  id: 5662
+  name: Iron knife(p++)
+  slug: iron-knife-p
+  examine: A finely balanced throwing knife.
+  members: true
+  icon: Iron knife(p++).png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 7000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

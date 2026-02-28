@@ -1,0 +1,125 @@
+---
+title: Robin hood hat | OSRS Price Data
+description: "Robin hood hat is a members head slot item requiring 40 Ranged. High alch: 270 GP, GE limit: 8."
+osrs:
+  id: 2581
+  name: Robin hood hat
+  slug: robin-hood-hat
+  examine: Endorsed by Robin Hood.
+  members: true
+  icon: Robin hood hat.png
+  value: 450
+  lowalch: 180
+  highalch: 270
+  limit: 8
+  equipment:
+    slot: head
+    type: ranged_helm
+    requirements:
+      ranged: 40
+    stats:
+      attack_ranged: 8
+      defence_stab: 4
+      defence_slash: 6
+      defence_crush: 8
+      defence_magic: 4
+      defence_ranged: 4
+  drop_table:
+    sources:
+      - source: Hard clue casket
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: 1/1,625
+  related_items:
+    - item_id: 11826
+      item_name: Armadyl helmet
+      slug: armadyl-helmet
+      relationship: upgrade
+      description: BiS ranged helm
+    - item_id: 19925
+      item_name: Blessed coif
+      slug: blessed-coif
+      relationship: alternative
+      description: Prayer bonus option
+    - item_id: 3751
+      item_name: Archer helm
+      slug: archer-helm
+      relationship: alternative
+      description: Fremennik alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Ranged Armor |
+| Tradeable | Yes |
+| Weight | 0.283 kg |
+
+## Obtaining
+
+Rare reward from hard Treasure Trails.
+
+| Source | Drop Rate |
+|--------|-----------|
+| Hard clue casket | 1/1,625 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged attack | +8 |
+
+| Defence | Value |
+|---------|-------|
+| Stab | +4 |
+| Slash | +6 |
+| Crush | +8 |
+| Magic | +4 |
+| Ranged | +4 |
+
+**Requirements:** 40 Ranged
+
+## Usage
+
+Popular for:
+- 1 Defence pures (no def req)
+- Fashion
+- Mid-game ranged
+
+**Best ranged helm with no Defence requirement.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~2.8M gp
+
+**Tips:**
+- Popular with pures
+- Farm hard clues
+- Fashionscape value
+
+<Adsense />

@@ -1,0 +1,126 @@
+---
+title: Crystal weapon seed | OSRS Price Data
+description: "Crystal weapon seed: A seed to be sung into the finest crystal weapons.. High alch: 1 GP, GE limit: 70."
+osrs:
+  id: 4207
+  name: Crystal weapon seed
+  slug: crystal-weapon-seed
+  examine: A seed to be sung into the finest crystal weapons.
+  members: true
+  icon: Crystal weapon seed.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 70
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    weight: 0.014
+  drop_table:
+    primary_source: Corrupted Gauntlet
+    best_drop_rate: 1/50
+    sources:
+      - source: The Gauntlet
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: rare
+        drop_rate: 1/120
+        members_only: true
+      - source: Corrupted Gauntlet
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: uncommon
+        drop_rate: 1/50
+        members_only: true
+  related_items:
+    - item_id: 23864
+      item_name: Crystal bow
+      slug: crystal-bow
+      relationship: product
+      description: Created weapon
+    - item_id: 23866
+      item_name: Crystal shield
+      slug: crystal-shield
+      relationship: product
+      description: Created shield
+    - item_id: 23987
+      item_name: Crystal halberd
+      slug: crystal-halberd
+      relationship: product
+      description: Created weapon (requires diary)
+    - item_id: 23757
+      item_name: Enhanced crystal weapon seed
+      slug: enhanced-crystal-weapon-seed
+      relationship: upgrade
+      description: For Blade of Saeldor and Bow of Faerdhinen
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Seed |
+| Tradeable | Yes |
+| Weight | 0.014 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| The Gauntlet | 1/120 |
+| Corrupted Gauntlet | 1/50 |
+| LMS shop | 12 points |
+
+## Uses
+
+Creates crystal weapons:
+- Crystal bow
+- Crystal shield
+- Crystal halberd (requires Hard Western Provinces Diary)
+
+**Via Singing Bowl (78 Smithing/Crafting):** 40 crystal shards per weapon.
+
+**Via Ilfeen:** 150K-900K gp (no skill req).
+
+Can exchange for 10 crystal shards or crystal acorn.
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~376K gp
+
+**Tips:**
+- Farm Corrupted Gauntlet
+- Cheaper than enhanced seed
+- Good for ironmen
+
+## Related Items
+
+- [The Gauntlet](/osrs/the-gauntlet/) - Source
+- [Crystal bow](/osrs/crystal-bow/) - Created weapon
+- [Enhanced crystal weapon seed](/osrs/enhanced-crystal-weapon-seed/) - Upgrade
+
+<Adsense />

@@ -1,0 +1,149 @@
+---
+title: Runite bar | OSRS Price Data
+description: "Runite bar: It's a bar of runite.. High alch: 3,000 GP, GE limit: 10,000."
+osrs:
+  id: 2363
+  name: Runite bar
+  slug: runite-bar
+  examine: It's a bar of runite.
+  members: false
+  icon: Runite bar.png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: 10000
+  material:
+    type: bar
+    tier: high
+  smithing:
+    level: 85
+    xp: 50
+    primary_ore: 451
+    primary_ore_name: Runite ore
+    coal_required: 8
+    blast_furnace_coal: 4
+  recipes:
+    - skill: smithing
+      level: 85
+      xp: 50
+      materials:
+        - item_name: Runite ore
+          item_id: 451
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 8
+      product: Runite bar
+      product_id: 2363
+      product_quantity: 1
+      facility: Furnace
+    - skill: smithing
+      level: 85
+      xp: 50
+      materials:
+        - item_name: Runite ore
+          item_id: 451
+          quantity: 1
+        - item_name: Coal
+          item_id: 453
+          quantity: 4
+      product: Runite bar
+      product_id: 2363
+      product_quantity: 1
+      facility: Blast Furnace
+      members_only: true
+    - skill: smithing
+      level: 99
+      xp: 75
+      materials:
+        - item_name: Runite bar
+          item_id: 2363
+          quantity: 5
+      product: Rune platebody
+      product_id: 1127
+      product_quantity: 1
+      facility: Anvil
+  related_items:
+    - item_id: 451
+      item_name: Runite ore
+      slug: runite-ore
+      relationship: component
+      description: Primary ore
+    - item_id: 453
+      item_name: Coal
+      slug: coal
+      relationship: component
+      description: Required for smelting
+    - item_id: 1127
+      item_name: Rune platebody
+      slug: rune-platebody
+      relationship: product
+      description: High value product
+    - item_id: 1319
+      item_name: Rune 2h sword
+      slug: rune-2h-sword
+      relationship: product
+      description: Popular alch item
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Smelt 1 [Runite ore](/osrs/runite-ore/) + 8 [Coal](/osrs/coal/) (4 at Blast Furnace).
+
+| Method | Coal Required | Smithing Level | XP |
+|--------|---------------|----------------|-----|
+| Regular furnace | 8 | 85 | 50 |
+| Blast Furnace | 4 | 85 | 50 |
+
+## Smithing Products
+
+| Item | Bars | Smithing Level | High Alch |
+|------|------|----------------|-----------|
+| [Rune dagger](/osrs/rune-dagger/) | 1 | 85 | 4,800 GP |
+| [Rune axe](/osrs/rune-axe/) | 1 | 86 | 7,680 GP |
+| [Rune mace](/osrs/rune-mace/) | 1 | 87 | 8,640 GP |
+| [Rune med helm](/osrs/rune-med-helm/) | 1 | 88 | 6,720 GP |
+| [Rune sword](/osrs/rune-sword/) | 1 | 89 | 7,680 GP |
+| [Rune scimitar](/osrs/rune-scimitar/) | 2 | 90 | 15,360 GP |
+| [Rune longsword](/osrs/rune-longsword/) | 2 | 91 | 19,200 GP |
+| [Rune full helm](/osrs/rune-full-helm/) | 2 | 92 | 20,800 GP |
+| [Rune sq shield](/osrs/rune-sq-shield/) | 2 | 93 | 20,480 GP |
+| [Rune kiteshield](/osrs/rune-kiteshield/) | 3 | 97 | 31,200 GP |
+| [Rune platelegs](/osrs/rune-platelegs/) | 3 | 99 | 38,400 GP |
+| [Rune platebody](/osrs/rune-platebody/) | 5 | 99 | 39,000 GP |
+| [Rune 2h sword](/osrs/rune-2h-sword/) | 3 | 99 | 38,400 GP |
+
+## Market Flip Strategy
+
+**Blast Furnace Profit:**
+- Calculate: `(Bar price × bars used) vs Smithed item alch value`
+- Compare smelting vs buying bars directly
+
+**Popular Alch Items from Rune Bars:**
+- [Rune platebody](/osrs/rune-platebody/) - 39,000 GP alch (5 bars)
+- [Rune platelegs](/osrs/rune-platelegs/) - 38,400 GP alch (3 bars)
+- [Rune 2h sword](/osrs/rune-2h-sword/) - 38,400 GP alch (3 bars)
+
+**Buy Limit:** 10,000 per 4 hours
+
+<Adsense />

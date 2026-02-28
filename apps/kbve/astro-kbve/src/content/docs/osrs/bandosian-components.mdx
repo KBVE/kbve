@@ -1,0 +1,119 @@
+---
+title: Bandosian components | OSRS Price Data
+description: "Bandosian components: High grade material.. High alch: 60,000 GP."
+osrs:
+  id: 26394
+  name: Bandosian components
+  slug: bandosian-components
+  examine: High grade material.
+  members: true
+  icon: Bandosian components.png
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: null
+  item:
+    type: crafting material
+    tradeable: true
+    weight: 0.095
+  obtaining:
+    - source: Ancient Forge
+      method: Break down Bandos armour
+      requirements: Hammer and Ancient Forge access
+      yields:
+        - item: Bandos chestplate
+          components: 3
+        - item: Bandos tassets
+          components: 2
+  recipes:
+    - skill: smithing
+      level: 90
+      xp: 2250
+      uses:
+        - item: Torva full helm
+          components: 1
+        - item: Torva platebody
+          components: 2
+        - item: Torva platelegs
+          components: 2
+  related_items:
+    - item_id: 11832
+      item_name: Bandos chestplate
+      slug: bandos-chestplate
+      relationship: component
+      description: Source (yields 3 components)
+    - item_id: 11834
+      item_name: Bandos tassets
+      slug: bandos-tassets
+      relationship: component
+      description: Source (yields 2 components)
+    - item_id: 26384
+      item_name: Torva platebody
+      slug: torva-platebody
+      relationship: product
+      description: Repaired with components
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 0.095 kg |
+
+## Obtaining
+
+Break down Bandos armour at Ancient Forge:
+
+| Item | Components |
+|------|------------|
+| Bandos chestplate | 3 |
+| Bandos tassets | 2 |
+
+Requires hammer and Ancient Forge access.
+
+## Uses
+
+Restore damaged Torva armour (90 Smithing, 2,250 XP each):
+
+| Item | Components Needed |
+|------|-------------------|
+| Torva full helm | 1 |
+| Torva platebody | 2 |
+| Torva platelegs | 2 |
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~8.2M gp
+
+## Related Items
+
+- [Bandos chestplate](/osrs/bandos-chestplate/) - Source
+- [Bandos tassets](/osrs/bandos-tassets/) - Source
+- [Torva platebody](/osrs/torva-platebody/) - Use
+- [Ancient Forge](/osrs/ancient-forge/) - Location
+
+<Adsense />

@@ -1,0 +1,123 @@
+---
+title: Necklace of passage(5) | OSRS Price Data
+description: "Necklace of passage(5) is a members neck slot item. High alch: 765 GP, GE limit: 10,000."
+osrs:
+  id: 21146
+  name: Necklace of passage(5)
+  slug: necklace-of-passage-5
+  examine: This necklace can really take you places.
+  members: true
+  icon: Necklace of passage.png
+  value: 1275
+  lowalch: 510
+  highalch: 765
+  limit: 10000
+  equipment:
+    slot: neck
+    type: teleport_jewelry
+    tradeable: true
+    weight: 0.01
+    charges: 5
+  creation:
+    method: Enchant Jade necklace with Lvl-2 Enchant
+    requirements:
+      magic: 27
+    runes:
+      - rune: Cosmic
+        quantity: 1
+      - rune: Air
+        quantity: 3
+  teleports:
+    - destination: Wizards' Tower
+    - destination: The Outpost
+    - destination: Eagles' Eyrie
+  market:
+    buy_limit: 10000
+    price_estimate: 700
+  related_items:
+    - item_id: 3853
+      item_name: Games necklace
+      slug: games-necklace
+      relationship: alternative
+      description: Similar utility
+    - item_id: 1658
+      item_name: Jade necklace
+      slug: jade-necklace
+      relationship: component
+      description: Base item
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Neck |
+| Type | Teleport Jewelry |
+| Tradeable | Yes |
+| Weight | 0.01 kg |
+
+## Creation
+
+Enchant [Jade necklace](/osrs/jade-necklace/) with Lvl-2 Enchant.
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 27 |
+| Cosmic rune | 1 |
+| Air rune | 3 |
+
+## Teleport Locations
+
+- Wizards' Tower
+- The Outpost
+- Eagles' Eyrie
+
+**Charges:** 5 (crumbles when depleted)
+
+## Usage
+
+Great for:
+- Wizards' Tower access
+- Fairy ring alternatives
+- Clue scrolls
+
+**Useful teleport necklace.**
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~700 gp
+
+**Tips:**
+- Good for early game
+- Wizards' Tower useful
+- Alternative to fairy rings
+
+## Related Items
+
+- [Games necklace](/osrs/games-necklace/) - Similar utility
+- [Jade necklace](/osrs/jade-necklace/) - Base item
+- [Wizards' Tower](/osrs/wizards-tower/) - Teleport destination
+
+<Adsense />

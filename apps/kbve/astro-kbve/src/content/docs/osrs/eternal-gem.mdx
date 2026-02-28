@@ -1,0 +1,118 @@
+---
+title: Eternal gem | OSRS Price Data
+description: "Eternal gem: Like the enchanted gem sold by Slayer Masters, only with an eternal charge.. High alch: 5,700 GP, GE limit: 8."
+osrs:
+  id: 21270
+  name: Eternal gem
+  slug: eternal-gem
+  examine: Like the enchanted gem sold by Slayer Masters, only with an eternal charge.
+  members: true
+  icon: Eternal gem.png
+  value: 9500
+  lowalch: 3800
+  highalch: 5700
+  limit: 8
+  material:
+    type: crafting_material
+    tradeable: true
+    weight: 0.004
+  drop_table:
+    sources:
+      - source: Superior slayer monsters
+        notes: Requires Bigger and Badder unlock (50 Slayer points)
+      - source: Nuclear smoke devil
+        rate: 1/200
+      - source: Night beast
+        rate: 1/256
+  uses:
+    - result_id: 21273
+      result_name: Eternal slayer ring
+      materials:
+        - Eternal gem
+        - Gold bar
+      requirements:
+        crafting: 75
+      notes: Irreversible - ring is untradeable
+  special_effect:
+    name: Enchanted Gem Function
+    description: Functions as enchanted gem for Slayer masters
+  market:
+    buy_limit: 8
+    price_estimate: 9500000
+  related_items:
+    - item_id: 21273
+      item_name: Eternal slayer ring
+      slug: eternal-slayer-ring
+      relationship: product
+      description: Created item
+    - item_id: 11866
+      item_name: Slayer ring
+      slug: slayer-ring
+      relationship: alternative
+      description: Standard version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 0.004 kg |
+
+## Obtaining
+
+Dropped by superior slayer monsters.
+
+Requires "Bigger and Badder" unlock (50 Slayer points).
+
+Best rates: Nuclear smoke devil (1/200), Night beast (1/256).
+
+## Uses
+
+| Item Created | Materials | Requirements |
+|--------------|-----------|--------------|
+| Eternal slayer ring | Eternal gem + Gold bar | 75 Crafting |
+
+**Irreversible - ring is untradeable.**
+
+Also functions as enchanted gem for Slayer masters.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~9.5M gp
+
+**Tips:**
+- Farm high-level superiors
+- Creates infinite teleport ring
+- 75 Crafting to use
+
+## Related Items
+
+- [Eternal slayer ring](/osrs/eternal-slayer-ring/) - Created item
+- [Slayer ring](/osrs/slayer-ring/) - Standard version
+- [Superior slayer monsters](/osrs/superior-slayer-monsters/) - Drop source
+
+<Adsense />

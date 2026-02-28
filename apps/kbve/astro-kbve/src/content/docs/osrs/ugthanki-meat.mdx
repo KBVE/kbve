@@ -1,0 +1,37 @@
+---
+title: Ugthanki meat | OSRS Price Data
+description: "Ugthanki meat: Freshly cooked ugthanki meat.. High alch: 3 GP, GE limit: 11,000."
+osrs:
+  id: 1861
+  name: Ugthanki meat
+  slug: ugthanki-meat
+  examine: Freshly cooked ugthanki meat.
+  members: true
+  icon: Ugthanki meat.png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

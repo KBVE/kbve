@@ -1,0 +1,37 @@
+---
+title: Chopped garlic | OSRS Price Data
+description: "Chopped garlic: A bowl of chopped garlic.. High alch: 4 GP, GE limit: 13,000."
+osrs:
+  id: 7074
+  name: Chopped garlic
+  slug: chopped-garlic
+  examine: A bowl of chopped garlic.
+  members: true
+  icon: Chopped garlic.png
+  value: 7
+  lowalch: 2
+  highalch: 4
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Amulet of bounty | OSRS Price Data
+description: "Amulet of bounty: Saves seeds when planting in allotments.. High alch: 540 GP, GE limit: 10,000."
+osrs:
+  id: 21160
+  name: Amulet of bounty
+  slug: amulet-of-bounty
+  examine: Saves seeds when planting in allotments.
+  members: true
+  icon: Amulet of bounty.png
+  value: 900
+  lowalch: 360
+  highalch: 540
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

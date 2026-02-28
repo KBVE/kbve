@@ -1,0 +1,178 @@
+---
+title: Ruby | OSRS Price Data
+description: "Ruby: This looks valuable.. High alch: 600 GP, GE limit: 13,000."
+osrs:
+  id: 1603
+  name: Ruby
+  slug: ruby
+  examine: This looks valuable.
+  members: false
+  icon: Ruby.png
+  value: 1000
+  lowalch: 400
+  highalch: 600
+  limit: 13000
+  material:
+    type: gem
+    tier: mid
+  crafting:
+    level: 34
+    xp: 85
+  recipes:
+    - skill: crafting
+      level: 34
+      xp: 70
+      materials:
+        - item_name: Ruby
+          item_id: 1603
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Ruby ring
+      product_id: 1641
+      product_quantity: 1
+      facility: Furnace
+    - skill: crafting
+      level: 40
+      xp: 75
+      materials:
+        - item_name: Ruby
+          item_id: 1603
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Ruby necklace
+      product_id: 1660
+      product_quantity: 1
+      facility: Furnace
+    - skill: crafting
+      level: 50
+      xp: 85
+      materials:
+        - item_name: Ruby
+          item_id: 1603
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Ruby amulet (u)
+      product_id: 1679
+      product_quantity: 1
+      facility: Furnace
+    - skill: crafting
+      level: 42
+      xp: 80
+      materials:
+        - item_name: Ruby
+          item_id: 1603
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Ruby bracelet
+      product_id: 11085
+      product_quantity: 1
+      facility: Furnace
+      members_only: true
+    - skill: fletching
+      level: 63
+      xp: 6.3
+      materials:
+        - item_name: Ruby
+          item_id: 1603
+          quantity: 1
+      product: Ruby bolt tips
+      product_id: 9191
+      product_quantity: 12
+      members_only: true
+  related_items:
+    - item_id: 1619
+      item_name: Uncut ruby
+      slug: uncut-ruby
+      relationship: component
+      description: Raw gem
+    - item_id: 2568
+      item_name: Ring of forging
+      slug: ring-of-forging
+      relationship: product
+      description: Enchanted ring
+    - item_id: 11194
+      item_name: Digsite pendant
+      slug: digsite-pendant
+      relationship: product
+      description: Enchanted necklace
+    - item_id: 1605
+      item_name: Emerald
+      slug: emerald
+      relationship: alternative
+      description: Lower tier gem
+    - item_id: 1601
+      item_name: Diamond
+      slug: diamond
+      relationship: alternative
+      description: Higher tier gem
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Method |
+|--------|--------|
+| Cutting uncut ruby | 34 Crafting, 85 XP |
+| Grand Exchange | Purchase |
+
+## Crafting Products
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Ruby ring | 34 | 70 |
+| Ruby necklace | 40 | 75 |
+| Ruby bracelet | 42 | 80 |
+| Ruby amulet | 50 | 85 |
+| Ruby bolt tips (12) | 63 Fletching | 6.3 |
+
+## Enchanted Jewelry
+
+| Item | Effect |
+|------|--------|
+| Ring of forging | 100% iron smelting |
+| Digsite pendant | Digsite teleports |
+| Inoculation bracelet | Disease immunity |
+| Amulet of strength | +10 Strength |
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Ring of forging for smithing
+- Amulet of strength
+- Crafting training
+
+**Tips:**
+- Mid-tier gem
+- Ring of forging popular
+- Ruby bolts (e) for PvM
+
+<Adsense />

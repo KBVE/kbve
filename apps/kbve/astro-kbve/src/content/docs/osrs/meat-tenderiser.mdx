@@ -1,0 +1,37 @@
+---
+title: Meat tenderiser | OSRS Price Data
+description: "Meat tenderiser: Often used to soften tough meat up.. High alch: 24,900 GP, GE limit: 50."
+osrs:
+  id: 7449
+  name: Meat tenderiser
+  slug: meat-tenderiser
+  examine: Often used to soften tough meat up.
+  members: true
+  icon: Meat tenderiser.png
+  value: 41500
+  lowalch: 16600
+  highalch: 24900
+  limit: 50
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

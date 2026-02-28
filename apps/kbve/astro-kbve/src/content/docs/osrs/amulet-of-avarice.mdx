@@ -1,0 +1,167 @@
+---
+title: Amulet of avarice | OSRS Price Data
+description: "Amulet of avarice is a members neck slot item. High alch: 27,000 GP, GE limit: 8."
+osrs:
+  id: 22557
+  name: Amulet of avarice
+  slug: amulet-of-avarice
+  examine: A hauntingly beautiful amulet bearing the shape of a skull.
+  members: true
+  icon: Amulet of avarice.png
+  value: 45000
+  lowalch: 18000
+  highalch: 27000
+  limit: 8
+  equipment:
+    slot: neck
+    type: amulet
+    stats:
+      attack_stab: 10
+      attack_slash: 10
+      attack_crush: 10
+      attack_magic: 10
+      attack_ranged: 10
+      defence_stab: 3
+      defence_slash: 3
+      defence_crush: 3
+      defence_magic: 3
+      defence_ranged: 3
+      melee_strength: 6
+      prayer: 3
+  passive_effects:
+    - name: Revenant Boost
+      description: 20% accuracy and damage increase when fighting revenants
+    - name: Skull Effect
+      description: Causes the wearer to become skulled
+    - name: Noted Drops
+      description: Drops from NPCs in Revenant Caves, Wilderness Slayer Cave, and Chaos Temple are noted
+  obtaining:
+    methods:
+      - source: Revenants
+        location: Revenant Caves
+        drop_rate: Rare
+  related_items:
+    - item_id: 22550
+      item_name: Craw's bow
+      slug: craws-bow
+      relationship: alternative
+      description: Wilderness bow
+    - item_id: 22545
+      item_name: Viggora's chainmace
+      slug: viggoras-chainmace
+      relationship: alternative
+      description: Wilderness mace
+    - item_id: 22555
+      item_name: Thammaron's sceptre
+      slug: thammarons-sceptre
+      relationship: alternative
+      description: Wilderness staff
+    - item_id: 21816
+      item_name: Bracelet of ethereum
+      slug: bracelet-of-ethereum
+      relationship: alternative
+      description: Revenant protection
+    - item_id: 21820
+      item_name: Revenant ether
+      slug: revenant-ether
+      relationship: alternative
+      description: Revenant currency
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Neck |
+| Type | Amulet |
+| Tradeable | Yes |
+| Weight | 0.01 kg |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +10 |
+| Slash | +10 |
+| Crush | +10 |
+| Magic | +10 |
+| Ranged | +10 |
+| Melee Strength | +6 |
+| Prayer | +3 |
+
+| Defense | Value |
+|---------|-------|
+| Stab | +3 |
+| Slash | +3 |
+| Crush | +3 |
+| Magic | +3 |
+| Ranged | +3 |
+
+## Passive Effects
+
+**Revenant Boost:**
+- 20% accuracy increase vs revenants
+- 20% damage increase vs revenants
+
+**Skull Effect:**
+- Wearing this amulet skulls you
+- Risk all items on death
+
+**Noted Drops:**
+- Drops from Revenant Caves are noted
+- Drops from Wilderness Slayer Cave are noted
+- Drops from Chaos Temple are noted
+
+## Obtaining
+
+| Source | Location | Rate |
+|--------|----------|------|
+| Revenants | Revenant Caves | Rare |
+
+## Usage
+
+Best for:
+- Revenant hunting
+- Wilderness money-making
+- Extended trips with noted drops
+
+**Warning: Skulls the wearer.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~1M gp
+
+**Tips:**
+- Useful for rev hunting
+- Be aware of skull risk
+- Noted drops save inventory
+
+## Related Items
+
+- [Craw's bow](/osrs/craws-bow/) - Wilderness bow
+- [Viggora's chainmace](/osrs/viggoras-chainmace/) - Wilderness mace
+- [Bracelet of ethereum](/osrs/bracelet-of-ethereum/) - Revenant protection
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Book of law page set | OSRS Price Data
+description: "Book of law page set: A set containing the four pages of Armadyl's Book of Law.. High alch: 4,500 GP, GE limit: 5."
+osrs:
+  id: 13157
+  name: Book of law page set
+  slug: book-of-law-page-set
+  examine: A set containing the four pages of Armadyl's Book of Law.
+  members: true
+  icon: Book of law page set.png
+  value: 7500
+  lowalch: 3000
+  highalch: 4500
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

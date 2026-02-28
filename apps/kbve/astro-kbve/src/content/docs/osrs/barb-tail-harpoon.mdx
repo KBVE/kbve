@@ -1,0 +1,37 @@
+---
+title: Barb-tail harpoon | OSRS Price Data
+description: "Barb-tail harpoon: A mighty Hunter weapon. One previous owner.. High alch: 21 GP, GE limit: 40."
+osrs:
+  id: 10129
+  name: Barb-tail harpoon
+  slug: barb-tail-harpoon
+  examine: A mighty Hunter weapon. One previous owner.
+  members: true
+  icon: Barb-tail harpoon.png
+  value: 36
+  lowalch: 14
+  highalch: 21
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,160 @@
+---
+title: Ahrim's robetop | OSRS Price Data
+description: "Ahrim's robetop is a members body slot item requiring 70 Defence. High alch: 30,000 GP, GE limit: 15."
+osrs:
+  id: 4712
+  name: Ahrim's robetop
+  slug: ahrim-s-robetop
+  examine: Ahrim the Blighted's armoured robe top.
+  members: true
+  icon: Ahrim's robetop.png
+  value: 50000
+  lowalch: 20000
+  highalch: 30000
+  limit: 15
+  equipment:
+    slot: body
+    type: barrows
+    set: Ahrim
+    tradeable: true
+    degradeable: true
+    weight: 4.5
+    requirements:
+      defence: 70
+      magic: 70
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 0
+      attack_magic: 30
+      attack_ranged: -10
+      defence_stab: 52
+      defence_slash: 37
+      defence_crush: 63
+      defence_magic: 30
+      defence_ranged: 0
+      strength: 0
+      ranged_strength: 0
+      magic_damage: 1
+      prayer: 0
+  set_effect:
+    name: Blighted Aura
+    pieces_required: 4
+    description: 25% chance to lower opponent's Strength by 5 levels
+    amulet_of_damned: 25% chance to deal 30% extra damage
+  related_items:
+    - item_id: 4708
+      item_name: Ahrim's hood
+      slug: ahrims-hood
+      relationship: set-piece
+      description: Head slot set piece
+    - item_id: 4714
+      item_name: Ahrim's robeskirt
+      slug: ahrims-robeskirt
+      relationship: set-piece
+      description: Legs slot set piece
+    - item_id: 4710
+      item_name: Ahrim's staff
+      slug: ahrims-staff
+      relationship: set-piece
+      description: Weapon set piece
+    - item_id: 21021
+      item_name: Ancestral robe top
+      slug: ancestral-robe-top
+      relationship: upgrade
+      description: Upgrade path
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Obtained from the Barrows minigame (1/102.17 for any specific Barrows item).
+
+**Location:** Barrows mounds, east of Mort'ton in Morytania
+
+## Equipment Info
+
+| Stat | Value |
+|------|-------|
+| Slot | Body |
+| Weight | 4.5 kg |
+| Tradeable | Yes |
+
+## Stats
+
+| Bonus | Value |
+|-------|-------|
+| Stab defence | +52 |
+| Slash defence | +37 |
+| Crush defence | +63 |
+| Magic attack | +30 |
+| Magic defence | +30 |
+| Magic damage | +1% |
+| Ranged attack | -10 |
+| Requirements | 70 Defence, 70 Magic |
+
+## Set Effect
+
+**Blighted Aura:**
+When wearing full Ahrim's equipment (hood, robetop, robeskirt, staff):
+- Successful magic attacks have 25% chance to lower enemy Strength by 5 levels
+- Useful for reducing opponent's damage output
+
+**With Amulet of the Damned:**
+- Successful magic attacks have 25% chance to deal 30% extra damage
+
+## Usage
+
+**Best For:**
+- Magic training (budget option)
+- Barrows running (ironic but common)
+- Mid-level magic PvM
+- Zulrah (budget setup)
+
+**Comparison:**
+- Less magic bonus than Ancestral
+- Better than Mystic robes
+- Good defensive stats for magic armor
+
+## Degradation
+
+- Degrades in combat (15 hours of use)
+- Repair at Bob in Lumbridge or POH armor stand
+- Repair cost: ~70k for full set at Bob
+
+## Market Strategy
+
+**Buy Limit:** 10 per 4 hours
+
+**Tips:**
+- Budget magic armor option
+- Often bought as full set
+- Consider Ancestral for endgame
+
+## Related Items
+
+- [Ahrim's hood](/osrs/ahrims-hood/) - Head slot
+- [Ahrim's robeskirt](/osrs/ahrims-robeskirt/) - Leg slot
+- [Ahrim's staff](/osrs/ahrims-staff/) - Weapon
+- [Ancestral robe top](/osrs/ancestral-robe-top/) - Upgrade path
+
+<Adsense />

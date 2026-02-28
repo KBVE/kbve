@@ -1,0 +1,178 @@
+---
+title: Emerald | OSRS Price Data
+description: "Emerald: This looks valuable.. High alch: 300 GP, GE limit: 13,000."
+osrs:
+  id: 1605
+  name: Emerald
+  slug: emerald
+  examine: This looks valuable.
+  members: false
+  icon: Emerald.png
+  value: 500
+  lowalch: 200
+  highalch: 300
+  limit: 13000
+  material:
+    type: gem
+    tier: low-mid
+  crafting:
+    level: 27
+    xp: 67.5
+  recipes:
+    - skill: crafting
+      level: 27
+      xp: 55
+      materials:
+        - item_name: Emerald
+          item_id: 1605
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Emerald ring
+      product_id: 1639
+      product_quantity: 1
+      facility: Furnace
+    - skill: crafting
+      level: 29
+      xp: 60
+      materials:
+        - item_name: Emerald
+          item_id: 1605
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Emerald necklace
+      product_id: 1658
+      product_quantity: 1
+      facility: Furnace
+    - skill: crafting
+      level: 31
+      xp: 70
+      materials:
+        - item_name: Emerald
+          item_id: 1605
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Emerald amulet (u)
+      product_id: 1677
+      product_quantity: 1
+      facility: Furnace
+    - skill: crafting
+      level: 30
+      xp: 65
+      materials:
+        - item_name: Emerald
+          item_id: 1605
+          quantity: 1
+        - item_name: Gold bar
+          item_id: 2357
+          quantity: 1
+      product: Emerald bracelet
+      product_id: 11076
+      product_quantity: 1
+      facility: Furnace
+      members_only: true
+    - skill: fletching
+      level: 58
+      xp: 5.5
+      materials:
+        - item_name: Emerald
+          item_id: 1605
+          quantity: 1
+      product: Emerald bolt tips
+      product_id: 9190
+      product_quantity: 12
+      members_only: true
+  related_items:
+    - item_id: 1621
+      item_name: Uncut emerald
+      slug: uncut-emerald
+      relationship: component
+      description: Raw gem
+    - item_id: 2552
+      item_name: Ring of dueling
+      slug: ring-of-dueling
+      relationship: product
+      description: Enchanted ring
+    - item_id: 5521
+      item_name: Binding necklace
+      slug: binding-necklace
+      relationship: product
+      description: Enchanted necklace
+    - item_id: 1607
+      item_name: Sapphire
+      slug: sapphire
+      relationship: alternative
+      description: Lower tier gem
+    - item_id: 1603
+      item_name: Ruby
+      slug: ruby
+      relationship: alternative
+      description: Higher tier gem
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Method |
+|--------|--------|
+| Cutting uncut emerald | 27 Crafting, 67.5 XP |
+| Grand Exchange | Purchase |
+
+## Crafting Products
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Emerald ring | 27 | 55 |
+| Emerald necklace | 29 | 60 |
+| Emerald bracelet | 30 | 65 |
+| Emerald amulet | 31 | 70 |
+| Emerald bolt tips (12) | 58 Fletching | 5.5 |
+
+## Enchanted Jewelry
+
+| Item | Effect |
+|------|--------|
+| Ring of dueling | Duel Arena teleports |
+| Binding necklace | Combine rune crafting |
+| Castle wars bracelet | Castle Wars boost |
+| Amulet of nature | Farming status |
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Ring of dueling production
+- Binding necklace for runecrafting
+- Crafting training
+
+**Tips:**
+- Popular for ring of dueling
+- Binding necklace essential for RC
+- Good XP for level
+
+<Adsense />

@@ -1,0 +1,134 @@
+---
+title: Holy sandals | OSRS Price Data
+description: "Holy sandals is a members feet slot item. High alch: 1,200 GP, GE limit: 4."
+osrs:
+  id: 12598
+  name: Holy sandals
+  slug: holy-sandals
+  examine: Holy footwear!
+  members: true
+  icon: Holy sandals.png
+  value: 2000
+  lowalch: 800
+  highalch: 1200
+  limit: 4
+  equipment:
+    slot: feet
+    type: boots
+    tradeable: true
+    weight: 1
+    requirements:
+      prayer: 31
+    stats:
+      prayer: 3
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Medium
+        drop_rate: 1/1,133 from reward casket
+  effects:
+    - name: God Wars Protection
+      description: Counts as a Saradomin item, prevents Saradomin faction aggression in GWD
+  upgrades:
+    - item_name: Devout boots
+      materials: Holy sandals + Drake's tooth
+      bonus: +5 prayer
+  related_items:
+    - item_id: 23037
+      item_name: Devout boots
+      slug: devout-boots
+      relationship: upgrade
+      description: Upgraded version (+5 prayer)
+    - item_id: 22983
+      item_name: Drake's tooth
+      slug: drakes-tooth
+      relationship: component
+      description: Upgrade material
+    - item_id: 2577
+      item_name: Ranger boots
+      slug: ranger-boots
+      relationship: alternative
+      description: Same clue tier
+    - item_id: 2579
+      item_name: Wizard boots
+      slug: wizard-boots
+      relationship: alternative
+      description: Magic equivalent
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Reward from medium Treasure Trails.
+
+**Drop Rate:** 1/1,133 from reward casket (medium)
+
+## Equipment Info
+
+| Stat | Value |
+|------|-------|
+| Slot | Feet |
+| Prayer requirement | 31 |
+| Weight | 1 kg |
+
+## Stats
+
+| Bonus | Value |
+|-------|-------|
+| Prayer | +3 |
+
+## Effects
+
+**God Wars Protection:**
+- Counts as a Saradomin item
+- Prevents Saradomin faction aggression in GWD
+
+## Upgrade Path
+
+Combine with [Drake's tooth](/osrs/drakes-tooth/) to create [Devout boots](/osrs/devout-boots/):
+- Increases prayer bonus to +5
+- Requires completion of upgrade process
+
+## Usage
+
+Best prayer bonus boots option:
+- Slayer tasks with prayer
+- GWD as Saradomin item
+- Budget option before Devout boots
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Medium clue reward
+- Upgrade to Devout when affordable
+- Saradomin item utility adds value
+
+## Related Items
+
+- [Devout boots](/osrs/devout-boots/) - Upgraded version (+5 prayer)
+- [Drake's tooth](/osrs/drakes-tooth/) - Upgrade material
+- [Ranger boots](/osrs/ranger-boots/) - Same clue tier
+- [Wizard boots](/osrs/wizard-boots/) - Magic equivalent
+
+<Adsense />

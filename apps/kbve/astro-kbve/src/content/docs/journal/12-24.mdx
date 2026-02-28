@@ -1,0 +1,50 @@
+---
+title: 'Decemeber: 24th'
+category: Daily
+date: 2025-12-24 12:00:00
+client: Self
+unsplash: 1511512578047-dfb367046420
+img: https://images.unsplash.com/photo-1511512578047-dfb367046420?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Decemeber 24th.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+#### Unity Mac Shader Problems
+
+-   01:15AM
+
+    Even after this most recent build, we are running into a shader error.
+    However what makes this shader error a major issue is that it does not tell us where it seems to be failing.
+    The null point errors and these shader errors are really breaking my mental, I am starting to really feel the pain of game development.
+    Each error seems to progress into a whole new error within the eco-system, just takes way too much time to process all of these issues.
+    One idea could be to also just drop all the mono and completely switch to DOTS.
+    Anyhow, we decided to make an editor script to help us.
+
+### Unity Terrain Shaders
+
+-   11:40PM
+
+    The terrain shaders are still a black void within the DOTS instance.
+    Honestly, we got the trees resolved but damn terrain is such a pain, ugh.
+
+## 2024
+
+-   06:57AM
+
+    **Kanban**
+
+    Start the morning off with a fresh deployment of the kanban helm chart.
+    To build out the chart we need to make sure.
+    `https://github.com/KBVE/kbve.git` This is the repo that we are pulling in and the path is `/migrations/kube/charts/kanban`
+    We need to pass in the secrets too, so lets go ahead and resolve that
+    ```shell
+    ./kbve.sh -nx kilobase:seal --namespace=kanban --keyName=aws-config --secrets=AWS_ACCESS_KEY_I
+    ```
+
+    The deployment went well and we got the configurations through without any issues!
+    Now we can switch back to the react code and figure out how to talk to the main api.

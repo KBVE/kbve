@@ -1,0 +1,37 @@
+---
+title: Voidwaker hilt | OSRS Price Data
+description: "Voidwaker hilt: The hilt of a broken sword.. High alch: 480,000 GP, GE limit: 8."
+osrs:
+  id: 27681
+  name: Voidwaker hilt
+  slug: voidwaker-hilt
+  examine: The hilt of a broken sword.
+  members: true
+  icon: Voidwaker hilt.png
+  value: 800000
+  lowalch: 320000
+  highalch: 480000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

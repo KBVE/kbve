@@ -1,0 +1,37 @@
+---
+title: Fremennik red cloak | OSRS Price Data
+description: "Fremennik red cloak: The latest fashion in Rellekka.. High alch: 150 GP, GE limit: 150."
+osrs:
+  id: 3777
+  name: Fremennik red cloak
+  slug: fremennik-red-cloak
+  examine: The latest fashion in Rellekka.
+  members: true
+  icon: Fremennik red cloak.png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 150
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

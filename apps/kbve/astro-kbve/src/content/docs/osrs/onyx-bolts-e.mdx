@@ -1,0 +1,125 @@
+---
+title: Onyx bolts (e) | OSRS Price Data
+description: "Onyx bolts (e) is a members ammo slot item requiring 61 Ranged. High alch: 9,000 GP, GE limit: 11,000."
+osrs:
+  id: 9245
+  name: Onyx bolts (e)
+  slug: onyx-bolts-e
+  examine: Enchanted Onyx tipped Runite Crossbow Bolts.
+  members: true
+  icon: Onyx bolts (e) 5.png
+  value: 15000
+  lowalch: 6000
+  highalch: 9000
+  limit: 11000
+  equipment:
+    slot: ammo
+    type: enchanted_bolts
+    tradeable: true
+    weight: 0
+    requirements:
+      ranged: 61
+  effect:
+    name: Life Leech
+    damage_bonus: 20
+    zaryte_bonus: 32
+    healing: 25
+    note: Does not work on undead
+    activation_rate:
+      pvp: 10
+      pvm: 11
+      pvp_kandarin: 11
+      pvm_kandarin: 12.1
+  enchanting:
+    spell: Enchant Crossbow Bolt (Onyx)
+    magic_level: 87
+    runes:
+      - item_name: Fire rune
+        quantity: 20
+      - item_name: Death rune
+        quantity: 1
+      - item_name: Cosmic rune
+        quantity: 1
+    bolts_per_cast: 10
+  related_items:
+    - item_id: 9342
+      item_name: Onyx bolts
+      slug: onyx-bolts
+      relationship: component
+      description: Base item
+    - item_id: 26374
+      item_name: Zaryte crossbow
+      slug: zaryte-crossbow
+      relationship: alternative
+      description: Enhanced effect weapon
+    - item_id: 11785
+      item_name: Armadyl crossbow
+      slug: armadyl-crossbow
+      relationship: alternative
+      description: Compatible weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Ammunition |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 61 Ranged |
+
+## Creating
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 87 |
+| Base item | Onyx bolts (10) |
+| Runes | 20 Fire, 1 Death, 1 Cosmic |
+
+Enchant Crossbow Bolt (Onyx) spell. Enchants 10 bolts per cast.
+
+## Effect
+
+**Life Leech:**
+- +20% damage (+32% with Zaryte crossbow)
+- Heals 25% of damage dealt
+- Does not work on undead
+
+| Activation Rate | PvP | PvM |
+|-----------------|-----|-----|
+| Base | 10% | 11% |
+| Hard Kandarin Diary | 11% | 12.1% |
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~9K gp each
+
+## Related Items
+
+- [Onyx bolts](/osrs/onyx-bolts/) - Base item
+- [Zaryte crossbow](/osrs/zaryte-crossbow/) - Enhanced effect
+- [Armadyl crossbow](/osrs/armadyl-crossbow/) - Compatible
+
+<Adsense />

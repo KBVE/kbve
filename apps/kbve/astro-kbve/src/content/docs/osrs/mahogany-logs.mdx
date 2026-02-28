@@ -1,0 +1,114 @@
+---
+title: Mahogany logs | OSRS Price Data
+description: "Mahogany logs: Some well-cut mahogany logs.. High alch: 30 GP, GE limit: 11,000."
+osrs:
+  id: 6332
+  name: Mahogany logs
+  slug: mahogany-logs
+  examine: Some well-cut mahogany logs.
+  members: true
+  icon: Mahogany logs.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 11000
+  item_id: 6332
+  type: logs
+  tradeable: true
+  weight: 1.36
+  buy_limit: 11000
+  requirements:
+    skills:
+      - skill: woodcutting
+        level: 50
+        context: to cut
+  obtaining:
+    woodcutting:
+      level: 50
+      xp: 125
+      trees: Mahogany trees
+      locations:
+        - Hardwood grove
+        - Ape Atoll
+        - Prifddinas
+    farming:
+      level: 55
+      details: Grow mahogany trees
+    drops:
+      - Cave horror
+      - Callisto
+      - Zulrah
+  usage:
+    construction:
+      product: Mahogany planks
+      sawmill_cost: 1500
+      note: Best XP/plank for Construction training
+  related_items:
+    - slug: mahogany-plank
+      name: Mahogany plank
+      relation: processed_form
+    - slug: teak-logs
+      name: Teak logs
+      relation: lower_tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Logs |
+| Tradeable | Yes |
+| Weight | 1.36 kg |
+| Requirements | 50 Woodcutting |
+
+## Obtaining
+
+**Woodcutting:** Cut mahogany trees (50 WC, 125 XP).
+
+**Locations:** Hardwood grove, Ape Atoll, Prifddinas.
+
+**Drops:** Cave horror, Callisto, Zulrah.
+
+**Farming:** Grow mahogany trees (55 Farming).
+
+## Usage
+
+Convert to mahogany planks for Construction (1,500 gp at sawmill).
+
+Best XP/plank for Construction training.
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~221 gp
+
+Premium Construction material. High demand.
+
+## Related Items
+
+- [Mahogany plank](/osrs/mahogany-plank/) - Processed form
+- [Teak logs](/osrs/teak-logs/) - Lower tier
+
+<Adsense />

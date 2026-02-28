@@ -1,0 +1,37 @@
+---
+title: Ironwood plank | OSRS Price Data
+description: "Ironwood plank: A plank of robust ironwood.. High alch: 900 GP, GE limit: 13,000."
+osrs:
+  id: 31435
+  name: Ironwood plank
+  slug: ironwood-plank
+  examine: A plank of robust ironwood.
+  members: true
+  icon: Ironwood plank.png
+  value: 1500
+  lowalch: 600
+  highalch: 900
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

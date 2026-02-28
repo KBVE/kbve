@@ -1,0 +1,112 @@
+---
+title: Snapdragon potion (unf) | OSRS Price Data
+description: "Snapdragon potion (unf) is a 4-dose members potion. High alch: 35 GP, GE limit: 10,000."
+osrs:
+  id: 3004
+  name: Snapdragon potion (unf)
+  slug: snapdragon-potion-unf
+  examine: I need another ingredient to finish this Snapdragon potion.
+  members: true
+  icon: Snapdragon potion (unf).png
+  value: 59
+  lowalch: 23
+  highalch: 35
+  limit: 10000
+  potion:
+    doses: 0
+    type: unfinished
+    base_herb: snapdragon
+    base_herb_id: 3000
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    weight: 0.056
+  recipes:
+    - skill: herblore
+      level: 63
+      xp: 0
+      materials:
+        - item_name: Snapdragon
+          item_id: 3000
+          quantity: 1
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+      product: Snapdragon potion (unf)
+      product_id: 3004
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 3000
+      item_name: Snapdragon
+      slug: snapdragon
+      relationship: component
+      description: Herb ingredient
+    - item_id: 223
+      item_name: Red spiders' eggs
+      slug: red-spiders-eggs
+      relationship: component
+      description: Secondary for super restore
+    - item_id: 3024
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: product
+      description: Final product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Unfinished Potion |
+| Tradeable | Yes |
+| Weight | 0.056 kg |
+| Requirements | 63 Herblore |
+
+## Obtaining
+
+**Creation:** Add snapdragon to vial of water (63 Herblore).
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Usage
+
+Add secondary ingredient to create:
+- **Super restore** (+ red spiders' eggs)
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~8,484 gp
+
+High volume herblore supply. Essential for super restore production.
+
+## Related Items
+
+- [Snapdragon](/osrs/snapdragon/) - Herb ingredient
+- [Red spiders' eggs](/osrs/red-spiders-eggs/) - Secondary
+- [Super restore](/osrs/super-restore/) - Final product
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Super defence(2) | OSRS Price Data
+description: "Super defence(2): 2 doses of super Defence potion.. High alch: 118 GP, GE limit: 2,000."
+osrs:
+  id: 165
+  name: Super defence(2)
+  slug: super-defence-2
+  examine: 2 doses of super Defence potion.
+  members: true
+  icon: Super defence(2).png
+  value: 198
+  lowalch: 79
+  highalch: 118
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

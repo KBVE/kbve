@@ -1,0 +1,138 @@
+---
+title: 'Pocket Prophet of Profit'
+description: "A whispering idol from the subprime depths. It glows faintly with insider congressional knowledge and financial dread."
+id: 'pocket-prophet-of-profit'
+key: 6
+ref: '01J2GHZQ9CXY89NB7NS5Q2DRZZ'
+name: 'Pocket Prophet of Profit'
+type: 'Utility'
+category: 393
+img: '/assets/items/utility/pocket_prophet_of_profit.png'
+pixelDensity: 32
+sortingLayer: Ground
+sortingOrder: 15
+consumable: false
+stackable: false
+rarity: 'Legendary'
+weight: 0.3
+effects: 'Reveals future market trends and causes minor existential dread.'
+price: 9999
+durability: 999
+equipped: true
+levelRequirement: 9
+cooldown: 666
+action: 'activate'
+credits: |
+    Originally forged beneath Wall Street in 2007 Q4 by The Black Vault Syndicate. Allegedly blessed by a former CFO turned lich. Art by KBVE Pixel Workshop.
+bonuses:
+    foresight: true
+    profitBoost: 7%
+    dreadAura: true
+scripts:
+    - guid: 'cc498b99932c4874bafd29170d2e9edf'
+      vars:
+            foresight: true
+            marketSurgeChance: 0.2
+            profitBoost: 0.07
+            dreadAura: true
+            duration: 300
+            tickRate: 12
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Pocket Prophet of Profit** is a tarnished golden idol small enough to fit in your hand, though doing so comes with whispers of premonitions and market anomalies. 
+Legends claim it was smuggled out during the final minutes of an infamous financial collapse, clutching secrets that could predict futures… or end them.
+Rumor has it that it was once owned by a Darth Dick, vice president from an imperial empire located in a far far far away galaxy.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+## Usage
+
+- Grants **{frontmatter.bonuses.profitBoost} profit boost** during active trades
+- May induce **{frontmatter.bonuses.dreadAura ? 'ambient existential dread' : 'mild stress'}**
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Acquisition
+
+This item cannot be bought. It finds you, usually after strange dreams involving quarterly reports and a subway station with no exits.
+
+---
+
+## Lore
+
+> “I asked it what to invest in. It laughed. Three weeks later, my hedge fund turned into a literal hedge.”
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/greed_incarnate.webp"
+  defaultId="01HTXYZGME0001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZGME0001',
+      title: 'Off-Market Acquisition',
+      description: 'An elevator opens below sea level. No buttons.',
+      image: 'https://images.unsplash.com/photo-1565372145343-2ec2f8b0ff90?q=80&w=500&auto=format&fit=crop',
+      message: 'The prophet waits. Its eyes are coins. “Tick tock,” it hums.',
+      choices: [
+        { label: 'Take the idol.', nextId: '01HTXYZGME0002' },
+        { label: 'Step away slowly.', nextId: '01HTXYZGME0003' }
+      ]
+    },
+    {
+      id: '01HTXYZGME0002',
+      title: 'Prophecy Unleashed',
+      description: 'Everything feels calculated.',
+      image: '/images/scene_finance2.jpg',
+      message: 'Your dreams become charts. Your steps feel algorithmic.',
+      choices: [
+        { label: 'Embrace the signal.', nextId: '01HTXYZGME0004' },
+        { label: 'Smash the prophet.', nextId: '01HTXYZGME0005' }
+      ]
+    },
+    {
+      id: '01HTXYZGME0003',
+      title: 'No Deal',
+      description: 'The idol disappears with a smirk.',
+      image: '/images/scene_finance3.jpg',
+      message: 'Opportunity fades. But so does the humming in your skull.'
+    },
+    {
+      id: '01HTXYZGME0004',
+      title: 'Ascended Analyst',
+      description: 'You now predict outcomes before choices exist.',
+      image: '/images/scene_finance4.jpg',
+      message: 'Everything is a trade. Even this breath.'
+    },
+    {
+      id: '01HTXYZGME0005',
+      title: 'Shattered Futures',
+      description: 'The idol breaks. So does the timeline.',
+      image: '/images/scene_finance5.jpg',
+      message: 'Markets crash. Reality delists your position.'
+    }
+  ]}
+/>
+<Adsense />
+
+---
+
+## DevLog
+
+- 05/27/2025 – Deployed initial version of the Pocket Prophet of Profit

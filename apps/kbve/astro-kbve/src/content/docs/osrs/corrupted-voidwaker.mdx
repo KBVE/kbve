@@ -1,0 +1,37 @@
+---
+title: Corrupted voidwaker | OSRS Price Data
+description: "Corrupted voidwaker: A truly fearsome weapon.. High alch: 150,000 GP."
+osrs:
+  id: 28531
+  name: Corrupted voidwaker
+  slug: corrupted-voidwaker
+  examine: A truly fearsome weapon.
+  members: true
+  icon: Corrupted voidwaker.png
+  value: 250000
+  lowalch: 100000
+  highalch: 150000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

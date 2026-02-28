@@ -1,0 +1,37 @@
+---
+title: Dragon necklace | OSRS Price Data
+description: "Dragon necklace: I wonder if this is valuable.. High alch: 11,025 GP, GE limit: 10,000."
+osrs:
+  id: 1664
+  name: Dragon necklace
+  slug: dragon-necklace
+  examine: I wonder if this is valuable.
+  members: true
+  icon: Dragon necklace.png
+  value: 18375
+  lowalch: 7350
+  highalch: 11025
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

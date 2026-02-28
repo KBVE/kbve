@@ -1,0 +1,62 @@
+---
+title: 'October: 9th'
+category: Daily
+date: 2025-10-09 12:00:00
+client: Self
+unsplash: 1693298661836-1206649639ef
+img: https://images.unsplash.com/photo-1693298661836-1206649639ef?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: October 9th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Conch Shell
+
+-   09:15PM
+
+    We are bringing back the classic shell!
+    Thanks to a couple free APIS, looking at you Gemini and Groq, I am going to make some quick functions that will handle that for us!
+    The goal will be to test out the machine learning calls without having to break anything on the backend side.
+    I am thinking that we would store the APIs as a vault secret, then pull that into the edge calls which we will do before making the final calls to gemeni or groq.
+    As for the context, this is going to be a bit of a rough part on our end, I am not too sure how much context we will be able to keep, definitely as the conversations grow.
+
+## 2024
+
+**Vuplex**
+
+The plan for today will be to focus on getting the vuplex to communicate with the kbve website.
+We are going to continue from yesterday, expanding the vuplex postmessage and event listeners, possibly linking them together with our kilobase events.
+Created a helper class under the `Utils` namespace, these are things we can integrate into a final nuget package that will help us in the future game development.
+
+We been making some progress with this part of the vuplex, we can move the data from the kbve website and unity client without any major problems.
+However we do need to grab the session and refresh token from the javascript side and then use it to build the supabase client within the unity side.
+This way we can then close out the WebView and use just this token to handle our game management!
+
+As for what I understand, we can also also have this operate in an offline mode too but that will be something that we can look into the future.
+
+**NuGet**
+
+Moving all our core code into a namespace would make sense because then we can reuse all of it in the future?
+I am thinking we keep parts of the code still isolated, while building out the game but at the same time, we can consolidate the older legacy code into a `KBVE` namespace.
+The goal here would be to eventually release it under a nuget package and start to reutilize the code in future projects.
+There might be some side-effects but we do not want this to be aimed at the general public, but rather leverage the open source eco-system to create our own hybrid source.
+Parts of our game's core codebase being open source is not going to hurt us, but only help us move forward.
+
+**MainTemplate**
+
+Added a minor boolean to the `MainTemplate.astro` that will disable the footer, thus making it a bit easier to handle certain pages on WebView.
+Our `unity.astro` under the `auth` should not provide a footer nor a navigation bar!
+This should make it a bit easier to handle the resolution of the login page too, since it will not have to render those objects and take up vital space.
+
+**Last Note**
+
+Okay last entry before switching over to the next day for my entries.
+I am thinking that it would make sense to abstract away the c# code into our own nuget library, then abstract away the dependencies that we would need by scoping it all into this package?
+This is still a bit of work in progress, but I believe it will help a ton with the logic and flow that we are looking to do within the monorepo.
+I have to remind myself that this is all part of the learning experience, got to overengineer and learn from the hardest point of view.
+
+<Adsense />

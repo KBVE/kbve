@@ -1,0 +1,37 @@
+---
+title: Rock hammer | OSRS Price Data
+description: "Rock hammer: I can even smash stone with this.. High alch: 300 GP, GE limit: 40."
+osrs:
+  id: 4162
+  name: Rock hammer
+  slug: rock-hammer
+  examine: I can even smash stone with this.
+  members: true
+  icon: Rock hammer.png
+  value: 500
+  lowalch: 200
+  highalch: 300
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

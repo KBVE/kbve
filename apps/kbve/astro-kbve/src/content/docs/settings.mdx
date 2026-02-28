@@ -1,0 +1,170 @@
+---
+title: Settings
+description: |
+    Configure and customize your KBVE experience with comprehensive settings management
+tableOfContents: false
+template: splash
+graph:
+   visible: false
+sidebar:
+    label: Settings
+    order: 3
+unsplash: 1522071820081-009f0129c71c
+img: https://images.unsplash.com/photo-1522071820081-009f0129c71c?fit=crop&w=800&h=450&q=75
+tags:
+    - settings
+    - configuration
+    - customization
+---
+
+import { CardGrid } from '@astrojs/starlight/components';
+
+# KBVE Settings Hub
+
+Welcome to your comprehensive settings management center. Configure every aspect of your KBVE experience from account preferences to advanced system configurations.
+
+## Core Settings
+
+<CardGrid>
+```js
+import { AstroHolyCard } from '@/components/astropad';
+
+<AstroHolyCard
+  backgroundImage="https://images.unsplash.com/photo-1633356122544-f134324a6cee?fit=crop&w=800&h=450&q=75"
+  title="Account Settings"
+  description="Manage your profile, authentication, and personal preferences"
+  buttonName="Configure Account"
+  link="/dashboard/account"
+  id="account-settings-card"
+  className="account-card"
+  icons={[
+    { icon: "bookmark", label: "Bookmark this setting", action: "bookmark", tooltip: "Save for quick access" },
+    { icon: "share", label: "Share settings", action: "share", tooltip: "Share with team" },
+    { icon: "more", label: "More options", action: "more", tooltip: "Additional actions" }
+  ]}
+/>
+
+<AstroHolyCard
+  backgroundImage="https://images.unsplash.com/photo-1614064641938-3bbee52942c7?fit=crop&w=800&h=450&q=75"
+  title="Security & Privacy"
+  description="Configure two-factor authentication, API keys, and privacy controls"
+  buttonName="Security Settings"
+  link="/dashboard/security"
+  id="security-settings-card"
+  className="security-card"
+  icons={[
+    { icon: "flag", label: "Report security issue", action: "report", tooltip: "Report a concern" },
+    { icon: "download", label: "Export security data", action: "export", tooltip: "Download security logs" }
+  ]}
+/>
+
+<AstroHolyCard
+  backgroundImage="https://images.unsplash.com/photo-1551288049-bebda4e38f71?fit=crop&w=800&h=450&q=75"
+  title="Dashboard Preferences"
+  description="Customize your dashboard layout, themes, and widget configurations"
+  buttonName="Customize Dashboard"
+  link="/dashboard/preferences"
+  id="dashboard-settings-card"
+  className="dashboard-card"
+  icons={[
+    { icon: "star", label: "Mark as favorite", action: "favorite", tooltip: "Add to favorites" },
+    { icon: "view", label: "Preview changes", action: "preview", tooltip: "See before saving" }
+  ]}
+/>
+```
+
+</CardGrid>
+
+## Advanced Configuration
+
+<CardGrid>
+
+```js
+<AstroHolyCard
+  backgroundImage="https://images.unsplash.com/photo-1518432031352-d6fc5c10da5a?fit=crop&w=800&h=450&q=75"
+  title="API Management"
+  description="Generate API keys, manage webhooks, and configure integrations"
+  buttonName="Manage APIs"
+  link="/dashboard/api"
+  id="api-settings-card"
+  className="api-card"
+/>
+
+<AstroHolyCard
+  backgroundImage="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?fit=crop&w=800&h=450&q=75"
+  title="Notifications"
+  description="Configure email, push, and in-app notification preferences"
+  buttonName="Notification Settings"
+  link="/dashboard/notifications"
+  id="notification-settings-card"
+  className="notification-card"
+/>
+
+<AstroHolyCard
+  backgroundImage="https://images.unsplash.com/photo-1460925895917-afdab827c52f?fit=crop&w=800&h=450&q=75"
+  title="Analytics & Insights"
+  description="Configure data collection, reporting preferences, and analytics settings"
+  buttonName="Analytics Settings"
+  link="/dashboard/analytics"
+  id="analytics-settings-card"
+  className="analytics-card"
+/>
+```
+
+</CardGrid>
+
+## System Administration
+
+<CardGrid>
+
+```js
+<AstroHolyCard
+  backgroundImage="https://images.unsplash.com/photo-1544197150-b99a580bb7a8?fit=crop&w=800&h=450&q=75"
+  title="Backup & Recovery"
+  description="Configure automated backups, export data, and recovery options"
+  buttonName="Backup Settings"
+  link="/dashboard/backup"
+  id="backup-settings-card"
+  className="backup-card"
+/>
+
+<AstroHolyCard
+  backgroundImage="https://images.unsplash.com/photo-1516321318423-f06f85e504b3?fit=crop&w=800&h=450&q=75"
+  title="Performance Tuning"
+  description="Optimize system performance, caching, and resource allocation"
+  buttonName="Performance Settings"
+  link="/dashboard/performance"
+  id="performance-settings-card"
+  className="performance-card"
+/>
+
+<AstroHolyCard
+  backgroundImage="https://images.unsplash.com/photo-1551650975-87deedd944c3?fit=crop&w=800&h=450&q=75"
+  title="Integration Hub"
+  description="Connect third-party services, configure webhooks, and manage integrations"
+  buttonName="Manage Integrations"
+  link="/dashboard/integrations"
+  id="integration-settings-card"
+  className="integration-card"
+/>
+```
+
+</CardGrid>
+
+## Quick Actions
+
+Need help getting started? Check out these essential configuration guides:
+
+- **First Time Setup**: Complete your initial KBVE configuration
+- **Security Checklist**: Ensure your account is properly secured
+- **Performance Optimization**: Get the most out of your KBVE instance
+- **Integration Guide**: Connect your favorite tools and services
+
+## Support
+
+Having trouble with settings? Our support team is here to help:
+
+- 📧 **Email Support**: settings@kbve.com
+- 💬 **Live Chat**: Available 24/7 in your dashboard
+- 📚 **Documentation**: Comprehensive guides for every setting
+- 🎥 **Video Tutorials**: Step-by-step configuration walkthroughs

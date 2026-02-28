@@ -1,0 +1,37 @@
+---
+title: Mystic steam staff | OSRS Price Data
+description: "Mystic steam staff: It's a slightly magical stick.. High alch: 27,000 GP, GE limit: 8."
+osrs:
+  id: 11789
+  name: Mystic steam staff
+  slug: mystic-steam-staff
+  examine: It's a slightly magical stick.
+  members: true
+  icon: Mystic steam staff.png
+  value: 45000
+  lowalch: 18000
+  highalch: 27000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Mystic earth staff | OSRS Price Data
+description: "Mystic earth staff: It's a slightly magical stick.. High alch: 25,500 GP, GE limit: 18,000."
+osrs:
+  id: 1407
+  name: Mystic earth staff
+  slug: mystic-earth-staff
+  examine: It's a slightly magical stick.
+  members: true
+  icon: Mystic earth staff.png
+  value: 42500
+  lowalch: 17000
+  highalch: 25500
+  limit: 18000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

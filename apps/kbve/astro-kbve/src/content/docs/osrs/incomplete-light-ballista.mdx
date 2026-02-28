@@ -1,0 +1,37 @@
+---
+title: Incomplete light ballista | OSRS Price Data
+description: "Incomplete light ballista: The limbs have been attached to the frame.. High alch: 30,000 GP, GE limit: 8."
+osrs:
+  id: 19595
+  name: Incomplete light ballista
+  slug: incomplete-light-ballista
+  examine: The limbs have been attached to the frame.
+  members: true
+  icon: Incomplete light ballista.png
+  value: 50000
+  lowalch: 20000
+  highalch: 30000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

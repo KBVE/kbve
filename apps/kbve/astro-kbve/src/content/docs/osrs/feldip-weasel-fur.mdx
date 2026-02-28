@@ -1,0 +1,37 @@
+---
+title: Feldip weasel fur | OSRS Price Data
+description: "Feldip weasel fur: Not actually from a weasel, but it is, at least, furry.. High alch: 8 GP, GE limit: 10,000."
+osrs:
+  id: 10119
+  name: Feldip weasel fur
+  slug: feldip-weasel-fur
+  examine: Not actually from a weasel, but it is, at least, furry.
+  members: true
+  icon: Feldip weasel fur.png
+  value: 14
+  lowalch: 5
+  highalch: 8
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,119 @@
+---
+title: Dragon arrowtips | OSRS Price Data
+description: "Dragon arrowtips: Dragon talons, usable as arrowheads.. High alch: 300 GP, GE limit: 10,000."
+osrs:
+  id: 11237
+  name: Dragon arrowtips
+  slug: dragon-arrowtips
+  examine: Dragon talons, usable as arrowheads.
+  members: true
+  icon: Dragon arrowtips.png
+  value: 500
+  lowalch: 200
+  highalch: 300
+  limit: 10000
+  item:
+    type: material
+    tradeable: true
+    stackable: true
+    weight: 0
+  recipes:
+    - skill: fletching
+      level: 90
+      xp: 15
+      materials:
+        - item_id: 53
+          item_name: Headless arrow
+          quantity: 15
+        - item_id: 11237
+          item_name: Dragon arrowtips
+          quantity: 15
+      product: Dragon arrow
+      product_id: 11212
+  related_items:
+    - item_id: 53
+      item_name: Headless arrow
+      slug: headless-arrow
+      relationship: component
+      description: Base item for creating dragon arrows
+    - item_id: 11212
+      item_name: Dragon arrow
+      slug: dragon-arrow
+      relationship: product
+      description: Created item from dragon arrowtips
+    - item_id: 21992
+      item_name: Vorkath
+      slug: vorkath
+      relationship: alternative
+      description: Boss that drops dragon arrowtips
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Ammunition Component |
+| Tradeable | Yes |
+| Stackable | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+**Monster Drops:**
+- King Black Dragon
+- Vorkath
+- Grotesque Guardians
+- Brutal dragons
+- Tormented demons
+- Frost dragons
+
+**Chests:**
+- Brimstone Chest
+- Larran's chests
+- Grubby Chest
+
+**Other:** Dragon implings (83-93 Hunter)
+
+## Uses
+
+| Arrow Created | Materials | Requirements |
+|---------------|-----------|--------------|
+| Dragon arrows | Headless arrows + Dragon arrowtips | 90 Fletching |
+
+225 XP per 15 arrows.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~1,957 gp
+
+**Daily Volume:** ~2M trades
+
+## Related Items
+
+- [Headless arrow](/osrs/headless-arrow/) - Base item
+- [Dragon arrow](/osrs/dragon-arrow/) - Created item
+- [Vorkath](/osrs/vorkath/) - Source
+
+<Adsense />

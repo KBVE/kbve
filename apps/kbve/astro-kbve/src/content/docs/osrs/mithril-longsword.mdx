@@ -1,0 +1,108 @@
+---
+title: Mithril longsword | OSRS Price Data
+description: "Mithril longsword is a F2P weapon slot item requiring 20 Attack. High alch: 780 GP, GE limit: 125."
+osrs:
+  id: 1299
+  name: Mithril longsword
+  slug: mithril-longsword
+  examine: A razor sharp longsword.
+  members: false
+  icon: Mithril longsword.png
+  value: 1300
+  lowalch: 520
+  highalch: 780
+  limit: 125
+  equipment:
+    slot: weapon
+    type: longsword
+    tradeable: true
+    weight: 1.587
+    requirements:
+      attack: 20
+    stats:
+      attack_stab: 15
+      attack_slash: 20
+      attack_crush: -2
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 22
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1301
+      item_name: Adamant longsword
+      slug: adamant-longsword
+      relationship: upgrade
+      description: Higher tier longsword
+    - item_id: 1329
+      item_name: Mithril scimitar
+      slug: mithril-scimitar
+      relationship: alternative
+      description: Faster slash alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Longsword |
+| Tradeable | Yes |
+| Weight | 1.587 kg |
+| Requirements | 20 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +15 |
+| Slash Attack | +20 |
+| Crush Attack | -2 |
+| Strength | +22 |
+
+## Obtaining
+
+**Smithing:** 56 Smithing with 2 mithril bars (100 XP).
+
+**Shop:** Varrock Swordshop.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~475 gp
+
+Mid-tier longsword. F2P accessible.
+
+## Related Items
+
+- [Adamant longsword](/osrs/adamant-longsword/) - Upgrade
+- [Mithril scimitar](/osrs/mithril-scimitar/) - Faster slash
+
+<Adsense />

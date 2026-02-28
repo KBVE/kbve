@@ -1,0 +1,119 @@
+---
+title: Antifire potion(4) | OSRS Price Data
+description: "Antifire potion(4) is a 3-dose members potion that dragonfire. High alch: 198 GP, GE limit: 2,000."
+osrs:
+  id: 2452
+  name: Antifire potion(4)
+  slug: antifire-potion-4
+  examine: 4 doses of anti-firebreath potion.
+  members: true
+  icon: Antifire potion(4).png
+  value: 330
+  lowalch: 132
+  highalch: 198
+  limit: 2000
+  potion:
+    doses: 3
+    type: protection
+    effect: dragonfire
+    duration: 360
+  herblore:
+    level: 69
+    xp: 157.5
+  recipes:
+    - skill: herblore
+      level: 69
+      xp: 157.5
+      materials:
+        - item_name: Lantadyme potion (unf)
+          item_id: 2483
+          quantity: 1
+        - item_name: Dragon scale dust
+          item_id: 241
+          quantity: 1
+      product: Antifire potion(3)
+      product_id: 2452
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 2481
+      item_name: Lantadyme
+      slug: lantadyme
+      relationship: component
+      description: Primary herb
+    - item_id: 241
+      item_name: Dragon scale dust
+      slug: dragon-scale-dust
+      relationship: component
+      description: Secondary
+    - item_id: 11951
+      item_name: Extended antifire(3)
+      slug: extended-antifire-3
+      relationship: product
+      description: Upgrade
+    - item_id: 1540
+      item_name: Anti-dragon shield
+      slug: anti-dragon-shield
+      relationship: alternative
+      description: Full protection
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 69 |
+| XP | 157.5 |
+| Ingredients | Lantadyme + Dragon scale dust |
+
+## Effects
+
+| Effect | Value |
+|--------|-------|
+| Dragonfire protection | Partial (slight) |
+| With anti-dragon shield | Full immunity |
+| Duration | 6 minutes |
+
+## Market Flip Strategy
+
+**Dragon Slaying Essential:**
+- Required for dragon tasks
+- Partial protection alone
+- Full protection with shield
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Demand Drivers:**
+- Dragon Slayer tasks
+- Vorkath preparation
+- Blue/black dragon farming
+- Brutal black dragons
+
+**Tips:**
+- Low buy limit (2,000)
+- Lantadyme herb base
+- Dragon scale dust expensive
+- Upgrade to extended
+
+<Adsense />

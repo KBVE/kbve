@@ -1,0 +1,104 @@
+---
+title: Zalcano shard | OSRS Price Data
+description: "Zalcano shard: Makes a dragon pickaxe more beautiful.. High alch: 960 GP, GE limit: 50."
+osrs:
+  id: 23908
+  name: Zalcano shard
+  slug: zalcano-shard
+  examine: Makes a dragon pickaxe more beautiful.
+  members: true
+  icon: Zalcano shard.png
+  value: 1600
+  lowalch: 640
+  highalch: 960
+  limit: 50
+  item:
+    type: cosmetic material
+    tradeable: true
+    weight: 0.5
+  obtaining:
+    - source: Zalcano
+      drop_rate: 1/750 - 1/1,500
+      notes: Drop rate scales with contribution
+  recipes:
+    - skill: smithing
+      level: 1
+      materials:
+        - item_id: 23908
+          item_name: Zalcano shard
+          quantity: 1
+        - item_id: 11920
+          item_name: Dragon pickaxe
+          quantity: 1
+      product: Dragon pickaxe (or)
+      product_id: 23677
+      notes: Shard is reusable when reverting
+  related_items:
+    - item_id: 11920
+      item_name: Dragon pickaxe
+      slug: dragon-pickaxe
+      relationship: component
+      description: Base item for cosmetic upgrade
+    - item_id: 23677
+      item_name: Dragon pickaxe (or)
+      slug: dragon-pickaxe-or
+      relationship: product
+      description: Cosmetic recolor only
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Cosmetic Material |
+| Tradeable | Yes |
+| Weight | 0.5 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Zalcano | 1/750 - 1/1,500 |
+
+Drop rate scales with contribution (damage dealt).
+
+## Uses
+
+| Item Created | Effect |
+|--------------|--------|
+| Dragon pickaxe (or) | Cosmetic recolor only |
+
+Shard is reusable when reverting.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~39.9K gp
+
+## Related Items
+
+- [Zalcano](/osrs/zalcano/) - Source
+- [Dragon pickaxe](/osrs/dragon-pickaxe/) - Base item
+
+<Adsense />

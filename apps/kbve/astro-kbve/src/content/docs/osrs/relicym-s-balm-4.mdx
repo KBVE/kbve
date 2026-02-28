@@ -1,0 +1,37 @@
+---
+title: Relicym's balm(4) | OSRS Price Data
+description: "Relicym's balm(4): 4 doses of Relicym's balm, which helps cure disease.. High alch: 135 GP, GE limit: 2,000."
+osrs:
+  id: 4842
+  name: Relicym's balm(4)
+  slug: relicym-s-balm-4
+  examine: 4 doses of Relicym's balm, which helps cure disease.
+  members: true
+  icon: Relicym's balm(4).png
+  value: 225
+  lowalch: 90
+  highalch: 135
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,123 @@
+---
+title: Combat bracelet(6) | OSRS Price Data
+description: "Combat bracelet(6) is a members hands slot item. High alch: 12,624 GP, GE limit: 10,000."
+osrs:
+  id: 11972
+  name: Combat bracelet(6)
+  slug: combat-bracelet-6
+  examine: A handy way to get around.
+  members: true
+  icon: Combat bracelet(6).png
+  value: 21040
+  lowalch: 8416
+  highalch: 12624
+  limit: 10000
+  equipment:
+    slot: hands
+    weight: 0.007
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  charges:
+    current: 6
+    max: 6
+    recharge: Fountain of Rune
+  special_effect:
+    name: Combat Bracelet Teleport
+    description: Teleports to Warriors' Guild, Champions' Guild, Monastery, Ranging Guild
+    triggers: on_use
+  related_items:
+    - item_id: 11126
+      item_name: Combat bracelet (uncharged)
+      slug: combat-bracelet
+      relationship: variant
+      description: Uncharged version
+    - item_id: 11118
+      item_name: Combat bracelet(4)
+      slug: combat-bracelet-4
+      relationship: variant
+      description: 4 charge version
+    - item_id: 7462
+      item_name: Barrows gloves
+      slug: barrows-gloves
+      relationship: upgrade
+      description: Best-in-slot gloves
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Stats
+
+No combat bonuses - utility item for teleportation.
+
+## Teleport Locations
+
+- Warriors' Guild
+- Champions' Guild
+- Monastery (Edgeville)
+- Ranging Guild
+
+## Charges
+
+| State | Charges |
+|-------|---------|
+| Current | 6 |
+| Maximum | 6 |
+
+## Obtaining
+
+Charge a Combat bracelet at the Fountain of Rune in the Wilderness.
+
+## Market Flip Strategy
+
+**Fully Charged Combat Bracelet:**
+- Maximum charges from Fountain of Rune
+- More efficient than 4-charge version
+- Popular for efficiency
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Demand Drivers:**
+- Warriors' Guild farming
+- Combat training efficiency
+- Ranging Guild access
+- Maximum charge seekers
+
+**Tips:**
+- Recharged at Fountain of Rune only for 6 charges
+- More value per teleport than combat bracelet(4)
+- Useful for defender farming runs
+
+<Adsense />

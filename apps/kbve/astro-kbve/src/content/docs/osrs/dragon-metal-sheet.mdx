@@ -1,0 +1,37 @@
+---
+title: Dragon metal sheet | OSRS Price Data
+description: "Dragon metal sheet: A very old sheet of dragon metal.. High alch: 30,000 GP, GE limit: 64."
+osrs:
+  id: 31996
+  name: Dragon metal sheet
+  slug: dragon-metal-sheet
+  examine: A very old sheet of dragon metal.
+  members: true
+  icon: Dragon metal sheet.png
+  value: 50000
+  lowalch: 20000
+  highalch: 30000
+  limit: 64
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,108 @@
+---
+title: Adamant warhammer | OSRS Price Data
+description: "Adamant warhammer is a F2P weapon slot item requiring 30 Attack. High alch: 2,472 GP, GE limit: 125."
+osrs:
+  id: 1345
+  name: Adamant warhammer
+  slug: adamant-warhammer
+  examine: I don't think it's intended for joinery.
+  members: false
+  icon: Adamant warhammer.png
+  value: 4120
+  lowalch: 1648
+  highalch: 2472
+  limit: 125
+  equipment:
+    slot: weapon
+    type: warhammer
+    tradeable: true
+    weight: 2.041
+    requirements:
+      attack: 30
+    stats:
+      attack_stab: -4
+      attack_slash: -4
+      attack_crush: 35
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 39
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1347
+      item_name: Rune warhammer
+      slug: rune-warhammer
+      relationship: upgrade
+      description: Higher tier warhammer
+    - item_id: 1430
+      item_name: Adamant mace
+      slug: adamant-mace
+      relationship: alternative
+      description: Alternative crush weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Warhammer |
+| Tradeable | Yes |
+| Weight | 2.041 kg |
+| Requirements | 30 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | -4 |
+| Slash Attack | -4 |
+| Crush Attack | +35 |
+| Strength | +39 |
+
+## Obtaining
+
+**Smithing:** 79 Smithing with 3 adamantite bars (187.5 XP).
+
+**Shop:** Vigr's Warhammers, Keldagrim.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~2,421 gp
+
+High-tier crush weapon. F2P accessible.
+
+## Related Items
+
+- [Rune warhammer](/osrs/rune-warhammer/) - Upgrade
+- [Adamant mace](/osrs/adamant-mace/) - Alternative crush
+
+<Adsense />

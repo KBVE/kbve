@@ -1,0 +1,37 @@
+---
+title: Gilded axe | OSRS Price Data
+description: "Gilded axe: A powerful axe.. High alch: 21,000 GP, GE limit: 4."
+osrs:
+  id: 23279
+  name: Gilded axe
+  slug: gilded-axe
+  examine: A powerful axe.
+  members: false
+  icon: Gilded axe.png
+  value: 35000
+  lowalch: 14000
+  highalch: 21000
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

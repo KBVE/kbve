@@ -1,0 +1,117 @@
+---
+title: Climbing boots (g) | OSRS Price Data
+description: "Climbing boots (g) is a members feet slot item. High alch: 45,000 GP, GE limit: 4."
+osrs:
+  id: 23413
+  name: Climbing boots (g)
+  slug: climbing-boots-g
+  examine: Boots made for climbing. Nice trim!
+  members: true
+  icon: Climbing boots (g).png
+  value: 75000
+  lowalch: 30000
+  highalch: 45000
+  limit: 4
+  equipment:
+    slot: feet
+    type: boots
+    tradeable: true
+    weight: 0.7
+    stats:
+      attack_stab: 0
+      attack_slash: 0
+      attack_crush: 2
+      defence_stab: 0
+      defence_slash: 1
+      defence_crush: 1
+      strength: 2
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Medium
+        drop_rate: Rare from reward casket
+  related_items:
+    - item_id: 3105
+      item_name: Climbing boots
+      slug: climbing-boots
+      relationship: downgrade
+      description: Non-gilded version
+    - item_id: 2577
+      item_name: Ranger boots
+      slug: ranger-boots
+      relationship: alternative
+      description: Same clue tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Feet |
+| Type | Boots |
+| Tradeable | Yes |
+| Weight | 0.7 kg |
+
+## Obtaining
+
+Reward from medium Treasure Trails.
+
+**Drop Rate:** Rare from reward casket (medium)
+
+## Stats
+
+| Bonus | Value |
+|-------|-------|
+| Crush attack | +2 |
+| Slash defence | +1 |
+| Crush defence | +1 |
+| Strength | +2 |
+
+## Comparison to Climbing Boots
+
+Same stats as regular climbing boots but with gold trim cosmetic.
+
+| Property | Climbing boots | Climbing boots (g) |
+|----------|---------------|-------------------|
+| Stats | Same | Same |
+| Appearance | Normal | Gold trimmed |
+| Source | Purchase | Medium clue |
+
+## Usage
+
+Cosmetic upgrade to climbing boots:
+- Same +2 strength bonus
+- Fashionscape item
+- Collection log item
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Medium clue exclusive
+- Purely cosmetic upgrade
+- Collection log hunters
+- Identical stats to regular version
+
+<Adsense />

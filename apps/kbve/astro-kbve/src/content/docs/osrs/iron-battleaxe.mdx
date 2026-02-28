@@ -1,0 +1,108 @@
+---
+title: Iron battleaxe | OSRS Price Data
+description: "Iron battleaxe is a F2P weapon slot item requiring 1 Attack. High alch: 109 GP, GE limit: 125."
+osrs:
+  id: 1363
+  name: Iron battleaxe
+  slug: iron-battleaxe
+  examine: A vicious looking axe.
+  members: false
+  icon: Iron battleaxe.png
+  value: 182
+  lowalch: 72
+  highalch: 109
+  limit: 125
+  equipment:
+    slot: weapon
+    type: battleaxe
+    tradeable: true
+    weight: 2.721
+    requirements:
+      attack: 1
+    stats:
+      attack_stab: -2
+      attack_slash: 8
+      attack_crush: 5
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 13
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  related_items:
+    - item_id: 1365
+      item_name: Steel battleaxe
+      slug: steel-battleaxe
+      relationship: upgrade
+      description: Higher tier battleaxe
+    - item_id: 1203
+      item_name: Iron sword
+      slug: iron-sword
+      relationship: alternative
+      description: Better accuracy alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Battleaxe |
+| Tradeable | Yes |
+| Weight | 2.721 kg |
+| Requirements | 1 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | -2 |
+| Slash Attack | +8 |
+| Crush Attack | +5 |
+| Strength | +13 |
+
+## Obtaining
+
+**Smithing:** 25 Smithing with 3 iron bars (75 XP).
+
+**Shop:** Bob's Brilliant Axes, Lumbridge.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~51 gp
+
+Early game battleaxe. F2P accessible.
+
+## Related Items
+
+- [Steel battleaxe](/osrs/steel-battleaxe/) - Upgrade
+- [Iron sword](/osrs/iron-sword/) - Better accuracy
+
+<Adsense />

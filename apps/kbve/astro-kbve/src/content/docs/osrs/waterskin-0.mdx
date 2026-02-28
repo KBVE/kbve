@@ -1,0 +1,37 @@
+---
+title: Waterskin(0) | OSRS Price Data
+description: "Waterskin(0): A completely empty waterskin - you'll need to fill it up.. High alch: 9 GP, GE limit: 10,000."
+osrs:
+  id: 1831
+  name: Waterskin(0)
+  slug: waterskin-0
+  examine: A completely empty waterskin - you'll need to fill it up.
+  members: true
+  icon: Waterskin(0).png
+  value: 15
+  lowalch: 6
+  highalch: 9
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

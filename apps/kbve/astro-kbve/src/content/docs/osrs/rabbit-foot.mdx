@@ -1,0 +1,37 @@
+---
+title: Rabbit foot | OSRS Price Data
+description: "Rabbit foot: This could be put on a string and worn for luck.. High alch: 18 GP, GE limit: 100."
+osrs:
+  id: 10134
+  name: Rabbit foot
+  slug: rabbit-foot
+  examine: This could be put on a string and worn for luck.
+  members: true
+  icon: Rabbit foot.png
+  value: 30
+  lowalch: 12
+  highalch: 18
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

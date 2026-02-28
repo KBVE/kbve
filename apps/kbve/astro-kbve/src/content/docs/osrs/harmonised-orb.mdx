@@ -1,0 +1,116 @@
+---
+title: Harmonised orb | OSRS Price Data
+description: "Harmonised orb: An ancient magical orb, corrupted by darkness.. High alch: 2,400,000 GP, GE limit: 8."
+osrs:
+  id: 24511
+  name: Harmonised orb
+  slug: harmonised-orb
+  examine: An ancient magical orb, corrupted by darkness.
+  members: true
+  icon: Harmonised orb.png
+  value: 4000000
+  lowalch: 1600000
+  highalch: 2400000
+  limit: 8
+  item:
+    type: upgrade material
+    tradeable: true
+    weight: 0.1
+  obtaining:
+    - source: The Nightmare
+      drop_rate: 1/960 to 1/548.7
+    - source: Phosani's Nightmare
+      drop_rate: 1/1,600
+  recipes:
+    - skill: crafting
+      level: 1
+      materials:
+        - item_id: 24511
+          item_name: Harmonised orb
+          quantity: 1
+        - item_id: 24422
+          item_name: Nightmare staff
+          quantity: 1
+      product: Harmonised nightmare staff
+      product_id: 24508
+  effect:
+    description: Allows casting standard spells at 4-tick speed instead of 5-tick
+    notes: Most valuable orb due to DPS increase
+  related_items:
+    - item_id: 24422
+      item_name: Nightmare staff
+      slug: nightmare-staff
+      relationship: component
+      description: Base weapon for upgrade
+    - item_id: 24508
+      item_name: Harmonised nightmare staff
+      slug: harmonised-nightmare-staff
+      relationship: product
+      description: Created weapon with faster casting
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Upgrade Material |
+| Tradeable | Yes |
+| Weight | 0.1 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| The Nightmare | 1/960 to 1/548.7 |
+| Phosani's Nightmare | 1/1,600 |
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Harmonised nightmare staff | Nightmare staff + Harmonised orb |
+
+## Effect on Staff
+
+Allows casting standard spells at 4-tick speed instead of 5-tick.
+
+Most valuable orb due to DPS increase.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~178M gp
+
+**Tips:**
+- Farm Nightmare/Phosani's
+- Most expensive orb
+- BiS for fire surge
+
+## Related Items
+
+- [The Nightmare](/osrs/the-nightmare/) - Boss source
+- [Nightmare staff](/osrs/nightmare-staff/) - Base weapon
+- [Harmonised nightmare staff](/osrs/harmonised-nightmare-staff/) - Created weapon
+
+<Adsense />

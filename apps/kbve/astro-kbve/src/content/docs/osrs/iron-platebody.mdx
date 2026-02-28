@@ -1,0 +1,91 @@
+---
+title: Iron platebody | OSRS Price Data
+description: "Iron platebody: Provides excellent protection.. High alch: 336 GP, GE limit: 125."
+osrs:
+  id: 1115
+  name: Iron platebody
+  slug: iron-platebody
+  examine: Provides excellent protection.
+  members: false
+  icon: Iron platebody.png
+  value: 560
+  lowalch: 224
+  highalch: 336
+  limit: 125
+  item_id: 1115
+  item_type: armor
+  slot: body
+  type: platebody
+  tradeable: true
+  weight: 9.979
+  requirements:
+    defence: 0
+  stats:
+    stab_defence: 21
+    slash_defence: 20
+    crush_defence: 12
+    ranged_defence: 20
+  related_items:
+    - slug: steel-platebody
+    - slug: iron-full-helm
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Platebody |
+| Tradeable | Yes |
+| Weight | 9.979 kg |
+| Requirements | None |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +21 |
+| Slash Defence | +20 |
+| Crush Defence | +12 |
+| Ranged Defence | +20 |
+
+## Obtaining
+
+**Smithing:** 33 Smithing with 5 iron bars (125 XP).
+
+**Shop:** Horvik's Armour Shop (560 gp).
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~77 gp
+
+Early game armor. F2P accessible.
+
+## Related Items
+
+- [Steel platebody](/osrs/steel-platebody/) - Upgrade
+- [Iron full helm](/osrs/iron-full-helm/) - Set piece
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Sandstone (1kg) | OSRS Price Data
+description: "Sandstone (1kg): A tiny chunk of sandstone.. High alch: 1 GP, GE limit: 100."
+osrs:
+  id: 6971
+  name: Sandstone (1kg)
+  slug: sandstone-1kg
+  examine: A tiny chunk of sandstone.
+  members: true
+  icon: Sandstone (1kg).png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

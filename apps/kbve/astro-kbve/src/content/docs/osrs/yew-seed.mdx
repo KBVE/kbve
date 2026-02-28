@@ -1,0 +1,132 @@
+---
+title: Yew seed | OSRS Price Data
+description: "Yew seed: Plant this in a plantpot of soil to grow a sapling.. High alch: 85 GP, GE limit: 200."
+osrs:
+  id: 5315
+  name: Yew seed
+  slug: yew-seed
+  examine: Plant this in a plantpot of soil to grow a sapling.
+  members: true
+  icon: Yew seed 5.png
+  value: 143
+  lowalch: 57
+  highalch: 85
+  limit: 200
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: true
+    weight: 0
+  skilling_source:
+    skill: farming
+    level: 60
+    xp: 81
+    growth_time: 390
+  drop_table:
+    sources:
+      - source: Bird nests (Woodcutting)
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Giant Mole (via Wyson)
+        source_id: 5779
+        combat_level: 230
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Kree'arra
+        source_id: 3162
+        combat_level: 580
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Vorkath
+        source_id: 8061
+        combat_level: 732
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+  related_items:
+    - item_id: 1515
+      item_name: Yew logs
+      slug: yew-logs
+      relationship: product
+      description: Woodcutting product
+    - item_id: 6016
+      item_name: Cactus spine
+      slug: cactus-spine
+      relationship: component
+      description: Protection payment (10)
+    - item_id: 5316
+      item_name: Magic seed
+      slug: magic-seed
+      relationship: upgrade
+      description: Higher tier option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Tree Seed |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 60 Farming |
+
+## Obtaining
+
+Common sources:
+- Bird nests (Woodcutting, Bird houses)
+- Managing Miscellania
+- Giant Mole (via Wyson exchange)
+- Boss drops (Kree'arra, Vorkath, Hespori)
+- Reward caskets
+
+## Usage
+
+Plant in **tree patches** to grow yew trees.
+
+**Growth Time:** ~6.5 hours
+
+**Payment:** 10 cactus spines (optional protection)
+
+**XP:** 81 (planting) + 7,069.9 (check-health)
+
+## Market Strategy
+
+**Buy Limit:** 200 per 4 hours
+
+**Price:** ~16k gp
+
+Popular mid-level tree seed. Good balance of cost and Farming XP.
+
+## Related Items
+
+- [Yew logs](/osrs/yew-logs/) - Woodcutting product
+- [Cactus spine](/osrs/cactus-spine/) - Protection payment
+- [Magic seed](/osrs/magic-seed/) - Higher tier option
+
+<Adsense />

@@ -1,0 +1,116 @@
+---
+title: Grimy snapdragon | OSRS Price Data
+description: "Grimy snapdragon: It needs cleaning.. High alch: 12 GP, GE limit: 11,000."
+osrs:
+  id: 3051
+  name: Grimy snapdragon
+  slug: grimy-snapdragon
+  examine: It needs cleaning.
+  members: true
+  icon: Grimy snapdragon.png
+  value: 21
+  lowalch: 8
+  highalch: 12
+  limit: 11000
+  herb:
+    type: grimy
+    tier: high
+  herblore:
+    cleaning_level: 59
+    cleaning_xp: 11.8
+    clean_id: 3000
+    clean_name: Snapdragon
+  farming:
+    level: 62
+    seed_id: 5300
+    seed_name: Snapdragon seed
+  drop_table:
+    sources:
+      - source: Aberrant spectre
+        source_id: 2927
+        combat_level: 96
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 3000
+      item_name: Snapdragon
+      slug: snapdragon
+      relationship: product
+      description: Cleaned version
+    - item_id: 3026
+      item_name: Super restore(3)
+      slug: super-restore-3
+      relationship: product
+      description: End product
+    - item_id: 223
+      item_name: Red spiders' eggs
+      slug: red-spiders-eggs
+      relationship: component
+      description: Secondary
+    - item_id: 5300
+      item_name: Snapdragon seed
+      slug: snapdragon-seed
+      relationship: component
+      description: Farming seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Monster drops | Various |
+| Farming | 62 Farming |
+| Aberrant spectres | Common |
+| Herbiboar | 80 Hunter |
+
+## Cleaning
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 59 |
+| XP | 11.8 |
+| Product | Snapdragon |
+
+## Market Flip Strategy
+
+**Herb Cleaning Profit:**
+- Buy grimy → Clean → Sell
+- Calculate profit margin
+- High value herb
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Herb cleaning profit
+- Super restore production
+- Ironman accounts
+- Herblore training
+
+**Tips:**
+- Often cheaper than clean
+- Quick bank cleaning
+- Check price spread
+- Super restore demand
+
+<Adsense />

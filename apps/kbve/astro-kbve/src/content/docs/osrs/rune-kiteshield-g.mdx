@@ -1,0 +1,37 @@
+---
+title: Rune kiteshield (g) | OSRS Price Data
+description: "Rune kiteshield (g): Rune kiteshield with gold trim.. High alch: 32,640 GP, GE limit: 8."
+osrs:
+  id: 2621
+  name: Rune kiteshield (g)
+  slug: rune-kiteshield-g
+  examine: Rune kiteshield with gold trim.
+  members: false
+  icon: Rune kiteshield (g).png
+  value: 54400
+  lowalch: 21760
+  highalch: 32640
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Keg of beer | OSRS Price Data
+description: "Keg of beer: A lot of beer in a barrel.. High alch: 150 GP, GE limit: 2,000."
+osrs:
+  id: 3801
+  name: Keg of beer
+  slug: keg-of-beer
+  examine: A lot of beer in a barrel.
+  members: true
+  icon: Keg of beer.png
+  value: 250
+  lowalch: 100
+  highalch: 150
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

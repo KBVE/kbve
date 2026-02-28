@@ -1,0 +1,154 @@
+---
+title: Dragon halberd | OSRS Price Data
+description: "Dragon halberd is a members two-handed weapon requiring 60 Attack. High alch: 150,000 GP, GE limit: 70."
+osrs:
+  id: 3204
+  name: Dragon halberd
+  slug: dragon-halberd
+  examine: A dragon halberd.
+  members: true
+  icon: Dragon halberd.png
+  value: 250000
+  lowalch: 100000
+  highalch: 150000
+  limit: 70
+  equipment:
+    slot: 2h
+    type: halberd
+    attack_style: melee
+    attack_speed: 7
+    attack_range: 2
+    requirements:
+      attack: 60
+      strength: 30
+      quest: Regicide
+    stats:
+      attack_stab: 70
+      attack_slash: 95
+      attack_magic: -4
+      strength: 89
+    special_attack:
+      name: Sweep
+      energy: 30
+      effect: +10% damage, hits large monsters twice, multi-target
+  drop_table:
+    sources:
+      - source: Tyras Camp shop
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: 325K gp
+        members_only: true
+      - source: Zulrah
+        source_id: 2044
+        combat_level: 725
+        quantity: "1"
+        rarity: 1/1,024
+        members_only: true
+      - source: The Gauntlet
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: Rare
+        members_only: true
+  related_items:
+    - item_id: 23987
+      item_name: Crystal halberd
+      slug: crystal-halberd
+      relationship: upgrade
+      description: Upgrade
+    - item_id: 4151
+      item_name: Abyssal whip
+      slug: abyssal-whip
+      relationship: alternative
+      description: Main weapon
+    - item_id: 22978
+      item_name: Scythe of vitur
+      slug: scythe-of-vitur
+      relationship: upgrade
+      description: BiS alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Melee - Slash |
+| Tradeable | Yes |
+| Weight | 3.175 kg |
+| Attack Speed | 7 tick (4.2s) |
+| Range | 2 tiles |
+
+## Obtaining
+
+| Source | Method |
+|--------|--------|
+| Tyras Camp | 325K gp (post-Regicide) |
+| Zulrah | Drop |
+| The Gauntlet | Drop |
+| Master clues | Reward |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +70 |
+| Slash | +95 |
+| Magic | -4 |
+| Strength | +89 |
+
+| Defence | Value |
+|---------|-------|
+| All | +0 |
+
+**Requirements:** 60 Attack, 30 Strength, Regicide
+
+## Special Attack
+
+**Sweep** (30% energy):
+- +10% damage
+- Second hit on large monsters (2x2+)
+- Hits up to 10 NPCs / 3 players in multi
+
+## Usage
+
+Popular for:
+- CoX (Tekton)
+- Large monster specs
+- Multi-target situations
+
+**Budget alternative to Crystal halberd.**
+
+## Market Strategy
+
+**Buy Limit:** 70 per 4 hours
+
+**Price:** ~200K gp
+
+**Tips:**
+- Regicide required
+- Great spec weapon
+- Upgrade to crystal halberd
+
+<Adsense />

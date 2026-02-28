@@ -1,0 +1,107 @@
+---
+title: Supercompost | OSRS Price Data
+description: "Supercompost: Super-good for the smallest or largest of plants.. High alch: 51 GP, GE limit: 2,000."
+osrs:
+  id: 6034
+  name: Supercompost
+  slug: supercompost
+  examine: Super-good for the smallest or largest of plants.
+  members: true
+  icon: Supercompost.png
+  value: 85
+  lowalch: 34
+  highalch: 51
+  limit: 2000
+  item_id: 6034
+  type: farming_material
+  tradeable: true
+  weight: 3
+  buy_limit: 2000
+  requirements:
+    skills: []
+  obtaining:
+    primary:
+      method: Compost Bin
+      details: Fill with 15 suitable items (watermelons, herbs)
+    upgrade:
+      method: Compost Potion
+      details: Upgrade regular compost
+    shop:
+      name: Farmer Gricoller's Rewards
+      price: 5
+    drops:
+      - Zygomites
+      - Wilderness bosses
+  usage:
+    farming:
+      disease_reduction: 5/128
+      yield_increase: true
+  related_items:
+    - slug: ultracompost
+      name: Ultracompost
+      relation: higher_tier
+    - slug: compost-potion
+      name: Compost potion
+      relation: upgrade_method
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Farming Material |
+| Tradeable | Yes |
+| Weight | 3 kg |
+| Requirements | None |
+
+## Obtaining
+
+**Compost Bin:** Fill with 15 suitable items (watermelons, herbs).
+
+**Compost Potion:** Upgrade regular compost.
+
+**Shop:** Farmer Gricoller's Rewards (5 gp each).
+
+**Drops:** Zygomites, wilderness bosses.
+
+## Usage
+
+Reduces crop disease rate to 5/128.
+
+Increases herb yield compared to regular compost.
+
+## Market Strategy
+
+**Buy Limit:** 2,000 per 4 hours
+
+**Price:** ~23 gp
+
+Essential farming item. High volume.
+
+## Related Items
+
+- [Ultracompost](/osrs/ultracompost/) - Higher tier
+- [Compost potion](/osrs/compost-potion/) - Upgrade method
+
+<Adsense />

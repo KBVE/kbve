@@ -1,0 +1,149 @@
+---
+title: 'January: 11'
+category: Daily
+date: 2026-01-11 12:00:00
+client: Self
+unsplash: 1704231208356-7dab9d91e60a
+img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 11th of each year!
+tags:
+    - daily
+---
+
+
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+## Notes
+
+## 2026
+
+### Handy Tools
+
+-   01:15AM
+
+    An application that would one that we keep running as a personal discord bot that does work for me.
+    Yet each time I try to build around it, there are still issues that I keep running into, like is it even worth the time.
+    
+
+## 2025
+
+-   **Supabase**
+
+    12:06AM
+        The goal for the rest of the night is to configure the go true external auth for discord but also make sure that the callbacks work.
+        Okay, so lets look through the different areas that we need to adjust for!
+        First we need to update the `GOTRUE_JWT_ADMIN_ROLES` to include the `supabase_admin` as well.
+        All of these edits will be in `migrations/kube/charts/kilobase/supabase/values.yaml` at the start and we can work from there.        
+
+-   **JWT**
+
+    12:25AM
+
+        While working on the external supabase configuration, I also wanted to work on the JWT for the `pydiscordsh`.
+        After looking through the examples, it seems we would setup different `APIRouters`, the three main ones will be:
+
+            -   `/v1/discord/`
+            -   `/v1/admin/`
+            -   `/v1/users/`
+    
+        I am also thinking we could do some other routes, maybe `/v1/tags/` and `/v1/category/` ?
+        We are not yet fully limited to these but they will make it easier for us to build around.
+
+        It would look something like this:
+
+        ```python
+
+        admin_router = APIRouter(prefix="/v1/admin", tags=["Admin"])
+
+        def verify_admin_jwt(credentials: HTTPAuthorizationCredentials = Depends(security)):
+            """
+            Dependency for protecting routes under admin access using Kilobase.
+            """
+            token = credentials.credentials
+            try:
+                kilobase.verify_admin_jwt(token)
+            except ValueError as e:
+                raise HTTPException(status_code=403, detail=str(e))
+
+        # Admin Protected Routes
+        @admin_router.get("/health-status", dependencies=[Depends(verify_admin_jwt)])
+        def admin_health_status():
+            """Check Supabase health status."""
+            return kilobase.health_status()
+
+        @admin_router.get("/users", dependencies=[Depends(verify_admin_jwt)])
+        def get_admin_users():
+            """Fetch all admin users."""
+            # Example placeholder for fetching admin users
+            return {"users": kilobase.get_user_by_id("some_user_id")}
+
+        @admin_router.post("/add-category", dependencies=[Depends(verify_admin_jwt)])
+        def admin_add_category(category: str):
+            """Add a new category."""
+            return {"message": f"Category '{category}' added successfully"}
+
+        ```
+
+        Then we can work around exactly how we want to handle some of the routes and concepts.
+
+-   **Unity**
+
+    04:01PM
+
+        I believe we are finishing up the abilities from where we last left off.
+
+## 2024
+
+-   11:30am - `Paladin`
+
+    ### Paladin
+
+        I decided to make a Paladin within the Season of Discovery!
+        I am thinking of making the character a bit like ThorSoul from my DnD campaign but maybe use it as a creative tool.
+        Nothing is more classic than role playing as a Paladin in low level WoW.
+
+-   1:20pm - `Sync`
+
+    #### Sync
+
+        The monorepo branches are a bit out of sync amoung all my computers, with my mac book being well over `200` commits in the `cherryhole`.
+        I will have to slowly bring all the repos up to date and that will require me to really think about how I would manage the `apps` and `packages`.
+        Should I place the `embeds` into their own eco-system, should I have a multi-cluster mono-repo?
+        These are questions that I had not thought about but it would be interesting to see how this year will go with this monorepo.
+
+-   2:30pm - `state`
+
+    #### State
+
+        Refactor the `applicationstate.rs` into the state module, this way I can have multiple states that I would like to use for future applications.
+        The state module for the `erust` will be broken into these areas:
+
+            -   `user`
+                - The User State will keep all the generic user information for the WASM.
+
+            -   `ui`
+                - User Interface State will keep all the UI settings for the WASM.
+
+            -   `network`
+                - Network State will handle the state management for the networking, HTTP, WebSockets, gRPC and a couple other nifty features.
+
+            -   `device`
+                - Device State will handle the general device settings, this could be included inside of the `ui` but I feel like it could be isolated, in the instance of future IoT devices.
+
+        I am thinking that it might make more sense to have the states get generated automatically using the Diesel extension.
+        Okay the CLI would generate the erust dbmodels, now I would have to swap out the parts within the generated structs , to then match it with the way that I would call them in erust?!.
+        
+---
+
+## Quote
+
+> “.”
+> — <cite></cite>
+
+---
+
+## Tasks
+
+-   [x] -   No Tasks!

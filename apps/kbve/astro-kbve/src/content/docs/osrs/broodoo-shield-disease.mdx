@@ -1,0 +1,37 @@
+---
+title: Broodoo shield (disease) | OSRS Price Data
+description: "Broodoo shield (disease): A scary broodoo shield.. High alch: 1,800 GP, GE limit: 125."
+osrs:
+  id: 6257
+  name: Broodoo shield (disease)
+  slug: broodoo-shield-disease
+  examine: A scary broodoo shield.
+  members: true
+  icon: Broodoo shield (disease).png
+  value: 3000
+  lowalch: 1200
+  highalch: 1800
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

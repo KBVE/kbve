@@ -1,0 +1,109 @@
+---
+title: Mithril mace | OSRS Price Data
+description: "Mithril mace is a F2P weapon slot item requiring 20 Attack. High alch: 351 GP, GE limit: 125."
+osrs:
+  id: 1428
+  name: Mithril mace
+  slug: mithril-mace
+  examine: A spiky mace.
+  members: false
+  icon: Mithril mace.png
+  value: 585
+  lowalch: 234
+  highalch: 351
+  limit: 125
+  equipment:
+    slot: weapon
+    type: mace
+    tradeable: true
+    weight: 1.587
+    requirements:
+      attack: 20
+    stats:
+      attack_stab: 11
+      attack_slash: -2
+      attack_crush: 18
+      attack_magic: 0
+      attack_ranged: 0
+      defence_stab: 0
+      defence_slash: 0
+      defence_crush: 0
+      defence_magic: 0
+      defence_ranged: 0
+      strength: 16
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 3
+  related_items:
+    - item_id: 1430
+      item_name: Adamant mace
+      slug: adamant-mace
+      relationship: upgrade
+      description: Higher tier mace
+    - item_id: 1343
+      item_name: Mithril warhammer
+      slug: mithril-warhammer
+      relationship: alternative
+      description: Higher strength alternative
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Mace |
+| Tradeable | Yes |
+| Weight | 1.587 kg |
+| Requirements | 20 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +11 |
+| Slash Attack | -2 |
+| Crush Attack | +18 |
+| Strength | +16 |
+| Prayer | +3 |
+
+## Obtaining
+
+**Smithing:** 52 Smithing with 1 mithril bar (50 XP).
+
+**Shop:** Flynn's Mace Market, Falador.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~164 gp
+
+Mid-tier mace. Good prayer bonus. F2P accessible.
+
+## Related Items
+
+- [Adamant mace](/osrs/adamant-mace/) - Upgrade
+- [Mithril warhammer](/osrs/mithril-warhammer/) - Higher strength
+
+<Adsense />

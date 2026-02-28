@@ -1,0 +1,37 @@
+---
+title: Spiked manacles | OSRS Price Data
+description: "Spiked manacles is a members-only OSRS item. High alch: 1,500 GP, GE limit: 8."
+osrs:
+  id: 23389
+  name: Spiked manacles
+  slug: spiked-manacles
+  examine: Some very spikey metal bands, better make sure I don't cut myself while walking.
+  members: true
+  icon: Spiked manacles.png
+  value: 2500
+  lowalch: 1000
+  highalch: 1500
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

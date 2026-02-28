@@ -1,0 +1,37 @@
+---
+title: Rainbow fish | OSRS Price Data
+description: "Rainbow fish: Well, this would certainly add some colour to a meal.. High alch: 72 GP, GE limit: 6,000."
+osrs:
+  id: 10136
+  name: Rainbow fish
+  slug: rainbow-fish
+  examine: Well, this would certainly add some colour to a meal.
+  members: true
+  icon: Rainbow fish.png
+  value: 120
+  lowalch: 48
+  highalch: 72
+  limit: 6000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

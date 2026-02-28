@@ -1,0 +1,135 @@
+---
+title: Earth rune | OSRS Price Data
+description: "Earth rune: One of the 4 basic elemental Runes.. High alch: 2 GP, GE limit: 50,000."
+osrs:
+  id: 557
+  name: Earth rune
+  slug: earth-rune
+  examine: One of the 4 basic elemental Runes.
+  members: false
+  icon: Earth rune.png
+  value: 4
+  lowalch: 1
+  highalch: 2
+  limit: 50000
+  rune:
+    type: elemental
+    element: earth
+  runecraft:
+    level: 9
+    xp: 6.5
+    multiple_at: 26
+    altar: Earth Altar
+    altar_location: Northeast of Varrock
+    essence_type: any
+  shops:
+    - shop_name: Rune shops
+      stock: Unlimited
+      price: 17
+  recipes:
+    - skill: runecraft
+      level: 9
+      xp: 6.5
+      materials:
+        - item_name: Rune essence
+          item_id: 1436
+          quantity: 1
+      product: Earth rune
+      product_id: 557
+      product_quantity: 1
+      facility: Earth altar
+  related_items:
+    - item_id: 556
+      item_name: Air rune
+      slug: air-rune
+      relationship: alternative
+      description: Elemental rune
+    - item_id: 554
+      item_name: Fire rune
+      slug: fire-rune
+      relationship: alternative
+      description: Elemental rune
+    - item_id: 555
+      item_name: Water rune
+      slug: water-rune
+      relationship: alternative
+      description: Elemental rune
+    - item_id: 564
+      item_name: Cosmic rune
+      slug: cosmic-rune
+      relationship: component
+      description: For orb charging
+    - item_id: 1385
+      item_name: Staff of earth
+      slug: staff-of-earth
+      relationship: alternative
+      description: Unlimited earth runes
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Runecrafting
+
+| Requirement | Value |
+|-------------|-------|
+| Runecraft Level | 9 |
+| XP per rune | 6.5 |
+| Runes per essence | 1 (8 at 99) |
+
+**Multipliers (every 26 levels):**
+- Level 26: 2x runes
+- Level 52: 3x runes
+- Level 78: 4x runes
+
+## Key Spells
+
+| Spell | Earth Runes | Other Runes |
+|-------|-------------|-------------|
+| Earth Strike | 2 | 1 Air, 1 Mind |
+| Earth Bolt | 3 | 2 Air, 1 Chaos |
+| Earth Blast | 4 | 3 Air, 1 Death |
+| Earth Wave | 7 | 5 Air, 1 Blood |
+| Earth Surge | 10 | 7 Air, 1 Wrath |
+| Bones to Bananas | 2 | 1 Nature, 2 Water |
+| Magic Imbue | 7 | 2 Astral, 1 Fire |
+
+## Market Flip Strategy
+
+**Utility Rune:**
+- Used in many utility spells
+- Charge earth orb
+- Bones to Peaches tablets
+
+**Buy Limit:** 50,000 per 4 hours
+
+**Demand Drivers:**
+- Charge Earth Orb
+- Magic Imbue spell
+- Earth spells
+- Bones to Peaches
+
+**Tips:**
+- Staff of earth saves runes
+- Mud/Dust battlestaff combos
+- Lower demand than fire/water
+- Earth orbs for battlestaves
+
+<Adsense />

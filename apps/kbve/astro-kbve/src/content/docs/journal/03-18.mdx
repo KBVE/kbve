@@ -1,0 +1,84 @@
+---
+title: 'March: 18'
+category: Daily
+date: 2025-03-18 12:00:00
+client: Self
+unsplash: 1615563821068-a15bbe32b305
+img: https://images.unsplash.com/photo-1615563821068-a15bbe32b305?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+    18th of March.
+tags:
+    - daily
+---
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+
+
+## Notes
+
+## 2025
+
+### Github Crate Matrix
+
+-   01:20PM
+
+    Damn matrix seems to fail when building a json query, the issue seems that if all the crates are false for publishing, it produces an invalid json object.
+    However, the first solution would be to include a simple patch to include a placeholder object, thus I will try that first.
+
+### KBVE Fork v1
+
+-   01:53PM
+
+    Forking the whole monorepo and working on it under `h0lybyte` is the goal for this Q2.
+    If everything goes as planned, then we can look at the azure and gitlab pipelines afterwards, ideally making it so the monorepo can stay replicated in multiple locations.
+    The repo structure will be like this:
+    
+    1.  Github for Public.
+    2.  Gitlab for Private Teams + Outside Developers - focus on backend applications.
+    3.  Azure for Private Internal + Code for non-monorepo behaviors, like Unity.
+
+    Provides us with the flexibility of an open source nature with the perks of private source integrations.
+
+## 2024
+
+
+### Multiplayer
+
+I decided to take a short break from the pathing issue and look at how I would want to implement a multiplayer.
+We know that the discord embed sdk comes out today!
+
+
+---
+
+
+### Colyseus
+
+I am going to start the test casing for the Colyseus example and get a general test case out there for production.
+
+The start of these notes will be within this [repo](https://github.com/discord/embedded-app-sdk/tree/main/examples/react-colyseus) for start of the project.
+
+So the outline of the App stack would be like this:
+
+- React
+- Phaser
+- Colyseus
+
+Plugins: 
+
+- Enabled3D , this being optional.
+- Grid Engine, this being optional.
+
+
+
+---
+
+
+### Embed
+
+The Discord Embed App Pitch 2024 starts within a month, but they are doing a small `buildathon` this week!
+I am thinking that it would make sense to first go through the `buildathon` and make a moch application, this will help us debug any issues that might come up during the pitch.
+
+I am going to write out the notes and think about how I should prepare and deploy the `Wumpus Wumbo party` an the first test case for the jam and using that as the test case. This includes loading any and all of the "abstractions".
+During this process, I noted that the pathing is not working as expected, but it seems that Discord uses a reverse proxy for the pathing of the assets.

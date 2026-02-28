@@ -1,0 +1,37 @@
+---
+title: Odium shard 3 | OSRS Price Data
+description: "Odium shard 3: A broken shield piece.. High alch: 18,600 GP, GE limit: 10,000."
+osrs:
+  id: 11930
+  name: Odium shard 3
+  slug: odium-shard-3
+  examine: A broken shield piece.
+  members: true
+  icon: Odium shard 3.png
+  value: 31000
+  lowalch: 12400
+  highalch: 18600
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

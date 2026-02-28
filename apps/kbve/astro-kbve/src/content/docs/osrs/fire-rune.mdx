@@ -1,0 +1,137 @@
+---
+title: Fire rune | OSRS Price Data
+description: "Fire rune: One of the 4 basic elemental Runes.. High alch: 2 GP, GE limit: 50,000."
+osrs:
+  id: 554
+  name: Fire rune
+  slug: fire-rune
+  examine: One of the 4 basic elemental Runes.
+  members: false
+  icon: Fire rune.png
+  value: 4
+  lowalch: 1
+  highalch: 2
+  limit: 50000
+  rune:
+    type: elemental
+    element: fire
+  runecraft:
+    level: 14
+    xp: 7
+    multiple_at: 35
+    altar: Fire Altar
+    altar_location: Al Kharid
+    essence_type: any
+  shops:
+    - shop_name: Rune shops
+      stock: Unlimited
+      price: 17
+    - shop_name: TzHaar shops
+      stock: Unlimited
+      price: 6 Tokkul
+  recipes:
+    - skill: runecraft
+      level: 14
+      xp: 7
+      materials:
+        - item_name: Rune essence
+          item_id: 1436
+          quantity: 1
+      product: Fire rune
+      product_id: 554
+      product_quantity: 1
+      facility: Fire altar
+  related_items:
+    - item_id: 556
+      item_name: Air rune
+      slug: air-rune
+      relationship: alternative
+      description: Elemental rune
+    - item_id: 555
+      item_name: Water rune
+      slug: water-rune
+      relationship: alternative
+      description: Elemental rune
+    - item_id: 557
+      item_name: Earth rune
+      slug: earth-rune
+      relationship: alternative
+      description: Elemental rune
+    - item_id: 561
+      item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: For alchemy
+    - item_id: 20714
+      item_name: Tome of fire
+      slug: tome-of-fire
+      relationship: alternative
+      description: Unlimited fire runes
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Runecrafting
+
+| Requirement | Value |
+|-------------|-------|
+| Runecraft Level | 14 |
+| XP per rune | 7 |
+| Runes per essence | 1 (7 at 91) |
+
+**Multipliers (every 35 levels):**
+- Level 35: 2x runes
+- Level 70: 3x runes
+
+## Key Spells
+
+| Spell | Fire Runes | Other Runes |
+|-------|------------|-------------|
+| Fire Strike | 3 | 2 Air, 1 Mind |
+| Fire Bolt | 4 | 3 Air, 1 Chaos |
+| Fire Blast | 5 | 4 Air, 1 Death |
+| Fire Wave | 7 | 5 Air, 1 Blood |
+| Fire Surge | 10 | 7 Air, 1 Wrath |
+| High Alchemy | 5 | 1 Nature |
+| Superheat Item | 4 | 1 Nature |
+
+## Market Flip Strategy
+
+**Essential Consumable:**
+- High Level Alchemy uses 5 per cast
+- Fire Surge most popular combat spell
+- Smithing via Superheat
+
+**Buy Limit:** 50,000 per 4 hours
+
+**Demand Drivers:**
+- High Alchemy (money making)
+- Fire Surge (PvM meta)
+- Superheat Item (Smithing)
+- Charge Fire Orb
+
+**Tips:**
+- Tome of Fire provides unlimited
+- Staff of fire saves runes
+- TzHaar shops cheap with Tokkul
+- Price stable due to high supply
+
+<Adsense />

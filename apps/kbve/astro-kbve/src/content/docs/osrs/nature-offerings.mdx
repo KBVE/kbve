@@ -1,0 +1,37 @@
+---
+title: Nature offerings | OSRS Price Data
+description: "Nature offerings: A sacrifice to nature in the hope of an increase of yield in logs.. High alch: 12 GP."
+osrs:
+  id: 28152
+  name: Nature offerings
+  slug: nature-offerings
+  examine: A sacrifice to nature in the hope of an increase of yield in logs.
+  members: true
+  icon: Nature offerings.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

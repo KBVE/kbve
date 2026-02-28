@@ -1,0 +1,37 @@
+---
+title: Zamorak d'hide shield | OSRS Price Data
+description: "Zamorak d'hide shield: Zamorak blessed wooden shield covered in dragon leather.. High alch: 17,000 GP, GE limit: 8."
+osrs:
+  id: 23194
+  name: Zamorak d'hide shield
+  slug: zamorak-d-hide-shield
+  examine: Zamorak blessed wooden shield covered in dragon leather.
+  members: true
+  icon: Zamorak d'hide shield.png
+  value: 28334
+  lowalch: 11333
+  highalch: 17000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

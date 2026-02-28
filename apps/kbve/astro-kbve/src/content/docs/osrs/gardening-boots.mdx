@@ -1,0 +1,37 @@
+---
+title: Gardening boots | OSRS Price Data
+description: "Gardening boots: A pair of gardening boots.. High alch: 15 GP, GE limit: 150."
+osrs:
+  id: 5345
+  name: Gardening boots
+  slug: gardening-boots
+  examine: A pair of gardening boots.
+  members: true
+  icon: Gardening boots.png
+  value: 25
+  lowalch: 10
+  highalch: 15
+  limit: 150
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

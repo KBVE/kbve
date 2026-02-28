@@ -1,0 +1,123 @@
+---
+title: Wyvern visage | OSRS Price Data
+description: "Wyvern visage: It looks like this could be attached to a shield somehow.. High alch: 450,000 GP, GE limit: 5."
+osrs:
+  id: 21637
+  name: Wyvern visage
+  slug: wyvern-visage
+  examine: It looks like this could be attached to a shield somehow.
+  members: true
+  icon: Wyvern visage.png
+  value: 750000
+  lowalch: 300000
+  highalch: 450000
+  limit: 5
+  material:
+    type: visage
+    tradeable: true
+    weight: 0.907
+  drop_table:
+    sources:
+      - source: Ancient wyvern
+        rate: 1/10,000
+      - source: Long-tailed wyvern
+        rate: 1/10,000
+      - source: Spitting wyvern
+        rate: 1/10,000
+      - source: Taloned wyvern
+        rate: 1/12,000
+  uses:
+    - result_id: 21634
+      result_name: Ancient wyvern shield
+      method: Combine with elemental shield at Strange Machine
+      location: House on the Hill
+      requirements:
+        magic: 66
+        smithing: 66
+  market:
+    buy_limit: 5
+    price_estimate: 25500000
+  related_items:
+    - item_id: 21634
+      item_name: Ancient wyvern shield
+      slug: ancient-wyvern-shield
+      relationship: product
+      description: Created item
+    - item_id: 2890
+      item_name: Elemental shield
+      slug: elemental-shield
+      relationship: component
+      description: Required component
+    - item_id: 22006
+      item_name: Skeletal visage
+      slug: skeletal-visage
+      relationship: alternative
+      description: Similar drop
+    - item_id: 11286
+      item_name: Draconic visage
+      slug: draconic-visage
+      relationship: alternative
+      description: Similar drop
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A (Material) |
+| Type | Boss Drop |
+| Tradeable | Yes |
+| Weight | 0.907 kg |
+
+## Obtaining
+
+Very rare drop from **Fossil Island Wyverns** in the Wyvern Cave:
+- Ancient wyvern: 1/10,000
+- Long-tailed wyvern: 1/10,000
+- Spitting wyvern: 1/10,000
+- Taloned wyvern: 1/12,000
+
+## Usage
+
+Combine with an **elemental shield** at the Strange Machine (House on the Hill).
+
+**Requirements:** 66 Magic and 66 Smithing.
+
+Creates: [Ancient wyvern shield](/osrs/ancient-wyvern-shield/)
+
+## Market Strategy
+
+**Buy Limit:** 5 per 4 hours
+
+**Price:** ~25.5M gp
+
+Low volume, high value item. Monitor price trends carefully.
+
+## Related Items
+
+- [Ancient wyvern shield](/osrs/ancient-wyvern-shield/) - Created item
+- [Elemental shield](/osrs/elemental-shield/) - Required component
+- [Skeletal visage](/osrs/skeletal-visage/) - Similar drop
+- [Draconic visage](/osrs/draconic-visage/) - Similar drop
+
+<Adsense />

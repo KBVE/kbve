@@ -1,0 +1,98 @@
+---
+title: 'September: 23rd'
+category: Daily
+date: 2025-09-23 12:00:00
+client: Self
+unsplash: 1692387164064-5678bd9f1ff3
+img: https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 23rd. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Intel NUCS Talos
+
+-   12:50PM
+
+    One of the moves to expand our talos cluster will be to setup a bunch of intel nucs with talos configured.
+    I am thinking of making them all steady worker nodes that our main cloud can call and have it perform tasks on our behalf.
+    With the minor cpu power and okayish ram, I am thinking they would be great throw-away micronodes, perfect for one-off python scripts.
+
+## 2024
+
+**KILO**
+
+Time to launch the big bad wolf!
+I believe the Armada instance is good to go for now, with the sealed operator and the base internal redis.
+We can wrap back around to usage and communication of that based redis for another project but for now, we can look at launching the kilobase instance.
+
+Now we need to go back around and start to seal up more of the core secrets that we want to use.
+For the sealed secrets, we want to start with the basic ones that we had built earlier from the docker swarm.
+The first step in this process will be to deploy out the roles!
+To avoid a bunch of failure and cpu usage of repeated deployment attempts, I believe it would make sense to disable all additional service.
+We will focus on getting each of the core services up and running one at a time, with the kilobase fork of the database being the primary focus.
+The cnpg operator is currently installed outside of this fleet and it operates within its own namespace, but will it be able to communicate with our supabase namespace?
+
+**Fleet**
+
+We will go ahead and delete the previous fleet deployment of `supabase` that we had and work on a new setup.
+This new fleet will include the n8n integration but none of the hqplan / atlas images for now!
+I believe for safety concerns, we will have those containers operate within their own closed system that we will be able to deploy through the supabase functions.
+
+
+**n8n**
+
+Adding the n8n chart will make our lives a bit easier to integrate and build around.
+Now a bit of a crazier thing that we will be doing is directly having the n8n database integrate with our supabase postgres database.
+The logic isnt too sound behind this decision but I have a couple cool concepts that I want to explore, including expanding the rust extension for Postgres to utilize the n8n.
+Actually the errors that we are getting for this chart is starting to get a bit annoying, so we are going back off on it for now.
+
+**Seal**
+
+Now the fun of encrpyting all the secrets in bulk, then preparing to deploy them into the kilobase release.
+We will use the command that we made earlier for armada. 
+
+```shell
+
+kubectl create secret generic supabase-secret-jwt --from-literal=redis-password=<new-password> --namespace supabase --dry-run=client -o yaml > temp-secret.yaml
+kubeseal --controller-name=sealed-secrets --controller-namespace=supabase < temp-secret.yaml > sealed-temp-secret.yaml
+
+```
+
+Instead of running this command multiple times, it would be wise to throw it all into a shell file for us to use.
+We should split it into functions then have a main function that runs those nested functions that we create.
+The first function would be to double check if the inputs are there, the second function should make sure that the commands kubectl and kubeseal are there.
+The thrid would handle the kubectl dry run client and output the temp. The fourth function would handle the kubeseal and output the sealed-temp-secret.yaml
+The fifth function would cleanup the two files that get made, hmm sounds like a good plan for now.
+
+The sealed function will be in a new file called `generate-sealed-secret.sh`, which we will place inside of the `tools/scripts/public/kube/etc/` folder.
+For building out this function, I will just ask gpt to do the core of the function, then make changes to fit my needs!
+Once the shell script works in the way that I like, I will extend the shell script into the nx run commands too, making it a bit easier to utilize in the future.
+
+**Nil**
+
+Looks like the current major failure is in our minio template, there seems to be some nil errors that are getting thrown around.
+After resolving those errors, we got some more errors in the `executing "supabase/templates/cnpg-kilobase-postgres.yaml"`, going to see what this nil error is from.
+I should create a new journal entry to keep track of the changes.
+
+
+## 2023
+- 6:35am - The mornings are getting cold, yes! No more ac and I can finally blast some of my PCs to max! Using my computers as a source of heat will always be OP.
+- 7:00pm - I forgot to convert over my written notes to digital! I been trying to figure out the phaser engine for a bit and getting some luck in resolving some of the basic issues.
+- 8:35pm - I am super excited for the next season of one piece, which will most definitely be a couple years from now with all the strikes and what not, but it gives me time to catch up on the general one piece series. 
+- 11:40pm - The new john wick series looks amazing! I enjoyed the first episode a lot and can not wait to see the next episode, it is a bit of a shame that they did not release all of them at once.
+
+## Quote
+
+> A prudent question is one half of wisdom.
+> — <cite>Francis Bacon</cite>
+
+---
+
+## Tasks
+
+- [ ]

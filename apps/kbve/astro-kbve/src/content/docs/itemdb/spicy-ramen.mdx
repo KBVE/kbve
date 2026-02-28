@@ -1,0 +1,121 @@
+---
+title: 'Spicy Ramen'
+description: |
+    A bowl of fiery noodles swirling with chili oil and cosmic broth.
+    Rumored to restore courage and ignite the senses.
+id: 'spicy-ramen'
+key: 64
+ref: '01FC6AB642E4FA4FF6A771F20D'
+name: 'Spicy Ramen'
+type: 'Food'
+category: 392
+img: '/assets/items/skills/cooking/dish/spicy_ramen.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 64
+consumable: true
+stackable: false
+rarity: 'Rare'
+weight: 0.8
+effects: 'Restores health and grants temporary fire resistance.'
+price: 150
+durability: 1
+equipped: false
+levelRequirement: 5
+cooldown: 80
+action: 'consume'
+credits: |
+    Recipe inspired by KBVE Culinary Arts with pixel art by KBVE Pixel Workshop.
+bonuses:
+    health: 25
+    fireResist: 5
+    bravery: 3
+scripts:
+    - guid: 'd6732c3b0f2e4bb6a8e0c6f47c77a7aa'
+      vars:
+            healAmount: 25
+            fireResist: 5
+            braveryBoost: 3
+            duration: 150
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Spicy Ramen** warms the soul and sears the taste buds. Boiled in a broth enriched with space chili, it fuels daring adventurers for the toughest battles.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.health} health**
+- Grants **fire resistance {frontmatter.bonuses.fireResist}%** for **{frontmatter.scripts[0].vars.duration} seconds**
+- Increases **bravery by {frontmatter.bonuses.bravery}** temporarily
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Mix with **[Vodka Sauce](/itemdb/vodka-sauce/)** for an explosive meal
+- Favored by veteran explorers venturing into volcanic zones
+
+---
+
+## Lore
+
+> "A single sip turns doubt into determination."
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/spicy_ramen.webp"
+  defaultId="01HTXYZRAM001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZRAM001',
+      title: 'Steam Rises',
+      description: 'The broth bubbles angrily.',
+      image: 'https://images.unsplash.com/photo-1603070686999-566ddbe4c8fa?q=80&w=500&auto=format&fit=crop',
+      message: 'Your chopsticks tremble from the heat.',
+      choices: [
+        { label: 'Slurp quickly.', nextId: '01HTXYZRAM002' },
+        { label: 'Blow to cool.', nextId: '01HTXYZRAM003' }
+      ]
+    },
+    {
+      id: '01HTXYZRAM002',
+      title: 'Inferno Bite',
+      description: 'Your mouth blazes with flavor.',
+      image: '/images/scene_ramen_sizzle.jpg',
+      message: 'Courage surges through your veins.'
+    },
+    {
+      id: '01HTXYZRAM003',
+      title: 'Savoring Heat',
+      description: 'A gentle warmth radiates.',
+      image: '/images/scene_ramen_calm.jpg',
+      message: 'You feel ready for anything.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 06/30/2025 - Added Spicy Ramen to menu as a rare meal granting fire resistance and bravery boost

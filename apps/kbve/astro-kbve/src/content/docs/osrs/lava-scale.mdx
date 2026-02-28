@@ -1,0 +1,127 @@
+---
+title: Lava scale | OSRS Price Data
+description: "Lava scale: A scale from the hide of a lava dragon.. High alch: 30 GP, GE limit: 11,000."
+osrs:
+  id: 11992
+  name: Lava scale
+  slug: lava-scale
+  examine: A scale from the hide of a lava dragon.
+  members: true
+  icon: Lava scale.png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: 11000
+  material:
+    type: monster_drop
+    tier: mid
+  drop_table:
+    primary_source: Lava dragon
+    sources:
+      - source: Lava dragon
+        source_id: 6593
+        combat_level: 252
+        quantity: "1"
+        rarity: always
+        members_only: true
+      - source: Brutal black dragon
+        source_id: 7273
+        combat_level: 318
+        quantity: "1"
+        rarity: common
+        drop_rate: 3/128
+        members_only: true
+  recipes:
+    - skill: herblore
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Lava scale
+          item_id: 11992
+          quantity: 1
+      product: Lava scale shard
+      product_id: 11994
+      product_quantity: 3-6
+      tool: Pestle and mortar
+      members_only: true
+  related_items:
+    - item_id: 11994
+      item_name: Lava scale shard
+      slug: lava-scale-shard
+      relationship: product
+      description: Ground shards (3-6 per scale)
+    - item_id: 22209
+      item_name: Extended super antifire(4)
+      slug: extended-super-antifire-4
+      relationship: product
+      description: Final potion product
+    - item_id: 11951
+      item_name: Extended antifire(4)
+      slug: extended-antifire-4
+      relationship: product
+      description: Made with shards
+    - item_id: 233
+      item_name: Pestle and mortar
+      slug: pestle-and-mortar
+      relationship: component
+      description: Tool for grinding
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Lava scales drop from:
+
+| Monster | Location | Drop Rate |
+|---------|----------|-----------|
+| Lava dragon | Lava Dragon Isle (Wilderness) | Always |
+| Brutal black dragon | Catacombs of Kourend | 3/128 |
+
+**Warning:** Lava dragons are in deep Wilderness (PKer risk).
+
+## Processing
+
+Grind lava scales with pestle and mortar:
+- Base yield: 3-6 shards per scale
+- Hard Wilderness Diary: 4-9 shards per scale
+- Higher Herblore = higher average yield
+
+## Market Strategy
+
+**Wilderness Farming:**
+- Lava dragons are guaranteed drops
+- Deep wilderness (41-44 level)
+- Bring minimal risk gear
+- Bank scales or grind on-site
+
+**Scale vs Shard Economics:**
+- Compare whole scale price vs (avg shards × shard price)
+- Usually profitable to grind yourself
+- Hard diary makes grinding very profitable
+
+**End Products:**
+- Extended antifire (4 shards each)
+- Extended super antifire (4 shards each)
+
+**Buy Limit:** 11,000 per 4 hours
+
+<Adsense />

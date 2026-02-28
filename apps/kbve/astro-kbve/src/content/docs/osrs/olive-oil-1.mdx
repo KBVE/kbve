@@ -1,0 +1,37 @@
+---
+title: Olive oil(1) | OSRS Price Data
+description: "Olive oil(1): 1 dose of olive oil.. High alch: 8 GP, GE limit: 10,000."
+osrs:
+  id: 3428
+  name: Olive oil(1)
+  slug: olive-oil-1
+  examine: 1 dose of olive oil.
+  members: true
+  icon: Olive oil(1).png
+  value: 14
+  lowalch: 5
+  highalch: 8
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

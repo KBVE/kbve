@@ -1,0 +1,37 @@
+---
+title: Crab paste | OSRS Price Data
+description: "Crab paste: A paste made by crushing a crab.. High alch: 180 GP, GE limit: 13,000."
+osrs:
+  id: 31708
+  name: Crab paste
+  slug: crab-paste
+  examine: A paste made by crushing a crab.
+  members: true
+  icon: Crab paste.png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

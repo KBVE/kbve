@@ -1,0 +1,37 @@
+---
+title: Shaman mask | OSRS Price Data
+description: "Shaman mask: The mask worn by ogre shamans.. High alch: 4,800 GP, GE limit: 125."
+osrs:
+  id: 21838
+  name: Shaman mask
+  slug: shaman-mask
+  examine: The mask worn by ogre shamans.
+  members: false
+  icon: Shaman mask.png
+  value: 8000
+  lowalch: 3200
+  highalch: 4800
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

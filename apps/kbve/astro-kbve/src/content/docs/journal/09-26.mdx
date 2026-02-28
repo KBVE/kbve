@@ -1,0 +1,81 @@
+---
+title: 'September: 26th'
+category: Daily
+date: 2025-09-26 12:00:00
+client: Self
+unsplash: 1692387164064-5678bd9f1ff3
+img: https://images.unsplash.com/photo-1692387164064-5678bd9f1ff3?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: September 26th. 
+tags:
+  - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2025
+
+### Elin on Windows
+
+-   06:20PM
+
+    Doing a run as a warmage right now, maybe it could make things easier to understand. 
+
+## 2024
+
+**RimWorld**
+Today was a rough day, ended up playing a bit too much of rim world again.
+But it is a Friday Jr night, so we are good to go in that situation!
+Oh, I also got the pokemon world mod added and its been a super thrilling ride, hmm so far with the mechanoids too.
+We got ourselves a poke-robo army and slowly adding more numbers to our stack, I bet we could easiy hit around 100 units with this play through.
+
+
+**PGRX**
+The other issue is still open with the pgrx bindings, I am thinking that we can go two ways with this now?
+Actually there are three ways we can go with this!
+The first would be to just drop the custom extension, this is the easy route because then we can move forward without any major issues.
+Taking a look at the way that supabase handles the pgrx, it seems that they are on version 0.11.3 with the shim, maybe we can downgrade and see if that might be able to help?
+From my understanding the current ubuntu 20 LTS is where our build is failing but it should not be, hmm.
+The exact issue we are facing is listed [here](https://github.com/pgcentralfoundation/pgrx/issues/1822) and it is in relation to the pgrx bindgen for C.
+
+I am not trying to give up, maybe we can try to build the extension using the pgx
+
+**Backup**
+
+While I am looking through trying to resolve this bindgen situation with the extension, I did make some progress within the backup and recovery.
+My idea would be to set it up so that not only can our github actions deploy the latest stacks but we can even go a step further and setup a semi-automatic backup through the actions.
+The idea would be to have a custom github action that would do something along these lines:
+
+1. Create an issue ticket for the backup job
+2. Prepare a couple sha256 reference shas for the job, backup postgres data with logical and physical and then use the barman to handle the backup.
+3. Once the backup is done, it will go back to the issue ticket and state that the backup was done and it will then pare the next stage.
+4. After it confirms that the backup is done, it can keep a hot-swap of the backup in another cloud provider, giving us a backup in both AWS and another party.
+5. Furthermore, we can have the action place the WAL and logical backup into our local cluster and then have it prepare a recovery test.
+6. At this point the issue ticket would still be open but it would move down the priority list from a 6 to a 3 or 4 and then begin the recovery deployment at the local cluster.
+7. The recovery cluster should be able to deploy in the local cluster and provide the information to verify that it was successful, ie update the issue ticket and place it as a matrix of 1.
+8. The final step before closing the issue ticket would then be to give a full report of everything it did today.
+
+This would be the barebones focus for now, during this issue ticket creation, we can also include a NX Report and any other information that we would like to include.
+
+**Weekly Meeting**
+
+Finally the other goal that I had before the end of the month, 
+ 
+
+<Adsense />
+
+## 2023
+
+- 6:23pm  - Over the night I was able to finish up the Helmet integration with the YoRHa UI widget and now I am going to add the footer buttons for the template. I am thinking that the footer should have about just two buttons, one that would be for the version / game data and another for the external services? I do not want to spend too much time trying to figure that out per say and just move forward with the next issue.
+- 9:00pm - The current size of the widget is at around 280kb and I am thinking that I might be able to reduce the size by wrapping the modal into its own internal function and then calling it with children props. This way the size is standard across the board or I could have an action display the modal, which would be also interesting as an approach. 
+- 10:51pm - The bundle size has increased to around 290kb, this might become a problem because there are some issues that I am seeing already. 
+
+## Quote
+
+> Things do not happen. Things are made to happen.
+> — <cite>John F. Kennedy</cite>
+
+---
+
+## Tasks
+
+- [ ]

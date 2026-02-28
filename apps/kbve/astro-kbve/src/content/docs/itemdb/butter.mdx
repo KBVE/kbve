@@ -1,0 +1,126 @@
+---
+title: 'Butter'
+description: |
+    "A smooth, golden block of churned dairy. Adds flavor, enhances potions, and is surprisingly useful in rituals requiring softness or slip."
+id: 'butter'
+key: 49
+ref: '01JWJ9XF2P7MFM2W96T55XTGA7'
+name: 'Butter'
+type: 'Food'
+category: 392
+img: '/assets/items/skills/cooking/materials/butter.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 57
+consumable: true
+stackable: true
+rarity: 'Common'
+weight: 0.5
+effects: 'Enhances crafted meals. May cause mild speed boost when applied oddly.'
+price: 25
+durability: 1
+equipped: false
+levelRequirement: 0
+cooldown: 15
+action: 'consume'
+credits: |
+   Art by KBVE Pixel Workshop.
+bonuses:
+    flavorBoost: 1
+    speed: 0.5
+scripts:
+    - guid: 'ab1f253d95ac4db2b774eb3ce18e42d1'
+      vars:
+            effectContext: 'cooking'
+            flavorBoost: 1
+            mobilityBonus: 0.5
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Butter** is the foundation of decadence and alchemy. 
+Whether used to baste meat, bind potions, or grease a hatch, its texture and taste are both beloved and powerful.
+
+It's also been used to escape handcuffs. Just saying.
+
+[Fresh milk](/itemdb/fresh-milk/) churned in ancient barrels or synthetically replicated via protein printers.
+A base component in countless dishes, like [Lobster Soup](/itemdb/lobster-soup/).
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Provides **+{frontmatter.bonuses.flavorBoost} flavor boost** to any crafted meal  
+- Grants **+{frontmatter.bonuses.speed} speed** when used unconventionally  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Essential in crafting *Lobster Meals*, *Fried Potatoes*, *Grilled Bread*  
+- Can be melted and infused with herbs or mana  
+- If left in inventory too long, may attract *Grease Elementals*
+
+---
+
+## Lore
+
+> “Give me butter, and I'll show you a hundred spells more potent than war.”  
+> - Chef Arvala, Battle-Baker of Embercrest
+
+Butter is love, leverage and surprisingly flammable.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/butter_block.webp"
+  defaultId="01HTXYZBUT001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZBUT001',
+      title: 'Golden Slip',
+      description: 'You unwrap it slowly. It glows faintly.',
+      image: 'https://images.unsplash.com/photo-1615486362570-ea4ff76fef10?q=80&w=500&auto=format&fit=crop',
+      message: "It's soft. Too soft.",
+      choices: [
+        { label: 'Use in cooking.', nextId: '01HTXYZBUT002' },
+        { label: 'Rub on door hinges.', nextId: '01HTXYZBUT003' }
+      ]
+    },
+    {
+      id: '01HTXYZBUT002',
+      title: 'Flavorful Outcome',
+      description: 'The dish sizzles. Aroma intensifies.',
+      image: '/images/scene_butter_pan.jpg',
+      message: 'Even your enemies smell it.'
+    },
+    {
+      id: '01HTXYZBUT003',
+      title: 'Slippery Tactics',
+      description: 'The door opens silently.',
+      image: '/images/scene_butter_hinge.jpg',
+      message: 'Sometimes the simple tools work best.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/31/2025 - Butter added as foundational food item with culinary and sneaky utility

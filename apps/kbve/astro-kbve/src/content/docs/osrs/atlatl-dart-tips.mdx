@@ -1,0 +1,37 @@
+---
+title: Atlatl dart tips | OSRS Price Data
+description: "Atlatl dart tips: I can make some atlatl darts with these.. High alch: 147 GP."
+osrs:
+  id: 30998
+  name: Atlatl dart tips
+  slug: atlatl-dart-tips
+  examine: I can make some atlatl darts with these.
+  members: true
+  icon: Atlatl dart tips 5.png
+  value: 245
+  lowalch: 98
+  highalch: 147
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

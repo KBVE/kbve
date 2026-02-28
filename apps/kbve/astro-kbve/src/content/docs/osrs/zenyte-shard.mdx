@@ -1,0 +1,140 @@
+---
+title: Zenyte shard | OSRS Price Data
+description: "Zenyte shard: A shard of unstable zenyte.. High alch: 45,000 GP, GE limit: 11,000."
+osrs:
+  id: 19529
+  name: Zenyte shard
+  slug: zenyte-shard
+  examine: A shard of unstable zenyte.
+  members: true
+  icon: Zenyte shard.png
+  value: 75000
+  lowalch: 30000
+  highalch: 45000
+  limit: 11000
+  material:
+    type: gem
+    tier: zenyte
+  drop_table:
+    sources:
+      - source: Demonic gorilla
+        source_id: 7144
+        combat_level: 275
+        quantity: "1"
+        rarity: 1/300
+        members_only: true
+        notes: Requires MM2
+      - source: Tortured gorilla
+        source_id: 7148
+        combat_level: 141
+        quantity: "1"
+        rarity: 1/3000
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 70
+      xp: 0
+      materials:
+        - item_name: Zenyte shard
+          item_id: 19529
+          quantity: 1
+        - item_name: Onyx
+          item_id: 6573
+          quantity: 1
+      product: Uncut zenyte
+      product_id: 19493
+      product_quantity: 1
+      facility: Wall of Flames
+      members_only: true
+      notes: Requires zombie monkey greegree
+  related_items:
+    - item_id: 6573
+      item_name: Onyx
+      slug: onyx
+      relationship: component
+      description: Combined with shard
+    - item_id: 19493
+      item_name: Uncut zenyte
+      slug: uncut-zenyte
+      relationship: product
+      description: Result
+    - item_id: 19544
+      item_name: Tormented bracelet
+      slug: tormented-bracelet
+      relationship: product
+      description: Magic BiS gloves
+    - item_id: 19547
+      item_name: Necklace of anguish
+      slug: necklace-of-anguish
+      relationship: product
+      description: Ranged BiS neck
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 0.028 kg |
+
+## Obtaining
+
+Drop from gorillas in Crash Site Cavern (requires Monkey Madness II).
+
+| Monster | Drop Rate |
+|---------|-----------|
+| Demonic gorilla | 1/300 |
+| Tortured gorilla | 1/3,000 |
+
+## Creation
+
+Use on cut onyx at Wall of Flames (Temple of Marimbo Dungeon).
+
+**Requirements:**
+- 70 Crafting
+- Zombie monkey greegree equipped
+
+**Creates:** Uncut zenyte
+
+## Zenyte Jewelry
+
+Creates the best jewelry in each slot:
+
+| Item | Enchant | Stats |
+|------|---------|-------|
+| Amulet of torture | Lvl-7 | +10 str, +15 all melee |
+| Necklace of anguish | Lvl-7 | +5 ranged str, +18 ranged |
+| Tormented bracelet | Lvl-7 | +5% magic dmg |
+| Ring of suffering | Lvl-7 | +20 all defence |
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Tips:**
+- Demonic gorillas are best source
+- MM2 required
+- Make BiS jewelry
+
+<Adsense />

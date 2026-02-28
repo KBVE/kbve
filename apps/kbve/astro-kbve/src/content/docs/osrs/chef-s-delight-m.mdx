@@ -1,0 +1,37 @@
+---
+title: Chef's delight(m) | OSRS Price Data
+description: "Chef's delight(m): This looks a good deal stronger than normal Chef's Delight.. High alch: 1 GP, GE limit: 2,000."
+osrs:
+  id: 5757
+  name: Chef's delight(m)
+  slug: chef-s-delight-m
+  examine: This looks a good deal stronger than normal Chef's Delight.
+  members: true
+  icon: Chef's delight(m).png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Candle lantern (white) | OSRS Price Data
+description: "Candle lantern (white): A candle in a glass cage.. High alch: 9 GP, GE limit: 40."
+osrs:
+  id: 4529
+  name: Candle lantern (white)
+  slug: candle-lantern-white
+  examine: A candle in a glass cage.
+  members: true
+  icon: Candle lantern (white).png
+  value: 15
+  lowalch: 6
+  highalch: 9
+  limit: 40
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,102 @@
+---
+title: Iron bolts | OSRS Price Data
+description: "Iron bolts is a members ammo slot item requiring 26 Ranged. High alch: 1 GP, GE limit: 7,000."
+osrs:
+  id: 9140
+  name: Iron bolts
+  slug: iron-bolts
+  examine: Iron crossbow bolts.
+  members: true
+  icon: Iron bolts 5.png
+  value: 2
+  lowalch: 1
+  highalch: 1
+  limit: 7000
+  item_id: 9140
+  type: ammunition
+  tradeable: true
+  weight: 0
+  buy_limit: 7000
+  equipment:
+    slot: ammo
+    type: bolts
+    requirements:
+      ranged: 26
+    stats:
+      ranged_strength: 46
+  fletching:
+    level: 39
+    xp: 1.5
+    materials:
+      - item: Iron bolts (unf)
+        quantity: 1
+      - item: Feathers
+        quantity: 1
+  obtaining:
+    fletching: 39 Fletching with iron bolts (unf) + feathers
+    shop: Crossbow Shop, Keldagrim
+  related_items:
+    - slug: steel-bolts
+      name: Steel bolts
+      relation: upgrade
+    - slug: iron-crossbow
+      name: Iron crossbow
+      relation: compatible_weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammo |
+| Type | Bolts |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 26 Ranged |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Strength | +46 |
+
+## Obtaining
+
+**Fletching:** 39 Fletching with iron bolts (unf) + feathers (1.5 XP each).
+
+**Shop:** Crossbow Shop, Keldagrim.
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~18 gp
+
+Mid-level crossbow ammo. Used with iron crossbow or better.
+
+## Related Items
+
+- [Steel bolts](/osrs/steel-bolts/) - Upgrade
+- [Iron crossbow](/osrs/iron-crossbow/) - Compatible crossbow
+
+<Adsense />

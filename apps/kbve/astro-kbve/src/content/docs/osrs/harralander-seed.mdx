@@ -1,0 +1,102 @@
+---
+title: Harralander seed | OSRS Price Data
+description: "Harralander seed: A harralander seed - plant in a herb patch.. High alch: 2 GP, GE limit: 600."
+osrs:
+  id: 5294
+  name: Harralander seed
+  slug: harralander-seed
+  examine: A harralander seed - plant in a herb patch.
+  members: true
+  icon: Harralander seed 5.png
+  value: 4
+  lowalch: 1
+  highalch: 2
+  limit: 600
+  seed:
+    type: herb
+    tier: low-mid
+  farming:
+    level: 26
+    xp_plant: 21.5
+    xp_harvest: 24
+    growth_time: 80
+    patches: 9
+    product_id: 205
+    product_name: Grimy harralander
+  related_items:
+    - item_id: 205
+      item_name: Grimy harralander
+      slug: grimy-harralander
+      relationship: product
+      description: Harvested product
+    - item_id: 255
+      item_name: Harralander
+      slug: harralander
+      relationship: product
+      description: Cleaned herb
+    - item_id: 3010
+      item_name: Energy potion(4)
+      slug: energy-potion-4
+      relationship: product
+      description: Made from harralander
+    - item_id: 5293
+      item_name: Tarromin seed
+      slug: tarromin-seed
+      relationship: alternative
+      description: Lower tier herb seed
+    - item_id: 5295
+      item_name: Ranarr seed
+      slug: ranarr-seed
+      relationship: upgrade
+      description: Next tier herb seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Farming
+
+Plant in a herb patch to grow Grimy harralander.
+
+| Requirement | Value |
+|-------------|-------|
+| Farming Level | 26 |
+| Growth time | 80 minutes |
+| XP (plant) | 21.5 |
+| XP (harvest) | 24 per herb |
+
+## Market Strategy
+
+**Herb Farming:**
+- Mid-low tier herb seed
+- Used for energy, combat, and compost potions
+- Moderate value
+
+**Yield Boosters:**
+- Ultracompost (essential)
+- Magic secateurs (10% more yield)
+- Farming cape (5% more yield)
+
+**Tips:**
+- 9 herb patches available
+- ~10 minute runs, 80 minute regrowth
+- Compost potions valuable for making supercompost
+
+<Adsense />

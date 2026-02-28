@@ -1,0 +1,37 @@
+---
+title: Blue feather | OSRS Price Data
+description: "Blue feather: A cool blue feather.. High alch: 9 GP, GE limit: 8,000."
+osrs:
+  id: 10089
+  name: Blue feather
+  slug: blue-feather
+  examine: A cool blue feather.
+  members: true
+  icon: Blue feather.png
+  value: 16
+  lowalch: 6
+  highalch: 9
+  limit: 8000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

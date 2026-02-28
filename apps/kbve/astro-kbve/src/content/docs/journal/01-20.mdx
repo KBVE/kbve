@@ -1,0 +1,74 @@
+---
+title: 'January: 20'
+category: Daily
+date: 2025-01-20 12:00:00
+client: Self
+unsplash: 1704189125621-55e8c6cfd166
+img: https://images.unsplash.com/photo-1704189125621-55e8c6cfd166?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 20th of each year!
+tags:
+    - daily
+---
+
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+## Notes
+
+## 2025
+
+-   **President**
+
+    10:00AM
+
+        The new president is taking office, well I guess not really new but it is what it is.
+        I am wondering how the markets will react tomorrow, since they are closed today.
+
+-   **GoDot**
+
+    09:05PM
+
+        Updating the rust ffi into the godot wasm build, going to try the first build and see where it goes from there.
+        The reference issue that I was using is here [438](https://github.com/godot-rust/gdext/issues/438).
+        The target will be using a `-z` flag , so we need to setup the nightly.
+
+        ```shell
+
+        rustup toolchain install nightly
+        rustup component add rust-src --toolchain nightly
+        rustup target add wasm32-unknown-emscripten --toolchain nightly
+
+        ```
+
+        Next we need to add the emscripten to our WSL instance!
+        For this, I created a custom script that we can invoke with `./tools/scripts/public/emscripten/install_emsdk.sh`.
+        We also want to make sure that the rustup has a wasm32 nightly added `rustup target add wasm32-unknown-emscripten --toolchain nightly` 
+
+
+
+### 2024
+
+    - 5:40pm - `Holy`
+
+        #### Holy
+
+            One of the issues with the observer crate would be if we needed to include a Vec around the field object before placing it inside of the AtomicCell.
+            There needs to be a bit more test casing and I believe that it would make sense to wrap it around the Vec, but I need to go through some real world test cases before I write it out.
+            Besides the observer macro needing an updated AtomicCell with a Vec, the setter's notification has to be modified a bit. 
+            Both of these issues can be resolved in a test case of the `rust_wasm_embed`.
+
+    - 11:00pm   - `PalWorld`
+
+        #### PalWorld
+            
+            Playing a couple hours of palworld and it has been great!
+            Ended up building a massive base on Zachs server, while I been debugging the Crossbeam crate for an AtomicCell object.
+            The game is still in early access but it has been very fun so far, the whole pokemone with guns is absolutely correct.
+            I want to see what the end game content will look like and then explore the whole map, ah, collecting different pal monsters, it really is a trip down memory lane.
+
+    - 4:00am - `Sleep`
+
+        #### Sleep
+
+            There was not much major progress today, it felt more like a break from the normal research and coding sessions, thus I will keep this entry short and sweet.

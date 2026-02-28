@@ -1,0 +1,77 @@
+---
+title: "February: 10"
+category: Daily
+date: 2025-02-10 12:00:00
+client: Self
+unsplash: 1561478908-1ceb3bcc74b6
+img: https://images.unsplash.com/photo-1561478908-1ceb3bcc74b6?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for February 10th for each year!
+tags:
+  - daily
+---
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+## Notes
+
+## 2025
+
+### Main
+
+-   02:53AM
+
+    During the migration of the subfolders, it seems that the build locations have also shifted a tadbit.
+    This means that I will have to double check each execution within all the ci pipeline yamls.
+    I believe the `dist` will now be under the `apps` but we shall see during the next main build. 
+
+### Migrations Nx SubFolders
+
+-   03:49AM
+
+    Next batch of migrations!
+    Moving CityVote into its own repo, then adding the deprecated folder.
+
+```shell
+pnpm nx g move --project expo-cityvote --destination apps/cityvote/expo-cityvote --skipFormat=true
+```
+
+-   06:05AM
+
+    Migrating `rust_godot` to rentearth subfolder.
+
+```shell
+pnpm nx g move --project rust_godot_towerdefense --destination apps/rentearth/rust_godot_towerdefense --skipFormat=true
+```
+
+-   05:44PM
+
+    Finishing the cryptothrone migration, now we need to add the `deprecated` folder, for apps that we need to remove.
+    Later on, I will go back in and make adjustments to them.
+    Next, we can move the pydiscord into the discord sub folder, furthermore, we can add the front end into that folder too.
+
+```shell
+pnpm nx g move --project rust_p16_gameserver --destination apps/experimental/rust_p16_gameserver --skipFormat=true
+pnpm nx g move --project expo-lcagents --destination apps/experimental/expo-lcagents --skipFormat=true
+pnpm nx g move --project expo-hqplan --destination apps/experimental/expo-hqplan --skipFormat=true
+pnpm nx g move --project rust_wasm_embed --destination apps/experimental/rust_wasm_embed --skipFormat=true
+
+```
+
+
+## 2024
+
+#### Astro
+
+Going to take a quick break from Unity and work on the AstroVE backlog!
+There are a couple components that I was missing, which I need to add, migrate and test case.
+I wanted to isolate some of the basic game engine from YoRHa proof of concept and turn it into an AstroVE component.
+Furthermore, I wanted to migrate over the visual novel codebase and turn that into another AstroVE component.
+Finally, the biggest problem that I would have to resolve is the KBVE.com launch under the mono-repo, which is going to be a pain.
+
+
+
+#### Bevy
+
+While I am working on the website, I am also reading up on the bevy game engine and its integration with the egui.
+My plan is to eventually move away from Unity and venture into bevy, but given that bevy is still under active development and not at a stable release, it would make sense to limit my exposure.

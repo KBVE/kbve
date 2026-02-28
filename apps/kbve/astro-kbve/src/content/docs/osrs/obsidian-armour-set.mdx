@@ -1,0 +1,37 @@
+---
+title: Obsidian armour set | OSRS Price Data
+description: "Obsidian armour set: A set containing an Obsidian helmet, platebody and platelegs.. High alch: 75,600 GP, GE limit: 5."
+osrs:
+  id: 21279
+  name: Obsidian armour set
+  slug: obsidian-armour-set
+  examine: A set containing an Obsidian helmet, platebody and platelegs.
+  members: true
+  icon: Obsidian armour set.png
+  value: 126000
+  lowalch: 50400
+  highalch: 75600
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

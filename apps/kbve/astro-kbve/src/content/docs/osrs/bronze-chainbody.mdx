@@ -1,0 +1,93 @@
+---
+title: Bronze chainbody | OSRS Price Data
+description: "Bronze chainbody: A series of connected metal rings.. High alch: 36 GP, GE limit: 125."
+osrs:
+  id: 1103
+  name: Bronze chainbody
+  slug: bronze-chainbody
+  examine: A series of connected metal rings.
+  members: false
+  icon: Bronze chainbody.png
+  value: 60
+  lowalch: 24
+  highalch: 36
+  limit: 125
+  item_id: 1103
+  item_type: armor
+  slot: body
+  type: chainbody
+  tradeable: true
+  weight: 6.803
+  requirements:
+    defence: 0
+  stats:
+    stab_defence: 7
+    slash_defence: 11
+    crush_defence: 13
+    magic_defence: -3
+    ranged_defence: 9
+  related_items:
+    - slug: iron-chainbody
+    - slug: bronze-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Body |
+| Type | Chainbody |
+| Tradeable | Yes |
+| Weight | 6.803 kg |
+| Requirements | None |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +7 |
+| Slash Defence | +11 |
+| Crush Defence | +13 |
+| Magic Defence | -3 |
+| Ranged Defence | +9 |
+
+## Obtaining
+
+**Smithing:** 11 Smithing with 3 bronze bars (37.5 XP).
+
+**Shop:** Wayne's Chains, Falador.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~46 gp
+
+Starter chainbody. Less ranged penalty than platebody. F2P accessible.
+
+## Related Items
+
+- [Iron chainbody](/osrs/iron-chainbody/) - Upgrade
+- [Bronze platebody](/osrs/bronze-platebody/) - More defence
+
+<Adsense />

@@ -1,0 +1,93 @@
+---
+title: Adamant dagger | OSRS Price Data
+description: "Adamant dagger: Short and deadly.. High alch: 480 GP, GE limit: 125."
+osrs:
+  id: 1211
+  name: Adamant dagger
+  slug: adamant-dagger
+  examine: Short and deadly.
+  members: false
+  icon: Adamant dagger.png
+  value: 800
+  lowalch: 320
+  highalch: 480
+  limit: 125
+  item_id: 1211
+  item_type: equipment
+  slot: weapon
+  type: dagger
+  attack_style: stab
+  attack_speed: 4
+  tradeable: true
+  weight: 0.51
+  requirements:
+    attack: 30
+  stats:
+    stab_attack: 15
+    slash_attack: 8
+    crush_attack: -4
+    strength: 14
+  related_items:
+    - slug: rune-dagger
+    - slug: adamant-sword
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Dagger |
+| Tradeable | Yes |
+| Weight | 0.51 kg |
+| Requirements | 30 Attack |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Attack | +15 |
+| Slash Attack | +8 |
+| Crush Attack | -4 |
+| Strength | +14 |
+
+## Obtaining
+
+**Smithing:** 70 Smithing with 1 adamantite bar (62.5 XP).
+
+**Shop:** Varrock Swordshop.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~285 gp
+
+High-tier dagger. Fast attack speed. F2P accessible.
+
+## Related Items
+
+- [Rune dagger](/osrs/rune-dagger/) - Upgrade
+- [Adamant sword](/osrs/adamant-sword/) - Higher damage
+
+<Adsense />

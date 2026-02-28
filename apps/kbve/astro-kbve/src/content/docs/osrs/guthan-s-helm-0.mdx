@@ -1,0 +1,37 @@
+---
+title: Guthan's helm 0 | OSRS Price Data
+description: "Guthan's helm 0: Guthan the Infested's helm.. High alch: 61,800 GP, GE limit: 15."
+osrs:
+  id: 4908
+  name: Guthan's helm 0
+  slug: guthan-s-helm-0
+  examine: Guthan the Infested's helm.
+  members: true
+  icon: Guthan's helm 0.png
+  value: 103000
+  lowalch: 41200
+  highalch: 61800
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,127 @@
+---
+title: 3rd age platelegs | OSRS Price Data
+description: "3rd age platelegs is a members legs slot item requiring 65 Defence. High alch: 120,000 GP, GE limit: 8."
+osrs:
+  id: 10346
+  name: 3rd age platelegs
+  slug: 3rd-age-platelegs
+  examine: Fabulously ancient armour beaten from magical silver.
+  members: true
+  icon: 3rd age platelegs.png
+  value: 200000
+  lowalch: 80000
+  highalch: 120000
+  limit: 8
+  equipment:
+    slot: legs
+    type: melee armour
+    attack_style: melee
+    requirements:
+      defence: 65
+    stats:
+      defence_stab: 66
+      defence_slash: 63
+      defence_crush: 61
+      defence_magic: -4
+      defence_ranged: 66
+      melee_strength: 0
+      prayer_bonus: 0
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        requirements:
+          clue_type: Master
+        rarity: Very Rare
+        description: Extremely rare reward from master clue scrolls
+  related_items:
+    - item_id: 10350
+      item_name: 3rd age full helmet
+      slug: 3rd-age-full-helmet
+      relationship: set-piece
+      description: Head slot of 3rd age melee set
+    - item_id: 10348
+      item_name: 3rd age platebody
+      slug: 3rd-age-platebody
+      relationship: set-piece
+      description: Body slot of 3rd age melee set
+    - item_id: 10352
+      item_name: 3rd age kiteshield
+      slug: 3rd-age-kiteshield
+      relationship: set-piece
+      description: Shield slot of 3rd age melee set
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Type | Melee Armour |
+| Tradeable | Yes |
+| Members Only | Yes |
+| Weight | 9.071 kg |
+
+## Obtaining
+
+| Method | Details |
+|--------|---------|
+| Source | Master Clue Scrolls |
+| Rarity | Extremely Rare (1/313,168) |
+
+## Combat Stats
+
+| Defence | Value |
+|---------|-------|
+| Stab | +66 |
+| Slash | +63 |
+| Crush | +61 |
+| Magic | -4 |
+| Ranged | +66 |
+
+**Requirements:** 65 Defence
+
+## About
+
+The 3rd age platelegs are part of the 3rd age melee set, one of the rarest and most prestigious armour sets in Old School RuneScape. They require 65 Defence to wear and provide stats comparable to rune platelegs but with superior aesthetics.
+
+3rd age equipment is highly sought after due to its extreme rarity and status symbol value. It can only be obtained from Treasure Trails, specifically from master clue scroll caskets at an exceptionally low drop rate.
+
+## Market Strategy
+
+**Investment Notes:**
+- Extremely valuable due to rarity
+- Price fluctuates based on collector demand
+- Consider set value vs individual pieces
+
+**Trading Tips:**
+- Verify authenticity when trading high-value items
+- Use Grand Exchange for secure trades
+- Monitor price trends before purchasing
+
+## Related Items
+
+- [3rd age full helmet](/osrs/3rd-age-full-helmet/) - Head slot of 3rd age melee set
+- [3rd age platebody](/osrs/3rd-age-platebody/) - Body slot of 3rd age melee set
+- [3rd age kiteshield](/osrs/3rd-age-kiteshield/) - Shield slot of 3rd age melee set
+
+<Adsense />

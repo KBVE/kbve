@@ -1,0 +1,37 @@
+---
+title: Ugthanki & onion | OSRS Price Data
+description: "Ugthanki & onion: A mixture of chopped onions and ugthanki meat in a bowl.. High alch: 4 GP, GE limit: 11,000."
+osrs:
+  id: 1877
+  name: Ugthanki & onion
+  slug: ugthanki-onion
+  examine: A mixture of chopped onions and ugthanki meat in a bowl.
+  members: true
+  icon: Ugthanki & onion.png
+  value: 7
+  lowalch: 2
+  highalch: 4
+  limit: 11000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Cannon barrels | OSRS Price Data
+description: "Cannon barrels: The barrels of the multicannon.. High alch: 112,500 GP, GE limit: 70."
+osrs:
+  id: 10
+  name: Cannon barrels
+  slug: cannon-barrels
+  examine: The barrels of the multicannon.
+  members: true
+  icon: Cannon barrels.png
+  value: 187500
+  lowalch: 75000
+  highalch: 112500
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

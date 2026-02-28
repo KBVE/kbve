@@ -1,0 +1,66 @@
+---
+title: 'Quantum Coffee'
+description: |
+    A steaming cup of dark roast vibrating with quantum particles.
+    Sip carefully, as time may bend around you.
+id: 'quantum-coffee'
+key: 58
+ref: '01JX0YM8XTR59QQ83STSSM0P93'
+name: 'Quantum Coffee'
+type: 'Drink'
+category: 392
+img: '/assets/items/potion/space/quantum_coffee.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 59
+consumable: true
+stackable: true
+rarity: 'Rare'
+weight: 0.6
+effects: 'Grants a brief surge of energy and may slow enemies around you.'
+price: 150
+durability: 1
+equipped: false
+levelRequirement: 2
+cooldown: 45
+action: 'consume'
+credits: |
+    Brewed by KBVE Coffee Consortium.
+bonuses:
+    energy: 5
+    intelligence: 1
+    timeWarp: true
+scripts:
+    - guid: '1234567890abcdef1234567890abcdef'
+      vars:
+            hasteDuration: 60
+            slowChance: 0.1
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Quantum Coffee** is crafted from beans grown in uncertain timelines.
+Its aroma sharpens the mind while briefly distorting the flow of time around you.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.energy} energy**
+- Raises **intelligence by {frontmatter.bonuses.intelligence}**
+- Has a **{frontmatter.scripts[0].vars.slowChance * 100}% chance** to slow nearby foes
+
+---
+
+## DevLog
+
+- 06/12/2025 - Quantum Coffee introduced as time-bending beverage

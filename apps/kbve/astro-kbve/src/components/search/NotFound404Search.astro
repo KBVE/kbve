@@ -1,0 +1,256 @@
+---
+/**
+ * NotFound404Search.astro
+ *
+ * A component that automatically extracts search terms from the current URL path
+ * and triggers Starlight's Pagefind search to help users find what they were looking for.
+ *
+ * Security: Includes XSS sanitization for URL path extraction.
+ *
+ * Usage: Simply include this component in your 404 page.
+ */
+
+interface Props {
+	/** Maximum length for search query (default: 100) */
+	maxQueryLength?: number;
+	/** Additional CSS class for the wrapper */
+	class?: string;
+}
+
+const { maxQueryLength = 100, class: className = '' } = Astro.props;
+---
+
+<div
+	id="not-found-search-container"
+	class:list={['not-found-search-wrapper', className]}
+	data-max-length={maxQueryLength}>
+	<div id="search-status" class="search-status">
+		<p>Searching for: <code id="search-query">...</code></p>
+	</div>
+
+	<div id="fallback-message" class="fallback-message" style="display: none;">
+		<p>
+			No results found. Try using the search bar above or <a href="/">
+				return to the homepage
+			</a>.
+		</p>
+	</div>
+</div>
+
+<style>
+	.not-found-search-wrapper {
+		max-width: 800px;
+		margin: 0 auto;
+		padding: 1rem;
+	}
+
+	.search-status {
+		text-align: center;
+		margin-bottom: 1.5rem;
+		padding: 1rem;
+		background: var(--sl-color-bg-nav);
+		border-radius: 8px;
+		border: 1px solid var(--sl-color-gray-5);
+	}
+
+	.search-status code {
+		color: var(--sl-color-accent);
+		font-weight: 600;
+		word-break: break-word;
+	}
+
+	.fallback-message {
+		text-align: center;
+		padding: 2rem;
+		background: var(--sl-color-bg-nav);
+		border-radius: 8px;
+		border: 1px solid var(--sl-color-gray-5);
+	}
+
+	.fallback-message a {
+		color: var(--sl-color-accent);
+		text-decoration: underline;
+	}
+</style>
+
+<script>
+	(function () {
+		'use strict';
+
+		const container = document.getElementById('not-found-search-container');
+		const maxLength = container?.dataset.maxLength
+			? parseInt(container.dataset.maxLength, 10)
+			: 100;
+
+		/**
+		 * Sanitize a string to prevent XSS attacks
+		 * - Removes HTML tags
+		 * - Escapes special characters
+		 * - Limits length
+		 * - Only allows alphanumeric, spaces, and basic punctuation
+		 */
+		function sanitizeSearchQuery(input: string): string {
+			if (!input || typeof input !== 'string') {
+				return '';
+			}
+
+			// Decode URI components first (handle %20, etc.)
+			let decoded: string;
+			try {
+				decoded = decodeURIComponent(input);
+			} catch {
+				// If decoding fails, use the original
+				decoded = input;
+			}
+
+			// Remove any HTML tags
+			decoded = decoded.replace(/<[^>]*>/g, '');
+
+			// Remove potentially dangerous characters and patterns
+			// Only allow: letters, numbers, spaces, hyphens, underscores, periods
+			decoded = decoded.replace(/[^a-zA-Z0-9\s\-_.]/g, ' ');
+
+			// Collapse multiple spaces into one
+			decoded = decoded.replace(/\s+/g, ' ').trim();
+
+			// Limit length to prevent abuse
+			decoded = decoded.substring(0, maxLength);
+
+			// Final HTML entity escape for display
+			const div = document.createElement('div');
+			div.textContent = decoded;
+			return div.innerHTML;
+		}
+
+		/**
+		 * Extract search terms from the current URL path
+		 */
+		function extractSearchTerms(): string {
+			const path = window.location.pathname;
+
+			// Remove leading/trailing slashes and split by common separators
+			const segments = path
+				.replace(/^\/+|\/+$/g, '')
+				.split(/[\/\-_]+/)
+				.filter((segment: string) => {
+					// Filter out common non-content segments
+					const ignore = [
+						'404',
+						'error',
+						'not-found',
+						'page',
+						'docs',
+						'index',
+						'html',
+						'htm',
+					];
+					return (
+						segment.length > 0 &&
+						!ignore.includes(segment.toLowerCase())
+					);
+				});
+
+			// Join remaining segments as search terms
+			return segments.join(' ');
+		}
+
+		/**
+		 * Wait for an element to appear in the DOM
+		 */
+		function waitForElement(
+			selector: string,
+			timeout = 5000,
+		): Promise<Element> {
+			return new Promise((resolve, reject) => {
+				const element = document.querySelector(selector);
+				if (element) {
+					resolve(element);
+					return;
+				}
+
+				const observer = new MutationObserver((_mutations, obs) => {
+					const el = document.querySelector(selector);
+					if (el) {
+						obs.disconnect();
+						resolve(el);
+					}
+				});
+
+				observer.observe(document.body, {
+					childList: true,
+					subtree: true,
+				});
+
+				setTimeout(() => {
+					observer.disconnect();
+					reject(new Error('Element not found: ' + selector));
+				}, timeout);
+			});
+		}
+
+		/**
+		 * Initialize the 404 search functionality
+		 */
+		async function initNotFoundSearch(): Promise<void> {
+			const rawTerms = extractSearchTerms();
+			const searchTerms = sanitizeSearchQuery(rawTerms);
+
+			const queryDisplay = document.getElementById('search-query');
+			const fallbackMessage = document.getElementById('fallback-message');
+
+			if (!searchTerms) {
+				if (queryDisplay)
+					queryDisplay.textContent = '(no search terms found)';
+				if (fallbackMessage) fallbackMessage.style.display = 'block';
+				return;
+			}
+
+			if (queryDisplay) queryDisplay.textContent = searchTerms;
+
+			// Try to trigger the Starlight search with our terms
+			try {
+				// Wait for Starlight's search to be ready
+				await waitForElement('[data-pagefind-ui]', 3000).catch(
+					() => null,
+				);
+
+				// Try to find and click the search button to open the modal
+				const searchButton = document.querySelector(
+					'starlight-search button, [data-open-modal], button[aria-label*="Search"]',
+				) as HTMLButtonElement | null;
+
+				if (searchButton) {
+					// Small delay to ensure everything is loaded
+					setTimeout(() => {
+						searchButton.click();
+
+						// Wait for the search input to appear and fill it
+						setTimeout(() => {
+							const searchInput = document.querySelector(
+								'input[type="search"], .pagefind-ui__search-input, [data-pagefind-input]',
+							) as HTMLInputElement | null;
+							if (searchInput) {
+								searchInput.value = searchTerms;
+								// Trigger input event to start the search
+								searchInput.dispatchEvent(
+									new Event('input', { bubbles: true }),
+								);
+								searchInput.focus();
+							}
+						}, 300);
+					}, 100);
+				}
+			} catch (e) {
+				console.log('Could not auto-trigger search:', e);
+				if (fallbackMessage) fallbackMessage.style.display = 'block';
+			}
+		}
+
+		// Run when DOM is ready
+		if (document.readyState === 'loading') {
+			document.addEventListener('DOMContentLoaded', initNotFoundSearch);
+		} else {
+			initNotFoundSearch();
+		}
+	})();
+</script>

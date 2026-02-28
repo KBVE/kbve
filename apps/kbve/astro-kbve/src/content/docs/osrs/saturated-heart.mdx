@@ -1,0 +1,133 @@
+---
+title: Saturated heart | OSRS Price Data
+description: "Saturated heart: This heart holds an ancient magical power within.. High alch: 360,000 GP, GE limit: 8."
+osrs:
+  id: 27641
+  name: Saturated heart
+  slug: saturated-heart
+  examine: This heart holds an ancient magical power within.
+  members: true
+  icon: Saturated heart.png
+  value: 600000
+  lowalch: 240000
+  highalch: 360000
+  limit: 8
+  item:
+    type: magic_boost
+    tradeable: true
+  effect:
+    enhanced_invigorate:
+      base_boost: 4
+      percent_boost: 10
+      max_boost_at_99: 13
+      cooldown_minutes: 5
+      resets_on_death: true
+  recipes:
+    - skill: N/A
+      level: 0
+      xp: 0
+      materials:
+        - item_id: 20724
+          item_name: Imbued heart
+          quantity: 1
+        - item_id: 27616
+          item_name: Ancient essence
+          quantity: 150000
+      product: Saturated heart
+      product_id: 27641
+      facility: N/A
+      members_only: true
+      irreversible: true
+  related_items:
+    - item_id: 20724
+      item_name: Imbued heart
+      slug: imbued-heart
+      relationship: component
+      description: Base item
+    - item_id: 27616
+      item_name: Ancient essence
+      slug: ancient-essence
+      relationship: component
+      description: Upgrade material
+    - item_id: 21006
+      item_name: Kodai wand
+      slug: kodai-wand
+      relationship: alternative
+      description: Pairs well
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Magic Boost (Enhanced) |
+| Tradeable | Yes |
+| Weight | 0.45 kg |
+
+## Creation
+
+Combine [Imbued heart](/osrs/imbued-heart/) + 150,000 [Ancient essence](/osrs/ancient-essence/).
+
+**Process is irreversible.**
+
+| Component | Price |
+|-----------|-------|
+| Imbued heart | ~29M |
+| Ancient essence (150K) | ~84M |
+
+## Effect
+
+**Enhanced Invigorate:**
+- Boosts Magic by 4 + 10% of level
+- At 99 Magic: +13 levels
+- Cooldown: 5 minutes (2 min less than imbued)
+- Resets on death
+
+## Comparison to Imbued Heart
+
+| Stat | Imbued | Saturated |
+|------|--------|-----------|
+| Boost (99) | +10 | +13 |
+| Cooldown | 7 min | 5 min |
+
+## Usage
+
+BiS for:
+- Magic bossing
+- Raids
+- Any high-level magic content
+
+**+3 more levels and 2 min faster than imbued.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~114M gp
+
+**Tips:**
+- Expensive upgrade
+- Worth for max magic
+- Irreversible process
+
+<Adsense />

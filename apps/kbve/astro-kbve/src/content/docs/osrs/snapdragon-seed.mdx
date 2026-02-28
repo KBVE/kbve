@@ -1,0 +1,125 @@
+---
+title: Snapdragon seed | OSRS Price Data
+description: "Snapdragon seed: A snapdragon seed - plant in a herb patch.. High alch: 36 GP, GE limit: 200."
+osrs:
+  id: 5300
+  name: Snapdragon seed
+  slug: snapdragon-seed
+  examine: A snapdragon seed - plant in a herb patch.
+  members: true
+  icon: Snapdragon seed 5.png
+  value: 60
+  lowalch: 24
+  highalch: 36
+  limit: 200
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: true
+    weight: 0
+  skilling_source:
+    skill: farming
+    level: 62
+    xp: 98.5
+    growth_time: 80
+  drop_table:
+    sources:
+      - source: Master Farmers
+        source_id: 5730
+        combat_level: 0
+        quantity: "1"
+        rarity: rare
+        members_only: true
+      - source: Aberrant spectre
+        source_id: 2927
+        combat_level: 96
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Dark beast
+        source_id: 4005
+        combat_level: 182
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 3000
+      item_name: Snapdragon
+      slug: snapdragon
+      relationship: product
+      description: Harvested herb
+    - item_id: 3024
+      item_name: Super restore(4)
+      slug: super-restore-4
+      relationship: product
+      description: Primary potion use
+    - item_id: 5295
+      item_name: Ranarr seed
+      slug: ranarr-seed
+      relationship: alternative
+      description: Alternative herb seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Seed |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 62 Farming |
+
+## Obtaining
+
+Common sources:
+- Master Farmers (Thieving 38+)
+- Monster drops (Aberrant Spectres, Dark Beasts, Moss Giants)
+- Magpie and Dragon Implings
+- Boss drops and treasure chests
+
+## Usage
+
+Plant in **herb patches** to grow grimy snapdragons.
+
+**Growth Time:** 80 minutes (4 cycles)
+
+**Yield:** 5-18 herbs (depends on Magic Secateurs, Farming level)
+
+**XP:** 98.5 (planting) + 199 (harvesting)
+
+## Market Strategy
+
+**Buy Limit:** 200 per 4 hours
+
+**Price:** ~41k gp
+
+High-value farming seed. Popular for herb runs due to valuable snapdragon yield.
+
+## Related Items
+
+- [Snapdragon](/osrs/snapdragon/) - Harvested herb
+- [Super restore](/osrs/super-restore/) - Primary potion
+- [Ranarr seed](/osrs/ranarr-seed/) - Alternative herb seed
+
+<Adsense />

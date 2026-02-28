@@ -1,0 +1,103 @@
+---
+title: Adamant bolts | OSRS Price Data
+description: "Adamant bolts is a members ammo slot item requiring 46 Ranged. High alch: 34 GP, GE limit: 11,000."
+osrs:
+  id: 9143
+  name: Adamant bolts
+  slug: adamant-bolts
+  examine: Adamantite crossbow bolts.
+  members: true
+  icon: Adamant bolts 5.png
+  value: 58
+  lowalch: 23
+  highalch: 34
+  limit: 11000
+  item_id: 9143
+  type: ammunition
+  tradeable: true
+  weight: 0
+  buy_limit: 11000
+  equipment:
+    slot: ammo
+    type: bolts
+    requirements:
+      ranged: 46
+  fletching:
+    level: 61
+    materials:
+      - item: Adamant bolts (unf)
+        quantity: 1
+      - item: Feathers
+        quantity: 1
+  obtaining:
+    fletching: Smith adamantite bars, then fletch with feathers (61 Fletching)
+    drops:
+      - Iron dragons
+      - Skeletal wyverns
+  related_items:
+    - slug: adamant-crossbow
+      name: Adamant crossbow
+      relation: required_weapon
+    - slug: adamant-bolts-e
+      name: Adamant bolts (e)
+      relation: enchanted_variants
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammo |
+| Type | Crossbow Bolts |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 46 Ranged |
+
+## Obtaining
+
+**Fletching:** Smith adamantite bars, then fletch with feathers (61 Fletching).
+
+**Drops:** Iron dragons, skeletal wyverns.
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Usage
+
+Used with adamant crossbow or higher.
+
+Can be tipped with gems and enchanted for special effects.
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~198 gp
+
+Common mid-level ammunition. High volume trading.
+
+## Related Items
+
+- [Adamant crossbow](/osrs/adamant-crossbow/) - Required weapon
+- [Adamant bolts (e)](/osrs/adamant-bolts-e/) - Enchanted variants
+
+<Adsense />

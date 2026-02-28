@@ -1,0 +1,113 @@
+---
+title: Initiate cuisse | OSRS Price Data
+description: "Initiate cuisse is a members legs slot item requiring 20 Defence. High alch: 4,800 GP, GE limit: 125."
+osrs:
+  id: 5576
+  name: Initiate cuisse
+  slug: initiate-cuisse
+  examine: An initiate Temple Knight's leg armour.
+  members: true
+  icon: Initiate cuisse.png
+  value: 8000
+  lowalch: 3200
+  highalch: 4800
+  limit: 125
+  equipment:
+    slot: legs
+    type: armour
+    prayer_bonus: 5
+    requirements:
+      defence: 20
+      prayer: 10
+    combat_stats:
+      stab_defence: 26
+      slash_defence: 25
+      crush_defence: 24
+      magic_defence: -4
+      ranged_defence: 26
+  related_items:
+    - item_id: 5575
+      item_name: Initiate hauberk
+      slug: initiate-hauberk
+      relationship: set-piece
+      description: Body (+6 Prayer)
+    - item_id: 5574
+      item_name: Initiate sallet
+      slug: initiate-sallet
+      relationship: set-piece
+      description: Helm (+3 Prayer)
+    - item_id: 9676
+      item_name: Proselyte cuisse
+      slug: proselyte-cuisse
+      relationship: upgrade
+      description: Better stats (+6 Prayer)
+    - item_id: 542
+      item_name: Monk's robe
+      slug: monks-robe
+      relationship: downgrade
+      description: No defence (+5 Prayer)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Prayer Bonus | +5 |
+| Defence Req | 20 |
+| Prayer Req | 10 |
+
+## Obtaining
+
+**Quest:** Recruitment Drive
+
+**Shop:** Sir Tiffy Cashien (Falador Park)
+
+## Usage
+
+- Mid-tier prayer armour
+- Bridge to Proselyte
+- Lower requirements than Proselyte
+
+## Full Set
+
+| Piece | Prayer Bonus |
+|-------|--------------|
+| Initiate sallet | +3 |
+| Initiate hauberk | +6 |
+| Initiate cuisse | +5 |
+| **Total** | **+14** |
+
+## Market Flip Strategy
+
+**Quest-Locked:**
+- Requires quest completion
+- Shop purchase only
+- No GE trading (untradeable)
+
+**Tips:**
+- Must complete Recruitment Drive
+- Stepping stone to Proselyte
+- Lower requirements good for pures
+
+<Adsense />

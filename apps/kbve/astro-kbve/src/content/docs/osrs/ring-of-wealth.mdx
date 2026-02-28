@@ -1,0 +1,137 @@
+---
+title: Ring of wealth | OSRS Price Data
+description: "Ring of wealth is a members ring slot item. High alch: 10,575 GP, GE limit: 10,000."
+osrs:
+  id: 2572
+  name: Ring of wealth
+  slug: ring-of-wealth
+  examine: It can be charged at the Fountain of Rune.
+  members: true
+  icon: Ring of wealth.png
+  value: 17625
+  lowalch: 7050
+  highalch: 10575
+  limit: 10000
+  equipment:
+    slot: ring
+    weight: 0.006
+    attack_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    defence_bonus:
+      stab: 0
+      slash: 0
+      crush: 0
+      magic: 0
+      ranged: 0
+    other_bonus:
+      melee_strength: 0
+      ranged_strength: 0
+      magic_damage: 0
+      prayer: 0
+  special_effect:
+    name: Wealth Effect
+    description: Improves rare drop table, auto-collects coins/tokkul, tracks boss kills
+    triggers: passive
+  recipes:
+    - skill: magic
+      level: 68
+      xp: 78
+      spell: Lvl-5 Enchant
+      materials:
+        - item_name: Dragonstone ring
+          item_id: 1645
+          quantity: 1
+        - item_name: Cosmic rune
+          item_id: 564
+          quantity: 1
+        - item_name: Earth rune
+          item_id: 557
+          quantity: 15
+        - item_name: Water rune
+          item_id: 555
+          quantity: 15
+  related_items:
+    - item_id: 1645
+      item_name: Dragonstone ring
+      slug: dragonstone-ring
+      relationship: component
+      description: Unenchanted version
+    - item_id: 12785
+      item_name: Ring of wealth (i)
+      slug: ring-of-wealth-i
+      relationship: upgrade
+      description: Imbued version
+    - item_id: 1615
+      item_name: Dragonstone
+      slug: dragonstone
+      relationship: component
+      description: Gem component
+    - item_id: 2357
+      item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Crafting material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Effects
+
+| Effect | Description |
+|--------|-------------|
+| Rare drop table | Removes empty rolls |
+| Coin collection | Auto-pickup coins/tokkul |
+| Boss log | Tracks boss kills |
+| Teleports | 5 charges when imbued |
+
+## Teleport Locations
+
+- Grand Exchange
+- Miscellania
+- Falador Park
+- Dondakan
+
+## Market Flip Strategy
+
+**Essential Utility Ring:**
+- Improves rare drops
+- Coin collection useful
+- Teleport charges
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Demand Drivers:**
+- Slayer tasks
+- Bossing
+- Money making
+- Clue scrolls
+
+**Tips:**
+- Charge at Fountain of Rune
+- Imbue for permanent effect
+- Auto coin pickup saves time
+- Boss log tracking
+
+<Adsense />

@@ -1,0 +1,125 @@
+---
+title: Mithril arrow | OSRS Price Data
+description: "Mithril arrow is a F2P ammo slot item. High alch: 19 GP, GE limit: 7,000."
+osrs:
+  id: 888
+  name: Mithril arrow
+  slug: mithril-arrow
+  examine: Arrows with mithril heads.
+  members: false
+  icon: Mithril arrow 5.png
+  value: 32
+  lowalch: 12
+  highalch: 19
+  limit: 7000
+  equipment:
+    slot: ammo
+    type: arrow
+    attack_style: ranged
+  requirements:
+    ranged: 20
+  stats:
+    other:
+      ranged_strength: 22
+  fletching:
+    level: 45
+    xp: 7.5
+    method: Mithril arrowtips + headless arrows
+  drop_table:
+    sources:
+      - source: Ice warrior
+        source_id: 145
+        combat_level: 57
+        quantity: 5-12
+        rarity: common
+      - source: Waterfiend
+        source_id: 5361
+        combat_level: 115
+        quantity: 20-50
+        rarity: common
+        members_only: true
+  shops:
+    - shop_name: Lowe's Archery Emporium
+      location: Varrock
+      price: 40
+  related_items:
+    - item_id: 890
+      item_name: Adamant arrow
+      slug: adamant-arrow
+      relationship: upgrade
+      description: Higher tier arrow
+    - item_id: 886
+      item_name: Steel arrow
+      slug: steel-arrow
+      relationship: downgrade
+      description: Lower tier arrow
+    - item_id: 42
+      item_name: Mithril arrowtips
+      slug: mithril-arrowtips
+      relationship: component
+      description: Fletching material
+    - item_id: 53
+      item_name: Headless arrow
+      slug: headless-arrow
+      relationship: component
+      description: Fletching material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammo |
+| Type | Arrows |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 20 Ranged |
+
+## Obtaining
+
+**Fletching:** Combine mithril arrowtips with headless arrows (45 Fletching, 112.5 XP per 15).
+
+**Shops:** Lowe's Archery Emporium, various archery shops.
+
+**Drops:** Ice warriors, white knights, waterfiends.
+
+## Usage
+
+Used with any shortbow or longbow.
+
+Budget training ammunition.
+
+## Market Strategy
+
+**Buy Limit:** 7,000 per 4 hours
+
+**Price:** ~17 gp
+
+Cheap training option. High volume trading.
+
+## Related Items
+
+- [Mithril arrowtips](/osrs/mithril-arrowtips/) - Crafting material
+- [Adamant arrow](/osrs/adamant-arrow/) - Upgrade option
+
+<Adsense />

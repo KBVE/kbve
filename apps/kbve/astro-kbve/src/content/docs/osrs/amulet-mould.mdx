@@ -1,0 +1,136 @@
+---
+title: Amulet mould | OSRS Price Data
+description: "Amulet mould: Used to make amulets.. High alch: 3 GP, GE limit: 40."
+osrs:
+  id: 1595
+  name: Amulet mould
+  slug: amulet-mould
+  examine: Used to make amulets.
+  members: false
+  icon: Amulet mould.png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 40
+  material:
+    type: mould
+    tier: crafting_tool
+  crafting:
+    use: amulet
+  shops:
+    - shop_name: Crafting shops
+      price: 5
+      currency: Coins
+  uses:
+    - product: Gold amulet (u)
+      product_id: 1673
+      bar: Gold bar
+      bar_id: 2357
+      crafting_level: 8
+      crafting_xp: 30
+    - product: Sapphire amulet (u)
+      product_id: 1675
+      crafting_level: 24
+      crafting_xp: 65
+    - product: Emerald amulet (u)
+      product_id: 1677
+      crafting_level: 31
+      crafting_xp: 70
+    - product: Ruby amulet (u)
+      product_id: 1679
+      crafting_level: 50
+      crafting_xp: 85
+    - product: Diamond amulet (u)
+      product_id: 1681
+      crafting_level: 70
+      crafting_xp: 100
+    - product: Dragonstone amulet (u)
+      product_id: 1683
+      crafting_level: 80
+      crafting_xp: 150
+    - product: Onyx amulet (u)
+      product_id: 6579
+      crafting_level: 90
+      crafting_xp: 165
+    - product: Zenyte amulet (u)
+      product_id: 19501
+      crafting_level: 98
+      crafting_xp: 200
+  related_items:
+    - item_id: 2357
+      item_name: Gold bar
+      slug: gold-bar
+      relationship: component
+      description: Material used
+    - item_id: 1673
+      item_name: Gold amulet (u)
+      slug: gold-amulet-u
+      relationship: product
+      description: Basic product
+    - item_id: 1712
+      item_name: Amulet of glory
+      slug: amulet-of-glory
+      relationship: product
+      description: Enchanted product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Price |
+|--------|-------|
+| Crafting shops | 5 gp |
+| Grand Exchange | Market price |
+
+## Usage
+
+Make amulets at a furnace:
+
+| Amulet | Level | XP | Gem Required |
+|--------|-------|-----|--------------|
+| Gold amulet (u) | 8 | 30 | None |
+| Sapphire amulet (u) | 24 | 65 | Sapphire |
+| Emerald amulet (u) | 31 | 70 | Emerald |
+| Ruby amulet (u) | 50 | 85 | Ruby |
+| Diamond amulet (u) | 70 | 100 | Diamond |
+| Dragonstone amulet (u) | 80 | 150 | Dragonstone |
+| Onyx amulet (u) | 90 | 165 | Onyx |
+| Zenyte amulet (u) | 98 | 200 | Zenyte |
+
+String with ball of wool to complete.
+
+## Market Strategy
+
+**Buy Limit:** 40 per 4 hours
+
+**Demand Drivers:**
+- Amulet crafting
+- Jewelry production
+- Glory crafting
+
+**Tips:**
+- One-time purchase
+- Not consumed on use
+- Essential for jewelry
+- Buy from shop
+
+<Adsense />

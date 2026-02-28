@@ -1,0 +1,37 @@
+---
+title: Oathplate chest | OSRS Price Data
+description: "Oathplate chest: A chestplate forged from infernal metal.. High alch: 360,000 GP."
+osrs:
+  id: 30753
+  name: Oathplate chest
+  slug: oathplate-chest
+  examine: A chestplate forged from infernal metal.
+  members: true
+  icon: Oathplate chest.png
+  value: 600000
+  lowalch: 240000
+  highalch: 360000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

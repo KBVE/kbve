@@ -1,0 +1,105 @@
+---
+title: Iron bar | OSRS Price Data
+description: "Iron bar: It's a bar of iron.. High alch: 16 GP, GE limit: 10,000."
+osrs:
+  id: 2351
+  name: Iron bar
+  slug: iron-bar
+  examine: It's a bar of iron.
+  members: false
+  icon: Iron bar.png
+  value: 28
+  lowalch: 11
+  highalch: 16
+  limit: 10000
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    weight: 1.814
+  recipes:
+    - skill: smithing
+      level: 15
+      xp: 12.5
+      materials:
+        - item_name: Iron ore
+          item_id: 440
+          quantity: 1
+      description: Smelting iron ore (50% success rate at regular furnace)
+  related_items:
+    - item_id: 440
+      item_name: Iron ore
+      slug: iron-ore
+      relationship: component
+      description: Raw material
+    - item_id: 2353
+      item_name: Steel bar
+      slug: steel-bar
+      relationship: alternative
+      description: Higher tier bar
+    - item_id: 2568
+      item_name: Ring of forging
+      slug: ring-of-forging
+      relationship: alternative
+      description: Guarantees 100% success rate
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Metal Bar |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 15 Smithing |
+
+## Obtaining
+
+**Smelting:** Smelt iron ore (15 Smithing, 12.5 XP).
+
+**Success Rate:** 50% at regular furnace, 100% at Blast Furnace.
+
+**Ring of Forging:** Guarantees success for 140 ores.
+
+**Drops:** Iron dragons (5 bars), white knights.
+
+## Usage
+
+Used for Smithing iron equipment and cannonballs.
+
+Popular for Blast Furnace money making.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~228 gp
+
+High volume smithing material.
+
+## Related Items
+
+- [Iron ore](/osrs/iron-ore/) - Raw material
+- [Steel bar](/osrs/steel-bar/) - Higher tier
+
+<Adsense />

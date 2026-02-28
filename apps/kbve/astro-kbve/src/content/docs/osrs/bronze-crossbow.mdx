@@ -1,0 +1,103 @@
+---
+title: Bronze crossbow | OSRS Price Data
+description: "Bronze crossbow is a members weapon slot item requiring 1 Ranged. High alch: 43 GP, GE limit: 125."
+osrs:
+  id: 9174
+  name: Bronze crossbow
+  slug: bronze-crossbow
+  examine: A bronze crossbow.
+  members: true
+  icon: Bronze crossbow.png
+  value: 73
+  lowalch: 29
+  highalch: 43
+  limit: 125
+  item_id: 9174
+  type: equipment
+  tradeable: true
+  weight: 4
+  buy_limit: 125
+  equipment:
+    slot: weapon
+    type: crossbow
+    requirements:
+      ranged: 1
+    stats:
+      attack_ranged: 18
+    attack_range: 7
+  fletching:
+    level: 9
+    materials:
+      - item: Bronze crossbow (u)
+        quantity: 1
+      - item: Crossbow string
+        quantity: 1
+  obtaining:
+    fletching: 9 Fletching with bronze crossbow (u) + crossbow string
+    shop: Crossbow Shop, Keldagrim
+  related_items:
+    - slug: iron-crossbow
+      name: Iron crossbow
+      relation: upgrade
+    - slug: bronze-bolts
+      name: Bronze bolts
+      relation: compatible_ammo
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Main Hand |
+| Type | Crossbow |
+| Tradeable | Yes |
+| Weight | 4 kg |
+| Requirements | 1 Ranged |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Attack | +18 |
+| Attack Range | 7 |
+
+## Obtaining
+
+**Fletching:** 9 Fletching with bronze crossbow (u) + crossbow string.
+
+**Shop:** Crossbow Shop, Keldagrim.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~428 gp
+
+Starter crossbow. Uses bronze bolts.
+
+## Related Items
+
+- [Iron crossbow](/osrs/iron-crossbow/) - Upgrade
+- [Bronze bolts](/osrs/bronze-bolts/) - Compatible ammo
+
+<Adsense />

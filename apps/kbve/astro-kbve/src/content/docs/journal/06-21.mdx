@@ -1,0 +1,165 @@
+---
+title: 'June: 21'
+category: Daily
+date: 2024-06-21 12:00:00
+client: Self
+unsplash: 1685110191139-eb2caaac220d
+img: https://images.unsplash.com/photo-1685110191139-eb2caaac220d?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  June 21st. Fixing Atlas Issue Process.
+tags:
+  - daily
+---
+
+import { Adsense } from '@/components/astropad';
+
+## Notes
+
+The month is almost over! The summer heat be rough.
+
+---
+
+## Quote
+
+> If you would take, you must first give, this is the beginning of intelligence.
+> — <cite>Laozi</cite>
+
+---
+
+## Tasks
+
+- [ ] Start Mother-in-Law Construction Research
+- [ ] Manga Codebase Refresh
+- [ ] Start Living Trust Research
+
+---
+
+## 2025
+
+### Dashboard for Project Fudster
+
+-   10:27AM
+
+    Finished updating the dashboard for the fudster project, now I can loop back and start the command center.
+    It took just a bit longer to fully understand the secrets but its good to go now!
+    We will start with the basics, making sure the login system works without any major hicups and then see if we can make changes from there.
+    Setting a pending state would be wise, that will be something that I will look into, maybe a genral state management based upon the machine.
+
+### Unity
+
+-   9:30PM
+
+    Session went great, got a better understanding of where I need to patch up the rest of the game.
+    Moving all of the character state and orchestration into a refactored r3 will be the next goal for this week.
+
+## 2024
+
+**Atlas**
+
+Going to update the `i-atlas-process.yml` by removing the initial checkout for the first couple actions, as we do not need the whole monorepo.
+
+```yaml
+- name: Checkout repository
+  uses: actions/checkout@v4
+```
+
+This step within the job is not needed, so we can remove that for the time being.
+
+Okay we were able to get the comment to be placed onto the issue ticket and resolved the npm library issue that we were facing earlier.
+Now there will be a couple steps that we need to execute, it will be kind of like putting together a puzzle set.
+We already know that the pieces are functional but the orchestration has be secure, ensuring that there are not leaks or mismanagement amoung the different steps.
+
+In our first stage, the focus will be on only two actions that we want to execute, the `atlas_action` and the `music_action`.
+Once we get these resolved, we can move forward with the `herbmail_action` and `rareicon_action`.
+Granted we are very much behind schedule, maybe we can try to force some concepts through this weekend and get back on track.
+
+I just spotted a quick error, inside of this action script block:
+
+```yaml
+
+      - name: Check title of the ticket
+        id: title-parser
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { _$gha_kbve_ActionProcess } = require('@kbve/devops');
+            const title = context.payload.issue.title;
+            try {
+              const action = _$gha_kbve_ActionProcess(title);
+              core.setOutput('action', action);
+            } catch (error) {
+              core.setFailed(`Error processing title: ${error.message}`);
+            }
+
+```
+
+We need to wrap the `_$gha_` action within a try-catch, because it will throw an error.
+
+**mL**
+
+Just a minor shift in the mL docs, there is a decent amount of information and links that are missing from the whole document, but I think I will take a couple stabs at it slowly.
+We should have a jupyter notebook section and it would be really interesting to have atlas open them up and execute commands against them?
+Now I am really running the gears in my mind.
+
+**Prompt**
+
+Need to test out the prompt engine and make sure the devops library can grab the different prompts, based upon their ULIDs.
+We went ahead and added the prompt engine types into the `api.ts` and made sure the tests ran without any issues.
+Now we need to prepare to extend them via the Github actions, hmm.
+This might still take a bit, because I can already see some common errors that we will face as we build this out.
+The converting and preparing of the prompt engine is definitely still too whacky and needs some solid refinement.
+Right now, we are just passing through just the task section of the prompt engine and not including any call functions, pathways or tree chains.
+
+**Claude**
+
+Taking this for a spin while I am about to sleep!
+So far, I am going to say that 3.5 sonnet is doing great, if anything, it might be fun to use it with groq and openai.
+It provides a great level of feedback and is able to pickup on what I am trying to do via github actions without any flaws.
+
+**Action**
+
+Switching back around to the github action, while the recent changes are being tested and pushed into main, I think it would be wise to start our execution job.
+After the music handle job is done within the `i-atlas-process.yml`, we can run a new execution job that will pull in the repo and make the pull request.
+The objective would be to smoothly make a minor change to the proper mdx file that the song is suppose to be in.
+Granted this will not happen right this second, but if we can lay down the foundation and make sure everything runs smoothly, than our goal of updating the jukebox via the static page itself will be near complete.
+I started to add the generic handle execution job, which I will push out now.
+
+**Sanitization**
+
+Now that I am thinking about it, we should account for the table changes and make sure the title is escaped.
+Here is a quick function that would make sure that the title of the song will be markdown safe, we will have to be careful not to break our markdown table.
+```ts
+/**
+ * Makes a string safe for use in a markdown table row.
+ * @param row - The string to sanitize.
+ * @returns Markdown-safe string.
+ */
+export async function _md_safe_row(row: string): Promise<string> {
+  // Escape special markdown characters to prevent formatting issues
+  const mdSafeRow = row
+    .replace(/\|/g, '\\|')   // Escape pipe characters
+    .replace(/_/g, '\\_')    // Escape underscores
+    .replace(/\*/g, '\\*')   // Escape asterisks
+    .replace(/\\/g, '\\\\')  // Escape backslashes
+    .replace(/\[/g, '\\[')   // Escape opening square brackets
+    .replace(/\]/g, '\\]')   // Escape closing square brackets
+    .replace(/\(/g, '\\(')   // Escape opening parentheses
+    .replace(/\)/g, '\\)');  // Escape closing parentheses
+
+  return mdSafeRow;
+}
+```
+
+We also do have an escape function added into the `music.sh` that will escape, but this is just to be safe in the future.
+
+The pull request was the last failed workflow and I also noticed it grabbed the actual song title, rather than keeping the artist / band.
+In our markdown table, we are keeping both the title of the song and the artist/band because breaking it down further might not be worth it right now.
+
+
+<Adsense />
+
+## 2023
+
+- 8:30am - It seems that I was assigned again on a SPY put, so forced to buy 100 shares of $SPY. I might also get assigned on one of my TSLA calls, but at the same time, my puts look like they expired with a decent amount of profit. Overall this week looks like another $2000 in the bag, which I will most likely allocate towards CEFs, as my REIT position is already above 10% of my portfolio. I might also look into adding a larger position of bonds too, including some meme bonds.
+- 5:00pm - Decided to delete the older manga reference files, including the abstract theme. I am going to start it again but with a fresh take and maybe a more internal / core approach to resolve the issue. As for the transition effects, we could reference the older SWUP but we can also utilize the pre-fetch to help load the options before hand? There are a couple ways we could go about this.
+- 11:00pm - It looks like the basic layout for the manga / visual novel looks like it can be a MVP. I am going to mess around with the settings and see if we can expand upon that.

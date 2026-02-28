@@ -1,0 +1,37 @@
+---
+title: Granite longsword | OSRS Price Data
+description: "Granite longsword: A razor sharp longsword made of stone.. High alch: 19,200 GP, GE limit: 70."
+osrs:
+  id: 21646
+  name: Granite longsword
+  slug: granite-longsword
+  examine: A razor sharp longsword made of stone.
+  members: true
+  icon: Granite longsword.png
+  value: 32000
+  lowalch: 12800
+  highalch: 19200
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

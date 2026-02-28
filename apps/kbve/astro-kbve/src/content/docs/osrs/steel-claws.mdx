@@ -1,0 +1,37 @@
+---
+title: Steel claws | OSRS Price Data
+description: "Steel claws: A set of fighting claws.. High alch: 105 GP, GE limit: 125."
+osrs:
+  id: 3097
+  name: Steel claws
+  slug: steel-claws
+  examine: A set of fighting claws.
+  members: true
+  icon: Steel claws.png
+  value: 175
+  lowalch: 70
+  highalch: 105
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

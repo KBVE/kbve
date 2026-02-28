@@ -1,0 +1,37 @@
+---
+title: Holy book page set | OSRS Price Data
+description: "Holy book page set: A set containing the four pages of Saradomin's Holy Book.. High alch: 4,200 GP, GE limit: 5."
+osrs:
+  id: 13149
+  name: Holy book page set
+  slug: holy-book-page-set
+  examine: A set containing the four pages of Saradomin's Holy Book.
+  members: true
+  icon: Holy book page set.png
+  value: 7000
+  lowalch: 2800
+  highalch: 4200
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

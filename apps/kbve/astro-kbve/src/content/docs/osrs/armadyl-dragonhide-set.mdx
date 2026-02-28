@@ -1,0 +1,37 @@
+---
+title: Armadyl dragonhide set | OSRS Price Data
+description: "Armadyl dragonhide set: A set containing an Armadyl dragonhide coif, body, chaps and bracers.. High alch: 5,700 GP, GE limit: 8."
+osrs:
+  id: 13169
+  name: Armadyl dragonhide set
+  slug: armadyl-dragonhide-set
+  examine: A set containing an Armadyl dragonhide coif, body, chaps and bracers.
+  members: true
+  icon: Armadyl dragonhide set.png
+  value: 9500
+  lowalch: 3800
+  highalch: 5700
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

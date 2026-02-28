@@ -1,0 +1,173 @@
+---
+title: Nightmare staff | OSRS Price Data
+description: "Nightmare staff is a members two-handed weapon requiring 72 Magic. High alch: 360,000 GP, GE limit: 8."
+osrs:
+  id: 24422
+  name: Nightmare staff
+  slug: nightmare-staff
+  examine: An ancient staff corrupted by darkness.
+  members: true
+  icon: Nightmare staff.png
+  value: 600000
+  lowalch: 240000
+  highalch: 360000
+  limit: 8
+  equipment:
+    slot: 2h
+    type: powered-staff
+    attack_style: magic
+    attack_speed: 4
+    requirements:
+      magic: 72
+      hitpoints: 50
+    stats:
+      attack_magic: 16
+      defence_magic: 14
+      magic_damage: 15
+  effect:
+    autocast_standard: true
+    autocast_ancient: true
+  upgrades:
+    - item_id: 24421
+      item_name: Volatile nightmare staff
+      component_id: 24511
+      component_name: Volatile orb
+      description: Damage spec variant
+    - item_id: 24425
+      item_name: Eldritch nightmare staff
+      component_id: 24517
+      component_name: Eldritch orb
+      description: Prayer restore variant
+    - item_id: 24423
+      item_name: Harmonised nightmare staff
+      component_id: 24514
+      component_name: Harmonised orb
+      description: Fast casting variant
+  drop_table:
+    sources:
+      - source: The Nightmare
+        source_id: 9425
+        combat_level: 814
+        quantity: "1"
+        rarity: Rare
+        drop_rate: 1/300 - 1/171
+        members_only: true
+      - source: Phosani's Nightmare
+        source_id: 9416
+        combat_level: 814
+        quantity: "1"
+        rarity: Rare
+        drop_rate: 1/533
+        members_only: true
+  related_items:
+    - item_id: 24421
+      item_name: Volatile nightmare staff
+      slug: volatile-nightmare-staff
+      relationship: upgrade
+      description: Damage spec
+    - item_id: 24425
+      item_name: Eldritch nightmare staff
+      slug: eldritch-nightmare-staff
+      relationship: upgrade
+      description: Prayer restore
+    - item_id: 24423
+      item_name: Harmonised nightmare staff
+      slug: harmonised-nightmare-staff
+      relationship: upgrade
+      description: Fast casting
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Two-handed) |
+| Type | Magic - Powered Staff |
+| Tradeable | Yes |
+| Weight | 1.5 kg |
+
+## Obtaining
+
+Drop from The Nightmare and Phosani's Nightmare.
+
+| Boss | Drop Rate |
+|------|-----------|
+| The Nightmare | 1/300 - 1/171 |
+| Phosani's Nightmare | 1/533 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Magic attack | +16 |
+| Magic damage | +15% |
+
+| Defence | Value |
+|---------|-------|
+| Magic | +14 |
+
+**Requirements:** 72 Magic, 50 Hitpoints
+
+## Effects
+
+**Autocast:**
+- Standard spells
+- Ancient Magicks
+
+## Upgrades
+
+Attach orbs to enhance:
+
+| Orb | Effect | Total Cost |
+|-----|--------|------------|
+| Volatile | Damage spec | ~81M |
+| Eldritch | Prayer restore spec | ~212M |
+| Harmonised | Fast standard spells | ~219M |
+
+## Usage
+
+Base staff for:
+- Magic combat
+- Component for upgraded staves
+- Budget +15% damage option
+
+**Foundation for nightmare staff variants.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~41M gp
+
+**Tips:**
+- Nightmare is only source
+- Buy for upgrade path
+- All variants are strong
+
+## Related Items
+
+- [Volatile nightmare staff](/osrs/volatile-nightmare-staff/) - Damage spec
+- [Eldritch nightmare staff](/osrs/eldritch-nightmare-staff/) - Prayer restore
+- [Harmonised nightmare staff](/osrs/harmonised-nightmare-staff/) - Fast casting
+
+<Adsense />

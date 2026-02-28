@@ -1,0 +1,130 @@
+---
+title: Magic roots | OSRS Price Data
+description: "Magic roots: The roots of the Magic tree.. High alch: 1 GP, GE limit: 11,000."
+osrs:
+  id: 6051
+  name: Magic roots
+  slug: magic-roots
+  examine: The roots of the Magic tree.
+  members: true
+  icon: Magic roots.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 11000
+  material:
+    type: farming_product
+    tier: high
+  farming:
+    level: 75
+    source: Magic tree
+    seed_id: 5316
+    seed_name: Magic seed
+  recipes:
+    - skill: herblore
+      level: 79
+      xp: 155
+      materials:
+        - item_name: Irit potion (unf)
+          item_id: 2481
+          quantity: 1
+        - item_name: Magic roots
+          item_id: 6051
+          quantity: 1
+      product: Antidote++(3)
+      product_id: 5954
+      members_only: true
+    - skill: herblore
+      level: 79
+      xp: 155
+      materials:
+        - item_name: Coconut milk
+          item_id: 5935
+          quantity: 1
+        - item_name: Irit leaf
+          item_id: 259
+          quantity: 1
+        - item_name: Magic roots
+          item_id: 6051
+          quantity: 1
+      product: Antidote++(3)
+      product_id: 5954
+      members_only: true
+  related_items:
+    - item_id: 5316
+      item_name: Magic seed
+      slug: magic-seed
+      relationship: component
+      description: Tree seed that yields roots
+    - item_id: 5952
+      item_name: Antidote++(4)
+      slug: antidote-4
+      relationship: product
+      description: Main herblore product
+    - item_id: 5935
+      item_name: Coconut milk
+      slug: coconut-milk
+      relationship: component
+      description: Alternative base for antidote++
+    - item_id: 259
+      item_name: Irit leaf
+      slug: irit-leaf
+      relationship: component
+      description: Herb for antidote++
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Magic roots are obtained by digging up fully grown **magic trees**:
+- Requires 75 Farming to plant magic trees
+- Harvest roots when checking health or digging up
+- Also available from Kingdom of Miscellania
+
+## Herblore Uses
+
+| Potion | Base | Level | XP |
+|--------|------|-------|-----|
+| Antidote++(3) | Irit potion (unf) OR Coconut milk + Irit | 79 | 155 |
+
+Antidote++ is the base for anti-venom potions.
+
+## Market Strategy
+
+**Farming Route:**
+- Plant magic trees for seeds + XP + roots
+- Roots are bonus income from tree runs
+- Consider tree protection payments
+
+**Antidote++ Chain:**
+1. Magic roots for antidote++
+2. Antidote++ + scales for anti-venom
+3. Anti-venom + torstol for anti-venom+
+
+**Kingdom of Miscellania:**
+- Can passively collect magic roots
+- Set workers to hardwood/mahogany
+- Roots as secondary reward
+
+**Buy Limit:** 10,000 per 4 hours
+
+<Adsense />

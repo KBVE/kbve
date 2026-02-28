@@ -1,0 +1,482 @@
+---
+title: Rust
+description: |
+    Rust is a modern programming language known for its focus on safety, particularly memory safety, and performance.
+    It is designed to provide developers with the tools to create reliable and efficient software, often used in systems programming, web assembly, and embedded applications.
+sidebar:
+    label: Rust
+    order: 404
+unsplash: 1565153907400-7e01a9ab25f3
+img: https://images.unsplash.com/photo-1565153907400-7e01a9ab25f3?fit=crop&w=1400&h=700&q=75
+tags:
+    - technology
+---
+
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+  Code,
+  FileTree,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Information
+
+Rust is a modern systems programming language that aims to provide memory safety, concurrency, and high performance without sacrificing control over system resources.
+Developed by Mozilla and now maintained by the Rust Foundation, it is designed to address common issues found in other languages like C and C++, such as null pointer dereferencing and buffer overflows, through its powerful ownership model and strict compile-time checks.
+Rust's expressive type system, robust package manager (Cargo), and thriving ecosystem make it a popular choice for building reliable and efficient software, from operating systems and game engines to web servers and command-line tools.
+
+---
+
+<Adsense />
+
+## Install
+
+<Aside>
+
+This tutorial is intended for users on Linux, MacOS, and WSL (Windows Subsystem for Linux). 
+Windows users should follow the instructions for setting up WSL to use this guide effectively.
+
+</Aside>
+
+Installing Rust on Linux, MacOS, or WSL involves using the `rustup` tool, which manages the Rust installation and its associated tools.
+You can install `rustup` by running a simple `curl` command in the terminal and following the prompts to complete the setup.
+After configuring your shell and verifying the installation, you'll have a fully functional Rust development environment ready for use.
+
+<Steps>
+
+1.  **Install Rust using `rustup`**:
+
+    Open a terminal and run the following command to download and install the `rustup` tool, which will manage your Rust installation.
+
+    ```shell
+    curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
+    ```
+
+    Follow the prompts during the installation process to proceed with the default installation options. If the installation is successful, you will see a message indicating that Rust has been installed.
+
+2.  **Configure Your Shell**:
+
+    After the installation is complete, you need to configure your current shell session to use Rust by running the following command:
+
+    ```shell
+    source $HOME/.cargo/env
+    ```
+
+    This command ensures that Rust and its associated tools are available in your shell environment.
+
+3.  **Verify the Installation**:
+
+    To confirm that Rust has been installed correctly, check the version of the Rust compiler with the following command:
+
+    ```shell
+    rustc --version
+    ```
+
+    This command should display the installed version of Rust, indicating that the installation was successful.
+
+4.  **Install Required Dependencies**:
+
+    Rust requires a linker to combine its compiled outputs into one file. You may need to install additional tools if you encounter linker errors.
+
+    **On Ubuntu/Debian**:
+
+    ```shell
+    sudo apt update
+    sudo apt install build-essential
+    ```
+
+    **On Fedora**:
+
+    ```shell
+    sudo dnf groupinstall 'Development Tools'
+    ```
+
+    **On Arch Linux**:
+
+    ```shell
+    sudo pacman -S base-devel
+    ```
+
+    **On MacOS**:
+
+    Install Xcode command line tools, which include a C compiler and linker.
+
+    ```shell
+    xcode-select --install
+    ```
+
+5.  **Update Rust**:
+
+    Keep your Rust installation up-to-date with the following command:
+
+    ```shell
+    rustup update
+    ```
+
+6.  **Configure Your Development Environment**:
+
+    To make the most of Rust, you should set up a development environment.
+
+    **Install Visual Studio Code** (optional):
+
+    VS Code is a popular code editor with excellent support for Rust.
+
+    **On Linux**:
+
+    ```shell
+    sudo snap install --classic code
+    ```
+
+    **On MacOS**:
+
+    Download and install from [the official website](https://code.visualstudio.com/).
+
+    **Install the Rust extension for VS Code**:
+
+    Open VS Code and install the "rust-analyzer" extension for Rust language support.
+
+    **Set up your first Rust project**:
+
+    ```shell
+    cargo new hello_world
+    cd hello_world
+    cargo run
+    ```
+
+    This will create a new Rust project named `hello_world`, navigate into the project directory, and run the sample application.
+
+7.  **Explore Rust Documentation**:
+
+    Rust has extensive documentation and a friendly community. Here are some resources to get you started:
+
+    - [The Rust Programming Language Book](https://doc.rust-lang.org/stable/book/)
+    - [Rust By Example](https://doc.rust-lang.org/stable/rust-by-example/)
+    - [Official Rust Documentation](https://doc.rust-lang.org/)
+
+
+</Steps>
+
+
+---
+
+## Update
+
+Updating Rust is simple and straightforward using the `rustup` tool.
+By running the `rustup update` command in your terminal, you can ensure that your Rust installation and all associated components are kept up-to-date with the latest stable versions.
+
+<Steps>
+
+1. **Open a Terminal**:
+
+    Ensure that you have access to a terminal on your Linux, MacOS, or WSL system.
+
+2. **Run the `rustup` Update Command**:
+
+    Use the following command to update Rust and all installed components to the latest version:
+
+    ```shell
+    rustup update
+    ```
+
+    This command will download and install the latest stable version of Rust and update all installed toolchains.
+
+3. **Verify the Update**:
+
+    After the update process is complete, verify that Rust has been updated successfully by checking the version:
+
+    ```shell
+    rustc --version
+    ```
+
+    This command should display the latest version of Rust, confirming that the update was successful.
+
+4. **Clean Up Old Versions** (optional):
+
+    To free up disk space, you can remove older versions of Rust that are no longer needed by running:
+
+    ```shell
+    rustup self uninstall
+    ```
+
+    This command will prompt you to confirm the removal of old toolchains and components.
+
+</Steps>
+
+---
+
+## Cargo
+
+<Aside>
+> TLDR; Cargo is a package manager for Rust that handles the dependencies, compiling and distribution.
+
+> Cargo can publish your package to **crates.io** so that it can be used with other applications within Rust.
+</Aside>
+
+Cargo is the Rust package manager and build system, designed to streamline the process of managing dependencies, compiling code, and building projects.
+It simplifies tasks like creating new projects, running tests, and generating documentation with easy-to-use commands.
+Cargo ensures that Rust developers can efficiently manage their projects' libraries and tools, maintaining consistency and reliability throughout the development lifecycle.
+
+<Steps>
+
+1. **Install Rust and Cargo**:
+
+    Cargo comes bundled with Rust, so installing Rust also installs Cargo. If you haven't installed Rust yet, follow the installation steps below:
+
+    Open a terminal and run the following command:
+
+    ```shell
+    curl --proto '=https' --tlsv1.3 https://sh.rustup.rs -sSf | sh
+    ```
+
+    Follow the prompts to complete the installation. Once Rust is installed, Cargo will be installed automatically.
+
+2. **Verify Cargo Installation**:
+
+    To ensure Cargo is installed correctly, check its version by running:
+
+    ```shell
+    cargo --version
+    ```
+
+    This command should display the installed version of Cargo, confirming the installation was successful.
+
+3. **Create a New Rust Project**:
+
+    Use Cargo to create a new Rust project by running:
+
+    ```shell
+    cargo new my_project
+    cd my_project
+    ```
+
+    This command creates a new directory named `my_project` with the necessary files and structure for a Rust project.
+
+4. **Build the Project**:
+
+    To compile your Rust project, navigate to your project directory and run:
+
+    ```shell
+    cargo build
+    ```
+
+    This command compiles your project and produces an executable in the `target/debug` directory.
+
+5. **Run the Project**:
+
+    After building your project, you can run it with:
+
+    ```shell
+    cargo run
+    ```
+
+    This command compiles (if necessary) and runs your project, displaying any output in the terminal.
+
+6. **Add Dependencies**:
+
+    To add external libraries (dependencies) to your project, edit the `Cargo.toml` file in your project directory and add the desired dependencies under the `[dependencies]` section. For example:
+
+    ```toml
+    [dependencies]
+    serde = "1.0"
+    ```
+
+    After adding dependencies, run:
+
+    ```shell
+    cargo build
+    ```
+
+    Cargo will download and compile the specified dependencies for your project.
+
+7. **Run Tests**:
+
+    To run tests defined in your project, use:
+
+    ```shell
+    cargo test
+    ```
+
+    This command compiles and runs any tests found in the `tests` directory or within your source files.
+
+8. **Generate Documentation**:
+
+    Cargo can generate documentation for your project and its dependencies. To generate and view the documentation, run:
+
+    ```shell
+    cargo doc --open
+    ```
+
+    This command generates HTML documentation and opens it in your default web browser.
+
+9. **(Optional) Install Cargo Watch**:
+
+    Cargo Watch automatically runs Cargo commands when file changes are detected, useful for continuous development.
+
+    **Install Cargo Watch**:
+
+    ```shell
+    cargo install cargo-watch
+    ```
+
+    **Use Cargo Watch**:
+
+    To automatically recompile your project when you make changes, run:
+
+    ```shell
+    cargo watch -x build
+    ```
+
+    For automatic testing on file changes, use:
+
+    ```shell
+    cargo watch -x test
+    ```
+
+</Steps>
+
+---
+
+## Guides
+
+-   [The Rust Programming Language Book](https://doc.rust-lang.org/stable/book/title-page.html)
+
+    > (From the Official Rust Lang Website)
+    > This book assumes that you’ve written code in another programming language but doesn’t
+    > make any assumptions about which one. We’ve tried to make the material broadly accessible
+    > to those from a wide variety of programming backgrounds. We don’t spend a lot of time talking
+    > about what programming is or how to think about it. If you’re entirely new to programming, you
+    > would be better served by reading a book that specifically provides an introduction to programming.
+
+-   [A Gentle Introduction to Rust](https://stevedonovan.github.io/rust-gentle-intro/)
+
+    > The aim of this tutorial is to take you to a place where you can read and write enough Rust to
+    > fully appreciate the excellent learning resources available online, in particular
+    > [The Book.](https://doc.rust-lang.org/stable/book/title-page.html)
+    > It's an opportunity to try before you buy, and get enough feeling for the power of the language to want to go deeper.
+
+-   [Rust 🦀 and WebAssembly 🕸](https://rustwasm.github.io/book/)
+
+    > This small book describes how to use Rust and WebAssembly together.
+
+-   [Cookin' with Rust](https://rust-lang-nursery.github.io/rust-cookbook/intro.html)
+
+    > This Rust Cookbook is a collection of simple examples that demonstrate good practices to accomplish common
+    > programming tasks, using the crates of the Rust ecosystem.
+
+---
+
+## Examples
+
+-   These are some examples of repos, demos, and source code written in rust!
+
+### MicroService
+
+This is a quick repo / guide on a Rust MySQL Microservice!
+Official [Repo](https://github.com/second-state/microservice-rust-mysql)
+
+### Youki
+
+Youki is an Open Container Initiative runtime specification library written in Rust.
+Official [Youki Repo](https://github.com/containers/youki)
+There are some issues with some devices within `CGroups v2` that should be noted.
+Since youki is a low-level runtime, its recommend that you combine it with a high-level runtime, such as Docker / Podman.
+
+
+---
+
+## Axum
+
+    -   Axum is an ergonomic and modular Rust web application framework.
+    -   [Github Repo](https://github.com/tokio-rs/axum)
+    -   Axum can be extended through Tower, which is an ecosystem of middleware, services and utilities
+
+---
+
+## eGUI
+
+This crate is a user-friendly, easy-to-integrate, immediate-mode GUI library designed for rapid development of interactive applications in Rust.
+
+### egui Dependency
+
+        -   There are some dependencies that you might require when working with `egui`:
+
+            ```shell
+            sudo apt-get install libxcb-render0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxkbcommon-dev libssl-dev
+            ```
+                - Note: These dependencies are for Ubuntu / WSL.
+
+        -   Making sure the `rustup` has the `wasm` components.
+
+            ```shell
+            rustup target add wasm32-unknown-unknow
+            ```
+        
+        -   Installing `Trunk`
+
+            ```shell
+            cargo install --locked trunk
+            ```
+
+---
+
+## Q
+
+Q is a powerful Godot Helper Crate designed for Rust developers using the GDExtension API.
+It provides a robust set of tools to streamline game development, including a versatile Game Manager for handling core game logic, a Music Manager for seamless audio integration, and a Bevy ECS implementation for efficient entity-component-system architecture.
+Additionally, Q leverages Tokio for high-performance multi-threading, enabling smooth and scalable concurrency in your Godot projects.
+Whether you're building complex systems or optimizing performance, Q is your go-to crate for enhancing Rust-based Godot development.
+
+### Q Mac
+
+To build the crate on the mac, we have three options, the first is through the Nx monorepo command: `./kbve.sh -nx q:build-mac`!
+The other option would be to run a [docker](/application/docker/) image to do the build process and the final option would be a [git workflow](/application/git/), more on those two later on.
+
+---
+
+## KBVE
+
+---
+
+## JEDI
+
+---
+
+## ERUST
+
+---
+
+## HOLY
+
+---
+
+--
+
+## CI
+
+For continuous integration, we recommend checking out our [git](/application/git/) section for more information.
+
+
+### MSVC Target
+
+There will come a time where the rust application that you are building will require Windows SDK and ABI!
+When that situation comes, there are three options that are available, but not limited to.
+
+**Windows Native Build**
+
+A simple approach would be to setup the Rust cargo and application on a Windows 11 operating system and compile it from there.
+
+**Github Actions**
+
+Github Actions can provide you with a cloud windows VM that will pull the source code and cargo build the target release, with pre-installed visual studio code.
+
+**Docker**
+
+Nix-ready or custom docker image that has a multi-stage build process, including a cargo chef and layer caching, provides a fast and local way to build across multiple operating systems.
+
+
+<Giscus />

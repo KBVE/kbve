@@ -1,0 +1,37 @@
+---
+title: Sweetcorn seed | OSRS Price Data
+description: "Sweetcorn seed: A sweetcorn seed - plant in an allotment.. High alch: 4 GP, GE limit: 600."
+osrs:
+  id: 5320
+  name: Sweetcorn seed
+  slug: sweetcorn-seed
+  examine: A sweetcorn seed - plant in an allotment.
+  members: true
+  icon: Sweetcorn seed 5.png
+  value: 8
+  lowalch: 3
+  highalch: 4
+  limit: 600
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

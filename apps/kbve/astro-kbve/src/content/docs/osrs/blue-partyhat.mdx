@@ -1,0 +1,37 @@
+---
+title: Blue partyhat | OSRS Price Data
+description: "Blue partyhat: A nice hat from a cracker.. High alch: 1 GP, GE limit: 5."
+osrs:
+  id: 1042
+  name: Blue partyhat
+  slug: blue-partyhat
+  examine: A nice hat from a cracker.
+  members: false
+  icon: Blue partyhat.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

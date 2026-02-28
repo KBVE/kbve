@@ -1,0 +1,37 @@
+---
+title: Mithril knife(p+) | OSRS Price Data
+description: "Mithril knife(p+): A finely balanced throwing knife.. High alch: 16 GP, GE limit: 7,000."
+osrs:
+  id: 5657
+  name: Mithril knife(p+)
+  slug: mithril-knife-p
+  examine: A finely balanced throwing knife.
+  members: true
+  icon: Mithril knife(p+).png
+  value: 27
+  lowalch: 10
+  highalch: 16
+  limit: 7000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

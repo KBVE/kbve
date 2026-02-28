@@ -1,0 +1,124 @@
+---
+title: Hydra leather | OSRS Price Data
+description: "Hydra leather: Hide from a ferocious Hydra. It looks pretty tough.. High alch: 60,000 GP, GE limit: 15."
+osrs:
+  id: 22983
+  name: Hydra leather
+  slug: hydra-leather
+  examine: Hide from a ferocious Hydra. It looks pretty tough.
+  members: true
+  icon: Hydra leather.png
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: 15
+  item:
+    type: crafting_material
+    tradeable: true
+    weight: 0.01
+  drop_table:
+    primary_source: Alchemical Hydra
+    best_drop_rate: 1/514
+    sources:
+      - source: Alchemical Hydra
+        source_id: 8621
+        combat_level: 426
+        quantity: "1"
+        rarity: 1/514
+        members_only: true
+        notes: Requires 95 Slayer and Hydra Slayer task
+  recipes:
+    - skill: none
+      level: 0
+      xp: 0
+      materials:
+        - item_name: Hydra leather
+          item_id: 22983
+          quantity: 1
+      product: Ferocious gloves
+      product_id: 22981
+      product_quantity: 1
+      facility: Lithkren Vault machinery
+      members_only: true
+  related_items:
+    - item_id: 22981
+      item_name: Ferocious gloves
+      slug: ferocious-gloves
+      relationship: product
+      description: BiS melee gloves created from this
+    - item_id: 22966
+      item_name: Hydra's claw
+      slug: hydras-claw
+      relationship: alternative
+      description: Another rare Hydra drop
+    - item_id: 22975
+      item_name: Brimstone ring
+      slug: brimstone-ring
+      relationship: alternative
+      description: Created from Hydra ring pieces
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Stackable | No |
+| Weight | 0.01 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Alchemical Hydra | 1/514 |
+
+**Requires 95 Slayer and must be on a Hydra Slayer task.**
+
+**Location:** Karuulm Slayer Dungeon
+
+## Uses
+
+| Item Created | Materials | Facility |
+|--------------|-----------|----------|
+| Ferocious gloves | 1 Hydra leather | Lithkren Vault machinery |
+
+**Requires completion of Dragon Slayer II to access the vault.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Only source is Alchemical Hydra
+- Creates BiS melee gloves
+- 95 Slayer requirement is significant
+- Dragon Slayer II required for crafting
+
+## Related Items
+
+- [Ferocious gloves](/osrs/ferocious-gloves/) - BiS melee gloves
+- [Hydra's claw](/osrs/hydras-claw/) - Another rare Hydra drop
+- [Brimstone ring](/osrs/brimstone-ring/) - Created from Hydra ring pieces
+
+<Adsense />

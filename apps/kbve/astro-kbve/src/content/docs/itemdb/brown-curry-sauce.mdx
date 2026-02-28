@@ -1,0 +1,126 @@
+---
+title: 'Brown Curry Sauce'
+description: |
+    A savory, aromatic sauce made from a mysterious brown roux, aged spices, and memory-triggering heat.
+    Often paired with rice, dreams, or cold mornings.
+id: 'brown-curry-sauce'
+key: 44
+ref: '01JWG7MYCBHXK5WP2WS6AQYMSC'
+name: 'Brown Curry Sauce'
+type: 'Food'
+category: 392
+img: '/assets/items/skills/cooking/materials/sauce/brown_curry_sauce.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 52
+consumable: true
+stackable: true
+rarity: 'Uncommon'
+weight: 0.85
+effects: 'Restores stamina and focus. May trigger nostalgic hallucinations.'
+price: 90
+durability: 1
+equipped: false
+levelRequirement: 1
+cooldown: 45
+action: 'consume'
+credits: |
+    Artwork by KBVE Pixel Workshop.
+bonuses:
+    stamina: 20
+    focus: 2
+    nostalgia: true
+scripts:
+    - guid: 'cc12495f03df489fb2e94a967f7a7981'
+      vars:
+        buffDuration: 120
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Brown Curry Sauce** is a thick and comforting blend used in both field meals and cultural preservation rituals.
+Stirred slowly until it becomes one with memory, its spice ignites stamina and sharpens the mind, sometimes too much.
+Based on a culinary formula passed down through generations of mech-cooks and memory archivists. 
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.stamina} stamina**  
+- Boosts **focus by {frontmatter.bonuses.focus}**  
+- May trigger **nostalgic effects** or mild hallucinations related to home or family  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Often used in crafting meals like *Curry Rice Bento*, *Spice Ration Omelets*, or *Combat Comfort Packs*  
+- Compatible with rice, bread, noodles, or synthetic meat  
+- Best consumed warm and alone to avoid emotional vulnerability
+
+---
+
+## Lore
+
+> “I tasted it and remembered a lunchbox I never had. And a childhood I might've stolen.”  
+> - Diary of a memory-forged mercenary
+
+The sauce speaks to something older than flavor.
+Each spice may be a sigil.
+Each bite, a glimpse of someone else's life.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/curry_memory.webp"
+  defaultId="01HTXYZCUR001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZCUR001',
+      title: 'Curry Steam',
+      description: 'The scent wraps around your thoughts.',
+      image: 'https://images.unsplash.com/photo-1600119047872-59be8c49c0da?q=80&w=500&auto=format&fit=crop',
+      message: 'You feel safe. You feel like someone else.',
+      choices: [
+        { label: 'Eat the sauce plain.', nextId: '01HTXYZCUR002' },
+        { label: 'Pour over rice.', nextId: '01HTXYZCUR003' }
+      ]
+    },
+    {
+      id: '01HTXYZCUR002',
+      title: 'Spice Flashback',
+      description: 'Heat rushes up your spine.',
+      image: '/images/scene_curry_rush.jpg',
+      message: "You're not sure where you are… but it's familiar."
+    },
+    {
+      id: '01HTXYZCUR003',
+      title: 'Comfort Meal',
+      description: 'The sauce coats the rice like a memory.',
+      image: '/images/scene_curry_plate.jpg',
+      message: 'You chew slowly. The room feels warmer.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/30/2025 - Brown Curry Sauce added as stamina/focus food with warmth and nostalgic flavor tagging

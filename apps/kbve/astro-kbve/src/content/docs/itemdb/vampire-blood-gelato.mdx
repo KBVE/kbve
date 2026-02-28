@@ -1,0 +1,125 @@
+---
+title: 'Vampire Blood Gelato'
+description: | 
+    "A rich, frozen dessert crafted from distilled vampire blood, bitter nightfruit, and crowned with a candied heart. Sweetness meets sin."
+id: 'vampire-blood-gelato'
+key: 52
+ref: '01JWJCC6PEH1BFGXGTD6ETW0TV'
+name: 'Vampire Blood Gelato'
+type: 'Food'
+category: 392
+img: '/assets/items/skills/cooking/dish/vampire_blood_gelato.png'
+pixelDensity: 32
+sortingLayer: Ground
+sortingOrder: 60
+consumable: true
+stackable: false
+rarity: 'Epic'
+weight: 0.8
+effects: 'Heals moderately, boosts dark resistance, and restores mana when eaten under moonlight.'
+price: 600
+durability: 1
+equipped: false
+levelRequirement: 7
+cooldown: 90
+action: 'consume'
+credits: |
+    Concept by Andsam, inspired by true blood and Pixel art by KBVE Pixel Workshop.
+bonuses:
+    health: 50
+    mana: 40
+    darkResist: 15
+scripts:
+    - guid: 'ea539c07b0cb43da9fa5f6db3fbc7db1'
+      vars:
+            buffDuration: 120
+            traits: 'blood-infused'
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Vampire Blood Gelato** is a frozen indulgence imbued with nocturnal energy. 
+The ice cream base is sweetened with nightfruit and coagulated vampiric essence, and its crowning feature, a candied heart, which grants a brief glimpse into the pulse of immortality.
+
+A rare delicacy served during crimson eclipses in vampire enclaves.
+The heart garnish pulses faintly if held too long.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.health} health**  
+- Restores **{frontmatter.bonuses.mana} mana**  
+- Grants **+{frontmatter.bonuses.darkResist}% dark resistance**  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Stronger effects when consumed at night or under full moonlight  
+- The heart topping may be removed for ritual purposes  
+- Best paired with **Vampirie Blood Champagne** for the “Crimson Feast” synergy
+
+---
+
+## Lore
+
+> “I licked the spoon and felt someone else's memories… and hunger.”  
+> - Anonymous guest at the Eclipse Banquet
+
+Cold enough to chill a soul, sweet enough to fool one.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/vampire_gelato.webp"
+  defaultId="01HTXYZGEL001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZGEL001',
+      title: 'Frozen Elegance',
+      description: 'The gelato glows faintly in the dark.',
+      image: 'https://images.unsplash.com/photo-1588854337237-d7dce4db056b?q=80&w=500&auto=format&fit=crop',
+      message: 'The heart beats once. Then melts.',
+      choices: [
+        { label: 'Eat the heart first.', nextId: '01HTXYZGEL002' },
+        { label: 'Mix it all together.', nextId: '01HTXYZGEL003' }
+      ]
+    },
+    {
+      id: '01HTXYZGEL002',
+      title: 'Forbidden Pulse',
+      description: "You feel someone else's life pass through your mouth.",
+      image: '/images/scene_gelato_heart.jpg',
+      message: 'The rush of memory makes you briefly immortal.'
+    },
+    {
+      id: '01HTXYZGEL003',
+      title: 'Crimson Harmony',
+      description: 'A perfect balance of chill and power.',
+      image: '/images/scene_gelato_mix.jpg',
+      message: 'Your body accepts the dark energy without protest.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/30/2025 - Vampire Blood Gelato added with health, mana, and dark resistance buffs; features lore-linked synergy and a consumable heart topping

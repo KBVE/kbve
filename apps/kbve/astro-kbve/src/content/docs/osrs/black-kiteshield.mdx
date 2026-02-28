@@ -1,0 +1,91 @@
+---
+title: Black kiteshield | OSRS Price Data
+description: "Black kiteshield: A large metal shield.. High alch: 979 GP, GE limit: 125."
+osrs:
+  id: 1195
+  name: Black kiteshield
+  slug: black-kiteshield
+  examine: A large metal shield.
+  members: false
+  icon: Black kiteshield.png
+  value: 1632
+  lowalch: 652
+  highalch: 979
+  limit: 125
+  item_id: 1195
+  item_type: armor
+  slot: shield
+  type: kiteshield
+  tradeable: true
+  weight: 5.443
+  requirements:
+    defence: 10
+  stats:
+    stab_defence: 17
+    slash_defence: 19
+    crush_defence: 18
+    ranged_defence: 18
+  related_items:
+    - slug: mithril-kiteshield
+    - slug: black-platebody
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Off Hand |
+| Type | Kiteshield |
+| Tradeable | Yes |
+| Weight | 5.443 kg |
+| Requirements | 10 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +17 |
+| Slash Defence | +19 |
+| Crush Defence | +18 |
+| Ranged Defence | +18 |
+
+## Obtaining
+
+**Shop:** Quality Armour Shop, Keldagrim (2,121 gp).
+
+**Drops:** Ice giants, spiritual warriors.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~864 gp
+
+Cannot be smithed. F2P accessible.
+
+## Related Items
+
+- [Mithril kiteshield](/osrs/mithril-kiteshield/) - Upgrade
+- [Black platebody](/osrs/black-platebody/) - Set piece
+
+<Adsense />

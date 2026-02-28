@@ -1,0 +1,37 @@
+---
+title: Book of balance page set | OSRS Price Data
+description: "Book of balance page set: A set containing the four pages of Guthix's Book of Balance.. High alch: 4,200 GP, GE limit: 5."
+osrs:
+  id: 13153
+  name: Book of balance page set
+  slug: book-of-balance-page-set
+  examine: A set containing the four pages of Guthix's Book of Balance.
+  members: true
+  icon: Book of balance page set.png
+  value: 7000
+  lowalch: 2800
+  highalch: 4200
+  limit: 5
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

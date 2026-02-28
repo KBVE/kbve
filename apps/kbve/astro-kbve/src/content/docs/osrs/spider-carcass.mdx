@@ -1,0 +1,37 @@
+---
+title: Spider carcass | OSRS Price Data
+description: "Spider carcass: Its creeping days are over!. High alch: 9 GP, GE limit: 13,000."
+osrs:
+  id: 6291
+  name: Spider carcass
+  slug: spider-carcass
+  examine: Its creeping days are over!
+  members: true
+  icon: Spider carcass.png
+  value: 15
+  lowalch: 6
+  highalch: 9
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

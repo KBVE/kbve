@@ -1,0 +1,37 @@
+---
+title: Gilded 2h sword | OSRS Price Data
+description: "Gilded 2h sword: A two handed sword with gold plate.. High alch: 38,400 GP, GE limit: 70."
+osrs:
+  id: 20155
+  name: Gilded 2h sword
+  slug: gilded-2h-sword
+  examine: A two handed sword with gold plate.
+  members: false
+  icon: Gilded 2h sword.png
+  value: 64000
+  lowalch: 25600
+  highalch: 38400
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

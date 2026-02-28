@@ -1,0 +1,105 @@
+---
+title: Dragon scimitar ornament kit | OSRS Price Data
+description: "Dragon scimitar ornament kit: Use on the dragon scimitar to trim it with gold.. High alch: 3,000 GP, GE limit: 4."
+osrs:
+  id: 20002
+  name: Dragon scimitar ornament kit
+  slug: dragon-scimitar-ornament-kit
+  examine: Use on the dragon scimitar to trim it with gold.
+  members: true
+  icon: Dragon scimitar ornament kit.png
+  value: 5000
+  lowalch: 2000
+  highalch: 3000
+  limit: 4
+  item:
+    type: ornament_kit
+    tradeable: true
+    target_item: Dragon scimitar
+    target_id: 4587
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Master
+        drop_rate: Rare from reward casket
+  related_items:
+    - item_id: 4587
+      item_name: Dragon scimitar
+      slug: dragon-scimitar
+      relationship: product
+      description: Base item to upgrade
+    - item_id: 20000
+      item_name: Dragon scimitar (or)
+      slug: dragon-scimitar-or
+      relationship: product
+      description: Ornamented version
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Ornament Kit |
+| Target | Dragon scimitar |
+| Tradeable | Yes |
+
+## Obtaining
+
+Reward from master Treasure Trails.
+
+## Usage
+
+Use on a Dragon scimitar to create a Dragon scimitar (or).
+
+**The ornament kit:**
+- Adds gold trim to the scimitar
+- Purely cosmetic change
+- Does not affect stats
+- Can be reverted
+
+## Creating Dragon Scimitar (or)
+
+**Materials:**
+- Dragon scimitar
+- Dragon scimitar ornament kit
+
+**Result:**
+- Dragon scimitar (or) - gold trimmed version
+
+## Reverting
+
+The ornamented scimitar can be reverted to return:
+- Dragon scimitar
+- Dragon scimitar ornament kit
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Master clue exclusive
+- Popular weapon upgrade
+- Fashionscape item
+- Collection log item
+
+<Adsense />

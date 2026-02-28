@@ -1,0 +1,37 @@
+---
+title: Raging echoes spirit tree scroll | OSRS Price Data
+description: "Raging echoes spirit tree scroll is a members-only OSRS item. High alch: 15,000 GP."
+osrs:
+  id: 30563
+  name: Raging echoes spirit tree scroll
+  slug: raging-echoes-spirit-tree-scroll
+  examine: "Used on a Spirit Tree inside your Player Owned House to decorate it in the style of Leagues V: Raging Echoes."
+  members: true
+  icon: Raging echoes spirit tree scroll.png
+  value: 25000
+  lowalch: 10000
+  highalch: 15000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

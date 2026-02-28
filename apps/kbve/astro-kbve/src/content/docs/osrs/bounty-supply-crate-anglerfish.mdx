@@ -1,0 +1,37 @@
+---
+title: Bounty supply crate (anglerfish) | OSRS Price Data
+description: "Bounty supply crate (anglerfish): A crate full of supplies.. GE limit: 100."
+osrs:
+  id: 30619
+  name: Bounty supply crate (anglerfish)
+  slug: bounty-supply-crate-anglerfish
+  examine: A crate full of supplies.
+  members: true
+  icon: Bounty supply crate (anglerfish).png
+  value: 10000
+  lowalch: null
+  highalch: null
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,106 @@
+---
+title: Monk's robe | OSRS Price Data
+description: "Monk's robe is a F2P legs slot item. High alch: 18 GP, GE limit: 125."
+osrs:
+  id: 542
+  name: Monk's robe
+  slug: monk-s-robe
+  examine: Keeps a monk's knees nice and warm.
+  members: false
+  icon: Monk's robe.png
+  value: 30
+  lowalch: 12
+  highalch: 18
+  limit: 125
+  equipment:
+    slot: legs
+    type: robes
+    prayer_bonus: 5
+    combat_stats:
+      stab_defence: 0
+      slash_defence: 0
+      crush_defence: 0
+      magic_defence: 0
+      ranged_defence: 0
+  related_items:
+    - item_id: 544
+      item_name: Monk's robe top
+      slug: monks-robe-top
+      relationship: set-piece
+      description: Body (+6 Prayer)
+    - item_id: 9676
+      item_name: Proselyte cuisse
+      slug: proselyte-cuisse
+      relationship: upgrade
+      description: Better defence and prayer (+6)
+    - item_id: 5576
+      item_name: Initiate cuisse
+      slug: initiate-cuisse
+      relationship: upgrade
+      description: Defence and prayer (+5)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Prayer Bonus | +5 |
+| Requirements | None |
+| Members | No |
+
+## Obtaining
+
+**Spawns:** Monastery (2nd floor)
+
+**NPCs:** Monks drop occasionally
+
+## Usage
+
+- F2P prayer training gear
+- Budget prayer bonus equipment
+- Clue scroll outfit
+
+## Set Bonus
+
+| Piece | Prayer Bonus |
+|-------|--------------|
+| Monk's robe top | +6 |
+| Monk's robe (legs) | +5 |
+| **Total** | **+11** |
+
+## Market Flip Strategy
+
+**Free Spawn:**
+- Essentially worthless
+- Can pick up at Monastery
+- No real market value
+
+**Buy Limit:** 125 per 4 hours
+
+**Tips:**
+- Not worth flipping
+- Free to obtain
+- Used for fashion/clues only
+
+<Adsense />

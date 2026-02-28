@@ -1,0 +1,138 @@
+---
+title: Unholy blessing | OSRS Price Data
+description: "Unholy blessing is a members ammo slot item. High alch: 48 GP, GE limit: 5."
+osrs:
+  id: 20223
+  name: Unholy blessing
+  slug: unholy-blessing
+  examine: The Dark Lord will rise again with his servant's aid, greater and more terrible than ever he was.
+  members: true
+  icon: Unholy blessing.png
+  value: 80
+  lowalch: 32
+  highalch: 48
+  limit: 5
+  equipment:
+    slot: ammo
+    type: blessing
+    attack_style: none
+    stats:
+      prayer_bonus: 1
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        requirements:
+          clue_type: Master
+        rarity: Rare
+        description: Reward from master clue scrolls
+      - source: Treasure Trails
+        requirements:
+          clue_type: Elite
+        rarity: Rare
+        description: Reward from elite clue scrolls
+  related_items:
+    - item_id: 20220
+      item_name: Holy blessing
+      slug: holy-blessing
+      relationship: alternative
+      description: Saradomin blessing
+    - item_id: 20226
+      item_name: Peaceful blessing
+      slug: peaceful-blessing
+      relationship: alternative
+      description: Guthix blessing
+    - item_id: 20229
+      item_name: Honourable blessing
+      slug: honourable-blessing
+      relationship: alternative
+      description: Armadyl blessing
+    - item_id: 20232
+      item_name: War blessing
+      slug: war-blessing
+      relationship: alternative
+      description: Bandos blessing
+    - item_id: 20235
+      item_name: Ancient blessing
+      slug: ancient-blessing
+      relationship: alternative
+      description: Zaros blessing
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammunition |
+| Type | Blessing |
+| Tradeable | Yes |
+| Members Only | Yes |
+| Weight | 0 kg |
+
+## Obtaining
+
+| Method | Details |
+|--------|---------|
+| Source | Elite/Master Clue Scrolls |
+| Rarity | Rare |
+
+## Combat Stats
+
+| Stat | Value |
+|------|-------|
+| Prayer Bonus | +1 |
+
+**Requirements:** None
+
+## About
+
+The unholy blessing is a Zamorak-aligned item worn in the ammunition slot, providing +1 prayer bonus. It is the Zamorak equivalent of other god blessings.
+
+Blessings are valuable because they provide prayer bonus in the ammunition slot, which normally has no prayer-boosting options. This makes them useful for any build that wants to maximize prayer bonus without sacrificing ranging capability.
+
+## Passive Effects
+
+**God Wars Protection:**
+- Counts as a Zamorak item in the God Wars Dungeon
+- Zamorak followers will not be aggressive when worn
+
+## Market Strategy
+
+**Investment Notes:**
+- Prices vary between different god blessings
+- Zamorak version useful for K'ril Tsutsaroth
+- Good investment for PvM-focused accounts
+
+**Trading Tips:**
+- Compare prices between all six blessings
+- Consider God Wars Dungeon utility when pricing
+- Popular with players wanting prayer bonus in ammo slot
+
+## Related Items
+
+- [Holy blessing](/osrs/holy-blessing/) - Saradomin blessing
+- [Peaceful blessing](/osrs/peaceful-blessing/) - Guthix blessing
+- [Honourable blessing](/osrs/honourable-blessing/) - Armadyl blessing
+- [War blessing](/osrs/war-blessing/) - Bandos blessing
+- [Ancient blessing](/osrs/ancient-blessing/) - Zaros blessing
+
+<Adsense />

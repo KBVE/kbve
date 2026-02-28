@@ -1,0 +1,37 @@
+---
+title: Cooked oomlie wrap | OSRS Price Data
+description: "Cooked oomlie wrap: Deliciously cooked oomlie meat in a palm leaf pouch.. High alch: 21 GP, GE limit: 15."
+osrs:
+  id: 2343
+  name: Cooked oomlie wrap
+  slug: cooked-oomlie-wrap
+  examine: Deliciously cooked oomlie meat in a palm leaf pouch.
+  members: true
+  icon: Cooked oomlie wrap.png
+  value: 35
+  lowalch: 14
+  highalch: 21
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

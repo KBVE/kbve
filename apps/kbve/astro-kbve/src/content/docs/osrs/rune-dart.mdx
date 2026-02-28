@@ -1,0 +1,132 @@
+---
+title: Rune dart | OSRS Price Data
+description: "Rune dart is a members weapon slot item. High alch: 210 GP, GE limit: 11,000."
+osrs:
+  id: 811
+  name: Rune dart
+  slug: rune-dart
+  examine: A deadly throwing dart with a rune tip.
+  members: true
+  icon: Rune dart.png
+  value: 350
+  lowalch: 140
+  highalch: 210
+  limit: 11000
+  equipment:
+    slot: weapon
+    type: thrown
+    attack_style: ranged
+    attack_speed: 3
+  requirements:
+    ranged: 40
+  stats:
+    attack:
+      ranged: 0
+    other:
+      ranged_strength: 26
+  fletching:
+    level: 81
+    xp: 18.8
+    method: Attach feathers to rune dart tips
+  smithing:
+    level: 89
+    xp: 75
+    method: Smith rune bars
+    quest: Tourist Trap
+    bars_per_craft: 1
+    output_quantity: 10
+  drop_table:
+    sources:
+      - source: Chaos Elemental
+        source_id: 2054
+        combat_level: 305
+        quantity: "50"
+        rarity: uncommon
+        members_only: true
+      - source: Commander Zilyana
+        source_id: 2205
+        combat_level: 596
+        quantity: 75-150
+        rarity: uncommon
+        members_only: true
+  related_items:
+    - item_id: 824
+      item_name: Rune dart tip
+      slug: rune-dart-tip
+      relationship: component
+      description: Fletching material
+    - item_id: 314
+      item_name: Feather
+      slug: feather
+      relationship: component
+      description: Fletching material
+    - item_id: 11230
+      item_name: Dragon dart
+      slug: dragon-dart
+      relationship: upgrade
+      description: Higher tier
+    - item_id: 810
+      item_name: Adamant dart
+      slug: adamant-dart
+      relationship: downgrade
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon/Ammo |
+| Type | Thrown |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 40 Ranged |
+
+## Obtaining
+
+**Fletching:** Attach feathers to rune dart tips (81 Fletching).
+
+**Smithing:** Create tips from rune bars (89 Smithing, Tourist Trap quest).
+
+**Drops:** Chaos elemental, red dragons, Commander Zilyana.
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Strength | +26 |
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~167 gp
+
+Popular blowpipe ammunition for training.
+
+## Related Items
+
+- [Rune dart tips](/osrs/rune-dart-tips/) - Crafting material
+- [Dragon dart](/osrs/dragon-dart/) - Upgrade option
+
+<Adsense />

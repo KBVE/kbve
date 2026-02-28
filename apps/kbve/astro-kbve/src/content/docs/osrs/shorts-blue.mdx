@@ -1,0 +1,37 @@
+---
+title: Shorts (blue) | OSRS Price Data
+description: "Shorts (blue): Blue shorts, these would look great on dwarves!. High alch: 234 GP, GE limit: 150."
+osrs:
+  id: 5046
+  name: Shorts (blue)
+  slug: shorts-blue
+  examine: Blue shorts, these would look great on dwarves!
+  members: true
+  icon: Shorts (blue).png
+  value: 390
+  lowalch: 156
+  highalch: 234
+  limit: 150
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

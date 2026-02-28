@@ -1,0 +1,142 @@
+---
+title: Godot
+description: |
+    Godot is a cross-platform and open source game engine written in GDScript, C#, C++ and Rust.
+    Godot is a free and open source game engine that offers a unique and innovative way to create 2D and 3D games for various platforms, using a node and scene system, multiple programming languages, and a community-driven development model.
+
+sidebar:
+    label: Godot
+    order: 1310
+unsplash: 1605347086577-706b21474ed7
+img: https://images.unsplash.com/photo-1605347086577-706b21474ed7?fit=crop&w=1400&h=700&q=75
+tags:
+    - game-engine
+    - software
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+  Code,
+  FileTree,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Information
+
+Godot is a free, open-source game engine for creating 2D and 3D games across desktop, mobile, and web platforms—without fees or restrictive licenses.
+At its core, Godot's node and scene system provides a modular, LEGO-like approach to game design—nodes are the building blocks, handling everything from sprites to physics, and scenes combine them into reusable, hierarchical chunks you can instantiate anywhere.
+This flexibility is paired with support for multiple programming languages, including its own lightweight GDScript (a Python-inspired concept), C#, and even C++ for performance junkies, letting developers pick their comfort zone.
+
+What truly sets Godot apart is its community-driven development model, shout-out to the amazing discord community servers too!
+Built and evolved by a passionate global user base, it continues to grow through open collaboration, thus free from corporate gate-keeping, karls wet dream.
+With built-in editors for animation, shaders, and tilemaps, plus a permissive MIT license, Godot provides a complete toolbox for crafting anything from pixel-art platformers to expansive 3D experiences, all while remaining lightweight enough for modest hardware.
+
+
+It's no surprise that indie developers and hobbyists alike see it as a refreshing, empowering alternative to larger engines like [Unity](/application/unity/) or Unreal.
+
+
+<Adsense />
+
+---
+
+## Animations
+
+In the beloved Godot engine, animation is a powerful and flexible system that brings your game to life—allowing you to animate virtually any property of any node or object, from position and rotation to color and even custom variables.
+At the heart of this system is the AnimationPlayer node, a versatile tool that lets you create everything from simple transitions—like a character moving across the screen—to complex cinematic sequences with ease.
+
+You can keyframe properties manually in the animation editor, use Bezier curves for smooth transitions, or even animate function calls and audio playback, making it a playground for creativity.
+Godot’s animation capabilities stand out because they’re deeply integrated into the engine, meaning you don’t need external tools—just add an AnimationPlayer, tweak some values, and watch your scene dance.
+For more advanced control, the AnimationTree complements this by managing state machines and blending animations, perfect for characters with walk cycles or combat moves.
+Since Godot’s open-source nature keeps it evolving, updates like those in version 4.3 have refined this system further, offering finer control and fixing quirks from earlier builds.
+Whether you’re fading in a splash screen or orchestrating a dramatic cutscene, Godot’s animation tools are both accessible for beginners and robust enough for pros.
+It’s no wonder developers rave about its ability to handle everything from 2D sprites to 3D models with a single, unified workflow!
+
+### Sprite 2D Animations
+
+In Godot, animating 2D sprites is a breeze thanks to the engine’s dedicated tools tailored for pixel-perfect movement and flair.
+The Sprite2D node serves as your canvas, where you can attach textures and flip, scale, or rotate them to your heart’s content, all animatable via the AnimationPlayer.
+For frame-by-frame animations—like a character running or a flickering torch—Godot’s AnimatedSprite2D node steals the show, letting you define sprite sheets and playback sequences with adjustable speeds, looping options, and even signal triggers for events like “animation finished.”
+You can easily set this up by importing a sprite sheet, slicing it into frames, and dropping them into the node’s animation frames property—boom, instant walk cycle!
+Pair this with the AnimationPlayer to tweak properties like opacity or position, and you’ve got smooth fades or bouncy effects without breaking a sweat.
+Godot’s 2D animation shines in its simplicity: no need for complex rigging, just a few clicks and keyframes to make your sprites pop.
+Since the engine’s 4.0 overhaul, tools like these have gotten snappier, with better editor feedback and tighter integration, making it a favorite for retro-style game devs and artists alike.
+
+<Aside>
+
+Remember to connect the signals for the animations, to create custom effects once the animation is complete.
+
+</Aside>
+
+## Guides
+
+-   Godot Export as HTML5 [Tutorial](https://docs.godotengine.org/en/stable/tutorials/export/exporting_for_web.html)
+-   Exporting Template for Platforms missing [Error Guide](https://godotengine.org/qa/65015/export-templates-for-this-platform-are-missing)
+
+---
+
+## Demos
+
+-   GDQuest Repo of Godot [Demos](https://github.com/GDQuest/godot-demos)
+
+---
+
+## Media
+
+---
+
+## Shaders
+
+### Cel Shaders
+
+This is a quick reference to a couple popular cel shaders for Godot!
+
+[eldskald's complete global cel shader](https://github.com/eldskald/godot4-cel-shader/tree/main?tab=readme-ov-file) provides a comprehensive cel shader designed for Godot 4.
+
+
+---
+
+
+## Build
+
+### WASM
+
+#### WASM Configuration for GDExt
+
+This is a quick reference to the GDExt cargo toml. TODO:
+
+---
+
+### Supabase
+
+This section is for integration of [Supabase](/application/supabase/) and your Godot application!
+In our first proof of concept article, we will focus on a Supabase + Itch + Web build!
+
+Make sure to grab a CDN link for Supabase, here is the one that we will be using for this example:
+
+```html
+<script type="module">
+  import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
+
+  const supabase = createClient(
+    'https://your-project.supabase.co',
+    'your-public-anon-key'
+  );
+
+  window.supabase = supabase;
+</script>
+```
+
+Inside of your supabase instance, make sure to allow both your main itch, in our case `kbve.itch.io` and the game CDN aka `html.itch.zone`.
+
+
+
+
+<Aside>
+
+Godot is a free and open-source game engine that offers a unique and innovative way to create 2D and 3D games for a wide array of platforms, from Windows and macOS to Android, iOS, and even the web, all without costing a dime or tying you to proprietary licenses.
+
+</Aside>

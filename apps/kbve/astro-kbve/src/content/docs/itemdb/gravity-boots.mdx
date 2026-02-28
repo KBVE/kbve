@@ -1,0 +1,127 @@
+---
+title: 'Gravity Boots'
+description: |
+    Heavy-duty boots fitted with microthrusters and magnetic soles.
+    Wearing them lets you defy gravity for short bursts.
+id: 'gravity-boots'
+key: 62
+ref: '01JX55ZPSYC91ERYPHP47FPQAN'
+name: 'Gravity Boots'
+type: 'Apparel'
+category: 419
+img: '/assets/items/equipment/gravity_boots.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 120
+consumable: false
+stackable: false
+rarity: 'Epic'
+weight: 4.2
+effects: 'Enables ceiling walks and high leaps.'
+price: 1800
+durability: 600
+equipped: true
+levelRequirement: 6
+cooldown: 60
+action: 'leap'
+credits: |
+    Concept and pixel art by KBVE Pixel Workshop.
+bonuses:
+    mobility: 2
+    fallDamageReduction: true
+    zeroG: true
+scripts:
+    - guid: '6bb9f15edc0e49679ec3d4fb01fc1caa'
+      vars:
+            leapBoost: 10
+            duration: 5
+            zeroGControl: true
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Gravity Boots** allow quick vertical maneuvers and effortless ceiling strolls.
+Originally designed for station repairs, they found their way into daring expeditions and flashy heists.
+
+Their thrusters hum softly, adjusting magnetic grip as you step.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+<Adsense />
+
+## Usage
+
+- Grants **enhanced mobility** with {frontmatter.bonuses.mobility} speed levels
+- Negates **fall damage** when active
+- Activates **zero-G control** for {frontmatter.scripts[0].vars.duration} seconds per use
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Requires periodic recharging with standard power cells
+- Overuse may trigger security scanners in restricted zones
+
+---
+
+## Lore
+
+> "With these on, up and down are just suggestions."
+> - Graffiti near the old orbital docks
+
+Once reserved for elite zero-gravity units, surplus pairs now circulate among smugglers and explorers.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/gravity_boots.webp"
+  defaultId="01HTXYZBOOT001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZBOOT001',
+      title: 'Ceiling Stroll',
+      description: 'You flip upside down and walk along the roof.',
+      image: 'https://images.unsplash.com/photo-1523475496153-3ae92c4eac82?q=80&w=500&auto=format&fit=crop',
+      message: 'The world looks different from up here.',
+      choices: [
+        { label: 'Jump back down.', nextId: '01HTXYZBOOT002' },
+        { label: 'Keep exploring.', nextId: '01HTXYZBOOT003' }
+      ]
+    },
+    {
+      id: '01HTXYZBOOT002',
+      title: 'Graceful Landing',
+      description: 'You drop with a light thud.',
+      image: '/images/scene_boots_land.jpg',
+      message: 'No injuries. Just a rush of adrenaline.'
+    },
+    {
+      id: '01HTXYZBOOT003',
+      title: 'Weightless Wander',
+      description: 'You stride along the ceiling, unbound.',
+      image: '/images/scene_boots_walk.jpg',
+      message: 'Gravity is optional, at least for a while.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 06/15/2025 - Gravity Boots introduced as mobility-focused apparel with zero-G capabilities
+

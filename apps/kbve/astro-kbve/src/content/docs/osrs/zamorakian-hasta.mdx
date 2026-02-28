@@ -1,0 +1,145 @@
+---
+title: Zamorakian hasta | OSRS Price Data
+description: "Zamorakian hasta is a members weapon slot item requiring 70 Attack. High alch: 180,000 GP, GE limit: 8."
+osrs:
+  id: 11889
+  name: Zamorakian hasta
+  slug: zamorakian-hasta
+  examine: An evil one-handed spear.
+  members: true
+  icon: Zamorakian hasta.png
+  value: 300000
+  lowalch: 120000
+  highalch: 180000
+  limit: 8
+  equipment:
+    slot: weapon
+    type: stab_weapon
+    tradeable: true
+    weight: 3
+    requirements:
+      attack: 70
+      quest: Barbarian Training
+    stats:
+      attack_stab: 85
+      attack_slash: 65
+      attack_crush: 65
+      strength: 75
+      defence_stab: 13
+      defence_slash: 13
+      defence_ranged: 13
+      prayer: 2
+  special_attack:
+    name: Shove
+    energy: 25
+    description: Stuns and pushes opponent, 3 second disable
+  creation:
+    method: Take Zamorakian spear to Otto Godblessed
+    cost: 300000
+    diary_discount:
+      diary: Elite Kandarin Diary
+      cost: 150000
+  related_items:
+    - item_id: 11824
+      item_name: Zamorakian spear
+      slug: zamorakian-spear
+      relationship: downgrade
+      description: Base weapon
+    - item_id: 22978
+      item_name: Dragon hunter lance
+      slug: dragon-hunter-lance
+      relationship: upgrade
+      description: Upgrade
+    - item_id: 22966
+      item_name: Hydra's claw
+      slug: hydras-claw
+      relationship: component
+      description: Upgrade material
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon |
+| Type | Stab Weapon |
+| Tradeable | Yes |
+| Weight | 3 kg |
+| Requirements | 70 Attack, Barbarian Training |
+
+## Obtaining
+
+Take Zamorakian spear to Otto Godblessed with:
+- 300,000 gp (150,000 with Elite Kandarin Diary)
+
+## Stats
+
+| Offence | Bonus |
+|---------|-------|
+| Stab | +85 |
+| Slash | +65 |
+| Crush | +65 |
+| Strength | +75 |
+
+| Defence | Bonus |
+|---------|-------|
+| Stab | +13 |
+| Slash | +13 |
+| Ranged | +13 |
+
+| Other | Bonus |
+|-------|-------|
+| Prayer | +2 |
+
+## Special Attack
+
+**Shove** (25% energy)
+- Stuns and pushes opponent
+- 3 second disable
+
+## Features
+
+- One-handed (can use shield/defender)
+- Third best stab weapon
+- Cannot be poisoned
+
+## Usage
+
+Used for:
+- General stab combat
+- DHL upgrade base
+- Budget stab weapon
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~1.6M gp
+
+## Related Items
+
+- [Zamorakian spear](/osrs/zamorakian-spear/) - Base weapon
+- [Dragon hunter lance](/osrs/dragon-hunter-lance/) - Upgrade
+- [Hydra's claw](/osrs/hydras-claw/) - Upgrade material
+
+<Adsense />

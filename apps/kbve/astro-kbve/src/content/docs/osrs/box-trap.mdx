@@ -1,0 +1,37 @@
+---
+title: Box trap | OSRS Price Data
+description: "Box trap: If a creature goes inside, the box should then slam shut.. High alch: 19 GP, GE limit: 250."
+osrs:
+  id: 10008
+  name: Box trap
+  slug: box-trap
+  examine: If a creature goes inside, the box should then slam shut.
+  members: true
+  icon: Box trap.png
+  value: 32
+  lowalch: 12
+  highalch: 19
+  limit: 250
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Diamond bracelet | OSRS Price Data
+description: "Diamond bracelet: I wonder if this is valuable.. High alch: 2,295 GP, GE limit: 10,000."
+osrs:
+  id: 11092
+  name: Diamond bracelet
+  slug: diamond-bracelet
+  examine: I wonder if this is valuable.
+  members: true
+  icon: Diamond bracelet.png
+  value: 3825
+  lowalch: 1530
+  highalch: 2295
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

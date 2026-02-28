@@ -1,0 +1,37 @@
+---
+title: Skeletal bottoms | OSRS Price Data
+description: "Skeletal bottoms: A superior set of strengthened slacks for any self respecting seer.. High alch: 24,000 GP, GE limit: 70."
+osrs:
+  id: 6141
+  name: Skeletal bottoms
+  slug: skeletal-bottoms
+  examine: A superior set of strengthened slacks for any self respecting seer.
+  members: true
+  icon: Skeletal bottoms.png
+  value: 40000
+  lowalch: 16000
+  highalch: 24000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

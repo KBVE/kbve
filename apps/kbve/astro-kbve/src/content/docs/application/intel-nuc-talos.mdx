@@ -1,0 +1,285 @@
+---
+title: Intel NUC Talos Worker Nodes
+description: |
+    Guide for adding Intel NUC devices as Talos Linux worker nodes to the existing KBVE cluster
+sidebar:
+    label: Intel NUC Setup
+    order: 150
+unsplash: 1518834107796-18cc03584b9a
+img: https://images.unsplash.com/photo-1518834107796-18cc03584b9a?fit=crop&w=1400&h=700&q=75
+---
+
+import {
+	Aside,
+	Steps,
+	Card,
+	CardGrid,
+	Code,
+	FileTree,
+} from '@astrojs/starlight/components';
+
+import { Giscus, Adsense } from '@/components/astropad';
+
+## Overview
+
+This guide covers adding Intel NUC devices as worker nodes to the existing Talos Linux cluster running on Hetzner with WireGuard networking.
+
+## Hardware Requirements
+
+### Intel NUC Specifications
+- **Compatible Models**: Intel NUC 11th gen or newer (tested on NUC11TNHi5, NUC11TNKi5)
+- **RAM**: 8GB minimum (16GB recommended for production workloads)
+- **Storage**: 256GB SSD minimum (NVMe preferred)
+- **Network**: Gigabit Ethernet (built-in)
+- **Power**: Compatible power supply unit (PSU)
+
+### Hardware Checklist
+- [ ] Intel NUC units
+- [ ] Compatible PSUs for each NUC
+- [ ] 8GB+ RAM per NUC
+- [ ] 256GB+ SSDs per NUC
+- [ ] USB flash drives for installation (8GB+)
+- [ ] Ethernet cables
+- [ ] Network access for initial setup
+
+<Aside type="tip">
+	Purchase RAM and SSDs that match Intel's compatibility matrix for your specific NUC model to avoid compatibility issues.
+</Aside>
+
+## Phase 1: Hardware Preparation
+
+<Steps>
+
+1. **Assemble Hardware**
+
+   Install RAM and SSD in each Intel NUC:
+   
+   ```bash
+   # Power off and unplug the NUC
+   # Remove bottom cover screws
+   # Install SO-DIMM RAM in available slots
+   # Install M.2 SSD in available slot
+   # Reassemble and connect power
+   ```
+
+2. **BIOS Configuration**
+
+   Boot each NUC and configure BIOS settings:
+   
+   - Enable UEFI boot mode
+   - Disable Secure Boot
+   - Enable Intel VT-x/VT-d
+   - Set primary boot device to USB
+   - Save settings and exit
+
+3. **Network Planning**
+
+   Document network configuration for each NUC:
+   
+   ```bash
+   # Example IP assignments
+   NUC-01: 192.168.1.10 (DHCP) -> WG: 10.0.0.10
+   NUC-02: 192.168.1.11 (DHCP) -> WG: 10.0.0.11
+   NUC-03: 192.168.1.12 (DHCP) -> WG: 10.0.0.12
+   ```
+
+</Steps>
+
+## Phase 2: Talos Linux Installation
+
+<Steps>
+
+1. **Download Talos Linux**
+
+   Download the latest Talos Linux ISO:
+   
+   ```bash
+   # Download Talos ISO
+   curl -Lo talos-amd64.iso https://github.com/siderolabs/talos/releases/latest/download/talos-amd64.iso
+   
+   # Verify checksum
+   curl -Lo talos-amd64.iso.sha256 https://github.com/siderolabs/talos/releases/latest/download/talos-amd64.iso.sha256
+   sha256sum -c talos-amd64.iso.sha256
+   ```
+
+2. **Create Bootable USB**
+
+   Create bootable USB drives for each NUC:
+   
+   ```bash
+   # Replace /dev/sdX with your USB device
+   sudo dd if=talos-amd64.iso of=/dev/sdX bs=4M status=progress
+   sync
+   ```
+
+3. **Boot and Install Talos**
+
+   For each NUC:
+   
+   ```bash
+   # Insert USB and boot from it
+   # Talos will load and provide an IP address
+   # Note down the IP address for each NUC
+   ```
+
+</Steps>
+
+## Phase 3: Cluster Configuration
+
+<Steps>
+
+1. **Generate WireGuard Keys**
+
+   Generate unique WireGuard keys for each NUC:
+   
+   ```bash
+   # Generate keys for each NUC worker
+   for i in {10..12}; do
+     echo "Generating keys for NUC-$(printf "%02d" $((i-9)))"
+     wg genkey | tee nuc-$i-private.key | wg pubkey > nuc-$i-public.key
+   done
+   ```
+
+2. **Prepare Worker Configuration**
+
+   Customize the worker configuration for each NUC:
+   
+   ```bash
+   # Get the existing cluster configuration from Hetzner control plane
+   talosctl get mc v1alpha1 -o jsonpath='{.spec}' -n [HETZNER_CONTROL_PLANE_IP] > base-worker.yaml
+   
+   # Or use the template from the repository
+   cp apps/kube/talos-worker.yaml worker-template.yaml
+   ```
+
+3. **Update WireGuard Configuration**
+
+   For each NUC, update the worker configuration:
+   
+   ```yaml
+   # Update machine.network.interfaces.wg0.wireguard section
+   machine:
+     network:
+       hostname: "nuc-01"  # nuc-01, nuc-02, nuc-03, etc.
+       interfaces:
+         - interface: wg0
+           wireguard:
+             privateKey: "PRIVATE_KEY_FROM_STEP_1"
+             peers:
+               - publicKey: "HETZNER_CONTROL_PLANE_PUBLIC_KEY"
+                 endpoint: "HETZNER_CONTROL_PLANE_IP:51820"
+                 allowedIPs:
+                   - 10.0.0.0/24
+           addresses:
+             - 10.0.0.10/32  # Increment for each NUC
+   ```
+
+</Steps>
+
+## Phase 4: Join NUCs to Cluster
+
+<Steps>
+
+1. **Apply Worker Configuration**
+
+   Apply the configuration to each NUC:
+   
+   ```bash
+   # For each NUC, apply the customized worker config
+   talosctl apply-config --insecure --nodes [NUC_IP] --file worker-nuc-01.yaml
+   talosctl apply-config --insecure --nodes [NUC_IP] --file worker-nuc-02.yaml
+   talosctl apply-config --insecure --nodes [NUC_IP] --file worker-nuc-03.yaml
+   ```
+
+2. **Verify Node Join**
+
+   Check that nodes are joining the cluster:
+   
+   ```bash
+   # Check cluster nodes
+   kubectl get nodes -o wide
+   
+   # Verify WireGuard connectivity
+   talosctl dmesg --nodes [NUC_WG_IP] | grep -i wireguard
+   ```
+
+3. **Test Connectivity**
+
+   Verify the setup is working:
+   
+   ```bash
+   # Test pod scheduling on NUC workers
+   kubectl run test-pod --image=nginx --restart=Never
+   kubectl get pods -o wide
+   
+   # Check WireGuard peer status
+   sudo wg show
+   ```
+
+</Steps>
+
+## Troubleshooting
+
+### Common Issues
+
+1. **WireGuard Connection Failed**
+   ```bash
+   # Check WireGuard status
+   sudo wg show
+   
+   # Verify endpoint connectivity
+   ping HETZNER_CONTROL_PLANE_IP
+   
+   # Check firewall rules
+   sudo ufw status
+   ```
+
+2. **Node Not Joining Cluster**
+   ```bash
+   # Check Talos logs
+   talosctl logs --nodes [NUC_IP] kubelet
+   
+   # Verify cluster token
+   talosctl get secrets --nodes [CONTROL_PLANE_IP]
+   ```
+
+3. **Hardware Compatibility**
+   ```bash
+   # Check system compatibility
+   talosctl dmesg --nodes [NUC_IP] | grep -i error
+   
+   # Verify hardware detection
+   talosctl get hardware --nodes [NUC_IP]
+   ```
+
+<Aside type="caution">
+	Always verify WireGuard keys are properly generated and configured. Incorrect keys will prevent cluster communication.
+</Aside>
+
+## Scaling
+
+To add additional Intel NUC worker nodes:
+
+1. Follow hardware preparation steps
+2. Generate unique WireGuard keys
+3. Assign next available WireGuard IP (10.0.0.13, 10.0.0.14, etc.)
+4. Apply worker configuration
+5. Verify cluster integration
+
+## Security Considerations
+
+- Store WireGuard private keys securely
+- Use unique keys for each node
+- Consider using hardware TPM for key storage
+- Regular security updates via Talos upgrades
+- Monitor cluster access logs
+
+<Adsense />
+
+## References
+
+- [Talos Linux Documentation](https://www.talos.dev/docs/)
+- [WireGuard Configuration Guide](/application/wireguard)
+- [Intel NUC Compatibility Matrix](https://www.intel.com/content/www/us/en/support/articles/000055471/intel-nuc.html)
+
+<Giscus />

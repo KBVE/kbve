@@ -1,0 +1,37 @@
+---
+title: Raging echoes top (t1) | OSRS Price Data
+description: "Raging echoes top (t1): The coat of a Raging Echoes relic hunter."
+osrs:
+  id: 30406
+  name: Raging echoes top (t1)
+  slug: raging-echoes-top-t1
+  examine: The coat of a Raging Echoes relic hunter.
+  members: true
+  icon: Raging echoes top (t1).png
+  value: 100000
+  lowalch: null
+  highalch: null
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+
+
+<Adsense />

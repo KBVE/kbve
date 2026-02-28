@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { ReactServerCard } from './ReactServerCard';
-import { fetchServers, CATEGORIES } from '@/lib/servers';
+import { fetchServers, CATEGORIES, castVote } from '@/lib/servers';
 import type { ServerCard, SortOption } from '@/lib/servers';
+import { useHCaptcha } from '@/lib/servers/useHCaptcha';
 
 const slVar = (name: string, fallback: string) =>
 	`var(--sl-color-${name}, ${fallback})`;
@@ -20,6 +21,38 @@ export function ReactServerGrid() {
 	const [category, setCategory] = useState<string | null>(null);
 	const [sort, setSort] = useState<SortOption>('votes');
 	const [loading, setLoading] = useState(true);
+	const {
+		containerRef: captchaRef,
+		execute: executeCaptcha,
+		reset: resetCaptcha,
+	} = useHCaptcha();
+
+	const handleVote = useCallback(
+		async (serverId: string): Promise<boolean> => {
+			try {
+				const captchaToken = await executeCaptcha();
+				const result = await castVote(serverId, captchaToken);
+				if (result.success) {
+					setServers((prev) =>
+						prev.map((s) =>
+							s.server_id === serverId
+								? { ...s, vote_count: s.vote_count + 1 }
+								: s,
+						),
+					);
+					return true;
+				}
+				console.warn('Vote failed:', result.message);
+				return false;
+			} catch (err) {
+				console.error('Vote error:', err);
+				return false;
+			} finally {
+				resetCaptcha();
+			}
+		},
+		[executeCaptcha, resetCaptcha],
+	);
 
 	const loadServers = useCallback(
 		async (reset = false) => {
@@ -62,6 +95,8 @@ export function ReactServerGrid() {
 
 	return (
 		<div>
+			{/* Invisible hCaptcha container */}
+			<div ref={captchaRef} style={{ display: 'none' }} />
 			{/* Category filter pills */}
 			<div
 				style={{
@@ -165,7 +200,11 @@ export function ReactServerGrid() {
 					gap: '1rem',
 				}}>
 				{servers.map((server) => (
-					<ReactServerCard key={server.server_id} server={server} />
+					<ReactServerCard
+						key={server.server_id}
+						server={server}
+						onVote={handleVote}
+					/>
 				))}
 			</div>
 

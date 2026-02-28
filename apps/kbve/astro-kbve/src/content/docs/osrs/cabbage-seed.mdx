@@ -1,0 +1,37 @@
+---
+title: Cabbage seed | OSRS Price Data
+description: "Cabbage seed: A cabbage seed - plant in an allotment.. High alch: 1 GP, GE limit: 600."
+osrs:
+  id: 5324
+  name: Cabbage seed
+  slug: cabbage-seed
+  examine: A cabbage seed - plant in an allotment.
+  members: true
+  icon: Cabbage seed 5.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 600
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

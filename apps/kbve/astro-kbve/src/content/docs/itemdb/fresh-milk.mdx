@@ -1,0 +1,132 @@
+---
+title: 'Fresh Milk'
+description: |
+    A cold bottle of nutrient-rich milk.
+    Sourced from friendly creatures or brave robots.
+id: 'fresh-milk'
+key: 35
+ref: '01JWG25PJN79DJP822GGKN8B1R'
+name: 'Fresh Milk'
+type: 'Drink'
+category: 393
+img: '/assets/items/materials/fresh_milk.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 20
+consumable: true
+stackable: true
+rarity: 'Common'
+weight: 0.6
+effects: 'Restores minor health and improves bone-based effects.'
+price: 45
+durability: 1
+equipped: false
+levelRequirement: 0
+cooldown: 45
+action: 'consume'
+credits: |
+    Art by KBVE Pixel Workshop.
+bonuses:
+    health: 15
+    boneBoost: 3
+    calm: true
+scripts:
+    - guid: 'd4f83b9d9c384db78aefea39000e17c3'
+      vars:
+            healAmount: 15
+            calciumInfusion: 3
+            calmEffect: true
+            duration: 90
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+**Fresh Milk** is a universally recognized symbol of comfort and sustenance.
+Whether chilled from a livestock vault or printed by a synthcow, its creamy texture refreshes the body and soothes the soul.
+
+Can be used in rituals, recipes, or simply enjoyed with cookies (if you still believe in them).
+
+Can be extracted from clean livestock or synthesized via nano-dairy replicators.
+
+Standard milk has to be approved by KBVE Culinary Standards Division.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.health} health**  
+- Grants **+{frontmatter.bonuses.boneBoost} to bone-based effects**  
+- Triggers a **calm effect**, reducing fear and mental fatigue  
+- Duration: **{frontmatter.scripts[0].vars.duration} seconds**
+
+---
+
+## Notes
+
+- Refrigeration not strictly required, but strongly advised  
+- Can neutralize mild poisons or spice overload  
+- Required for several crafting recipes including *Skull Milk*, *Undead Bone Brew*, and *Calcium Overdrive Potion*
+
+---
+
+## Lore
+
+> “She poured it over the ritual circle. It hissed. Then... quiet.”  
+> - Field Diary: The Calm Before the Maw
+
+Ancient farmers believed milk was the last gift of peace before chaos returned.
+That belief stuck. Somehow, it still works.
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/fresh_milk_shrine.webp"
+  defaultId="01HTXYZMLK001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZMLK001',
+      title: 'Morning Gift',
+      description: 'The bottle glows in early light.',
+      image: 'https://images.unsplash.com/photo-1574297347112-fd7f4bdb1782?q=80&w=500&auto=format&fit=crop',
+      message: '“Drink this. Before the day changes you.”',
+      choices: [
+        { label: 'Drink it warm.', nextId: '01HTXYZMLK002' },
+        { label: 'Store for later.', nextId: '01HTXYZMLK003' }
+      ]
+    },
+    {
+      id: '01HTXYZMLK002',
+      title: 'Inner Calm',
+      description: 'A subtle warmth fills your bones.',
+      image: '/images/scene_milkdrink.jpg',
+      message: 'The noise quiets. You are present.'
+    },
+    {
+      id: '01HTXYZMLK003',
+      title: 'Chilled Resolve',
+      description: 'You tuck it away, close to your heart.',
+      image: '/images/scene_milkstash.jpg',
+      message: 'It will be there when the world gets loud.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/30/2025 - Fresh Milk added as comfort drink with health, calm, and bone-related utility boosts

@@ -1,0 +1,134 @@
+---
+title: Unicorn horn dust | OSRS Price Data
+description: "Unicorn horn dust: Finely ground horn of Unicorn.. High alch: 12 GP, GE limit: 13,000."
+osrs:
+  id: 235
+  name: Unicorn horn dust
+  slug: unicorn-horn-dust
+  examine: Finely ground horn of Unicorn.
+  members: true
+  icon: Unicorn horn dust.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 13000
+  material:
+    type: secondary
+    tier: low
+  recipes:
+    - skill: herblore
+      level: 5
+      xp: 0
+      materials:
+        - item_name: Unicorn horn
+          item_id: 237
+          quantity: 1
+      product: Unicorn horn dust
+      product_id: 235
+      product_quantity: 1
+      tool: Pestle and mortar
+    - skill: herblore
+      level: 48
+      xp: 100
+      materials:
+        - item_name: Irit potion (unf)
+          item_id: 2481
+          quantity: 1
+        - item_name: Unicorn horn dust
+          item_id: 235
+          quantity: 1
+      product: Super antipoison(3)
+      product_id: 2448
+      product_quantity: 1
+      members_only: true
+    - skill: herblore
+      level: 65
+      xp: 192
+      materials:
+        - item_name: Super restore(4)
+          item_id: 3024
+          quantity: 1
+        - item_name: Unicorn horn dust
+          item_id: 235
+          quantity: 1
+        - item_name: Snake weed
+          item_id: 1526
+          quantity: 1
+        - item_name: Nail beast nails
+          item_id: 10937
+          quantity: 1
+      product: Sanfew serum(4)
+      product_id: 10925
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 237
+      item_name: Unicorn horn
+      slug: unicorn-horn
+      relationship: component
+      description: Ground into dust
+    - item_id: 10925
+      item_name: Sanfew serum(4)
+      slug: sanfew-serum-4
+      relationship: product
+      description: High-tier product
+    - item_id: 2448
+      item_name: Super antipoison(3)
+      slug: super-antipoison-3
+      relationship: product
+      description: Mid-tier product
+    - item_id: 233
+      item_name: Pestle and mortar
+      slug: pestle-and-mortar
+      relationship: component
+      description: Tool for grinding
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creation
+
+Grind a unicorn horn with a pestle and mortar:
+- No skill requirement
+- Unicorn horns from unicorns (level 15)
+
+## Herblore Uses
+
+| Potion | Secondary | Level | XP |
+|--------|-----------|-------|-----|
+| Super antipoison(3) | Irit potion (unf) | 48 | 100 |
+| Sanfew serum(4) | Super restore + more | 65 | 192 |
+
+## Market Strategy
+
+**Supply Sources:**
+- Kill unicorns (common locations)
+- Buy unicorn horns on GE
+- Grind into dust for profit
+
+**Sanfew Serum Chain:**
+- Most valuable use of unicorn horn dust
+- Sanfew serum = Super restore + antipoison effects
+- Popular for CoX and high-level PvM
+
+**Buy Limit:** 13,000 per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Camphor plank | OSRS Price Data
+description: "Camphor plank: A plank of hardy camphor.. High alch: 900 GP."
+osrs:
+  id: 31432
+  name: Camphor plank
+  slug: camphor-plank
+  examine: A plank of hardy camphor.
+  members: true
+  icon: Camphor plank.png
+  value: 1500
+  lowalch: 600
+  highalch: 900
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

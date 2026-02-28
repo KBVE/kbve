@@ -1,0 +1,37 @@
+---
+title: Broken antler | OSRS Price Data
+description: "Broken antler: A broken antler from a custodian stalker.. High alch: 31 GP."
+osrs:
+  id: 31086
+  name: Broken antler
+  slug: broken-antler
+  examine: A broken antler from a custodian stalker.
+  members: true
+  icon: Broken antler.png
+  value: 52
+  lowalch: 20
+  highalch: 31
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

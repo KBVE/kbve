@@ -1,0 +1,116 @@
+---
+title: Eldritch orb | OSRS Price Data
+description: "Eldritch orb: An ancient magical orb, corrupted by darkness.. High alch: 2,400,000 GP, GE limit: 8."
+osrs:
+  id: 24517
+  name: Eldritch orb
+  slug: eldritch-orb
+  examine: An ancient magical orb, corrupted by darkness.
+  members: true
+  icon: Eldritch orb.png
+  value: 4000000
+  lowalch: 1600000
+  highalch: 2400000
+  limit: 8
+  item:
+    type: upgrade material
+    tradeable: true
+    weight: 0.1
+  obtaining:
+    - source: The Nightmare
+      drop_rate: 1/960 to 1/548.7
+    - source: Phosani's Nightmare
+      drop_rate: 1/1,600
+  recipes:
+    - skill: crafting
+      level: 1
+      materials:
+        - item_id: 24517
+          item_name: Eldritch orb
+          quantity: 1
+        - item_id: 24422
+          item_name: Nightmare staff
+          quantity: 1
+      product: Eldritch nightmare staff
+      product_id: 24505
+  effect:
+    description: Special attack drains prayer from target and restores user's prayer
+    notes: Useful for prayer-based content
+  related_items:
+    - item_id: 24422
+      item_name: Nightmare staff
+      slug: nightmare-staff
+      relationship: component
+      description: Base weapon for upgrade
+    - item_id: 24505
+      item_name: Eldritch nightmare staff
+      slug: eldritch-nightmare-staff
+      relationship: product
+      description: Created prayer sustain weapon
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Upgrade Material |
+| Tradeable | Yes |
+| Weight | 0.1 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| The Nightmare | 1/960 to 1/548.7 |
+| Phosani's Nightmare | 1/1,600 |
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Eldritch nightmare staff | Nightmare staff + Eldritch orb |
+
+## Effect on Staff
+
+Special attack drains prayer from target and restores user's prayer.
+
+Useful for prayer-based content.
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~171M gp
+
+**Tips:**
+- Farm Nightmare/Phosani's
+- Prayer sustain weapon
+- Niche uses
+
+## Related Items
+
+- [The Nightmare](/osrs/the-nightmare/) - Boss source
+- [Nightmare staff](/osrs/nightmare-staff/) - Base weapon
+- [Eldritch nightmare staff](/osrs/eldritch-nightmare-staff/) - Created weapon
+
+<Adsense />

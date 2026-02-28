@@ -1,0 +1,91 @@
+---
+title: Piscatoris teleport | OSRS Price Data
+description: "Piscatoris teleport: Teleports you to Piscatoris.. High alch: 6 GP, GE limit: 10,000."
+osrs:
+  id: 12408
+  name: Piscatoris teleport
+  slug: piscatoris-teleport
+  examine: Teleports you to Piscatoris.
+  members: true
+  icon: Piscatoris teleport.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 10000
+  item:
+    type: teleport_scroll
+    destination: Piscatoris
+    tradeable: true
+    stackable: true
+  obtaining:
+    methods:
+      - source: Treasure Trails
+        tier: Hard/Elite/Master
+        drop_rate: Varies by tier
+  related_items:
+    - item_id: 12409
+      item_name: Tai bwo wannai teleport
+      slug: tai-bwo-wannai-teleport
+      relationship: alternative
+      description: Another clue teleport scroll
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Teleport Scroll |
+| Destination | Piscatoris |
+| Tradeable | Yes |
+| Stackable | Yes |
+
+## Obtaining
+
+Reward from Treasure Trails (hard, elite, and master tiers).
+
+## Usage
+
+Right-click and select "Teleport" to travel to Piscatoris.
+
+**Teleport Location:**
+- Piscatoris Fishing Colony
+- Near the fishing spots
+- Close to monkfish area
+
+## Common Uses
+
+- Monkfish fishing
+- Western Provinces Diary
+- Piscatoris Hunter area
+- Clue scroll steps
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Tips:**
+- Useful for fishing
+- Hunter activities nearby
+- Stock up for clue hunting
+
+<Adsense />

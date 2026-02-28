@@ -1,0 +1,137 @@
+---
+title: Wine of zamorak | OSRS Price Data
+description: "Wine of zamorak: An evil wine for an evil god.. High alch: 1 GP, GE limit: 11,000."
+osrs:
+  id: 245
+  name: Wine of zamorak
+  slug: wine-of-zamorak
+  examine: An evil wine for an evil god.
+  members: false
+  icon: Wine of zamorak.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 11000
+  material:
+    type: secondary
+    tier: high
+  spawn_locations:
+    - name: Chaos Temple
+      method: Telegrab
+    - name: Deep Wilderness Dungeon
+      method: Spawn
+      members_only: true
+  cooking:
+    level: 65
+    ingredient: Zamorak's grapes
+  recipes:
+    - skill: herblore
+      level: 72
+      xp: 162.5
+      materials:
+        - item_name: Dwarf weed potion (unf)
+          item_id: 109
+          quantity: 1
+        - item_name: Wine of zamorak
+          item_id: 245
+          quantity: 1
+      product: Ranging potion(3)
+      product_id: 2444
+      product_quantity: 1
+      facility: None
+      members_only: true
+    - skill: herblore
+      level: 80
+      xp: 155
+      materials:
+        - item_name: Cadantine blood potion (unf)
+          item_id: 22443
+          quantity: 1
+        - item_name: Wine of zamorak
+          item_id: 245
+          quantity: 1
+      product: Bastion potion(3)
+      product_id: 22461
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 2444
+      item_name: Ranging potion(3)
+      slug: ranging-potion-3
+      relationship: product
+      description: Main product
+    - item_id: 267
+      item_name: Dwarf weed
+      slug: dwarf-weed
+      relationship: component
+      description: Partner herb
+    - item_id: 22461
+      item_name: Bastion potion(3)
+      slug: bastion-potion-3
+      relationship: product
+      description: Alternative product
+    - item_id: 1987
+      item_name: Grapes
+      slug: grapes
+      relationship: component
+      description: Cooking ingredient
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Method |
+|--------|--------|
+| Chaos Temple | Telegrab |
+| Cooking | 65 (Zamorak's grapes) |
+| Deep Wilderness Dungeon | Spawn |
+
+## Herblore
+
+| Potion | Level | Other Ingredient |
+|--------|-------|------------------|
+| Ranging potion | 72 | Dwarf weed |
+| Bastion potion | 80 | Cadantine blood |
+
+## Market Flip Strategy
+
+**Ranging Potion Secondary:**
+- High demand for ranging pots
+- Telegrab money maker
+- Cooking alternative
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Ranging potions (PvM essential)
+- Bastion potions (raids)
+- Ironman accounts
+- F2P money making
+
+**Tips:**
+- Telegrab at Chaos Temple
+- Wilderness spawns risky
+- Cooking method viable
+- Price tied to ranging pot demand
+
+<Adsense />

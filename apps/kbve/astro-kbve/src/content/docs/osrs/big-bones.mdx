@@ -1,0 +1,128 @@
+---
+title: Big bones | OSRS Price Data
+description: "Big bones: Ew it's a pile of bones.. High alch: 1 GP, GE limit: 3,000."
+osrs:
+  id: 532
+  name: Big bones
+  slug: big-bones
+  examine: Ew it's a pile of bones.
+  members: false
+  icon: Big bones.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 3000
+  material:
+    type: bone
+    tier: low
+  prayer:
+    xp_bury: 15
+    xp_gilded_altar: 52.5
+    xp_chaos_altar: 52.5
+    xp_ectofuntus: 60
+  drop_table:
+    sources:
+      - source: Hill Giant
+        source_id: 2098
+        combat_level: 28
+        quantity: "1"
+        rarity: always
+      - source: Moss giant
+        source_id: 2090
+        combat_level: 42
+        quantity: "1"
+        rarity: always
+      - source: Fire giant
+        source_id: 2075
+        combat_level: 86
+        quantity: "1"
+        rarity: always
+      - source: Ogre
+        source_id: 2095
+        combat_level: 53
+        quantity: "1"
+        rarity: always
+  related_items:
+    - item_id: 536
+      item_name: Dragon bones
+      slug: dragon-bones
+      relationship: alternative
+      description: Higher tier bones
+    - item_id: 526
+      item_name: Bones
+      slug: bones
+      relationship: alternative
+      description: Lower tier bones
+    - item_id: 251
+      item_name: Marrentill
+      slug: marrentill
+      relationship: component
+      description: For incense
+    - item_id: 18337
+      item_name: Bonecrusher
+      slug: bonecrusher
+      relationship: alternative
+      description: Auto bury
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Hill Giants | Always |
+| Moss Giants | Always |
+| Fire Giants | Always |
+| Ogres | Always |
+| Cyclopes | Always |
+
+## Prayer XP
+
+| Method | XP per bone |
+|--------|-------------|
+| Bury | 15 |
+| Gilded altar | 52.5 |
+| Chaos Temple | 52.5 |
+| Ectofuntus | 60 |
+
+## Market Flip Strategy
+
+**F2P Prayer:**
+- Best F2P prayer training
+- Very high volume
+- Low cost per XP
+
+**Buy Limit:** 3,000 per 4 hours
+
+**Demand Drivers:**
+- F2P Prayer training
+- Low-level members
+- Budget training
+- Ironman early game
+
+**Tips:**
+- Hill Giants popular spot
+- Wilderness Bone Yard spawns
+- Very cheap per XP
+- High daily volume
+
+<Adsense />

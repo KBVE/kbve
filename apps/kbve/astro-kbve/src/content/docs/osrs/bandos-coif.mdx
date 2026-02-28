@@ -1,0 +1,37 @@
+---
+title: Bandos coif | OSRS Price Data
+description: "Bandos coif: Bandos blessed dragonhide coif.. High alch: 1,200 GP, GE limit: 8."
+osrs:
+  id: 12504
+  name: Bandos coif
+  slug: bandos-coif
+  examine: Bandos blessed dragonhide coif.
+  members: true
+  icon: Bandos coif.png
+  value: 2000
+  lowalch: 800
+  highalch: 1200
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Ensouled horror head | OSRS Price Data
+description: "Ensouled horror head: The creature's soul is still in here.. High alch: 241 GP, GE limit: 7,500."
+osrs:
+  id: 13487
+  name: Ensouled horror head
+  slug: ensouled-horror-head
+  examine: The creature's soul is still in here.
+  members: true
+  icon: Ensouled horror head.png
+  value: 403
+  lowalch: 161
+  highalch: 241
+  limit: 7500
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

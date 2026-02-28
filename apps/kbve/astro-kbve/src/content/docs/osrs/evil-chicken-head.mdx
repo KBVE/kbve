@@ -1,0 +1,37 @@
+---
+title: Evil chicken head | OSRS Price Data
+description: "Evil chicken head: Cock-a-doodle-do!. High alch: 1 GP, GE limit: 4."
+osrs:
+  id: 20439
+  name: Evil chicken head
+  slug: evil-chicken-head
+  examine: Cock-a-doodle-do!
+  members: true
+  icon: Evil chicken head.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

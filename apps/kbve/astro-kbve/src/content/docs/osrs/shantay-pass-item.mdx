@@ -1,0 +1,37 @@
+---
+title: Shantay pass (item) | OSRS Price Data
+description: "Shantay pass (item): Allows you to pass through the Shantay pass into the Kharid Desert.. High alch: 3 GP, GE limit: 18,000."
+osrs:
+  id: 1854
+  name: Shantay pass (item)
+  slug: shantay-pass-item
+  examine: Allows you to pass through the Shantay pass into the Kharid Desert.
+  members: true
+  icon: Shantay pass (item).png
+  value: 5
+  lowalch: 2
+  highalch: 3
+  limit: 18000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

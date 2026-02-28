@@ -1,0 +1,37 @@
+---
+title: Jungle demon mask | OSRS Price Data
+description: "Jungle demon mask: A mask resembling a visage of a Greater Jungle demon.. High alch: 2,400 GP, GE limit: 4."
+osrs:
+  id: 20032
+  name: Jungle demon mask
+  slug: jungle-demon-mask
+  examine: A mask resembling a visage of a Greater Jungle demon.
+  members: true
+  icon: Jungle demon mask.png
+  value: 4000
+  lowalch: 1600
+  highalch: 2400
+  limit: 4
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

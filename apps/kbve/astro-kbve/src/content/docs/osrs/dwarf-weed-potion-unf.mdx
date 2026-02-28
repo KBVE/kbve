@@ -1,0 +1,115 @@
+---
+title: Dwarf weed potion (unf) | OSRS Price Data
+description: "Dwarf weed potion (unf) is a 4-dose members potion. High alch: 42 GP, GE limit: 10,000."
+osrs:
+  id: 109
+  name: Dwarf weed potion (unf)
+  slug: dwarf-weed-potion-unf
+  examine: I need another ingredient to finish this Dwarf Weed potion.
+  members: true
+  icon: Dwarf weed potion (unf).png
+  value: 70
+  lowalch: 28
+  highalch: 42
+  limit: 10000
+  potion:
+    type: unfinished
+    tier: high
+  herblore:
+    level: 72
+    xp: 0
+    method: Add dwarf weed to vial of water
+  recipes:
+    - skill: herblore
+      level: 72
+      xp: 0
+      materials:
+        - item_name: Vial of water
+          item_id: 227
+          quantity: 1
+        - item_name: Dwarf weed
+          item_id: 267
+          quantity: 1
+      product: Dwarf weed potion (unf)
+      product_id: 109
+      product_quantity: 1
+      members_only: true
+  related_items:
+    - item_id: 267
+      item_name: Dwarf weed
+      slug: dwarf-weed
+      relationship: component
+      description: Herb ingredient
+    - item_id: 227
+      item_name: Vial of water
+      slug: vial-of-water
+      relationship: component
+      description: Base liquid
+    - item_id: 245
+      item_name: Wine of zamorak
+      slug: wine-of-zamorak
+      relationship: component
+      description: Secondary for ranging potion
+    - item_id: 2444
+      item_name: Ranging potion(4)
+      slug: ranging-potion-4
+      relationship: product
+      description: Final product
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Unfinished Potion |
+| Tradeable | Yes |
+| Weight | 0.056 kg |
+| Requirements | 72 Herblore |
+
+## Obtaining
+
+**Creation:** Add dwarf weed to vial of water (72 Herblore).
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Usage
+
+Add secondary ingredient to create:
+- **Ranging potion** (+ wine of zamorak)
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~3,757 gp
+
+High volume herblore supply. Essential for ranging potion production.
+
+## Related Items
+
+- [Dwarf weed](/osrs/dwarf-weed/) - Herb ingredient
+- [Wine of zamorak](/osrs/wine-of-zamorak/) - Secondary
+- [Ranging potion](/osrs/ranging-potion/) - Final product
+
+<Adsense />

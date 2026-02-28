@@ -1,0 +1,258 @@
+---
+/**
+ * Example: Using the Realtime Component
+ * This is a demonstration of how to use the AstroRealtimeContainer component
+ */
+
+import { AstroRealtimeContainer } from './AstroRealtimeContainer.astro';
+import type { ChannelSubscription } from './typeRealtime';
+
+// Example: Subscribe to game events
+const gameEventsSubscription: ChannelSubscription = {
+  id: 'game-events-sub',
+  channel: 'game-events',
+  schema: 'public',
+  table: 'game_events',
+  event: '*', // Listen to all events (INSERT, UPDATE, DELETE)
+};
+
+// Example: Subscribe to player updates only
+const playerUpdatesSubscription: ChannelSubscription = {
+  id: 'player-updates-sub',
+  channel: 'player-updates',
+  schema: 'public',
+  table: 'players',
+  event: 'UPDATE', // Only listen to updates
+};
+
+// Example: Subscribe with filter
+const highScoreSubscription: ChannelSubscription = {
+  id: 'high-scores-sub',
+  channel: 'high-scores',
+  schema: 'public',
+  table: 'scores',
+  event: 'INSERT',
+  filter: 'score=gt.1000', // Only scores greater than 1000
+};
+
+const initialSubscriptions = [
+  gameEventsSubscription,
+  playerUpdatesSubscription,
+  highScoreSubscription,
+];
+---
+
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Realtime Component Example</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 2rem;
+        font-family: system-ui, -apple-system, sans-serif;
+        background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+        color: white;
+        min-height: 100vh;
+      }
+
+      .container {
+        max-width: 1200px;
+        margin: 0 auto;
+      }
+
+      h1 {
+        text-align: center;
+        margin-bottom: 2rem;
+        color: #4CAF50;
+      }
+
+      .description {
+        background: rgba(255, 255, 255, 0.1);
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 2rem;
+        line-height: 1.6;
+      }
+
+      .examples {
+        display: grid;
+        gap: 2rem;
+        margin-bottom: 2rem;
+      }
+
+      .example-section {
+        background: rgba(0, 0, 0, 0.3);
+        padding: 1.5rem;
+        border-radius: 8px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+      }
+
+      .example-section h2 {
+        color: #4CAF50;
+        margin-top: 0;
+      }
+
+      .code-block {
+        background: #1a1a1a;
+        padding: 1rem;
+        border-radius: 4px;
+        overflow-x: auto;
+        font-family: 'Courier New', monospace;
+        font-size: 0.875rem;
+        margin: 1rem 0;
+      }
+
+      .feature-list {
+        list-style: none;
+        padding: 0;
+      }
+
+      .feature-list li {
+        padding: 0.5rem 0;
+        padding-left: 1.5rem;
+        position: relative;
+      }
+
+      .feature-list li::before {
+        content: '✓';
+        position: absolute;
+        left: 0;
+        color: #4CAF50;
+        font-weight: bold;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>🔄 Supabase Realtime Component Example</h1>
+
+      <div class="description">
+        <p>
+          This component provides an off-thread realtime connection to Supabase using:
+        </p>
+        <ul class="feature-list">
+          <li><strong>Web Worker</strong> - Processes data off the main thread</li>
+          <li><strong>SharedWorker</strong> - Shares connections across browser tabs</li>
+          <li><strong>OffscreenCanvas</strong> - Optional hardware-accelerated rendering</li>
+          <li><strong>Auto-Reconnect</strong> - Automatically reconnects on disconnect</li>
+          <li><strong>Type-Safe</strong> - Full TypeScript support</li>
+        </ul>
+      </div>
+
+      <div class="examples">
+        <!-- Example 1: Basic Usage -->
+        <div class="example-section">
+          <h2>Example 1: Basic Usage</h2>
+          <p>Simple realtime connection with status indicator:</p>
+          <AstroRealtimeContainer
+            showStatusIndicator={true}
+            width="100%"
+            height="200px"
+            backgroundColor="rgba(0, 0, 0, 0.2)"
+          />
+        </div>
+
+        <!-- Example 2: With Subscriptions -->
+        <div class="example-section">
+          <h2>Example 2: With Initial Subscriptions</h2>
+          <p>Subscribe to multiple channels on initialization:</p>
+          <AstroRealtimeContainer
+            initialSubscriptions={initialSubscriptions}
+            showStatusIndicator={true}
+            width="100%"
+            height="250px"
+            backgroundColor="rgba(0, 0, 0, 0.2)"
+          />
+          <div class="code-block">
+            <pre>// Subscriptions:
+- Game Events (all changes)
+- Player Updates (UPDATE only)
+- High Scores (INSERT with score > 1000)</pre>
+          </div>
+        </div>
+
+        <!-- Example 3: With OffscreenCanvas -->
+        <div class="example-section">
+          <h2>Example 3: With OffscreenCanvas Visualization</h2>
+          <p>Visualize realtime events with hardware-accelerated rendering:</p>
+          <AstroRealtimeContainer
+            initialSubscriptions={[gameEventsSubscription]}
+            enableOffscreenCanvas={true}
+            canvasId="realtime-viz-example"
+            showStatusIndicator={true}
+            width="100%"
+            height="400px"
+            backgroundColor="rgba(0, 0, 0, 0.2)"
+          />
+          <div class="code-block">
+            <pre>// Canvas will render:
+- INSERT events: Green circles
+- UPDATE events: Blue circles
+- DELETE events: Red circles
+- CUSTOM events: Yellow circles</pre>
+          </div>
+        </div>
+
+        <!-- Example 4: Custom Styling -->
+        <div class="example-section">
+          <h2>Example 4: Custom Styling</h2>
+          <p>Fully customizable with CSS:</p>
+          <div style="background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 1rem; border-radius: 8px;">
+            <AstroRealtimeContainer
+              initialSubscriptions={[playerUpdatesSubscription]}
+              showStatusIndicator={true}
+              width="100%"
+              height="200px"
+              backgroundColor="rgba(255, 255, 255, 0.1)"
+            />
+          </div>
+        </div>
+      </div>
+
+      <!-- Usage Instructions -->
+      <div class="example-section">
+        <h2>📚 Usage in Your Project</h2>
+        <div class="code-block">
+          <pre>---
+// In your Astro file:
+import { AstroRealtimeContainer } from '@/components/realtime/AstroRealtimeContainer.astro';
+
+const subscriptions = [
+  {
+    id: 'my-subscription',
+    channel: 'my-channel',
+    schema: 'public',
+    table: 'my_table',
+    event: '*'
+  }
+];
+---
+
+&lt;AstroRealtimeContainer
+  initialSubscriptions={subscriptions}
+  showStatusIndicator={true}
+  enableOffscreenCanvas={false}
+  width="100%"
+  height="400px"
+/&gt;</pre>
+        </div>
+      </div>
+
+      <!-- Additional Notes -->
+      <div class="description">
+        <h2>📝 Notes</h2>
+        <ul>
+          <li>The component automatically initializes the Supabase connection via the SharedWorker</li>
+          <li>All data processing happens off the main thread for optimal performance</li>
+          <li>Subscriptions are automatically cleaned up on component unmount</li>
+          <li>The SharedWorker allows connection sharing across browser tabs</li>
+          <li>OffscreenCanvas is optional and provides hardware-accelerated rendering</li>
+          <li>See <code>README.md</code> for full documentation</li>
+        </ul>
+      </div>
+    </div>
+  </body>
+</html>

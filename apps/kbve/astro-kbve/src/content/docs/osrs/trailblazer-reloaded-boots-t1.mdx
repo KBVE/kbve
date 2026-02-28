@@ -1,0 +1,37 @@
+---
+title: Trailblazer reloaded boots (t1) | OSRS Price Data
+description: "Trailblazer reloaded boots (t1): The boots of a Trailblazer Reloaded Relic Hunter.. High alch: 9,000 GP."
+osrs:
+  id: 28721
+  name: Trailblazer reloaded boots (t1)
+  slug: trailblazer-reloaded-boots-t1
+  examine: The boots of a Trailblazer Reloaded Relic Hunter.
+  members: true
+  icon: Trailblazer reloaded boots (t1).png
+  value: 15000
+  lowalch: 6000
+  highalch: 9000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

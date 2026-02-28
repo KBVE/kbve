@@ -1,0 +1,120 @@
+---
+title: Dark fishing bait | OSRS Price Data
+description: "Dark fishing bait: What on earth would eat this?. High alch: 1 GP, GE limit: 8,000."
+osrs:
+  id: 11940
+  name: Dark fishing bait
+  slug: dark-fishing-bait
+  examine: What on earth would eat this?
+  members: true
+  icon: Dark fishing bait.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 8000
+  material:
+    type: bait
+    tier: special
+  drop_table:
+    primary_source: Ankou
+    sources:
+      - source: Ankou
+        source_id: 2514
+        quantity: "60"
+        rarity: common
+        drop_rate: 33/100
+      - source: Wilderness Slayer Cave Ankou
+        quantity: "60"
+        rarity: common
+        drop_rate: 57/92
+        members_only: true
+      - source: Dark warrior
+        quantity: 10-24
+        rarity: uncommon
+        members_only: true
+      - source: Artio
+        quantity: 200-300
+        rarity: rare
+        members_only: true
+  sources:
+    - name: World spawn
+      location: Western Ruins (Wilderness)
+      method: 2 spawn locations
+  related_items:
+    - item_id: 11934
+      item_name: Raw dark crab
+      slug: raw-dark-crab
+      relationship: product
+      description: Caught with this bait
+    - item_id: 11936
+      item_name: Dark crab
+      slug: dark-crab
+      relationship: product
+      description: Cooked dark crab
+    - item_id: 307
+      item_name: Fishing rod
+      slug: fishing-rod
+      relationship: component
+      description: Tool for fishing
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+**Monster Drops:**
+| Monster | Quantity | Rate |
+|---------|----------|------|
+| Ankou | 60 | 33/100 |
+| Wilderness Ankou | 60 | 57/92 |
+| Dark warrior | 10-24 | Uncommon |
+| Artio/Calvar'ion/Spindel | 200-300 | Rare |
+
+**World Spawns:**
+- 2 spawn locations in Western Ruins (Wilderness)
+
+## Usage
+
+Dark fishing bait is required to catch **dark crabs**:
+- 85 Fishing required
+- Wilderness Resource Area only
+- 1 bait consumed per catch
+
+## Market Strategy
+
+**Bait Cost Analysis:**
+- Compare bait cost to dark crab value
+- Cheap bait due to common drops
+- Low cost per crab caught
+
+**Wilderness Fishing:**
+- Dark crabs heal 22 HP
+- Profitable but PKer risk
+- Stock up on bait before trips
+
+**Ankou Farming:**
+- Ankous drop 60 bait frequently
+- Also drop good loot
+- Non-wilderness option for bait
+
+**Buy Limit:** 10,000 per 4 hours
+
+<Adsense />

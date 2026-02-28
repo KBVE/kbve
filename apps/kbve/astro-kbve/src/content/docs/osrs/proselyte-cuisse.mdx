@@ -1,0 +1,113 @@
+---
+title: Proselyte cuisse | OSRS Price Data
+description: "Proselyte cuisse is a members legs slot item requiring 30 Defence. High alch: 6,000 GP, GE limit: 70."
+osrs:
+  id: 9676
+  name: Proselyte cuisse
+  slug: proselyte-cuisse
+  examine: A Proselyte Temple Knight's leg armour.
+  members: true
+  icon: Proselyte cuisse.png
+  value: 10000
+  lowalch: 4000
+  highalch: 6000
+  limit: 70
+  equipment:
+    slot: legs
+    type: armour
+    prayer_bonus: 6
+    requirements:
+      defence: 30
+      prayer: 20
+    combat_stats:
+      stab_defence: 33
+      slash_defence: 31
+      crush_defence: 29
+      magic_defence: -4
+      ranged_defence: 31
+  related_items:
+    - item_id: 9674
+      item_name: Proselyte hauberk
+      slug: proselyte-hauberk
+      relationship: set-piece
+      description: Body (+8 Prayer)
+    - item_id: 9672
+      item_name: Proselyte sallet
+      slug: proselyte-sallet
+      relationship: set-piece
+      description: Helm (+4 Prayer)
+    - item_id: 5576
+      item_name: Initiate cuisse
+      slug: initiate-cuisse
+      relationship: downgrade
+      description: Lower tier (+5 Prayer)
+    - item_id: 542
+      item_name: Monk's robe
+      slug: monks-robe
+      relationship: downgrade
+      description: No defence (+5 Prayer)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Legs |
+| Prayer Bonus | +6 |
+| Defence Req | 30 |
+| Prayer Req | 20 |
+
+## Obtaining
+
+**Quest:** The Slug Menace
+
+**Shop:** Sir Tiffy Cashien (Falador Park)
+
+## Usage
+
+- Best-in-slot prayer bonus platelegs
+- Slayer tasks with protection prayers
+- Budget melee gear with prayer bonus
+
+## Full Set
+
+| Piece | Prayer Bonus |
+|-------|--------------|
+| Proselyte sallet | +4 |
+| Proselyte hauberk | +8 |
+| Proselyte cuisse | +6 |
+| **Total** | **+18** |
+
+## Market Flip Strategy
+
+**Quest-Locked:**
+- Requires quest completion
+- Shop purchase only
+- No GE trading (untradeable)
+
+**Tips:**
+- Must complete The Slug Menace
+- Buy from Sir Tiffy for ~5k
+- Best prayer legs available
+
+<Adsense />

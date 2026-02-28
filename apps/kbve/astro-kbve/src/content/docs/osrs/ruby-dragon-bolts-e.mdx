@@ -1,0 +1,136 @@
+---
+title: Ruby dragon bolts (e) | OSRS Price Data
+description: "Ruby dragon bolts (e): Enchanted Dragon crossbow bolts, tipped with ruby.. High alch: 498 GP, GE limit: 11,000."
+osrs:
+  id: 21944
+  name: Ruby dragon bolts (e)
+  slug: ruby-dragon-bolts-e
+  examine: Enchanted Dragon crossbow bolts, tipped with ruby.
+  members: true
+  icon: Ruby dragon bolts (e) 5.png
+  value: 830
+  lowalch: 332
+  highalch: 498
+  limit: 11000
+  ammunition:
+    type: enchanted_bolt
+    tradeable: true
+    stackable: true
+    weight: 0
+    requirements:
+      ranged: 64
+    stats:
+      ranged_strength: 122
+  creation:
+    method: Enchant Ruby dragon bolts
+    spell: Enchant Crossbow Bolt
+    requirements:
+      magic: 49
+  special_effect:
+    name: Blood Forfeit
+    description: Removes 20% of target's current HP
+    damage_cap: 100
+    self_damage: 10% of your HP
+    proc_rate_pvm: 6%
+    proc_rate_pvp: 11%
+    kandarin_diary_boost: +10% proc rate
+  market:
+    buy_limit: 11000
+    price_estimate: 3938
+  related_items:
+    - item_id: 21946
+      item_name: Diamond dragon bolts (e)
+      slug: diamond-dragon-bolts-e
+      relationship: alternative
+      description: Low HP switch
+    - item_id: 26374
+      item_name: Zaryte crossbow
+      slug: zaryte-crossbow
+      relationship: alternative
+      description: Guaranteed proc spec
+    - item_id: 21942
+      item_name: Ruby dragon bolts
+      slug: ruby-dragon-bolts
+      relationship: downgrade
+      description: Unenchanted
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Ammunition |
+| Type | Crossbow Bolt |
+| Tradeable | Yes |
+| Weight | 0 kg |
+
+## Creation
+
+Enchant [Ruby dragon bolts](/osrs/ruby-dragon-bolts/) with Enchant Crossbow Bolt.
+
+| Requirement | Value |
+|-------------|-------|
+| Magic | 49 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Ranged Strength | +122 |
+
+## Passive Effect
+
+**Blood Forfeit:**
+- Removes 20% of target's current HP
+- Capped at 100 damage
+- Costs 10% of your HP
+- 6% proc (PvM), 11% proc (PvP)
+- +10% with Hard Kandarin Diary
+
+## Usage
+
+BiS for:
+- High-HP bosses (start of fight)
+- Nex
+- Corp
+
+**Best bolts for high-HP targets.**
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~3,938 gp each
+
+**Tips:**
+- Switch to diamond at low HP
+- Amazing for boss starts
+- Kandarin Diary helps
+
+## Related Items
+
+- [Diamond dragon bolts (e)](/osrs/diamond-dragon-bolts-e/) - Low HP switch
+- [Zaryte crossbow](/osrs/zaryte-crossbow/) - Guaranteed proc spec
+- [Ruby dragon bolts](/osrs/ruby-dragon-bolts/) - Unenchanted
+
+<Adsense />

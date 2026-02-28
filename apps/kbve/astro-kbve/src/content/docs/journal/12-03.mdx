@@ -1,0 +1,58 @@
+---
+title: 'Decemeber: 03rd'
+category: Daily
+date: 2024-12-03 12:00:00
+client: Self
+unsplash: 1660855551646-05998824038a
+img: https://images.unsplash.com/photo-1660855551646-05998824038a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Decemeber 3rd.
+tags:
+    - daily
+---
+
+import { Adsense, Tasks } from '@/components/astropad';
+
+## 2024
+
+-   04:26AM
+
+    **Commands**
+
+    Need to stay focused and wrap up these discord commands!
+    I will also have to finish up the unity send messages afterwards.
+    We are moving along, getting there slowly!
+
+-   12:48PM
+
+    **Helm**
+
+    While building out the unity js library, I am going to test out the fudster docker image and the deployment.
+    During this test phase, we can also look into extending it out to atlas, with some research going into the sidecar and dynamic host deployments.
+    I believe there are some other issues we need to look into, like locking down the individual instances.
+
+-   03:53PM
+
+    **Fudster**
+
+    Okay time to use the gitops skills and deploy the fudster helm chart, probably see what the errors will be while doing so.
+    The repo deployment will look like this:
+
+    Repo: `https://github.com/KBVE/kbve.git`
+    Branch : `dev`
+    Paths: `/migrations/kube/charts/fudster`
+
+    But before we do that, I have to double check the hash for the fudster image, which is `sha256:0ccf7e46e8871098c1e8ca3432933f2f5da92cac1f843d4f877eaef2aa58a1f2`.
+    This is before we get the version control setup, I would like to make it so that the library and the docker image both have the same version.
+    Then I will create an nx command called `bump` and run a quick shell script to edit:
+    - Python wheel - pip version control.
+    - ReadMe - The ReadMe to trigger a build.
+    - Helm Chart - version that we need to deploy.
+    - Project.json - Docker build tag management.
+
+    Those will be the four main edits that we need for an actual version sync across the board.
+    Finally once we are in sync, I will use the readme as a way to build the website/docs for the package.
+
+    Commented out the code for the tag and just directly running `image: "kbve/fudster@sha256:0ccf7e46e8871098c1e8ca3432933f2f5da92cac1f843d4f877eaef2aa58a1f2"` and now we can see what happens next.
+    Preparing the deployment, okay we were able to get the helm chart deployed but there was some issues with the runelite plugin that we created.
+    I forgot to update the java code to the new websocket location and furthermore, the other sideeffect is that the plugin automatically starts, so we can not update the websocket uri directly.
+    Okay! Now that we get the image built again, I will have to go back and update the sha256.

@@ -1,0 +1,37 @@
+---
+title: Bronze trimmed set (sk) | OSRS Price Data
+description: "Bronze trimmed set (sk): A set containing a full helm, platebody, skirt and kiteshield.. High alch: 120 GP, GE limit: 8."
+osrs:
+  id: 12966
+  name: Bronze trimmed set (sk)
+  slug: bronze-trimmed-set-sk
+  examine: A set containing a full helm, platebody, skirt and kiteshield.
+  members: false
+  icon: Bronze trimmed set (sk).png
+  value: 200
+  lowalch: 80
+  highalch: 120
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Trinket of avarice | OSRS Price Data
+description: "Trinket of avarice: A magic rock! This one automatically notes and retrieves drops."
+osrs:
+  id: 33044
+  name: Trinket of avarice
+  slug: trinket-of-avarice
+  examine: A magic rock! This one automatically notes and retrieves drops.
+  members: true
+  icon: Trinket of avarice.png
+  value: 0
+  lowalch: null
+  highalch: null
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+
+
+<Adsense />

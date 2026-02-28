@@ -1,0 +1,37 @@
+---
+title: Condensed gold | OSRS Price Data
+description: "Condensed gold: The gold standard of gold.. High alch: 4,800,000 GP."
+osrs:
+  id: 26266
+  name: Condensed gold
+  slug: condensed-gold
+  examine: The gold standard of gold.
+  members: true
+  icon: Condensed gold.png
+  value: 8000000
+  lowalch: 3200000
+  highalch: 4800000
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

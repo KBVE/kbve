@@ -1,0 +1,122 @@
+---
+title: Grimy dwarf weed | OSRS Price Data
+description: "Grimy dwarf weed: It needs cleaning.. High alch: 14 GP, GE limit: 11,000."
+osrs:
+  id: 217
+  name: Grimy dwarf weed
+  slug: grimy-dwarf-weed
+  examine: It needs cleaning.
+  members: true
+  icon: Grimy dwarf weed.png
+  value: 24
+  lowalch: 9
+  highalch: 14
+  limit: 11000
+  herb:
+    type: grimy
+    tier: high
+  herblore:
+    cleaning_level: 70
+    cleaning_xp: 13.8
+    clean_id: 267
+    clean_name: Dwarf weed
+  farming:
+    level: 79
+    seed_id: 5303
+    seed_name: Dwarf weed seed
+  drop_table:
+    sources:
+      - source: Aberrant spectre
+        source_id: 2927
+        combat_level: 96
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+      - source: Gargoyle
+        source_id: 412
+        combat_level: 111
+        quantity: "1"
+        rarity: uncommon
+        members_only: true
+  related_items:
+    - item_id: 267
+      item_name: Dwarf weed
+      slug: dwarf-weed
+      relationship: product
+      description: Cleaned version
+    - item_id: 109
+      item_name: Dwarf weed potion (unf)
+      slug: dwarf-weed-potion-unf
+      relationship: product
+      description: Unfinished potion
+    - item_id: 2444
+      item_name: Ranging potion(4)
+      slug: ranging-potion-4
+      relationship: product
+      description: Primary end product
+    - item_id: 5303
+      item_name: Dwarf weed seed
+      slug: dwarf-weed-seed
+      relationship: component
+      description: Farming seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Grimy Herb |
+| Tradeable | Yes |
+| Weight | 0.007 kg |
+| Herblore Level | 70 (to clean) |
+
+## Obtaining
+
+Common sources:
+- Farming dwarf weed (79 Farming)
+- Monster drops
+- Slayer creatures
+
+## Usage
+
+Clean to produce **dwarf weed** for Herblore.
+
+Dwarf weed used for:
+- **Ranging potion**
+- **Combat potion**
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~3,504 gp
+
+High-level herb. Good XP from cleaning (13.8 XP).
+
+## Related Items
+
+- [Dwarf weed](/osrs/dwarf-weed/) - Cleaned form
+- [Ranging potion](/osrs/ranging-potion/) - Primary use
+
+<Adsense />

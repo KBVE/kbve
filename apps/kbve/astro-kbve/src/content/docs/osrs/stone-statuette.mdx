@@ -1,0 +1,37 @@
+---
+title: Stone statuette | OSRS Price Data
+description: "Stone statuette: A small statuette.. High alch: 12 GP, GE limit: 13,000."
+osrs:
+  id: 9038
+  name: Stone statuette
+  slug: stone-statuette
+  examine: A small statuette.
+  members: true
+  icon: Stone statuette.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 13000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

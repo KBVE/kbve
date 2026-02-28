@@ -1,0 +1,137 @@
+---
+title: Mind rune | OSRS Price Data
+description: "Mind rune: Used for basic level missile spells.. High alch: 1 GP, GE limit: 18,000."
+osrs:
+  id: 558
+  name: Mind rune
+  slug: mind-rune
+  examine: Used for basic level missile spells.
+  members: false
+  icon: Mind rune.png
+  value: 3
+  lowalch: 1
+  highalch: 1
+  limit: 18000
+  rune:
+    type: combat
+  runecraft:
+    level: 2
+    xp: 5.5
+    multiple_at: 14
+    altar: Mind Altar
+    altar_location: Between Goblin Village and Ice Mountain
+    essence_type: any
+  shops:
+    - shop_name: Rune shops
+      stock: Unlimited
+      price: 17
+  recipes:
+    - skill: runecraft
+      level: 2
+      xp: 5.5
+      materials:
+        - item_name: Rune essence
+          item_id: 1436
+          quantity: 1
+      product: Mind rune
+      product_id: 558
+      product_quantity: 1
+      facility: Mind altar
+  related_items:
+    - item_id: 556
+      item_name: Air rune
+      slug: air-rune
+      relationship: component
+      description: Strike spell combo
+    - item_id: 562
+      item_name: Chaos rune
+      slug: chaos-rune
+      relationship: upgrade
+      description: Bolt spell upgrade
+    - item_id: 559
+      item_name: Body rune
+      slug: body-rune
+      relationship: alternative
+      description: Curse spells
+    - item_id: 1381
+      item_name: Staff of air
+      slug: staff-of-air
+      relationship: alternative
+      description: Saves air runes
+    - item_id: 554
+      item_name: Fire rune
+      slug: fire-rune
+      relationship: component
+      description: Strike spell combo
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Runecrafting
+
+| Requirement | Value |
+|-------------|-------|
+| Runecraft Level | 2 |
+| XP per rune | 5.5 |
+| Runes per essence | 1 (14 at 98) |
+
+**Multipliers (every 14 levels):**
+- Level 14: 2x runes
+- Level 28: 3x runes
+- Level 42: 4x runes
+- Level 56: 5x runes
+- Level 70: 6x runes
+- Level 84: 7x runes
+- Level 98: 8x runes
+
+## Key Spells
+
+| Spell | Mind Runes | Other Runes |
+|-------|------------|-------------|
+| Wind Strike | 1 | 1 Air |
+| Water Strike | 1 | 1 Air, 1 Water |
+| Earth Strike | 1 | 1 Air, 2 Earth |
+| Fire Strike | 1 | 2 Air, 3 Fire |
+| Confuse | 3 | 3 Water, 2 Earth |
+| Weaken | 3 | 3 Water, 2 Earth |
+
+## Market Flip Strategy
+
+**Budget Combat Rune:**
+- Strike spells only
+- F2P Magic training
+- Very low value per rune
+
+**Buy Limit:** 18,000 per 4 hours
+
+**Demand Drivers:**
+- F2P Magic training
+- Early game spellcasting
+- Splash training (low cost)
+- Ironman accounts
+
+**Tips:**
+- Cheapest combat rune
+- F2P demand primary driver
+- High supply from shops
+- Minimal flip potential
+
+<Adsense />

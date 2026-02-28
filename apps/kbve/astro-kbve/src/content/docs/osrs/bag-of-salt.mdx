@@ -1,0 +1,37 @@
+---
+title: Bag of salt | OSRS Price Data
+description: "Bag of salt: A bag of salt.. High alch: 6 GP, GE limit: 8,000."
+osrs:
+  id: 4161
+  name: Bag of salt
+  slug: bag-of-salt
+  examine: A bag of salt.
+  members: true
+  icon: Bag of salt.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 8000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

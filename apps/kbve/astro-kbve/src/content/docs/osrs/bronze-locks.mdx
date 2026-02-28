@@ -1,0 +1,37 @@
+---
+title: Bronze locks | OSRS Price Data
+description: "Bronze locks: Perhaps someone can do something with this.. High alch: 480 GP, GE limit: 8."
+osrs:
+  id: 25442
+  name: Bronze locks
+  slug: bronze-locks
+  examine: Perhaps someone can do something with this.
+  members: true
+  icon: Bronze locks.png
+  value: 800
+  lowalch: 320
+  highalch: 480
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

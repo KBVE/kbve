@@ -1,0 +1,37 @@
+---
+title: Jug of wine | OSRS Price Data
+description: "Jug of wine: It's full of wine.. High alch: 1 GP, GE limit: 6,000."
+osrs:
+  id: 1993
+  name: Jug of wine
+  slug: jug-of-wine
+  examine: It's full of wine.
+  members: false
+  icon: Jug of wine.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 6000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

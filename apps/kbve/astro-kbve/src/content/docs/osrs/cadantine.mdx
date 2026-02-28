@@ -1,0 +1,153 @@
+---
+title: Cadantine | OSRS Price Data
+description: "Cadantine: A powerful herb.. High alch: 39 GP, GE limit: 11,000."
+osrs:
+  id: 265
+  name: Cadantine
+  slug: cadantine
+  examine: A powerful herb.
+  members: true
+  icon: Cadantine.png
+  value: 65
+  lowalch: 26
+  highalch: 39
+  limit: 11000
+  herb:
+    type: clean
+    tier: high
+  herblore:
+    cleaning_level: 65
+    cleaning_xp: 12.5
+  farming:
+    level: 67
+    seed_id: 5301
+    seed_name: Cadantine seed
+  drop_table:
+    sources:
+      - source: Aberrant spectre
+        source_id: 2927
+        combat_level: 96
+        quantity: "1"
+        rarity: common
+        members_only: true
+  recipes:
+    - skill: herblore
+      level: 66
+      xp: 150
+      materials:
+        - item_name: Cadantine potion (unf)
+          item_id: 103
+          quantity: 1
+        - item_name: White berries
+          item_id: 239
+          quantity: 1
+      product: Super defence(3)
+      product_id: 2442
+      product_quantity: 1
+      facility: None
+      members_only: true
+    - skill: herblore
+      level: 80
+      xp: 155
+      materials:
+        - item_name: Cadantine blood potion (unf)
+          item_id: 22443
+          quantity: 1
+        - item_name: Wine of zamorak
+          item_id: 245
+          quantity: 1
+      product: Bastion potion(3)
+      product_id: 22461
+      product_quantity: 1
+      facility: None
+      members_only: true
+  related_items:
+    - item_id: 2442
+      item_name: Super defence(3)
+      slug: super-defence-3
+      relationship: product
+      description: Main product
+    - item_id: 239
+      item_name: White berries
+      slug: white-berries
+      relationship: component
+      description: Secondary
+    - item_id: 22461
+      item_name: Bastion potion(3)
+      slug: bastion-potion-3
+      relationship: product
+      description: Raid potion
+    - item_id: 5301
+      item_name: Cadantine seed
+      slug: cadantine-seed
+      relationship: component
+      description: Farming seed
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Monster drops | Various |
+| Farming | 67 Farming |
+| Aberrant spectres | Common |
+| Herbiboar | 80 Hunter |
+
+## Cleaning
+
+| Requirement | Value |
+|-------------|-------|
+| Herblore Level | 65 |
+| XP | 12.5 |
+| Product | Cadantine (clean) |
+
+## Herblore
+
+| Potion | Level | Secondary |
+|--------|-------|-----------|
+| Super defence | 66 | White berries |
+| Bastion potion | 80 | Wine of zamorak |
+| Battlemage potion | 80 | Potato cactus |
+
+## Market Flip Strategy
+
+**High-Tier Herb:**
+- Super defence production
+- Bastion potion demand
+- Good value herb
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Demand Drivers:**
+- Super defence potions
+- Super combat chain
+- Bastion potions (raids)
+- Battlemage potions
+
+**Tips:**
+- Farm runs profitable
+- 67 Farming required
+- White berries secondary
+- Good herb value
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Steel platebody (g) | OSRS Price Data
+description: "Steel platebody (g): Steel platebody with a gold trim.. High alch: 1,200 GP, GE limit: 125."
+osrs:
+  id: 20169
+  name: Steel platebody (g)
+  slug: steel-platebody-g
+  examine: Steel platebody with a gold trim.
+  members: false
+  icon: Steel platebody (g).png
+  value: 2000
+  lowalch: 800
+  highalch: 1200
+  limit: 125
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

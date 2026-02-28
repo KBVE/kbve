@@ -1,0 +1,37 @@
+---
+title: Obsidian cape (r) | OSRS Price Data
+description: "Obsidian cape (r): A cape of woven obsidian plates.. High alch: 36,000 GP, GE limit: 70."
+osrs:
+  id: 20050
+  name: Obsidian cape (r)
+  slug: obsidian-cape-r
+  examine: A cape of woven obsidian plates.
+  members: true
+  icon: Obsidian cape (r).png
+  value: 60000
+  lowalch: 24000
+  highalch: 36000
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

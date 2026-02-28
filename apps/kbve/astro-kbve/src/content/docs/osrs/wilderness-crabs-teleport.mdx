@@ -1,0 +1,37 @@
+---
+title: Wilderness crabs teleport | OSRS Price Data
+description: "Wilderness crabs teleport: A teleport to near the dark crab fishing spots, in level 33 Wilderness.. High alch: 37 GP."
+osrs:
+  id: 24251
+  name: Wilderness crabs teleport
+  slug: wilderness-crabs-teleport
+  examine: A teleport to near the dark crab fishing spots, in level 33 Wilderness.
+  members: true
+  icon: Wilderness crabs teleport.png
+  value: 63
+  lowalch: 25
+  highalch: 37
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Kraken colada | OSRS Price Data
+description: "Kraken colada: Coconut milk, pineapple and... kraken ink?. High alch: 12 GP."
+osrs:
+  id: 31258
+  name: Kraken colada
+  slug: kraken-colada
+  examine: Coconut milk, pineapple and... kraken ink?
+  members: true
+  icon: Kraken colada.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

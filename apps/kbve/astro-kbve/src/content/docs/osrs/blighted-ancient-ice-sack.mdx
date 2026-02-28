@@ -1,0 +1,37 @@
+---
+title: Blighted ancient ice sack | OSRS Price Data
+description: "Blighted ancient ice sack is a members-only OSRS item. High alch: 21 GP, GE limit: 15,000."
+osrs:
+  id: 24607
+  name: Blighted ancient ice sack
+  slug: blighted-ancient-ice-sack
+  examine: Enough power for any Ice spell, blighted so it can be used only in the Wilderness.
+  members: true
+  icon: Blighted ancient ice sack.png
+  value: 35
+  lowalch: 14
+  highalch: 21
+  limit: 15000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

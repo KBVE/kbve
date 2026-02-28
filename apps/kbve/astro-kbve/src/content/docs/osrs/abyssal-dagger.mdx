@@ -1,0 +1,140 @@
+---
+title: Abyssal dagger | OSRS Price Data
+description: "Abyssal dagger is a members weapon slot item requiring 70 Attack. High alch: 69,000 GP, GE limit: 8."
+osrs:
+  id: 13265
+  name: Abyssal dagger
+  slug: abyssal-dagger
+  examine: Something sharp from the body of a defeated Abyssal Sire.
+  members: true
+  icon: Abyssal dagger.png
+  value: 115001
+  lowalch: 46000
+  highalch: 69000
+  limit: 8
+  equipment:
+    slot: weapon
+    type: dagger
+    attack_style: melee
+    attack_speed: 4
+    requirements:
+      attack: 70
+    stats:
+      attack_stab: 75
+      attack_slash: 40
+      attack_crush: -4
+      attack_magic: 1
+      strength: 75
+  special_attack:
+    name: Abyssal Puncture
+    energy: 25
+    description: Hits twice in rapid succession with +25% accuracy per hit and -15% damage per hit
+  related_items:
+    - item_id: 13263
+      item_name: Abyssal bludgeon
+      slug: abyssal-bludgeon
+      relationship: alternative
+      description: Crush weapon from Sire
+    - item_id: 4151
+      item_name: Abyssal whip
+      slug: abyssal-whip
+      relationship: alternative
+      description: Slash weapon
+    - item_id: 22324
+      item_name: Ghrazi rapier
+      slug: ghrazi-rapier
+      relationship: upgrade
+      description: BiS stab upgrade
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Melee - Stab |
+| Tradeable | Yes |
+| Weight | 0.453 kg |
+| Attack Speed | 4 tick (2.4s) |
+
+## Obtaining
+
+Rare reward from the Abyssal Sire boss.
+
+| Source | Drop Rate |
+|--------|-----------|
+| Unsired → Font of Consumption | 13/64 (~20.3%) |
+| Abyssal demons (direct) | 1/32,000 |
+
+## Stats
+
+| Offense | Value |
+|---------|-------|
+| Stab | +75 |
+| Slash | +40 |
+| Crush | -4 |
+| Magic | +1 |
+| Strength | +75 |
+
+| Defence | Value |
+|---------|-------|
+| All | +0 |
+
+**Requirements:** 70 Attack
+
+## Special Attack
+
+**Abyssal Puncture** (25% energy):
+- Hits twice in rapid succession
+- +25% accuracy per hit
+- -15% damage per hit
+- Max hit: 44-44 (PvP)
+
+## Usage
+
+Popular for:
+- PvP (double hit spec)
+- Abyssal Sire
+- Cerberus
+- Budget stab weapon
+
+**Strong spec weapon with guaranteed double hit.**
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~3M gp
+
+**Tips:**
+- Sire is best source
+- Good for PvP combos
+- Cheaper than rapier alternatives
+
+## Related Items
+
+- [Abyssal bludgeon](/osrs/abyssal-bludgeon/) - Crush weapon from Sire
+- [Abyssal whip](/osrs/abyssal-whip/) - Slash weapon
+- [Ghrazi rapier](/osrs/ghrazi-rapier/) - BiS stab upgrade
+
+<Adsense />

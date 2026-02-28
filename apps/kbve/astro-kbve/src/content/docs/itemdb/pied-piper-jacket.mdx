@@ -1,0 +1,134 @@
+---
+title: 'Pied Piper Jacket'
+description: "A vibrant coat woven from misdirection and melody. Whistles faintly when no one’s speaking. Creatures tend to follow."
+id: 'pied-piper-jacket'
+key: 22
+ref: '01J2GHZQ9CXY89NB7NS5Q2DRPP'
+name: 'Pied Piper Jacket'
+type: 'Apparel'
+category: 410
+img: '/assets/items/set/memes/sv/pied_piper_jacket.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 95
+consumable: false
+stackable: false
+rarity: 'Epic'
+weight: 2.1
+effects: 'Boosts charm and minor control over low-intelligence creatures.'
+price: 2200
+durability: 850
+equipped: true
+levelRequirement: 6
+cooldown: 90
+action: 'command'
+credits: |
+    Inspired from Silicon Valley with Art by KBVE Pixel Workshop.
+bonuses:
+    charm: 3
+    creatureInfluence: 0.25
+    passiveWhistle: true
+scripts:
+    - guid: 'bbf29ce88a4c445fbbc210efbde2188b'
+      vars:
+            charmBoost: 3
+            tameChance: 0.25
+            whistleTrigger: 'ambient'
+            cooldown: 90
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Pied Piper Jacket** is a flowing, eccentric garment said to channel the rhythm of reality itself. 
+When worn, it enhances charisma and emanates soft frequencies only small animals and simple minds can perceive.
+
+Some wearers report being followed by rodents. Others? By admirers.
+
+Rumor has it that nucleus will alter the in-game memory if the player has a [ziplock bag](/itemdb/jareds-teddy-bear) and automatically win the game.
+
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+
+## Usage
+
+- Grants **+{frontmatter.bonuses.charm} charm**  
+- Has a **{Math.floor(frontmatter.bonuses.creatureInfluence * 100)}% chance** to **tame or confuse** lesser creatures temporarily  
+- Emits **ambient whistle tones** when equipped  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Application
+
+Effective in:
+- **Crowd manipulation scenes**
+- **Beast taming attempts**
+- **Rogue musical performances**
+
+Can be enhanced further with **instrument relics** or **sound-based accessories**.
+
+---
+
+## Lore
+
+> “He walked through the plague city. The rats walked behind him in a line.”  
+> - Journal of The Silent Piper
+
+Some say if you wear it long enough, you start to hear your own theme music. 
+Others say that's when it's too late to take it off.
+
+[Scene from Silicon Valley](https://www.youtube.com/watch?v=upNBYuNh71A)
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/piper_followers.webp"
+  defaultId="01HTXYZJKT001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZJKT001',
+      title: 'Echoes in Thread',
+      description: 'The jacket pulses faintly as you slip it on.',
+      image: 'https://images.unsplash.com/photo-1561469373-7f152c150dfb?q=80&w=500&auto=format&fit=crop',
+      message: 'Something in the rafters chitters. You are not alone.',
+      choices: [
+        { label: 'Call out with a tune.', nextId: '01HTXYZJKT002' },
+        { label: 'Stay silent.', nextId: '01HTXYZJKT003' }
+      ]
+    },
+    {
+      id: '01HTXYZJKT002',
+      title: 'They Hear You',
+      description: 'Tiny shadows emerge. They gather around your feet.',
+      image: '/images/scene_ratline.jpg',
+      message: 'They do not attack. They wait. For direction.'
+    },
+    {
+      id: '01HTXYZJKT003',
+      title: 'They Watch',
+      description: 'Stillness. But not silence.',
+      image: '/images/scene_piperwatch.jpg',
+      message: 'You feel the weight of attention. Like a tune stuck in your mind.'
+    }
+  ]}
+/>
+<Adsense />
+
+---
+
+## DevLog
+
+- 05/28/2025 - Pied Piper Jacket added with charm mechanics and passive creature following system

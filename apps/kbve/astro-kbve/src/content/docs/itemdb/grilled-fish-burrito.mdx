@@ -1,0 +1,133 @@
+---
+title: 'Grilled Fish Burrito'
+description: |
+    A tightly wrapped masterpiece of grilled fish, rice, beans, and smoldering spices.
+    Warm, heavy, and oddly inspiring.
+id: 'grilled-fish-burrito'
+key: 32
+ref: '01JWFZBV4K5T7KNFYKY7Q5YF29'
+name: 'Grilled Fish Burrito'
+type: 'Food'
+category: 392
+img: '/assets/items/skills/cooking/dish/grilled_fish_burrito.png'
+pixelDensity: 64
+sortingLayer: Ground
+sortingOrder: 42
+consumable: true
+stackable: false
+rarity: 'Uncommon'
+weight: 0.9
+effects: 'Restores health and grants a temporary strength/resistance buff.'
+price: 120
+durability: 1
+equipped: false
+levelRequirement: 1
+cooldown: 90
+action: 'consume'
+credits: |
+    Concept by h0lybyte and Art by KBVE Pixel Workshop.
+bonuses:
+    health: 40
+    strength: 6
+    resistance: 4
+scripts:
+    - guid: 'ba39cbfaabfc4a2ba1d3ed6a5aefeecc'
+      vars:
+            healAmount: 40
+            strengthBoost: 6
+            resistanceBoost: 4
+            duration: 240
+---
+
+import ItemDBPanel from '@/components/itemdb/ItemDBPanel.astro';
+import VisualNovelPanel from '@/components/vn/VisualNovelPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+## Item
+
+The **Grilled Fish Burrito** is dense, delicious, and built to last.
+Wrapped in foil and stuffed with flaky grilled fish, fire-roasted peppers, protein-rich beans, and a savory rice blend, it's a balanced battlefield feast.
+
+Ideal for long journeys, power surges, and culinary-based buffs.
+
+---
+
+<ItemDBPanel data={frontmatter} />
+
+---
+<Adsense />
+
+## Usage
+
+- Restores **{frontmatter.bonuses.health} health**  
+- Grants **+{frontmatter.bonuses.strength} strength** and **+{frontmatter.bonuses.resistance} resistance** for **{frontmatter.scripts[0].vars.duration} seconds**  
+- Cooldown: **{frontmatter.cooldown} seconds**
+
+---
+
+## Notes
+
+- Stays warm for hours in foil  
+- Consuming next to a campfire gives a 10% bonus to buff duration  
+- Can be split and shared (if you're feeling generous)
+
+---
+
+## Lore
+
+Chefs call it the **Bite of Valor**.
+
+This recipe was developed by Fishfather Raul as a heavy-duty survival meal, packed with nutrients and flavor.
+Originally served only during post-storm rebuilds.
+
+> “He once fed a whole rebel squad with three of these and a melted soda. They punched a tank.”  
+> - Field Medic Drey, during the 2nd Border Push
+
+
+---
+
+## Credit
+
+{frontmatter.credits}
+
+<VisualNovelPanel
+  sideImage="/assets/images/brand/rareicon/burrito_buffed.webp"
+  defaultId="01HTXYZBTO001"
+  onChoice="trackChoice"
+  options={[
+    {
+      id: '01HTXYZBTO001',
+      title: 'The Foil Package',
+      description: 'Still warm. Smells like home.',
+      image: 'https://images.unsplash.com/photo-1582455702419-e69c9cd0df1a?q=80&w=500&auto=format&fit=crop',
+      message: 'A handoff at the checkpoint. You are told it will help.',
+      choices: [
+        { label: 'Eat it all now.', nextId: '01HTXYZBTO002' },
+        { label: 'Split it for later.', nextId: '01HTXYZBTO003' }
+      ]
+    },
+    {
+      id: '01HTXYZBTO002',
+      title: 'Full Power',
+      description: 'You feel full. You feel mighty.',
+      image: '/images/scene_burritobuff.jpg',
+      message: 'Everything feels lighter. Even your doubts.'
+    },
+    {
+      id: '01HTXYZBTO003',
+      title: 'Rationed Strength',
+      description: 'You wrap half. Tuck it away.',
+      image: '/images/scene_burritostash.jpg',
+      message: 'Even half of it hums with promise.'
+    }
+  ]}
+/>
+
+---
+
+## DevLog
+
+- 05/27/2025 - Grilled Fish Burrito added with health restoration and dual stat buff for strength and resistance
+- 05/28/2025 - Added visual novel choices for burrito encounter
+- 05/29/2025 - Adjusted buff duration and lore to fit the KBVE universe
+- 05/30/2025 - Final tweaks to visuals and lore, ready for itemdb release

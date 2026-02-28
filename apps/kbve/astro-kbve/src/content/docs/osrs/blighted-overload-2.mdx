@@ -1,0 +1,37 @@
+---
+title: Blighted overload (2) | OSRS Price Data
+description: "Blighted overload (2): 2 doses of blighted overload potion.. High alch: 30 GP."
+osrs:
+  id: 29637
+  name: Blighted overload (2)
+  slug: blighted-overload-2
+  examine: 2 doses of blighted overload potion.
+  members: true
+  icon: Blighted overload (2).png
+  value: 50
+  lowalch: 20
+  highalch: 30
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

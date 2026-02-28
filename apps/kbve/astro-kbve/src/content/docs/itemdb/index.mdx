@@ -1,0 +1,36 @@
+---
+title: ItemDB Game Index
+description: |
+    Overview of the games set in the KBVE universe.
+    This index also highlights how RareIcon and other titles connect to the ItemDB.
+id: 'itemdb-index'
+ref: '01S1S1S1S1S1S1S1S1S1S1S1SA'
+name: 'ItemDB Index'
+type: 'index'
+key: 0
+pixelDensity: 64
+sidebar:
+    label: ItemDB
+    order: 1
+unsplash: 1593702143550-8e6f8b8f8e4b
+img: https://images.unsplash.com/photo-1593702143550-8e6f8b8f8e4b?fit=crop&w=1400&h=700&q=75
+tags:
+    - games
+---
+
+import { Card, CardGrid, LinkCard } from '@astrojs/starlight/components';
+import { Adsense } from '@/components/astropad';
+
+<CardGrid>
+<Card title="RareIcon" icon="gamepad">
+A cyberpunk action RPG blending base building with frenetic bullet hell combat.
+<LinkCard title="Learn more" href="/rareicon/" />
+</Card>
+
+<Card title="Other Projects" icon="star">
+Discover additional games and experiments within the KBVE universe.
+<LinkCard title="Project Index" href="/project/" />
+</Card>
+</CardGrid>
+
+<Adsense />

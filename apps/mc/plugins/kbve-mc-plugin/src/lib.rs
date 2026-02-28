@@ -2,6 +2,7 @@
 
 #[macro_use]
 mod macros;
+mod edge;
 mod stats;
 mod web;
 
@@ -349,9 +350,27 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                 }
             }
 
-            // Initialize character stats, show sidebar + XP boss bar by default
+            // Initialize character stats — try loading from edge, fall back to defaults
             let uuid_bits = player.gameprofile.id.as_u128();
-            let char_data = stats::CharacterData::default();
+            let uuid_str = player.gameprofile.id.to_string();
+            let char_data = if edge::is_configured() {
+                match edge::load_character(&uuid_str).await {
+                    Ok(Some(data)) => {
+                        info!("Loaded character from edge for {name}");
+                        data
+                    }
+                    Ok(None) => {
+                        info!("No character found in edge for {name}, using defaults");
+                        stats::CharacterData::default()
+                    }
+                    Err(e) => {
+                        info!("Edge load failed for {name}: {e}, using defaults");
+                        stats::CharacterData::default()
+                    }
+                }
+            } else {
+                stats::CharacterData::default()
+            };
             stats::PLAYER_STATS.insert(uuid_bits, char_data.clone());
             stats::send_stats_sidebar(&player, &char_data).await;
             stats::SIDEBAR_VISIBLE.insert(uuid_bits, true);
@@ -1528,6 +1547,14 @@ impl KbveMcPlugin {
             "Trace level: {} (set KBVE_TRACE=1 for DEBUG, KBVE_TRACE=2 for TRACE)",
             *TRACE_LEVEL
         );
+        if edge::is_configured() {
+            info!(
+                "Edge functions: configured (server_id={})",
+                *edge::MC_SERVER_ID
+            );
+        } else {
+            info!("Edge functions: not configured (set SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY)");
+        }
 
         // Register event handlers
         context

@@ -1,0 +1,37 @@
+---
+title: Mithril arrowtips | OSRS Price Data
+description: "Mithril arrowtips: I can make some arrows with these.. High alch: 9 GP, GE limit: 10,000."
+osrs:
+  id: 42
+  name: Mithril arrowtips
+  slug: mithril-arrowtips
+  examine: I can make some arrows with these.
+  members: true
+  icon: Mithril arrowtips.png
+  value: 16
+  lowalch: 6
+  highalch: 9
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

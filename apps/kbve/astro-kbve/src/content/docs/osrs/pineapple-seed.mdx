@@ -1,0 +1,123 @@
+---
+title: Pineapple seed | OSRS Price Data
+description: "Pineapple seed: Plant in a plantpot of soil to grow a sapling.. High alch: 44 GP, GE limit: 200."
+osrs:
+  id: 5287
+  name: Pineapple seed
+  slug: pineapple-seed
+  examine: Plant in a plantpot of soil to grow a sapling.
+  members: true
+  icon: Pineapple seed 5.png
+  value: 74
+  lowalch: 29
+  highalch: 44
+  limit: 200
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: true
+    weight: 0
+  skilling_source:
+    skill: farming
+    level: 51
+    xp: 57
+    growth_time: 960
+  drop_table:
+    sources:
+      - source: Bird nests (Woodcutting)
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Wintertodt
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 2114
+      item_name: Pineapple
+      slug: pineapple
+      relationship: product
+      description: Harvested fruit
+    - item_id: 6020
+      item_name: Watermelon
+      slug: watermelon
+      relationship: component
+      description: Protection payment (10)
+    - item_id: 5286
+      item_name: Curry tree seed
+      slug: curry-tree-seed
+      relationship: alternative
+      description: Lower tier option
+    - item_id: 5288
+      item_name: Papaya tree seed
+      slug: papaya-tree-seed
+      relationship: upgrade
+      description: Higher tier option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Fruit Tree Seed |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 51 Farming |
+
+## Obtaining
+
+Common sources:
+- Bird nests (Woodcutting, Bird houses)
+- Wintertodt supply crates
+- Monster drops
+
+## Usage
+
+Plant in **fruit tree patches** to grow pineapple plants.
+
+**Growth Time:** 16 hours
+
+**Payment:** 10 watermelons (optional protection)
+
+**XP:** 57 (planting) + 4,605.7 (check-health)
+
+## Market Strategy
+
+**Buy Limit:** 200 per 4 hours
+
+**Price:** ~20 gp
+
+Mid-tier fruit tree seed. Pineapples used for protection payments on papaya trees. Good value for Farming XP.
+
+## Related Items
+
+- [Pineapple](/osrs/pineapple/) - Harvested fruit
+- [Watermelon](/osrs/watermelon/) - Protection payment
+- [Papaya tree seed](/osrs/papaya-tree-seed/) - Higher tier option
+
+<Adsense />

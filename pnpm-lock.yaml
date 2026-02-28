@@ -31,6 +31,9 @@ importers:
             '@peculiar/webcrypto':
                 specifier: ^1.5.0
                 version: 1.5.0
+            '@phaserjs/rapier-connector':
+                specifier: ^1.0.2
+                version: 1.0.2
             '@react-three/drei':
                 specifier: ^10.7.7
                 version: 10.7.7(@react-three/fiber@9.5.0(@types/react@19.2.9)(expo-asset@12.0.12(expo@54.0.9)(react-native@0.81.6(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@types/react@19.2.9)(react@19.2.4))(react@19.2.4))(expo-file-system@19.0.21(expo@54.0.9)(react-native@0.81.6(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@types/react@19.2.9)(react@19.2.4)))(expo@54.0.9)(react-dom@19.2.4(react@19.2.4))(react-native@0.81.6(@babel/core@7.26.10)(@react-native-community/cli@15.1.3(typescript@5.9.3))(@types/react@19.2.9)(react@19.2.4))(react@19.2.4)(three@0.182.0))(@types/react@19.2.9)(@types/three@0.176.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)(three@0.182.0)
@@ -55,6 +58,9 @@ importers:
             axios:
                 specifier: 1.6.7
                 version: 1.6.7
+            bitecs:
+                specifier: ^0.4.0
+                version: 0.4.0
             class-variance-authority:
                 specifier: ^0.7.0
                 version: 0.7.1
@@ -5983,6 +5989,12 @@ packages:
             }
         engines: { node: '>=10.12.0' }
 
+    '@phaserjs/rapier-connector@1.0.2':
+        resolution:
+            {
+                integrity: sha512-BZonkC7Pm6gzu1ylG7yoqzn8XEJvaZePGXjnb0atSe1pXmKc/WDPLn8BbUp96tP9MRlhKalbwgXLxMMnzwsHYA==,
+            }
+
     '@phenomnomnominal/tsquery@6.1.4':
         resolution:
             {
@@ -11073,6 +11085,12 @@ packages:
                 integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==,
             }
         engines: { node: '>=8' }
+
+    bitecs@0.4.0:
+        resolution:
+            {
+                integrity: sha512-ho6Zop/L79DRTnBAfakPpGPuX7y0+lAjX06CpaAW+5tnAc7BH3L3RlSrWAXAqwnQGDZ10GsoxaxyTTsddlun3g==,
+            }
 
     bl@4.1.0:
         resolution:
@@ -31482,6 +31500,8 @@ snapshots:
             tslib: 2.8.1
             webcrypto-core: 1.8.1
 
+    '@phaserjs/rapier-connector@1.0.2': {}
+
     '@phenomnomnominal/tsquery@6.1.4(typescript@5.9.3)':
         dependencies:
             '@types/esquery': 1.5.4
@@ -35452,6 +35472,8 @@ snapshots:
             find-versions: 5.1.0
 
     binary-extensions@2.3.0: {}
+
+    bitecs@0.4.0: {}
 
     bl@4.1.0:
         dependencies:

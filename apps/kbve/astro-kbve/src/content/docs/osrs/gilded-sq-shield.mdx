@@ -1,0 +1,37 @@
+---
+title: Gilded sq shield | OSRS Price Data
+description: "Gilded sq shield: A medium square shield in gold plate.. High alch: 23,040 GP, GE limit: 70."
+osrs:
+  id: 20152
+  name: Gilded sq shield
+  slug: gilded-sq-shield
+  examine: A medium square shield in gold plate.
+  members: false
+  icon: Gilded sq shield.png
+  value: 38400
+  lowalch: 15360
+  highalch: 23040
+  limit: 70
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

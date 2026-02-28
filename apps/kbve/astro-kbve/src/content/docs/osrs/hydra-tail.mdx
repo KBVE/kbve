@@ -1,0 +1,108 @@
+---
+title: Hydra tail | OSRS Price Data
+description: "Hydra tail: Tail of a hydra, can be attached to a bonecrusher.. High alch: 60,000 GP, GE limit: 15."
+osrs:
+  id: 22988
+  name: Hydra tail
+  slug: hydra-tail
+  examine: Tail of a hydra, can be attached to a bonecrusher.
+  members: true
+  icon: Hydra tail.png
+  value: 100000
+  lowalch: 40000
+  highalch: 60000
+  limit: 15
+  item:
+    type: crafting material
+    tradeable: true
+    weight: 0.226
+  recipes:
+    - skill: null
+      level: 0
+      materials:
+        - item_id: 13116
+          item_name: Bonecrusher
+          quantity: 1
+        - item_id: 19720
+          item_name: Dragonbone necklace
+          quantity: 1
+        - item_id: 22988
+          item_name: Hydra tail
+          quantity: 1
+      product: Bonecrusher necklace
+      product_id: 22986
+  related_items:
+    - item_id: 22986
+      item_name: Bonecrusher necklace
+      slug: bonecrusher-necklace
+      relationship: product
+      description: Created utility necklace
+    - item_id: 13116
+      item_name: Bonecrusher
+      slug: bonecrusher
+      relationship: component
+      description: Component for bonecrusher necklace
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 0.226 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Alchemical Hydra | 1/513 |
+| Colossal Hydra | 1/1,001 |
+| Regular Hydra | 1/5,001 to 1/1,001 |
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Bonecrusher necklace | Bonecrusher + Dragonbone necklace + Hydra tail |
+
+**Reversible with confirmation.**
+
+## Market Strategy
+
+**Buy Limit:** 15 per 4 hours
+
+**Price:** ~117K gp
+
+**Tips:**
+- From any Hydra variant
+- Creates utility necklace
+- Cheaper than other hydra drops
+
+## Related Items
+
+- [Alchemical Hydra](/osrs/alchemical-hydra/) - Best source
+- [Bonecrusher necklace](/osrs/bonecrusher-necklace/) - Created item
+- [Bonecrusher](/osrs/bonecrusher/) - Component
+
+<Adsense />

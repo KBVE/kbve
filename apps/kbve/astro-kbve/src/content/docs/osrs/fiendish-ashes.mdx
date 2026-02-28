@@ -1,0 +1,107 @@
+---
+title: Fiendish ashes | OSRS Price Data
+description: "Fiendish ashes: A heap of ashes.. High alch: 1 GP."
+osrs:
+  id: 25766
+  name: Fiendish ashes
+  slug: fiendish-ashes
+  examine: A heap of ashes.
+  members: false
+  icon: Fiendish ashes.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: null
+  material:
+    type: ashes
+    tier: basic
+  prayer:
+    xp_scatter: 10
+    xp_demonic_offering: 30
+  drop_table:
+    sources:
+      - source: Imp
+        source_id: 708
+        combat_level: 8
+        quantity: "1"
+        rarity: always
+      - source: Pyrefiend
+        source_id: 434
+        combat_level: 43
+        quantity: "1"
+        rarity: always
+        members_only: true
+  related_items:
+    - item_id: 25769
+      item_name: Vile ashes
+      slug: vile-ashes
+      relationship: upgrade
+      description: Higher XP (25 base)
+    - item_id: 25772
+      item_name: Malicious ashes
+      slug: malicious-ashes
+      relationship: upgrade
+      description: Higher XP (65 base)
+    - item_id: 25775
+      item_name: Abyssal ashes
+      slug: abyssal-ashes
+      relationship: upgrade
+      description: Higher XP (85 base)
+    - item_id: 25778
+      item_name: Infernal ashes
+      slug: infernal-ashes
+      relationship: upgrade
+      description: Highest XP (110 base)
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+## Prayer Training
+
+Fiendish ashes are the lowest tier demonic ashes:
+
+| Method | XP per ash |
+|--------|------------|
+| Scatter | 10 |
+| Demonic Offering spell | 30 |
+
+## Obtaining
+
+Dropped by low-level demons:
+- Imps (always)
+- Pyrefiends (always)
+- Lesser demons (always)
+
+## Market Flip Strategy
+
+**Basic Ashes:**
+- Lowest tier of demonic ashes
+- High supply from imp farming
+- Low value but consistent demand
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Tips:**
+- Entry-level ashes for Prayer
+- Demonic Offering triples XP
+- Compare GP/XP to higher tiers
+
+<Adsense />

@@ -1,0 +1,37 @@
+---
+title: Poison chalice | OSRS Price Data
+description: "Poison chalice: A cup of a strange brew.... High alch: 12 GP, GE limit: 2,000."
+osrs:
+  id: 197
+  name: Poison chalice
+  slug: poison-chalice
+  examine: A cup of a strange brew...
+  members: true
+  icon: Poison chalice.png
+  value: 20
+  lowalch: 8
+  highalch: 12
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

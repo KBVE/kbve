@@ -1,0 +1,37 @@
+---
+title: Blood moon tassets (broken) | OSRS Price Data
+description: "Blood moon tassets (broken): The tassets of the Blood Moon.. High alch: 173,946 GP, GE limit: 15."
+osrs:
+  id: 29070
+  name: Blood moon tassets (broken)
+  slug: blood-moon-tassets-broken
+  examine: The tassets of the Blood Moon.
+  members: true
+  icon: Blood moon tassets (broken).png
+  value: 289910
+  lowalch: 115964
+  highalch: 173946
+  limit: 15
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

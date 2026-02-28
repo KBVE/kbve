@@ -1,0 +1,143 @@
+---
+title: Proselyte sallet | OSRS Price Data
+description: "Proselyte sallet is a members full_set slot item requiring 30 Defence. High alch: 4,800 GP, GE limit: 70."
+osrs:
+  id: 9672
+  name: Proselyte sallet
+  slug: proselyte-sallet
+  examine: A Proselyte Temple Knight's helm.
+  members: true
+  icon: Proselyte sallet.png
+  value: 8000
+  lowalch: 3200
+  highalch: 4800
+  limit: 70
+  equipment:
+    slot: full_set
+    type: prayer_armor
+    requirements:
+      defence: 30
+      prayer: 20
+      quest: The Slug Menace
+    stats:
+      defence_stab: 117
+      defence_slash: 115
+      defence_crush: 100
+      defence_magic: -11
+      defence_ranged: 113
+      prayer: 18
+  set_pieces:
+    sallet:
+      prayer: 4
+      slot: head
+    hauberk:
+      prayer: 8
+      slot: body
+    cuisse:
+      prayer: 6
+      slot: legs
+  drop_table:
+    sources:
+      - source: Sir Tiffy Cashien (Falador Park)
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: N/A
+        members_only: true
+  related_items:
+    - item_id: 9670
+      item_name: Initiate armour
+      slug: initiate-armour
+      relationship: downgrade
+      description: Lower tier
+    - item_id: 23191
+      item_name: Devout boots
+      slug: devout-boots
+      relationship: alternative
+      description: Prayer boots
+    - item_id: 6714
+      item_name: Holy wrench
+      slug: holy-wrench
+      relationship: alternative
+      description: Prayer boost
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Full Set |
+| Type | Prayer Armor |
+| Tradeable | No (untradeable) |
+| Weight | ~18.6 kg |
+
+## Obtaining
+
+Purchase from Sir Tiffy Cashien in Falador Park.
+
+**Requires:** The Slug Menace quest
+
+## Set Pieces
+
+| Piece | Prayer | Defence |
+|-------|--------|---------|
+| Proselyte sallet | +4 | Helm |
+| Proselyte hauberk | +8 | Body |
+| Proselyte cuisse/tasset | +6 | Legs |
+| **Total** | **+18** | |
+
+## Stats
+
+| Defence | Value |
+|---------|-------|
+| Stab | +117 |
+| Slash | +115 |
+| Crush | +100 |
+| Magic | -11 |
+| Ranged | +113 |
+
+| Other | Value |
+|-------|-------|
+| Prayer | +18 (full set) |
+
+**Requirements:** 30 Defence, 20 Prayer
+
+## Usage
+
+Essential for:
+- Protection prayer Slayer
+- Budget prayer gear
+- Cannon tasks
+
+**Best prayer bonus armor set.**
+
+## Market Strategy
+
+**Untradeable** - NPC shop only.
+
+**Tips:**
+- Complete Slug Menace first
+- ~12K per piece
+- Great for Slayer
+
+<Adsense />

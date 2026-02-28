@@ -1,0 +1,149 @@
+---
+title: Uncut sapphire | OSRS Price Data
+description: "Uncut sapphire: This would be worth more cut.. High alch: 15 GP, GE limit: 10,000."
+osrs:
+  id: 1623
+  name: Uncut sapphire
+  slug: uncut-sapphire
+  examine: This would be worth more cut.
+  members: false
+  icon: Uncut sapphire.png
+  value: 25
+  lowalch: 10
+  highalch: 15
+  limit: 10000
+  material:
+    type: gem
+    tier: low
+  crafting:
+    cutting_level: 20
+    cutting_xp: 50
+    uncut: true
+  drop_table:
+    sources:
+      - source: Gem rocks
+        source_id: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+  recipes:
+    - skill: crafting
+      level: 20
+      xp: 50
+      materials:
+        - item_name: Uncut sapphire
+          item_id: 1623
+          quantity: 1
+      product: Sapphire
+      product_id: 1607
+      product_quantity: 1
+    - skill: fletching
+      level: 56
+      xp: 4
+      materials:
+        - item_name: Sapphire
+          item_id: 1607
+          quantity: 1
+      product: Sapphire bolt tips
+      product_id: 9189
+      product_quantity: 12
+      members_only: true
+  related_items:
+    - item_id: 1621
+      item_name: Uncut emerald
+      slug: uncut-emerald
+      relationship: alternative
+      description: Higher tier gem
+    - item_id: 1607
+      item_name: Sapphire
+      slug: sapphire
+      relationship: product
+      description: Cut version
+    - item_id: 2550
+      item_name: Ring of recoil
+      slug: ring-of-recoil
+      relationship: product
+      description: Combat use
+    - item_id: 3853
+      item_name: Games necklace
+      slug: games-necklace
+      relationship: product
+      description: Teleportation
+    - item_id: 1755
+      item_name: Chisel
+      slug: chisel
+      relationship: component
+      description: For cutting
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Gem rocks | Common |
+| Mining (gem bag) | Random |
+| Monster drops | Very common |
+| HAM members | Pickpocket |
+| Shooting Stars | Star fragments |
+
+## Crafting
+
+| Product | Level | XP |
+|---------|-------|-----|
+| Sapphire | 20 | 50 |
+| Sapphire ring | 20 | 40 |
+| Sapphire necklace | 22 | 55 |
+| Sapphire amulet | 24 | 65 |
+| Sapphire bolt tips (12) | 56 | 4 |
+
+## Market Flip Strategy
+
+**Entry-Level Gem:**
+- Most common uncut gem
+- Buy uncut → Cut → Sell
+- Good for Crafting training
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Demand Drivers:**
+- Games necklace (teleports)
+- Ring of recoil (PvM)
+- Crafting training
+- Sapphire bolt tips
+
+**Tips:**
+- Cheapest gem to process
+- High volume trading
+- Ring of recoil always needed
+- Games necklace for minigames
+
+## Enchanting
+
+| Item | Enchantment | Effect |
+|------|-------------|--------|
+| Sapphire ring | Ring of recoil | Reflect 10% damage |
+| Sapphire necklace | Games necklace | Minigame teleports |
+| Sapphire amulet | Amulet of magic | +10 Magic |
+| Sapphire bolts | Sapphire bolts (e) | Mana drain |
+
+<Adsense />

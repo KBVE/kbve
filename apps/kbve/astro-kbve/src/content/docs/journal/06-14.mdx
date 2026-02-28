@@ -1,0 +1,103 @@
+---
+title: 'June: 14'
+category: Daily
+date: 2025-06-14 12:00:00
+client: Self
+unsplash: 1559510981-10719ce4266a
+img: https://images.unsplash.com/photo-1559510981-10719ce4266a?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+  June 14th. More Github Actions.
+tags:
+  - daily
+---
+
+import { Adsense } from '@/components/astropad';
+
+## 2025
+
+### Waffle
+
+-   07:39PM
+
+    Waffle can now load the droid library from the CDN but the additional workers are still not getting built.
+    I believe 2 of the 3 init workers are failing and its because of a relative pathing issue.
+
+### Droid Library
+
+-   08:28PM
+
+    The droid library is going through another update, we got it working on the astro side without any major issues but it still fails when doing the ESM/Skypack deployment.
+    I have a couple ways that we could resolve that issue, I just hate having to go through the looping process of having to test each possible fix.
+    We will have about 3-5 more attempts, so I expect us to hit around 0.0.20 before reaching 0.1.0, ugh.
+    So much time will be spent on such a silly issue, oh well, it will be part of the learning process.
+
+-   09:50PM
+
+    Library still has some issues that need to be resolved, but I might just move along and focus on other issues.
+    Getting the whole register and login working again, still have not yet resolved it within the past couple months, should be the focus.
+    Furthermore, we have to rewrite again the whole table structure for the profiles, thus making it another painful point that needs to be addresses.
+
+## 2024
+
+**Action Rant**
+
+The worst feeling about this whole github actions integration is that it does not make any sense to do all this extra work in 2024.
+The whole concept of making modular actions should be so much easier than this level of abstract bs. 
+I can not wait to go back to doing anything else than sitting here and going through multiple loops of annoying steps to get something so generic to work.
+This now makes sense why there are all these startups that offer github based issue ticket services, if github spent a decent amount of time improving this horseload, it would be great.
+Enough ranting.
+
+**JSON**
+
+The json format for the github actions seems to be giving me some abstraction errors, so instead of passing the keywords as an array object, I will have it pass a URL.
+The URL will be the JSON location for the keyword / action combination, maybe later on, we can utilize that for some more interesting concepts.
+Okay, updated the github action to accept the keyword as a JSON location.
+
+**Deprecated**
+
+We will go ahead and `deprecate` the `i-music-process.yml`, merging it all into a single workflow that will handle everything related to mix-usage of `atlas` and issue tickets.
+When I was building this out earlier, I was thinking of having it be a bit more modular and yet I found it to overcomplicate the situation.
+
+Ugh, it seems that I will have to rethink the way that I am building out these actions, I am going to move all the recent ones that I made back into the `deprecated` and start again fresh.
+This sucks but the amount of random bugs and issues that I am running into is way too high, almost nearly pointless in making any of the actions modular.
+
+
+**Jukebox**
+
+The next update that I want to do for this weekend is for the jukebox's ability to play in background mode on the phones.
+This way I can listen to the music while my phone screen is closed off, there might still be some tweaks that will prevent this from happening.
+
+
+**NPM**
+
+The best solution that I can come up with would be to release a `npm` package under the `@kbve/gha` and then we will just call that for all our actions.
+I will make a bunch of custom functions within this library and then use action scripts to call it directly.
+
+After updating the nx to do independent releases and adding the npm token, we can start adding in the npm release via the ci-main.
+Goal for this weekend will be to get `@kbve/khashvault` released and get the base of the `@kbve/gha` built out, I believe I should get bonus points if I can get both released without any issues.
+I should also look up the requirements for releasing the NPM package at an organization level, but there should not be any major problems in doing so.
+As for the documentation for each of the libraries, I believe we could link the `@kbve/gha` directly to our github actions section within git, even though it is javascript.
+Khashvault will go directly into the javascript mdx within application, with an id link in any specific areas.
+
+<Adsense />
+
+## 2023
+
+- 6:00am - Rise and Shine! Today will be an amazing day! I did not get as much sleep as I had hoped but I am feeling empowered and ready to tackle the world! 
+- 8:00am - Going to take a break from the internet for a while, time to touch some grass.
+- 2:00pm - Back from my break, time to get to work. I believe today's goal will be to get OneJS operational within the main branch of RogueJester and then start to fix up the UI/UX of the game, with something that will be a bit smoother on the eyes. 
+- 3:00pm - Had to put the development stuff on hold because I need to call the Medicare office for my family friend. I need to figure out what type of insurance she has through Medicare? I am taking on this task as a test case / edge case for future problems that I might have to deal with. The queue is way too long, the hold music is painful and it feels like torture when calling Medicare aka the `1-800-633-4227`. 
+- 3:30pm - Turns out that we need to find her comprehensive supplemental insurance through the private market. This type of insurance would cover the 20% of the medical bill that Medicare does not cover, but there is a monthly cost for this type of private insurance. I will have to go through the existing providers and see which one would be the best for her.
+- 6:40pm - Updated the OneJS and Heathen SteamWorks into the dev-holy branch, now I am going to chill out and play some sessions of League.
+- 9:30pm - Did a bit of cleaning, removed a decent amount of bulk waste from the shed, basement and the guest room. Now I back to the basic of Unity while I train up my OSRS account!
+
+## Quote
+
+> I cannot make my days longer, so I strive to make them better.
+> — <cite>Henry David Thoreau</cite>
+
+---
+
+## Tasks
+
+- [ ]

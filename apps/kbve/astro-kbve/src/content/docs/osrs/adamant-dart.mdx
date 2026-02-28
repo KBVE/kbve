@@ -1,0 +1,125 @@
+---
+title: Adamant dart | OSRS Price Data
+description: "Adamant dart is a members weapon slot item. High alch: 39 GP, GE limit: 11,000."
+osrs:
+  id: 810
+  name: Adamant dart
+  slug: adamant-dart
+  examine: A deadly throwing dart with an adamant tip.
+  members: true
+  icon: Adamant dart.png
+  value: 65
+  lowalch: 26
+  highalch: 39
+  limit: 11000
+  equipment:
+    slot: weapon
+    type: thrown
+    attack_style: ranged
+    attack_speed: 3
+  requirements:
+    ranged: 30
+  stats:
+    attack:
+      ranged: 0
+    other:
+      ranged_strength: 17
+  fletching:
+    level: 67
+    xp: 15
+    method: Attach feathers to adamant dart tips
+  drop_table:
+    sources:
+      - source: Dagannoth Supreme
+        source_id: 2265
+        combat_level: 303
+        quantity: 25-75
+        rarity: common
+        members_only: true
+      - source: Brutal blue dragon
+        source_id: 7273
+        combat_level: 271
+        quantity: 7-13
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 823
+      item_name: Adamant dart tip
+      slug: adamant-dart-tip
+      relationship: component
+      description: Fletching material
+    - item_id: 314
+      item_name: Feather
+      slug: feather
+      relationship: component
+      description: Fletching material
+    - item_id: 811
+      item_name: Rune dart
+      slug: rune-dart
+      relationship: upgrade
+      description: Higher tier
+    - item_id: 809
+      item_name: Mithril dart
+      slug: mithril-dart
+      relationship: downgrade
+      description: Lower tier
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon/Ammo |
+| Type | Thrown |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 30 Ranged |
+
+## Obtaining
+
+**Fletching:** Attach feathers to adamant dart tips (67 Fletching, 150 XP per 10).
+
+**Drops:** Dagannoth Supreme, brutal dragons, black dragons.
+
+**Alternative:** Purchase from Grand Exchange.
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Ranged Strength | +17 |
+
+## Market Strategy
+
+**Buy Limit:** 11,000 per 4 hours
+
+**Price:** ~71 gp
+
+Popular mid-level blowpipe ammunition.
+
+## Related Items
+
+- [Adamant dart tips](/osrs/adamant-dart-tips/) - Crafting material
+- [Rune dart](/osrs/rune-dart/) - Upgrade option
+
+<Adsense />

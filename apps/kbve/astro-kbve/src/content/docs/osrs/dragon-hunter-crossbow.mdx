@@ -1,0 +1,134 @@
+---
+title: Dragon hunter crossbow | OSRS Price Data
+description: "Dragon hunter crossbow is a members two-handed weapon requiring 70 Ranged. High alch: 48,000 GP, GE limit: 8."
+osrs:
+  id: 21012
+  name: Dragon hunter crossbow
+  slug: dragon-hunter-crossbow
+  examine: A crossbow used for dragon hunting.
+  members: true
+  icon: Dragon hunter crossbow.png
+  value: 80000
+  lowalch: 32000
+  highalch: 48000
+  limit: 8
+  equipment:
+    slot: 2h
+    type: crossbow
+    attack_style: ranged
+    attack_speed: 6
+    attack_range: 7
+    tradeable: true
+    weight: 6
+    requirements:
+      ranged: 70
+    stats:
+      ranged_attack: 95
+  special_effect:
+    name: Dragon Damage Bonus
+    description: +30% accuracy and +25% damage against draconic creatures
+    applies_to:
+      - All dragons (chromatic, metal, brutal)
+      - Wyverns (skeletal, fossil island)
+      - Drakes
+      - Wyrms
+      - Hydras
+      - Vorkath
+    does_not_apply_to:
+      - Elvarg
+      - Revenant dragons
+  drop_table:
+    sources:
+      - source: Chambers of Xeric
+        rate: Rare
+  truemarket:
+    buy_limit: 8
+    price_estimate: 50000000
+  related_items:
+    - item_id: 22978
+      item_name: Dragon hunter lance
+      slug: dragon-hunter-lance
+      relationship: alternative
+      description: Melee equivalent
+    - item_id: 21944
+      item_name: Ruby dragon bolts (e)
+      slug: ruby-dragon-bolts-e
+      relationship: component
+      description: Best bolts for dragons
+    - item_id: 11785
+      item_name: Armadyl crossbow
+      slug: armadyl-crossbow
+      relationship: alternative
+      description: General crossbow
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Reward from Chambers of Xeric raid.
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged attack | +95 |
+| Attack speed | 6 tick (3.6s) |
+| Range | 7 tiles (9 with Longrange) |
+| Requirements | 70 Ranged |
+
+## Dragon Damage Bonus
+
+**Against Draconic Creatures:**
+- +30% accuracy
+- +25% damage
+
+**Applies To:**
+- All dragons (chromatic, metal, brutal)
+- Wyverns (skeletal, fossil island)
+- Drakes
+- Wyrms
+- Hydras
+- Vorkath
+
+**Does NOT Apply To:**
+- Elvarg
+- Revenant dragons
+
+## Usage
+
+**Best-in-slot for:**
+- Vorkath (ranged method)
+- Skeletal Wyverns
+- Dragon Slayer tasks
+- Brutal black dragons
+- Alchemical Hydra
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Tips:**
+- Essential for dragon content
+- Pairs with Ruby dragon bolts (e)
+- Compare to Dragon hunter lance for melee
+
+<Adsense />

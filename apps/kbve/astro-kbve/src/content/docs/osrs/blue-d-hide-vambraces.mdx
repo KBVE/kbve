@@ -1,0 +1,133 @@
+---
+title: Blue d'hide vambraces | OSRS Price Data
+description: "Blue d'hide vambraces is a members hands slot item. High alch: 1,800 GP, GE limit: 125."
+osrs:
+  id: 2487
+  name: Blue d'hide vambraces
+  slug: blue-d-hide-vambraces
+  examine: Vambraces made from 100% real dragonhide.
+  members: true
+  icon: Blue d'hide vambraces.png
+  value: 3000
+  lowalch: 1200
+  highalch: 1800
+  limit: 125
+  equipment:
+    slot: hands
+    type: ranged_armour
+    ranged_requirement: 50
+    defence_requirement: 40
+  attack_bonuses:
+    ranged: 9
+  defence_bonuses:
+    ranged: 8
+    magic: 5
+  crafting:
+    level: 66
+    xp: 70
+  recipes:
+    - skill: crafting
+      level: 66
+      xp: 70
+      materials:
+        - item_name: Blue dragon leather
+          item_id: 2505
+          quantity: 1
+        - item_name: Thread
+          item_id: 1734
+          quantity: 1
+      product: Blue d'hide vambraces
+      product_id: 2487
+      product_quantity: 1
+      facility: Needle and thread
+      members_only: true
+  related_items:
+    - item_id: 1751
+      item_name: Blue dragonhide
+      slug: blue-dragonhide
+      relationship: component
+      description: Raw material
+    - item_id: 2505
+      item_name: Blue dragon leather
+      slug: blue-dragon-leather
+      relationship: component
+      description: Tanned hide
+    - item_id: 2499
+      item_name: Blue d'hide body
+      slug: blue-dhide-body
+      relationship: alternative
+      description: Matching body
+    - item_id: 2493
+      item_name: Blue d'hide chaps
+      slug: blue-dhide-chaps
+      relationship: alternative
+      description: Matching legs
+    - item_id: 1065
+      item_name: Green d'hide vambraces
+      slug: green-dhide-vambraces
+      relationship: alternative
+      description: Lower tier vambraces
+    - item_id: 2489
+      item_name: Red d'hide vambraces
+      slug: red-dhide-vambraces
+      relationship: alternative
+      description: Higher tier vambraces
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Creating
+
+| Method | Level | Materials |
+|--------|-------|-----------|
+| Crafting | 66 | 1 Blue dragon leather |
+| XP | 70 | - |
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Ranged requirement | 50 |
+| Defence requirement | 40 |
+| Ranged attack | +9 |
+| Ranged defence | +8 |
+| Magic defence | +5 |
+
+## Market Strategy
+
+**Mid-Tier D'hide Vambraces:**
+- Second dragonhide glove tier
+- Members only
+- Popular crafting item
+
+**Buy Limit:** 125 per 4 hours
+
+**Demand Drivers:**
+- Crafting training (70 XP)
+- Mid-level ranged armor
+- Budget gear
+
+**Tips:**
+- 1 leather per vambraces
+- Fast crafting method
+- Lowest level in blue set
+
+<Adsense />

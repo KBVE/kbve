@@ -1,0 +1,37 @@
+---
+title: Granite (2kg) | OSRS Price Data
+description: "Granite (2kg): A small chunk of granite.. High alch: 1 GP, GE limit: 100."
+osrs:
+  id: 6981
+  name: Granite (2kg)
+  slug: granite-2kg
+  examine: A small chunk of granite.
+  members: true
+  icon: Granite (2kg).png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 100
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

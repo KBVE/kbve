@@ -1,0 +1,95 @@
+---
+title: "January: 01"
+category: Daily
+date: 2026-01-01 12:00:00
+client: Self
+unsplash: 1703511606233-9c7537658701
+img: https://images.unsplash.com/photo-1703511606233-9c7537658701?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: Daily Log for January 1st of each year!
+tags:
+- daily
+---
+import { Adsense } from '@/components/astropad';
+
+## Notes
+
+---
+
+## Quote
+
+>  “Celebrate endings—for they precede new beginnings.” 
+>  — <cite>Jonathan Lockwood Huie</cite>
+
+---
+
+## Tasks
+
+- [X] - No Tasks!
+
+
+## 2026
+
+### OSRS Over Allocation Issue
+
+-   04:45PM
+
+    Updating the OSRS axum routes, mainly reducing the allocation from 4 strings down to a single one.
+    However we can not go zero allocation because of the mpsc, which might be an issue in the future.
+    There is a way we could avoid the cache actor and directly hook into the dashmap, but that might hurt our scaling.
+    For reference, we are using the tokio's sync mpsc rather than the std mpsc channel. 
+
+### Content Margin/Padding
+
+-   07:29PM
+
+    Finally figured out the issue with the starlight theme causing some weird element issues!
+    Turns out that I need to add the `not-content` css tag to anything that might conflict with our starlight theme, allowing us to just not have any of their overrides.
+    This should solve some of the button issues we had earlier as well.
+    Going to implement this fix, hopefully it will resolve the other margin issues with the OSRS.
+
+### Phaser Quick Game
+
+-   08:36PM
+
+    Maybe we could update parts of the Arcade to include some quick games to play via Phaser.
+    It has been a while since we made a simple game, might be a simple runner!
+
+## 2025
+
+-   09:04AM
+
+    **Morning**
+
+    Next day! Almost refreshed and ready for this whole year!
+    Its actually cool to be able to loop back finally, but this year is going to be wild and amazing.
+
+-   10:00AM
+
+    **Rimworld**
+
+    As tradition, the first session of the year should be a rimworld playthrough, I been dying to try that rimworld clone wars mod!
+    I am going to update the rimworld notes to quickly grab them.
+
+-   02:42PM
+
+    **Kilobase**
+
+    Updated the kanban board from the postgres side and made sure the older kanban tables were removed.
+    We will store all that date inside of the Amazon dynamodb but I need to figure out the best way to handle the timestamps for the tables, hmm.
+    Looks like that TTL is an option in from the Amazon docs but I will have switch back and look through how to call it in Rust.
+
+
+<Adsense />
+
+
+## 2024
+
+- 10:22am - It is 2024, this might be a bit out there but I think 2025 will come really fast.
+
+- 11:54am - Going to clean up the SQL queries for generating the backend tables!
+    There were a couple issues with the migration that I had to handle manually, so I decided to just restart the generation process.
+
+- 12:13pm - After cleaning up the SQL generations, I am going to switch back to migrating some of the Obby vaults from `kbve.com`.
+
+- 3:23pm - The one thing that is a bit annoying is that completing some of the documentations will take a while! Hmm...
+    I guess its like having a library of books but a decent chunk of them are missing pages and/or chapters, but as of right now it seems to be the best way to handle it.

@@ -1,0 +1,149 @@
+---
+title: Mahogany plank | OSRS Price Data
+description: "Mahogany plank: A plank of expensive mahogany.. High alch: 900 GP, GE limit: 13,000."
+osrs:
+  id: 8782
+  name: Mahogany plank
+  slug: mahogany-plank
+  examine: A plank of expensive mahogany.
+  members: true
+  icon: Mahogany plank.png
+  value: 1500
+  lowalch: 600
+  highalch: 900
+  limit: 13000
+  material:
+    type: plank
+    tier: high
+  construction:
+    xp_per_plank: 140
+    min_level: 40
+    common_builds:
+      - name: Mahogany tables
+        planks: 6
+        xp: 840
+      - name: Gnome benches
+        planks: 6
+        xp: 840
+  recipes:
+    - skill: construction
+      materials:
+        - item_name: Mahogany logs
+          item_id: 6332
+          quantity: 1
+      product: Mahogany plank
+      product_id: 8782
+      product_quantity: 1
+      facility: Sawmill
+      cost: 1500
+      members_only: true
+    - skill: magic
+      level: 86
+      xp: 90
+      materials:
+        - item_name: Mahogany logs
+          item_id: 6332
+          quantity: 1
+        - item_name: Astral rune
+          item_id: 9075
+          quantity: 2
+        - item_name: Nature rune
+          item_id: 561
+          quantity: 1
+        - item_name: Earth rune
+          item_id: 557
+          quantity: 15
+      product: Mahogany plank
+      product_id: 8782
+      product_quantity: 1
+      cost: 1050
+      members_only: true
+      spell: Plank Make
+  related_items:
+    - item_id: 6332
+      item_name: Mahogany logs
+      slug: mahogany-logs
+      relationship: component
+      description: Raw material
+    - item_id: 8780
+      item_name: Teak plank
+      slug: teak-plank
+      relationship: alternative
+      description: Mid tier alternative
+    - item_id: 8778
+      item_name: Oak plank
+      slug: oak-plank
+      relationship: alternative
+      description: Budget option
+    - item_id: 9075
+      item_name: Astral rune
+      slug: astral-rune
+      relationship: component
+      description: For Plank Make
+    - item_id: 561
+      item_name: Nature rune
+      slug: nature-rune
+      relationship: component
+      description: For Plank Make
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Obtaining
+
+Convert [Mahogany logs](/osrs/mahogany-logs/) at a Sawmill:
+
+| Method | Cost |
+|--------|------|
+| Sawmill operator | 1,500 GP per plank |
+| Plank Make spell | 1,050 GP + runes |
+| Woodcutting Guild sawmill | 1,350 GP per plank |
+
+## Construction
+
+| XP per plank | 140 |
+|--------------|-----|
+| Mahogany Homes avg | ~346 XP per plank |
+| Buy limit | 13,000 per 4 hours |
+| Min Construction level | 40 |
+
+**Best XP methods:**
+- Mahogany tables (6 planks, 840 XP)
+- Mahogany Homes contracts (most efficient)
+- Gnome benches (6 planks, 840 XP)
+
+## Market Flip Strategy
+
+**Plank Making Profit:**
+- Buy [Mahogany logs](/osrs/mahogany-logs/) → Sawmill → Sell planks
+- Calculate: `Mahogany plank price - Mahogany log price - 1,500 GP = Profit`
+
+**Plank Make Spell:**
+- 86 Magic required
+- Only 1,050 GP per plank (saves 450 GP vs sawmill)
+- Higher profit margin than oak planks
+
+**Tips:**
+- Highest XP/plank for Construction
+- Premium price = higher margins
+- Popular for 99 Construction rushes
+
+<Adsense />

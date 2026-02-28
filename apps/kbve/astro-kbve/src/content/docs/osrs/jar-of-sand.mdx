@@ -1,0 +1,95 @@
+---
+title: Jar of sand | OSRS Price Data
+description: "Jar of sand: It's just a jar of sand.. High alch: 1 GP, GE limit: 5."
+osrs:
+  id: 12885
+  name: Jar of sand
+  slug: jar-of-sand
+  examine: It's just a jar of sand.
+  members: true
+  icon: Jar of sand.png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 5
+  item:
+    type: jar
+    tradeable: true
+    weight: 0.02
+  obtaining:
+    methods:
+      - source: Kalphite Queen
+        drop_rate: 1/2,000
+  usage:
+    description: Decoration for Achievement Gallery boss lair display
+    requirements: Defeating Kalphite Queen at least once to place
+    cosmetic: true
+  related_items:
+    - item_id: 12647
+      item_name: Kalphite princess
+      slug: kalphite-princess
+      relationship: alternative
+      description: KQ pet
+    - item_id: 7158
+      item_name: Dragon 2h sword
+      slug: dragon-2h-sword
+      relationship: alternative
+      description: KQ drop
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Jar |
+| Tradeable | Yes |
+| Weight | 0.02 kg |
+| Requirements | None |
+
+## Obtaining
+
+**Drop:** Kalphite Queen (1/2,000 drop rate).
+
+## Usage
+
+Decoration for Achievement Gallery boss lair display.
+
+Requires defeating Kalphite Queen at least once to place.
+
+Cosmetic/collectible item.
+
+## Market Strategy
+
+**Buy Limit:** 5 per 4 hours
+
+**Price:** ~761,032 gp
+
+Valuable jar due to rarity and KQ difficulty.
+
+## Related Items
+
+- [Kalphite princess](/osrs/kalphite-princess/) - KQ pet
+- [Dragon 2h sword](/osrs/dragon-2h-sword/) - KQ drop
+
+<Adsense />

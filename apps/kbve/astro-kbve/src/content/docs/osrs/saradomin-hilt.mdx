@@ -1,0 +1,103 @@
+---
+title: Saradomin hilt | OSRS Price Data
+description: "Saradomin hilt: Brimming with potential.. High alch: 300,000 GP, GE limit: 10,000."
+osrs:
+  id: 11814
+  name: Saradomin hilt
+  slug: saradomin-hilt
+  examine: Brimming with potential.
+  members: true
+  icon: Saradomin hilt.png
+  value: 500000
+  lowalch: 200000
+  highalch: 300000
+  limit: 10000
+  item:
+    type: godsword hilt
+    tradeable: true
+    weight: 2.5
+  recipes:
+    - skill: null
+      level: 0
+      materials:
+        - item_id: 11814
+          item_name: Saradomin hilt
+          quantity: 1
+        - item_id: 11798
+          item_name: Godsword blade
+          quantity: 1
+      product: Saradomin godsword
+      product_id: 11806
+  related_items:
+    - item_id: 11806
+      item_name: Saradomin godsword
+      slug: saradomin-godsword
+      relationship: product
+      description: Created weapon from hilt
+    - item_id: 11798
+      item_name: Godsword blade
+      slug: godsword-blade
+      relationship: component
+      description: Required component for godsword
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Type | Crafting Material |
+| Tradeable | Yes |
+| Weight | 2.5 kg |
+
+## Obtaining
+
+| Source | Drop Rate |
+|--------|-----------|
+| Commander Zilyana | 1/508 |
+
+## Uses
+
+| Item Created | Materials |
+|--------------|-----------|
+| Saradomin godsword | Godsword blade + Saradomin hilt |
+
+No skill requirements.
+
+## Market Strategy
+
+**Buy Limit:** 10,000 per 4 hours
+
+**Price:** ~20.5M gp
+
+**Tips:**
+- Farm Commander Zilyana
+- Healing spec weapon
+- Most expensive standard hilt
+
+## Related Items
+
+- [Commander Zilyana](/osrs/commander-zilyana/) - Boss source
+- [Godsword blade](/osrs/godsword-blade/) - Component
+- [Saradomin godsword](/osrs/saradomin-godsword/) - Created weapon
+
+<Adsense />

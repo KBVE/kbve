@@ -1,0 +1,37 @@
+---
+title: Ice plateau teleport (tablet) | OSRS Price Data
+description: "Ice plateau teleport (tablet): A teleport to the Ice Plateau in level 53 Wilderness.. High alch: 1 GP, GE limit: 10,000."
+osrs:
+  id: 24963
+  name: Ice plateau teleport (tablet)
+  slug: ice-plateau-teleport-tablet
+  examine: A teleport to the Ice Plateau in level 53 Wilderness.
+  members: true
+  icon: Ice plateau teleport (tablet).png
+  value: 1
+  lowalch: 1
+  highalch: 1
+  limit: 10000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

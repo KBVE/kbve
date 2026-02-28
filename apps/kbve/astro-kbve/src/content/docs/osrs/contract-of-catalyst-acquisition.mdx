@@ -1,0 +1,37 @@
+---
+title: Contract of catalyst acquisition | OSRS Price Data
+description: "Contract of catalyst acquisition: A contract issued by Yama. Present it to him to discuss some new terms.. GE limit: 50."
+osrs:
+  id: 30831
+  name: Contract of catalyst acquisition
+  slug: contract-of-catalyst-acquisition
+  examine: A contract issued by Yama. Present it to him to discuss some new terms.
+  members: true
+  icon: Contract of catalyst acquisition.png
+  value: 75000
+  lowalch: null
+  highalch: null
+  limit: 50
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+
+
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

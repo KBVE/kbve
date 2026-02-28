@@ -1,0 +1,37 @@
+---
+title: Ixcoztic white | OSRS Price Data
+description: "Ixcoztic white: A crisp and citrusy Aldarin White that's popular for all occasions.. High alch: 60 GP."
+osrs:
+  id: 29952
+  name: Ixcoztic white
+  slug: ixcoztic-white
+  examine: A crisp and citrusy Aldarin White that's popular for all occasions.
+  members: true
+  icon: Ixcoztic white.png
+  value: 100
+  lowalch: 40
+  highalch: 60
+  limit: null
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+
+
+<Adsense />

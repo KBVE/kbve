@@ -1,0 +1,37 @@
+---
+title: Restore mix(1) | OSRS Price Data
+description: "Restore mix(1): One dose of fishy restore potion.. High alch: 26 GP, GE limit: 2,000."
+osrs:
+  id: 11451
+  name: Restore mix(1)
+  slug: restore-mix-1
+  examine: One dose of fishy restore potion.
+  members: true
+  icon: Restore mix(1).png
+  value: 44
+  lowalch: 17
+  highalch: 26
+  limit: 2000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

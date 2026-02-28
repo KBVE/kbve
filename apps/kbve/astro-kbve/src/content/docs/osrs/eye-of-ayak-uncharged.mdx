@@ -1,0 +1,37 @@
+---
+title: Eye of ayak (uncharged) | OSRS Price Data
+description: "Eye of ayak (uncharged): This staff is imbued with demonic power. It is currently uncharged.. High alch: 3,600,000 GP, GE limit: 8."
+osrs:
+  id: 31115
+  name: Eye of ayak (uncharged)
+  slug: eye-of-ayak-uncharged
+  examine: This staff is imbued with demonic power. It is currently uncharged.
+  members: true
+  icon: Eye of ayak (uncharged).png
+  value: 6000000
+  lowalch: 2400000
+  highalch: 3600000
+  limit: 8
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

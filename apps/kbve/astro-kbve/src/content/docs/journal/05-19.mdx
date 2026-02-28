@@ -1,0 +1,143 @@
+---
+title: 'May: 19'
+category: Daily
+date: 2025-05-19 12:00:00
+client: Self
+unsplash: 1715997894621-e8eebc4e9278
+img: https://images.unsplash.com/photo-1715997894621-e8eebc4e9278?crop=entropy&cs=srgb&fm=jpg&ixid=MnwzNjM5Nzd8MHwxfHJhbmRvbXx8fHx8fHx8fDE2ODE3NDg2ODY&ixlib=rb-4.0.3&q=85
+description: |
+   May 19th - The Daily Journal. VNC is my soul.
+tags:
+    - daily
+---
+import { Adsense } from '@/components/astropad';
+
+<Adsense />
+
+
+## 2025
+
+### VContainer PCG Maps
+
+-   05:04AM
+
+    After some back and fourth testing, we were able to load the prefabs into the map!
+    Now there are a couple more side objectives that I want to do before really going deep into the lore side.
+    The rooms sadly are still not being connected, so I need to adjust for that.
+
+-   07:33AM
+
+    To be safe, I am going to trigger a build for the vcontainer and see if there might be any issues on the webgl build.
+    Damn I just made a mistake, forgot to include the scene, ugh, I will run another build again later today.
+
+-   09:18AM
+
+    The next update should focus on making sure the newly generated room gets linked with the seed room.
+    While the current script that generates the room seems to overlap the first prefab with the seed room, which can be an easy fix.
+    The anchor needs to follow the exit but also we might have to look at another way of building the said rooms.
+    One of the errors that I did recently notice was that the RareIcon Crawler was not placed under the grid, which could have caused issues with the generation.
+
+-   10:52AM
+
+    Looping back around we can make some minor changes again to the logic that we are using for the VContainer lifetimes.
+    We should run an `IStartable` that will scan specific tilemaps, to build a basic history of the tiles that are going to be placed.
+    Omg, I am way too slow, I just realized that I could just bake the data that is in the scene!
+    This could make things easier in the long term, ideally allowing us to make sure that the generated maps do not affect our home base.
+
+### Unity TileMap Baking
+
+-   11:29AM
+
+    For baking the tilemap, we will have three files to help with the flow and management!
+    Since we are still in the experimental stage, I will keep this all inside of the `Assets/Dungeon` for the time being, atleast until we got something really operational.
+
+### MMExtension Migration of Map v1
+
+-   09:19PM
+
+    Moving the basic script that holds our map generator and item deployment into the MMExtensions, this way we can keep things in sync!
+    I fixed the csproj file to reference the Unity and the modules that we are using, hopefully this will make it easier to manage the extension without having to open Unity itself.
+
+-   09:47PM
+
+    All the files are migrated and now we can look through any issues that we might have!
+    After loading and updating the script based off what we have, then we can move forward with the bake migration.
+
+## 2024
+
+**VNC**
+
+The VNC adventure still continues and this time we are going to switch over to kasm!
+I really wanted to make my own based upon the vnc format but kasm is growing so fast and it provides almost everything that I need, it just makes sense to build ontop of it.
+
+We did a couple moch images earlier this morning but I am ready to build it all again.
+Furthermore, I think we should update the notes from just `rustdesk` to something more along the realm of either `vnc` or `RDP`. 
+Creating a new application document to keep track of everything would make sense and it should be a habit that I need to practice more often.
+
+```Dockerfile
+FROM lscr.io/linuxserver/chromium:latest
+
+RUN apt-get update && \
+    apt-get install -y \
+    wget \
+    python3 \
+    python3-pip \
+    python3-tk \
+    python3-xdg \
+    python3-dev \
+    python3-venv \
+    python3-distutils \
+    pulseaudio
+
+RUN ln -s /usr/bin/python3 /usr/bin/python
+
+RUN wget -O /usr/local/bin/runelite.jar https://github.com/runelite/launcher/releases/download/2.7.1/RuneLite.jar
+
+RUN curl -sSL https://install.python-poetry.org | python -
+
+ENV PATH="$HOME/.local/bin:$HOME/.poetry/bin:${PATH}"
+
+RUN poetry --version
+
+WORKDIR /app
+COPY . /app
+COPY entrypoint.sh /usr/local/bin/
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+RUN mkdir -p /var/run/pulse && \
+    pulseaudio --daemonize && \
+    pulseaudio --start
+
+RUN poetry install
+
+ENV PATH="/app/.venv/bin:$PATH"
+
+EXPOSE 3000 8086
+
+```
+
+I am going to keep a backup of the older dockerfile in this journal entry, so that I can reference it back again in the future. 
+
+I really wish I did not have to go on multiple quests to just get these small errors resolved.
+This makes me really hate Ubuntu, Python and their whole eco-system, way too many random configurations and not enough easy fallbacks.
+
+**Docker**
+
+When deploying the Dockerfile , we can pass the shim using `docker run -it --shm-size=256m` , the `--shm-size` flag.
+To run the application, we will use: 
+
+```shell 
+docker run --name myapp_container -d -p 3000:3000 -p 8086:8086 --shm-size=2g myapp
+```
+
+This will open the two ports that we need and set the shm-size to 2G. 
+
+Hmm, so we have two options:
+
+The --no-sandbox option is required, or --cap-add=SYS_ADMIN to docker run command
+
+Here is a quick chain command:
+
+```shell
+docker build . -t myapp && docker stop myapp_container && docker run --name myapp_container -d -p 3000:3000 -p 8086:8086 --shm-size=2g myapp
+```

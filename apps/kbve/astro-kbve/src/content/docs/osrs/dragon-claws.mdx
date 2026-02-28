@@ -1,0 +1,144 @@
+---
+title: Dragon claws | OSRS Price Data
+description: "Dragon claws is a members weapon slot item requiring 60 Attack. High alch: 123,000 GP, GE limit: 8."
+osrs:
+  id: 13652
+  name: Dragon claws
+  slug: dragon-claws
+  examine: A set of fighting claws.
+  members: true
+  icon: Dragon claws.png
+  value: 205000
+  lowalch: 82000
+  highalch: 123000
+  limit: 8
+  equipment:
+    slot: weapon
+    type: claw
+    attack_style: melee
+    attack_speed: 4
+    requirements:
+      attack: 60
+    stats:
+      attack_stab: 41
+      attack_slash: 57
+      attack_crush: -4
+      defence_stab: 13
+      defence_slash: 26
+      defence_crush: 7
+      strength: 56
+    special_attack:
+      name: Slice and Dice
+      energy: 50
+      effect: 4 rapid hits in sequence
+      accuracy_reduction_per_hit: 10
+  drop_table:
+    sources:
+      - source: Tormented Demons
+        source_id: 8349
+        combat_level: 450
+        quantity: "1"
+        rarity: 1/512
+        members_only: true
+      - source: Chambers of Xeric
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: Very rare
+        members_only: true
+  related_items:
+    - item_id: 13576
+      item_name: Dragon warhammer
+      slug: dragon-warhammer
+      relationship: alternative
+      description: Defence lowering spec
+    - item_id: 11802
+      item_name: Armadyl godsword
+      slug: armadyl-godsword
+      relationship: alternative
+      description: Alternative spec weapon
+    - item_id: 11806
+      item_name: Bandos godsword
+      slug: bandos-godsword
+      relationship: alternative
+      description: Defence draining spec
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Weapon (Main-hand) |
+| Type | Melee - Slash |
+| Tradeable | Yes |
+| Weight | 0.907 kg |
+| Attack Speed | 4 tick (2.4s) |
+
+## Obtaining
+
+Rare drop from Tormented Demons in the Demon Slayer quest (post-quest drop).
+
+Also obtainable from Chambers of Xeric (very rare).
+
+## Stats
+
+| Stat | Value |
+|------|-------|
+| Stab attack | +41 |
+| Slash attack | +57 |
+| Crush attack | -4 |
+| Stab defence | +13 |
+| Slash defence | +26 |
+| Crush defence | +7 |
+| Strength | +56 |
+| Requirements | 60 Attack |
+
+## Special Attack
+
+**Slice and Dice** (50% energy):
+- 4 rapid hits in sequence
+- Each hit has ~10% reduced accuracy
+- Can deal massive burst damage
+
+**Extremely powerful for PvP and spec-focused PvM.**
+
+## Usage
+
+BiS spec weapon for:
+- PvP (combo specs)
+- ToB Maiden
+- CoX Tekton
+- General burst damage
+
+## Market Strategy
+
+**Buy Limit:** 8 per 4 hours
+
+**Price:** ~53M gp
+
+**Tips:**
+- Tormented Demons are best source
+- Iconic PvP spec weapon
+- 4 hits can stack huge damage
+
+<Adsense />

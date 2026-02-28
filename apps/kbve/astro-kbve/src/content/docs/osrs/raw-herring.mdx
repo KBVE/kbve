@@ -1,0 +1,37 @@
+---
+title: Raw herring | OSRS Price Data
+description: "Raw herring: I should try cooking this.. High alch: 6 GP, GE limit: 15,000."
+osrs:
+  id: 345
+  name: Raw herring
+  slug: raw-herring
+  examine: I should try cooking this.
+  members: false
+  icon: Raw herring.png
+  value: 10
+  lowalch: 4
+  highalch: 6
+  limit: 15000
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+<Adsense />

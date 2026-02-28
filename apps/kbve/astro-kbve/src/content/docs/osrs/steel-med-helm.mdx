@@ -1,0 +1,93 @@
+---
+title: Steel med helm | OSRS Price Data
+description: "Steel med helm: A medium sized helmet.. High alch: 180 GP, GE limit: 125."
+osrs:
+  id: 1141
+  name: Steel med helm
+  slug: steel-med-helm
+  examine: A medium sized helmet.
+  members: false
+  icon: Steel med helm.png
+  value: 300
+  lowalch: 120
+  highalch: 180
+  limit: 125
+  item_id: 1141
+  item_type: armor
+  slot: head
+  type: med_helm
+  tradeable: true
+  weight: 1.814
+  requirements:
+    defence: 5
+  stats:
+    stab_defence: 7
+    slash_defence: 8
+    crush_defence: 6
+    magic_defence: -1
+    ranged_defence: 7
+  related_items:
+    - slug: black-med-helm
+    - slug: steel-full-helm
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a free-to-play item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Equipment Info
+
+| Property | Value |
+|----------|-------|
+| Slot | Head |
+| Type | Med Helm |
+| Tradeable | Yes |
+| Weight | 1.814 kg |
+| Requirements | 5 Defence |
+
+## Combat Stats
+
+| Stat | Bonus |
+|------|-------|
+| Stab Defence | +7 |
+| Slash Defence | +8 |
+| Crush Defence | +6 |
+| Magic Defence | -1 |
+| Ranged Defence | +7 |
+
+## Obtaining
+
+**Smithing:** 33 Smithing with 1 steel bar (37.5 XP).
+
+**Shop:** Peksa's Helmet Shop, Barbarian Village.
+
+## Market Strategy
+
+**Buy Limit:** 125 per 4 hours
+
+**Price:** ~44 gp
+
+Mid-level helmet. F2P accessible.
+
+## Related Items
+
+- [Black med helm](/osrs/black-med-helm/) - Upgrade
+- [Steel full helm](/osrs/steel-full-helm/) - More defence
+
+<Adsense />

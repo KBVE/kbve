@@ -1,0 +1,124 @@
+---
+title: Willow seed | OSRS Price Data
+description: "Willow seed: Plant this in a plantpot of soil to grow a sapling.. High alch: 9 GP, GE limit: 200."
+osrs:
+  id: 5313
+  name: Willow seed
+  slug: willow-seed
+  examine: Plant this in a plantpot of soil to grow a sapling.
+  members: true
+  icon: Willow seed 5.png
+  value: 16
+  lowalch: 6
+  highalch: 9
+  limit: 200
+  properties:
+    tradeable: true
+    tradeable_ge: true
+    stackable: true
+    weight: 0
+  skilling_source:
+    skill: farming
+    level: 30
+    xp: 25
+    growth_time: 280
+  drop_table:
+    sources:
+      - source: Bird nests (Woodcutting)
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+      - source: Wintertodt
+        source_id: 0
+        combat_level: 0
+        quantity: "1"
+        rarity: common
+        members_only: true
+  related_items:
+    - item_id: 1519
+      item_name: Willow logs
+      slug: willow-logs
+      relationship: product
+      description: Woodcutting product
+    - item_id: 5979
+      item_name: Basket of apples
+      slug: basket-of-apples
+      relationship: component
+      description: Protection payment (1)
+    - item_id: 5312
+      item_name: Acorn
+      slug: acorn
+      relationship: alternative
+      description: Lower tier option
+    - item_id: 5314
+      item_name: Maple seed
+      slug: maple-seed
+      relationship: upgrade
+      description: Higher tier option
+---
+
+import OSRSItemPanel from '@/components/osrs/OSRSItemPanel.astro';
+import { Adsense } from '@/components/astropad';
+
+<OSRSItemPanel data={frontmatter.osrs} />
+
+## About {frontmatter.osrs.name}
+
+**{frontmatter.osrs.name}** is a members-only item in Old School RuneScape.
+
+> "{frontmatter.osrs.examine}"
+
+## Item Details
+
+- **Item ID:** {frontmatter.osrs.id}
+- **Members:** {frontmatter.osrs.members ? 'Yes' : 'No'}
+- **Store Value:** {frontmatter.osrs.value?.toLocaleString()} GP
+- **High Alch:** {frontmatter.osrs.highalch?.toLocaleString()} GP
+- **Low Alch:** {frontmatter.osrs.lowalch?.toLocaleString()} GP
+- **GE Limit:** {frontmatter.osrs.limit?.toLocaleString()} per 4 hours
+
+## Item Info
+
+| Property | Value |
+|----------|-------|
+| Slot | N/A |
+| Type | Tree Seed |
+| Tradeable | Yes |
+| Weight | 0 kg |
+| Requirements | 30 Farming |
+
+## Obtaining
+
+Common sources:
+- Bird nests (Woodcutting, Bird houses)
+- Wintertodt supply crates
+- Managing Miscellania
+- Monster drops
+
+## Usage
+
+Plant in **tree patches** to grow willow trees.
+
+**Growth Time:** ~280 minutes (4.6 hours)
+
+**Payment:** 1 basket of apples (optional protection)
+
+**XP:** 25 (planting) + 1,456.5 (check-health)
+
+## Market Strategy
+
+**Buy Limit:** 200 per 4 hours
+
+**Price:** ~5 gp
+
+Budget tree seed. Good for mid-level Farming training. Willow trees provide good XP for their cost.
+
+## Related Items
+
+- [Willow logs](/osrs/willow-logs/) - Woodcutting product
+- [Basket of apples](/osrs/basket-of-apples/) - Protection payment
+- [Maple seed](/osrs/maple-seed/) - Higher tier option
+
+<Adsense />
