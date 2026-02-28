@@ -24,6 +24,7 @@ import {
 	Home,
 	BookOpen,
 	LayoutDashboard,
+	Flame,
 	LogIn,
 	LogOut,
 	X,
@@ -44,6 +45,7 @@ interface NavItem {
 
 const NAV_ITEMS: NavItem[] = [
 	{ label: 'Home', href: '/', icon: Home },
+	{ label: 'Feed', href: '/feed', icon: Flame },
 	{ label: 'Docs', href: '/guides/getting-started', icon: BookOpen },
 	{ label: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
 ];
