@@ -349,10 +349,12 @@ impl EventHandler<PlayerJoinEvent> for WelcomeHandler {
                 }
             }
 
-            // Initialize character stats and show XP boss bar
+            // Initialize character stats, show sidebar + XP boss bar by default
             let uuid_bits = player.gameprofile.id.as_u128();
             let char_data = stats::CharacterData::default();
             stats::PLAYER_STATS.insert(uuid_bits, char_data.clone());
+            stats::send_stats_sidebar(&player, &char_data).await;
+            stats::SIDEBAR_VISIBLE.insert(uuid_bits, true);
             stats::send_xp_bossbar(&player, &char_data).await;
 
             info!(
@@ -910,10 +912,19 @@ impl EventHandler<PlayerRespawnEvent> for RespawnHandler {
                 )
                 .await;
 
-            // Re-send boss bar (may not persist across respawn)
+            // Remove old boss bar before re-sending (prevents stacking)
+            stats::remove_xp_bossbar(&player).await;
             let uuid_bits = player.gameprofile.id.as_u128();
             if let Some(data) = stats::PLAYER_STATS.get(&uuid_bits) {
                 stats::send_xp_bossbar(&player, &data).await;
+                // Re-send sidebar if it was visible
+                if stats::SIDEBAR_VISIBLE
+                    .get(&uuid_bits)
+                    .map(|v| *v)
+                    .unwrap_or(false)
+                {
+                    stats::send_stats_sidebar(&player, &data).await;
+                }
             }
         })
     }

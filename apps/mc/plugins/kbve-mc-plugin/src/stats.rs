@@ -101,7 +101,7 @@ pub async fn send_stats_sidebar(player: &Player, data: &CharacterData) {
         .enqueue_packet(&CUpdateObjectives::new(
             OBJECTIVE_NAME.to_string(),
             Mode::Add,
-            TextComponent::text("KBVE Stats")
+            TextComponent::text("Stats")
                 .color_named(NamedColor::Gold)
                 .bold(),
             RenderType::Integer,
@@ -119,22 +119,16 @@ pub async fn send_stats_sidebar(player: &Player, data: &CharacterData) {
         .await;
 
     // 3. Send score entries — highest score value = top of sidebar
-    let lines: [(TextComponent, i32); 13] = [
+    let lines: [(TextComponent, i32); 8] = [
         (
-            TextComponent::text("--- Character ---")
-                .color_named(NamedColor::Gold)
-                .bold(),
-            15,
-        ),
-        (
-            TextComponent::text("Level: ")
+            TextComponent::text("Lv: ")
                 .color_named(NamedColor::White)
                 .add_child(
                     TextComponent::text(format!("{}", data.level))
                         .color_named(NamedColor::Green)
                         .bold(),
                 ),
-            14,
+            10,
         ),
         (
             TextComponent::text("XP: ")
@@ -143,28 +137,14 @@ pub async fn send_stats_sidebar(player: &Player, data: &CharacterData) {
                     TextComponent::text(format!("{}", data.experience))
                         .color_named(NamedColor::Aqua),
                 ),
-            13,
+            9,
         ),
-        (TextComponent::text(" "), 12), // spacer
-        (
-            TextComponent::text("--- Stats ---")
-                .color_named(NamedColor::Yellow)
-                .bold(),
-            11,
-        ),
-        (stat_line("STR", data.strength, NamedColor::Red), 10),
-        (stat_line("DEX", data.dexterity, NamedColor::Green), 9),
-        (stat_line("CON", data.constitution, NamedColor::DarkRed), 8),
-        (stat_line("INT", data.intelligence, NamedColor::Blue), 7),
-        (stat_line("WIS", data.wisdom, NamedColor::DarkPurple), 6),
-        (stat_line("CHA", data.charisma, NamedColor::Gold), 5),
-        (TextComponent::text("  "), 4), // spacer
-        (
-            TextComponent::text("kbve.com")
-                .color_named(NamedColor::Gray)
-                .italic(),
-            3,
-        ),
+        (stat_line("STR", data.strength, NamedColor::Red), 8),
+        (stat_line("DEX", data.dexterity, NamedColor::Green), 7),
+        (stat_line("CON", data.constitution, NamedColor::DarkRed), 6),
+        (stat_line("INT", data.intelligence, NamedColor::Blue), 5),
+        (stat_line("WIS", data.wisdom, NamedColor::DarkPurple), 4),
+        (stat_line("CHA", data.charisma, NamedColor::Gold), 3),
     ];
 
     for (text, score) in lines {
