@@ -7,6 +7,7 @@ from .chrome_client import ChromeClient
 
 logger = logging.getLogger("uvicorn")
 
+
 class DiscordClient:
     def __init__(self, headless=True, display=":1"):
         self.headless = headless
@@ -19,10 +20,16 @@ class DiscordClient:
         """
         passkey = passkey or os.getenv("DISCORD_PASSKEY")
         if not passkey:
-            raise ValueError("Passkey not provided. Set it as an argument or in the DISCORD_PASSKEY environment variable.")
+            raise ValueError(
+                "Passkey not provided. Set it as an argument "
+                "or in the DISCORD_PASSKEY environment variable."
+            )
 
         if not re.match(r"^[A-Za-z0-9_\-\.]+$", passkey):
-            raise ValueError("Invalid token format. Discord tokens should be alphanumeric with optional underscores, hyphens, or dots.")
+            raise ValueError(
+                "Invalid token format. Discord tokens should be "
+                "alphanumeric with optional underscores, hyphens, or dots."
+            )
 
         for attempt in range(retries):
             try:
@@ -33,9 +40,9 @@ class DiscordClient:
                 await self.chrome_client.perform_task_with_chrome(discord_url)
 
                 logger.info("Injecting passkey into localStorage")
-                self.chrome_client.sb.execute_script(f'''
-                window.localStorage.setItem('token', '{passkey}');
-                ''')
+                js = "window.localStorage.setItem('token', '"
+                js += passkey + "')"
+                self.chrome_client.sb.execute_script(js)
 
                 logger.info("Refreshing the page to apply the token")
                 self.chrome_client.sb.refresh()

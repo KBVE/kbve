@@ -1,0 +1,159 @@
+---
+title: First Project Checklist
+description: |
+  KBVE's comprehensive guides offer everything needed to streamline your project from planning to execution.
+  This checklist ensures you have the right tools, clear objectives, and access to necessary resources.
+  With a focus on practical steps, it supports your efforts to achieve project goals efficiently.
+  Stay organized and ready by following this structured approach, with the right support at every stage to set your project up for success.
+  Let this guide be the foundation of your project, helping you navigate each step with clarity and confidence.
+sidebar:
+  label: First Project Checklist
+  order: 3
+---
+
+import {
+  Aside,
+  Steps,
+  Card,
+  CardGrid,
+  Code,
+  FileTree,
+  LinkCard,
+  Tabs,
+  TabItem,
+} from "@astrojs/starlight/components";
+
+import { Adsense } from '@/components/astropad';
+
+> Starting a new [project](/project/) is exciting and full of possibilities, though it comes with its own set of challenges.
+The key to success is solid preparation and smart planning.
+That's where the KBVE First Project Checklist comes in, giving you a clear, structured roadmap to keep you on track from start to finish.
+With each step laid out, you can move through the process with confidence, ready to tackle obstacles and hit milestones along the way.
+Let's get started and make your project a rewarding experience.
+
+
+## Project Preparation
+
+<CardGrid>
+  <Card title="Scope and Objectives">
+    - Define the project's scope, deliverables, and desired outcomes upfront
+    - Identify what a minimum viable version looks like so you know when to ship
+    - Set clear success criteria — what does "done" mean for this project?
+    - List any known constraints (budget, timeline, tech limitations)
+  </Card>
+  <Card title="Tools and Environment">
+    - List all required tools, frameworks, and dependencies
+    - Set up version control ([Git](/application/git/)) and agree on a branching strategy
+    - Configure linting, formatting, and any shared editor settings
+    - Verify that every contributor can build and run the project locally
+  </Card>
+  <Card title="Arranging Resources">
+    - Coordinate with your team or KBVE resources early if you need extra expertise
+    - Clarify timelines, roles, and who owns each deliverable
+    - Set up a communication channel (Discord, Slack, etc.) for quick decisions
+    - Document key decisions in a shared place so nothing gets lost
+  </Card>
+</CardGrid>
+
+## Project Execution
+### Initial Phase
+<Steps>
+1. Set up the project [repository](/application/git/) and configure your development environment using the relevant KBVE guides.
+
+2. Align with your team on project goals, coding standards, and workflow conventions
+
+3. Break the project into manageable tasks and assign ownership for each area
+
+4. Establish regular checkpoints and milestones to track progress and catch issues early
+
+5. Run through an initial build or prototype to validate your setup before diving into full development
+</Steps>
+
+
+## Staying Organized
+
+Once your project is underway, keeping tasks visible and manageable is just as important as the initial setup.
+How you organize that work depends on the type of project and your team's preferences.
+Below are the most common approaches — pick one or combine elements from several.
+
+### Project Management Styles
+
+<Tabs>
+  <TabItem label="Kanban">
+    A visual, flow-based system. Tasks live on a board and move through columns like **To Do**, **In Progress**, and **Done**.
+
+    **Best for:** Ongoing work, maintenance, or projects where priorities shift often.
+
+    - See all active tasks and their status at a glance
+    - Spot bottlenecks by watching where cards pile up
+    - No fixed timeboxes — work flows continuously
+    - Easy to start with and adapt over time
+
+    Check out the [KBVE Kanban Board](/kanban/) to see this in action.
+  </TabItem>
+  <TabItem label="Scrum">
+    A sprint-based approach. Work is planned in short cycles (usually 1–2 weeks), with a defined set of tasks committed to each sprint.
+
+    **Best for:** Feature-driven development with a dedicated team.
+
+    - Work is broken into a prioritized backlog
+    - Each sprint has a clear goal and a fixed scope
+    - Daily standups keep the team in sync
+    - A review at the end of each sprint captures what worked and what didn't
+  </TabItem>
+  <TabItem label="Waterfall">
+    A sequential, phase-based process. Each stage (requirements, design, build, test, deploy) is completed before the next begins.
+
+    **Best for:** Projects with well-defined requirements that are unlikely to change.
+
+    - Clear milestones and deliverables at each phase
+    - Straightforward to plan and estimate upfront
+    - Less flexibility to change direction mid-project
+    - Works well when external dependencies or approvals gate each phase
+  </TabItem>
+  <TabItem label="Hybrid">
+    A mix-and-match approach. Many teams combine elements — for example, sprint planning from Scrum with a kanban board for daily tracking.
+
+    **Best for:** Teams that want structure without rigid rules.
+
+    - Take what works from each methodology and drop what doesn't
+    - Use timeboxed sprints for planning but a kanban board for visibility
+    - Adapt the process as the team and project evolve
+    - Focus on outcomes over ceremony
+  </TabItem>
+</Tabs>
+
+<Aside type="tip">
+There's no single right answer. Start with the style that feels natural for your project, and adjust as you learn what works for your team.
+</Aside>
+
+## Additional Resources
+<CardGrid>
+<LinkCard
+  title="Detailed Guides"
+  description="Access in-depth documentation on KBVE services, tools, and workflows."
+  href="/guides/intro"
+/>
+<LinkCard
+  title="KBVE Projects"
+  description="Browse existing KBVE projects for inspiration, reference, and collaboration opportunities."
+  href="/project/"
+/>
+<LinkCard
+  title="Application Navigator"
+  description="Explore technical docs on frameworks, languages, and tools used across KBVE projects."
+  href="/application/"
+/>
+</CardGrid>
+
+
+
+<Aside type="tip" title="Remember!">
+
+Starting a new project is both exciting and challenging!
+With the right preparation and guidance, your project is set up for success.
+The KBVE First Project Checklist provides a clear, structured approach to keep you ready at every step.
+
+</Aside>
+
+<Adsense />

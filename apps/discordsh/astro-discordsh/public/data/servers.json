@@ -1,1 +1,146 @@
-{}
+[
+	{
+		"server_id": "110373943822540800",
+		"name": "Pixel Legends",
+		"summary": "A retro gaming community for fans of classic games, speedruns, and pixel art.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "pixellegends",
+		"categories": ["gaming"],
+		"member_count": 14200,
+		"vote_count": 342,
+		"is_online": true
+	},
+	{
+		"server_id": "220373943822540801",
+		"name": "Sakura Lounge",
+		"summary": "Anime watch parties, manga discussions, and fan art sharing. Weekly seasonal reviews.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "sakuralounge",
+		"categories": ["anime", "art"],
+		"member_count": 8700,
+		"vote_count": 287,
+		"is_online": true
+	},
+	{
+		"server_id": "330373943822540802",
+		"name": "Code Forge",
+		"summary": "Open-source collaboration, code reviews, and mentorship for developers of all levels.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "codeforge",
+		"categories": ["programming", "tech"],
+		"member_count": 23500,
+		"vote_count": 518,
+		"is_online": true
+	},
+	{
+		"server_id": "440373943822540803",
+		"name": "Synthwave Radio",
+		"summary": "24/7 synthwave and retrowave music. Live DJ nights every Friday. Curated playlists.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "synthwaveradio",
+		"categories": ["music"],
+		"member_count": 6300,
+		"vote_count": 195,
+		"is_online": true
+	},
+	{
+		"server_id": "550373943822540804",
+		"name": "Crypto Pulse",
+		"summary": "Real-time market analysis, DeFi discussions, and trading signals. No pump-and-dump.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "cryptopulse",
+		"categories": ["crypto"],
+		"member_count": 11800,
+		"vote_count": 163,
+		"is_online": true
+	},
+	{
+		"server_id": "660373943822540805",
+		"name": "Artisan's Workshop",
+		"summary": "Digital art tutorials, critique sessions, and monthly art challenges with prizes.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "artisanworkshop",
+		"categories": ["art"],
+		"member_count": 5200,
+		"vote_count": 241,
+		"is_online": true
+	},
+	{
+		"server_id": "770373943822540806",
+		"name": "Study Together",
+		"summary": "Pomodoro study rooms, homework help, and exam prep. All subjects, all levels.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "studytogether",
+		"categories": ["education", "social"],
+		"member_count": 19400,
+		"vote_count": 412,
+		"is_online": true
+	},
+	{
+		"server_id": "880373943822540807",
+		"name": "Meme Central",
+		"summary": "The internet's finest memes. Daily contests, OC only channel, and meme templates.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "memecentral",
+		"categories": ["memes", "social"],
+		"member_count": 31200,
+		"vote_count": 623,
+		"is_online": true
+	},
+	{
+		"server_id": "990373943822540808",
+		"name": "Realm of Aetheria",
+		"summary": "Text-based roleplay in a rich fantasy world. Custom character sheets and lore.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "aetheria",
+		"categories": ["roleplay", "gaming"],
+		"member_count": 3800,
+		"vote_count": 156,
+		"is_online": true
+	},
+	{
+		"server_id": "100373943822540809",
+		"name": "Friendly Corner",
+		"summary": "A chill hangout spot. Voice chats, movie nights, and game nights. 18+ only.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "friendlycorner",
+		"categories": ["social"],
+		"member_count": 7600,
+		"vote_count": 198,
+		"is_online": true
+	},
+	{
+		"server_id": "110373943822540810",
+		"name": "Linux Enthusiasts",
+		"summary": "Distro discussions, ricing showcases, and troubleshooting. Arch btw.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "linuxenthusiasts",
+		"categories": ["tech", "programming"],
+		"member_count": 9100,
+		"vote_count": 274,
+		"is_online": true
+	},
+	{
+		"server_id": "120373943822540811",
+		"name": "Valorant Hub",
+		"summary": "Find teammates, share clips, and discuss strategy. Weekly tournaments.",
+		"icon_url": null,
+		"banner_url": null,
+		"invite_code": "valoranthub",
+		"categories": ["gaming"],
+		"member_count": 42800,
+		"vote_count": 891,
+		"is_online": true
+	}
+]

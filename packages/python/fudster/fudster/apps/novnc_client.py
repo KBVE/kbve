@@ -10,6 +10,7 @@ except ImportError:
     websockets = None
     websocketproxy = None
 
+
 class NoVNCClient:
     def __init__(self, logger=None):
         self.logger = logger if logger else getLogger("uvicorn")
@@ -19,7 +20,7 @@ class NoVNCClient:
             raise ImportError("websockets and websockify are required. Install with: pip install fudster[vnc]")
 
         await websocket.accept()
-        uri = f"ws://{target_host}:{target_port}"
+        uri = "ws://{}:{}".format(target_host, target_port)
         await self.start_websockify_server(target_host, target_port)
 
         while True:

@@ -1303,7 +1303,7 @@ dependencies = [
 
 [[package]]
 name = "kbve-mc-plugin"
-version = "0.1.5"
+version = "0.1.8"
 dependencies = [
  "askama",
  "axum",
@@ -1320,6 +1320,7 @@ dependencies = [
  "tower",
  "tower-http",
  "ureq",
+ "uuid",
 ]
 
 [[package]]

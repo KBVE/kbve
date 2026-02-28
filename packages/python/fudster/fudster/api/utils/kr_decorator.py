@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from typing import Type, Callable
 
+
 class KRDecorator:
     def __init__(self, app: FastAPI):
         self.app = app

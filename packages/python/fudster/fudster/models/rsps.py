@@ -1,6 +1,7 @@
 from typing import List, Union
 from pydantic import BaseModel, Field
 
+
 # Models for /stats endpoint
 class Stat(BaseModel):
     stat: str
@@ -9,8 +10,10 @@ class Stat(BaseModel):
     xp: int
     xp_gained: Union[int, str] = Field(alias='xp gained')
 
+
 class GameStat(BaseModel):
     stats: List[Stat]
+
 
 # Models for /events endpoint
 class WorldPoint(BaseModel):
@@ -20,6 +23,7 @@ class WorldPoint(BaseModel):
     regionID: int = Field(alias='regionID')
     regionX: int = Field(alias='regionX')
     regionY: int = Field(alias='regionY')
+
 
 class Camera(BaseModel):
     yaw: int
@@ -31,9 +35,11 @@ class Camera(BaseModel):
     y2: int
     z2: int
 
+
 class Mouse(BaseModel):
     x: int
     y: int
+
 
 class GameEvent(BaseModel):
     animation: int
@@ -50,10 +56,12 @@ class GameEvent(BaseModel):
     camera: Camera
     mouse: Mouse
 
+
 # Model for /inv endpoint
 class InventoryItem(BaseModel):
     id: int
     quantity: int
+
 
 class GameInventory(BaseModel):
     items: List[InventoryItem]

@@ -1,0 +1,64 @@
+---
+import Layout from '../../layouts/Layout.astro';
+---
+
+<Layout
+	title="Submit Your Server | Discord.sh"
+	description="Submit your Discord server to the Discord.sh directory and get discovered by thousands of users.">
+	<main class="submit-page">
+		<header class="submit-header">
+			<h1>Submit Your Server</h1>
+			<p>Server submission is coming soon. Check back shortly!</p>
+		</header>
+		<div class="submit-placeholder">
+			<p>
+				We're building a seamless submission flow. Once ready, you'll be
+				able to add your server with a Discord invite link and have it
+				listed in our directory.
+			</p>
+			<a href="/servers/" class="back-link">Browse Servers</a>
+		</div>
+	</main>
+</Layout>
+
+<style>
+	.submit-page {
+		max-width: 40rem;
+		margin: 0 auto;
+		padding: 2rem 1rem;
+	}
+	.submit-header {
+		margin-bottom: 2rem;
+	}
+	.submit-header h1 {
+		font-size: 1.75rem;
+		font-weight: 700;
+		color: var(--sl-color-text, #e5e7eb);
+		margin: 0 0 0.5rem;
+	}
+	.submit-header p {
+		font-size: 1rem;
+		color: var(--sl-color-gray-3, #9ca3af);
+		margin: 0;
+	}
+	.submit-placeholder {
+		padding: 1.5rem;
+		border-radius: 0.75rem;
+		border: 1px solid var(--sl-color-gray-5, #374151);
+		background: var(--sl-color-gray-7, #1f2937);
+	}
+	.submit-placeholder p {
+		color: var(--sl-color-gray-3, #9ca3af);
+		font-size: 0.9375rem;
+		line-height: 1.6;
+		margin: 0 0 1rem;
+	}
+	.back-link {
+		color: var(--sl-color-accent, #8b5cf6);
+		font-size: 0.875rem;
+		text-decoration: none;
+	}
+	.back-link:hover {
+		text-decoration: underline;
+	}
+</style>

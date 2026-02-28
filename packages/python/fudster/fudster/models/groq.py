@@ -2,16 +2,19 @@ from pydantic import BaseModel, Field
 from typing import List, Optional
 from datetime import datetime
 
+
 class AiGroqPayload(BaseModel):
     message: str
     model: str
     system: str
+
 
 class GroqChoice(BaseModel):
     text: str
     index: int
     logprobs: Optional[dict] = None
     finish_reason: Optional[str] = None
+
 
 class GroqUsage(BaseModel):
     prompt_tokens: int
